@@ -25,8 +25,10 @@ volumes:
   everyup-agent-data:
 ```
 
-The Docker collector reports each discovered container as a service card. It uses Docker
-Compose project/service metadata when available, otherwise the container name.
+The Docker collector groups service cards by Compose project/service metadata
+when available, otherwise by container name. It collects logs from every
+container in a group using independent cursors. A group is unhealthy if any of
+its discovered replicas is not running.
 
 ## What Is Collected
 

@@ -45,10 +45,12 @@ type DockerLogLine struct {
 	Raw     string
 }
 
-func (c *DockerClient) LogsSince(ctx context.Context, containerID string, since time.Time, tail int) ([]DockerLogLine, error) {
+// ReadLogsSince streams complete records with bounded memory. Tail only bounds
+// initial history; subsequent reads must drain the backlog, oldest first.
+func (c *DockerClient) ReadLogsSince(ctx context.Context, containerID string, since time.Time, tail int, visit func(DockerLogLine) error) error {
 	containerID = strings.TrimSpace(containerID)
 	if containerID == "" {
-		return nil, fmt.Errorf("container ID is required")
+		return fmt.Errorf("container ID is required")
 	}
 	if tail <= 0 {
 		tail = 100
@@ -63,6 +65,7 @@ func (c *DockerClient) LogsSince(ctx context.Context, containerID string, since 
 	values.Set("timestamps", "1")
 	values.Set("tail", strconv.Itoa(tail))
 	if !since.IsZero() {
+		values.Set("tail", "all")
 		// Docker's since filter is second-granular in common deployments. Query a
 		// one-second overlap and let the caller drop records already persisted.
 		values.Set("since", strconv.FormatInt(since.Add(-time.Second).Unix(), 10))
@@ -71,23 +74,18 @@ func (c *DockerClient) LogsSince(ctx context.Context, containerID string, since 
 	endpoint := fmt.Sprintf("http://docker/containers/%s/logs?%s", url.PathEscape(containerID), values.Encode())
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
-		return nil, fmt.Errorf("create docker logs request: %w", err)
+		return fmt.Errorf("create docker logs request: %w", err)
 	}
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("query docker logs: %w", err)
+		return fmt.Errorf("query docker logs: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return nil, fmt.Errorf("docker logs returned %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+		return fmt.Errorf("docker logs returned %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
-
-	data, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
-	if err != nil {
-		return nil, fmt.Errorf("read docker logs: %w", err)
-	}
-	return parseDockerLogLines(data), nil
+	return readDockerLogs(resp.Body, visit)
 }
 
 // ContainerMetaMap returns container provenance keyed by stable service key

@@ -23,8 +23,16 @@ type TargetState struct {
 }
 
 type Snapshot struct {
-	Version int                    `json:"version"`
-	Targets map[string]TargetState `json:"targets"`
+	Version    int                    `json:"version"`
+	Targets    map[string]TargetState `json:"targets"`
+	LogCursors map[string]LogCursor   `json:"logCursors,omitempty"`
+}
+
+// Count distinguishes separate records sharing the cursor's timestamp.
+// Container IDs, not service identities, key these cursors.
+type LogCursor struct {
+	At    time.Time `json:"at"`
+	Count int       `json:"count"`
 }
 
 type Store struct {

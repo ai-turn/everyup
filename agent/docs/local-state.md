@@ -7,7 +7,7 @@ survives container restarts.
 
 | File | Format | Purpose |
 |---|---|---|
-| `agent-state.json` | JSON | Per-target identity (name/type/endpoint), health state, and last alert timestamps |
+| `agent-state.json` | JSON | Per-target identity, health state, alert timestamps, and per-container log cursors |
 | `audit.jsonl` | JSON Lines | Startup, alert, and recovery events |
 
 ## `agent-state.json`
@@ -39,8 +39,24 @@ Example:
 restart. The map key is the target's local key (`env:<EVERYUP_SERVICE_NAME>` for
 the `EVERYUP_HEALTH_URL` target, or a stable key for discovered ones — service
 name / compose `project:service`, not the container ID, so the entry survives
-container recreation). On each check cycle the Docker collector prunes entries
-for targets it no longer discovers, so removed services don't linger in Web.
+container recreation). After a successful discovery the Docker collector prunes
+entries for removed targets. A failed Docker query preserves the last known state.
+
+`logCursors` is a separate map keyed by Docker container ID. Each entry stores
+`at` (the acknowledged log timestamp) and `count` (the number of acknowledged
+records at that timestamp). Replicas share a service card but never share a log
+cursor. Removed containers' cursors are pruned after successful discovery.
+
+The collector saves a cursor after each successful log request. Failed requests
+resume from the last acknowledged position, including after a restart. On upgrade,
+the old service-level `lastDockerLogAt` provides a starting point; its timestamp
+boundary is replayed because older versions did not count equal timestamps.
+
+Delivery can produce duplicates if Web accepts a request but its response is
+lost, or the collector exits before saving the acknowledgement. Docker log
+rotation or container deletion can remove unread data; keep Docker retention
+long enough for the outages you expect. The local state file is a checkpoint,
+not a durable copy of the log contents.
 
 ## `audit.jsonl`
 

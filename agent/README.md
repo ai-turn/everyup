@@ -62,6 +62,13 @@ what it can see with:
 docker logs <container-name> --tail 100
 ```
 
+The first read of a new container uses `EVERYUP_DOCKER_LOGS_TAIL_LINES` (default
+100) to bound historical logs. Once a cursor exists, every remaining line is
+read from Docker without a tail limit. Each replica has its own persisted cursor.
+Collection streams records in bounded batches; outbound log requests are split
+below the Web request-size limit. Log bodies retain a UTF-8-safe prefix of about
+8 KiB. See [local state](docs/local-state.md) for restart and retention behavior.
+
 API status codes are extracted from those same logs: lines that parse as access
 logs (Nginx / Apache / structured JSON) are emitted as synthetic OTel SERVER
 spans, which Web projects into the **API** tab. There is no latency in access
@@ -201,7 +208,7 @@ days (default 7).
 | `EVERYUP_DOCKER_DISCOVERY_ENABLED` | no | `true` | Discover Docker containers automatically |
 | `EVERYUP_DOCKER_SOCKET_PATH` | no | `/var/run/docker.sock` | Docker socket path inside the container |
 | `EVERYUP_DOCKER_LOGS_ENABLED` | no | `true` | Forward containers' stdout/stderr logs to Web |
-| `EVERYUP_DOCKER_LOGS_TAIL_LINES` | no | `100` | Max Docker log lines read per service on each check tick |
+| `EVERYUP_DOCKER_LOGS_TAIL_LINES` | no | `100` | Historical lines read on a container's first collection; subsequent reads drain all unread logs |
 | `EVERYUP_EXCLUDE` | no | | Comma-separated container names to exclude from discovery |
 
 **Host metrics (CPU / memory / disk / network)**

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aiturn/everyup/agent/internal/capabilities"
 	"github.com/aiturn/everyup/agent/internal/checks"
@@ -41,9 +42,10 @@ type Agent struct {
 	pidIndex        *servicePIDIndex
 	traced          *tracedServices
 
-	mu        sync.RWMutex
-	states    map[string]*targetState
-	webEvents []state.AuditEvent
+	mu         sync.RWMutex
+	states     map[string]*targetState
+	logCursors map[string]state.LogCursor
+	webEvents  []state.AuditEvent
 	// runtimes maps service name -> detected language runtime ("java", "node",
 	// ...), refreshed from Docker process listings each check cycle and synced
 	// to Web so the UI can show runtime-specific OTel setup guidance.
@@ -129,6 +131,7 @@ func New(cfg config.Config) (*Agent, error) {
 		pidIndex:        pidIndex,
 		traced:          traced,
 		states:          make(map[string]*targetState),
+		logCursors:      make(map[string]state.LogCursor),
 		webEvents:       make([]state.AuditEvent, 0),
 		runtimes:        make(map[string]string),
 	}
@@ -405,6 +408,10 @@ func (a *Agent) writeOTelConfig() {
 
 func (a *Agent) runChecks(ctx context.Context) {
 	targets := a.targets(ctx)
+	if targets == nil {
+		a.runHostResourceCheck(ctx)
+		return
+	}
 	a.refreshServiceIPIndex(ctx)
 	a.pruneStaleStates(targets)
 	if len(targets) == 0 {
@@ -413,11 +420,30 @@ func (a *Agent) runChecks(ctx context.Context) {
 		return
 	}
 
-	for _, target := range targets {
+	for _, target := range healthCheckTargets(targets) {
 		a.runCheck(ctx, target)
 	}
 	a.forwardDockerLogs(ctx, targets)
 	a.runHostResourceCheck(ctx)
+}
+
+// Keep stable service health while collecting every replica's logs. Any stopped
+// replica makes the group unhealthy, independent of Docker's listing order.
+func healthCheckTargets(targets []discovery.Target) []discovery.Target {
+	checks := make([]discovery.Target, 0, len(targets))
+	indexes := make(map[string]int)
+	for _, target := range targets {
+		key := targetKey(target)
+		if index, exists := indexes[key]; exists {
+			if target.HealthType == "docker" && target.State != "running" {
+				checks[index] = target
+			}
+			continue
+		}
+		indexes[key] = len(checks)
+		checks = append(checks, target)
+	}
+	return checks
 }
 
 // refreshServiceIPIndex rebuilds the IP->service and PID->service maps the
@@ -475,16 +501,16 @@ func (a *Agent) targets(ctx context.Context) []discovery.Target {
 	discovered, err := a.docker.ListTargets(ctx)
 	if err != nil {
 		log.Printf("docker discovery failed: %v", err)
-		return targets
+		return nil
 	}
 
 	seen := make(map[string]bool, len(targets)+len(discovered))
 	for _, target := range targets {
-		seen[targetKey(target)] = true
+		seen[target.ID] = true
 	}
 	selfHost, _ := os.Hostname()
 	for _, target := range discovered {
-		key := targetKey(target)
+		key := target.ID
 		if seen[key] {
 			continue
 		}
@@ -520,15 +546,21 @@ func excludedTarget(target discovery.Target, patterns []string, selfHost string)
 // `docker compose up` keeps the same key and is NOT pruned; only a removed or
 // relabeled service drops out. host:metrics is internal host state, not a
 // discovery target, so it is always retained.
-// ponytail: a transient Docker-discovery failure briefly prunes live services
-// for one tick; they re-register on the next cycle and history is preserved.
+// Call only after successful discovery; a failed query does not prove removal.
 func (a *Agent) pruneStaleStates(targets []discovery.Target) {
 	live := map[string]bool{"host:metrics": true}
+	liveContainers := make(map[string]bool, len(targets))
 	for _, target := range targets {
 		live[targetKey(target)] = true
+		liveContainers[target.ID] = true
 	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	for id := range a.logCursors {
+		if !liveContainers[id] {
+			delete(a.logCursors, id)
+		}
+	}
 	for key := range a.states {
 		if !live[key] {
 			delete(a.states, key)
@@ -657,6 +689,10 @@ func (a *Agent) loadState() error {
 	if err != nil {
 		return err
 	}
+	a.logCursors = snapshot.LogCursors
+	if a.logCursors == nil {
+		a.logCursors = make(map[string]state.LogCursor)
+	}
 	for key, persisted := range snapshot.Targets {
 		a.states[key] = &targetState{
 			serviceName:     persisted.ServiceName,
@@ -674,12 +710,13 @@ func (a *Agent) loadState() error {
 	return nil
 }
 
-func (a *Agent) saveState() {
+func (a *Agent) saveState() error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	snapshot := state.Snapshot{
-		Version: 1,
-		Targets: make(map[string]state.TargetState, len(a.states)),
+		Version:    1,
+		Targets:    make(map[string]state.TargetState, len(a.states)),
+		LogCursors: a.logCursors,
 	}
 	for key, current := range a.states {
 		snapshot.Targets[key] = state.TargetState{
@@ -696,119 +733,9 @@ func (a *Agent) saveState() {
 	}
 	if err := a.store.Save(snapshot); err != nil {
 		log.Printf("failed to save local state: %v", err)
+		return err
 	}
-}
-
-func (a *Agent) forwardDockerLogs(ctx context.Context, targets []discovery.Target) {
-	if !a.cfg.DockerLogsEnabled || a.docker == nil || a.web == nil || !a.web.Enabled() {
-		return
-	}
-
-	type cursor struct {
-		target discovery.Target
-		at     time.Time
-	}
-
-	// Docker stdout/stderr is forwarded as logs. Lines that parse as access logs
-	// additionally emit a synthetic SERVER span (Tier 1 API status code), keeping
-	// the web's "api_requests projects from spans only" invariant intact.
-	batches := make([]webclient.OTLPLogBatch, 0)
-	spanBatches := make([]webclient.OTLPSpanBatch, 0)
-	cursors := make([]cursor, 0)
-	now := time.Now()
-	for _, target := range targets {
-		if target.ID == "" || strings.HasPrefix(target.ID, "env:") {
-			continue
-		}
-		lastSent := a.targetState(target).lastDockerLogAt
-		lines, err := a.docker.LogsSince(ctx, target.ID, lastSent, a.cfg.DockerLogTailLines)
-		if err != nil {
-			log.Printf("docker log collection failed: service=%s err=%v", target.ServiceName, err)
-			continue
-		}
-
-		entries := make([]webclient.OTLPLogEntry, 0, len(lines))
-		spanEntries := make([]webclient.OTLPSpanEntry, 0)
-		// A service already shipping real spans through the gateway (app OTel or
-		// the eBPF sidecar) must not also get synthetic access-log spans — the
-		// same request would be counted twice.
-		emitSynthetic := a.traced == nil || !a.traced.isTraced(target.ServiceName)
-		maxSeen := lastSent
-		for _, line := range lines {
-			stamp := line.Time
-			if stamp.IsZero() {
-				stamp = now
-			}
-			if !lastSent.IsZero() && !stamp.After(lastSent) {
-				continue
-			}
-			body := trimText(line.Message, 8192)
-			severityText, severityNumber := inferLogSeverity(body)
-			entries = append(entries, webclient.OTLPLogEntry{
-				Timestamp:      stamp,
-				Body:           body,
-				SeverityText:   severityText,
-				SeverityNumber: severityNumber,
-				Attributes: map[string]string{
-					"everyup.target.key": targetKey(target),
-				},
-			})
-			// An access-log line is also an API signal: emit it as a synthetic
-			// SERVER span so the web's span->api_request projection populates the
-			// Requests view without any app-side instrumentation.
-			if method, path, status, ok := parseAccessLog(body); ok && emitSynthetic {
-				spanEntries = append(spanEntries, webclient.OTLPSpanEntry{
-					Method:     method,
-					Path:       path,
-					StatusCode: status,
-					Timestamp:  stamp,
-				})
-			}
-			if stamp.After(maxSeen) {
-				maxSeen = stamp
-			}
-		}
-		if len(entries) == 0 {
-			continue
-		}
-		batches = append(batches, webclient.OTLPLogBatch{
-			ServiceName:   target.ServiceName,
-			ContainerID:   target.ID,
-			ContainerName: targetKey(target),
-			Entries:       entries,
-		})
-		if len(spanEntries) > 0 {
-			spanBatches = append(spanBatches, webclient.OTLPSpanBatch{
-				ServiceName:   target.ServiceName,
-				ContainerID:   target.ID,
-				ContainerName: targetKey(target),
-				Spans:         spanEntries,
-			})
-		}
-		cursors = append(cursors, cursor{target: target, at: maxSeen})
-	}
-
-	if len(batches) == 0 {
-		return
-	}
-	if err := a.web.SendOTLPLogs(ctx, batches); err != nil {
-		log.Printf("EveryUp Web docker log sync failed: %v", err)
-		return
-	}
-	for _, cursor := range cursors {
-		a.setDockerLogAt(cursor.target, cursor.at)
-	}
-	a.saveState()
-	log.Printf("synced docker logs to EveryUp Web: services=%d", len(batches))
-
-	// Best-effort: a span send failure drops the API status signal for this tick
-	// but the logs (and cursor) already advanced, so it is not retried — degrade,
-	// don't block log delivery.
-	if len(spanBatches) > 0 {
-		if err := a.web.SendOTLPSpans(ctx, spanBatches); err != nil {
-			log.Printf("EveryUp Web access-log span sync failed: %v", err)
-		}
-	}
+	return nil
 }
 
 func (a *Agent) runHostResourceCheck(ctx context.Context) {
@@ -890,18 +817,6 @@ func (a *Agent) setHostAlertAt(at time.Time) {
 	}
 	state.lastHostAlertAt = at
 	state.updatedAt = at
-}
-
-func (a *Agent) setDockerLogAt(target discovery.Target, at time.Time) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	key := targetKey(target)
-	state, ok := a.states[key]
-	if !ok {
-		state = &targetState{serviceName: target.ServiceName, checkType: target.HealthType, endpoint: target.HealthURL}
-		a.states[key] = state
-	}
-	state.lastDockerLogAt = at
 }
 
 // snapshot returns the current per-target status list for syncing to EveryUp Web.
@@ -1005,9 +920,12 @@ func inferLogSeverity(message string) (string, int) {
 	}
 }
 func trimText(value string, limit int) string {
-	value = strings.TrimSpace(value)
+	value = strings.ToValidUTF8(strings.TrimSpace(value), "�")
 	if limit <= 0 || len(value) <= limit {
 		return value
+	}
+	for !utf8.RuneStart(value[limit]) {
+		limit--
 	}
 	return value[:limit] + "..."
 }

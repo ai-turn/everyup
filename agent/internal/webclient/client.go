@@ -168,11 +168,54 @@ func (c *Client) SendOTLPProtobuf(ctx context.Context, signal string, data []byt
 	return err
 }
 func (c *Client) SendOTLPLogs(ctx context.Context, batches []OTLPLogBatch) error {
-	if len(batches) == 0 {
+	for _, batch := range batches {
+		if err := c.SendOTLPLogBatch(ctx, batch, nil); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SendOTLPLogBatch acknowledges contiguous input entries after each successful
+// request. The caller can persist its cursor before the next request starts.
+func (c *Client) SendOTLPLogBatch(ctx context.Context, batch OTLPLogBatch, acknowledge func(int) error) error {
+	accepted := 0
+	var send func(OTLPLogBatch) error
+	send = func(part OTLPLogBatch) error {
+		data, err := encodeOTLPLogs([]OTLPLogBatch{part})
+		if err != nil {
+			return err
+		}
+		// Leave room below the backend's 4 MiB request limit.
+		if len(data) > 3<<20 {
+			if len(part.Entries) < 2 {
+				return fmt.Errorf("single OTLP log exceeds 3 MiB request limit")
+			}
+			left, right := part, part
+			middle := len(part.Entries) / 2
+			left.Entries, right.Entries = part.Entries[:middle], part.Entries[middle:]
+			if err := send(left); err != nil {
+				return err
+			}
+			return send(right)
+		}
+		if len(data) > 0 {
+			if err := c.SendOTLPProtobuf(ctx, "logs", data); err != nil {
+				return err
+			}
+		}
+		accepted += len(part.Entries)
+		if acknowledge != nil {
+			return acknowledge(accepted)
+		}
 		return nil
 	}
-	if !c.Enabled() {
-		return fmt.Errorf("web client is not configured")
+	return send(batch)
+}
+
+func encodeOTLPLogs(batches []OTLPLogBatch) ([]byte, error) {
+	if len(batches) == 0 {
+		return nil, nil
 	}
 
 	req := &collectorlogspb.ExportLogsServiceRequest{}
@@ -190,7 +233,7 @@ func (c *Client) SendOTLPLogs(ctx context.Context, batches []OTLPLogBatch) error
 
 		records := make([]*logspb.LogRecord, 0, len(batch.Entries))
 		for _, entry := range batch.Entries {
-			body := strings.TrimSpace(entry.Body)
+			body := strings.ToValidUTF8(strings.TrimSpace(entry.Body), "�")
 			if body == "" {
 				continue
 			}
@@ -226,14 +269,14 @@ func (c *Client) SendOTLPLogs(ctx context.Context, batches []OTLPLogBatch) error
 		})
 	}
 	if len(req.ResourceLogs) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	data, err := proto.Marshal(req)
 	if err != nil {
-		return fmt.Errorf("encode OTLP logs: %w", err)
+		return nil, fmt.Errorf("encode OTLP logs: %w", err)
 	}
-	return c.SendOTLPProtobuf(ctx, "logs", data)
+	return data, nil
 }
 
 func (c *Client) postProtobufResponse(ctx context.Context, path string, data []byte) ([]byte, error) {
