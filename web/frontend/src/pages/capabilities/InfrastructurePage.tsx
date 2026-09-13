@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, EmptyState, MaterialIcon, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
-import { InfrastructureCollectorSetupDialog } from '../../features/infrastructure/components/InfrastructureCollectorSetupDialog';
-import { CapabilityAgentSetup } from '../../features/services/components/CapabilityAgentSetup';
+import { Link } from 'react-router-dom';
+import { EmptyState, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
+import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { api, type InfrastructureResource } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -45,9 +44,7 @@ function ResourceCard({ resource }: { resource: InfrastructureResource }) {
 }
 
 export function InfrastructurePage() {
-  const navigate = useNavigate();
   const [resources, setResources] = useState<InfrastructureResource[]>([]);
-  const [showCollectorSetup, setShowCollectorSetup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,8 +63,7 @@ export function InfrastructurePage() {
   return (
     <div>
       <PageHeader title="인프라" subtitle="EveryUp Docker 수집기 또는 표준 OpenTelemetry Collector로 수집한 호스트 리소스입니다.">
-        <CapabilityAgentSetup capability="infrastructure" buttonVariant="secondary" />
-        <Button onClick={() => setShowCollectorSetup(true)}><MaterialIcon name="add" />추가하기</Button>
+        <MonitoringConnection capability="infrastructure" />
       </PageHeader>
       {loading ? (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>
@@ -96,12 +92,6 @@ export function InfrastructurePage() {
             </section>
           )}
         </div>
-      )}
-      {showCollectorSetup && (
-        <InfrastructureCollectorSetupDialog
-          onClose={() => setShowCollectorSetup(false)}
-          onCreated={resource => navigate(`/infrastructure/${resource.id}`)}
-        />
       )}
     </div>
   );

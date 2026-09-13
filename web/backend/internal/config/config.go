@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -34,6 +35,7 @@ type LoggingConfig struct {
 
 // ServerConfig holds server configuration
 type ServerConfig struct {
+	PublicURL    string `json:"publicUrl"`
 	Host         string `json:"host"`
 	Port         int    `json:"port"`
 	Mode         string `json:"mode"`
@@ -145,6 +147,14 @@ func Load(configPath string) (*Config, error) {
 	envInt("EVERYUP_SERVER_PORT", &c.Server.Port)
 	envStr("EVERYUP_SERVER_MODE", &c.Server.Mode)
 	envStr("EVERYUP_SERVER_ALLOWORIGINS", &c.Server.AllowOrigins)
+	envStr("EVERYUP_PUBLIC_URL", &c.Server.PublicURL)
+	c.Server.PublicURL = strings.TrimRight(strings.TrimSpace(c.Server.PublicURL), "/")
+	if c.Server.PublicURL != "" {
+		u, err := url.Parse(c.Server.PublicURL)
+		if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+			return nil, fmt.Errorf("EVERYUP_PUBLIC_URL must be an absolute http(s) URL without credentials, query or fragment")
+		}
+	}
 	envStr("EVERYUP_DATABASE_PATH", &c.Database.Path)
 	envInt("EVERYUP_ALERTS_CONSECUTIVEFAILURES", &c.Alerts.ConsecutiveFailures)
 	envInt("EVERYUP_ALERTS_LOGALERTCOOLDOWN", &c.Alerts.LogAlertCooldown)

@@ -51,9 +51,12 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	api.Post("/agents/:agentId/services", agentHandler.SyncServices)
 	api.Post("/agents/:agentId/events", agentHandler.SyncEvents)
 	api.Post("/agents/:agentId/metrics", agentHandler.SyncMetrics)
+	api.Post("/agents/:agentId/instrumentation-runs/:runId/report", agentHandler.ReportInstrumentationRun)
 
 	// JWT-protected management routes
 	local := api.Group("", middleware.JWTAuth())
+	local.Post("/agents/:agentId/instrumentation-runs", agentHandler.CreateInstrumentationRun)
+	local.Get("/agents/:agentId/instrumentation-runs/:runId", agentHandler.GetInstrumentationRun)
 
 	// Auth endpoints — protected
 	local.Get("/auth/verify", authHandler.Verify)
@@ -82,6 +85,7 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Post("/observed-services", observedServiceHandler.Create)
 	local.Get("/observed-services/service-metrics", observedServiceHandler.GetServiceMetrics)
 	local.Get("/observed-services/:id", observedServiceHandler.GetByID)
+	local.Get("/observed-services/:id/setup-status", observedServiceHandler.SetupStatus)
 	local.Put("/observed-services/:id", observedServiceHandler.Update)
 	local.Delete("/observed-services/:id", observedServiceHandler.Delete)
 	local.Post("/observed-services/:id/rotate-key", observedServiceHandler.RotateKey)
@@ -149,6 +153,7 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Get("/infrastructure-resources", infrastructureHandler.GetAll)
 	local.Post("/infrastructure-resources", infrastructureHandler.Create)
 	local.Get("/infrastructure-resources/:id", infrastructureHandler.GetByID)
+	local.Get("/infrastructure-resources/:id/setup-status", infrastructureHandler.SetupStatus)
 	local.Put("/infrastructure-resources/:id", infrastructureHandler.Update)
 	local.Post("/infrastructure-resources/:id/rotate-key", infrastructureHandler.RotateKey)
 	local.Post("/infrastructure-resources/:id/revoke-key", infrastructureHandler.RevokeKey)
@@ -177,6 +182,7 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	// Settings
 	settingsHandler := handlers.NewSettingsHandler()
 	local.Get("/settings", settingsHandler.Get)
+	local.Get("/settings/connection", settingsHandler.Connection)
 	local.Put("/settings", settingsHandler.Update)
 
 	// Agent connected-mode read + management APIs (JWT-protected)
@@ -190,6 +196,8 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Post("/agents/:agentId/rotate-key", agentHandler.RotateKey)
 	local.Post("/agents/:agentId/join-code", agentHandler.IssueJoinCode)
 	local.Get("/agents/:agentId/services", agentHandler.GetServices)
+	local.Get("/agents/:agentId/setup-status", agentHandler.SetupStatus)
+	local.Put("/agents/:agentId/profile", agentHandler.UpdateProfile)
 	local.Delete("/agents/:agentId/services/:key", agentHandler.DeleteService)
 	local.Get("/agents/:agentId/events", agentHandler.GetEvents)
 	local.Get("/agents/:agentId/request-stats", agentHandler.GetAgentRequestStats)

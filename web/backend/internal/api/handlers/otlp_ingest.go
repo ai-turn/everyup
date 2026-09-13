@@ -124,6 +124,7 @@ func (h *OTLPIngestHandler) IngestLogs(c *fiber.Ctx) error {
 	processed := 0
 	filtered := 0
 	failed := 0
+	receivedServices := make(map[string]bool)
 
 	for _, resourceLogs := range req.ResourceLogs {
 		resourceMap := attrsToMap(resourceLogs.GetResource().GetAttributes())
@@ -174,10 +175,14 @@ func (h *OTLPIngestHandler) IngestLogs(c *fiber.Ctx) error {
 				}
 				h.logHandler.triggerAlertIfNeeded(principal.ServiceID, principal.AgentID, serviceName, logEntry, entry.Metadata)
 				processed++
+				receivedServices[serviceName] = true
 			}
 		}
 	}
 
+	for name := range receivedServices {
+		recordReceipt(principal, name, "logs")
+	}
 	body, err := proto.Marshal(&collectorlogspb.ExportLogsServiceResponse{})
 	if err != nil {
 		return err
@@ -254,6 +259,13 @@ func (h *OTLPIngestHandler) IngestTraces(c *fiber.Ctx) error {
 			principal.ServiceID, principal.AgentID, requests[0].ServiceName, requests)
 	}
 
+	receivedServices := make(map[string]bool)
+	for _, span := range spans {
+		receivedServices[span.ServiceName] = true
+	}
+	for name := range receivedServices {
+		recordReceipt(principal, name, "traces")
+	}
 	respBody, err := proto.Marshal(&collectortracepb.ExportTraceServiceResponse{})
 	if err != nil {
 		return err
@@ -303,6 +315,7 @@ func (h *OTLPIngestHandler) IngestMetrics(c *fiber.Ctx) error {
 			if err := h.systemMetricRepo.Create(metric); err != nil {
 				return internalError(c, ErrCodeDatabase, err)
 			}
+			recordReceipt(principal, principal.Name, "infrastructure")
 			if h.ruleEvaluator != nil {
 				go h.ruleEvaluator.EvaluateAgent(principal.InfrastructureResourceID, principal.Name, metric)
 			}
@@ -346,6 +359,13 @@ func (h *OTLPIngestHandler) IngestMetrics(c *fiber.Ctx) error {
 	}
 
 	h.evaluateOtelMetricAlerts(principal, rows)
+	receivedServices := make(map[string]bool)
+	for _, row := range rows {
+		receivedServices[row.ServiceName] = true
+	}
+	for name := range receivedServices {
+		recordReceipt(principal, name, "metrics")
+	}
 
 	respBody, err := proto.Marshal(&collectormetricspb.ExportMetricsServiceResponse{})
 	if err != nil {

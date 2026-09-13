@@ -11,8 +11,11 @@ import {
 } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { DirectTelemetrySetupResult } from './DirectTelemetrySetupResult';
+import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
+import { TelemetrySetupGuidance } from './TelemetrySetupGuidance';
 
 interface DirectTelemetrySetupDialogProps {
+  initialService?: ObservedService;
   signal: TelemetrySignal;
   capabilityLabel: string;
   title: string;
@@ -24,6 +27,7 @@ interface DirectTelemetrySetupDialogProps {
 type SetupMode = 'new' | 'existing';
 
 export function DirectTelemetrySetupDialog({
+  initialService,
   signal,
   capabilityLabel,
   title,
@@ -32,10 +36,10 @@ export function DirectTelemetrySetupDialog({
   onCreated,
 }: DirectTelemetrySetupDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [mode, setMode] = useState<SetupMode>('new');
+  const [mode, setMode] = useState<SetupMode>(initialService ? 'existing' : 'new');
   const [name, setName] = useState('');
   const [projectId, setProjectId] = useState('');
-  const [existingId, setExistingId] = useState('');
+  const [existingId, setExistingId] = useState(initialService?.id ?? '');
   const [projects, setProjects] = useState<Project[]>([]);
   const [existingServices, setExistingServices] = useState<ObservedService[]>([]);
   const [setup, setSetup] = useState<ObservedServiceSetup | null>(null);
@@ -98,7 +102,7 @@ export function DirectTelemetrySetupDialog({
       aria-labelledby={`direct-${signal}-dialog-title`}
       onCancel={(event) => { event.preventDefault(); if (!submitting) onClose(); }}
       onClick={(event) => { if (event.target === event.currentTarget && !submitting) onClose(); }}
-      className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-2xl ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
         <div>
@@ -126,6 +130,8 @@ export function DirectTelemetrySetupDialog({
               <p className="mt-1 text-sm text-text-muted">{`기존 직접 수집 키에 ${capabilityLabel} 권한을 추가했습니다. 실행 중인 OpenTelemetry 설정은 같은 키를 계속 사용합니다.`}</p>
             </div>
           </div>
+          <TelemetrySetupGuidance signals={[signal]} />
+          <TelemetryReceiptStatus path={`/observed-services/${attached.id}/setup-status`} expected={[signal]} />
           <div className="flex justify-end"><Button onClick={done}>{`${capabilityLabel} 보기`}</Button></div>
         </div>
       ) : (

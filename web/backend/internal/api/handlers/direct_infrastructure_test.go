@@ -70,6 +70,7 @@ func TestDirectInfrastructureCollectorSetupProjectionAlertsAndDelete(t *testing.
 	if status := postOTLPStatus(t, ts, "/api/v1/otlp/v1/metrics", created.ApiKey, request); status != 200 {
 		t.Fatalf("infrastructure metrics status=%d, want 200", status)
 	}
+	assertSetupReceipt(t, ts, token, "/api/v1/infrastructure-resources/"+created.ID, "infrastructure")
 
 	latest, err := database.NewSystemMetricRepository().GetLatestByHost(created.ID)
 	if err != nil {

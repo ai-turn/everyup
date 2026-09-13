@@ -140,6 +140,7 @@ func buildAgentCompose(baseURL, agentName, apiKey string, profile models.AgentPr
       EVERYUP_WEB_SYNC_ENABLED: "true"
       EVERYUP_WEB_BASE_URL: ` + quote(baseURL) + `
       EVERYUP_AGENT_API_KEY: ` + quote(apiKey) + `
+      EVERYUP_CONFIG_HASH: ` + quote(profile.ConfigHash()) + `
       EVERYUP_EXCLUDE: "everyup-ebpf"
       EVERYUP_DOCKER_DISCOVERY_ENABLED: "` + strconv.FormatBool(docker) + `"
       EVERYUP_DOCKER_LOGS_ENABLED: "` + strconv.FormatBool(profile.Has(models.AgentCapabilityLogs)) + `"

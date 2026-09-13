@@ -1,6 +1,9 @@
 import { toast } from 'react-hot-toast';
 import { Button, CopyButton, MaterialIcon } from '../../../components/common';
-import { env } from '../../../config/env';
+import { useConnectionAddress } from '../../services/useConnectionAddress';
+import { ConnectionAddressField } from '../../services/components/ConnectionAddressField';
+import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
+import { TelemetrySetupGuidance } from './TelemetrySetupGuidance';
 import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
 import type { ObservedServiceSetup } from '../../../services/api';
 
@@ -24,7 +27,8 @@ export function DirectTelemetrySetupResult({
   onDone,
   doneLabel,
 }: DirectTelemetrySetupResultProps) {
-  const endpoint = `${env.apiBaseUrl.replace(/\/+$/, '')}/otlp`;
+  const address = useConnectionAddress();
+  const endpoint = address.endpoint;
   const configuration = [
     `OTEL_SERVICE_NAME=${setup.name}`,
     `OTEL_EXPORTER_OTLP_ENDPOINT=${endpoint}`,
@@ -44,6 +48,8 @@ export function DirectTelemetrySetupResult({
         </div>
       </div>
 
+      <ConnectionAddressField address={address} />
+      <TelemetrySetupGuidance signals={setup.signals} />
       <div className="space-y-2">
         <p className="text-xs font-medium text-text-secondary">직접 수집 API 키</p>
         <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
@@ -61,15 +67,17 @@ export function DirectTelemetrySetupResult({
           <p className="text-xs font-medium text-text-secondary">OpenTelemetry 환경 변수</p>
           <CopyButton
             onCopy={() => copy(configuration)}
+            disabled={!address.valid}
             title="환경 변수 복사"
             className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary hover:bg-primary/10"
           >
             복사
           </CopyButton>
         </div>
-        <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{configuration}</pre>
+        <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{address.valid ? configuration : '접근 가능한 서버 주소를 입력하세요.'}</pre>
       </div>
 
+      <TelemetryReceiptStatus path={`/observed-services/${setup.id}/setup-status`} expected={setup.signals} />
       <div className="flex justify-end border-t border-ui-border pt-4">
         <Button onClick={onDone}>{doneLabel ?? '완료'}</Button>
       </div>

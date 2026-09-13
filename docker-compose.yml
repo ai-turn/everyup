@@ -6,6 +6,8 @@ services:
     #   context: .
     #   dockerfile: web/Dockerfile
     container_name: everyup
+    environment:
+      EVERYUP_PUBLIC_URL: ${EVERYUP_PUBLIC_URL:-}
     ports:
       - "3001:3001"
     volumes:

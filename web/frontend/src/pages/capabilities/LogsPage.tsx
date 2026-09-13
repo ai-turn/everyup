@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button, EmptyState, ListToolbar, MaterialIcon, PageHeader, Pagination, ResourceCardHeader, SearchInput, Select } from '../../components/common';
-import { DirectLogsSetupDialog } from '../../features/logs/components/DirectLogsSetupDialog';
 import { LEVEL_STYLE } from '../../features/healthcheck/logLevelStyle';
-import { CapabilityAgentSetup } from '../../features/services/components/CapabilityAgentSetup';
+import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { api, type AgentServiceFlat, type LogEntry, type ObservedService } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -21,7 +20,6 @@ function formatTime(ts: string) {
 
 export function LogsPage() {
 
-  const navigate = useNavigate();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [total, setTotal] = useState(0);
   // Unfiltered snapshot the card sections read from — they are a directory of
@@ -33,7 +31,6 @@ export function LogsPage() {
   const [search, setSearch] = useState('');
   const [serviceFilter, setServiceFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [showDirectSetup, setShowDirectSetup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -115,8 +112,7 @@ export function LogsPage() {
   return (
     <div>
       <PageHeader title="로그" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 최신 로그입니다.">
-        <CapabilityAgentSetup capability="logs" buttonVariant="secondary" />
-        <Button onClick={() => setShowDirectSetup(true)}><MaterialIcon name="add" />추가하기</Button>
+        <MonitoringConnection capability="logs" />
       </PageHeader>
 
       <ListToolbar search={
@@ -282,12 +278,6 @@ export function LogsPage() {
         </>
       )}
 
-      {showDirectSetup && (
-        <DirectLogsSetupDialog
-          onClose={() => setShowDirectSetup(false)}
-          onCreated={service => navigate(`/logs/${service.id}`)}
-        />
-      )}
     </div>
   );
 }

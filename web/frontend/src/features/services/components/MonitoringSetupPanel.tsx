@@ -1,4 +1,7 @@
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
+import type { CollectorSetupStatus } from '../../../services/api/agents';
+import { useSetupStatus } from '../useSetupStatus';
+import { ReceiptList } from './TelemetryReceiptStatus';
 import type {
 	AgentCollectionCapability,
 	AgentCapabilityState,
@@ -52,6 +55,7 @@ interface SetupStepProps {
 }
 
 interface Props {
+  setupStatus?: CollectorSetupStatus | null;
   agent: ConnectedAgent;
   services: AgentServiceSnapshot[];
   onInstall?: () => void;
@@ -154,7 +158,9 @@ function SetupStep({
   );
 }
 
-export function MonitoringSetupPanel({ agent, services, onInstall, onInstrument, compact = false, className = '' }: Props) {
+export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, onInstrument, compact = false, className = '' }: Props) {
+  const statusRequest = useSetupStatus<CollectorSetupStatus>(setupStatus === undefined ? `/agents/${agent.id}/setup-status` : null);
+  const status = setupStatus ?? statusRequest.data;
   const report = agent.capabilities;
   const profile = agent.profile;
   const enabledCapabilities = profile?.capabilities.length
@@ -166,20 +172,25 @@ export function MonitoringSetupPanel({ agent, services, onInstall, onInstrument,
   const unavailableCapabilityLabels = PROFILE_CAPABILITIES
     .filter((item) => !enabledCapabilities.includes(item.capability))
     .map((item) => item.label);
-  const connected = Boolean(agent.version || report || services.length > 0);
+  const connected = Boolean(status?.connected) && !statusRequest.error;
+  const received = (signal: string) => Boolean(status?.signals.some(item => item.signal === signal));
   const containerCollectionEnabled = enabledCapabilities.includes('uptime') || enabledCapabilities.includes('logs');
   const infrastructureEnabled = enabledCapabilities.includes('infrastructure');
   const apiEnabled = enabledCapabilities.includes('api');
-  const basicState = containerCollectionEnabled || infrastructureEnabled
+  const basicCapabilityState = containerCollectionEnabled || infrastructureEnabled
     ? combineCapabilityState([
       ...(containerCollectionEnabled ? [report?.containerMonitoring.state] : []),
       ...(infrastructureEnabled ? [report?.hostMetrics.state] : []),
     ])
     : 'optional';
-  const tracingState = apiEnabled ? capabilityState(report?.automaticTracing) : 'optional';
+  const basicDataReady = (!enabledCapabilities.includes('uptime') || received('uptime')) && (!enabledCapabilities.includes('logs') || received('logs')) && (!infrastructureEnabled || received('infrastructure'));
+  const basicState = basicCapabilityState === 'ready' && (!connected || !basicDataReady) ? 'waiting' : basicCapabilityState;
+  const traceCapabilityState = apiEnabled ? capabilityState(report?.automaticTracing) : 'optional';
+  const tracingState = traceCapabilityState === 'ready' && (!connected || !received('traces')) ? 'waiting' : traceCapabilityState;
   const injectable = services.filter((service) => service.runtime === 'java' || service.runtime === 'node');
-  const requiredTotal = 1 + Number(containerCollectionEnabled || infrastructureEnabled) + Number(apiEnabled);
-  const requiredReady = Number(connected) + Number(basicState === 'ready') + Number(tracingState === 'ready');
+  const metricsEnabled = enabledCapabilities.includes('metrics');
+  const requiredTotal = 1 + Number(containerCollectionEnabled || infrastructureEnabled) + Number(apiEnabled) + Number(metricsEnabled);
+  const requiredReady = Number(connected && status?.configApplied) + Number(basicState === 'ready') + Number(tracingState === 'ready') + Number(metricsEnabled && connected && received('metrics'));
   const requiredComplete = requiredReady === requiredTotal;
   const basicProblem = [
     ...(containerCollectionEnabled ? [report?.containerMonitoring] : []),
@@ -264,7 +275,7 @@ export function MonitoringSetupPanel({ agent, services, onInstall, onInstrument,
           title="자동 API 추적"
           description="eBPF Observer로 코드 변경 없이 지연시간과 트레이스를 수집합니다."
           state={tracingState}
-          stateLabel={tracingState === 'optional' ? '미선택' : capabilityLabel(report?.automaticTracing)}
+          stateLabel={tracingState === 'optional' ? '미선택' : tracingState === 'waiting' ? '첫 요청 대기' : capabilityLabel(report?.automaticTracing)}
           detail={tracingState === 'optional' ? '현재 프로필에서 수집하지 않습니다.' : traceDetail || propagationDetail}
         />
         <SetupStep
@@ -279,6 +290,10 @@ export function MonitoringSetupPanel({ agent, services, onInstall, onInstrument,
           actionLabel={injectable.length > 0 && onInstrument ? '상세 계측 설정' : undefined}
           onAction={onInstrument}
         />
+      </div>
+      <div className="mt-3 space-y-2 rounded-lg border border-ui-border-soft p-3">
+        <p className="type-body text-text-muted">{statusRequest.error || (!connected ? '최근 수집기 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.')}</p>
+        <ReceiptList signals={status?.signals ?? []} expected={enabledCapabilities.map(capability => capability === 'api' ? 'traces' : capability)} />
       </div>
     </section>
   );

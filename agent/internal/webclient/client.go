@@ -41,6 +41,7 @@ type EventRequest struct {
 }
 
 type ServiceSnapshotRequest struct {
+	ConfigHash   string              `json:"configHash,omitempty"`
 	AgentID      string              `json:"agentId"`
 	AgentName    string              `json:"agentName"`
 	ObservedAt   time.Time           `json:"observedAt"`

@@ -7,6 +7,12 @@ import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
 import { api, type AgentServiceSnapshot } from '../../../services/api';
 import { runtimeLabel } from '../../healthcheck/runtimeLabels';
 import { useOverlay, SCRIM_MODAL } from '../../../hooks/useOverlay';
+import { useConnectionAddress } from '../useConnectionAddress';
+import { Button } from '../../../components/common/Button';
+import { createInstrumentationRun, type InstrumentationRun } from '../instrumentationApi';
+import { InstrumentationRunStatus } from './InstrumentationRunStatus';
+import { getErrorMessage } from '../../../utils/errors';
+import { toast } from 'react-hot-toast';
 
 interface Props {
   agentId: string;
@@ -22,14 +28,6 @@ function composeTargetOf(key: string): { project: string; service: string } | nu
   return { project: key.slice(0, separator), service: key.slice(separator + 1) };
 }
 
-function initialWebBaseUrl(): string {
-  const { hostname, origin } = window.location;
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
-    return '';
-  }
-  return origin;
-}
-
 function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'"'"'`)}'`;
 }
@@ -39,6 +37,9 @@ function buildApplyCommand(
   composePath: string,
   targets: { composeService: string; runtime: string }[],
   captureBodies: boolean,
+  project: string,
+  command: 'plan' | 'apply',
+  reportRef?: string,
 ): string {
   const baseUrl = webBaseUrl.trim().replace(/\/+$/, '') || 'http://EVERYUP_WEB_SERVER:3001';
   const path = composePath.trim() || './docker-compose.yml';
@@ -52,7 +53,7 @@ function buildApplyCommand(
     `curl -fsSL ${shellQuote(`${baseUrl}/api/v1/agents/otel.sh`)} -o "$tmp"`,
     'sudo install -m 0755 "$tmp" /usr/local/bin/everyup-otel',
   ].join(' && ');
-  return `(${installCLI}) && sudo everyup-otel apply ${shellQuote(path)}${bodyOption} ${targetArgs}`;
+  return `(${installCLI}) && sudo everyup-otel ${command} ${shellQuote(path)} --project=${shellQuote(project)}${reportRef ? ` --report=${shellQuote(reportRef)}` : ''}${bodyOption} ${targetArgs}`;
 }
 
 function CommandRow({
@@ -87,14 +88,18 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
   const [services, setServices] = useState<AgentServiceSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [captureBodies, setCaptureBodies] = useState(false);
-  const [webBaseUrl, setWebBaseUrl] = useState(initialWebBaseUrl);
+  const address = useConnectionAddress();
+  const { baseUrl: webBaseUrl, setBaseUrl: setWebBaseUrl } = address;
   const [composePath, setComposePath] = useState('./docker-compose.yml');
   const [composeProject, setComposeProject] = useState('');
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [preparing, setPreparing] = useState(false);
+  const [prepared, setPrepared] = useState<{ run: InstrumentationRun; signature: string }>();
 
   useEffect(() => {
     api.getAgentServices(agentId)
       .then((list) => setServices(list ?? []))
-      .catch(() => setServices([]))
+      .catch(error => { toast.error(getErrorMessage(error)); setServices([]); })
       .finally(() => setLoading(false));
   }, [agentId]);
 
@@ -115,14 +120,25 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
   });
   const composeProjects = Array.from(targetsByProject.keys()).sort();
   const selectedProject = composeProjects.includes(composeProject) ? composeProject : (composeProjects[0] ?? '');
-  const targets = Array.from(targetsByProject.get(selectedProject)?.values() ?? []);
+  const candidates = Array.from(targetsByProject.get(selectedProject)?.values() ?? []);
+  const targets = candidates.filter(target => selectedKeys.includes(`${selectedProject}:${target.composeService}`));
   const skipped = services.filter(
     (service) => service.runtime && INJECTABLE.has(service.runtime) && !composeTargetOf(service.key),
   );
   const hasJava = targets.some((target) => target.runtime === 'java');
-  const webAddressMissing = !webBaseUrl.trim();
+  const webAddressMissing = !address.valid;
   const composePathMissing = !composePath.trim();
-  const applyCommand = buildApplyCommand(webBaseUrl, composePath, targets, captureBodies);
+  const keys = targets.map(target => `${selectedProject}:${target.composeService}`);
+  const signature = JSON.stringify([webBaseUrl, composePath, selectedProject, keys, captureBodies]);
+  const plan = prepared?.signature === signature && Date.now() - new Date(prepared.run.createdAt).getTime() < 3_600_000 ? prepared.run : undefined;
+  const planCommand = buildApplyCommand(webBaseUrl, composePath, targets, captureBodies, selectedProject, 'plan');
+  const applyCommand = plan ? buildApplyCommand(webBaseUrl, composePath, targets, captureBodies, selectedProject, 'apply', `${agentId}/${plan.id}`) : '';
+  const prepare = async () => {
+    setPreparing(true);
+    try { setPrepared({ run: await createInstrumentationRun(agentId, selectedProject, keys, captureBodies), signature }); }
+    catch (error) { toast.error(getErrorMessage(error)); }
+    finally { setPreparing(false); }
+  };
   const verifyCommand = `sudo everyup-otel verify ${shellQuote(composePath.trim() || './docker-compose.yml')}`;
   const statusCommand = `sudo everyup-otel status ${shellQuote(composePath.trim() || './docker-compose.yml')}`;
   const rollbackCommand = `sudo everyup-otel rollback ${shellQuote(composePath.trim() || './docker-compose.yml')}`;
@@ -159,7 +175,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
         <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
           {loading ? (
             <div className="h-40 animate-pulse rounded-xl bg-ui-hover" />
-          ) : targets.length === 0 ? (
+          ) : candidates.length === 0 ? (
             <div className="space-y-2 py-10 text-center">
               <MaterialIcon size={32} name="info" className="text-text-dim" />
               <p className="text-sm text-text-muted">자동 적용할 수 있는 서비스가 없습니다.</p>
@@ -184,14 +200,18 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               <div>
                 <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-text-dim">적용 대상</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {targets.map((target) => (
-                    <span
+                  {candidates.map((target) => (
+                    <label
                       key={target.composeService}
                       className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
                     >
+                      <input type="checkbox" aria-label={`${target.name} 계측`} checked={selectedKeys.includes(`${selectedProject}:${target.composeService}`)} onChange={event => {
+                        const key = `${selectedProject}:${target.composeService}`;
+                        setSelectedKeys(current => event.target.checked ? [...current, key] : current.filter(item => item !== key));
+                      }} className="h-4 w-4 accent-primary" />
                       {target.name}
                       <span className="opacity-70">· {runtimeLabel(target.runtime)}</span>
-                    </span>
+                    </label>
                   ))}
                 </div>
               </div>
@@ -262,7 +282,14 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 </span>
               </label>
 
-              <div className="space-y-2">
+              <Button onClick={() => void prepare()} disabled={preparing || targets.length === 0 || webAddressMissing || composePathMissing}>{preparing ? '준비 중...' : '변경 사항 확인'}</Button>
+              {plan && <div className="space-y-3 rounded-xl border border-ui-border p-4" aria-label="계측 변경 미리보기">
+                <p className="type-label text-text-base">재시작 대상: {targets.map(target => target.name).join(', ')}</p>
+                <p className="type-body text-text-muted">선택한 서비스에 Java agent 또는 Node preload, OTLP 전송 설정, 계측 파일 볼륨과 모니터링 네트워크를 추가합니다. 다른 서비스의 기존 계측은 유지합니다.</p>
+                <p className="type-body text-text-muted">먼저 서버 미리보기 명령으로 실제 Compose를 검증한 뒤 적용하세요. 실행 기록은 1시간 내 시작할 수 있으며, 적용·실패·복구 결과가 아래에 표시됩니다.</p>
+                <CommandRow label="서버 변경 미리보기" command={planCommand} onCopy={copy} />
+              </div>}
+              {plan && <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm text-text-base">안전 적용 명령</p>
@@ -271,7 +298,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                   <CopyButton
                     onCopy={() => copy(applyCommand)}
                     title={webAddressMissing || composePathMissing ? '주소와 Compose 경로를 입력하세요' : '안전 적용 명령 복사'}
-                    disabled={webAddressMissing || composePathMissing}
+                    disabled={webAddressMissing || composePathMissing || !plan}
                     className="shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <span>복사</span>
@@ -280,7 +307,9 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-all rounded-xl bg-slate-900 px-4 py-3 font-mono text-xs text-slate-100 dark:bg-black">
                   {applyCommand}
                 </pre>
-              </div>
+              </div>}
+
+              <InstrumentationRunStatus agentId={agentId} runId={prepared?.run.id} />
 
               <div className="space-y-2">
                 <p className="text-xs font-medium uppercase tracking-wider text-text-dim">적용 후 관리</p>

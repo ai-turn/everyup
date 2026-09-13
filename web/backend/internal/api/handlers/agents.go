@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/aiturn/everyup/internal/alerter"
+	"github.com/aiturn/everyup/internal/api/middleware"
 	"github.com/aiturn/everyup/internal/crypto"
 	"github.com/aiturn/everyup/internal/database"
 	"github.com/aiturn/everyup/internal/models"
@@ -52,6 +53,7 @@ type agentEnrollResponse struct {
 }
 
 type agentServicesRequest struct {
+	ConfigHash   string                  `json:"configHash"`
 	AgentID      string                  `json:"agentId"`
 	AgentName    string                  `json:"agentName"`
 	ObservedAt   time.Time               `json:"observedAt"`
@@ -89,25 +91,25 @@ func extractBearerToken(c *fiber.Ctx) string {
 
 // requireAgentKey authenticates a sync request by matching the Bearer token hash
 // to the agent identified by :agentId in the URL path.
-func (h *AgentHandler) requireAgentKey(c *fiber.Ctx) error {
+func (h *AgentHandler) requireAgentKey(c *fiber.Ctx) (bool, error) {
 	token := extractBearerToken(c)
 	if token == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+		return false, c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"success": false,
 			"error":   fiber.Map{"code": "UNAUTHORIZED", "message": "missing Docker collector API key"},
 		})
 	}
 	agent, found, err := h.repo.FindAgentByKeyHash(hashAgentKey(token))
 	if err != nil {
-		return internalError(c, "DATABASE_ERROR", err)
+		return false, internalError(c, "DATABASE_ERROR", err)
 	}
 	if !found || agent.ID != c.Params("agentId") {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+		return false, c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"success": false,
 			"error":   fiber.Map{"code": "UNAUTHORIZED", "message": "invalid Docker collector API key"},
 		})
 	}
-	return nil
+	return true, nil
 }
 
 func (h *AgentHandler) Enroll(c *fiber.Ctx) error {
@@ -138,11 +140,15 @@ func (h *AgentHandler) Enroll(c *fiber.Ctx) error {
 			LastSeenAt: time.Now(),
 		})
 	}
+	setupRepo := database.ConnectionSetupRepository{}
+	if err := setupRepo.ReportEnrollment(agent.ID); err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
 	return c.JSON(agentEnrollResponse{AgentID: agent.ID})
 }
 
 func (h *AgentHandler) SyncServices(c *fiber.Ctx) error {
-	if err := h.requireAgentKey(c); err != nil {
+	if authorized, err := h.requireAgentKey(c); !authorized || err != nil {
 		return err
 	}
 	agentID := c.Params("agentId")
@@ -163,6 +169,15 @@ func (h *AgentHandler) SyncServices(c *fiber.Ctx) error {
 	if err := h.repo.UpsertServices(agentID, req.ObservedAt, req.Services); err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
+	setupRepo := database.ConnectionSetupRepository{}
+	if err := setupRepo.ReportCollector(agentID, req.ConfigHash); err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	for _, service := range req.Services {
+		if service.Seen {
+			_ = setupRepo.Record("agent", agentID, service.Name, "uptime")
+		}
+	}
 	if h.serviceEvaluator != nil {
 		for _, svc := range req.Services {
 			go h.serviceEvaluator.EvaluateAgent(agentID, svc.Key, svc.Name, svc.LastStatus, 0)
@@ -172,7 +187,7 @@ func (h *AgentHandler) SyncServices(c *fiber.Ctx) error {
 }
 
 func (h *AgentHandler) SyncEvents(c *fiber.Ctx) error {
-	if err := h.requireAgentKey(c); err != nil {
+	if authorized, err := h.requireAgentKey(c); !authorized || err != nil {
 		return err
 	}
 	agentID := c.Params("agentId")
@@ -190,7 +205,7 @@ func (h *AgentHandler) SyncEvents(c *fiber.Ctx) error {
 }
 
 func (h *AgentHandler) SyncMetrics(c *fiber.Ctx) error {
-	if err := h.requireAgentKey(c); err != nil {
+	if authorized, err := h.requireAgentKey(c); !authorized || err != nil {
 		return err
 	}
 	agentID := c.Params("agentId")
@@ -221,6 +236,7 @@ func (h *AgentHandler) SyncMetrics(c *fiber.Ctx) error {
 	if err := systemMetricRepo.Create(metric); err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
+	recordReceipt(&middleware.IngestPrincipal{AgentID: agentID}, "host", "infrastructure")
 	if h.ruleEvaluator != nil {
 		go h.ruleEvaluator.EvaluateAgent(agentID, req.AgentID, metric)
 	}

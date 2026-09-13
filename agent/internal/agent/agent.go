@@ -334,6 +334,7 @@ func (a *Agent) flushWebServices(ctx context.Context) {
 	}
 
 	err := a.web.SendServices(ctx, webclient.ServiceSnapshotRequest{
+		ConfigHash:   a.cfg.ConfigHash,
 		AgentID:      a.webAgentID,
 		AgentName:    snapshot.AgentName,
 		ObservedAt:   snapshot.Now,

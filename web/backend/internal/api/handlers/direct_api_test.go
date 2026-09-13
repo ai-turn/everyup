@@ -88,6 +88,7 @@ func TestDirectApiSetupProjectionCorrelationAlertAndDelete(t *testing.T) {
 	if status := postOTLPStatus(t, ts, "/api/v1/otlp/v1/traces", created.ApiKey, traceRequest); status != 200 {
 		t.Fatalf("direct traces status=%d, want 200", status)
 	}
+	assertSetupReceipt(t, ts, token, "/api/v1/observed-services/"+created.ID, "traces")
 
 	_, requestsResult := ts.doRequest(t, "GET", "/api/v1/observed-services/"+created.ID+"/requests", nil, auth...)
 	var requests struct {

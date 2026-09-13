@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, EmptyState, MaterialIcon, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
-import { DirectApiSetupDialog } from '../../features/api/components/DirectApiSetupDialog';
-import { CapabilityAgentSetup } from '../../features/services/components/CapabilityAgentSetup';
+import { Link } from 'react-router-dom';
+import { EmptyState, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
+import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import {
   api,
   type ApiRequestStatusSummary,
@@ -66,10 +65,8 @@ function ApiCard({
 }
 
 export function ApiPage() {
-  const navigate = useNavigate();
   const [agentRows, setAgentRows] = useState<AgentApiSummary[]>([]);
   const [directRows, setDirectRows] = useState<DirectApiSummary[]>([]);
-  const [showDirectSetup, setShowDirectSetup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,8 +98,7 @@ export function ApiPage() {
   return (
     <div>
       <PageHeader title="API" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 API 요청과 오류 추이입니다.">
-        <CapabilityAgentSetup capability="api" buttonVariant="secondary" />
-        <Button onClick={() => setShowDirectSetup(true)}><MaterialIcon name="add" />추가하기</Button>
+        <MonitoringConnection capability="api" />
       </PageHeader>
       {loading ? (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -150,12 +146,6 @@ export function ApiPage() {
         </div>
       )}
 
-      {showDirectSetup && (
-        <DirectApiSetupDialog
-          onClose={() => setShowDirectSetup(false)}
-          onCreated={service => navigate(`/api/${service.id}`)}
-        />
-      )}
     </div>
   );
 }

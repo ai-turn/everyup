@@ -1,6 +1,8 @@
 import { toast } from 'react-hot-toast';
 import { Button, CopyButton, MaterialIcon } from '../../../components/common';
-import { env } from '../../../config/env';
+import { useConnectionAddress } from '../../services/useConnectionAddress';
+import { ConnectionAddressField } from '../../services/components/ConnectionAddressField';
+import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
 import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
 import type { InfrastructureResourceSetup } from '../../../services/api';
 
@@ -11,8 +13,7 @@ function copy(value: string) {
   });
 }
 
-function collectorConfig(setup: InfrastructureResourceSetup) {
-  const endpoint = `${env.apiBaseUrl.replace(/\/+$/, '')}/otlp`;
+function collectorConfig(setup: InfrastructureResourceSetup, endpoint: string) {
   return [
     'receivers:',
     '  host_metrics:',
@@ -51,7 +52,8 @@ export function InfrastructureCollectorSetupResult({
   title: string;
   onDone: () => void;
 }) {
-  const config = collectorConfig(setup);
+  const address = useConnectionAddress();
+  const config = address.valid ? collectorConfig(setup, address.endpoint) : '접근 가능한 서버 주소를 입력하세요.';
   return (
     <div className="space-y-5 p-6">
       <div className="flex items-start gap-3">
@@ -61,6 +63,7 @@ export function InfrastructureCollectorSetupResult({
           <p className="mt-1 text-sm text-text-muted">Collector API 키는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
         </div>
       </div>
+      <ConnectionAddressField address={address} />
       <div className="space-y-2">
         <p className="text-xs font-medium text-text-secondary">Collector API 키</p>
         <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
@@ -71,7 +74,7 @@ export function InfrastructureCollectorSetupResult({
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-medium text-text-secondary">otelcol-contrib.yaml</p>
-          <CopyButton onCopy={() => copy(config)} title="Collector 설정 복사" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary hover:bg-primary/10">복사</CopyButton>
+          <CopyButton disabled={!address.valid} onCopy={() => copy(config)} title="Collector 설정 복사" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary hover:bg-primary/10">복사</CopyButton>
         </div>
         <pre className="max-h-80 overflow-auto whitespace-pre rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{config}</pre>
       </div>
@@ -79,6 +82,7 @@ export function InfrastructureCollectorSetupResult({
         <p className="font-medium text-text-secondary">실행</p>
         <code className="mt-2 block break-all font-mono">otelcol-contrib --config otelcol-contrib.yaml</code>
       </div>
+      <TelemetryReceiptStatus path={`/infrastructure-resources/${setup.id}/setup-status`} expected={['infrastructure']} />
       <div className="flex justify-end border-t border-ui-border pt-4"><Button onClick={onDone}>인프라 보기</Button></div>
     </div>
   );

@@ -56,6 +56,24 @@ export interface AgentJoinCode {
   expiresAt: string;
 }
 
+export interface SignalReceipt {
+  serviceName: string;
+  signal: string;
+  firstReceivedAt: string;
+  lastReceivedAt: string;
+}
+
+export interface CollectorSetupStatus {
+  connected: boolean;
+  lastContactAt?: string;
+  lastEnrolledAt?: string;
+  desiredHash: string;
+  appliedHash: string;
+  configApplied: boolean;
+  profile: AgentProfile;
+  signals: SignalReceipt[];
+}
+
 export interface AgentServiceSnapshot {
   agentId: string;
   key: string;
@@ -133,6 +151,8 @@ export interface AgentIncident {
 }
 
 export const agentsApi = {
+	getCollectorSetupStatus: (id: string) => request<CollectorSetupStatus>(`/agents/${id}/setup-status`),
+	updateAgentProfile: (id: string, profile: AgentProfile) => request<AgentProfile>(`/agents/${id}/profile`, { method: 'PUT', body: JSON.stringify(profile) }),
   createAgent: (name: string, profile: AgentProfile) =>
     request<{ id: string; name: string; profile: AgentProfile } & AgentJoinCode>('/agents', {
       method: 'POST',

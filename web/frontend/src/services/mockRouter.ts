@@ -800,8 +800,58 @@ function normalizeMockAgentProfile(profile?: Partial<AgentProfile>): AgentProfil
   };
 }
 
+const pendingCollectorProfiles = new Set<string>();
+const instrumentationRuns = new Map<string, import('../features/services/instrumentationApi').InstrumentationRun>();
+
 export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit | null): T {
   const scenario = getDemoScenario();
+  const instrumentationCreate = endpoint.match(/^\/agents\/([^/]+)\/instrumentation-runs$/);
+  if (method === 'POST' && instrumentationCreate) {
+    const input = JSON.parse(typeof body === 'string' ? body : '{}') as { project: string; keys: string[]; captureBodies: boolean };
+    const now = new Date().toISOString();
+    const run: import('../features/services/instrumentationApi').InstrumentationRun = {
+      id: `run-${Date.now()}`, agentId: instrumentationCreate[1], project: input.project, captureBodies: input.captureBodies,
+      targets: input.keys.map(key => { const service = mockAgentServicesFlat.find(row => row.agentId === instrumentationCreate[1] && row.key === key); return { key, name: service?.name ?? key, runtime: service?.runtime ?? 'node' }; }),
+      status: 'planned', reason: '', createdAt: now, updatedAt: now, signals: [],
+    };
+    instrumentationRuns.set(run.id, run);
+    return run as T;
+  }
+  const instrumentationGet = endpoint.match(/^\/agents\/([^/]+)\/instrumentation-runs\/([^/]+)$/);
+  if (method === 'GET' && instrumentationGet) {
+    return (instrumentationGet[2] === 'latest' ? [...instrumentationRuns.values()].reverse().find(run => run.agentId === instrumentationGet[1]) ?? null : instrumentationRuns.get(instrumentationGet[2]) ?? null) as T;
+  }
+
+  if (method === 'GET' && endpoint === '/settings/connection') return { publicUrl: 'https://monitor.example.com' } as T;
+  const collectorSetup = endpoint.match(/^\/agents\/([^/]+)\/setup-status$/);
+  if (method === 'GET' && collectorSetup) {
+    const agent = scenarioAgents(scenario).find(row => row.id === collectorSetup[1]);
+    if (!agent) throw new Error('Docker 환경을 찾을 수 없습니다');
+    const profile = normalizeMockAgentProfile(agent.profile);
+    const connected = Boolean(agent.version && Date.now() - new Date(agent.lastSeenAt).getTime() < 120_000);
+    const desiredHash = [...profile.capabilities].sort().join(',');
+    const appliedHash = agent.version && !pendingCollectorProfiles.has(agent.id) ? desiredHash : '';
+    return {
+      profile, connected, desiredHash, appliedHash, configApplied: connected && desiredHash === appliedHash,
+      lastContactAt: agent.version ? agent.lastSeenAt : undefined,
+      signals: agent.version ? profile.capabilities.map(capability => ({ serviceName: 'api', signal: capability === 'api' ? 'traces' : capability, firstReceivedAt: agent.createdAt, lastReceivedAt: agent.lastSeenAt })) : [],
+    } as T;
+  }
+  const directSetup = endpoint.match(/^\/(observed-services|infrastructure-resources)\/([^/]+)\/setup-status$/);
+  if (method === 'GET' && directSetup) {
+    const infrastructure = directSetup[1] === 'infrastructure-resources';
+    const resource = infrastructure ? mockInfrastructureResources.find(row => row.id === directSetup[2]) : mockObservedServices.find(row => row.id === directSetup[2]);
+    const signals = infrastructure ? ['infrastructure'] : mockObservedServices.find(row => row.id === directSetup[2])?.signals ?? [];
+    return (resource?.lastSeenAt ? signals.map(signal => ({ serviceName: resource.name, signal, firstReceivedAt: resource.createdAt, lastReceivedAt: resource.lastSeenAt })) : []) as T;
+  }
+  const collectorProfile = endpoint.match(/^\/agents\/([^/]+)\/profile$/);
+  if (method === 'PUT' && collectorProfile) {
+    const agent = mockAgents.find(row => row.id === collectorProfile[1]);
+    if (!agent) throw new Error('Docker 환경을 찾을 수 없습니다');
+    agent.profile = normalizeMockAgentProfile(JSON.parse(typeof body === 'string' ? body : '{}'));
+    pendingCollectorProfiles.add(agent.id);
+    return agent.profile as T;
+  }
 
   // Keep successful regions visible while exercising the overview's per-source
   // failure handling. Other detail endpoints continue to work for inspection.

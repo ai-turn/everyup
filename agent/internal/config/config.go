@@ -22,7 +22,8 @@ const (
 )
 
 type Config struct {
-	AgentName string
+	ConfigHash string
+	AgentName  string
 
 	HealthURL     string
 	ServiceName   string
@@ -75,6 +76,7 @@ type Config struct {
 
 func LoadFromEnv() (Config, error) {
 	cfg := Config{
+		ConfigHash:    strings.TrimSpace(os.Getenv("EVERYUP_CONFIG_HASH")),
 		AgentName:     getEnv("EVERYUP_AGENT_NAME", defaultAgentName),
 		HealthURL:     strings.TrimSpace(os.Getenv("EVERYUP_HEALTH_URL")),
 		ServiceName:   getEnv("EVERYUP_SERVICE_NAME", defaultServiceName),

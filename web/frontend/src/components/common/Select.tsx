@@ -46,6 +46,7 @@ export function Select({
   const controlledValue = value === undefined ? undefined : String(value);
   const [localValue, setLocalValue] = useState(() => String(defaultValue ?? options[0]?.value ?? ''));
   const [open, setOpen] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -120,7 +121,10 @@ export function Select({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        onClick={() => setOpen((current) => !current)}
+        onClick={(event) => {
+          setPortalTarget(event.currentTarget.closest('dialog'));
+          setOpen((current) => !current);
+        }}
         onKeyDown={onKeyDown}
         className={`${FIELD_SHELL} ${FIELD_HEIGHT} inline-flex items-center justify-between gap-2 border-ui-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
@@ -139,7 +143,7 @@ export function Select({
             );
           })}
         </div>,
-        document.body,
+        portalTarget ?? document.body,
       )}
     </span>
   );

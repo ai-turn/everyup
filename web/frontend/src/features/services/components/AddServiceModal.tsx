@@ -18,6 +18,8 @@ import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
 import { getErrorMessage } from '../../../utils/errors';
 import { toast } from 'react-hot-toast';
 import { MonitoringSetupPanel } from './MonitoringSetupPanel';
+import { useConnectionAddress } from '../useConnectionAddress';
+import type { CollectorSetupStatus } from '../../../services/api/agents';
 
 interface Props {
   onClose: () => void;
@@ -58,14 +60,6 @@ function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: 
       </div>
     </div>
   );
-}
-
-function initialWebBaseUrl(): string {
-  const { hostname, origin } = window.location;
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
-    return '';
-  }
-  return origin;
 }
 
 function shellQuote(value: string): string {
@@ -294,7 +288,7 @@ function AgentInstallCommand({
             </CopyButton>
           </div>
           <pre className="overflow-auto whitespace-pre-wrap break-all rounded-xl bg-slate-900 px-4 py-3 font-mono text-xs text-slate-100 dark:bg-slate-950">
-            {codeUnavailable ? '일회용 연결 코드를 발급하는 중입니다...' : installCommand}
+            {codeUnavailable ? '사용 가능한 연결 코드가 필요합니다. 새 코드를 발급해 주세요.' : installCommand}
           </pre>
         </div>
 
@@ -338,14 +332,23 @@ export function AddServiceModal({
   const [agentId, setAgentId] = useState(existingAgent?.id ?? '');
   const [joinCode, setJoinCode] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
-  const [webBaseUrl, setWebBaseUrl] = useState(initialWebBaseUrl);
+  const address = useConnectionAddress();
+  const { baseUrl: webBaseUrl, setBaseUrl: setWebBaseUrl } = address;
+  const [setupStatus, setSetupStatus] = useState<CollectorSetupStatus | null>(null);
+  const [setupError, setSetupError] = useState('');
+  const [clock, setClock] = useState(Date.now);
   const [connectedAgent, setConnectedAgent] = useState<ConnectedAgent | null>(null);
   const [detectedServices, setDetectedServices] = useState<AgentServiceSnapshot[]>([]);
   const [checkingConnection, setCheckingConnection] = useState(false);
-  const requestedExistingCode = useRef(false);
+  const existingAgentId = existingAgent?.id;
   const announcedConnection = useRef(false);
   const checkedConnectionOnce = useRef(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -355,10 +358,9 @@ export function AddServiceModal({
   }, []);
 
   useEffect(() => {
-    if (!existingAgent || requestedExistingCode.current) return;
-    requestedExistingCode.current = true;
+    if (!existingAgentId) return;
     let active = true;
-    api.createAgentJoinCode(existingAgent.id)
+    api.createAgentJoinCode(existingAgentId)
       .then((res) => {
         if (!active) return;
         setJoinCode(res.joinCode);
@@ -371,34 +373,38 @@ export function AddServiceModal({
         if (active) setRefreshingCode(false);
       });
     return () => { active = false; };
-  }, [existingAgent]);
+  }, [existingAgentId]);
 
   const refreshConnection = useCallback(async (showLoading = false) => {
     if (!agentId) return;
     if (showLoading) setCheckingConnection(true);
     try {
-      const [agents, serviceList] = await Promise.all([
+      const [agents, serviceList, status] = await Promise.all([
         api.getAgents(),
         api.getAgentServices(agentId),
+        api.getCollectorSetupStatus(agentId),
       ]);
       const current = (agents ?? []).find((candidate) => candidate.id === agentId);
-      const isConnected = Boolean(current && (current.version || current.capabilities || serviceList.length > 0));
+      setSetupStatus(status);
+      setSetupError('');
       const firstCheck = !checkedConnectionOnce.current;
       checkedConnectionOnce.current = true;
-      if (!current || !isConnected) return;
+      if (!current) { setConnectedAgent(null); return; }
       setConnectedAgent(current);
       setDetectedServices(serviceList ?? []);
-      if (!announcedConnection.current) {
+      const installationConfirmed = !existingAgent || Boolean(expiresAt && status.lastEnrolledAt && new Date(status.lastEnrolledAt).getTime() >= new Date(expiresAt).getTime() - 600_000);
+      if (status.connected && status.configApplied && installationConfirmed && !announcedConnection.current) {
         announcedConnection.current = true;
         if (!firstCheck) toast.success('Docker 수집기 연결을 확인했습니다');
         onCreated();
       }
     } catch (error) {
+      setSetupError(getErrorMessage(error));
       if (showLoading) toast.error(getErrorMessage(error));
     } finally {
       if (showLoading) setCheckingConnection(false);
     }
-  }, [agentId, onCreated]);
+  }, [agentId, existingAgent, expiresAt, onCreated]);
 
   useEffect(() => {
     if (step !== 'install' || !agentId) return;
@@ -446,13 +452,15 @@ export function AddServiceModal({
   };
 
   const installCommand = buildInstallCommand(webBaseUrl, joinCode);
-  const webAddressMissing = !webBaseUrl.trim();
-  const codeUnavailable = !joinCode || refreshingCode;
+  const webAddressMissing = !address.valid;
+  const codeExpired = Boolean(expiresAt && clock >= new Date(expiresAt).getTime());
+  const codeUnavailable = !joinCode || refreshingCode || codeExpired;
   const expiryLabel = expiresAt
     ? new Date(expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '';
-  const connected = connectedAgent !== null;
-  const diagnosed = Boolean(connectedAgent?.capabilities);
+  const reinstalled = !existingAgent || Boolean(expiresAt && setupStatus?.lastEnrolledAt && new Date(setupStatus.lastEnrolledAt).getTime() >= new Date(expiresAt).getTime() - 600_000);
+  const connected = !setupError && Boolean(setupStatus?.connected && setupStatus.configApplied && reinstalled);
+  const diagnosed = connected && Boolean(setupStatus?.profile.capabilities.every(capability => setupStatus.signals.some(signal => signal.signal === (capability === 'api' ? 'traces' : capability))));
   const injectableCount = detectedServices.filter(
     (service) => service.runtime === 'java' || service.runtime === 'node',
   ).length;
@@ -491,6 +499,8 @@ export function AddServiceModal({
           />
         ) : (
           <div className="p-6 space-y-5 overflow-y-auto">
+            {(setupError || address.error) && <p role="alert" className="text-sm text-status-warn">{setupError || address.error}</p>}
+            {codeExpired && !connected && <p role="alert" className="text-sm text-status-warn">설치 명령이 만료됐습니다. 아래에서 새 코드를 발급해 주세요.</p>}
             {connected ? (
               <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-ui-hover-soft p-4">
                 <MaterialIcon size={20} name="check_circle" className="mt-0.5 shrink-0 text-emerald-500" />
@@ -526,6 +536,7 @@ export function AddServiceModal({
               <MonitoringSetupPanel
                 agent={connectedAgent}
                 services={detectedServices}
+                setupStatus={setupError ? null : setupStatus}
                 compact
                 onInstrument={injectableCount > 0 && onConfigureInstrumentation
                   ? () => onConfigureInstrumentation(agentId)

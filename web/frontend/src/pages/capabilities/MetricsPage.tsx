@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, EmptyState, MaterialIcon, PageHeader, ResourceCardHeader } from '../../components/common';
-import { DirectMetricsSetupDialog } from '../../features/metrics/components/DirectMetricsSetupDialog';
-import { CapabilityAgentSetup } from '../../features/services/components/CapabilityAgentSetup';
+import { Link } from 'react-router-dom';
+import { EmptyState, PageHeader, ResourceCardHeader } from '../../components/common';
+import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import {
   api,
   type AgentServiceFlat,
@@ -71,11 +70,9 @@ function MetricCard({
 }
 
 export function MetricsPage() {
-  const navigate = useNavigate();
   const [agentMetrics, setAgentMetrics] = useState<AgentMetricRow[]>([]);
   const [directServices, setDirectServices] = useState<ObservedService[]>([]);
   const [directMetrics, setDirectMetrics] = useState<OtelServiceMetric[]>([]);
-  const [showDirectSetup, setShowDirectSetup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -121,8 +118,7 @@ export function MetricsPage() {
   return (
     <div>
       <PageHeader title="메트릭" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 서비스 메트릭입니다.">
-        <CapabilityAgentSetup capability="metrics" buttonVariant="secondary" />
-        <Button onClick={() => setShowDirectSetup(true)}><MaterialIcon name="add" />추가하기</Button>
+        <MonitoringConnection capability="metrics" />
       </PageHeader>
 
       {loading ? (
@@ -184,12 +180,6 @@ export function MetricsPage() {
         </div>
       )}
 
-      {showDirectSetup && (
-        <DirectMetricsSetupDialog
-          onClose={() => setShowDirectSetup(false)}
-          onCreated={service => navigate(`/metrics/${service.id}`)}
-        />
-      )}
     </div>
   );
 }

@@ -15,8 +15,16 @@ Java와 Node.js는 코드를 한 줄도 안 써도 됩니다. Docker 수집기 �
 `everyup-otel` CLI와 OpenTelemetry 번들(Java agent jar + Node.js 부트스트랩)을
 함께 준비합니다.
 
-1. 웹 UI에서 프로젝트를 열고 **상세 API 모니터링**을 선택합니다.
-2. 애플리케이션 Compose 경로를 입력하고 표시된 명령 한 줄을 서버에서 실행합니다.
+1. 웹 UI에서 Docker 환경을 열고 **상세 API 모니터링**을 선택합니다.
+2. Compose 프로젝트와 적용할 Java·Node.js 서비스를 체크박스로 선택합니다. 기본 선택은 없습니다.
+3. 애플리케이션 Compose 경로와 바디 수집 여부를 입력하고 **변경 사항 확인**을 누릅니다.
+4. 재시작 대상·추가되는 설정을 확인하고 **서버 변경 미리보기** 명령을 실행합니다.
+5. 실제 Compose 검증이 통과하면 **안전 적용 명령**을 실행하고 웹의 **계측 실행 결과**를 확인합니다.
+
+`everyup-otel plan ./docker-compose.yml --project=shop api=node`는 선택한 서비스의
+실행 상태, Compose 프로젝트, 생성할 설정을 검증하고 재시작 범위를 출력합니다.
+앱 설정·컨테이너·볼륨·네트워크를 변경하지 않습니다. 선택하지 않은 서비스의 기존 계측은
+다음 적용에서도 유지합니다. 동시에 같은 Compose를 변경하는 CLI는 잠금으로 차단합니다.
 
 CLI는 원본 Compose를 수정하지 않고 옆에 `docker-compose.everyup.yml`을 생성합니다.
 선택한 서비스만 다시 만들고, 기존 `JAVA_TOOL_OPTIONS`/`NODE_OPTIONS`, 번들 볼륨,
@@ -28,6 +36,23 @@ sudo everyup-otel status ./docker-compose.yml
 sudo everyup-otel verify ./docker-compose.yml
 sudo everyup-otel rollback ./docker-compose.yml
 ```
+
+웹에서 만든 적용 명령은 `--report=<Docker 환경 ID>/<실행 ID>`를 포함합니다.
+실행 계획은 발급 후 1시간 내 시작해야 하며, 완료된 계획으로 다시 적용할 수 없습니다.
+결과 전송에는 해당 서버의 `everyup-agent` 컨테이너에 저장된 Web 주소·수집기 키를 사용합니다.
+키는 브라우저 명령이나 실행 결과에 포함하지 않습니다. Web이 실행 시작을 승인하지 않으면
+앱을 변경하지 않습니다. 결과 전송 실패 시 CLI 출력을 확인하세요. 웹은 오래된 실행 기록을
+성공으로 바꾸지 않습니다.
+
+웹은 **설정 적용 검증**과 **실행 시작 이후 새 트레이스 수신**을 분리해 표시합니다.
+트레이스에는 eBPF 등 다른 계측 경로에서 수신된 것도 포함되므로, 새 트레이스 수신만으로
+헤더·바디 계측 성공을 판단하지 않습니다. 트래픽 부족은 자동 복구 사유가 아닙니다.
+자동·수동 롤백의 성공과 실패도 실행 기록으로 전송합니다. 최근 실행은 화면을 다시 열어도
+조회할 수 있습니다. 서버에서 실행하는 독립 `verify`·`status` 명령은 로컬 상태 확인용입니다.
+
+Docker Engine이 없는 개발 환경에서는 CLI 모의 실행으로 선택 범위·설정 보존·복구 경로를
+검증합니다. 실제 컨테이너 재시작과 계측 번들의 동작은 배포 전 Linux Docker 환경에서
+`e2e/monitoring-target/scripts/run-e2e.sh --with-auto-rollback`으로 별도 검증해야 합니다.
 
 바디는 옵트인입니다(Node만 자동 지원). 전체 동작은 Docker 수집기 README의
 "App Instrumentation"을 참고하세요.

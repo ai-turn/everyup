@@ -70,6 +70,7 @@ func TestDirectMetricsSetupReadAlertAndDelete(t *testing.T) {
 	if status := postOTLPStatus(t, ts, "/api/v1/otlp/v1/metrics", created.ApiKey, metricRequest); status != 200 {
 		t.Fatalf("direct metrics status=%d, want 200", status)
 	}
+	assertSetupReceipt(t, ts, token, "/api/v1/observed-services/"+created.ID, "metrics")
 
 	_, namesResult := ts.doRequest(t, "GET", "/api/v1/observed-services/"+created.ID+"/otel-metrics", nil, auth...)
 	if !namesResult.Success {
