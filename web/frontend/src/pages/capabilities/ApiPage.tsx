@@ -69,6 +69,8 @@ export function ApiPage() {
   const [directRows, setDirectRows] = useState<DirectApiSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = () => setReloadKey(key => key + 1);
 
   useEffect(() => {
     let alive = true;
@@ -91,14 +93,14 @@ export function ApiPage() {
       .catch(requestError => { if (alive) setError(getErrorMessage(requestError)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, []);
+  }, [reloadKey]);
 
   const isEmpty = directRows.length === 0 && agentRows.length === 0;
 
   return (
     <div>
       <PageHeader title="API" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 API 요청과 오류 추이입니다.">
-        <MonitoringConnection capability="api" />
+        <MonitoringConnection capability="api" onConnected={reload} />
       </PageHeader>
       {loading ? (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -107,7 +109,9 @@ export function ApiPage() {
       ) : error ? (
         <EmptyState icon="error_outline" title="API 데이터를 불러오지 못했습니다" description={error} />
       ) : isEmpty ? (
-        <EmptyState icon="api" title="표시할 API 대상이 없습니다" description="API를 직접 연결하거나 Docker 환경에서 API 수집을 활성화해 주세요." />
+        <EmptyState icon="api" title="표시할 API 대상이 없습니다" description="기존 Docker 환경을 선택하거나 앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
+          <MonitoringConnection capability="api" onConnected={reload} />
+        </EmptyState>
       ) : (
         <div className="space-y-7">
           {directRows.length > 0 && (

@@ -226,13 +226,13 @@ bg-bg-surface border border-ui-border rounded-xl
 | **`SegmentedControl<T>`** | `options` `value` `onChange` `size` `ariaLabel` | 2~4지 배타 선택 |
 | **`TimeRangePicker`** | `value: GlobalTimeRange` `onChange` | `1h`\|`6h`\|`24h`. SegmentedControl 래퍼 |
 | **`ConfirmDialog`** | `isOpen` `title` `message` `variant` `icon` … | `window.confirm()` 금지 — 항상 이것 |
-| **`EmptyState`** | `icon` `title` `description?` `action?` | 빈 목록의 정본 |
+| **`EmptyState`** | `icon` `title` `description?` `action?` `children?` | 빈 목록의 정본. 라벨+핸들러면 `action`, 자체 상태를 가진 트리거(연결 다이얼로그 등)는 children |
 | **`PageHeader`** | `title` `subtitle?` `children` | h1 등급 고정 |
 | **`ListToolbar`** | `search` `children?` | 목록 검색은 왼쪽, 필터는 그다음 |
 | **`ResourceCardHeader`** | `icon` `title` `subtitle?` `status?` | 대상 아이콘·이름·출처·상태의 고정 배치 |
 | **`DetailActionToolbar`** | `controls` `actions` | 상세의 조회 제어·변경 액션을 반응형으로 분리 |
 | **`MaterialIcon`** | `name` `size` `className` `style` | 로컬 정적 SVG |
-| **`CopyButton`** | `onCopy` `title` `className` … | 3초 완료 피드백 |
+| **`CopyButton`** | `onCopy` `title` `className` … | 3초 완료 피드백. 클래스는 같은 파일이 export하는 `COPY_ACTION_PRIMARY`/`COPY_ACTION_SUBTLE`을 쓴다 |
 
 **Button 스펙**
 

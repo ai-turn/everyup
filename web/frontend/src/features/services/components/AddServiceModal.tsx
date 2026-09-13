@@ -14,11 +14,13 @@ import {
   type AgentServiceSnapshot,
   type ConnectedAgent,
 } from '../../../services/api';
+import { COPY_ACTION_PRIMARY } from '../../../components/common';
 import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
 import { getErrorMessage } from '../../../utils/errors';
 import { toast } from 'react-hot-toast';
 import { MonitoringSetupPanel } from './MonitoringSetupPanel';
 import { useConnectionAddress } from '../useConnectionAddress';
+import { ConnectionAddressField } from './ConnectionAddressField';
 import type { CollectorSetupStatus } from '../../../services/api/agents';
 
 interface Props {
@@ -206,23 +208,19 @@ function AgentInstallCommand({
   expanded,
   expiryLabel,
   refreshingCode,
-  webBaseUrl,
-  webAddressMissing,
+  address,
   installCommand,
   codeUnavailable,
   onRefreshCode,
-  onWebBaseUrlChange,
 }: {
   connected: boolean;
   expanded: boolean;
   expiryLabel: string;
   refreshingCode: boolean;
-  webBaseUrl: string;
-  webAddressMissing: boolean;
+  address: ReturnType<typeof useConnectionAddress>;
   installCommand: string;
   codeUnavailable: boolean;
   onRefreshCode: () => void;
-  onWebBaseUrlChange: (value: string) => void;
 }) {
   return (
     <details open={expanded} className="group rounded-xl border border-ui-border bg-bg-surface">
@@ -236,9 +234,9 @@ function AgentInstallCommand({
       </summary>
       <div className="space-y-4 border-t border-ui-border-soft p-4">
         <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
-          <MaterialIcon size={20} name="timer" className="mt-0.5 shrink-0 text-amber-500" />
+          <MaterialIcon size={20} name="timer" className="mt-0.5 shrink-0 text-status-warn" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-text-base">일회용 연결 코드</p>
+            <p className="type-label text-text-base">일회용 연결 코드</p>
             <p className="mt-0.5 type-body text-text-muted">
               {expiryLabel || '10분 후'}까지 한 번만 사용할 수 있습니다. 장기 API 키는 서버에 직접 저장됩니다.
             </p>
@@ -253,36 +251,19 @@ function AgentInstallCommand({
           </button>
         </div>
 
-        <div className="space-y-1.5">
-          <label htmlFor="agent-web-base-url" className="text-xs uppercase tracking-wider text-text-muted">
-            Docker 수집기에서 접근할 EveryUp Web 주소
-          </label>
-          <Input
-            id="agent-web-base-url"
-            type="url"
-            value={webBaseUrl}
-            onChange={(event) => onWebBaseUrlChange(event.target.value)}
-            placeholder="예: http://192.168.0.10:3001"
-            warn={webAddressMissing}
-          />
-          <p className={`type-body ${webAddressMissing ? 'text-amber-600 dark:text-amber-400' : 'text-text-muted'}`}>
-            {webAddressMissing
-              ? 'Docker 수집기 컨테이너에서 접근 가능한 서버 IP나 도메인을 입력하세요.'
-              : 'localhost는 Docker 수집기 자신을 가리키므로 원격 설치에는 사용할 수 없습니다.'}
-          </p>
-        </div>
+        <ConnectionAddressField address={address} />
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-text-base">설치 명령</p>
+              <p className="type-label text-text-base">설치 명령</p>
               <p className="mt-0.5 type-body text-text-muted">검사, 설정 백업, Docker 수집기·eBPF 시작을 한 번에 처리합니다.</p>
             </div>
             <CopyButton
               onCopy={() => copyInstallCommand(installCommand)}
-              title={webAddressMissing ? 'Web 주소를 먼저 입력하세요' : '설치 명령 복사'}
-              disabled={webAddressMissing || codeUnavailable}
-              className="shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+              title={address.valid ? '설치 명령 복사' : '연결 주소를 먼저 입력하세요'}
+              disabled={!address.valid || codeUnavailable}
+              className={COPY_ACTION_PRIMARY}
             >
               <span>복사</span>
             </CopyButton>
@@ -333,10 +314,10 @@ export function AddServiceModal({
   const [joinCode, setJoinCode] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const address = useConnectionAddress();
-  const { baseUrl: webBaseUrl, setBaseUrl: setWebBaseUrl } = address;
+  const webBaseUrl = address.baseUrl;
   const [setupStatus, setSetupStatus] = useState<CollectorSetupStatus | null>(null);
   const [setupError, setSetupError] = useState('');
-  const [clock, setClock] = useState(Date.now);
+  const [codeExpired, setCodeExpired] = useState(false);
   const [connectedAgent, setConnectedAgent] = useState<ConnectedAgent | null>(null);
   const [detectedServices, setDetectedServices] = useState<AgentServiceSnapshot[]>([]);
   const [checkingConnection, setCheckingConnection] = useState(false);
@@ -346,9 +327,13 @@ export function AddServiceModal({
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setClock(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
+    setCodeExpired(false);
+    if (!expiresAt) return;
+    const remaining = new Date(expiresAt).getTime() - Date.now();
+    if (remaining <= 0) { setCodeExpired(true); return; }
+    const timer = window.setTimeout(() => setCodeExpired(true), remaining);
+    return () => window.clearTimeout(timer);
+  }, [expiresAt]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -452,8 +437,6 @@ export function AddServiceModal({
   };
 
   const installCommand = buildInstallCommand(webBaseUrl, joinCode);
-  const webAddressMissing = !address.valid;
-  const codeExpired = Boolean(expiresAt && clock >= new Date(expiresAt).getTime());
   const codeUnavailable = !joinCode || refreshingCode || codeExpired;
   const expiryLabel = expiresAt
     ? new Date(expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -499,11 +482,11 @@ export function AddServiceModal({
           />
         ) : (
           <div className="p-6 space-y-5 overflow-y-auto">
-            {(setupError || address.error) && <p role="alert" className="text-sm text-status-warn">{setupError || address.error}</p>}
+            {setupError && <p role="alert" className="text-sm text-status-warn">{setupError}</p>}
             {codeExpired && !connected && <p role="alert" className="text-sm text-status-warn">설치 명령이 만료됐습니다. 아래에서 새 코드를 발급해 주세요.</p>}
             {connected ? (
               <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-ui-hover-soft p-4">
-                <MaterialIcon size={20} name="check_circle" className="mt-0.5 shrink-0 text-emerald-500" />
+                <MaterialIcon size={20} name="check_circle" className="mt-0.5 shrink-0 text-status-healthy" />
                 <div>
                   <p className="text-sm text-text-base">Docker 수집기 연결을 확인했습니다</p>
                   <p className="mt-1 type-body text-text-muted">
@@ -549,12 +532,10 @@ export function AddServiceModal({
               expanded={!connected || Boolean(existingAgent)}
               expiryLabel={expiryLabel}
               refreshingCode={refreshingCode}
-              webBaseUrl={webBaseUrl}
-              webAddressMissing={webAddressMissing}
+              address={address}
               installCommand={installCommand}
               codeUnavailable={codeUnavailable}
               onRefreshCode={handleRefreshCode}
-              onWebBaseUrlChange={setWebBaseUrl}
             />
 
             <div className="flex gap-2">

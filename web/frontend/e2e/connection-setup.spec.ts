@@ -21,7 +21,7 @@ test('existing collector gains metrics without creating a new Docker environment
   const installer = page.getByRole('dialog', { name: 'Docker 수집기 설치 및 모니터링 설정' });
   await expect(installer.getByText('Docker 수집기 연결을 기다리는 중', { exact: true })).toBeVisible();
   await expect(installer.getByText(/사용 업타임, 로그, 메트릭/)).toBeVisible();
-  await expect(installer.getByLabel('Docker 수집기에서 접근할 EveryUp Web 주소')).toHaveValue('https://monitor.example.com');
+  await expect(installer.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
   await expect(installer.getByRole('button', { name: '설치 명령 복사' })).toBeEnabled();
   await expect(installer.getByText('Docker 수집기 연결을 확인했습니다', { exact: true })).toHaveCount(0);
   await installer.getByRole('button', { name: '나중에 확인' }).click();

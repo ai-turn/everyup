@@ -33,6 +33,8 @@ export function LogsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = () => setReloadKey(key => key + 1);
 
   useEffect(() => {
     let alive = true;
@@ -49,7 +51,7 @@ export function LogsPage() {
       })
       .catch((requestError) => { if (alive) setError(getErrorMessage(requestError)); });
     return () => { alive = false; };
-  }, []);
+  }, [reloadKey]);
 
   // Filters go to the server: the client only ever holds LOG_LIMIT rows, so
   // filtering here would search the loaded page and call the rest non-existent.
@@ -70,7 +72,7 @@ export function LogsPage() {
       .catch((requestError) => { if (alive) setError(getErrorMessage(requestError)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [search, serviceFilter, page]);
+  }, [search, serviceFilter, page, reloadKey]);
 
   // Registered sources plus whatever the unfiltered snapshot actually carried —
   // a log's serviceName comes off the OTLP resource and need not match a
@@ -112,7 +114,7 @@ export function LogsPage() {
   return (
     <div>
       <PageHeader title="로그" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 최신 로그입니다.">
-        <MonitoringConnection capability="logs" />
+        <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
 
       <ListToolbar search={
@@ -216,8 +218,10 @@ export function LogsPage() {
         <EmptyState
           icon="article"
           title={search || serviceFilter ? '검색 결과가 없습니다' : '아직 수집된 로그가 없습니다'}
-          description={search || serviceFilter ? '검색어나 서비스 필터를 바꾸어 다시 시도해 보세요.' : 'Logs를 직접 연결하거나 Docker 환경에서 로그 수집을 활성화하면 여기에 표시됩니다.'}
-        />
+          description={search || serviceFilter ? '검색어나 서비스 필터를 바꾸어 다시 시도해 보세요.' : '기존 Docker 환경을 선택하거나 앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.'}
+        >
+          {!search && !serviceFilter && <MonitoringConnection capability="logs" onConnected={reload} />}
+        </EmptyState>
       ) : (
         <>
           <p className="mb-2 text-xs text-text-dim">

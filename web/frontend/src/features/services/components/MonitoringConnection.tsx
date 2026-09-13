@@ -8,27 +8,29 @@ import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTel
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
 import { AddServiceModal } from './AddServiceModal';
 import { ExistingCollectorDialog } from './ExistingCollectorDialog';
+import { InstrumentationOverrideModal } from './InstrumentationOverrideModal';
 import { TelemetryReceiptStatus } from './TelemetryReceiptStatus';
 
 type Capability = 'logs' | 'api' | 'metrics' | 'infrastructure';
 const labels: Record<Capability, string> = { logs: '로그', api: 'API', metrics: '메트릭', infrastructure: '인프라' };
 type Target = { id: string; label: string; agent?: ConnectedAgent; serviceKey?: string; direct?: ObservedService; infrastructureId?: string };
 
-export function MonitoringConnection({ capability }: { capability: Capability }) {
+export function MonitoringConnection({ capability, onConnected }: { capability: Capability; onConnected?: () => void }) {
   const [open, setOpen] = useState(false);
   return <>
     <Button onClick={() => setOpen(true)}><MaterialIcon name="add" />{labels[capability]} 연결</Button>
-    {open && <ConnectionFlow capability={capability} onClose={() => setOpen(false)} />}
+    {open && <ConnectionFlow capability={capability} onClose={() => setOpen(false)} onConnected={onConnected} />}
   </>;
 }
 
-function ConnectionFlow({ capability, onClose }: { capability: Capability; onClose: () => void }) {
+function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capability; onClose: () => void; onConnected?: () => void }) {
   const navigate = useNavigate();
   const ref = useRef<HTMLDialogElement>(null);
-  const [mode, setMode] = useState<'choose' | 'existing' | 'install' | 'direct' | 'receipt'>('choose');
+  const [mode, setMode] = useState<'choose' | 'existing' | 'install' | 'direct' | 'receipt' | 'instrument'>('choose');
   const [targets, setTargets] = useState<Target[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [installAgent, setInstallAgent] = useState<ConnectedAgent>();
+  const [instrumentAgentId, setInstrumentAgentId] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const selected = targets.find(target => target.id === selectedId);
@@ -63,7 +65,7 @@ function ConnectionFlow({ capability, onClose }: { capability: Capability; onClo
       ? `/services/${agentId}/${encodeURIComponent(selected.serviceKey)}?tab=${tab}` : `/agents/${agentId}`;
     onClose(); navigate(path);
   };
-  const viewDirect = (id: string) => { onClose(); navigate(`/${capability}/${id}`); };
+  const viewDirect = (id: string) => { onConnected?.(); onClose(); navigate(`/${capability}/${id}`); };
   const next = () => {
     if (selected?.agent) setMode('existing');
     else if (selected?.direct?.signals.includes(signal) || selected?.infrastructureId) setMode('receipt');
@@ -71,12 +73,16 @@ function ConnectionFlow({ capability, onClose }: { capability: Capability; onClo
   };
 
   if (mode === 'existing' && selected?.agent) return <ExistingCollectorDialog capability={capability} initialAgentId={selected.agent.id} onView={agent => viewAgent(agent.id)} onClose={onClose} onNew={() => { setInstallAgent(undefined); setMode('install'); }} onInstall={agent => { setInstallAgent(agent); setMode('install'); }} />;
-  if (mode === 'install') return <AddServiceModal existingAgent={installAgent} initialProfile={{ kind: 'custom', capabilities: [capability] }} onClose={onClose} onCreated={() => {}} onOpenProject={viewAgent} />;
+  if (mode === 'instrument') return <InstrumentationOverrideModal agentId={instrumentAgentId} onClose={onClose} />;
+  if (mode === 'install') return <AddServiceModal existingAgent={installAgent} initialProfile={{ kind: 'custom', capabilities: [capability] }} onClose={onClose} onCreated={() => onConnected?.()} onOpenProject={viewAgent} onConfigureInstrumentation={agentId => { setInstrumentAgentId(agentId); setMode('instrument'); }} />;
   if (mode === 'direct') return capability === 'infrastructure'
     ? <InfrastructureCollectorSetupDialog onClose={onClose} onCreated={resource => viewDirect(resource.id)} />
     : <DirectTelemetrySetupDialog initialService={selected?.direct} signal={signal} capabilityLabel={label} title={`${label} 직접 연결`} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다." onClose={onClose} onCreated={service => viewDirect(service.id)} />;
   return <dialog ref={ref} aria-label={`${label} 연결`} onCancel={event => { event.preventDefault(); onClose(); }} className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface p-6 ${SCRIM_MODAL_DIALOG}`}>
-    <h2 className="type-card-title text-text-base">{label} 연결</h2>
+    <div className="flex items-start justify-between gap-3">
+      <h2 className="type-card-title text-text-base">{label} 연결</h2>
+      <Button variant="ghost" size="sm" aria-label="닫기" onClick={onClose}><MaterialIcon name="close" /></Button>
+    </div>
     {mode === 'receipt' && selected ? <div className="mt-4 space-y-4">
       <p className="type-body text-text-secondary">{selected.label}의 기존 연결을 사용합니다.</p>
       <TelemetryReceiptStatus path={selected.infrastructureId ? `/infrastructure-resources/${selected.infrastructureId}/setup-status` : `/observed-services/${selected.direct!.id}/setup-status`} expected={[capability === 'infrastructure' ? 'infrastructure' : signal]} />
@@ -90,8 +96,10 @@ function ConnectionFlow({ capability, onClose }: { capability: Capability; onClo
       </div> : <p className="type-body text-text-muted">등록된 대상이 없습니다.</p>}
       <div className="space-y-3 border-t border-ui-border pt-4">
         <p className="type-label text-text-base">새로운 대상</p>
-        <Button variant="secondary" onClick={() => { setSelectedId(''); setMode('install'); }}>Docker에서 실행 중</Button>
-        <Button variant="secondary" className="ml-2" onClick={() => { setSelectedId(''); setMode('direct'); }}>{capability === 'infrastructure' ? '표준 Collector 연결' : 'OpenTelemetry로 직접 연결'}</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={() => { setSelectedId(''); setMode('install'); }}>Docker 수집기 설치</Button>
+          <Button variant="secondary" onClick={() => { setSelectedId(''); setMode('direct'); }}>{capability === 'infrastructure' ? '표준 Collector 연결' : 'OpenTelemetry로 직접 연결'}</Button>
+        </div>
       </div>
     </div>}
     <div className="mt-5 flex justify-end"><Button variant="ghost" onClick={onClose}>닫기</Button></div>

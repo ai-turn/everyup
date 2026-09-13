@@ -75,6 +75,8 @@ export function MetricsPage() {
   const [directMetrics, setDirectMetrics] = useState<OtelServiceMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = () => setReloadKey(key => key + 1);
 
   useEffect(() => {
     let alive = true;
@@ -102,7 +104,7 @@ export function MetricsPage() {
       .catch(requestError => { if (alive) setError(getErrorMessage(requestError)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, []);
+  }, [reloadKey]);
 
   const directByService = useMemo(
     () => new Map(directMetrics.map(metric => [metric.serviceId, metric])),
@@ -118,7 +120,7 @@ export function MetricsPage() {
   return (
     <div>
       <PageHeader title="메트릭" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 서비스 메트릭입니다.">
-        <MonitoringConnection capability="metrics" />
+        <MonitoringConnection capability="metrics" onConnected={reload} />
       </PageHeader>
 
       {loading ? (
@@ -128,7 +130,9 @@ export function MetricsPage() {
       ) : error ? (
         <EmptyState icon="error_outline" title="메트릭을 불러오지 못했습니다" description={error} />
       ) : isEmpty ? (
-        <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="Metrics를 직접 연결하거나 Docker 환경에서 메트릭 수집을 활성화해 주세요." />
+        <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="기존 Docker 환경을 선택하거나 앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
+          <MonitoringConnection capability="metrics" onConnected={reload} />
+        </EmptyState>
       ) : (
         <div className="space-y-7">
           {directServices.length > 0 && (

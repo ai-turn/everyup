@@ -87,6 +87,13 @@ export function Select({
     buttonRef.current?.focus();
   };
 
+  // The listbox must land inside the <dialog> that holds the trigger: a native
+  // modal dialog renders in the top layer, above anything portaled to the body.
+  const toggle = () => {
+    setPortalTarget(buttonRef.current?.closest('dialog') ?? null);
+    setOpen((current) => !current);
+  };
+
   const onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === 'Escape' && open) {
       event.preventDefault();
@@ -96,7 +103,7 @@ export function Select({
     if (!['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) return;
     event.preventDefault();
     if (event.key === 'Enter' || event.key === ' ') {
-      setOpen((current) => !current);
+      toggle();
       return;
     }
     const selectable = options.filter((option) => !option.disabled);
@@ -121,10 +128,7 @@ export function Select({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        onClick={(event) => {
-          setPortalTarget(event.currentTarget.closest('dialog'));
-          setOpen((current) => !current);
-        }}
+        onClick={toggle}
         onKeyDown={onKeyDown}
         className={`${FIELD_SHELL} ${FIELD_HEIGHT} inline-flex items-center justify-between gap-2 border-ui-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >

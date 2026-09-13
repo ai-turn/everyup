@@ -8,7 +8,7 @@ export { ListToolbar } from './ListToolbar';
 export { ResourceCardHeader } from './ResourceCardHeader';
 export { DetailActionToolbar } from './DetailActionToolbar';
 export { MaterialIcon } from './MaterialIcon';
-export { CopyButton } from './CopyButton';
+export { CopyButton, COPY_ACTION_PRIMARY, COPY_ACTION_SUBTLE } from './CopyButton';
 export { StatusBadge } from './StatusBadge';
 export { CollectionStatusBadge, type CollectionStatus } from './CollectionStatusBadge';
 export { Toggle } from './Toggle';

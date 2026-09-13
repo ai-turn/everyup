@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { CopyButton } from '../../../components/common/CopyButton';
+import { useEffect, useRef, useState } from 'react';
+import { CopyButton, COPY_ACTION_PRIMARY } from '../../../components/common/CopyButton';
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
 import { Input } from '../../../components/common/Input';
 import { Select } from '../../../components/common/Select';
@@ -8,6 +8,7 @@ import { api, type AgentServiceSnapshot } from '../../../services/api';
 import { runtimeLabel } from '../../healthcheck/runtimeLabels';
 import { useOverlay, SCRIM_MODAL } from '../../../hooks/useOverlay';
 import { useConnectionAddress } from '../useConnectionAddress';
+import { ConnectionAddressField } from './ConnectionAddressField';
 import { Button } from '../../../components/common/Button';
 import { createInstrumentationRun, type InstrumentationRun } from '../instrumentationApi';
 import { InstrumentationRunStatus } from './InstrumentationRunStatus';
@@ -83,13 +84,14 @@ function CommandRow({
 }
 
 export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
-  useOverlay(true, onClose);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useOverlay(true, onClose, panelRef);
   const { copy } = useClipboardCopy();
   const [services, setServices] = useState<AgentServiceSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [captureBodies, setCaptureBodies] = useState(false);
   const address = useConnectionAddress();
-  const { baseUrl: webBaseUrl, setBaseUrl: setWebBaseUrl } = address;
+  const webBaseUrl = address.baseUrl;
   const [composePath, setComposePath] = useState('./docker-compose.yml');
   const [composeProject, setComposeProject] = useState('');
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
@@ -151,7 +153,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
       aria-label="OpenTelemetry 자동 적용"
       onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
-      <div className="flex h-full max-h-full w-full max-w-2xl flex-col bg-bg-surface shadow-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
+      <div ref={panelRef} className="flex h-full max-h-full w-full max-w-2xl flex-col bg-bg-surface shadow-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
         <div className="flex items-center gap-3 border-b border-ui-border px-5 py-4">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <MaterialIcon size={20} name="integration_instructions" />
@@ -187,9 +189,9 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
             <>
               <div className="rounded-xl border border-ui-border bg-ui-hover-soft p-4">
                 <div className="flex items-start gap-2.5">
-                  <MaterialIcon size={20} name="verified_user" className="mt-0.5 shrink-0 text-emerald-500" />
+                  <MaterialIcon size={20} name="verified_user" className="mt-0.5 shrink-0 text-status-healthy" />
                   <div>
-                    <p className="text-sm text-text-base">원본 Compose는 수정하지 않습니다</p>
+                    <p className="type-label text-text-base">원본 Compose는 수정하지 않습니다</p>
                     <p className="mt-1 type-body text-text-muted">
                       CLI가 별도 override를 만들고 선택한 서비스만 재시작합니다. 주입 옵션, 공유 볼륨, 네트워크와 컨테이너 상태를 확인하며 실패하면 직전 설정으로 자동 복구합니다.
                     </p>
@@ -198,28 +200,31 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               </div>
 
               <div>
-                <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-text-dim">적용 대상</p>
+                <p className="mb-1.5 type-label text-text-secondary">적용 대상</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {candidates.map((target) => (
-                    <label
-                      key={target.composeService}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
-                    >
-                      <input type="checkbox" aria-label={`${target.name} 계측`} checked={selectedKeys.includes(`${selectedProject}:${target.composeService}`)} onChange={event => {
-                        const key = `${selectedProject}:${target.composeService}`;
-                        setSelectedKeys(current => event.target.checked ? [...current, key] : current.filter(item => item !== key));
-                      }} className="h-4 w-4 accent-primary" />
-                      {target.name}
-                      <span className="opacity-70">· {runtimeLabel(target.runtime)}</span>
-                    </label>
-                  ))}
+                  {candidates.map((target) => {
+                    const key = `${selectedProject}:${target.composeService}`;
+                    const checked = selectedKeys.includes(key);
+                    return (
+                      <label
+                        key={target.composeService}
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${checked ? 'border-primary/20 bg-primary/10 text-primary' : 'border-ui-border text-text-secondary hover:bg-ui-hover'}`}
+                      >
+                        <input type="checkbox" aria-label={`${target.name} 계측`} checked={checked} onChange={event => {
+                          setSelectedKeys(current => event.target.checked ? [...current, key] : current.filter(item => item !== key));
+                        }} className="h-4 w-4 cursor-pointer accent-primary" />
+                        {target.name}
+                        <span className="opacity-70">· {runtimeLabel(target.runtime)}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className={`grid gap-3 ${composeProjects.length > 1 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
                 {composeProjects.length > 1 && (
                   <div className="space-y-1.5">
-                    <label htmlFor="otel-compose-project" className="text-xs font-medium text-text-muted">
+                    <label htmlFor="otel-compose-project" className="type-label text-text-secondary">
                       Compose 프로젝트
                     </label>
                     <Select
@@ -234,24 +239,9 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                     <p className="type-body text-text-muted">한 번에 한 Compose 프로젝트씩 적용합니다.</p>
                   </div>
                 )}
+                <ConnectionAddressField address={address} />
                 <div className="space-y-1.5">
-                  <label htmlFor="otel-web-base-url" className="text-xs font-medium text-text-muted">
-                    모니터링 서버 주소
-                  </label>
-                  <Input
-                    id="otel-web-base-url"
-                    type="url"
-                    value={webBaseUrl}
-                    onChange={(event) => setWebBaseUrl(event.target.value)}
-                    placeholder="예: http://192.168.0.10:3001"
-                    warn={webAddressMissing}
-                  />
-                  <p className={`type-body ${webAddressMissing ? 'text-amber-600 dark:text-amber-400' : 'text-text-muted'}`}>
-                    {webAddressMissing ? '애플리케이션 서버에서 접근 가능한 주소를 입력하세요.' : 'CLI를 최신 버전으로 내려받을 주소입니다.'}
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <label htmlFor="otel-compose-path" className="text-xs font-medium text-text-muted">
+                  <label htmlFor="otel-compose-path" className="type-label text-text-secondary">
                     애플리케이션 Compose 경로
                   </label>
                   <Input
@@ -282,7 +272,10 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 </span>
               </label>
 
-              <Button onClick={() => void prepare()} disabled={preparing || targets.length === 0 || webAddressMissing || composePathMissing}>{preparing ? '준비 중...' : '변경 사항 확인'}</Button>
+              <div className="space-y-1.5">
+                <Button onClick={() => void prepare()} disabled={preparing || targets.length === 0 || webAddressMissing || composePathMissing}>{preparing ? '준비 중...' : '변경 사항 확인'}</Button>
+                {targets.length === 0 && <p className="type-body text-text-muted">적용할 서비스를 하나 이상 선택하세요.</p>}
+              </div>
               {plan && <div className="space-y-3 rounded-xl border border-ui-border p-4" aria-label="계측 변경 미리보기">
                 <p className="type-label text-text-base">재시작 대상: {targets.map(target => target.name).join(', ')}</p>
                 <p className="type-body text-text-muted">선택한 서비스에 Java agent 또는 Node preload, OTLP 전송 설정, 계측 파일 볼륨과 모니터링 네트워크를 추가합니다. 다른 서비스의 기존 계측은 유지합니다.</p>
@@ -292,14 +285,14 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               {plan && <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm text-text-base">안전 적용 명령</p>
+                    <p className="type-label text-text-base">안전 적용 명령</p>
                     <p className="mt-0.5 type-body text-text-muted">애플리케이션 Compose가 있는 Linux 서버에서 실행하세요.</p>
                   </div>
                   <CopyButton
                     onCopy={() => copy(applyCommand)}
                     title={webAddressMissing || composePathMissing ? '주소와 Compose 경로를 입력하세요' : '안전 적용 명령 복사'}
                     disabled={webAddressMissing || composePathMissing || !plan}
-                    className="shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                    className={COPY_ACTION_PRIMARY}
                   >
                     <span>복사</span>
                   </CopyButton>
@@ -311,12 +304,17 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
 
               <InstrumentationRunStatus agentId={agentId} runId={prepared?.run.id} />
 
-              <div className="space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wider text-text-dim">적용 후 관리</p>
-                <CommandRow label="상태 확인" command={statusCommand} onCopy={copy} />
-                <CommandRow label="다시 검증" command={verifyCommand} onCopy={copy} />
-                <CommandRow label="직전 설정으로 되돌리기" command={rollbackCommand} onCopy={copy} />
-              </div>
+              <details className="rounded-xl border border-ui-border">
+                <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 type-label text-text-secondary">
+                  적용 후 관리 명령
+                  <MaterialIcon size={16} name="expand_more" className="ml-auto text-text-dim" />
+                </summary>
+                <div className="space-y-2 border-t border-ui-border-soft p-3">
+                  <CommandRow label="상태 확인" command={statusCommand} onCopy={copy} />
+                  <CommandRow label="다시 검증" command={verifyCommand} onCopy={copy} />
+                  <CommandRow label="직전 설정으로 되돌리기" command={rollbackCommand} onCopy={copy} />
+                </div>
+              </details>
 
               <div className="space-y-1 border-t border-ui-border-soft pt-3">
                 {skipped.length > 0 && (
