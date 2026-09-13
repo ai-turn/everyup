@@ -1,5 +1,5 @@
 import { toast } from 'react-hot-toast';
-import { Button, CopyButton, MaterialIcon } from '../../../components/common';
+import { Button, COPY_ACTION_SUBTLE, CopyButton, MaterialIcon } from '../../../components/common';
 import { useConnectionAddress } from '../../services/useConnectionAddress';
 import { ConnectionAddressField } from '../../services/components/ConnectionAddressField';
 import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
@@ -65,7 +65,7 @@ export function InfrastructureCollectorSetupResult({
       </div>
       <ConnectionAddressField address={address} />
       <div className="space-y-2">
-        <p className="text-xs font-medium text-text-secondary">Collector API 키</p>
+        <p className="type-label text-text-secondary">Collector API 키</p>
         <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
           <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
           <CopyButton onCopy={() => copy(setup.apiKey)} title="API 키 복사" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-ui-hover" />
@@ -73,8 +73,8 @@ export function InfrastructureCollectorSetupResult({
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-medium text-text-secondary">otelcol-contrib.yaml</p>
-          <CopyButton disabled={!address.valid} onCopy={() => copy(config)} title="Collector 설정 복사" className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary hover:bg-primary/10">복사</CopyButton>
+          <p className="type-label text-text-secondary">otelcol-contrib.yaml</p>
+          <CopyButton disabled={!address.valid} onCopy={() => copy(config)} title="Collector 설정 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
         </div>
         <pre className="max-h-80 overflow-auto whitespace-pre rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{config}</pre>
       </div>
@@ -83,7 +83,7 @@ export function InfrastructureCollectorSetupResult({
         <code className="mt-2 block break-all font-mono">otelcol-contrib --config otelcol-contrib.yaml</code>
       </div>
       <TelemetryReceiptStatus path={`/infrastructure-resources/${setup.id}/setup-status`} expected={['infrastructure']} />
-      <div className="flex justify-end border-t border-ui-border pt-4"><Button onClick={onDone}>인프라 보기</Button></div>
+      <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-ui-border bg-bg-surface px-6 py-4"><Button onClick={onDone}>인프라 보기</Button></div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { toast } from 'react-hot-toast';
-import { Button, CopyButton, MaterialIcon } from '../../../components/common';
+import { Button, COPY_ACTION_SUBTLE, CopyButton, MaterialIcon } from '../../../components/common';
 import { useConnectionAddress } from '../../services/useConnectionAddress';
 import { ConnectionAddressField } from '../../services/components/ConnectionAddressField';
 import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
@@ -49,9 +49,8 @@ export function DirectTelemetrySetupResult({
       </div>
 
       <ConnectionAddressField address={address} />
-      <TelemetrySetupGuidance signals={setup.signals} />
       <div className="space-y-2">
-        <p className="text-xs font-medium text-text-secondary">직접 수집 API 키</p>
+        <p className="type-label text-text-secondary">직접 수집 API 키</p>
         <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
           <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
           <CopyButton
@@ -64,12 +63,12 @@ export function DirectTelemetrySetupResult({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-medium text-text-secondary">OpenTelemetry 환경 변수</p>
+          <p className="type-label text-text-secondary">OpenTelemetry 환경 변수</p>
           <CopyButton
             onCopy={() => copy(configuration)}
             disabled={!address.valid}
             title="환경 변수 복사"
-            className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary hover:bg-primary/10"
+            className={COPY_ACTION_SUBTLE}
           >
             복사
           </CopyButton>
@@ -77,8 +76,9 @@ export function DirectTelemetrySetupResult({
         <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{address.valid ? configuration : '접근 가능한 서버 주소를 입력하세요.'}</pre>
       </div>
 
+      <TelemetrySetupGuidance signals={setup.signals} />
       <TelemetryReceiptStatus path={`/observed-services/${setup.id}/setup-status`} expected={setup.signals} />
-      <div className="flex justify-end border-t border-ui-border pt-4">
+      <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-ui-border bg-bg-surface px-6 py-4">
         <Button onClick={onDone}>{doneLabel ?? '완료'}</Button>
       </div>
     </div>

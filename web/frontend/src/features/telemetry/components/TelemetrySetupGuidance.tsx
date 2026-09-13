@@ -16,11 +16,11 @@ export function TelemetrySetupGuidance({ signals }: { signals: string[] }) {
     <SegmentedControl options={[{ value: 'existing', label: '이미 사용 중' }, { value: 'new', label: '처음 설정' }]} value={experience} onChange={setExperience} size="md" ariaLabel="OpenTelemetry 사용 경험" />
     {experience === 'existing' ? <>
       <p className="type-body text-text-muted">기존 전송 대상도 유지하려면 현재 Collector에 EveryUp용 OTLP/HTTP exporter를 추가하고, 선택한 신호의 pipeline에 함께 연결하세요. 앱의 공통 OTLP 주소를 바꾸면 기존 전송 대상이 대체될 수 있습니다.</p>
-      <a className="type-body text-primary hover:underline" href="https://opentelemetry.io/docs/collector/configuration/" target="_blank" rel="noreferrer">Collector exporter·pipeline 설정 예제</a>
+      <a className="block w-fit type-body text-primary hover:underline" href="https://opentelemetry.io/docs/collector/configuration/" target="_blank" rel="noreferrer">Collector exporter·pipeline 설정 예제</a>
     </> : <>
       <Select aria-label="앱 언어" value={language} onChange={event => setLanguage(event.target.value as keyof typeof guides)}>{Object.entries(guides).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}</Select>
       <p className="type-body text-text-muted">{guide.text} 환경 변수만 추가하면 계측이 시작되는 것은 아닙니다.</p>
-      <a className="type-body text-primary hover:underline" href={guide.url} target="_blank" rel="noreferrer">{guide.label} 계측·SDK 설정 예제</a>
+      <a className="block w-fit type-body text-primary hover:underline" href={guide.url} target="_blank" rel="noreferrer">{guide.label} 계측·SDK 설정 예제</a>
     </>}
     {signals.includes('logs') && <p className="type-body text-text-muted">로그는 사용하는 로깅 라이브러리의 OTel bridge 또는 appender도 연결해야 합니다. stdout 출력만으로 직접 OTLP 로그가 전송되지는 않습니다.</p>}
     <ol className="list-decimal space-y-1 pl-5 type-body text-text-secondary">

@@ -1,7 +1,7 @@
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
 import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
-import { ReceiptList } from './TelemetryReceiptStatus';
+import { ReceiptPanel } from './TelemetryReceiptStatus';
 import type {
 	AgentCollectionCapability,
 	AgentCapabilityState,
@@ -291,9 +291,13 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           onAction={onInstrument}
         />
       </div>
-      <div className="mt-3 space-y-2 rounded-lg border border-ui-border-soft p-3">
-        <p className="type-body text-text-muted">{statusRequest.error || (!connected ? '최근 수집기 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.')}</p>
-        <ReceiptList signals={status?.signals ?? []} expected={enabledCapabilities.map(capability => capability === 'api' ? 'traces' : capability)} />
+      <div className="mt-3">
+        <ReceiptPanel
+          signals={status?.signals ?? []}
+          expected={enabledCapabilities.map(capability => capability === 'api' ? 'traces' : capability)}
+          error={statusRequest.error}
+          note={!connected ? '최근 수집기 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
+        />
       </div>
     </section>
   );

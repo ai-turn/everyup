@@ -6,7 +6,7 @@ import { api, type AgentCollectionCapability, type ConnectedAgent } from '../../
 import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { getErrorMessage } from '../../../utils/errors';
 import { useSetupStatus } from '../useSetupStatus';
-import { ReceiptList } from './TelemetryReceiptStatus';
+import { ReceiptPanel } from './TelemetryReceiptStatus';
 
 const labels: Record<AgentCollectionCapability, string> = { uptime: '컨테이너 상태', logs: '로그', infrastructure: '인프라', api: 'API 추적', metrics: '메트릭' };
 
@@ -62,7 +62,7 @@ export function ExistingCollectorDialog({ capability, initialAgentId, onView, on
         <p className="text-sm text-text-muted">{status.connected ? '최근 수집기 통신 확인됨' : '최근 수집기 통신 없음'} · 현재 선택: {status.profile.capabilities.map(item => labels[item]).join(', ')}</p>
         {enabled ? <>
           <p className="text-sm text-text-secondary">이미 선택된 기능입니다. 데이터 수신 기록을 확인하세요.</p>
-          <ReceiptList signals={status.signals} expected={[capability === 'api' ? 'traces' : capability]} />
+          <ReceiptPanel signals={status.signals} expected={[capability === 'api' ? 'traces' : capability]} />
           {onView && selected && <Button onClick={() => onView(selected)}>{labels[capability]} 보기</Button>}
         </> : <p className="text-sm text-text-muted">이 Docker 환경 전체에 기능을 추가합니다. 적용 명령을 서버에서 실행해야 하며, API 추적은 eBPF Observer와 호스트 권한을 추가합니다. 앱 재시작은 필요하지 않습니다.</p>}
         {(!enabled || !status.configApplied || !status.connected) && <Button onClick={() => void apply()} disabled={saving}>{saving ? '준비 중...' : enabled ? '설정 적용 명령' : `${labels[capability]} 추가 및 적용 명령`}</Button>}

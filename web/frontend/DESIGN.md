@@ -221,7 +221,7 @@ bg-bg-surface border border-ui-border rounded-xl
 | **`Select`** | 네이티브 `option` children + 기존 select props | 앱 스타일 listbox (§6) |
 | **`SearchInput`** | `wrapperClassName?` | 아이콘 붙은 검색창 (§6) |
 | **`StatusBadge`** | `healthy: boolean` | 정상/장애 보더칩 (§5.1) |
-| **`CollectionStatusBadge`** | `collecting` \| `partial` \| `delayed` \| `not-configured` | 수집 신선도·설정 상태. 서비스 상태와 별도 축 (§5.1) |
+| **`CollectionStatusBadge`** | `collecting` \| `partial` \| `delayed` \| `waiting` \| `not-configured` | 수집 신선도·설정 상태. 서비스 상태와 별도 축 (§5.1) |
 | **`Toggle`** | `checked` `onChange` `disabled` `title` | w-9 h-5, `role="switch"` |
 | **`SegmentedControl<T>`** | `options` `value` `onChange` `size` `ariaLabel` | 2~4지 배타 선택 |
 | **`TimeRangePicker`** | `value: GlobalTimeRange` `onChange` | `1h`\|`6h`\|`24h`. SegmentedControl 래퍼 |
@@ -354,7 +354,7 @@ Tailwind v4는 `/10` 같은 투명도 수식자를 `oklab()` `color-mix`로 컴�
 
 ### 5.1a 수집 상태 — `CollectionStatusBadge`
 
-**서비스 상태**(정상·장애)와 **수집 상태**(수집 중·부분 수집·지연·미설정)는 섞지 않는다. 전자는 대상의 동작 결과이고 후자는 관측 가능성이다. 환경·프로젝트 목록과 개요의 범위/연결 정보에는 `CollectionStatusBadge`를 쓴다. 장애 lifecycle이 실제로 없다면 “Incident” 같은 단계명으로 바꾸지 않는다.
+**서비스 상태**(정상·장애)와 **수집 상태**(수집 중·부분 수집·지연·수신 대기·미설정)는 섞지 않는다. 전자는 대상의 동작 결과이고 후자는 관측 가능성이다. 환경·프로젝트 목록과 개요의 범위/연결 정보, 연결 설정의 데이터 수신 확인에는 `CollectionStatusBadge`를 쓴다. `waiting`(수신 대기)은 **설정은 했는데 첫 데이터가 아직 없는** 상태이고 `not-configured`(미설정)는 설정 자체가 없는 상태다 — 둘을 바꿔 쓰지 않는다. 오래된 수신 기록은 `delayed`이지 `collecting`이 아니다. 장애 lifecycle이 실제로 없다면 “Incident” 같은 단계명으로 바꾸지 않는다.
 
 ### 5.2 상태 점
 

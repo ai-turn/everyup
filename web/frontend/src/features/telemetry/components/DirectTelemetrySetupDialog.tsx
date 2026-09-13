@@ -104,7 +104,7 @@ export function DirectTelemetrySetupDialog({
       onClick={(event) => { if (event.target === event.currentTarget && !submitting) onClose(); }}
       className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-ui-border bg-bg-surface px-6 py-4">
         <div>
           <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{title}</h2>
           <p className="mt-0.5 text-sm text-text-muted">{description}</p>
@@ -132,7 +132,7 @@ export function DirectTelemetrySetupDialog({
           </div>
           <TelemetrySetupGuidance signals={[signal]} />
           <TelemetryReceiptStatus path={`/observed-services/${attached.id}/setup-status`} expected={[signal]} />
-          <div className="flex justify-end"><Button onClick={done}>{`${capabilityLabel} 보기`}</Button></div>
+          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-ui-border bg-bg-surface px-6 py-4"><Button onClick={done}>{`${capabilityLabel} 보기`}</Button></div>
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-5 p-6">

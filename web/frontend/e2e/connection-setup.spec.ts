@@ -42,7 +42,9 @@ test('direct setup uses an external endpoint and waits for actual data', async (
   await dialog.getByRole('button', { name: '추가하기', exact: true }).click();
   await expect(dialog.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
   await expect(dialog.locator('pre')).toContainText('OTEL_EXPORTER_OTLP_ENDPOINT=https://monitor.example.com/api/v1/otlp');
-  await expect(dialog.getByText('로그 · 첫 데이터 대기')).toBeVisible();
+  const receipts = dialog.getByRole('region', { name: '데이터 수신 확인' });
+  await expect(receipts).toContainText('로그');
+  await expect(receipts).toContainText('수신 대기');
   await dialog.getByRole('button', { name: '처음 설정', exact: true }).click();
   await dialog.getByRole('button', { name: '앱 언어' }).click();
   await page.getByRole('option', { name: 'Go', exact: true }).click();
