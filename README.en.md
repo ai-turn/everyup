@@ -76,6 +76,8 @@ services:
   everyup:
     image: aiturn/everyup:latest
     container_name: everyup
+    environment:
+      EVERYUP_PUBLIC_URL: ${EVERYUP_PUBLIC_URL:-}
     ports:
       - "3001:3001"
     volumes:
@@ -99,37 +101,94 @@ docker compose up -d
 
 Open `http://WEB_SERVER_IP:3001` and create the first admin account. Done.
 
+If users or monitored servers reach Web through a separate public address, set
+`EVERYUP_PUBLIC_URL=https://monitor.example.com` in your shell or `.env` file.
+The Compose example above and the repository templates pass this value to the
+Web container. EveryUp uses the same address in Docker installation commands,
+direct OTLP setup, and infrastructure Collector configuration. When omitted,
+the connection screens suggest the API address used by the browser and let you
+edit it. Use an absolute HTTP(S) address reachable from the target server;
+`localhost` is not accepted.
+
 ### 2. Create a one-time Docker connection command
 
-In the dashboard, open **Docker** and click **Connect Docker**. The connection
-flow shows an installation command containing a join code that expires after ten
-minutes and can only be used once. The long-lived API key is not displayed in
-this initial browser flow; it is delivered directly to the target server during
-installation.
+In the dashboard, open **Docker environments** and click **Connect Docker**.
+Name the environment, then choose its collection scope:
+
+- **All** configures uptime, logs, infrastructure, API tracing, and metrics.
+- **Basic** collects Docker service state and logs only.
+- **Custom** installs only the collectors and permissions required for the
+  capabilities you select.
+
+The connection flow then shows an installation command containing a join code
+that expires after ten minutes and can only be used once. The long-lived API key
+is not displayed in the browser; it is delivered directly to the target server
+during installation.
 
 ### 3. Install the monitoring bundle on the monitored server
 
-The bundled Compose file starts the Docker collector plus an isolated OBI eBPF
-observer. Your application Compose file, images, ports, and containers do not
-need to be changed. Docker Compose 2.23.1 or newer is required.
+The installer starts only the components required by the selected collection
+scope. The **All** profile, or a custom profile with API tracing, starts the
+Docker collector together with an isolated OBI eBPF observer. The **Basic**
+profile collects Docker service state and logs without the eBPF observer. Your
+application Compose file, images, ports, and containers are left unchanged.
+Docker Compose 2.23.1 or newer is required.
 
 Run the displayed one-line command on the target Linux Docker server. The
 installer checks Docker and Compose first, writes the bundle under
-`/opt/everyup-agent`, backs up any previous configuration, and starts the Docker
-collector and eBPF observer.
+`/opt/everyup-agent`, backs up any previous configuration, and starts the
+components required by the selected collection scope.
 
 If the join code expires or has already been used, click **New code** in the
-project installation screen and copy the refreshed command.
+Docker installation screen and copy the refreshed command.
 
-Within about 30 seconds the Docker environment shows as online in Web and the containers on
-that server appear automatically. The eBPF observer also discovers container
-processes automatically; there is no port list to maintain. If something goes wrong, see
-[Troubleshooting](#troubleshooting).
+Within about 30 seconds the Docker environment shows as online in Web. When
+uptime collection is enabled, the containers on that server appear
+automatically. When API tracing is enabled, the eBPF observer discovers
+container processes automatically, so there is no port list to maintain. If
+something goes wrong, see [Troubleshooting](#troubleshooting).
 
 The Docker environment's **Monitoring setup guide** checks collector connection, baseline
 collection, and automatic API tracing in order. When Java or Node.js services
 are discovered, the same guide continues into the optional detailed
 header/body instrumentation flow.
+
+The **Connect** button on the Logs, API, Metrics, and Infrastructure pages lets
+you reuse a registered target or connect a new one. Adding a capability to an
+existing Docker environment preserves its ID, key, Project assignment, and
+collection history. EveryUp issues a new apply command; run it on the target
+server to enable the capability across that Docker environment.
+
+For a service connected directly through OpenTelemetry, EveryUp keeps the
+existing ID and collection key and adds only the required signal permission.
+Follow the on-screen guidance to update the application or Collector, generate
+data, and confirm receipt.
+
+The setup guide distinguishes collector contact within the last two minutes
+from confirmation that the requested collection scope was applied. EveryUp
+records the first and latest stored receipt for logs, traces, metrics, and
+infrastructure data and refreshes the display every five seconds. A signal is
+shown as **Delayed** after ten minutes without a receipt and **Waiting** until
+the first receipt arrives. These states describe receipt history and do not by
+themselves guarantee that the connection is currently healthy. Older collectors
+may remain in the waiting state even while communicating; update them with the
+latest installation command. Receipt history is not backfilled for data stored
+before the database migration.
+
+Each connection screen brings existing-target selection and Docker installation
+into one flow. Logs, API, and Metrics can also connect applications directly
+through OpenTelemetry; Infrastructure instead offers a standard OpenTelemetry
+Collector setup. Configured targets show their receipt history before opening
+the corresponding data page. Direct setup adapts its guidance to existing OTel
+usage and Java, Node.js, or Go, covering configuration, restart, data generation,
+and receipt confirmation.
+
+For detailed instrumentation, select the Java or Node.js services you want to
+change and choose **Review changes** to confirm the restart scope. Run
+`everyup-otel plan` on the server to validate the actual Compose project before
+applying it. Web tracks the apply, verification, and recovery result for each
+run. Configuration verification and new trace receipt are shown separately, and
+a lack of traffic does not trigger rollback.
 
 ## Optional Features
 
@@ -155,8 +214,8 @@ To diagnose why a request failed, use app-side OpenTelemetry instrumentation.
 It requires one app restart, but for Java and Node.js it attaches through a
 Compose override without touching your code or Dockerfile.
 
-In the web UI, open a project, choose **Detailed API monitoring**, and run the
-displayed one-line command on the application server. The `everyup-otel` helper
+In the web UI, open a Docker environment, choose **Detailed API monitoring**,
+and run the displayed one-line command on the application server. The `everyup-otel` helper
 generates a `docker-compose.everyup.yml` tailored to the detected Java/Node.js
 runtimes and recreates only those services. It verifies the injected options,
 shared volume, collector network, and container state, automatically restoring the
