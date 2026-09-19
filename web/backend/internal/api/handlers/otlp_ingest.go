@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -390,22 +391,39 @@ func flattenMetric(metric *metricspb.Metric) ([]models.OtelMetric, bool) {
 	switch {
 	case metric.GetGauge() != nil:
 		for _, dp := range metric.GetGauge().GetDataPoints() {
-			rows = append(rows, numberPointRow(name, "gauge", metric.GetUnit(), dp))
+			row := numberPointRow(name, "gauge", metric.GetUnit(), dp)
+			attachExemplars(&row, dp.GetExemplars())
+			rows = append(rows, row)
 		}
 	case metric.GetSum() != nil:
 		for _, dp := range metric.GetSum().GetDataPoints() {
-			rows = append(rows, numberPointRow(name, "sum", metric.GetUnit(), dp))
+			row := numberPointRow(name, "sum", metric.GetUnit(), dp)
+			attachExemplars(&row, dp.GetExemplars())
+			rows = append(rows, row)
 		}
 	case metric.GetHistogram() != nil:
+		temporality := int(metric.GetHistogram().GetAggregationTemporality())
 		for _, dp := range metric.GetHistogram().GetDataPoints() {
-			rows = append(rows, histogramRow(name, metric.GetUnit(), dp.GetCount(), dp.GetSum(), dp.GetAttributes(), dp.GetTimeUnixNano()))
+			row := histogramRow(name, metric.GetUnit(), dp.GetCount(), dp.GetSum(), dp.GetAttributes(), dp.GetTimeUnixNano())
+			attachBuckets(&row, dp.GetExplicitBounds(), dp.GetBucketCounts(), temporality)
+			attachExemplars(&row, dp.GetExemplars())
+			rows = append(rows, row)
 		}
 	case metric.GetExponentialHistogram() != nil:
+		temporality := int(metric.GetExponentialHistogram().GetAggregationTemporality())
 		for _, dp := range metric.GetExponentialHistogram().GetDataPoints() {
-			rows = append(rows, histogramRow(name, metric.GetUnit(), dp.GetCount(), dp.GetSum(), dp.GetAttributes(), dp.GetTimeUnixNano()))
+			row := histogramRow(name, metric.GetUnit(), dp.GetCount(), dp.GetSum(), dp.GetAttributes(), dp.GetTimeUnixNano())
+			if bounds, counts, ok := explicitFromExponential(dp); ok {
+				attachBuckets(&row, bounds, counts, temporality)
+			}
+			attachExemplars(&row, dp.GetExemplars())
+			rows = append(rows, row)
 		}
 	case metric.GetSummary() != nil:
 		for _, dp := range metric.GetSummary().GetDataPoints() {
+			// ponytail: a summary ships pre-computed quantiles that cannot be
+			// merged across series or time, so it stays an average here. Its
+			// quantiles would need a separate, non-additive read path.
 			rows = append(rows, histogramRow(name, metric.GetUnit(), dp.GetCount(), dp.GetSum(), dp.GetAttributes(), dp.GetTimeUnixNano()))
 		}
 	default:
@@ -428,6 +446,85 @@ func histogramRow(name, unit string, count uint64, sum float64, attrs []*commonp
 		avg = sum / float64(count)
 	}
 	return metricRow(name, "histogram", unit, avg, count, sum, attrs, timeUnixNano)
+}
+
+// attachExemplars keeps the measurements that carry a trace ID. An exemplar
+// without one cannot lead anywhere, so it is dropped rather than stored.
+func attachExemplars(row *models.OtelMetric, exemplars []*metricspb.Exemplar) {
+	if len(exemplars) == 0 {
+		return
+	}
+	kept := make([]models.MetricExemplar, 0, len(exemplars))
+	for _, exemplar := range exemplars {
+		traceID := bytesToHex(exemplar.GetTraceId())
+		if traceID == "" {
+			continue
+		}
+		value := exemplar.GetAsDouble()
+		if _, isInt := exemplar.GetValue().(*metricspb.Exemplar_AsInt); isInt {
+			value = float64(exemplar.GetAsInt())
+		}
+		kept = append(kept, models.MetricExemplar{
+			TraceID: traceID,
+			SpanID:  bytesToHex(exemplar.GetSpanId()),
+			Value:   value,
+			Time:    timeFromUnixNano(exemplar.GetTimeUnixNano()),
+		})
+	}
+	if len(kept) == 0 {
+		return
+	}
+	row.Exemplars = mustJSON(kept)
+}
+
+// explicitFromExponential rewrites an exponential histogram's scale-encoded
+// buckets as explicit bounds, so one quantile implementation serves both
+// shapes. Bucket index i covers (base^i, base^(i+1)], so the upper bounds are
+// base^(offset+j); the zero bucket becomes the first explicit bucket.
+//
+// Reports ok=false rather than guessing when the point carries negative
+// buckets (which this projection does not represent) or when a bound overflows
+// to infinity — a wrong distribution is worse than falling back to the average.
+func explicitFromExponential(dp *metricspb.ExponentialHistogramDataPoint) ([]float64, []uint64, bool) {
+	if len(dp.GetNegative().GetBucketCounts()) > 0 {
+		return nil, nil, false
+	}
+	positive := dp.GetPositive().GetBucketCounts()
+	if len(positive) == 0 {
+		return nil, nil, false
+	}
+
+	base := math.Pow(2, math.Pow(2, -float64(dp.GetScale())))
+	offset := int(dp.GetPositive().GetOffset())
+
+	bounds := make([]float64, 0, len(positive)+1)
+	for j := 0; j <= len(positive); j++ {
+		bound := math.Pow(base, float64(offset+j))
+		if math.IsInf(bound, 0) || math.IsNaN(bound) {
+			return nil, nil, false
+		}
+		bounds = append(bounds, bound)
+	}
+
+	// counts[0] is everything at or below the first bound (the zero bucket);
+	// the trailing slot is the +Inf overflow, empty by construction here.
+	counts := make([]uint64, 0, len(positive)+2)
+	counts = append(counts, dp.GetZeroCount())
+	counts = append(counts, positive...)
+	counts = append(counts, 0)
+	return bounds, counts, true
+}
+
+// attachBuckets keeps an explicit histogram's bucket vector on the row so
+// quantiles stay recoverable later; the flattened average cannot express a
+// tail. A malformed vector is dropped and the row keeps its average only.
+func attachBuckets(row *models.OtelMetric, bounds []float64, counts []uint64, temporality int) {
+	if len(bounds) == 0 || len(counts) != len(bounds)+1 {
+		return
+	}
+	row.BucketBounds = mustJSON(bounds)
+	row.BucketCounts = mustJSON(counts)
+	row.Temporality = temporality
 }
 
 func metricRow(name, metricType, unit string, value float64, count uint64, total float64, attrs []*commonpb.KeyValue, timeUnixNano uint64) models.OtelMetric {

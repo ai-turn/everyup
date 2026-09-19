@@ -3,6 +3,9 @@ import type { ApiRequest, LogEntry, LogHistogramBucket, LogLevel } from './servi
 import type {
   ApiRequestStatBucket,
   ApiRequestStatusSummary,
+  TraceListQuery,
+  TraceSummary,
+  OtelHistogramQuantiles,
   OtelMetricName,
   OtelMetricPoint,
   OtelServiceMetric,
@@ -37,6 +40,9 @@ export interface ObservedServiceSetup extends ObservedService {
 export interface DirectLogQuery {
   level?: LogLevel;
   search?: string;
+  // Exact match on one structured attribute, e.g. http.route=/orders.
+  attrKey?: string;
+  attrValue?: string;
   traceId?: string;
   from?: string;
   to?: string;
@@ -68,6 +74,7 @@ function logQuery(params?: DirectLogQuery): URLSearchParams {
   if (params?.offset) query.set('offset', String(params.offset));
   if (params?.level) query.set('level', params.level);
   if (params?.search) query.set('search', params.search);
+  if (params?.attrKey) { query.set('attrKey', params.attrKey); query.set('attrValue', params.attrValue ?? ''); }
   if (params?.traceId) query.set('traceId', params.traceId);
   if (params?.from) query.set('from', params.from);
   if (params?.to) query.set('to', params.to);
@@ -143,6 +150,24 @@ export const observedServicesApi = {
     if (params.to) query.set('to', params.to);
     if (params.limit) query.set('limit', String(params.limit));
     return request<OtelMetricPoint[]>(`/observed-services/${id}/otel-metrics/points?${query}`);
+  },
+
+  // Trace discovery: the only path to a trace api_requests did not project.
+  getObservedServiceTraces: (id: string, params?: TraceListQuery) => {
+    const query = new URLSearchParams();
+    if (params?.from) query.set('from', params.from);
+    if (params?.minDurationMs) query.set('minDurationMs', String(params.minDurationMs));
+    if (params?.errorsOnly) query.set('errorsOnly', 'true');
+    if (params?.sort === 'slowest') query.set('sort', 'slowest');
+    if (params?.limit) query.set('limit', String(params.limit));
+    return request<TraceSummary[]>(`/observed-services/${id}/traces?${query}`);
+  },
+  // p50/p95/p99 from an explicit histogram's buckets; null for other shapes.
+  getObservedServiceOtelMetricQuantiles: (id: string, params: { name: string; from?: string; to?: string }) => {
+    const query = new URLSearchParams({ name: params.name });
+    if (params.from) query.set('from', params.from);
+    if (params.to) query.set('to', params.to);
+    return request<OtelHistogramQuantiles | null>(`/observed-services/${id}/otel-metrics/quantiles?${query}`);
   },
 
   getObservedServiceRequests: (id: string, params?: DirectApiRequestQuery) =>

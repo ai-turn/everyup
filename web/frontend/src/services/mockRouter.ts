@@ -19,6 +19,7 @@ import type {
   AppSettings,
   ApiRequest,
   TraceDetail,
+  TraceSummary,
   ConnectedAgent,
   AgentServiceFlat,
   AgentEvent,
@@ -242,6 +243,28 @@ const mockApiRequests: ApiRequest[] = [
 
 const ns = (secondsAgo: number, offsetMs = 0) => (now2 - secondsAgo * 1000 + offsetMs) * 1_000_000;
 
+const consumerTraceId = 'c0f5ea71b2d34e8fa91c7d3b5e604a2f';
+
+// The consumer trace carries no HTTP method or status, so the api_requests
+// projection drops it; the trace list is the only place it shows up.
+const mockTraceSummaries: TraceSummary[] = [
+  { traceId: consumerTraceId, name: 'orders.process', kind: 'CONSUMER', serviceName: 'api', startTime: s(45), durationMs: 2480, spanCount: 4, errorCount: 1 },
+  { traceId: mockTraceIds.paymentWebhook, name: 'POST /api/v1/payments', kind: 'SERVER', serviceName: 'api', startTime: s(900), durationMs: 5001, spanCount: 3, errorCount: 1 },
+  { traceId: mockTraceIds.apiGatewayAuth, name: 'POST /api/v1/auth/login', kind: 'SERVER', serviceName: 'api', startTime: s(30), durationMs: 42, spanCount: 2, errorCount: 1 },
+];
+
+function mockTraceList(endpoint: string): TraceSummary[] {
+  const query = new URLSearchParams(endpoint.split('?')[1] ?? '');
+  let rows = [...mockTraceSummaries];
+  if (query.get('errorsOnly') === 'true') rows = rows.filter(row => row.errorCount > 0);
+  const minDuration = Number(query.get('minDurationMs') ?? 0);
+  if (minDuration > 0) rows = rows.filter(row => row.durationMs >= minDuration);
+  rows.sort(query.get('sort') === 'slowest'
+    ? (a, b) => b.durationMs - a.durationMs
+    : (a, b) => b.startTime.localeCompare(a.startTime));
+  return rows;
+}
+
 const mockTraceDetails: Record<string, TraceDetail> = {
   [mockTraceIds.apiGatewayAuth]: {
     traceId: mockTraceIds.apiGatewayAuth,
@@ -308,6 +331,52 @@ const mockTraceDetails: Record<string, TraceDetail> = {
     ],
     logs: allMockLogs.filter((log) => log.traceId === mockTraceIds.apiGatewayAuth),
     apiRequests: mockApiRequests.filter((request) => request.traceId === mockTraceIds.apiGatewayAuth),
+  },
+  // A Kafka consumer trace: no HTTP method or status anywhere, so nothing here
+  // becomes an api_request. It is reachable only through the trace list.
+  [consumerTraceId]: {
+    traceId: consumerTraceId,
+    spans: [
+      {
+        id: 90, serviceId: '1', serviceName: 'api',
+        traceId: consumerTraceId, spanId: 'a1b2c3d4e5f60718',
+        name: 'orders.process', kind: 'CONSUMER',
+        startUnixNano: ns(45), endUnixNano: ns(45, 2480), durationMs: 2480,
+        statusCode: 'OK',
+        attributes: { 'messaging.system': 'kafka', 'messaging.destination.name': 'orders', 'messaging.message.body.size': 412 },
+        resource: { 'service.name': 'api', 'deployment.environment': 'demo' },
+        createdAt: s(45),
+      },
+      {
+        id: 91, serviceId: '1', serviceName: 'api',
+        traceId: consumerTraceId, spanId: 'b2c3d4e5f6071829', parentSpanId: 'a1b2c3d4e5f60718',
+        name: 'SELECT orders', kind: 'CLIENT',
+        startUnixNano: ns(45, 60), endUnixNano: ns(45, 210), durationMs: 150,
+        statusCode: 'OK',
+        attributes: { 'db.system': 'postgresql', 'db.operation': 'SELECT' },
+        createdAt: s(45),
+      },
+      {
+        id: 92, serviceId: '1', serviceName: 'api',
+        traceId: consumerTraceId, spanId: 'c3d4e5f607182930', parentSpanId: 'a1b2c3d4e5f60718',
+        name: 'inventory.reserve', kind: 'CLIENT',
+        startUnixNano: ns(45, 220), endUnixNano: ns(45, 2400), durationMs: 2180,
+        statusCode: 'ERROR', statusMessage: 'inventory service deadline exceeded',
+        attributes: { 'rpc.system': 'grpc', 'rpc.service': 'Inventory' },
+        createdAt: s(45),
+      },
+      {
+        id: 93, serviceId: '1', serviceName: 'api',
+        traceId: consumerTraceId, spanId: 'd4e5f60718293041', parentSpanId: 'a1b2c3d4e5f60718',
+        name: 'orders.retry.enqueue', kind: 'PRODUCER',
+        startUnixNano: ns(45, 2410), endUnixNano: ns(45, 2470), durationMs: 60,
+        statusCode: 'OK',
+        attributes: { 'messaging.system': 'kafka', 'messaging.destination.name': 'orders.retry' },
+        createdAt: s(45),
+      },
+    ],
+    logs: [],
+    apiRequests: [],
   },
   [mockTraceIds.paymentWebhook]: {
     traceId: mockTraceIds.paymentWebhook,
@@ -506,17 +575,27 @@ function filterMockLogs(rows: LogEntry[], endpoint: string): LogEntry[] {
   const level = query.get('level');
   const search = query.get('search')?.toLowerCase();
   const from = query.get('from');
+  const attrKey = query.get('attrKey');
+  const attrValue = query.get('attrValue') ?? '';
+  // A log with no such attribute must drop out, not match on a coerced blank.
+  const matchesAttribute = (log: LogEntry) => {
+    if (!attrKey) return true;
+    const attributes = (log.metadata as { attributes?: Record<string, unknown> } | undefined)?.attributes;
+    if (!attributes || !(attrKey in attributes)) return false;
+    return String(attributes[attrKey]) === attrValue;
+  };
   return rows.filter(log =>
     (!level || log.level === level)
     && (!search || log.message.toLowerCase().includes(search))
+    && matchesAttribute(log)
     && (!from || log.createdAt >= from));
 }
 
 const mockAgentServiceLogs: LogEntry[] = [
-  { id: 101, serviceId: '', serviceName: 'api', level: 'error', message: 'Connection timeout to upstream: auth.internal:8080 after 5000ms', source: 'otlp', traceId: mockTraceIds.apiGatewayAuth, createdAt: new Date(nowAgent - 60_000).toISOString() },
-  { id: 102, serviceId: '', serviceName: 'api', level: 'warn',  message: 'Rate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s', source: 'otlp', createdAt: new Date(nowAgent - 180_000).toISOString() },
-  { id: 103, serviceId: '', serviceName: 'api', level: 'info',  message: 'Server listening on :8080', source: 'otlp', createdAt: new Date(nowAgent - 600_000).toISOString() },
-  { id: 104, serviceId: '', serviceName: 'api', level: 'error', message: 'Payment gateway timeout after 5000ms', source: 'otlp', traceId: mockTraceIds.paymentWebhook, createdAt: new Date(nowAgent - 720_000).toISOString() },
+  { id: 101, serviceId: '', serviceName: 'api', level: 'error', message: 'Connection timeout to upstream: auth.internal:8080 after 5000ms', source: 'otlp', traceId: mockTraceIds.apiGatewayAuth, metadata: { attributes: { 'http.route': '/orders', 'http.status_code': 504, 'deployment.environment': 'prod' } }, createdAt: new Date(nowAgent - 60_000).toISOString() },
+  { id: 102, serviceId: '', serviceName: 'api', level: 'warn',  message: 'Rate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s', source: 'otlp', metadata: { attributes: { 'http.route': '/users/:id', 'http.status_code': 429, 'deployment.environment': 'prod' } }, createdAt: new Date(nowAgent - 180_000).toISOString() },
+  { id: 103, serviceId: '', serviceName: 'api', level: 'info',  message: 'Server listening on :8080', source: 'otlp', metadata: { attributes: { 'deployment.environment': 'prod' } }, createdAt: new Date(nowAgent - 600_000).toISOString() },
+  { id: 104, serviceId: '', serviceName: 'api', level: 'error', message: 'Payment gateway timeout after 5000ms', source: 'otlp', traceId: mockTraceIds.paymentWebhook, metadata: { attributes: { 'http.route': '/orders', 'http.status_code': 504, 'deployment.environment': 'prod' } }, createdAt: new Date(nowAgent - 720_000).toISOString() },
 ];
 
 // limit/offset window the real handlers apply; total stays the unpaged count.
@@ -586,6 +665,21 @@ const mockOtelMetricNames = [
   { metricName: 'jvm.memory.used',              metricType: 'gauge',     unit: 'By', lastAt: new Date(nowAgent - 30_000).toISOString() },
   { metricName: 'http.server.active_requests',  metricType: 'sum',       unit: '1',  lastAt: new Date(nowAgent - 30_000).toISOString() },
 ];
+
+// Only the explicit histogram has a recoverable distribution; the gauge and sum
+// return null, matching the backend's average-only shapes.
+function mockOtelMetricQuantiles(endpoint: string) {
+  const name = new URLSearchParams(endpoint.split('?')[1] ?? '').get('name') ?? '';
+  if (name !== 'http.server.request.duration') return null;
+  // Tail exemplars carry the trace IDs the demo can actually open.
+  return {
+    metricName: name, unit: 's', count: 2_480, p50: 0.041, p95: 0.312, p99: 0.485,
+    exemplars: [
+      { traceId: mockTraceIds.paymentWebhook, spanId: '7ad6b7169203331b', value: 0.482, time: s(900) },
+      { traceId: consumerTraceId, spanId: 'a1b2c3d4e5f60718', value: 0.331, time: s(45) },
+    ],
+  };
+}
 
 // One point per minute over the last hour, two attribute series for the
 // histogram metric so the multi-series pivot renders in mock mode.
@@ -1160,6 +1254,8 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (/^\/observed-services\/[^/]+\/log-histogram/.test(endpoint)) return mockLogHistogram() as T;
   const observedFilterMatch = endpoint.match(/^\/observed-services\/([^/]+)\/log-filter$/);
   if (observedFilterMatch) return { levels: mockDirectLogFilters.get(observedFilterMatch[1]) ?? [] } as T;
+  if (/^\/observed-services\/[^/]+\/traces/.test(endpoint)) return mockTraceList(endpoint) as T;
+  if (/^\/observed-services\/[^/]+\/otel-metrics\/quantiles/.test(endpoint)) return mockOtelMetricQuantiles(endpoint) as T;
   if (/^\/observed-services\/[^/]+\/otel-metrics\/points/.test(endpoint)) return mockOtelMetricPoints(endpoint) as T;
   if (/^\/observed-services\/[^/]+\/otel-metrics/.test(endpoint)) return mockOtelMetricNames as T;
   const observedRequestsMatch = endpoint.match(/^\/observed-services\/([^/]+)\/requests(?:\?|$)/);
@@ -1255,6 +1351,12 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (/^\/agents\/[^/]+\/services\/[^/]+\/requests/.test(endpoint)) {
     return pageMockRows(filterMockRequests(mockAgentServiceRequests, endpoint), endpoint) as unknown as T;
   }
+  // /agents/:agentId/services/:key/traces
+  if (/^\/agents\/[^/]+\/services\/[^/]+\/traces/.test(endpoint))
+    return mockTraceList(endpoint) as T;
+  // /agents/:agentId/services/:key/otel-metrics/quantiles?name=...
+  if (/^\/agents\/[^/]+\/services\/[^/]+\/otel-metrics\/quantiles/.test(endpoint))
+    return mockOtelMetricQuantiles(endpoint) as T;
   // /agents/:agentId/services/:key/otel-metrics/points?name=...
   if (/^\/agents\/[^/]+\/services\/[^/]+\/otel-metrics\/points/.test(endpoint))
     return mockOtelMetricPoints(endpoint) as T;

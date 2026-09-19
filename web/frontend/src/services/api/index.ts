@@ -71,9 +71,13 @@ export type {
 export type {
   ApiRequestStatBucket,
   ApiRequestStatusSummary,
+  MetricExemplar,
+  OtelHistogramQuantiles,
   OtelMetricName,
   OtelMetricPoint,
   OtelServiceMetric,
+  TraceListQuery,
+  TraceSummary,
 } from './telemetry';
 export type {
   AlertRuleType,

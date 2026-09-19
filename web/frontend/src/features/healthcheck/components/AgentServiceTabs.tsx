@@ -7,6 +7,7 @@ import { AgentResponseTimeChart } from './AgentResponseTimeChart';
 import { AgentFailureHistory } from './AgentFailureHistory';
 import { AgentServiceLogsTab } from './AgentServiceLogsTab';
 import { AgentServiceRequestsTab } from './AgentServiceRequestsTab';
+import { AgentServiceTracesTab } from './AgentServiceTracesTab';
 import { AgentServiceMetricsTab } from './AgentServiceMetricsTab';
 import { AgentServiceInfraTab } from './AgentServiceInfraTab';
 import { ServiceIncidentBanner } from './ServiceIncidentBanner';
@@ -22,13 +23,14 @@ export interface ServiceTabsProps {
   showServiceName?: boolean;
 }
 
-export type DetailTab = 'overview' | 'uptime' | 'logs' | 'requests' | 'metrics' | 'infra';
+export type DetailTab = 'overview' | 'uptime' | 'logs' | 'requests' | 'traces' | 'metrics' | 'infra';
 
 const TABS: { key: DetailTab; labelKo: string }[] = [
   { key: 'overview', labelKo: '개요' },
   { key: 'uptime',   labelKo: '업타임' },
   { key: 'logs',     labelKo: '로그' },
   { key: 'requests', labelKo: 'API 요청' },
+  { key: 'traces',   labelKo: '트레이스' },
   { key: 'metrics',  labelKo: '메트릭' },
   { key: 'infra',    labelKo: '인프라' },
 ];
@@ -81,6 +83,7 @@ function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, show
   if (tab === 'overview') return <OverviewContent service={service} showServiceName={showServiceName} />;
   if (tab === 'logs')     return <AgentServiceLogsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
   if (tab === 'requests') return <AgentServiceRequestsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} runtime={service.runtime} />;
+  if (tab === 'traces')   return <AgentServiceTracesTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
   if (tab === 'metrics')  return <AgentServiceMetricsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
   if (tab === 'infra')    return <AgentServiceInfraTab agentId={agentId} refreshKey={refreshKey} range={range} />;
   return <UptimeContent service={service} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} showServiceName={showServiceName} />;

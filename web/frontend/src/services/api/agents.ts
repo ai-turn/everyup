@@ -2,11 +2,25 @@ import type { LogEntry, ApiRequest, LogHistogramBucket } from './services';
 import type {
   ApiRequestStatBucket,
   ApiRequestStatusSummary,
+  TraceListQuery,
+  TraceSummary,
+  OtelHistogramQuantiles,
   OtelMetricName,
   OtelMetricPoint,
   OtelServiceMetric,
 } from './telemetry';
 import { request } from './base';
+
+function traceQuery(params?: TraceListQuery): URLSearchParams {
+  const query = new URLSearchParams();
+  if (params?.from) query.set('from', params.from);
+  if (params?.to) query.set('to', params.to);
+  if (params?.minDurationMs) query.set('minDurationMs', String(params.minDurationMs));
+  if (params?.errorsOnly) query.set('errorsOnly', 'true');
+  if (params?.sort === 'slowest') query.set('sort', 'slowest');
+  if (params?.limit) query.set('limit', String(params.limit));
+  return query;
+}
 
 export interface ConnectedAgent {
   id: string;
@@ -183,13 +197,14 @@ export const agentsApi = {
     request<AgentEvent[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/events?limit=${limit}`),
   getAgentServiceLogs: (
     agentId: string, key: string,
-    params?: { level?: string; search?: string; from?: string; to?: string; limit?: number; offset?: number },
+    params?: { level?: string; search?: string; attrKey?: string; attrValue?: string; from?: string; to?: string; limit?: number; offset?: number },
   ) => {
     const p = new URLSearchParams();
     p.set('limit', String(params?.limit ?? 100));
     if (params?.offset) p.set('offset', String(params.offset));
     if (params?.level) p.set('level', params.level);
     if (params?.search) p.set('search', params.search);
+    if (params?.attrKey) { p.set('attrKey', params.attrKey); p.set('attrValue', params.attrValue ?? ''); }
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     return request<{ data: LogEntry[]; total: number }>(`/agents/${agentId}/services/${encodeURIComponent(key)}/logs?${p}`);
@@ -197,11 +212,12 @@ export const agentsApi = {
   // Per-level log counts bucketed over time (logs-tab volume histogram).
   getAgentServiceLogHistogram: (
     agentId: string, key: string,
-    params?: { level?: string; search?: string; from?: string; to?: string; bucketMins?: number },
+    params?: { level?: string; search?: string; attrKey?: string; attrValue?: string; from?: string; to?: string; bucketMins?: number },
   ) => {
     const p = new URLSearchParams();
     if (params?.level) p.set('level', params.level);
     if (params?.search) p.set('search', params.search);
+    if (params?.attrKey) { p.set('attrKey', params.attrKey); p.set('attrValue', params.attrValue ?? ''); }
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     if (params?.bucketMins) p.set('bucketMins', String(params.bucketMins));
@@ -275,6 +291,19 @@ export const agentsApi = {
     if (params.to) p.set('to', params.to);
     if (params.limit) p.set('limit', String(params.limit));
     return request<OtelMetricPoint[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/otel-metrics/points?${p}`);
+  },
+  // Trace discovery: the only path to a trace api_requests did not project.
+  getAgentServiceTraces: (agentId: string, key: string, params?: TraceListQuery) =>
+    request<TraceSummary[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/traces?${traceQuery(params)}`),
+  // p50/p95/p99 from an explicit histogram's buckets; null for other shapes.
+  getAgentServiceOtelMetricQuantiles: (
+    agentId: string, key: string, params: { name: string; from?: string; to?: string },
+  ) => {
+    const p = new URLSearchParams();
+    p.set('name', params.name);
+    if (params.from) p.set('from', params.from);
+    if (params.to) p.set('to', params.to);
+    return request<OtelHistogramQuantiles | null>(`/agents/${agentId}/services/${encodeURIComponent(key)}/otel-metrics/quantiles?${p}`);
   },
   // Per-service OTLP ingest filter: which log levels are stored. [] = accept all.
   getAgentServiceLogFilter: (agentId: string, key: string) =>

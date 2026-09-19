@@ -25,6 +25,10 @@ export const mockLogEntries: LogEntry[] = [
     source: 'otlp',
     traceId: mockTraceIds.apiGatewayAuth,
     spanId: '00f067aa0ba902b7',
+    metadata: {
+      attributes: { 'http.route': '/api/v1/auth/login', 'http.response.status_code': 504, 'server.address': 'auth.internal:8080' },
+      resource: { 'service.name': 'api-gateway', 'deployment.environment': 'prod' },
+    },
     createdAt: m(1),
   },
   {
@@ -54,7 +58,10 @@ export const mockLogEntries: LogEntry[] = [
     source: 'otlp',
     traceId: mockTraceIds.paymentWebhook,
     spanId: '7ad6b7169203331b',
-    metadata: { host: 'payments.partner.io', error: 'certificate expired', expiredAt: '2025-01-15T00:00:00Z' },
+    metadata: {
+      attributes: { 'http.route': '/api/v1/payments', 'server.address': 'payments.partner.io', 'error.type': 'certificate_expired' },
+      resource: { 'service.name': 'api-gateway', 'deployment.environment': 'prod' },
+    },
     createdAt: m(12),
   },
   {
@@ -85,7 +92,10 @@ export const mockLogEntries: LogEntry[] = [
     source: 'otlp',
     traceId: mockTraceIds.apiGatewayAuth,
     spanId: '00f067aa0ba902b7',
-    metadata: { upstream: 'auth.internal:8080', status: 503, circuitBreaker: 'open' },
+    metadata: {
+      attributes: { 'http.route': '/api/v1/auth/login', 'http.response.status_code': 503, 'server.address': 'auth.internal:8080' },
+      resource: { 'service.name': 'api-gateway', 'deployment.environment': 'prod' },
+    },
     createdAt: m(45),
   },
   {
@@ -106,7 +116,10 @@ export const mockLogEntries: LogEntry[] = [
     level: 'error',
     message: 'JWT verification failed: signature mismatch for token issued by legacy-sso',
     source: 'otlp',
-    metadata: { issuer: 'legacy-sso', reason: 'signature_mismatch' },
+    metadata: {
+      attributes: { 'http.route': '/api/v1/auth/login', 'auth.issuer': 'legacy-sso', 'error.type': 'signature_mismatch' },
+      resource: { 'service.name': 'auth-service', 'deployment.environment': 'prod' },
+    },
     createdAt: m(2),
   },
   {
@@ -116,7 +129,10 @@ export const mockLogEntries: LogEntry[] = [
     level: 'warn',
     message: 'Login attempt with expired credentials — user: admin@example.com',
     source: 'otlp',
-    metadata: { email: 'admin@example.com', expiredAt: '2025-02-01T09:00:00Z' },
+    metadata: {
+      attributes: { 'http.route': '/api/v1/auth/login', 'error.type': 'credentials_expired' },
+      resource: { 'service.name': 'auth-service', 'deployment.environment': 'prod' },
+    },
     createdAt: m(8),
   },
   {
@@ -126,7 +142,10 @@ export const mockLogEntries: LogEntry[] = [
     level: 'error',
     message: 'OAuth2 callback error: state parameter mismatch — possible CSRF attempt',
     source: 'otlp',
-    metadata: { provider: 'google', error: 'state_mismatch', clientIp: '198.51.100.77' },
+    metadata: {
+      attributes: { 'http.route': '/api/v1/auth/callback', 'auth.provider': 'google', 'error.type': 'state_mismatch' },
+      resource: { 'service.name': 'auth-service', 'deployment.environment': 'prod' },
+    },
     createdAt: m(15),
   },
   {

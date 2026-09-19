@@ -40,6 +40,8 @@ func (h *LogHandler) GetAll(c *fiber.Ctx) error {
 		Level:       models.LogLevel(c.Query("level")),
 		Search:      c.Query("search"),
 		TraceID:     c.Query("traceId"),
+		AttrKey:     c.Query("attrKey"),
+		AttrValue:   c.Query("attrValue"),
 		From:        parseLogTimeQuery(c.Query("from")),
 		To:          parseLogTimeQuery(c.Query("to")),
 	}
@@ -87,6 +89,8 @@ func (h *LogHandler) GetByServiceID(c *fiber.Ctx) error {
 		Level:     models.LogLevel(c.Query("level")),
 		Search:    c.Query("search"),
 		TraceID:   c.Query("traceId"),
+		AttrKey:   c.Query("attrKey"),
+		AttrValue: c.Query("attrValue"),
 		From:      parseLogTimeQuery(c.Query("from")),
 		To:        parseLogTimeQuery(c.Query("to")),
 		Limit:     50,
