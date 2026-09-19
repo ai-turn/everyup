@@ -80,14 +80,25 @@ test ! -d "$work/app/.everyup-otel.lock"
 if FAIL_UP=true sh "$work/helper" apply "$work/app/compose.yml" --project=demo --report=agent_test/run3 app=node; then exit 1; fi
 grep -F '"status":"rollback_failed","reason":"restart_failed"' "$CALLS"
 `
-	var cmd *exec.Cmd
+	var shell []string
 	if sh, err := exec.LookPath("sh"); err == nil {
-		cmd = exec.Command(sh, "-s")
+		shell = []string{sh}
 	} else if wsl, err := exec.LookPath("wsl.exe"); err == nil {
-		cmd = exec.Command(wsl, "sh", "-s")
+		shell = []string{wsl, "sh"}
 	} else {
 		t.Skip("POSIX shell unavailable")
 	}
+
+	// The installer under test refuses to run anywhere but Linux. A Git Bash or
+	// MSYS shell reaches that guard and dies there, which reports a failure
+	// about the host rather than about anything this test asserts.
+	probe := exec.Command(shell[0], append(append([]string{}, shell[1:]...), "-c", "uname -s")...)
+	kernel, err := probe.Output()
+	if err != nil || strings.TrimSpace(string(kernel)) != "Linux" {
+		t.Skipf("Linux shell required; this one reports %q", strings.TrimSpace(string(kernel)))
+	}
+
+	cmd := exec.Command(shell[0], append(append([]string{}, shell[1:]...), "-s")...)
 	cmd.Stdin = strings.NewReader(harness)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("CLI execution: %v\n%s", err, out)

@@ -8,12 +8,14 @@ import {
   EmptyState,
   MaterialIcon,
   PageHeader,
+  SegmentedControl,
   Select,
   Textarea,
   TimeRangePicker,
   type GlobalTimeRange,
 } from '../../components/common';
 import { DirectServiceRequestsTab } from '../../features/healthcheck/components/AgentServiceRequestsTab';
+import { DirectServiceTracesTab } from '../../features/healthcheck/components/AgentServiceTracesTab';
 import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/RotatedTelemetryKeyDialog';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
@@ -35,6 +37,9 @@ export function DirectApiDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [savingProject, setSavingProject] = useState(false);
   const [savingExclusions, setSavingExclusions] = useState(false);
+  // Requests only hold HTTP spans carrying a method and status; traces show the
+  // rest of what this service sent.
+  const [view, setView] = useState<'requests' | 'traces'>('requests');
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<ObservedServiceSetup | null>(null);
@@ -227,7 +232,18 @@ export function DirectApiDetailPage() {
         />
       </section>
 
-      <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} />
+      <div className="mb-4">
+        <SegmentedControl
+          options={[{ value: 'requests' as const, label: 'API 요청' }, { value: 'traces' as const, label: '트레이스' }]}
+          value={view}
+          onChange={setView}
+          ariaLabel="요청/트레이스 보기"
+        />
+      </div>
+
+      {view === 'requests'
+        ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} />
+        : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={refreshKey} range={range} />}
 
       <ConfirmDialog
         isOpen={Boolean(selectedConfirm)}

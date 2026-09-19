@@ -76,6 +76,11 @@ func (r *LogRepository) GetAll(filter models.LogFilter) ([]models.Log, int, erro
 		countQuery += " AND l.message LIKE ?"
 		args = append(args, "%"+filter.Search+"%")
 	}
+	if path, ok := attributePath(filter.AttrKey); ok {
+		query += attributeClause
+		countQuery += attributeClause
+		args = append(args, path, filter.AttrValue)
+	}
 	if filter.TraceID != "" {
 		query += " AND l.trace_id = ?"
 		countQuery += " AND l.trace_id = ?"
@@ -196,6 +201,10 @@ func (r *LogRepository) Histogram(filter models.LogFilter, bucketMins int) ([]mo
 	if filter.Search != "" {
 		query += " AND l.message LIKE ?"
 		args = append(args, "%"+filter.Search+"%")
+	}
+	if path, ok := attributePath(filter.AttrKey); ok {
+		query += attributeClause
+		args = append(args, path, filter.AttrValue)
 	}
 	if !filter.From.IsZero() {
 		query += " AND l.created_at >= ?"
@@ -355,6 +364,21 @@ func attachLinkedRequests(logs []models.Log) error {
 		}
 	}
 	return nil
+}
+
+// attributeClause matches one stored attribute. The value is compared as text
+// so a numeric attribute (http.status_code=500) matches the string the caller
+// sends; a row with no attributes yields NULL and drops out, as it should.
+const attributeClause = ` AND CAST(json_extract(l.attributes, ?) AS TEXT) = ?`
+
+// attributePath builds the JSON path for one attribute key. Keys are dotted
+// (http.route), so the segment must be quoted or SQLite reads it as a nested
+// path. A key carrying a double quote cannot be expressed and is refused.
+func attributePath(key string) (string, bool) {
+	if key == "" || strings.Contains(key, `"`) {
+		return "", false
+	}
+	return `$."` + key + `"`, true
 }
 
 // GetByTraceID returns logs that share the given OTel trace ID, ordered by

@@ -17,6 +17,7 @@ type ObservedServiceHandler struct {
 	logRepo    *database.LogRepository
 	metricRepo *database.OtelMetricRepository
 	reqRepo    *database.ApiRequestRepository
+	spanRepo   *database.SpanRepository
 }
 
 func NewObservedServiceHandler() *ObservedServiceHandler {
@@ -25,6 +26,7 @@ func NewObservedServiceHandler() *ObservedServiceHandler {
 		logRepo:    database.NewLogRepository(),
 		metricRepo: database.NewOtelMetricRepository(),
 		reqRepo:    database.NewApiRequestRepository(),
+		spanRepo:   database.NewSpanRepository(),
 	}
 }
 
@@ -121,6 +123,8 @@ func directLogFilter(c *fiber.Ctx) models.LogFilter {
 		Level:     models.LogLevel(c.Query("level")),
 		Search:    c.Query("search"),
 		TraceID:   c.Query("traceId"),
+		AttrKey:   c.Query("attrKey"),
+		AttrValue: c.Query("attrValue"),
 		From:      parseLogTimeQuery(c.Query("from")),
 		To:        parseLogTimeQuery(c.Query("to")),
 		Limit:     limit,
@@ -217,6 +221,42 @@ func (h *ObservedServiceHandler) GetOtelMetricPoints(c *fiber.Ctx) error {
 		points = []models.OtelMetric{}
 	}
 	return c.JSON(fiber.Map{"success": true, "data": points})
+}
+
+// GetTraces lists the direct service's traces, newest or slowest first.
+func (h *ObservedServiceHandler) GetTraces(c *fiber.Ctx) error {
+	if _, err := h.manager.RequireSignal(c.Params("id"), models.TelemetrySignalTraces); err != nil {
+		return observedServiceError(c, err)
+	}
+	filter := &models.TraceFilter{ServiceID: c.Params("id")}
+	applyTraceQuery(c, filter)
+	traces, err := h.spanRepo.ListTraces(filter)
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	if traces == nil {
+		traces = []models.TraceSummary{}
+	}
+	return c.JSON(fiber.Map{"success": true, "data": traces})
+}
+
+// GetOtelMetricQuantiles returns p50/p95/p99 recovered from an explicit
+// histogram's stored buckets, or null data when the metric is not a histogram.
+func (h *ObservedServiceHandler) GetOtelMetricQuantiles(c *fiber.Ctx) error {
+	if _, err := h.manager.RequireSignal(c.Params("id"), models.TelemetrySignalMetrics); err != nil {
+		return observedServiceError(c, err)
+	}
+	name := c.Query("name")
+	if name == "" {
+		return agentBadRequest(c, ErrCodeValidation, "name query parameter is required")
+	}
+	filter := &models.OtelMetricFilter{ServiceID: c.Params("id"), MetricName: name}
+	applyMetricWindow(c, filter)
+	quantiles, err := h.metricRepo.HistogramQuantiles(filter)
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": quantiles})
 }
 
 func directApiRequestFilter(c *fiber.Ctx) *models.ApiRequestFilter {

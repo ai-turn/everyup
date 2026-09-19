@@ -3,14 +3,19 @@ import {
   ResponsiveContainer, ComposedChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
-import type { GlobalTimeRange } from '../../../components/common';
+import { MaterialIcon, type GlobalTimeRange } from '../../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, chartCardClass, formatAxisValue, getChartTheme,
   getSeriesPalette, getSeriesDash, gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
 } from '../../../components/charts';
-import { api, type OtelMetricName, type OtelMetricPoint } from '../../../services/api';
+import { api, type OtelHistogramQuantiles, type OtelMetricName, type OtelMetricPoint } from '../../../services/api';
+import { TracePanel } from '../../traces/components/TracePanel';
 
 const MAX_SERIES = 6;
+// The server caps a point read at 5000 and applies the cap before grouping by
+// attribute series, so a metric with many series silently returns a shorter
+// window than asked for. Asking explicitly lets us say so instead.
+const POINT_LIMIT = 5000;
 const RANGE_HOURS: Record<GlobalTimeRange, number> = { '1h': 1, '6h': 6, '24h': 24 };
 
 type MetricSource =
@@ -54,6 +59,8 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   const [selected, setSelected] = useState('');
   const [points, setPoints] = useState<OtelMetricPoint[]>([]);
   const [pointsLoading, setPointsLoading] = useState(false);
+  const [quantiles, setQuantiles] = useState<OtelHistogramQuantiles | null>(null);
+  const [activeTraceId, setActiveTraceId] = useState<string | null>(null);
 
   const agentId = source.kind === 'agent' ? source.agentId : '';
   const serviceKey = source.kind === 'agent' ? source.serviceKey : '';
@@ -80,21 +87,54 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
 
   useEffect(() => {
     if (!selected) return;
+    // Switching metrics starts a second read while the first is in flight; a
+    // late response for the old metric must not land on the new one.
+    let cancelled = false;
     const loadPoints = async () => {
       setPointsLoading(true);
       const from = new Date(Date.now() - RANGE_HOURS[range] * 3_600_000).toISOString();
       try {
-        setPoints(source.kind === 'agent'
-          ? await api.getAgentServiceOtelMetricPoints(agentId, serviceKey, { name: selected, from })
-          : await api.getObservedServiceOtelMetricPoints(observedServiceId, { name: selected, from }));
+        const loaded = source.kind === 'agent'
+          ? await api.getAgentServiceOtelMetricPoints(agentId, serviceKey, { name: selected, from, limit: POINT_LIMIT })
+          : await api.getObservedServiceOtelMetricPoints(observedServiceId, { name: selected, from, limit: POINT_LIMIT });
+        if (!cancelled) setPoints(loaded);
       } catch {
-        setPoints([]);
+        if (!cancelled) setPoints([]);
       } finally {
-        setPointsLoading(false);
+        // Guarded on purpose: a cancelled read clearing the flag would hide the
+        // skeleton while its replacement is still in flight. The replacement
+        // owns the flag, and `selected` is only empty when no metric exists at
+        // all, where the empty state renders instead of the chart.
+        if (!cancelled) setPointsLoading(false);
       }
     };
     void loadPoints();
+    return () => { cancelled = true; };
   }, [source.kind, agentId, serviceKey, observedServiceId, selected, range, refreshKey]);
+
+  // Histograms are stored as an average plus their bucket vector; the buckets
+  // are what makes the tail visible, so fetch the recovered distribution.
+  useEffect(() => {
+    const meta = names.find(item => item.metricName === selected);
+    if (!selected || meta?.metricType !== 'histogram') {
+      setQuantiles(null);
+      return;
+    }
+    let cancelled = false;
+    const loadQuantiles = async () => {
+      const from = new Date(Date.now() - RANGE_HOURS[range] * 3_600_000).toISOString();
+      try {
+        const loaded = source.kind === 'agent'
+          ? await api.getAgentServiceOtelMetricQuantiles(agentId, serviceKey, { name: selected, from })
+          : await api.getObservedServiceOtelMetricQuantiles(observedServiceId, { name: selected, from });
+        if (!cancelled) setQuantiles(loaded);
+      } catch {
+        if (!cancelled) setQuantiles(null);
+      }
+    };
+    void loadQuantiles();
+    return () => { cancelled = true; };
+  }, [source.kind, agentId, serviceKey, observedServiceId, selected, range, refreshKey, names]);
 
   const selectedMeta = names.find(item => item.metricName === selected);
   const { chartData, seriesKeys, truncatedSeries } = useMemo(() => {
@@ -136,12 +176,40 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   return (
     <div className="space-y-4">
       <div className={`p-6 ${chartCardClass}`}>
-        <div className="mb-6 flex min-w-0 flex-wrap items-center gap-3">
-          <span className="truncate font-mono text-sm font-medium text-text-base">{selected}</span>
-          {selectedMeta && (
-            <span className="shrink-0 rounded-full bg-ui-hover px-2 py-0.5 text-xs text-text-muted">
-              {selectedMeta.metricType}{unit ? ` · ${unit}` : ''}
-            </span>
+        <div className="mb-6 space-y-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <span className="truncate font-mono text-sm font-medium text-text-base">{selected}</span>
+            {selectedMeta && (
+              <span className="shrink-0 rounded-full bg-ui-hover px-2 py-0.5 text-xs text-text-muted">
+                {selectedMeta.metricType}{unit ? ` · ${unit}` : ''}
+              </span>
+            )}
+          </div>
+          {quantiles && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <span className="text-text-muted">분포</span>
+              <span className="font-mono text-text-base">p50 {formatMetricValue(quantiles.p50, unit)}</span>
+              <span className="font-mono text-text-base">p95 {formatMetricValue(quantiles.p95, unit)}</span>
+              <span className="font-mono text-text-base">p99 {formatMetricValue(quantiles.p99, unit)}</span>
+              <span className="text-text-dim">{`· ${quantiles.count.toLocaleString()}건 기준`}</span>
+            </div>
+          )}
+          {quantiles?.exemplars && quantiles.exemplars.length > 0 && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+              <span className="text-text-muted">느린 예시</span>
+              {quantiles.exemplars.map(exemplar => (
+                <button
+                  key={exemplar.traceId}
+                  type="button"
+                  onClick={() => setActiveTraceId(exemplar.traceId)}
+                  title={`${exemplar.traceId} 트레이스 열기`}
+                  className="inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/5 px-2 py-0.5 font-mono text-xs text-primary hover:bg-primary/10 cursor-pointer"
+                >
+                  <MaterialIcon size={16} name="timeline" />
+                  {formatMetricValue(exemplar.value, unit)}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -186,9 +254,12 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
               />
             </div>
             {truncatedSeries > 0 && <p className="mt-2 type-body text-text-muted">{`속성 조합이 많아 상위 ${MAX_SERIES}개 시리즈만 표시합니다. (+${truncatedSeries}개 생략)`}</p>}
+            {points.length >= POINT_LIMIT && <p className="mt-2 type-body text-text-muted">{`데이터 포인트가 상한(${POINT_LIMIT.toLocaleString()}개)에 도달해 최근 구간만 표시합니다. 시간 범위를 좁히면 전체가 보입니다.`}</p>}
           </>
         )}
       </div>
+
+      {activeTraceId && <TracePanel traceId={activeTraceId} onClose={() => setActiveTraceId(null)} />}
 
       <div className="rounded-xl border border-ui-border bg-bg-surface p-6">
         <div className="mb-2 flex items-center gap-2">

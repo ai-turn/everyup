@@ -75,8 +75,11 @@ type RetentionConfig struct {
 	Logs            string `json:"logs"`
 	SystemMetrics   string `json:"systemMetrics"`
 	ApiRequestsDays int    `json:"apiRequestsDays"`
-	BodyCaptureDays int    `json:"bodyCaptureDays"`
-	OtelMetricsDays int    `json:"otelMetricsDays"`
+	// SpansDays governs stored traces. BodyCaptureDays only strips captured
+	// request/response bodies, so shortening it no longer deletes traces.
+	SpansDays       int `json:"spansDays"`
+	BodyCaptureDays int `json:"bodyCaptureDays"`
+	OtelMetricsDays int `json:"otelMetricsDays"`
 }
 
 // Global config instance
@@ -112,6 +115,7 @@ func Load(configPath string) (*Config, error) {
 			Logs:            "3d",
 			SystemMetrics:   "7d",
 			ApiRequestsDays: 14,
+			SpansDays:       7,
 			BodyCaptureDays: 7,
 		},
 	}
@@ -168,6 +172,7 @@ func Load(configPath string) (*Config, error) {
 	envStr("EVERYUP_RETENTION_LOGS", &c.Retention.Logs)
 	envStr("EVERYUP_RETENTION_SYSTEMMETRICS", &c.Retention.SystemMetrics)
 	envInt("EVERYUP_RETENTION_APIREQUESTSDAYS", &c.Retention.ApiRequestsDays)
+	envInt("EVERYUP_RETENTION_SPANSDAYS", &c.Retention.SpansDays)
 	envInt("EVERYUP_RETENTION_BODYCAPTUREDAYS", &c.Retention.BodyCaptureDays)
 	envInt("EVERYUP_RETENTION_OTELMETRICSDAYS", &c.Retention.OtelMetricsDays)
 

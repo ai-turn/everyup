@@ -17,7 +17,7 @@ export function HealthCheckDetailPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const selectedTab = searchParams.get('tab');
-  const tab: DetailTab = selectedTab === 'uptime' || selectedTab === 'logs' || selectedTab === 'requests' || selectedTab === 'metrics' || selectedTab === 'infra'
+  const tab: DetailTab = selectedTab === 'uptime' || selectedTab === 'logs' || selectedTab === 'requests' || selectedTab === 'traces' || selectedTab === 'metrics' || selectedTab === 'infra'
     ? selectedTab
     : 'overview';
 

@@ -24,6 +24,7 @@ type AgentHandler struct {
 	logRepo          *database.LogRepository
 	reqRepo          *database.ApiRequestRepository
 	otelMetricRepo   *database.OtelMetricRepository
+	spanRepo         *database.SpanRepository
 	ruleEvaluator    *alerter.RuleEvaluator
 	serviceEvaluator *alerter.ServiceRuleEvaluator
 }
@@ -34,6 +35,7 @@ func NewAgentHandler() *AgentHandler {
 		logRepo:        database.NewLogRepository(),
 		reqRepo:        database.NewApiRequestRepository(),
 		otelMetricRepo: database.NewOtelMetricRepository(),
+		spanRepo:       database.NewSpanRepository(),
 	}
 }
 
@@ -631,6 +633,8 @@ func (h *AgentHandler) GetServiceLogs(c *fiber.Ctx) error {
 		ServiceName: service.Name,
 		Level:       models.LogLevel(c.Query("level")),
 		Search:      c.Query("search"),
+		AttrKey:     c.Query("attrKey"),
+		AttrValue:   c.Query("attrValue"),
 		Limit:       limit,
 		Offset:      offset,
 	}
@@ -941,6 +945,96 @@ func (h *AgentHandler) GetServiceOtelMetricPoints(c *fiber.Ctx) error {
 		points = []models.OtelMetric{}
 	}
 	return c.JSON(fiber.Map{"success": true, "data": points})
+}
+
+// applyTraceQuery reads the shared trace list filters off the request.
+func applyTraceQuery(c *fiber.Ctx, filter *models.TraceFilter) {
+	if from := c.Query("from"); from != "" {
+		if parsed, err := time.Parse(time.RFC3339, from); err == nil {
+			filter.From = parsed
+		}
+	}
+	if to := c.Query("to"); to != "" {
+		if parsed, err := time.Parse(time.RFC3339, to); err == nil {
+			filter.To = parsed
+		}
+	}
+	filter.MinDurationMs, _ = strconv.Atoi(c.Query("minDurationMs"))
+	filter.ErrorsOnly = c.Query("errorsOnly") == "true"
+	filter.SortBySlowest = c.Query("sort") == "slowest"
+	filter.Limit, _ = strconv.Atoi(c.Query("limit"))
+}
+
+// GetServiceTraces lists the service's traces, newest or slowest first. This is
+// the discovery path for traces the api_requests projection drops.
+// GET /agents/:agentId/services/:key/traces?sort=&errorsOnly=&minDurationMs=
+func (h *AgentHandler) GetServiceTraces(c *fiber.Ctx) error {
+	agentID := c.Params("agentId")
+	service, err := h.repo.GetServiceByKey(agentID, c.Params("key"))
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	if service == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"success": false,
+			"error":   fiber.Map{"code": "NOT_FOUND", "message": "service not found"},
+		})
+	}
+
+	filter := &models.TraceFilter{AgentID: agentID, ServiceName: service.Name}
+	applyTraceQuery(c, filter)
+	traces, err := h.spanRepo.ListTraces(filter)
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	if traces == nil {
+		traces = []models.TraceSummary{}
+	}
+	return c.JSON(fiber.Map{"success": true, "data": traces})
+}
+
+// applyMetricWindow copies the from/to query window onto a metric filter.
+func applyMetricWindow(c *fiber.Ctx, filter *models.OtelMetricFilter) {
+	if from := c.Query("from"); from != "" {
+		if parsed, err := time.Parse(time.RFC3339, from); err == nil {
+			filter.From = parsed
+		}
+	}
+	if to := c.Query("to"); to != "" {
+		if parsed, err := time.Parse(time.RFC3339, to); err == nil {
+			filter.To = parsed
+		}
+	}
+}
+
+// GetServiceOtelMetricQuantiles returns p50/p95/p99 recovered from an explicit
+// histogram's stored buckets, or null data when the metric is not a histogram.
+// GET /agents/:agentId/services/:key/otel-metrics/quantiles?name=...&from=&to=
+func (h *AgentHandler) GetServiceOtelMetricQuantiles(c *fiber.Ctx) error {
+	agentID := c.Params("agentId")
+	name := c.Query("name")
+	if name == "" {
+		return agentBadRequest(c, "VALIDATION_ERROR", "name query parameter is required")
+	}
+
+	service, err := h.repo.GetServiceByKey(agentID, c.Params("key"))
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	if service == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"success": false,
+			"error":   fiber.Map{"code": "NOT_FOUND", "message": "service not found"},
+		})
+	}
+
+	filter := &models.OtelMetricFilter{AgentID: agentID, ServiceName: service.Name, MetricName: name}
+	applyMetricWindow(c, filter)
+	quantiles, err := h.otelMetricRepo.HistogramQuantiles(filter)
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": quantiles})
 }
 
 // representativeMetricPatterns orders metric-name substrings from most

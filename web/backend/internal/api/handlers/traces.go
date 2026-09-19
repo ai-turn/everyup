@@ -13,10 +13,7 @@ import (
 
 const auditActionViewCapturedBody = "trace.body.view"
 
-var capturedBodyEventNames = map[string]bool{
-	"request_body_masked":  true,
-	"response_body_masked": true,
-}
+var capturedBodyEventNames = models.CapturedBodyEventNames
 
 // TracesHandler exposes trace correlation reads.
 type TracesHandler struct {

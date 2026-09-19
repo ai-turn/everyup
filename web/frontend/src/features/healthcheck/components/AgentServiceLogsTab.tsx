@@ -75,10 +75,25 @@ function formatTime(ts: string) {
   });
 }
 
-function LogRow({ log, onOpenTrace }: { log: LogEntry; onOpenTrace: (traceId: string) => void }) {
+// Structured attributes the row can filter on. Nested values stay in the JSON
+// dump below — only a scalar makes sense as an exact-match filter.
+function filterableAttributes(log: LogEntry): [string, string][] {
+  const attributes = (log.metadata as { attributes?: Record<string, unknown> } | undefined)?.attributes;
+  if (!attributes) return [];
+  return Object.entries(attributes)
+    .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
+    .map(([key, value]) => [key, String(value)]);
+}
+
+function LogRow({ log, onOpenTrace, onFilterAttribute }: {
+  log: LogEntry;
+  onOpenTrace: (traceId: string) => void;
+  onFilterAttribute: (key: string, value: string) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   // !! 필수 — undefined면 activatable의 기본 파라미터가 발동해 비활성 행까지 버튼이 된다.
   const hasMeta = !!log.metadata && Object.keys(log.metadata).length > 0;
+  const attributes = filterableAttributes(log);
 
   return (
     <div
@@ -113,9 +128,28 @@ function LogRow({ log, onOpenTrace }: { log: LogEntry; onOpenTrace: (traceId: st
         )}
       </div>
       {expanded && hasMeta && (
-        <pre className="mt-3 ml-11 text-xs font-mono text-text-muted bg-ui-hover-soft rounded-lg px-3 py-2.5 overflow-x-auto whitespace-pre-wrap break-all">
-          {JSON.stringify(log.metadata, null, 2)}
-        </pre>
+        <>
+          {attributes.length > 0 && (
+            <div className="mt-3 ml-11 flex flex-wrap gap-1.5">
+              {attributes.map(([key, value]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onFilterAttribute(key, value); }}
+                  title={`${key}=${value} 로 필터`}
+                  className="inline-flex items-center gap-1 rounded-lg border border-ui-border bg-bg-surface px-2 py-0.5 font-mono text-xs text-text-muted hover:border-primary/30 hover:text-primary cursor-pointer"
+                >
+                  <span className="text-text-dim">{key}</span>
+                  <span>=</span>
+                  <span>{value}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <pre className="mt-3 ml-11 text-xs font-mono text-text-muted bg-ui-hover-soft rounded-lg px-3 py-2.5 overflow-x-auto whitespace-pre-wrap break-all">
+            {JSON.stringify(log.metadata, null, 2)}
+          </pre>
+        </>
       )}
     </div>
   );
@@ -133,6 +167,8 @@ function ServiceLogsPanel(props: Props) {
   const [level, setLevel] = useState<LogLevel | ''>('');
   const [search, setSearch] = useState('');
   const [inputValue, setInputValue] = useState('');
+  // Exact match on one structured attribute, set by clicking it on a row.
+  const [attrFilter, setAttrFilter] = useState<{ key: string; value: string } | null>(null);
   const [histogram, setHistogram] = useState<LogHistogramBucket[]>([]);
   const [live, setLive] = useState(false);
   const [page, setPage] = useState(1);
@@ -175,6 +211,8 @@ function ServiceLogsPanel(props: Props) {
       const params = {
         level: level || undefined,
         search: search || undefined,
+        attrKey: attrFilter?.key,
+        attrValue: attrFilter?.value,
         from: rangeFrom(range),
         limit: PAGE_SIZE,
         offset: (page - 1) * PAGE_SIZE,
@@ -195,7 +233,7 @@ function ServiceLogsPanel(props: Props) {
     } finally {
       setLoading(false);
     }
-  }, [agentId, directServiceId, serviceKey, refreshKey, level, search, range, page]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agentId, directServiceId, serviceKey, refreshKey, level, search, attrFilter, range, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -205,6 +243,8 @@ function ServiceLogsPanel(props: Props) {
     const params = {
       level: level || undefined,
       search: search || undefined,
+      attrKey: attrFilter?.key,
+      attrValue: attrFilter?.value,
       from: rangeFrom(range),
       bucketMins: r.bucketMins,
     };
@@ -214,7 +254,7 @@ function ServiceLogsPanel(props: Props) {
     request
       .then((b) => setHistogram(b ?? []))
       .catch(() => setHistogram([]));
-  }, [agentId, directServiceId, serviceKey, level, search, range, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agentId, directServiceId, serviceKey, level, search, attrFilter, range, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchHistogram(); }, [fetchHistogram]);
 
@@ -259,6 +299,19 @@ function ServiceLogsPanel(props: Props) {
             </button>
           )}
         </form>
+
+        {/* Active attribute filter, set by clicking an attribute on a row */}
+        {attrFilter && (
+          <button
+            type="button"
+            onClick={() => { setAttrFilter(null); setPage(1); }}
+            title="속성 필터 해제"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-2 py-1 font-mono text-xs text-primary hover:bg-primary/10 cursor-pointer"
+          >
+            <span>{attrFilter.key}={attrFilter.value}</span>
+            <MaterialIcon size={16} name="close" />
+          </button>
+        )}
 
         {/* Live tail: 5s silent polling while on */}
         <button
@@ -375,12 +428,19 @@ function ServiceLogsPanel(props: Props) {
         <div className="py-16 text-center">
           <MaterialIcon size={36} name="article" className="text-text-dim mb-2" />
           <p className="text-sm text-text-dim">
-            {search || level ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
+            {search || level || attrFilter ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
           </p>
         </div>
       ) : (
         <div className="divide-y divide-ui-border-soft border border-ui-border rounded-xl overflow-hidden">
-          {logs.map(log => <LogRow key={log.id} log={log} onOpenTrace={setActiveTraceId} />)}
+          {logs.map(log => (
+            <LogRow
+              key={log.id}
+              log={log}
+              onOpenTrace={setActiveTraceId}
+              onFilterAttribute={(key, value) => { setAttrFilter({ key, value }); setPage(1); }}
+            />
+          ))}
           {totalPages > 1 && (
             <div className="flex items-center justify-end bg-ui-hover-soft/60 px-4 py-2.5">
               {/* Live tail only ever shows the newest page, so leaving page 1 turns it off. */}

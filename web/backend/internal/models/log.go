@@ -84,14 +84,19 @@ type LogHistogramBucket struct {
 
 // LogFilter represents filter options for log queries
 type LogFilter struct {
-	ServiceID   string    `json:"serviceId,omitempty"`
-	AgentID     string    `json:"agentId,omitempty"`
-	ServiceName string    `json:"serviceName,omitempty"`
-	Level       LogLevel  `json:"level,omitempty"`
-	Search      string    `json:"search,omitempty"`
-	TraceID     string    `json:"traceId,omitempty"`
-	From        time.Time `json:"from,omitempty"`
-	To          time.Time `json:"to,omitempty"`
-	Limit       int       `json:"limit,omitempty"`
-	Offset      int       `json:"offset,omitempty"`
+	ServiceID   string   `json:"serviceId,omitempty"`
+	AgentID     string   `json:"agentId,omitempty"`
+	ServiceName string   `json:"serviceName,omitempty"`
+	Level       LogLevel `json:"level,omitempty"`
+	Search      string   `json:"search,omitempty"`
+	TraceID     string   `json:"traceId,omitempty"`
+	// AttrKey/AttrValue match one structured attribute exactly, e.g.
+	// http.route=/orders. Search stays a message substring — attributes are
+	// stored as key/value so they can be filtered on rather than grepped.
+	AttrKey   string    `json:"attrKey,omitempty"`
+	AttrValue string    `json:"attrValue,omitempty"`
+	From      time.Time `json:"from,omitempty"`
+	To        time.Time `json:"to,omitempty"`
+	Limit     int       `json:"limit,omitempty"`
+	Offset    int       `json:"offset,omitempty"`
 }
