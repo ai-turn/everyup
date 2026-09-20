@@ -32,12 +32,12 @@ export function AgentIdentity({ service, showName = true }: { service: AgentServ
   const status = service.healthy ? 'healthy' : 'unhealthy';
   const statusConfig = {
     healthy: {
-      bg: 'bg-status-healthy/10', border: 'border-status-healthy/20',
+      bg: 'bg-status-healthy/10',
       text: 'text-status-healthy', dot: 'bg-status-healthy', ping: 'bg-status-healthy',
       label: '정상',
     },
     unhealthy: {
-      bg: 'bg-status-error/10', border: 'border-status-error/20',
+      bg: 'bg-status-error/10',
       text: 'text-status-error', dot: 'bg-status-error', ping: 'bg-status-error',
       label: '장애',
     },
@@ -53,7 +53,7 @@ export function AgentIdentity({ service, showName = true }: { service: AgentServ
       {showName && (
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-2xl font-bold text-text-base">{service.name}</h1>
-          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${cfg.bg} border ${cfg.border}`}>
+          <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${cfg.bg}`}>
             <span className="relative flex h-2 w-2">
               {service.healthy && (
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${cfg.ping} opacity-75`} />

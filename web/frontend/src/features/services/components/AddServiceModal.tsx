@@ -49,7 +49,7 @@ function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: 
             <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${
               item.complete
                 ? 'bg-emerald-500 text-white'
-                : item.active ? 'bg-primary text-white' : 'bg-ui-hover text-text-dim'
+                : item.active ? 'bg-primary text-white' : 'bg-ui-hover text-text-muted'
             }`}>
               {item.complete ? <MaterialIcon size={16} name="check" /> : index + 1}
             </span>
@@ -455,7 +455,7 @@ export function AddServiceModal({
       aria-label={step === 'form' ? 'Docker 연결' : 'Docker 수집기 설치 및 모니터링 설정'}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
     >
-      <div className={`w-full ${step === 'install' ? 'max-w-2xl' : 'max-w-md'} max-h-[92vh] bg-bg-surface rounded-xl shadow-2xl border border-ui-border overflow-hidden flex flex-col`}>
+      <div className={`w-full ${step === 'install' ? 'max-w-2xl' : 'max-w-md'} max-h-[92vh] bg-bg-surface rounded-xl shadow-lg border border-ui-border overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ui-border-soft">
           <h2 className="type-card-title text-text-base">

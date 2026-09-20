@@ -89,7 +89,6 @@ function ProjectCard({ project, agents, monitors, directServices, infrastructure
   return (
     <article className="rounded-xl border border-ui-border bg-bg-surface p-5">
       <ResourceCardHeader
-        icon="folder_open"
         title={<h2 className="truncate type-card-title text-text-base"><Link to={`/projects/${project.id}`} className="hover:text-primary">{project.name}</Link></h2>}
         status={<div className="flex gap-1"><Button variant="ghost" size="sm" aria-label="Project 수정" title="Project 수정" onClick={onEdit}><MaterialIcon name="edit" /></Button><Button variant="ghost" size="sm" aria-label="Project 삭제" title="Project 삭제" onClick={onDelete}><MaterialIcon name="delete" className="text-status-error" /></Button></div>}
       />

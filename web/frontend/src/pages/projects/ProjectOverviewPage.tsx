@@ -1,3 +1,4 @@
+import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, EmptyState, MaterialIcon } from '../../components/common';
@@ -40,6 +41,7 @@ export function ProjectOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [failedSources, setFailedSources] = useState<string[]>([]);
+  useBreadcrumb(data.project ? [{ label: data.project.name }] : []);
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -110,7 +112,7 @@ export function ProjectOverviewPage() {
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0"><div className="flex items-center gap-2 text-xs text-text-muted"><Link to="/projects" className="hover:text-primary">Projects</Link><span>/</span></div><h1 className="mt-1 truncate text-2xl font-bold text-text-base">{data.project.name}</h1><p className="mt-1 text-sm text-text-muted">{data.project.description || '이 Project의 모니터링 범위와 현재 이상을 확인하세요.'}</p></div>
+        <div className="min-w-0"><h1 className="truncate text-2xl font-bold text-text-base">{data.project.name}</h1><p className="mt-1 text-sm text-text-muted">{data.project.description || '이 Project의 모니터링 범위와 현재 이상을 확인하세요.'}</p></div>
         <Button variant="secondary" onClick={() => navigate('/projects')}>Project 관리</Button>
       </div>
 

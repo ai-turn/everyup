@@ -1,3 +1,4 @@
+import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -31,6 +32,7 @@ export function DirectInfrastructureDetailPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  useBreadcrumb(resource ? [{ label: resource.name }] : []);
   const [savingProject, setSavingProject] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
@@ -129,7 +131,7 @@ export function DirectInfrastructureDetailPage() {
         <section className="rounded-xl border border-ui-border bg-bg-surface p-5 lg:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <h2 className="type-card-title text-text-base">Collector 연결</h2>
-            <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-1 text-xs ${resource.isActive ? 'border-status-healthy/20 bg-status-healthy/10 text-status-healthy' : 'border-status-error/20 bg-status-error/10 text-status-error'}`}>
+            <span className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs ${resource.isActive ? 'bg-status-healthy/10 text-status-healthy' : 'bg-status-error/10 text-status-error'}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${resource.isActive ? 'bg-status-healthy' : 'bg-status-error'}`} aria-hidden="true" />
               {resource.isActive ? '수집 가능' : '중지됨'}
             </span>

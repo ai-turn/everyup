@@ -46,7 +46,6 @@ function MetricCard({
   return (
     <Link to={to} className="card-interactive group rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
-        icon="monitoring"
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-primary">{name}</h3>}
         badge={<ConnectionSourceBadge source={connection} />}
         subtitle={subtitle}

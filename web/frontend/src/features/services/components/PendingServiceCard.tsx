@@ -1,6 +1,7 @@
 import { Button } from '../../../components/common/Button';
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
 import { ResourceCardHeader } from '../../../components/common/ResourceCardHeader';
+import { StatusLight } from '../../../components/common/StatusLight';
 import type { ConnectedAgent } from '../../../services/api';
 
 interface Props {
@@ -16,13 +17,10 @@ export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Pr
   return (
     <div className="bg-bg-surface border border-ui-border rounded-xl p-4 flex flex-col gap-3">
       <ResourceCardHeader
-        icon="dns"
         title={<h2 className="truncate type-card-title text-text-base">{agent.name}</h2>}
         status={
           <div className="flex shrink-0 items-center gap-1">
-            <span className="rounded border border-status-idle/20 bg-status-idle/10 px-1.5 py-0.5 text-xs text-status-idle">
-              설치 대기
-            </span>
+            <StatusLight tone="idle" label="설치 대기" />
             <details className="relative">
               <summary className="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-lg text-text-dim hover:bg-ui-hover hover:text-text-base [&::-webkit-details-marker]:hidden">
                 <MaterialIcon size={20} name="more_vert" />

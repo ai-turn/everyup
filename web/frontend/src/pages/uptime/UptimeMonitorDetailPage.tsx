@@ -1,3 +1,4 @@
+import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -106,6 +107,7 @@ export function UptimeMonitorDetailPage() {
   const [history, setHistory] = useState<UptimeMonitorHistory | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -193,7 +195,8 @@ export function UptimeMonitorDetailPage() {
   return (
     <div className="space-y-5">
       <div>
-        <Link to="/uptime" className="mb-3 inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-primary">
+        {/* 데스크톱은 AppHeader breadcrumb의 첫 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
+        <Link to="/uptime" className="mb-3 inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-primary lg:hidden">
           <MaterialIcon size={20} name="arrow_back" />업타임
         </Link>
         <div className="flex flex-col gap-4 md:flex-row md:items-start">

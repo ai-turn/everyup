@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
+import { AppHeader } from './AppHeader';
 import { CommandPalette } from './CommandPalette';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
@@ -7,11 +8,15 @@ import { DemoBanner } from './DemoBanner';
 import { BottomNavMobile } from './BottomNav.mobile';
 import { SidePanel } from './SidePanel';
 import { useSidePanel } from '../../contexts/SidePanelContext';
+import { BreadcrumbProvider } from '../../contexts/BreadcrumbContext';
 
 export function MainLayout() {
   const { isOpen: isPanelOpen } = useSidePanel();
 
+  // AppHeader와 Outlet이 같은 트리에 있으므로 Provider도 여기서 닫는다 — 상세 페이지가
+  // useBreadcrumb으로 올린 trail을 헤더가 읽는다.
   return (
+    <BreadcrumbProvider>
     <div className="flex flex-col h-dvh overflow-hidden bg-bg-main">
       {/* Skip to main content (accessibility) */}
       <a
@@ -33,10 +38,13 @@ export function MainLayout() {
 
         {/* Right column: 모바일 Header + 본문 */}
         <div className="flex flex-1 flex-col overflow-hidden min-w-0">
-          {/* Header: 모바일 전용 (lg 미만). 데스크톱은 Sidebar가 대체 */}
+          {/* Header: 모바일 전용 (lg 미만). 데스크톱은 Sidebar가 내비를 맡는다 */}
           <div className="lg:hidden">
             <Header />
           </div>
+
+          {/* AppHeader: 데스크톱 전용 위치 표시(breadcrumb). 높이는 Sidebar 로고와 같은 64px */}
+          <AppHeader />
 
           <div className="flex flex-1 overflow-hidden relative">
             {/* full-bleed content on the bg-main canvas (white cards pop), 24px/20px padding */}
@@ -65,5 +73,6 @@ export function MainLayout() {
       {/* Bottom Navigation: 모바일 전용 (lg 미만) */}
       <BottomNavMobile />
     </div>
+    </BreadcrumbProvider>
   );
 }

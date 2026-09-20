@@ -92,9 +92,9 @@ export function AgentServiceCapabilityPage() {
 
       {!loading && !error && monitors.length + agentServices.length > 0 && (
         <section aria-label="업타임 상태 요약" className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <SummaryCard icon="check_circle" label="정상" value={up} detail={`전체 ${monitors.length + agentServices.length}개 대상 중`} tone="healthy" />
-          <SummaryCard icon="error_outline" label="장애" value={down} detail={down === 0 ? '장애 신호 없음' : '지금 확인이 필요합니다'} tone={down === 0 ? 'idle' : 'error'} />
-          <SummaryCard icon="pause" label="일시정지·대기" value={paused.length} detail={paused.length === 0 ? '모든 모니터 동작 중' : '체크가 돌지 않는 대상입니다'} tone="idle" />
+          <SummaryCard label="정상" value={up} detail={`전체 ${monitors.length + agentServices.length}개 대상 중`} tone="healthy" />
+          <SummaryCard label="장애" value={down} detail={down === 0 ? '장애 신호 없음' : '지금 확인이 필요합니다'} tone={down === 0 ? 'idle' : 'error'} />
+          <SummaryCard label="일시정지·대기" value={paused.length} detail={paused.length === 0 ? '모든 모니터 동작 중' : '체크가 돌지 않는 대상입니다'} tone="idle" />
         </section>
       )}
 

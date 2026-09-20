@@ -1,3 +1,4 @@
+import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -40,35 +41,21 @@ export function ChannelFormPage() {
 
   const goBack = () => navigate('/alerts');
 
+  useBreadcrumb([{ label: loading ? '...' : isEdit ? (channel?.name ?? '수정') : '새 채널' }]);
+
   const title = isEdit
     ? '채널 편집'
     : '채널 추가';
 
   return (
-    <div className="-m-4 sm:-m-6 md:-m-8 flex flex-col bg-bg-main h-[calc(100dvh-3.5rem)] lg:h-[calc(100dvh-4rem)]">
+    // lg에서는 모바일 Header(3.5rem) 대신 AppHeader(4rem)가 붙으므로 빼는 값이 다르다.
+    // 자체 breadcrumb은 AppHeader로 옮겼다 — `채널` 크럼은 `알림`과 목적지가 같아 뺐다.
+    // 음수 마진은 본문 래퍼(`p-4 sm:px-6 sm:py-5`)의 패딩을 **정확히** 되돌리는 값이어야
+    // 한다. 이전 `md:-m-8`은 존재하지 않는 32px 패딩을 가정해 8px 더 당겼고, 그만큼
+    // AppHeader breadcrumb보다 왼쪽으로 튀어나가 있었다.
+    <div className="-m-4 sm:-mx-6 sm:-my-5 flex flex-col bg-bg-main h-[calc(100dvh-3.5rem)] lg:h-[calc(100dvh-8rem)]">
       {/* Page header */}
       <header className="flex-none border-b border-ui-border px-6 py-3 bg-bg-surface">
-        <nav className="flex items-center gap-1 text-sm text-text-muted mb-2">
-          <button
-            type="button"
-            onClick={goBack}
-            className="hover:text-text-base transition-colors"
-          >
-            알림
-          </button>
-          <MaterialIcon size={16} name="chevron_right" className="opacity-50" />
-          <button
-            type="button"
-            onClick={goBack}
-            className="hover:text-text-base transition-colors"
-          >
-            채널
-          </button>
-          <MaterialIcon size={16} name="chevron_right" className="opacity-50" />
-          <span className="text-text-base truncate max-w-50">
-            {loading ? '...' : isEdit ? (channel?.name ?? '수정') : '새 채널'}
-          </span>
-        </nav>
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold text-text-base tracking-tight">{title}</h1>

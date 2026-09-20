@@ -1,5 +1,6 @@
+import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button, MaterialIcon, StatusBadge, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
 import { useSpinAction } from '../../../hooks/useSpinAction';
 import { useIsMobile } from '../../../hooks/useMediaQuery';
@@ -88,13 +89,6 @@ function DesktopLayout(props: LayoutProps) {
       {/* ver2: breadcrumb (project / service) + status badge, range + refresh on the right */}
       <div className="mb-6">
         <div className="flex items-center gap-2.5">
-          <Link
-            to={`/agents/${agentId}`}
-            className="text-sm text-text-muted hover:text-primary transition-colors shrink-0"
-          >
-            {service.agentName}
-          </Link>
-          <span className="text-text-dim">/</span>
           <h1 className="text-2xl font-bold text-text-base truncate">{service.name}</h1>
           <StatusBadge healthy={service.healthy} />
           <div className="ml-auto flex items-center gap-2">
@@ -159,6 +153,12 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
   const isMobile = useIsMobile();
   // Shared chart range for all tabs; survives service switches (Tabs remount on key).
   const [range, setRange] = useState<GlobalTimeRange>('6h');
+  // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 trail에 넣지 않는다 —
+  // 실제 담김 관계는 Docker 환경 › 에이전트 › 서비스다.
+  useBreadcrumb([
+    { label: props.service.agentName, to: `/agents/${props.agentId}` },
+    { label: props.service.name },
+  ]);
   const layoutProps: LayoutProps = { ...props, range, onRangeChange: setRange };
   return isMobile ? <MobileLayout {...layoutProps} /> : <DesktopLayout {...layoutProps} />;
 }

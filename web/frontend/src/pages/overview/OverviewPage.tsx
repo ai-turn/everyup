@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, EmptyState, MaterialIcon, PageHeader, SummaryCard } from '../../components/common';
+import { Button, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
   type ConnectedAgent,
   type InfrastructureResource,
   type ObservedService,
-  type Project,
   type UptimeMonitor,
 } from '../../services/api';
 import { isCollectorFresh } from '../../utils/operationalStatus';
@@ -27,7 +26,6 @@ export function OverviewPage() {
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [observedServices, setObservedServices] = useState<ObservedService[]>([]);
   const [infrastructure, setInfrastructure] = useState<InfrastructureResource[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,11 +34,10 @@ export function OverviewPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [agentsResult, servicesResult, monitorsResult, projectsResult, observedResult, infrastructureResult] = await Promise.allSettled([
+    const [agentsResult, servicesResult, monitorsResult, observedResult, infrastructureResult] = await Promise.allSettled([
       api.getAgents(),
       api.getAllAgentServicesFlat(),
       api.getUptimeMonitors(),
-      api.getProjects(),
       api.getObservedServices(),
       api.getInfrastructureResources(),
     ]);
@@ -48,7 +45,6 @@ export function OverviewPage() {
     if (agentsResult.status === 'fulfilled') setAgents(agentsResult.value ?? []); else failed.push('agents');
     if (servicesResult.status === 'fulfilled') setServices(servicesResult.value ?? []); else failed.push('services');
     if (monitorsResult.status === 'fulfilled') setMonitors(monitorsResult.value ?? []); else failed.push('monitors');
-    if (projectsResult.status === 'fulfilled') setProjects(projectsResult.value ?? []); else failed.push('projects');
     if (observedResult.status === 'fulfilled') setObservedServices(observedResult.value ?? []); else failed.push('observed');
     if (infrastructureResult.status === 'fulfilled') setInfrastructure(infrastructureResult.value ?? []); else failed.push('infrastructure');
     setFailedSources(failed);
@@ -64,7 +60,6 @@ export function OverviewPage() {
     };
   }, [load]);
 
-  const reportingAgents = agents.filter((agent) => isCollectorFresh(agent.lastSeenAt));
   const staleAgents = agents.filter((agent) => !isCollectorFresh(agent.lastSeenAt));
   const unhealthyServices = services.filter((service) => !service.healthy);
   const unhealthyMonitors = monitors.filter((monitor) => monitor.status === 'unhealthy');
@@ -125,7 +120,6 @@ export function OverviewPage() {
   }), [directAwaitingData, inactiveInfrastructure, staleAgents, unhealthyMonitors, unhealthyServices]);
 
   const totalTargets = agents.length + monitors.length + observedServices.length + infrastructure.length;
-  const connectionIssues = staleAgents.length + directAwaitingData.length + inactiveInfrastructure.length;
 
   if (loading && totalTargets === 0) {
     return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">{[0, 1, 2, 3].map((item) => <div key={item} className="h-36 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>;
@@ -164,13 +158,6 @@ export function OverviewPage() {
         </section>
       ) : (
         <>
-          <section aria-label="수집 상태 요약" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <SummaryCard icon="sensors" label="Docker 수집기" value={agents.length} detail={reportingAgents.length === agents.length ? '모두 데이터 유입 중' : `${staleAgents.length}개 연결 확인 필요`} tone={reportingAgents.length === agents.length ? 'healthy' : 'warn'} />
-            <SummaryCard icon="dns" label="서비스" value={services.length + monitors.length + observedServices.length} detail={unhealthyServices.length + unhealthyMonitors.length === 0 ? '장애 신호 없음' : `${unhealthyServices.length + unhealthyMonitors.length}개 장애 신호`} tone={unhealthyServices.length + unhealthyMonitors.length === 0 ? 'healthy' : 'error'} />
-            <SummaryCard icon="account_tree" label="Projects" value={projects.length} detail={projects.length > 0 ? '대상을 운영 단위로 묶고 있습니다' : '필요할 때 대상들을 묶어 보세요'} tone={projects.length > 0 ? 'healthy' : 'idle'} />
-            <SummaryCard icon="sensors_off" label="수집 확인 필요" value={connectionIssues} detail={connectionIssues === 0 ? '모든 연결이 최신 상태입니다' : '지연 또는 미확인 대상을 확인하세요'} tone={connectionIssues === 0 ? 'healthy' : 'warn'} />
-          </section>
-
           <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
             <article id="attention" className="scroll-mt-5 rounded-xl border border-ui-border bg-bg-surface">
               <div className="flex items-center justify-between gap-3 border-b border-ui-border px-4 py-3.5">

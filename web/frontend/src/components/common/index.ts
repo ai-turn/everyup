@@ -10,6 +10,7 @@ export { ConnectionSourceBadge } from './ConnectionSourceBadge';
 export { DetailActionToolbar } from './DetailActionToolbar';
 export { MaterialIcon } from './MaterialIcon';
 export { CopyButton, COPY_ACTION_PRIMARY, COPY_ACTION_SUBTLE } from './CopyButton';
+export { StatusLight, type StatusTone } from './StatusLight';
 export { StatusBadge } from './StatusBadge';
 export { CollectionStatusBadge, type CollectionStatus } from './CollectionStatusBadge';
 export { Toggle } from './Toggle';

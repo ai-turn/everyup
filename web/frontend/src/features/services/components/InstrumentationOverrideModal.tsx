@@ -153,7 +153,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
       aria-label="OpenTelemetry 자동 적용"
       onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
-      <div ref={panelRef} className="flex h-full max-h-full w-full max-w-2xl flex-col bg-bg-surface shadow-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
+      <div ref={panelRef} className="flex h-full max-h-full w-full max-w-2xl flex-col bg-bg-surface shadow-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
         <div className="flex items-center gap-3 border-b border-ui-border px-5 py-4">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <MaterialIcon size={20} name="integration_instructions" />

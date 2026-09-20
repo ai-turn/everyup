@@ -10,7 +10,7 @@ import { getErrorMessage } from '../../../utils/errors';
 import { activatable } from '../../../utils/a11y';
 import { toast } from 'react-hot-toast';
 import { TracePanel } from '../../traces/components/TracePanel';
-import { LEVEL_STYLE } from '../logLevelStyle';
+import { LEVEL_BASE, LEVEL_TEXT, LEVEL_CHIP } from '../logLevelStyle';
 
 interface BaseProps {
   refreshKey: number;
@@ -40,7 +40,7 @@ const RANGE_BUCKET: Record<GlobalTimeRange, { hours: number; bucketMins: number 
   '24h': { hours: 24, bucketMins: 30 },
 };
 
-// Stacked-bar colors matching LEVEL_STYLE badge colors.
+// Stacked-bar colors matching LEVEL_TEXT token colors.
 // 600단계: 500단계는 흰 배경에서 warn 2.15 / info 2.77 / trace 2.56으로 WCAG 1.4.11(3:1) 미달이었다.
 const LEVEL_BAR: { key: keyof Omit<LogHistogramBucket, 'time'>; color: string; name: string }[] = [
   { key: 'error', color: '#dc2626', name: 'ERROR' },
@@ -103,7 +103,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
       aria-expanded={hasMeta ? expanded : undefined}
     >
       <div className="flex items-start gap-3">
-        <span className={`badge mt-0.5 uppercase ${LEVEL_STYLE[log.level] ?? LEVEL_STYLE.info}`}>
+        <span className={`${LEVEL_BASE} mt-1 ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
           {log.level}
         </span>
         <div className="min-w-0 flex-1">
@@ -365,7 +365,7 @@ function ServiceLogsPanel(props: Props) {
                   onClick={() => toggleIngestLevel(l)}
                   className={`px-2.5 py-1 rounded-lg text-xs uppercase transition-colors ${
                     on
-                      ? LEVEL_STYLE[l]
+                      ? LEVEL_CHIP[l]
                       : 'bg-bg-surface text-text-dim border border-ui-border opacity-60'
                   }`}
                 >

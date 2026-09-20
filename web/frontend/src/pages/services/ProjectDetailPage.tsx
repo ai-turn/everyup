@@ -1,3 +1,4 @@
+import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -165,6 +166,9 @@ export function ProjectDetailPage() {
   const [showInstall, setShowInstall] = useState(false);
   const [showInstrumentation, setShowInstrumentation] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  const headerName = agent?.name ?? services[0]?.agentName ?? '';
+  useBreadcrumb(headerName ? [{ label: headerName }] : []);
 
   // Dashboard aggregates — non-critical, each fails independent of the main load.
   const [incidents, setIncidents] = useState<AgentIncident[]>([]);

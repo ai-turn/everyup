@@ -1,12 +1,15 @@
+import { StatusLight, type StatusTone } from './StatusLight';
 
 export type CollectionStatus = 'collecting' | 'partial' | 'delayed' | 'waiting' | 'not-configured';
 
-const STYLE: Record<CollectionStatus, string> = {
-  collecting: 'border-status-healthy/20 bg-status-healthy/10 text-status-healthy',
-  partial: 'border-status-warn/20 bg-status-warn/10 text-status-warn',
-  delayed: 'border-status-warn/20 bg-status-warn/10 text-status-warn',
-  waiting: 'border-status-idle/20 bg-status-idle/10 text-status-idle',
-  'not-configured': 'border-status-idle/20 bg-status-idle/10 text-status-idle',
+// Spectrum의 semantic 변형 매핑: positive=collecting, notice(pending/syncing)=partial·delayed,
+// neutral(not started)=waiting·not-configured.
+const TONE: Record<CollectionStatus, StatusTone> = {
+  collecting: 'healthy',
+  partial: 'warn',
+  delayed: 'warn',
+  waiting: 'idle',
+  'not-configured': 'idle',
 };
 
 const LABEL: Record<CollectionStatus, string> = {
@@ -19,5 +22,5 @@ const LABEL: Record<CollectionStatus, string> = {
 
 /** Collection state is deliberately independent from the service health badge. */
 export function CollectionStatusBadge({ status }: { status: CollectionStatus }) {
-  return <span className={`badge ${STYLE[status]}`}>{LABEL[status]}</span>;
+  return <StatusLight tone={TONE[status]} label={LABEL[status]} />;
 }

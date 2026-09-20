@@ -52,7 +52,9 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 한 화면에서 4단을 전부 쓰지 않는다. 카드 하나에는 보통 **base + muted 2단**이면 충분하다.
 
-대비 열은 **라이트의 흰 카드 배경 기준**이다. 다크 `dim`은 페이지 6.22:1, 카드 5.69:1, hover 4.82:1이다. 이전 값 `#6b7280`은 카드에서 3.58:1로 AA에 미달했다. 대비는 토큰 하나가 아니라 실제 배경과의 조합으로 확인한다. `ui-active`·`ui-raised`의 텍스트는 `base` 또는 `secondary`를 사용하고, 그 위에 `dim`을 올리지 않는다. 더 옅은 등급을 추가하지 말 것.
+대비 열은 **라이트의 흰 카드 배경 기준**이다. 다크 `dim`은 페이지 6.22:1, 카드 5.69:1, hover 4.82:1이다. 이전 값 `#6b7280`은 카드에서 3.58:1로 AA에 미달했다. 대비는 토큰 하나가 아니라 실제 배경과의 조합으로 확인한다. 더 옅은 등급을 추가하지 말 것.
+
+**`dim`이 허용되는 배경은 `bg-main`·`bg-surface`·`ui-hover-soft`까지다.** 그보다 진한 채움 위에서는 AA에 미달한다 — 라이트 기준 `ui-hover` 4.34, `ui-active`/`ui-raised` 3.86. `ui-hover` 이상의 채움 위에는 `muted`(같은 자리에서 6.92)나 `secondary`를 쓴다. 다크도 `ui-active`/`ui-raised`(`#374151`)에서는 `dim` 3.39·`muted` 4.02로 둘 다 미달이라 `secondary`(6.94)가 유일한 선택지다.
 
 **읽는 산문에 `dim`을 쓰지 않는다.** `dim`은 표에 적힌 대로 **메타·placeholder 전용**이다 — `최근 3건`, 타임스탬프, 차트 축 라벨, endpoint 값처럼 훑는 자리. 문장으로 읽어야 하는 설명문·경고문은 `muted`(7.58)다. 산문은 훑는 값보다 오래 눈이 머물기 때문에 하한선인 4.76에 두면 흐리게 읽힌다.
 
@@ -78,9 +80,9 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 ### 1.5 로그 레벨 — 상태색과 별개 축
 
-`AgentServiceLogsTab`의 `LEVEL_STYLE`(배지) / `LEVEL_BAR`(히스토그램)가 SSOT.
+[`logLevelStyle.ts`](src/features/healthcheck/logLevelStyle.ts)의 `LEVEL_BASE`·`LEVEL_TEXT`(로그 행) / `LEVEL_CHIP`(필터 칩 선택 상태), `AgentServiceLogsTab`의 `LEVEL_BAR`(히스토그램)가 SSOT.
 
-| 레벨 | 색 | 바 hex | 배지 라이트 텍스트 |
+| 레벨 | 색 | 바 hex | 행 토큰 라이트 텍스트 |
 |------|-----|--------|------------------|
 | error | red | `#dc2626` | `text-red-700` |
 | warn | amber | `#d97706` | `text-amber-700` |
@@ -89,6 +91,15 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | trace | slate | `#64748b` | `text-text-muted` |
 
 info가 sky인 이유: primary(#3b76c9)와 붙어 있으면 "선택된 항목"으로 오독된다.
+
+**로그 행의 레벨은 채움 없는 mono 텍스트다** (`LEVEL_BASE` = `inline-block shrink-0 w-12 font-mono text-xs font-medium uppercase`). 2026-09-20까지는 `bg-red-100` 계열 불투명 파스텔 틴트를 깐 배지였는데, 사용자 피드백은 *"색상이 너무 AI스럽다"*였다. 두 가지가 겹쳐 있었다:
+
+1. **`-100` 틴트는 부트스트랩 alert 팔레트 그대로다.** §9.3이 다른 자리에서는 이미 금지하던 패턴인데 배지만 예외였고, 로그 표는 행마다 색 블록이 찍혀 그 예외가 가장 크게 드러나는 자리였다.
+2. **기계 토큰에 가변폭 sans를 썼다.** 같은 표의 시간·메시지 컬럼이 전부 `font-mono`인데 레벨만 Spoqa였다. `ERROR`/`WARN`/`INFO`는 글자폭이 제각각이라 컬럼이 들쭉날쭉했고, **틴트가 그 들쭉날쭉함을 덮는 역할도 하고 있었다.** mono 고정폭 + `w-12`로 컬럼 모양을 잡으면 채움이 필요 없어진다.
+
+틴트를 빼서 대비가 같이 올랐다 — 실측 라이트 error 6.42 / warn 5.03 / info 5.86 (행 hover 위에서도 4.81 이상), 다크 error 5.99 / warn 10.04 / info 7.94.
+
+**필터 칩의 선택 상태(`LEVEL_CHIP`)는 틴트를 유지한다.** 거기 채움은 장식이 아니라 토글이 켜졌음을 말한다 — 읽기 전용 토큰과 달리 선택/비선택을 구분할 수단이 필요하다. 같은 색을 쓰지만 역할이 다르므로 상수를 나눠 뒀다.
 
 바 색이 600단계인 이유: 500단계는 흰 배경에서 warn 2.15 / info 2.77 / trace 2.56으로 WCAG 1.4.11(3:1) 미달이었다. 배지 텍스트가 700단계인 이유: 600은 자기 `-100` 배경 위에서 red 3.95 / sky 3.57로 AA 미달이었다.
 
@@ -172,7 +183,7 @@ primary #3b76c9 → emerald #059669 → amber #d97706 → violet #7c3aed → red
 bg-bg-surface border border-ui-border rounded-xl
 ```
 
-내부 패딩은 `p-4`(조밀) 또는 `p-6`(여유). 카드 안 서브블록은 `bg-ui-hover-soft border border-ui-border rounded-xl`.
+내부 패딩은 `p-4`(조밀) 또는 `p-6`(여유). 카드 안 서브블록은 `bg-ui-hover-soft border border-ui-border rounded-md` — **부모와 같은 `rounded-xl`을 쓰지 않는다**(§3.2 동심 규칙).
 
 ### 3.2 radius
 
@@ -186,6 +197,15 @@ bg-bg-surface border border-ui-border rounded-xl
 
 `rounded-2xl` 이상은 쓰지 않는다.
 
+**중첩은 동심(concentric) 규칙을 따른다 — `안쪽 = 바깥쪽 − 여백`.** 갭에는 패딩과 보더가 모두 들어간다. 안팎이 같은 radius면 두 곡선이 평행하지 않아 안쪽 모서리가 각져 보인다.
+
+```
+카드 rounded-xl(12) + p-4(16)  →  서브블록은 12−16 < 0  →  rounded-md(6)
+카드 rounded-xl(12) + p-6(24)  →  같은 이유로 rounded-md(6)
+```
+
+6px은 `max(0, 바깥−여백)`이 0으로 떨어지는 구간에서 완전한 직각 대신 쓰는 최소 단계다. 실무에서 카드 서브블록은 전부 여기에 해당하므로 **서브블록 = `rounded-md` 하나로 고정**하고 매번 계산하지 않는다.
+
 ### 3.3 본문 그리드
 
 `MainLayout` 본문 래퍼: `p-4 sm:px-6 sm:py-5 space-y-5 max-w-320 mx-auto` — 최대 폭 **1280px** 중앙 정렬. `Header`와 같은 값을 쓴다. 이전의 풀블리드(max-width 없음)는 폐기했다 — 1920px 화면에서 3열 카드 한 장이 500px를 넘어가면서 내용은 그대로인데 화면만 비어 보였다. 카드 간 간격은 래퍼의 `space-y-5`가 담당하므로 개별 카드에 `mb-*`를 붙이지 않는다.
@@ -194,9 +214,38 @@ bg-bg-surface border border-ui-border rounded-xl
 
 ### 3.4 내비게이션 셸
 
-- `lg` 이상: 좌측 `Sidebar`(로고 → nav → Docker 수집기 상태 푸터). `Header`는 `lg:hidden`으로 모바일 전용
+- `lg` 이상: 좌측 `Sidebar`(로고 → nav → Docker 수집기 상태 푸터) + 상단 `AppHeader`(위치 표시). `Header`는 `lg:hidden`으로 모바일 전용
 - `lg` 미만: `Header` + `BottomNavMobile`. 하단바 겹침은 `pb-safe-bottom` 유틸리티가 처리
-- 뒤로가기 버튼은 **데스크톱에 두지 않는다** — 사이드바가 상시 내비다
+- 뒤로가기 버튼은 **데스크톱에 두지 않는다** — 사이드바가 상시 내비이고, `AppHeader`의 첫 크럼이 목록 링크다
+
+#### `AppHeader` — 현재 위치 (데스크톱 전용, 2026-09-20)
+
+```
+업타임  ›  Storefront
+Docker 환경  ›  prod-server  ›  payment-worker
+```
+
+높이 **`h-16`(64px)** — `Sidebar` 로고 블록과 같은 값이라 크롬 상단이 사이드바 경계 너머로 한 줄로 이어진다. 배경은 `bg-bg-surface`, 아래 `border-ui-border` 한 줄. 내용 폭은 본문 래퍼와 같은 `max-w-320 mx-auto px-4 sm:px-6`에 맞춘다.
+
+**첫 크럼(섹션)은 경로에서 자동으로 나온다** — [`navSections.ts`](src/components/layout/navSections.ts)의 prefix 표, 가장 긴 것이 이긴다. 목록 페이지는 아무 코드도 추가하지 않아도 된다.
+
+**상세 페이지는 그 뒤쪽만 선언한다** — [`useBreadcrumb`](src/contexts/BreadcrumbContext.tsx). 훅은 조건부로 호출할 수 없으므로 데이터 로딩 전에는 배열을 비운다:
+
+```tsx
+useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
+```
+
+**"목록으로" 버튼을 따로 두지 않는다.** 첫 크럼이 목록 링크라 목적지가 같다. 모바일은 `AppHeader`가 없으므로 기존 `← 목록으로` 버튼을 `lg:hidden`으로 유지한다.
+
+**탭은 크럼이 아니다.** 서비스 상세의 `?tab=logs` 같은 하위 뷰는 위치가 아니라 같은 위치의 다른 단면이므로 trail에 넣지 않는다.
+
+페이지 h1은 그대로 둔다 — 헤더는 "어디에 있나", 본문 h1은 "이 페이지가 무엇인가"로 역할이 갈리고, h1은 부제·CTA를 함께 이고 있다.
+
+전체 화면 높이를 계산하는 페이지는 **`lg`에서 빼는 값이 다르다** — 모바일 `Header` 3.5rem 대신 `AppHeader` 4rem이 추가로 붙어 `lg:h-[calc(100dvh-8rem)]`이다 (`ChannelFormPage`).
+
+**헤더는 본문과 같은 스크롤바 거터를 예약해야 좌변이 맞는다.** 본문 스크롤 컨테이너가 `[scrollbar-gutter:stable]`로 15px(플랫폼마다 다름)을 예약하는데 `AppHeader`는 그 바깥이다. 안쪽 `max-w-320` 박스를 `mx-auto`로 가운데 두면 그 15px이 양쪽 7.5px씩 갈려 **헤더 크럼이 본문 제목보다 7.5px 오른쪽**으로 밀린다. 그래서 헤더에도 `overflow-y-hidden [scrollbar-gutter:stable]`을 건다 — 장식이 아니라 정렬 장치다. 오버레이 스크롤바 환경(macOS 기본)에서는 양쪽 다 0을 예약하므로 자동으로 맞는다. 헤더에 드롭다운처럼 넘치는 요소를 넣으려면 이 클립을 먼저 풀고 거터를 다른 방법으로 맞춰야 한다.
+
+**풀블리드로 빠져나가는 페이지의 음수 마진은 본문 래퍼 패딩과 정확히 같아야 한다.** 래퍼는 `p-4 sm:px-6 sm:py-5`이므로 탈출값은 `-m-4 sm:-mx-6 sm:-my-5`다. `ChannelFormPage`가 쓰던 `md:-m-8`은 존재하지 않는 32px 패딩을 가정해 8px 더 당겼고, 헤더가 기준선을 주기 전까지 드러나지 않았다.
 
 ### 3.5 그림자
 
@@ -229,7 +278,8 @@ bg-bg-surface border border-ui-border rounded-xl
 | **`EmptyState`** | `icon` `title` `description?` `action?` `children?` | 빈 목록의 정본. 라벨+핸들러면 `action`, 자체 상태를 가진 트리거(연결 다이얼로그 등)는 children |
 | **`PageHeader`** | `title` `subtitle?` `children` | h1 등급 고정 |
 | **`ListToolbar`** | `search` `children?` | 목록 검색은 왼쪽, 필터는 그다음 |
-| **`ResourceCardHeader`** | `icon` `title` `subtitle?` `status?` | 대상 아이콘·이름·출처·상태의 고정 배치 |
+| **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
+| **`SummaryCard`** | `label` `value` `detail` `tone?` | KPI 카드. 라벨 좌 / 숫자 우 1행 + 설명 1행 |
 | **`DetailActionToolbar`** | `controls` `actions` | 상세의 조회 제어·변경 액션을 반응형으로 분리 |
 | **`MaterialIcon`** | `name` `size` `className` `style` | 로컬 정적 SVG |
 | **`CopyButton`** | `onCopy` `title` `className` … | 3초 완료 피드백. 클래스는 같은 파일이 export하는 `COPY_ACTION_PRIMARY`/`COPY_ACTION_SUBTLE`을 쓴다 |
@@ -271,19 +321,19 @@ bg-bg-surface border border-ui-border rounded-xl
 
 **MaterialIcon 함정** — `iconMarkup` 맵에 없는 `name`은 `help_outline`(`?`)로 폴백한다. 신규 아이콘은 반드시 [`materialIconPaths.ts`](src/components/common/materialIconPaths.ts)에 path를 추가한다.
 
-**대상 목록의 아이콘 배치** — 업타임·API·로그·메트릭·인프라·Docker 환경·Project의 대상 카드는 `ResourceCardHeader`를 쓴다. 아이콘은 이름 왼쪽 20px·`text-text-muted`로 고정하고, 첫 제목 줄과 정렬한다. 직접 연결/Docker 연결 여부로 아이콘 위치나 색을 달리하지 않는다. 출처는 이름 아래, 상태 또는 대상별 작업은 우측이다. 페이지 제목과 연결 방식별 섹션 제목에는 같은 아이콘을 반복하지 않는다. 알림 채널의 브랜드 아이콘, 상태 아이콘, 빈 상태 안내는 각 의미를 유지한다.
+**KPI 카드(`SummaryCard`)는 2행이다** — 라벨(좌)과 숫자(우)가 베이스라인을 맞춘 한 행, 그 아래 설명 한 행. 이전에는 라벨/숫자/설명이 3행으로 쌓이고 아이콘만 우측 상단에 혼자 떠 있어서, 카드 폭 ~300px 중 오른쪽 절반이 비고 내용은 좌측에 쏠렸다. 숫자를 오른쪽 끝으로 보내 그 여백을 쓴다. 숫자는 `font-mono tabular-nums`라 카드마다 우측 정렬 위치가 같다(실측 전부 카드 우변에서 17px).
 
-| 대상 | 아이콘 |
-|---|---|
-| 업타임 | `monitor_heart` |
-| API | `api` |
-| 로그 | `article` |
-| 메트릭 | `monitoring` |
-| 인프라 | `memory` |
-| Docker 환경 | `dns` |
-| Project | `folder_open` |
+**KPI 설명문의 색은 `warn`·`error`일 때만 싣는다.** `healthy`·`idle`은 `text-text-muted`다. 카드 4장이 전부 색 문장을 달고 있으면 정작 문제인 카드가 묻힌다 — §5.1 `StatusLight`와 같은 논리다. 이 규칙이 기존 오용도 함께 걷어냈다: 업타임 `정상` 카드의 `전체 5개 대상 중`(분모)과 개요 `Projects` 카드의 `대상을 운영 단위로 묶고 있습니다`(설명)가 `tone="healthy"`를 타고 초록으로 칠해지고 있었는데, 둘 다 상태가 아니다.
 
-배치 판단 참고: [PatternFly Page header](https://www.patternfly.org/component-groups/content-containers/page-header/)의 제목 우측 액션, [Carbon Data table](https://carbondesignsystem.com/components/data-table/usage/)의 검색·필터 툴바. 이 프로젝트에서는 기존 페이지 CTA 앵커를 유지하고 목록 조회 제어를 별도 줄로 통일한다. 카드 아이콘의 정확한 크기·색·배치는 이 프로젝트의 규약이다.
+**대상 목록의 카드 헤더** — 업타임·API·로그·메트릭·인프라·Docker 환경·Project의 대상 카드는 `ResourceCardHeader`를 쓴다. 출처는 이름 옆, 상태 또는 대상별 작업은 우측이다.
+
+**대상 카드에 종류 아이콘을 달지 않는다** (2026-09-20). 한 목록의 카드가 전부 같은 아이콘을 달고 있어서(업타임=`monitor_heart`, API=`api`, 로그=`article`, …) 카드끼리 구분되는 정보가 **0**이었다. 대상의 종류는 페이지 제목과 사이드바의 활성 항목이 이미 말한다. 직접 연결/Docker 연결 여부로 아이콘을 달리하는 것도 마찬가지다 — 그건 출처 라벨이 말한다.
+
+아이콘이 의미를 지니는 자리는 남는다: 사이드바 내비, 알림 채널의 브랜드 아이콘, 상태 아이콘, `EmptyState`의 안내 아이콘. 이들은 **선택지마다 아이콘이 다르거나 하나뿐이라** 반복 장식이 아니다.
+
+**카드의 좌측 기준선은 하나다.** 제목·부제·본문(endpoint·통계 그리드·푸터)이 전부 카드 패딩에 정렬한다. 아이콘을 없애면서 자동으로 성립하지만, 무엇이든 제목 줄에 거터를 도입하면 그 아래 본문과 좌변이 어긋난다는 규칙 자체는 유효하다 — `ResourceCardHeader`를 쓰는 8개 카드 전부가 그 증상이었다(2026-09-20 해소).
+
+배치 판단 참고: [PatternFly Page header](https://www.patternfly.org/component-groups/content-containers/page-header/)의 제목 우측 액션, [Carbon Data table](https://carbondesignsystem.com/components/data-table/usage/)의 검색·필터 툴바. 이 프로젝트에서는 기존 페이지 CTA 앵커를 유지하고 목록 조회 제어를 별도 줄로 통일한다.
 
 ### 4.2 `components/charts/` — 차트 스펙
 
@@ -333,35 +383,74 @@ const theme = getChartTheme();
 
 ## 5. 상태 표현 문법
 
-### 5.1 배지 — `StatusBadge`
+### 5.1 대상의 상태 — `StatusLight` (점 + 라벨)
 
 ```tsx
-<StatusBadge healthy={service.healthy} />
+<StatusBadge healthy={service.healthy} />   {/* → StatusLight */}
+<StatusLight tone="warn" label="수집 지연" />
 ```
 
 ```
-badge
-text-status-{role}  bg-status-{role}/10  border-status-{role}/20
+inline-flex items-center gap-1.5  type-caption  text-text-secondary
+└ 점: h-2 w-2 rounded-full bg-status-{tone}   (aria-hidden)
 ```
 
-`healthy` boolean 하나만 받는다. 실제로 렌더되는 상태가 정상/장애 둘뿐이라 그 이상은 지원하지 않는다 — 3단계 이상이 필요해지면 그때 union으로 넓힌다.
+**대상의 상태는 배지가 아니다.** [Adobe Spectrum](https://spectrum.adobe.com/page/status-light/)이 두 컴포넌트를 이렇게 가른다:
 
-`badge`는 `index.css`의 공통 형태다: **12px / 16px, 500, 최소 높이 24px, 좌우 6px 패딩, 4px radius**. 서비스 상태·수집 상태·알림 severity·로그 레벨 배지가 공유한다. 상태색은 `/10` 틴트 배경과 `/20` 보더를 사용하고, 별도 분류 축인 severity·로그 레벨은 자기 팔레트를 유지한다.
+| | 정의 | 형태 |
+|---|---|---|
+| **Status light** | *"describe the condition of an entity"* | 점 + 라벨, 채움 없음 |
+| **Badge** | *"color-categorized **metadata** … ideal for getting a user's attention"* | 단색 채움 |
 
-배지는 읽기 전용이다. 업타임의 일시정지·재개는 별도 `Button`으로 표시해 상태와 액션을 구분한다. 길이가 변하는 상태 문자열은 줄바꿈하지 않는다.
+서비스 정상/장애, 업타임 상태, 수집 상태는 전부 앞쪽이다. Spectrum의 semantic 변형도 그대로 맞는다 — positive=정상, negative=장애, neutral(*paused, not started*)=일시정지·미설정, notice(*pending, syncing, processing*)=수집 지연·수신 대기.
 
-Tailwind v4는 `/10` 같은 투명도 수식자를 `oklab()` `color-mix`로 컴파일한다. 대비를 직접 잴 때 `getComputedStyle().backgroundColor`를 rgb로 가정하면 값이 어긋나니, 소스 hex와 알파로 합성해 계산할 것.
+**라벨을 상태색으로 칠하지 않는다.** Spectrum의 *"Do not change the text color to match the dot."* 색을 지닌 요소를 점 하나로 줄여야 목록에서 색이 흩어지지 않는다. 카드 50장이 전부 틴트 배지를 달고 있으면 그중 붉은 하나가 묻히지만, 전부 같은 형태에 점 색만 다르면 하나만 튄다 — **장애를 눈에 띄게 만드는 건 색을 더 쓰는 게 아니라 덜 쓰는 쪽이다.**
+
+부수 효과로 대비가 올라갔다. 라벨이 상태색(라이트 healthy 4.78)에서 `text-secondary`(10.35)로 바뀌었고, 점은 표면 대비 5.48~7.58로 WCAG 1.4.11(3:1)을 크게 넘는다 — 형태를 그리던 `/10` 틴트가 1.1 수준이었던 것과 대조된다.
+
+`StatusBadge`는 `healthy` boolean 하나만 받는다. 실제로 렌더되는 상태가 정상/장애 둘뿐이라 그 이상은 지원하지 않는다 — 3단계 이상이 필요해지면 그때 union으로 넓힌다. 이름이 Badge인 건 호출부 9곳의 도메인 어휘라 남겨둔 것이고, 형태는 `StatusLight`다.
+
+상태 표시는 읽기 전용이다. 업타임의 일시정지·재개는 별도 `Button`으로 표시해 상태와 액션을 구분한다. 길이가 변하는 상태 문자열은 줄바꿈하지 않는다.
 
 ### 5.1a 수집 상태 — `CollectionStatusBadge`
 
 **서비스 상태**(정상·장애)와 **수집 상태**(수집 중·부분 수집·지연·수신 대기·미설정)는 섞지 않는다. 전자는 대상의 동작 결과이고 후자는 관측 가능성이다. 환경·프로젝트 목록과 개요의 범위/연결 정보, 연결 설정의 데이터 수신 확인에는 `CollectionStatusBadge`를 쓴다. `waiting`(수신 대기)은 **설정은 했는데 첫 데이터가 아직 없는** 상태이고 `not-configured`(미설정)는 설정 자체가 없는 상태다 — 둘을 바꿔 쓰지 않는다. 오래된 수신 기록은 `delayed`이지 `collecting`이 아니다. 장애 lifecycle이 실제로 없다면 “Incident” 같은 단계명으로 바꾸지 않는다.
 
-### 5.2 상태 점
+### 5.1b 배지 — 표 컬럼의 고정 어휘 토큰
+
+`badge`는 `index.css`의 공통 형태다: **12px / 16px, 500, 최소 높이 24px, 좌우 6px 패딩, 4px radius**.
+
+**남은 소비처는 넷뿐이고 전부 "표 컬럼에 반복되는 고정 어휘"다** — 로그 레벨(`AgentServiceLogsTab`·`LogsPage`), 알림 severity(`SeverityBadge`), span kind(`AgentServiceTracesTab`). 여기서는 박스가 제 값을 한다: 좁은 컬럼에서 `ERROR`/`WARN`/`INFO`가 같은 폭의 덩어리로 보여야 세로 스캔이 된다. 대상 상태처럼 카드마다 하나씩 흩어지는 자리와 다르다.
+
+**강조 수단은 하나만 쓴다 — 틴트 배경·보더·단색 채움 중 택1.** Radix Themes·shadcn의 배지 variant가 `soft`(틴트+텍스트) / `outline`(보더+텍스트) / `solid`(단색+흰 텍스트)로 갈리는 것과 같은 규칙이다. 셋을 겹치는 `surface` 변형은 배경이 복잡해 배지가 자기 경계를 만들어야 할 때만 쓰는데, 우리 배지는 아래 제약대로 평면 표면 위에만 놓이므로 해당 없다.
+
+`badge`에 보더 색을 주지 않는다. `index.css`의 `border: 1px solid transparent`는 **박스 크기 유지용**이라 지우지 않지만, 색을 입히면 대비 1.33~1.64짜리 "스티커 테두리"가 생겨 틴트와 이중으로 형태를 그린다. 이전 `border-status-{role}/20`은 2026-09-20에 제거했다.
+
+**배지 모양의 것을 손으로 만들지 않는다.** `rounded border bg-*/10 text-*` 조합을 직접 쓰면 `badge`의 높이·패딩·radius와 어긋나고, 위의 1겹 규칙도 같이 새어나간다. Tailwind v4에서 `border`만 쓰면 색이 `currentColor`라 보더가 텍스트 색 그대로 진하게 나오는 것도 함정이다.
+
+Tailwind v4는 `/10` 같은 투명도 수식자를 `oklab()` `color-mix`로 컴파일한다. 대비를 직접 잴 때 `getComputedStyle().backgroundColor`를 rgb로 가정하면 값이 어긋나니, 소스 hex와 알파로 합성해 계산할 것.
+
+**`/10` 틴트는 알파라서 뒤에 오는 배경과 합성된다 — 배지가 놓이는 배경을 제한한다.** 남은 배지도 전부 알파 틴트다(`bg-emerald-500/10`, `bg-slate-500/10`, …). 대비가 검증된 배경은 `bg-surface`·`bg-main`·`ui-hover-soft` 셋뿐이다.
+
+아래는 status 팔레트로 잰 값이다. 배지가 status 토큰을 쓰던 시절의 측정이지만, 감쇠 폭은 알파가 같으면 팔레트와 무관하므로 **남은 배지에도 그대로 적용된다.**
+
+| 배지 텍스트 | surface | hover-soft | ui-hover | ui-active |
+|---|---|---|---|---|
+| light healthy | 4.78 | 4.57 | 4.35 ❌ | 3.92 ❌ |
+| light error | 5.45 | 5.24 | 4.99 | 4.48 ❌ |
+| dark error | 5.43 | 4.62 | — | 3.31 ❌ |
+| dark idle | 5.72 | 4.83 | — | 3.45 ❌ |
+
+`hover-soft`의 여유가 0.07밖에 없다. **§3.6의 "클릭 가능한 행·카드의 hover 채움은 `ui-hover-soft`" 규칙이 이 표를 떠받치고 있다** — 행 hover를 `ui-hover`나 `ui-active`로 올리면 그 행의 배지가 조용히 AA 아래로 떨어진다. 로그 표·트레이스 표가 정확히 그 구조이므로, 행 채움을 바꾸려면 여기부터 다시 잴 것. 더 진한 배경이 필요하면 틴트 없이 §5.1의 `StatusLight`를 쓴다 — 점은 색을 1겹만 쓰므로 배경에 흔들리지 않는다.
+
+### 5.2 맨 상태 점 (라벨 없이)
+
+**라벨이 같이 붙는 자리는 §5.1 `StatusLight`를 쓴다.** 이 절은 라벨 없이 점만 놓는 자리 — 배너 앞머리, 타임라인 행, 셋업 다이얼로그의 단계 표시처럼 인접 문장이 이미 상태를 말하고 있는 경우다.
 
 ```
 h-2.5 w-2.5 rounded-full bg-status-{role}
 ```
-목록 안의 조밀한 자리는 `h-1.5 w-1.5`. 진행 중인 장애는 `animate-pulse`를 더한다(`prefers-reduced-motion`에서 전역 규칙이 정지시킨다).
+목록 안의 조밀한 자리는 `h-1.5 w-1.5`. `StatusLight`의 점은 `h-2 w-2`다. 진행 중인 장애는 `animate-pulse`를 더한다(`prefers-reduced-motion`에서 전역 규칙이 정지시킨다) — `StatusLight`는 `pulse` prop으로 같은 동작을 낸다.
 
 **점이 유일한 정보원이면 이름을 준다** — 점 옆에 같은 뜻의 텍스트(배지·라벨)가 없으면 색만으로 상태를 전달하는 것이라 WCAG 1.4.1 위반이다:
 ```tsx
@@ -374,6 +463,12 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 **데이터와 액션에만 색을 싣는다. 컨테이너는 중립으로 둔다.**
 배지 · 아이콘 · 텍스트 · 게이지 채움 · 차트 시리즈 = 색 OK.
 카드 배경 · 카드 보더 · 섹션 헤더 = 항상 중립.
+
+**칩은 상태 전용이다.** 분류·출처처럼 "정상/장애를 말하지 않는" 라벨은 배경 없는 맨 텍스트(`type-caption text-text-muted`)로 둔다 — `ConnectionSourceBadge`. 한 카드에 칩이 둘이면 어느 쪽이 상태인지 읽히지 않고, 대상 이름보다 라벨이 먼저 눈에 들어온다.
+
+**중립 칩으로는 부족하다 — 형태로 갈라야 한다.** 출처를 `bg-ui-hover text-text-muted` 칩으로 만들어 봤더니 `일시정지`(status-idle) 배지와 구분이 되지 않았다. `status-idle` 라이트와 `text-muted`가 **둘 다 slate-600(`#475569`)로 값이 같고**, 틴트 배경(`status-idle/10`)과 `ui-hover`도 브라우저 실측에서 거의 겹쳤다. 회색 상태가 존재하는 한 중립 색으로는 상태와 분류를 못 가른다.
+
+**분류 축에 `primary`를 쓰지 않는다.** primary는 선택 상태·주 액션·링크의 색이라 라벨에 쓰면 "선택됨"으로 오독된다 — §1.5에서 로그 `info`를 sky로 밀어낸 것과 같은 이유다. `ConnectionSourceBadge`의 `direct`가 primary 틴트였는데 `docker`는 회색이어서, **같은 축이 두 색으로 갈라져 있었다**(2026-09-20 둘 다 중립으로 통일).
 
 ---
 
@@ -467,8 +562,11 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 9. **recharts `<Legend>` 금지** → `ChartStatsLegend` / `ChartLegend`
 10. **차트 시리즈 색 하드코딩 금지** → `SERIES_HEX`
 11. **텍스트 위계에 5단째(더 옅은 등급) 추가 금지** — `dim`이 AA 하한선이다 (§1.3)
+12. **대상의 상태를 배지로 표시 금지** (§5.1) — 정상/장애/수집 상태는 `StatusLight`(점 + 라벨). 배지는 표 컬럼의 고정 어휘 토큰 전용이다. 배지 안에서도 보더·배경·텍스트 색 3중 적용 금지 — 강조 수단은 택1. *"초등학생 디자인 같다."* `/20` 보더는 대비 1.33~1.64라 보이지도 않으면서 스티커 테두리 느낌만 남긴다
+13. **분류 축을 칩으로 만들지 않기** (§5.3) — 출처·종류 라벨은 배경 없는 `type-caption text-text-muted`. 칩은 상태 전용이다. 중립 칩도 안 되는 이유는 §5.3 참조(`status-idle`과 `text-muted`가 같은 색)
+14. **카드 안에 좌측 기준선 2개 금지** (§4.1) — 부제·본문은 아이콘 거터가 아니라 카드 패딩에 정렬한다
 
-1~3은 같은 취향의 계열이다: **색은 데이터와 액션에만, 컨테이너는 중립.**
+1~3, 12~13은 같은 취향의 계열이다: **색은 데이터와 액션에만, 컨테이너는 중립.**
 
 ---
 
@@ -528,6 +626,95 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 ~~읽기 전용 배지가 `text-2xs`(상태칩·테이블)와 `text-xs`(로그 레벨·span kind) 두 계열이다.~~ **11px 등급을 폐지하면서 배지가 `text-xs` 한 계열로 통일됐다.** 아래는 당시 판단 기록이다. 크기 차이가 밀도(테이블 셀 vs 목록 스캔) 때문이라 강제로 맞추면 로그 레벨 배지가 작아지는 손해만 확실하다.
 
 > 이전에 "같은 severity 배지가 폼과 테이블에서 등급이 다르다"고 적었던 것은 **오진이었다.** 폼 쪽은 배지가 아니라 알림이 어떻게 보일지 보여주는 미리보기 카드(틴트 배경 + 점 + 보더)로, 목적과 형태가 다른 물건이다. 실제 중복이던 `SEVERITY_BADGE` 상수는 `SeverityBadge` 컴포넌트로 통합했다.
+
+### D. 카드 서브블록 radius 미전환 — 27건 (2026-09-20)
+
+§3.2에 동심 규칙을 세우면서 §3.1의 서브블록 정본이 `rounded-xl` → `rounded-md`로 바뀌었다. 기존 호출부 **27건**(`bg-ui-hover-soft` + `rounded-xl` 조합)은 전환하지 않았다 — 각 사이트가 실제로 카드 **안**에 중첩된 것인지, 아니면 그 자체가 최상위 패널인지 열어 봐야 갈리기 때문이다. 최상위 패널은 `rounded-xl`이 맞다.
+
+밀집 파일: `AlertRuleForm`(5) · `InfrastructureCollectorSetupResult`(3) · `ChannelForm`(3) · `ApiKeyModal`(2) · `AddServiceModal`(2) · `InstrumentationOverrideModal`(2) · `DirectTelemetrySetupResult`(2). 해당 파일을 다른 일로 열 때 함께 판단한다.
+
+### E. 사이드바 활성 항목과 breadcrumb 섹션이 어긋난다 (2026-09-20)
+
+서비스 상세(`/services/:agentId/:key`)에서 사이드바는 **활성 탭**을 따라간다(`?tab=logs`면 `로그` 하이라이트). `AppHeader`는 **담김 관계**를 따라 `Docker 환경 › 에이전트 › 서비스`를 보여준다. 그래서 탭을 바꾸면 사이드바 하이라이트만 움직이고 breadcrumb은 그대로다.
+
+둘 다 각자의 논리는 맞다 — 탭은 "무엇을 보고 있나"이고 breadcrumb은 "어디에 있나"다. 다만 화면에 동시에 보이면 어긋나 보인다. 어느 쪽에 맞출지는 내비게이션 의미론 결정이라 별도로 판단한다.
+
+### 경로 → 라벨 목록이 세 벌 (2026-09-20)
+
+`Sidebar`의 `NavItem`, `CommandPalette`의 `page-*` 항목, 새 `navSections.ts`가 각자 경로→라벨을 갖고 있고 이미 어긋나 있다(`환경설정` vs `환경 설정`, CommandPalette에는 `Docker 환경`이 없음). 하나로 합치려면 사이드바의 그룹 헤더·알림 badge·탭별 active 판정을 함께 옮겨야 해서 단순 치환이 안 된다. `navSections.ts`는 사이드바 표기를 정본으로 삼았다.
+
+### 해결됨 (2026-09-20) — KPI 카드 2행화 · 개요 KPI 행 제거
+
+사용자 피드백 1: *"수직으로 3개의 행이 있고 좌측에 쏠린 게 가시성이 안 좋다."* → 숫자 우측 2행으로 바꿈.
+사용자 피드백 2: *"좀 아쉬운데 다시 한번 생각해줘봐."* → **레이아웃이 문제가 아니었다.**
+
+`SummaryCard` 자체 변경 (업타임 페이지 3장에 유효):
+
+- ~~라벨·숫자·설명 3행 + 아이콘만 우측 상단~~ → 라벨(좌)·숫자(우) 한 행 + 설명 한 행. 카드 폭 ~300px 중 비어 있던 오른쪽을 숫자가 쓴다
+- ~~톤이 아이콘과 설명 양쪽에 중복~~ → 아이콘 제거. 종류는 라벨이 이미 말한다
+- ~~`healthy` 설명문까지 초록~~ → `warn`/`error`만 색 (§4.1)
+
+**개요 페이지의 KPI 행 4장은 통째로 제거했다** — 바로 아래 두 카드와 같은 말을 하고 있었다:
+
+| KPI 카드 | 이미 말하고 있던 곳 |
+|---|---|
+| `Docker 수집기 N` | 모니터링 범위 → `Docker 환경 N` (같은 `agents.length`, 링크까지) |
+| `서비스 N` | 모니터링 범위 4줄의 합 (분해된 쪽이 더 유용) |
+| `…개 연결 확인 필요` · `…개 장애 신호` · `수집 확인 필요 N` | 현재 확인 필요 → `attention` 배열이 unhealthy·stale·awaiting을 **전부** 담고, 대상 이름과 링크까지 준다 |
+| `Projects N` | 모니터링 범위 하단 `Project로 대상 정리하기 →` |
+
+첫 화면 전체를 써서 다음 화면이 더 잘 하는 말을 반복하고 있었고, 4장 중 3장은 "괜찮다"만 말했다. 이제 개요는 **문제(현재 확인 필요) → 범위(모니터링 범위)** 두 카드로 끝난다. 동반 제거: `projects` state와 `api.getProjects()` 호출(KPI 카드가 유일한 소비처였다), `reportingAgents`·`connectionIssues` 파생값.
+
+**업타임 페이지의 3장은 유지한다.** 한 모집단(전체 대상)을 정상/장애/일시정지로 **쪼갠** 것이고, 바로 아래 목록에는 그 분해가 없다. 개요 KPI처럼 아래 내용을 되풀이하지 않는다 — KPI 행을 둘지 말지는 **"아래가 이미 더 잘 말하고 있는가"**로 가른다.
+
+### 해결됨 (2026-09-20) — 로그 레벨 배지 → mono 텍스트 토큰
+
+사용자 피드백: *"레벨 컬럼에 있는 INFO, WARN, ERROR 뱃지 색상이 너무 AI스럽다."*
+
+- ~~`bg-red-100`/`amber-100`/`sky-100` 불투명 파스텔 틴트 배지~~ → 채움 없는 색 글자 (§1.5). 부트스트랩 alert 팔레트라 가장 흔해 보이는 조합이었다
+- ~~기계 토큰(`ERROR`/`WARN`)에 가변폭 Spoqa~~ → `font-mono` + `w-12` 고정폭. 같은 표의 시간·메시지가 전부 mono인데 레벨만 sans였고, 그래서 생긴 들쭉날쭉함을 틴트가 덮고 있었다
+- 대비 동반 상승: 라이트 error 5.30→6.42, warn 4.51→5.03, info 5.17→5.86
+- `LEVEL_STYLE` 하나를 `LEVEL_BASE`+`LEVEL_TEXT`(행)와 `LEVEL_CHIP`(필터 선택 상태)으로 분리 — 필터 칩의 채움은 토글 상태 표시라 남겨야 한다
+- 스택 로그 행은 토큰(16px 행간)과 메시지(24px 행간)의 첫 줄 중심을 `mt-1`로 맞춤(실측 offset 0)
+
+### 해결됨 (2026-09-20) — 대상 카드 아이콘 제거 · 위치 표시 헤더
+
+- ~~대상 카드마다 같은 종류 아이콘이 반복~~ → `ResourceCardHeader`에서 `icon` prop 제거, 호출부 9곳 정리 (§4.1). 한 목록의 카드가 전부 같은 아이콘이라 정보량이 0이었다
+- **`AppHeader` 신설** (§3.4) — `navSections.ts`(경로→섹션) + `BreadcrumbContext`(상세가 leaf 선언). 목록 페이지는 코드 추가 없이 동작
+- 손으로 만든 breadcrumb 3곳을 헤더로 이관: `AgentHealthCheckDetailView`(`agentName / name` 인라인), `ProjectOverviewPage`(`Projects /` 인라인), `ChannelFormPage`(자체 bordered 헤더)
+- `UptimeMonitorDetailPage`의 데스크톱 `← 업타임` 버튼을 `lg:hidden`으로 (§3.4 위반 해소). `ProjectDetailPage`는 이미 `lg:hidden`이었다
+- `ChannelFormPage`의 `lg:h-[calc(100dvh-4rem)]` → `8rem` (헤더가 64px 더 먹는다)
+
+### 해결됨 (2026-09-20) — 상태 표현을 배지에서 status light로
+
+사용자 피드백 2차: *"뱃지는 이제 백그라운드랑 폰트 색상을 넣은 것 같은데 이게 최선이야?"*
+
+보더를 뺀 soft 배지는 그 자체로는 표준(shadcn `secondary`, Radix `soft`)이지만, **쓰는 자리가 틀렸다.** Spectrum 기준으로 대상 상태는 badge가 아니라 status light다(§5.1).
+
+- ~~서비스·업타임·수집 상태가 틴트 배지~~ → `StatusLight`(점 + 라벨) 신설, 세 도메인 컴포넌트가 이를 감싼다. 라벨은 상태색이 아니라 `text-secondary`
+- 라벨 대비 **4.78 → 10.35**, 점은 표면 대비 5.48~7.58로 1.4.11 여유 확보(틴트가 형태를 그리던 1.1 대비)
+- `badge` 유틸은 표 컬럼 토큰 4곳(로그 레벨 ×2, severity, span kind)만 남았다 — 좁은 컬럼의 세로 스캔에는 박스가 제 값을 한다
+- §5.2를 "라벨 없는 맨 점" 전용으로 좁혀 `StatusLight`와의 역할 중복 해소
+
+### 해결됨 (2026-09-20) — 배지 3중 장식 · 카드 정렬
+
+사용자 피드백: *"보더 색상, 백그라운드 색상, 폰트 색상까지 다 줘버리는 게 어딨냐. 각 요소들 정렬도 안 맞아."*
+
+- ~~status 배지가 `/10` 틴트 + `/20` 보더 + 텍스트 3중~~ → 틴트 + 텍스트만. `StatusBadge`·`UptimeMonitorStatusBadge`·`CollectionStatusBadge`. `badge` 유틸의 투명 보더는 박스 크기 유지용이라 남김
+- ~~`ConnectionSourceBadge`가 같은 축인데 `direct`=primary 틴트 / `docker`=회색으로 갈림~~ → 칩을 버리고 맨 텍스트(`type-caption text-text-muted`). 중간에 중립 칩으로 통일해 봤으나 `일시정지` 배지와 브라우저 실측상 구분이 안 돼(§5.3) 형태로 갈랐다. 분기가 사라진 className 삼항도 제거
+- ~~`ResourceCardHeader`가 부제를 아이콘 거터 안에 둬서 카드 본문과 좌변이 30px 어긋남~~ → 부제를 거터 밖으로. 8개 카드(`UptimeTargetCard`·`ApiPage`·`MetricsPage`·`LogsPage`·`InfrastructurePage`·`ProjectsPage`·`ServiceGridPage`·`PendingServiceCard`) 동시 해소
+- ~~배지 모양을 손으로 만든 7곳이 같은 3중 장식~~ → 보더 제거. `Sidebar`(알림 카운트)·`PendingServiceCard`·`AgentIdentity`·`Direct{Api,Infrastructure,Logs,Metrics}DetailPage`
+
+**손으로 만든 배지 7곳은 여전히 `badge` 유틸을 쓰지 않는다.** 높이·패딩·radius가 제각각이라 통합하면 시각 변화가 따르고, 그중 4곳은 안에 상태 점을 품고 있어 `badge`로 그대로 치환되지 않는다. §5.1에 금지 규칙만 세워 두고 컴포넌트화는 보류한다.
+
+### 해결됨 (2026-09-20) — 웹 베스트프랙티스 대조
+
+- ~~모달·다이얼로그 8곳이 `shadow-2xl`(§3.5 위반)~~ → `shadow-lg`. `ConfirmDialog`·`ApiKeyModal`·`AddServiceModal`·`InstrumentationOverrideModal`·`UptimeMonitorDialog`·`InfrastructureCollectorKeyDialog`·`InfrastructureCollectorSetupDialog`·`RotatedTelemetryKeyDialog`
+- ~~`AddServiceModal`의 미완료 스텝 번호가 `bg-ui-hover text-text-dim`으로 라이트 4.34(AA 미달)~~ → `text-text-muted`(6.92)
+- ~~`AlertsMobileView`의 탭 카운트 칩·비활성 칩이 `bg-ui-active` 위 `text-text-muted`로 다크 4.02(AA 미달)~~ → `text-text-secondary`(6.94)
+- §1.3에 `dim` 허용 배경 상한 명시, §3.2에 동심 radius 규칙 신설, §5.1에 배지 틴트의 배경 의존성 표 추가
+
+**배지 알파 틴트는 실제 위반 0건이었다.** 모든 배지 보유 행·카드가 §3.6에 따라 `hover:bg-ui-hover-soft`를 쓰고 있어 최저값이 4.57(라이트 healthy)로 AA를 넘는다. 다만 여유가 0.07이라 §3.6 규칙이 무너지면 즉시 깨지므로, 암묵적 의존을 §5.1에 명문화했다.
 
 ### 해결됨 (2026-08-05) — 기술 감사 후속
 

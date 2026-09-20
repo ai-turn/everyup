@@ -135,7 +135,7 @@ export function AlertsMobileView({
             <MaterialIcon size={20} name={tab.icon} />
             {tab.label}
             {tab.count !== undefined && (
-              <span className="text-xs bg-ui-active px-1.5 py-0.5 rounded-full">
+              <span className="text-xs bg-ui-active text-text-secondary px-1.5 py-0.5 rounded-full">
                 {tab.count}
               </span>
             )}
@@ -180,7 +180,7 @@ export function AlertsMobileView({
                       <div className="flex items-center gap-2">
                         <p className="text-sm text-text-base truncate">{channel.name}</p>
                         {!channel.isEnabled && (
-                          <span className="px-1.5 py-0.5 text-xs uppercase tracking-wider bg-ui-active text-text-muted rounded-full shrink-0">
+                          <span className="px-1.5 py-0.5 text-xs uppercase tracking-wider bg-ui-active text-text-secondary rounded-full shrink-0">
                             비활성
                           </span>
                         )}

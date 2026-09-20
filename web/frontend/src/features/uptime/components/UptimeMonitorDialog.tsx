@@ -74,7 +74,7 @@ export function UptimeMonitorDialog({
       aria-labelledby="uptime-monitor-dialog-title"
       onCancel={(event) => { event.preventDefault(); if (!saving) onClose(); }}
       onClick={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}
-      className={`m-auto w-full max-w-lg overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-2xl ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto w-full max-w-lg overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <form onSubmit={submit}>
         <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">

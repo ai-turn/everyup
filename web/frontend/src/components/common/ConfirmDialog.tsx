@@ -72,7 +72,7 @@ export function ConfirmDialog({
         // ::backdrop clicks are delivered with the dialog itself as target.
         if (e.target === e.currentTarget && !isProcessing) onClose();
       }}
-      className={`m-auto bg-bg-surface border border-ui-border rounded-xl w-full max-w-md shadow-2xl overflow-hidden animate-zoom-in ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto bg-bg-surface border border-ui-border rounded-xl w-full max-w-md shadow-lg overflow-hidden animate-zoom-in ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="px-6 py-4 border-b border-ui-border flex items-center gap-3">
         <div className={`flex items-center justify-center w-10 h-10 rounded-full ${styles.iconBg}`}>

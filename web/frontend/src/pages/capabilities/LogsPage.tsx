@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, ConnectionSourceBadge, EmptyState, ListToolbar, MaterialIcon, PageHeader, Pagination, ResourceCardHeader, SearchInput, Select } from '../../components/common';
-import { LEVEL_STYLE } from '../../features/healthcheck/logLevelStyle';
+import { LEVEL_BASE, LEVEL_TEXT } from '../../features/healthcheck/logLevelStyle';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { api, type AgentServiceFlat, type LogEntry, type ObservedService } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
@@ -154,7 +154,6 @@ export function LogsPage() {
             {directServices.map(service => (
               <Link key={service.id} to={`/logs/${service.id}`} className="card-interactive rounded-xl border border-ui-border bg-bg-surface p-4">
                 <ResourceCardHeader
-                  icon="article"
                   title={<h3 className="truncate type-card-title text-text-base">{service.name}</h3>}
                   badge={<ConnectionSourceBadge source="direct" />}
                   status={
@@ -180,7 +179,6 @@ export function LogsPage() {
                 className="card-interactive rounded-xl border border-ui-border bg-bg-surface p-4"
               >
                 <ResourceCardHeader
-                  icon="article"
                   title={<h3 className="truncate type-card-title text-text-base">{service.name}</h3>}
                   badge={<ConnectionSourceBadge source="docker" />}
                   subtitle={service.agentName}
@@ -232,7 +230,7 @@ export function LogsPage() {
                     return (
                       <tr key={log.id} className="hover:bg-ui-hover-soft">
                         <td className="whitespace-nowrap px-4 py-3 align-top font-mono text-xs text-text-dim">{formatTime(log.createdAt)}</td>
-                        <td className="px-4 py-3 align-top"><span className={`badge ${LEVEL_STYLE[log.level] ?? LEVEL_STYLE.info}`}>{log.level.toUpperCase()}</span></td>
+                        <td className="px-4 py-3 align-top"><span className={`${LEVEL_BASE} ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>{log.level.toUpperCase()}</span></td>
                         <td className="whitespace-nowrap px-4 py-3 align-top">
                           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
                             <MaterialIcon size={16}

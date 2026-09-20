@@ -47,7 +47,7 @@ export function InfrastructureCollectorSetupDialog({
       aria-labelledby="infrastructure-collector-dialog-title"
       onCancel={event => { event.preventDefault(); if (!submitting) onClose(); }}
       onClick={event => { if (event.target === event.currentTarget && !submitting) onClose(); }}
-      className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-2xl ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
         <div>

@@ -48,7 +48,6 @@ function ProjectCard({ agentId, agent, agentName, services, overview }: ProjectC
     >
       {/* Header: collection state + environment name */}
       <ResourceCardHeader
-        icon="dns"
         title={<h2 className="type-card-title text-text-base truncate">{agentName}</h2>}
         status={<CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />}
       />
