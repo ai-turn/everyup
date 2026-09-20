@@ -197,7 +197,7 @@ export const agentsApi = {
     request<AgentEvent[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/events?limit=${limit}`),
   getAgentServiceLogs: (
     agentId: string, key: string,
-    params?: { level?: string; search?: string; attrKey?: string; attrValue?: string; from?: string; to?: string; limit?: number; offset?: number },
+    params?: { level?: string; search?: string; attrKey?: string; attrValue?: string; traceId?: string; from?: string; to?: string; limit?: number; offset?: number },
   ) => {
     const p = new URLSearchParams();
     p.set('limit', String(params?.limit ?? 100));
@@ -205,6 +205,7 @@ export const agentsApi = {
     if (params?.level) p.set('level', params.level);
     if (params?.search) p.set('search', params.search);
     if (params?.attrKey) { p.set('attrKey', params.attrKey); p.set('attrValue', params.attrValue ?? ''); }
+    if (params?.traceId) p.set('traceId', params.traceId);
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     return request<{ data: LogEntry[]; total: number }>(`/agents/${agentId}/services/${encodeURIComponent(key)}/logs?${p}`);
@@ -225,13 +226,14 @@ export const agentsApi = {
   },
   getAgentServiceRequests: (
     agentId: string, key: string,
-    params?: { search?: string; errorsOnly?: boolean; from?: string; to?: string; limit?: number; offset?: number },
+    params?: { search?: string; errorsOnly?: boolean; traceId?: string; from?: string; to?: string; limit?: number; offset?: number },
   ) => {
     const p = new URLSearchParams();
     p.set('limit', String(params?.limit ?? 100));
     if (params?.offset) p.set('offset', String(params.offset));
     if (params?.search) p.set('search', params.search);
     if (params?.errorsOnly) p.set('errorsOnly', 'true');
+    if (params?.traceId) p.set('traceId', params.traceId);
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     return request<{ data: ApiRequest[]; total: number }>(`/agents/${agentId}/services/${encodeURIComponent(key)}/requests?${p}`);

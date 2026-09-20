@@ -10,6 +10,7 @@ import { FormSidePanel } from './FormSidePanel';
 import { SeverityBadge } from './SeverityBadge';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
 
 const SEVERITY_ORDER: Record<string, number> = { critical: 0, warning: 1, info: 2 };
 
@@ -141,9 +142,10 @@ type SortDir = 'asc' | 'desc';
 
 interface AlertRulesTabProps {
   addTrigger?: number;
+  target?: AlertTarget | null;
 }
 
-export function AlertRulesTab({ addTrigger }: AlertRulesTabProps) {
+export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [channels, setChannels] = useState<NotificationChannel[]>([]);
   const [agentServices, setAgentServices] = useState<AgentServiceFlat[]>([]);
@@ -256,6 +258,7 @@ export function AlertRulesTab({ addTrigger }: AlertRulesTabProps) {
 
   const filteredRules = useMemo(() => {
     const filtered = rules.filter(r => {
+      if (target && !matchesAlertTarget(r, target)) return false;
       if (categoryFilter !== 'all' && ruleCategory(r) !== categoryFilter) return false;
       if (severityFilter !== 'all' && r.severity !== severityFilter) return false;
       if (enabledFilter !== 'all' && (enabledFilter === 'on' ? !r.isEnabled : r.isEnabled)) return false;
@@ -275,7 +278,22 @@ export function AlertRulesTab({ addTrigger }: AlertRulesTabProps) {
       else if (sortKey === 'category') v = ruleCategory(a).localeCompare(ruleCategory(b));
       return sortDir === 'asc' ? v : -v;
     });
-  }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, agentServices, agents, directServices, infrastructureResources]);
+  }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, agentServices, agents, directServices, infrastructureResources, target]);
+
+  const selectedTargetLabel = target?.kind === 'direct'
+    ? directServices.find((service) => service.id === target.serviceId)?.name ?? target.serviceId
+    : target
+      ? (() => {
+          const service = agentServices.find((item) => item.agentId === target.agentId && item.key === target.serviceKey);
+          return service ? `${service.agentName} / ${service.name}` : target.serviceKey;
+        })()
+      : null;
+  const targetNotice = selectedTargetLabel && (
+    <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary" role="status">
+      <MaterialIcon size={20} name="filter_alt" />
+      <span className="truncate">대상: {selectedTargetLabel}</span>
+    </div>
+  );
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
@@ -352,6 +370,7 @@ export function AlertRulesTab({ addTrigger }: AlertRulesTabProps) {
     return (
       <>
         {formPanel}
+        {targetNotice}
         <div className="bg-bg-surface border border-ui-border rounded-xl">
           <EmptyState
             icon="rule"
@@ -366,6 +385,7 @@ export function AlertRulesTab({ addTrigger }: AlertRulesTabProps) {
   return (
     <>
       {formPanel}
+      {targetNotice}
       {/* Filter bar — category pills + severity/enabled + search */}
       <ListToolbar search={
         <div className="relative">

@@ -19,6 +19,7 @@ export interface ServiceTabsProps {
   refreshKey: number;
   /** Shared chart time range picked in the page header. */
   range: GlobalTimeRange;
+  traceId?: string;
   /** Hide the service name + status badge in the health tab (e.g. when a sidebar already shows them). */
   showServiceName?: boolean;
 }
@@ -79,10 +80,10 @@ function UptimeContent({ service, agentId, serviceKey, refreshKey, range, showSe
   );
 }
 
-function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, showServiceName }: { tab: DetailTab } & ServiceTabsProps) {
+function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, traceId, showServiceName }: { tab: DetailTab } & ServiceTabsProps) {
   if (tab === 'overview') return <OverviewContent service={service} showServiceName={showServiceName} />;
-  if (tab === 'logs')     return <AgentServiceLogsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
-  if (tab === 'requests') return <AgentServiceRequestsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} runtime={service.runtime} />;
+  if (tab === 'logs')     return <AgentServiceLogsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} traceId={traceId} />;
+  if (tab === 'requests') return <AgentServiceRequestsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} traceId={traceId} runtime={service.runtime} />;
   if (tab === 'traces')   return <AgentServiceTracesTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
   if (tab === 'metrics')  return <AgentServiceMetricsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
   if (tab === 'infra')    return <AgentServiceInfraTab agentId={agentId} refreshKey={refreshKey} range={range} />;

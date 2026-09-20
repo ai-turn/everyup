@@ -259,7 +259,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
         )}
       </div>
 
-      {activeTraceId && <TracePanel traceId={activeTraceId} onClose={() => setActiveTraceId(null)} />}
+      {activeTraceId && <TracePanel traceId={activeTraceId} target={source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }} onClose={() => setActiveTraceId(null)} />}
 
       <div className="rounded-xl border border-ui-border bg-bg-surface p-6">
         <div className="mb-2 flex items-center gap-2">

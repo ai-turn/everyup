@@ -6,6 +6,7 @@ import { getChannelStyle } from '../utils/channelMeta';
 import { ChannelHealthMeta } from './ChannelHealthMeta';
 import type { NotificationChannel, NotificationChannelHealth, AlertRule, NotificationHistory, NotificationStats } from '../../../services/api';
 import { severityLabel } from '../utils/severityLabel';
+import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
 
 type MobileTab = 'channels' | 'rules' | 'history';
 
@@ -13,6 +14,7 @@ interface AlertsMobileViewProps {
   channels: NotificationChannel[];
   channelHealth: Record<string, NotificationChannelHealth>;
   rules: AlertRule[];
+  alertTarget?: AlertTarget | null;
   history: NotificationHistory[];
   stats: NotificationStats | null;
   isLoading: boolean;
@@ -48,6 +50,7 @@ export function AlertsMobileView({
   channels,
   channelHealth,
   rules,
+  alertTarget,
   history,
   stats,
   isLoading,
@@ -67,11 +70,14 @@ export function AlertsMobileView({
   onRetry,
 }: AlertsMobileViewProps) {
 
-
+  const visibleRules = alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules;
+  const targetDescription = alertTarget?.kind === 'direct'
+    ? `직접 서비스 ${alertTarget.serviceId}`
+    : alertTarget ? `Docker 서비스 ${alertTarget.serviceKey}` : undefined;
 
   const tabs: { key: MobileTab; label: string; icon: string; count?: number }[] = [
     { key: 'channels', label: '알림 채널', icon: 'notifications', count: channels.length },
-    { key: 'rules', label: '알림 규칙', icon: 'rule', count: rules.length },
+    { key: 'rules', label: '알림 규칙', icon: 'rule', count: visibleRules.length },
     { key: 'history', label: '알림 로그', icon: 'history' },
   ];
 
@@ -216,12 +222,13 @@ export function AlertsMobileView({
       {/* Rules Tab */}
       {activeTab === 'rules' && (
         <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-2">
+          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary" role="status"><MaterialIcon size={20} name="filter_alt" /><span className="truncate">대상: {targetDescription}</span></div>}
           {errors.rules && <InlineError message={errors.rules} onRetry={onRetry.rules} />}
           {rulesLoading ? (
             [1, 2].map(i => (
               <div key={i} className="h-16 rounded-xl bg-ui-hover animate-pulse" />
             ))
-          ) : rules.length === 0 ? (
+          ) : visibleRules.length === 0 ? (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="rule" className="text-text-dim" />
               <p className="text-sm text-text-dim mt-2">
@@ -229,7 +236,7 @@ export function AlertsMobileView({
               </p>
             </div>
           ) : (
-            rules.map(rule => {
+            visibleRules.map(rule => {
               const sev = severityColors[rule.severity] ?? severityColors.info;
               return (
                 <div

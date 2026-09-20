@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { CopyButton, MaterialIcon } from '../../../components/common';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
 import { useOverlay, SCRIM_PANEL } from '../../../hooks/useOverlay';
@@ -8,13 +8,22 @@ import { api, TraceDetail, TraceSpan, LogEntry, ApiRequest } from '../../../serv
 
 interface TracePanelProps {
   traceId: string;
+  target: TraceTarget;
   onClose: () => void;
 }
 
-// Returns the log-service detail path for a given serviceId. Cross-jump only
-// renders when the panel is opened from within a service context.
-function logServicePath(serviceId: string, tab: 'logs' | 'requests', traceId: string): string {
-  return `/logs/${serviceId}?tab=${tab}&traceId=${encodeURIComponent(traceId)}`;
+export type TraceTarget =
+  | { kind: 'agent'; agentId: string; serviceKey: string }
+  | { kind: 'direct'; observedServiceId: string };
+
+function traceTargetPath(target: TraceTarget, tab: 'logs' | 'requests', traceId: string): string {
+  const query = `traceId=${encodeURIComponent(traceId)}`;
+  if (target.kind === 'agent') {
+    return `/services/${target.agentId}/${encodeURIComponent(target.serviceKey)}?tab=${tab}&${query}`;
+  }
+  return tab === 'logs'
+    ? `/logs/${target.observedServiceId}?${query}`
+    : `/api/${target.observedServiceId}?${query}`;
 }
 
 function formatDuration(ms: number): string {
@@ -233,19 +242,17 @@ function formatCapturedHeadersCopy(item: CapturedHeaders): string {
   return lines.filter(Boolean).join('\n');
 }
 
-export function TracePanel({ traceId, onClose }: TracePanelProps) {
+export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
   const { copy } = useClipboardCopy();
 
   const navigate = useNavigate();
-  const { serviceId } = useParams<{ serviceId: string }>();
   const [data, setData] = useState<TraceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const jumpTo = (tab: 'logs' | 'requests') => {
-    if (!serviceId) return;
     onClose();
-    navigate(logServicePath(serviceId, tab, traceId));
+    navigate(traceTargetPath(target, tab, traceId));
   };
 
   const panelRef = useRef<HTMLDivElement>(null);
@@ -339,7 +346,7 @@ export function TracePanel({ traceId, onClose }: TracePanelProps) {
             </div>
           )}
 
-          {!loading && !error && serviceId && (logs.length > 0 || apiRequests.length > 0) && (
+          {!loading && !error && (logs.length > 0 || apiRequests.length > 0) && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-text-muted mr-1">
                 탭에서 보기:

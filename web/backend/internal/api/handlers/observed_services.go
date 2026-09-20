@@ -275,6 +275,7 @@ func directApiRequestFilter(c *fiber.Ctx) *models.ApiRequestFilter {
 		ServiceID:  c.Params("id"),
 		Search:     c.Query("search"),
 		ErrorsOnly: c.Query("errorsOnly") == "true",
+		TraceID:    c.Query("traceId"),
 		Limit:      limit,
 		Offset:     offset,
 	}

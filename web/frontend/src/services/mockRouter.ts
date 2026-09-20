@@ -449,6 +449,7 @@ const mockTraceDetails: Record<string, TraceDetail> = {
 const mockAgents: ConnectedAgent[] = [
   {
     id: 'agent_demo_01', name: 'prod-server', version: '0.3.0',
+    projectId: 'project_mock_production',
     lastSeenAt: new Date(Date.now() - 15_000).toISOString(),
     createdAt: new Date(Date.now() - 30 * 86_400_000).toISOString(),
     updatedAt: new Date(Date.now() - 15_000).toISOString(),
@@ -577,6 +578,7 @@ function filterMockLogs(rows: LogEntry[], endpoint: string): LogEntry[] {
   const from = query.get('from');
   const attrKey = query.get('attrKey');
   const attrValue = query.get('attrValue') ?? '';
+  const traceId = query.get('traceId');
   // A log with no such attribute must drop out, not match on a coerced blank.
   const matchesAttribute = (log: LogEntry) => {
     if (!attrKey) return true;
@@ -587,6 +589,7 @@ function filterMockLogs(rows: LogEntry[], endpoint: string): LogEntry[] {
   return rows.filter(log =>
     (!level || log.level === level)
     && (!search || log.message.toLowerCase().includes(search))
+    && (!traceId || log.traceId === traceId)
     && matchesAttribute(log)
     && (!from || log.createdAt >= from));
 }
@@ -612,8 +615,10 @@ function filterMockRequests(rows: ApiRequest[], endpoint: string): ApiRequest[] 
   const search = query.get('search')?.toLowerCase();
   const from = query.get('from');
   const errorsOnly = query.get('errorsOnly') === 'true';
+  const traceId = query.get('traceId');
   return rows.filter(request =>
     (!errorsOnly || request.statusCode >= 400)
+    && (!traceId || request.traceId === traceId)
     && (!search || request.path.toLowerCase().includes(search))
     && (!from || request.createdAt >= from));
 }

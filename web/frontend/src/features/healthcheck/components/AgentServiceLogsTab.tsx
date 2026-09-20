@@ -16,6 +16,7 @@ interface BaseProps {
   refreshKey: number;
   /** Shared range from the page-header picker — drives the list AND the histogram. */
   range: GlobalTimeRange;
+  traceId?: string;
 }
 
 interface AgentSourceProps extends BaseProps {
@@ -156,7 +157,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
 }
 
 function ServiceLogsPanel(props: Props) {
-  const { refreshKey, range } = props;
+  const { refreshKey, range, traceId } = props;
   const directServiceId = 'observedServiceId' in props ? props.observedServiceId : undefined;
   const agentId = 'agentId' in props ? props.agentId : undefined;
   const serviceKey = 'serviceKey' in props ? props.serviceKey : undefined;
@@ -213,6 +214,7 @@ function ServiceLogsPanel(props: Props) {
         search: search || undefined,
         attrKey: attrFilter?.key,
         attrValue: attrFilter?.value,
+        traceId,
         from: rangeFrom(range),
         limit: PAGE_SIZE,
         offset: (page - 1) * PAGE_SIZE,
@@ -233,7 +235,7 @@ function ServiceLogsPanel(props: Props) {
     } finally {
       setLoading(false);
     }
-  }, [agentId, directServiceId, serviceKey, refreshKey, level, search, attrFilter, range, page]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agentId, directServiceId, serviceKey, refreshKey, level, search, attrFilter, range, page, traceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -456,7 +458,7 @@ function ServiceLogsPanel(props: Props) {
         </div>
       )}
       {activeTraceId && (
-        <TracePanel traceId={activeTraceId} onClose={() => setActiveTraceId(null)} />
+        <TracePanel traceId={activeTraceId} target={props.observedServiceId ? { kind: 'direct', observedServiceId: props.observedServiceId } : { kind: 'agent', agentId: props.agentId!, serviceKey: props.serviceKey! }} onClose={() => setActiveTraceId(null)} />
       )}
     </div>
   );

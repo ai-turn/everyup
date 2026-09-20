@@ -154,7 +154,7 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
         </div>
       )}
 
-      {activeTraceId && <TracePanel traceId={activeTraceId} onClose={() => setActiveTraceId(null)} />}
+      {activeTraceId && <TracePanel traceId={activeTraceId} target={source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }} onClose={() => setActiveTraceId(null)} />}
     </div>
   );
 }

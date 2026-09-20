@@ -60,6 +60,7 @@ export interface DirectMetricPointQuery {
 export interface DirectApiRequestQuery {
   search?: string;
   errorsOnly?: boolean;
+  traceId?: string;
   from?: string;
   to?: string;
   minStatus?: number;
@@ -87,6 +88,7 @@ function apiRequestQuery(params?: DirectApiRequestQuery): URLSearchParams {
   if (params?.offset) query.set('offset', String(params.offset));
   if (params?.search) query.set('search', params.search);
   if (params?.errorsOnly) query.set('errorsOnly', 'true');
+  if (params?.traceId) query.set('traceId', params.traceId);
   if (params?.from) query.set('from', params.from);
   if (params?.to) query.set('to', params.to);
   if (params?.minStatus) query.set('minStatus', String(params.minStatus));

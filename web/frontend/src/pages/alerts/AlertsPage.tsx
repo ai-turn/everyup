@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../utils/errors';
@@ -7,6 +7,7 @@ import { AlertsDesktopView } from '../../features/alerts/components/AlertsDeskto
 import { AlertsMobileView } from '../../features/alerts/components/AlertsMobileView';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { Button, ConfirmDialog, MaterialIcon } from '../../components/common';
+import { parseAlertTarget } from '../../features/alerts/alertTarget';
 
 type TabType = 'channels' | 'rules' | 'history';
 
@@ -21,6 +22,7 @@ export function AlertsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
+  const alertTarget = useMemo(() => parseAlertTarget(searchParams), [searchParams]);
 
   const [activeTab, setActiveTab] = useState<TabType>(() => parseTabParam(searchParams.get('tab')));
   const [channels, setChannels] = useState<NotificationChannel[]>([]);
@@ -208,7 +210,6 @@ export function AlertsPage() {
   const handleAddRule = () => {
     setRulesAddTrigger(n => n + 1);
   };
-
   // --- Render ---
   const deleteDialog = (
     <ConfirmDialog
@@ -244,6 +245,7 @@ export function AlertsPage() {
           channels={channels}
           channelHealth={channelHealth}
           rules={rules}
+          alertTarget={alertTarget}
           history={history}
           stats={stats}
           isLoading={isLoading}
@@ -281,6 +283,7 @@ export function AlertsPage() {
         setActiveTab={handleSetActiveTab}
         togglingIds={togglingIds}
         rulesAddTrigger={rulesAddTrigger}
+        alertTarget={alertTarget}
         onChannelsChanged={refreshChannels}
         onDeleteChannel={handleDeleteChannel}
         onToggleChannel={handleToggleChannel}

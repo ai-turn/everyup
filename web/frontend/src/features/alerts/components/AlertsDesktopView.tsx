@@ -15,6 +15,7 @@ import type {
   NotificationStats,
 } from '../../../services/api';
 import { getChannelStyle, getChannelSubtitle } from '../utils/channelMeta';
+import type { AlertTarget } from '../alertTarget';
 
 type TabType = 'channels' | 'rules' | 'history';
 
@@ -29,6 +30,7 @@ interface AlertsDesktopViewProps {
   setActiveTab: (tab: TabType) => void;
   togglingIds: Set<string>;
   rulesAddTrigger: number;
+  alertTarget: AlertTarget | null;
   onChannelsChanged: () => void;
   onDeleteChannel: (id: string) => void;
   onToggleChannel: (id: string) => void;
@@ -46,6 +48,7 @@ export function AlertsDesktopView({
   setActiveTab,
   togglingIds,
   rulesAddTrigger,
+  alertTarget,
   onChannelsChanged,
   onDeleteChannel,
   onToggleChannel,
@@ -226,7 +229,7 @@ export function AlertsDesktopView({
           />
         </>
       ) : (
-        <AlertRulesTab addTrigger={rulesAddTrigger} />
+        <AlertRulesTab addTrigger={rulesAddTrigger} target={alertTarget} />
       )}
     </>
   );

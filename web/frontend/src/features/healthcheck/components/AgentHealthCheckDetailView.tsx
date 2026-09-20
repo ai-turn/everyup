@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MaterialIcon, StatusBadge, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
+import { Button, MaterialIcon, StatusBadge, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
 import { useSpinAction } from '../../../hooks/useSpinAction';
 import { useIsMobile } from '../../../hooks/useMediaQuery';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
+import { alertRulesPath } from '../../alerts/alertTarget';
 
 export interface AgentHealthCheckDetailViewProps {
   service: AgentServiceFlat;
@@ -13,6 +14,7 @@ export interface AgentHealthCheckDetailViewProps {
   refreshKey: number;
   onRefresh: () => void;
   tab: DetailTab;
+  traceId?: string;
   onTabChange: (tab: DetailTab) => void;
 }
 
@@ -78,6 +80,7 @@ function RefreshButton({ onRefresh }: { onRefresh: () => void }) {
 }
 
 function DesktopLayout(props: LayoutProps) {
+  const navigate = useNavigate();
   const { service, agentId, serviceKey, refreshKey, onRefresh, range, onRangeChange, tab, onTabChange } = props;
 
   return (
@@ -95,6 +98,7 @@ function DesktopLayout(props: LayoutProps) {
           <h1 className="text-2xl font-bold text-text-base truncate">{service.name}</h1>
           <StatusBadge healthy={service.healthy} />
           <div className="ml-auto flex items-center gap-2">
+            <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'agent', agentId, serviceKey }))}><MaterialIcon size={16} name="notifications" />알림 규칙</Button>
             <TimeRangePicker value={range} onChange={onRangeChange} />
             <RefreshButton onRefresh={onRefresh} />
           </div>
@@ -110,6 +114,7 @@ function DesktopLayout(props: LayoutProps) {
         range={range}
         showServiceName={false}
         tab={tab}
+        traceId={props.traceId}
         onTabChange={onTabChange}
       />
     </>
@@ -132,6 +137,7 @@ function MobileLayout(props: LayoutProps) {
           <span className="text-sm">목록으로</span>
         </button>
         <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={() => navigate(alertRulesPath({ kind: 'agent', agentId, serviceKey }))}><MaterialIcon size={16} name="notifications" />알림 규칙</Button>
           <TimeRangePicker value={range} onChange={onRangeChange} />
           <RefreshButton onRefresh={onRefresh} />
         </div>
@@ -144,7 +150,7 @@ function MobileLayout(props: LayoutProps) {
         </div>
       </div>
       <ContainerMeta service={service} />
-      <AgentServiceTabs key={serviceKey} service={service} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} tab={tab} onTabChange={onTabChange} />
+      <AgentServiceTabs key={serviceKey} service={service} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} tab={tab} traceId={props.traceId} onTabChange={onTabChange} />
     </div>
   );
 }

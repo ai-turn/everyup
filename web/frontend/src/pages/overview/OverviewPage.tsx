@@ -10,12 +10,7 @@ import {
   type Project,
   type UptimeMonitor,
 } from '../../services/api';
-
-const FRESH_FOR_MS = 2 * 60 * 1000;
-
-function isFresh(timestamp?: string) {
-  return Boolean(timestamp) && Date.now() - new Date(timestamp!).getTime() < FRESH_FOR_MS;
-}
+import { isCollectorFresh } from '../../utils/operationalStatus';
 
 interface AttentionItem {
   id: string;
@@ -24,6 +19,7 @@ interface AttentionItem {
   to: string;
   tone: 'warn' | 'error';
   icon: string;
+  observedAt?: string;
 }
 
 export function OverviewPage() {
@@ -36,6 +32,7 @@ export function OverviewPage() {
   const [infrastructure, setInfrastructure] = useState<InfrastructureResource[]>([]);
   const [loading, setLoading] = useState(true);
   const [failedSources, setFailedSources] = useState<string[]>([]);
+  const [showAllAttention, setShowAllAttention] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,14 +64,14 @@ export function OverviewPage() {
     };
   }, [load]);
 
-  const reportingAgents = agents.filter((agent) => isFresh(agent.lastSeenAt));
-  const staleAgents = agents.filter((agent) => !isFresh(agent.lastSeenAt));
+  const reportingAgents = agents.filter((agent) => isCollectorFresh(agent.lastSeenAt));
+  const staleAgents = agents.filter((agent) => !isCollectorFresh(agent.lastSeenAt));
   const unhealthyServices = services.filter((service) => !service.healthy);
   const unhealthyMonitors = monitors.filter((monitor) => monitor.status === 'unhealthy');
-  const directAwaitingData = observedServices.filter((service) => service.isActive && !isFresh(service.lastSeenAt));
-  const inactiveInfrastructure = infrastructure.filter((resource) => resource.isActive && !isFresh(resource.lastSeenAt));
+  const directAwaitingData = observedServices.filter((service) => service.isActive && !service.lastSeenAt);
+  const inactiveInfrastructure = infrastructure.filter((resource) => resource.isActive && !isCollectorFresh(resource.lastSeenAt));
 
-  const attention = useMemo<AttentionItem[]>(() => [
+  const attention = useMemo<AttentionItem[]>(() => ([
     ...unhealthyServices.map((service) => ({
       id: `service-${service.agentId}-${service.key}`,
       title: service.name,
@@ -82,6 +79,7 @@ export function OverviewPage() {
       to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`,
       tone: 'error' as const,
       icon: 'error_outline',
+      observedAt: service.observedAt,
     })),
     ...unhealthyMonitors.map((monitor) => ({
       id: `monitor-${monitor.id}`,
@@ -90,6 +88,7 @@ export function OverviewPage() {
       to: `/uptime/${monitor.id}`,
       tone: 'error' as const,
       icon: 'error_outline',
+      observedAt: monitor.lastCheckAt,
     })),
     ...staleAgents.map((agent) => ({
       id: `agent-${agent.id}`,
@@ -98,6 +97,7 @@ export function OverviewPage() {
       to: `/agents/${agent.id}`,
       tone: 'warn' as const,
       icon: 'sensors_off',
+      observedAt: agent.lastSeenAt,
     })),
     ...directAwaitingData.map((service) => ({
       id: `observed-${service.id}`,
@@ -106,6 +106,7 @@ export function OverviewPage() {
       to: `/logs/${service.id}`,
       tone: 'warn' as const,
       icon: 'schedule',
+      observedAt: service.createdAt,
     })),
     ...inactiveInfrastructure.map((resource) => ({
       id: `infrastructure-${resource.id}`,
@@ -114,8 +115,14 @@ export function OverviewPage() {
       to: `/infrastructure/${resource.id}`,
       tone: 'warn' as const,
       icon: 'sensors_off',
+      observedAt: resource.lastSeenAt,
     })),
-  ], [directAwaitingData, inactiveInfrastructure, staleAgents, unhealthyMonitors, unhealthyServices]);
+  ]).sort((a, b) => {
+    if (a.tone !== b.tone) return a.tone === 'error' ? -1 : 1;
+    const observedDelta = Date.parse(b.observedAt ?? '') - Date.parse(a.observedAt ?? '');
+    if (Number.isFinite(observedDelta) && observedDelta !== 0) return observedDelta;
+    return a.id.localeCompare(b.id);
+  }), [directAwaitingData, inactiveInfrastructure, staleAgents, unhealthyMonitors, unhealthyServices]);
 
   const totalTargets = agents.length + monitors.length + observedServices.length + infrastructure.length;
   const connectionIssues = staleAgents.length + directAwaitingData.length + inactiveInfrastructure.length;
@@ -165,7 +172,7 @@ export function OverviewPage() {
           </section>
 
           <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
-            <article className="rounded-xl border border-ui-border bg-bg-surface">
+            <article id="attention" className="scroll-mt-5 rounded-xl border border-ui-border bg-bg-surface">
               <div className="flex items-center justify-between gap-3 border-b border-ui-border px-4 py-3.5">
                 <div>
                   <h2 className="type-card-title text-text-base">현재 확인 필요</h2>
@@ -180,8 +187,9 @@ export function OverviewPage() {
                   <p className="mt-1 type-body text-text-muted">수집 연결과 서비스 상태 모두 정상입니다.</p>
                 </div>
               ) : (
+                <>
                 <ul className="divide-y divide-ui-border-soft">
-                  {attention.slice(0, 6).map((item) => (
+                  {(showAllAttention ? attention : attention.slice(0, 6)).map((item) => (
                     <li key={item.id}>
                       <Link to={item.to} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
                         <MaterialIcon size={20} name={item.icon} className={`shrink-0 ${item.tone === 'error' ? 'text-status-error' : 'text-status-warn'}`} />
@@ -194,6 +202,8 @@ export function OverviewPage() {
                     </li>
                   ))}
                 </ul>
+                {attention.length > 6 && <div className="border-t border-ui-border px-4 py-3"><Button variant="secondary" size="sm" onClick={() => setShowAllAttention((value) => !value)}>{showAllAttention ? '우선 항목만 보기' : `전체 ${attention.length}건 보기`}</Button></div>}
+                </>
               )}
             </article>
 

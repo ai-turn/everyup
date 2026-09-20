@@ -86,6 +86,7 @@ export function HealthCheckDetailPage() {
       refreshKey={refreshKey}
       onRefresh={refresh}
       tab={tab}
+      traceId={searchParams.get('traceId') ?? undefined}
       onTabChange={(nextTab) => {
         const next = new URLSearchParams(searchParams);
         if (nextTab === 'overview') next.delete('tab');

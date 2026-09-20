@@ -635,6 +635,7 @@ func (h *AgentHandler) GetServiceLogs(c *fiber.Ctx) error {
 		Search:      c.Query("search"),
 		AttrKey:     c.Query("attrKey"),
 		AttrValue:   c.Query("attrValue"),
+		TraceID:     c.Query("traceId"),
 		Limit:       limit,
 		Offset:      offset,
 	}
@@ -722,6 +723,7 @@ func (h *AgentHandler) GetServiceRequests(c *fiber.Ctx) error {
 		ServiceName: service.Name,
 		Search:      c.Query("search"),
 		ErrorsOnly:  c.Query("errorsOnly") == "true",
+		TraceID:     c.Query("traceId"),
 		MinStatus:   minStatus,
 		MaxStatus:   maxStatus,
 		Limit:       limit,

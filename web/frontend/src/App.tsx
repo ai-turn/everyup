@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { MainLayout } from './components/layout';
 import { NetworkStatusBanner } from './components/feedback/NetworkStatusBanner';
 import { useAuth } from './contexts/AuthContext';
@@ -52,11 +52,6 @@ function ProtectedRoute() {
     : <Navigate to="/login" replace state={{ from: location.pathname }} />;
 }
 
-function LegacyAgentProjectRoute() {
-  const { agentId } = useParams();
-  return <Navigate to={`/agents/${agentId ?? ''}`} replace />;
-}
-
 function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -86,7 +81,6 @@ function App() {
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:projectId" element={<ProjectOverviewPage />} />
                 <Route path="/agents/:agentId" element={<ProjectDetailPage />} />
-                <Route path="/projects/:agentId" element={<LegacyAgentProjectRoute />} />
                 <Route path="/services/:agentId/:key" element={<HealthCheckDetailPage />} />
                 <Route path="/alerts" element={<AlertsPage />} />
                 <Route path="/alerts/channels/new" element={<ChannelFormPage />} />

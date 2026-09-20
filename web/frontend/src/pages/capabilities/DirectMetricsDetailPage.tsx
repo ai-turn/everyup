@@ -13,6 +13,7 @@ import {
   type GlobalTimeRange,
 } from '../../components/common';
 import { DirectServiceMetricsTab } from '../../features/healthcheck/components/AgentServiceMetricsTab';
+import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/RotatedTelemetryKeyDialog';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
@@ -140,7 +141,7 @@ export function DirectMetricsDetailPage() {
         }
         actions={
           <>
-          <Button variant="secondary" onClick={() => navigate('/alerts')}><MaterialIcon name="notifications" />알림 규칙</Button>
+          <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'direct', serviceId: service.id }))}><MaterialIcon name="notifications" />알림 규칙</Button>
           {service.isActive && <Button variant="ghost" onClick={() => setConfirmAction('revoke')}><MaterialIcon name="block" />연결 중지</Button>}
           <Button variant="ghost" className="text-status-error hover:text-status-error" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete" />삭제</Button>
           </>

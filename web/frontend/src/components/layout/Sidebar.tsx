@@ -83,7 +83,7 @@ export function Sidebar() {
       </button>
 
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3" aria-label="주 메뉴">
-        <NavItem to="/" icon="dashboard" label="개요" active={path === '/'} />
+        <NavItem to="/#attention" icon="dashboard" label="개요" active={path === '/'} badge={services.filter((service) => !service.healthy).length} />
         <NavItem to="/projects" icon="folder_open" label="Projects" active={path.startsWith('/projects')} />
         <NavItem to="/environments" icon="dns" label="Docker 환경" active={path.startsWith('/environments') || path.startsWith('/agents/')} />
         <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">관측</p>
@@ -93,7 +93,7 @@ export function Sidebar() {
         <NavItem to="/api" icon="api" label="API 요청" active={path.startsWith('/api') || detailActive('requests')} />
         <NavItem to="/metrics" icon="monitoring" label="메트릭" active={path.startsWith('/metrics') || detailActive('metrics')} />
         <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">대응 및 관리</p>
-        <NavItem to="/alerts" icon="notifications" label="알림" active={path.startsWith('/alerts')} badge={services.filter((service) => !service.healthy).length} />
+        <NavItem to="/alerts" icon="notifications" label="알림" active={path.startsWith('/alerts')} />
         <NavItem to="/settings" icon="settings" label="환경 설정" active={path.startsWith('/settings')} />
       </nav>
 

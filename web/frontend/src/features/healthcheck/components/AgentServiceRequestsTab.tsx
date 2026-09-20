@@ -12,6 +12,7 @@ interface SharedProps {
   refreshKey: number;
   /** Shared range from the page-header picker — drives the trends chart, the list, and the KPI row. */
   range: GlobalTimeRange;
+  traceId?: string;
 }
 
 interface AgentProps extends SharedProps {
@@ -66,6 +67,7 @@ function ServiceRequestsPanel({
   source,
   refreshKey,
   range,
+  traceId,
 }: SharedProps & { source: RequestSource }) {
   const [requests, setRequests] = useState<ApiRequest[]>([]);
   const [total, setTotal] = useState(0);
@@ -88,6 +90,7 @@ function ServiceRequestsPanel({
       const params = {
         errorsOnly,
         search: search || undefined,
+        traceId,
         from: rangeFrom(range),
         limit: PAGE_SIZE,
         offset: (page - 1) * PAGE_SIZE,
@@ -108,7 +111,7 @@ function ServiceRequestsPanel({
     } finally {
       setLoading(false);
     }
-  }, [agentId, errorsOnly, observedServiceId, page, range, refreshKey, search, serviceKey, sourceKind]);
+  }, [agentId, errorsOnly, observedServiceId, page, range, refreshKey, search, serviceKey, sourceKind, traceId]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -271,7 +274,7 @@ function ServiceRequestsPanel({
         </div>
       )}
       {activeTraceId && (
-        <TracePanel traceId={activeTraceId} onClose={() => setActiveTraceId(null)} />
+        <TracePanel traceId={activeTraceId} target={source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }} onClose={() => setActiveTraceId(null)} />
       )}
     </div>
   );

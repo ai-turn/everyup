@@ -25,6 +25,41 @@ test.describe('live demo', () => {
     await expect(page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms')).toBeVisible();
   });
 
+  test('trace jump keeps the Docker target and filters requests by trace ID', async ({ page }) => {
+    await page.goto('./services/agent_demo_01/shop%3Aapi?tab=logs');
+    await expect(page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms')).toBeVisible();
+    await page.getByRole('button', { name: '트레이스', exact: true }).first().click();
+
+    await expect(page.getByRole('dialog', { name: '트레이스 상세' })).toBeVisible();
+    await page.getByRole('dialog', { name: '트레이스 상세' }).getByRole('button', { name: /^API 요청 \(/ }).click();
+
+    await expect(page).toHaveURL(/\/services\/agent_demo_01\/shop%3Aapi\?tab=requests&traceId=/);
+    await expect(page.getByText('/api/v1/auth/login', { exact: true })).toBeVisible();
+    await expect(page.getByText('/api/v1/payments', { exact: true })).toHaveCount(0);
+  });
+
+  test('alert rules use exact target identifiers from the URL', async ({ page }) => {
+    await page.goto('./alerts?tab=rules&target=agent&agentId=agent_123&serviceKey=api');
+
+    await expect(page.getByRole('status').filter({ hasText: '대상:' })).toContainText('api');
+    await expect(page.getByText('Service Down', { exact: true })).toBeVisible();
+    await expect(page.getByText('High CPU Usage', { exact: true })).toHaveCount(0);
+
+    await page.goto('./alerts?tab=rules&target=direct&serviceId=another-api');
+    await expect(page.getByText('Service Down', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('조건에 맞는 규칙이 없습니다', { exact: false })).toBeVisible();
+  });
+
+  test('project overview includes Docker service outages and resolves legacy environment URLs', async ({ page }) => {
+    await page.goto('./projects/project_mock_production');
+    await expect(page.getByRole('heading', { level: 1, name: 'Production' })).toBeVisible();
+    await expect(page.getByText('Docker 서비스 장애', { exact: true })).toBeVisible();
+
+    await page.goto('./projects/agent_demo_01');
+    await expect(page).toHaveURL(/\/agents\/agent_demo_01$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
+  });
+
   test('mobile keeps the primary destinations in the bottom navigation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('./');
