@@ -6,9 +6,11 @@ test.describe('live demo', () => {
 
     await expect(page.getByRole('complementary').getByText('Live Demo', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { level: 1, name: '모니터링 개요' })).toBeVisible();
-    await expect(page.getByRole('region', { name: '수집 상태 요약' })).toBeVisible();
-    await expect(page.getByText('1개 장애 신호')).toBeVisible();
+    // 개요의 KPI 행은 제거됐다 — 아래 두 카드가 같은 말을 더 정확히 하고 있었다.
+    // 장애 신호는 이제 개수가 아니라 대상 이름으로 확인한다.
     await expect(page.getByRole('heading', { name: '현재 확인 필요' })).toBeVisible();
+    await expect(page.getByText('장애가 발생했습니다')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '모니터링 범위' })).toBeVisible();
   });
 
   test('visitor can inspect logs for a Docker service', async ({ page }) => {
@@ -96,7 +98,9 @@ test.describe('live demo', () => {
     await page.getByRole('option', { name: '부분 수집 실패' }).click();
 
     await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
-    await expect(page.getByRole('region', { name: '수집 상태 요약' })).toBeVisible();
-    await expect(page.getByText('Docker 수집기', { exact: true })).toBeVisible();
+    // 성공한 영역이 남아 있는지를 '모니터링 범위' 카드로 확인한다. `직접 연결 서비스`는
+    // 사이드바 메뉴명과 겹치지 않아 스코프 없이도 유일하다.
+    await expect(page.getByRole('heading', { name: '모니터링 범위' })).toBeVisible();
+    await expect(page.getByText('직접 연결 서비스', { exact: true })).toBeVisible();
   });
 });
