@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { EmptyState, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
+import { ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import {
   api,
@@ -30,13 +30,13 @@ function totalRequests(summary: ApiRequestStatusSummary) {
 
 function ApiCard({
   name,
-  source,
+  connection,
   active,
   summary,
   to,
 }: {
   name: string;
-  source: string;
+  connection: 'direct' | 'docker';
   active: boolean;
   summary: ApiRequestStatusSummary;
   to: string;
@@ -48,7 +48,7 @@ function ApiCard({
       <ResourceCardHeader
         icon="api"
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-primary">{name}</h3>}
-        subtitle={source}
+        badge={<ConnectionSourceBadge source={connection} />}
         status={<StatusBadge healthy={active} />}
       />
       <div className="mt-5 grid grid-cols-2 gap-3">
@@ -113,41 +113,20 @@ export function ApiPage() {
           <MonitoringConnection capability="api" onConnected={reload} />
         </EmptyState>
       ) : (
-        <div className="space-y-7">
-          {directRows.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <h2 className="type-section-title text-text-base">직접 연결 서비스</h2>
-                  <p className="mt-0.5 text-sm text-text-muted">애플리케이션이 전송하는 OTLP traces를 직접 받습니다.</p>
-                </div>
-                <span className="font-mono text-xs text-text-dim">{directRows.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {directRows.map(({ service, summary }) => (
-                  <ApiCard key={service.id} name={service.name} source="Direct" active={service.isActive} summary={summary} to={`/api/${service.id}`} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {agentRows.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <h2 className="type-section-title text-text-base">Docker 서비스</h2>
-                  <p className="mt-0.5 text-sm text-text-muted">EveryUp Docker 수집기가 발견하고 전달한 API 요청입니다.</p>
-                </div>
-                <span className="font-mono text-xs text-text-dim">{agentRows.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {agentRows.map(({ agent, summary }) => (
-                  <ApiCard key={agent.id} name={agent.name} source="Docker" active={agentOnline(agent)} summary={summary} to={`/agents/${agent.id}`} />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
+        <section>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="type-section-title text-text-base">API 대상</h2>
+            <span className="font-mono text-xs text-text-dim">{directRows.length + agentRows.length}</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {directRows.map(({ service, summary }) => (
+              <ApiCard key={service.id} name={service.name} connection="direct" active={service.isActive} summary={summary} to={`/api/${service.id}`} />
+            ))}
+            {agentRows.map(({ agent, summary }) => (
+              <ApiCard key={agent.id} name={agent.name} connection="docker" active={agentOnline(agent)} summary={summary} to={`/agents/${agent.id}`} />
+            ))}
+          </div>
+        </section>
       )}
 
     </div>

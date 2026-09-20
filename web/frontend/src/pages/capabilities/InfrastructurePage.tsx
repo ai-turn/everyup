@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { EmptyState, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
+import { ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { api, type InfrastructureResource } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
@@ -24,7 +24,7 @@ function ResourceCard({ resource }: { resource: InfrastructureResource }) {
       <ResourceCardHeader
         icon="memory"
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-primary">{resource.name}</h3>}
-        subtitle={direct ? 'OpenTelemetry Collector' : 'EveryUp Docker 수집기'}
+        badge={<ConnectionSourceBadge source={direct ? 'direct' : 'docker'} />}
         status={<StatusBadge healthy={resourceOnline(resource)} />}
       />
       {values.some(([, value]) => value != null) ? (
@@ -59,9 +59,6 @@ export function InfrastructurePage() {
     return () => { alive = false; };
   }, [reloadKey]);
 
-  const directResources = resources.filter(resource => resource.adapter === 'otel-collector');
-  const agentResources = resources.filter(resource => resource.adapter === 'everyup-agent');
-
   return (
     <div>
       <PageHeader title="인프라" subtitle="서버의 CPU, 메모리, 디스크 상태를 확인하고 자원 이상을 찾습니다.">
@@ -76,26 +73,15 @@ export function InfrastructurePage() {
           <MonitoringConnection capability="infrastructure" onConnected={reload} />
         </EmptyState>
       ) : (
-        <div className="space-y-7">
-          {directResources.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div><h2 className="type-section-title text-text-base">직접 연결 Collector</h2><p className="mt-0.5 text-sm text-text-muted">표준 OTel hostmetrics receiver가 직접 전송합니다.</p></div>
-                <span className="font-mono text-xs text-text-dim">{directResources.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{directResources.map(resource => <ResourceCard key={resource.id} resource={resource} />)}</div>
-            </section>
-          )}
-          {agentResources.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div><h2 className="type-section-title text-text-base">Docker 호스트</h2><p className="mt-0.5 text-sm text-text-muted">EveryUp Docker 수집기의 인프라 프로필이 수집합니다.</p></div>
-                <span className="font-mono text-xs text-text-dim">{agentResources.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{agentResources.map(resource => <ResourceCard key={resource.id} resource={resource} />)}</div>
-            </section>
-          )}
-        </div>
+        <section>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="type-section-title text-text-base">인프라 대상</h2>
+            <span className="font-mono text-xs text-text-dim">{resources.length}</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {resources.map(resource => <ResourceCard key={resource.id} resource={resource} />)}
+          </div>
+        </section>
       )}
     </div>
   );

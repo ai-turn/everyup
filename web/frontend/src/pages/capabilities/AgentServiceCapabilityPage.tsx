@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import {
-  Button, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput, StatusBadge, SummaryCard,
+  Button, ConnectionSourceBadge, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput,
+  StatusBadge, SummaryCard,
 } from '../../components/common';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
@@ -106,55 +107,43 @@ export function AgentServiceCapabilityPage() {
       ) : empty ? (
         <EmptyState icon="monitor_heart" title={normalizedQuery ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={normalizedQuery ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} />
       ) : (
-        <div className="space-y-7">
-          {filteredMonitors.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="type-section-title text-text-base">직접 추가한 업타임</h2>
-                <span className="font-mono text-xs text-text-dim">{filteredMonitors.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {filteredMonitors.map((monitor) => (
-                  <UptimeTargetCard
-                    key={monitor.id}
-                    to={`/uptime/${monitor.id}`}
-                    title={monitor.name}
-                    subtitle="직접 설정한 HTTP/TCP 모니터"
-                    status={<UptimeMonitorStatusBadge monitor={monitor} />}
-                    actions={
-                      <Button size="sm" variant="secondary" aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>
-                        <MaterialIcon name={monitor.isActive ? 'pause' : 'play_arrow'} />
-                        {monitor.isActive ? '일시정지' : '재개'}
-                      </Button>
-                    }
-                    endpoint={monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url}
-                    meta={<p className="text-xs text-text-muted">{monitor.type.toUpperCase()} · {monitor.interval}초</p>}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-          {filteredAgentServices.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="type-section-title text-text-base">Docker에서 발견한 서비스</h2>
-                <span className="font-mono text-xs text-text-dim">{filteredAgentServices.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {filteredAgentServices.map((service) => (
-                  <UptimeTargetCard
-                    key={`${service.agentId}:${service.key}`}
-                    to={`/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=health`}
-                    title={service.name}
-                    subtitle={service.agentName}
-                    status={<StatusBadge healthy={service.healthy} />}
-                    endpoint={service.endpoint || service.key}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
+        <section>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="type-section-title text-text-base">모니터링 대상</h2>
+            <span className="font-mono text-xs text-text-dim">{filteredMonitors.length + filteredAgentServices.length}</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {filteredMonitors.map((monitor) => (
+              <UptimeTargetCard
+                key={monitor.id}
+                to={`/uptime/${monitor.id}`}
+                title={monitor.name}
+                badge={<ConnectionSourceBadge source="direct" directLabel="직접 추가" />}
+                subtitle="HTTP/TCP 모니터"
+                status={<UptimeMonitorStatusBadge monitor={monitor} />}
+                actions={
+                  <Button size="sm" variant="secondary" aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>
+                    <MaterialIcon name={monitor.isActive ? 'pause' : 'play_arrow'} />
+                    {monitor.isActive ? '일시정지' : '재개'}
+                  </Button>
+                }
+                endpoint={monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url}
+                meta={<p className="text-xs text-text-muted">{monitor.type.toUpperCase()} · {monitor.interval}초</p>}
+              />
+            ))}
+            {filteredAgentServices.map((service) => (
+              <UptimeTargetCard
+                key={`${service.agentId}:${service.key}`}
+                to={`/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=health`}
+                title={service.name}
+                badge={<ConnectionSourceBadge source="docker" />}
+                subtitle={service.agentName}
+                status={<StatusBadge healthy={service.healthy} />}
+                endpoint={service.endpoint || service.key}
+              />
+            ))}
+          </div>
+        </section>
       )}
 
       {adding && <UptimeMonitorDialog monitor={null} onClose={() => setAdding(false)} onSave={saveMonitor} />}

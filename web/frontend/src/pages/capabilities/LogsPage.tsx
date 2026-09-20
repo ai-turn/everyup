@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, EmptyState, ListToolbar, MaterialIcon, PageHeader, Pagination, ResourceCardHeader, SearchInput, Select } from '../../components/common';
+import { Button, ConnectionSourceBadge, EmptyState, ListToolbar, MaterialIcon, PageHeader, Pagination, ResourceCardHeader, SearchInput, Select } from '../../components/common';
 import { LEVEL_STYLE } from '../../features/healthcheck/logLevelStyle';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { api, type AgentServiceFlat, type LogEntry, type ObservedService } from '../../services/api';
@@ -144,14 +144,11 @@ export function LogsPage() {
         </Select>
       </ListToolbar>
 
-      {!loading && directServices.length > 0 && (
+      {!loading && directServices.length + agentCards.length > 0 && (
         <section className="mb-6">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="type-section-title text-text-base">직접 연결 서비스</h2>
-              <p className="mt-0.5 text-sm text-text-muted">OTLP Logs를 직접 받는 Observed Service입니다.</p>
-            </div>
-            <span className="font-mono text-xs text-text-dim">{directServices.length}</span>
+            <h2 className="type-section-title text-text-base">로그 서비스</h2>
+            <span className="font-mono text-xs text-text-dim">{directServices.length + agentCards.length}</span>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {directServices.map(service => (
@@ -159,7 +156,7 @@ export function LogsPage() {
                 <ResourceCardHeader
                   icon="article"
                   title={<h3 className="truncate type-card-title text-text-base">{service.name}</h3>}
-                  subtitle="Direct"
+                  badge={<ConnectionSourceBadge source="direct" />}
                   status={
                     <span
                       className={`mt-1 block h-2.5 w-2.5 shrink-0 rounded-full ${service.isActive ? 'bg-status-healthy' : 'bg-status-error'}`}
@@ -176,20 +173,6 @@ export function LogsPage() {
                 <p className="mt-1 truncate font-mono text-xs text-text-dim">{service.apiKeyMasked || '—'}</p>
               </Link>
             ))}
-          </div>
-        </section>
-      )}
-
-      {!loading && agentCards.length > 0 && (
-        <section className="mb-6">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="type-section-title text-text-base">Docker 서비스</h2>
-              <p className="mt-0.5 text-sm text-text-muted">EveryUp Docker 수집기가 전달한 서비스입니다.</p>
-            </div>
-            <span className="font-mono text-xs text-text-dim">{agentCards.length}</span>
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {agentCards.map(({ service, total, error, warn }) => (
               <Link
                 key={`${service.agentId}:${service.key}`}
@@ -199,6 +182,7 @@ export function LogsPage() {
                 <ResourceCardHeader
                   icon="article"
                   title={<h3 className="truncate type-card-title text-text-base">{service.name}</h3>}
+                  badge={<ConnectionSourceBadge source="docker" />}
                   subtitle={service.agentName}
                 />
                 <p className="mt-3 text-xs text-text-secondary">

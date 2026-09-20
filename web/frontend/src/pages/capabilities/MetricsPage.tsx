@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { EmptyState, PageHeader, ResourceCardHeader } from '../../components/common';
+import { ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader } from '../../components/common';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import {
   api,
@@ -30,13 +30,15 @@ function formatMetric(value: number, unit?: string) {
 
 function MetricCard({
   name,
-  source,
+  connection,
+  subtitle,
   metric,
   to,
   active = true,
 }: {
   name: string;
-  source: string;
+  connection: 'direct' | 'docker';
+  subtitle?: string;
   metric?: OtelServiceMetric;
   to: string;
   active?: boolean;
@@ -46,7 +48,8 @@ function MetricCard({
       <ResourceCardHeader
         icon="monitoring"
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-primary">{name}</h3>}
-        subtitle={source}
+        badge={<ConnectionSourceBadge source={connection} />}
+        subtitle={subtitle}
         status={
           <span className="flex items-center gap-1.5 type-caption text-text-muted">
             <span className={`h-2 w-2 rounded-full ${active ? 'bg-status-healthy' : 'bg-status-error'}`} aria-hidden="true" />
@@ -134,54 +137,34 @@ export function MetricsPage() {
           <MonitoringConnection capability="metrics" onConnected={reload} />
         </EmptyState>
       ) : (
-        <div className="space-y-7">
-          {directServices.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <h2 className="type-section-title text-text-base">직접 연결 서비스</h2>
-                  <p className="mt-0.5 text-sm text-text-muted">OTLP Metrics를 직접 받는 Observed Service입니다.</p>
-                </div>
-                <span className="font-mono text-xs text-text-dim">{directServices.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {directServices.map(service => (
-                  <MetricCard
-                    key={service.id}
-                    name={service.name}
-                    source="Direct"
-                    metric={directByService.get(service.id)}
-                    to={`/metrics/${service.id}`}
-                    active={service.isActive}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {visibleAgentMetrics.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <h2 className="type-section-title text-text-base">Docker 서비스</h2>
-                  <p className="mt-0.5 text-sm text-text-muted">EveryUp Docker 수집기가 발견하고 전달한 서비스 메트릭입니다.</p>
-                </div>
-                <span className="font-mono text-xs text-text-dim">{visibleAgentMetrics.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleAgentMetrics.map(metric => metric.service ? (
-                  <MetricCard
-                    key={`${metric.agent.id}:${metric.serviceName}:${metric.metricName}`}
-                    name={metric.serviceName}
-                    source={metric.agent.name}
-                    metric={metric}
-                    to={`/services/${metric.service.agentId}/${encodeURIComponent(metric.service.key)}?tab=metrics`}
-                  />
-                ) : null)}
-              </div>
-            </section>
-          )}
-        </div>
+        <section>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="type-section-title text-text-base">메트릭 서비스</h2>
+            <span className="font-mono text-xs text-text-dim">{directServices.length + visibleAgentMetrics.length}</span>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {directServices.map(service => (
+              <MetricCard
+                key={service.id}
+                name={service.name}
+                connection="direct"
+                metric={directByService.get(service.id)}
+                to={`/metrics/${service.id}`}
+                active={service.isActive}
+              />
+            ))}
+            {visibleAgentMetrics.map(metric => metric.service ? (
+              <MetricCard
+                key={`${metric.agent.id}:${metric.serviceName}:${metric.metricName}`}
+                name={metric.serviceName}
+                connection="docker"
+                subtitle={metric.agent.name}
+                metric={metric}
+                to={`/services/${metric.service.agentId}/${encodeURIComponent(metric.service.key)}?tab=metrics`}
+              />
+            ) : null)}
+          </div>
+        </section>
       )}
 
     </div>
