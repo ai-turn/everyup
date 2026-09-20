@@ -119,7 +119,7 @@ export function MetricsPage() {
 
   return (
     <div>
-      <PageHeader title="메트릭" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 서비스 메트릭입니다.">
+      <PageHeader title="메트릭" subtitle="서비스의 성능 수치와 시간에 따른 변화를 확인합니다.">
         <MonitoringConnection capability="metrics" onConnected={reload} />
       </PageHeader>
 

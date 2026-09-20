@@ -71,7 +71,7 @@ export function SettingsDesktopView({
       {/* Page Header */}
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-text-base">환경 설정</h1>
-        <p className="text-sm text-text-muted mt-1">애플리케이션 및 서비스 설정 구성</p>
+        <p className="text-sm text-text-muted mt-1">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
       </div>
       {settingsError && (
         <div role="alert" className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-status-warn/30 bg-status-warn/10 px-4 py-3 text-sm text-text-secondary">

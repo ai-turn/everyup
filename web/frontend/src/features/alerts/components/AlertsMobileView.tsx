@@ -84,7 +84,7 @@ export function AlertsMobileView({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <PageHeader title="알림" subtitle="알림 채널과 규칙을 설정하고 알림 이력을 확인합니다.">
+      <PageHeader title="알림" subtitle="이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.">
         {activeTab === 'channels' && (
           <Button className="w-full" onClick={onAddChannel}>
             <MaterialIcon size={16} name="add" />

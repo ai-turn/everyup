@@ -113,7 +113,7 @@ export function LogsPage() {
 
   return (
     <div>
-      <PageHeader title="로그" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 최신 로그입니다.">
+      <PageHeader title="로그" subtitle="서비스에서 발생한 오류와 주요 기록을 검색해 문제 원인을 확인합니다.">
         <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
 

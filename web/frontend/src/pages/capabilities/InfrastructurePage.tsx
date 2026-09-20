@@ -64,7 +64,7 @@ export function InfrastructurePage() {
 
   return (
     <div>
-      <PageHeader title="인프라" subtitle="EveryUp Docker 수집기 또는 표준 OpenTelemetry Collector로 수집한 호스트 리소스입니다.">
+      <PageHeader title="인프라" subtitle="서버의 CPU, 메모리, 디스크 상태를 확인하고 자원 이상을 찾습니다.">
         <MonitoringConnection capability="infrastructure" onConnected={reload} />
       </PageHeader>
       {loading ? (

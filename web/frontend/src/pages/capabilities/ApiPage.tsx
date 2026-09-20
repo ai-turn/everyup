@@ -99,7 +99,7 @@ export function ApiPage() {
 
   return (
     <div>
-      <PageHeader title="API" subtitle="Docker 수집기 또는 직접 OpenTelemetry 연결에서 수집한 API 요청과 오류 추이입니다.">
+      <PageHeader title="API 요청" subtitle="요청 수, 응답 시간, 오류 추이를 확인해 API 문제를 찾습니다.">
         <MonitoringConnection capability="api" onConnected={reload} />
       </PageHeader>
       {loading ? (

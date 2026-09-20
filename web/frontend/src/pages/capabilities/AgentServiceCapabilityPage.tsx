@@ -85,7 +85,7 @@ export function AgentServiceCapabilityPage() {
 
   return (
     <div>
-      <PageHeader title="업타임" subtitle="Docker에서 발견한 서비스와 직접 추가한 업타임 모니터를 확인합니다.">
+      <PageHeader title="업타임" subtitle="서비스가 정상적으로 응답하는지 확인하고, 장애가 발생한 대상을 빠르게 찾습니다.">
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가하기</Button>
       </PageHeader>
 
