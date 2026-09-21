@@ -42,6 +42,7 @@ import type {
   InfrastructureResource,
   InfrastructureResourceInput,
   InfrastructureResourceSetup,
+  TimelineIncident,
 } from './api';
 
 // ?? Notifications ?????????????????????????????????????????????????????????????
@@ -868,6 +869,47 @@ function scenarioMonitors(scenario: MockScenario): UptimeMonitor[] {
   return mockUptimeMonitors;
 }
 
+// Outage history for the overview timeline. `normal` keeps the resolved
+// episodes: a timeline whose only value is "nothing is wrong right now"
+// duplicates the attention panel — the point is showing that it has been quiet.
+function scenarioTimeline(scenario: MockScenario): TimelineIncident[] {
+  if (scenario === 'empty') return [];
+  const at = (minutesAgo: number) => new Date(nowAgent - minutesAgo * 60_000).toISOString();
+  const resolved: TimelineIncident[] = [
+    {
+      source: 'uptime',
+      targetName: 'Storefront',
+      targetPath: '/uptime/uptime_mock_store',
+      startedAt: at(310),
+      endedAt: at(268),
+      durationSec: 42 * 60,
+      active: false,
+      message: 'HTTP 503 from origin',
+    },
+    {
+      source: 'docker',
+      targetName: 'api',
+      targetPath: '/services/agent_demo_01/shop%3Aapi',
+      startedAt: at(1450),
+      endedAt: at(1441),
+      durationSec: 9 * 60,
+      active: false,
+    },
+  ];
+  if (scenario === 'normal') return resolved;
+  return [
+    {
+      source: 'docker',
+      targetName: 'payment-worker',
+      targetPath: '/services/agent_demo_01/shop%3Apayment-worker',
+      startedAt: at(124),
+      durationSec: 124 * 60,
+      active: true,
+    },
+    ...resolved,
+  ];
+}
+
 function scenarioObservedServices(scenario: MockScenario): ObservedService[] {
   if (scenario === 'empty') return [];
   if (scenario !== 'normal') return mockObservedServices;
@@ -1319,6 +1361,10 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     }) as T;
   }
 
+  // /incidents/timeline — cross-target outage history for the overview.
+  // Mirrors the real merge: uptime episodes carry a message, Docker ones do not,
+  // and direct-connection services are absent because they keep no history.
+  if (endpoint.startsWith('/incidents/timeline')) return scenarioTimeline(scenario) as T;
   // /agents/services/all — must come before /agents/:id/services
   if (endpoint === '/agents/services/all') return scenarioServices(scenario) as T;
   // /agents/overview — home card KPI rollup

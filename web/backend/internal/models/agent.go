@@ -68,6 +68,9 @@ type ServiceUptimeDay struct {
 // AgentIncident is one unhealthy episode of an agent service, derived from
 // consecutive healthy=0 runs in agent_service_history.
 type AgentIncident struct {
+	// AgentID is set on every episode so a cross-agent timeline can link back to
+	// the right service; the per-agent endpoint already knows it from the URL.
+	AgentID     string     `json:"agentId,omitempty"`
 	Key         string     `json:"key"`
 	ServiceName string     `json:"serviceName"`
 	StartedAt   time.Time  `json:"startedAt"`

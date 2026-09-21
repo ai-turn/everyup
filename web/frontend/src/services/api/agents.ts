@@ -156,12 +156,36 @@ export interface AgentOverview {
 
 // One unhealthy episode derived from service history (project dashboard).
 export interface AgentIncident {
+  agentId?: string; // set on cross-agent queries so the episode can be linked
   key: string;
   serviceName: string;
   startedAt: string;
   endedAt?: string; // absent while still unhealthy
   durationSec: number;
   active: boolean;
+}
+
+// Which subsystem recorded a timeline episode. `uptime` episodes come from the
+// checker with an explicit start/end; `docker` episodes are derived from health
+// samples, so their edges are only as precise as the sampling interval.
+export type IncidentSource = 'uptime' | 'docker';
+
+/**
+ * One outage episode in the cross-target overview timeline.
+ *
+ * Direct-connection services never appear: they keep only a last-seen
+ * timestamp and no history, so there is nothing to derive an episode from.
+ * Label the timeline's scope rather than implying it covers every target.
+ */
+export interface TimelineIncident {
+  source: IncidentSource;
+  targetName: string;
+  targetPath: string; // server-built route, so the client need not branch on source
+  startedAt: string;
+  endedAt?: string; // absent while still down
+  durationSec: number;
+  active: boolean;
+  message?: string; // uptime episodes only
 }
 
 export const agentsApi = {
@@ -275,6 +299,10 @@ export const agentsApi = {
   // Project-level uptime rollup across all of the agent's services.
   getAgentUptime: (agentId: string, days = 90) =>
     request<ServiceUptimeDay[]>(`/agents/${agentId}/uptime?days=${days}`),
+  // Outage episodes across uptime monitors and Docker services, newest first.
+  // Direct-connection services are absent by construction — see TimelineIncident.
+  getIncidentTimeline: (days = 7, limit = 20) =>
+    request<TimelineIncident[]>(`/incidents/timeline?days=${days}&limit=${limit}`),
   // Unhealthy episodes derived from service history, newest first.
   getAgentIncidents: (agentId: string, days = 30, limit = 20) =>
     request<AgentIncident[]>(`/agents/${agentId}/incidents?days=${days}&limit=${limit}`),

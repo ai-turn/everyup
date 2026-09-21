@@ -1002,3 +1002,97 @@ func TestAgentServiceLogs_KeyResolution(t *testing.T) {
 		}
 	}
 }
+
+// The overview timeline merges two subsystems that record outages differently:
+// uptime monitors write explicit rows to `incidents`, Docker services only leave
+// health samples in `agent_service_history`. This asserts both arrive in one
+// newest-first list with links the client can follow without branching.
+func TestIncidentTimelineMergesUptimeAndDockerSources(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "timeline-pass-1")
+	now := time.Now()
+
+	// --- uptime monitor with a resolved outage ---
+	svcRepo := database.NewServiceRepository()
+	monitor := models.Service{
+		ID: "mon-1", Name: "Storefront", Type: "http", IsActive: true,
+		URL: "https://store.example.com/health", Method: "GET",
+		ExpectedStatus: 200, Interval: 60, Timeout: 5000,
+	}
+	if err := svcRepo.Create(&monitor); err != nil {
+		t.Fatalf("create monitor: %v", err)
+	}
+	resolved := now.Add(-4 * time.Hour)
+	if _, err := database.DB.Exec(
+		`INSERT INTO incidents (service_id, type, message, started_at, resolved_at) VALUES (?, ?, ?, ?, ?)`,
+		monitor.ID, "down", "503 from origin", now.Add(-5*time.Hour), resolved,
+	); err != nil {
+		t.Fatalf("seed incident: %v", err)
+	}
+
+	// --- Docker service still down, more recent than the uptime episode ---
+	agentRepo := database.NewAgentRepository()
+	if err := agentRepo.UpsertAgent(models.Agent{ID: "agent-1", Name: "prod-server", LastSeenAt: now}); err != nil {
+		t.Fatalf("UpsertAgent: %v", err)
+	}
+	dockerSvc := func(healthy bool) models.AgentService {
+		// A ':' in the key must survive the round trip into a URL path segment.
+		return models.AgentService{
+			AgentID: "agent-1", Key: "shop:payment-worker", Name: "payment-worker",
+			CheckType: "http", Endpoint: "http://payment-worker:8090/health", Healthy: healthy,
+		}
+	}
+	for _, step := range []struct {
+		at time.Time
+		ok bool
+	}{
+		{now.Add(-3 * time.Hour), true},
+		{now.Add(-2 * time.Hour), false},
+		{now.Add(-1 * time.Hour), false},
+	} {
+		if err := agentRepo.UpsertServices("agent-1", step.at, []models.AgentService{dockerSvc(step.ok)}); err != nil {
+			t.Fatalf("UpsertServices: %v", err)
+		}
+	}
+
+	_, result := ts.doRequest(t, "GET", "/api/v1/incidents/timeline?days=7&limit=20", nil, authHeader(token)...)
+	if !result.Success {
+		t.Fatalf("timeline request failed: %+v", result.Error)
+	}
+
+	raw, err := json.Marshal(result.Data)
+	if err != nil {
+		t.Fatalf("re-marshal data: %v", err)
+	}
+	var episodes []models.TimelineIncident
+	if err := json.Unmarshal(raw, &episodes); err != nil {
+		t.Fatalf("decode timeline: %v", err)
+	}
+	if len(episodes) != 2 {
+		t.Fatalf("expected one episode per source, got %d: %+v", len(episodes), episodes)
+	}
+
+	// Newest first: the Docker outage started 2h ago, the uptime one 5h ago.
+	docker, uptime := episodes[0], episodes[1]
+	if docker.Source != models.IncidentSourceDocker || uptime.Source != models.IncidentSourceUptime {
+		t.Fatalf("wrong order or sources: %+v", episodes)
+	}
+	if !docker.Active || docker.EndedAt != nil {
+		t.Fatalf("docker episode should still be open: %+v", docker)
+	}
+	if docker.TargetName != "payment-worker" || docker.TargetPath != "/services/agent-1/shop%3Apayment-worker" {
+		t.Fatalf("docker link is not followable: %+v", docker)
+	}
+	if uptime.Active || uptime.EndedAt == nil {
+		t.Fatalf("uptime episode should be resolved: %+v", uptime)
+	}
+	if uptime.TargetName != "Storefront" || uptime.TargetPath != "/uptime/mon-1" {
+		t.Fatalf("uptime link is not followable: %+v", uptime)
+	}
+	if uptime.Message != "503 from origin" {
+		t.Fatalf("uptime message dropped: %+v", uptime)
+	}
+	if uptime.DurationSec != 3600 {
+		t.Fatalf("resolved duration should be start→resolve, got %d", uptime.DurationSec)
+	}
+}

@@ -713,17 +713,35 @@ func uptimeByDay(query string, args ...interface{}) ([]models.ServiceUptimeDay, 
 // agent_service_history: a run of healthy=0 checks is one incident, closed by
 // the first healthy check after it. Newest first, capped at limit.
 func (r *AgentRepository) GetAgentIncidents(agentID string, days, limit int) ([]models.AgentIncident, error) {
+	return r.agentIncidents(agentID, days, limit)
+}
+
+// GetAllAgentIncidents applies the same derivation across every agent. Episodes
+// are grouped by (agent_id, key), not key alone — the same service key can exist
+// under two agents, and merging them would invent one long fake outage.
+func (r *AgentRepository) GetAllAgentIncidents(days, limit int) ([]models.AgentIncident, error) {
+	return r.agentIncidents("", days, limit)
+}
+
+// agentIncidents is the shared derivation; agentID == "" scans every agent.
+func (r *AgentRepository) agentIncidents(agentID string, days, limit int) ([]models.AgentIncident, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 20
 	}
 	since := time.Now().AddDate(0, 0, -days)
-	rows, err := DB.Query(`
-SELECT h.key, COALESCE(s.name, h.key), h.healthy, h.recorded_at
+	query := `
+SELECT h.agent_id, h.key, COALESCE(s.name, h.key), h.healthy, h.recorded_at
 FROM agent_service_history h
 LEFT JOIN agent_services s ON s.agent_id = h.agent_id AND s.key = h.key
-WHERE h.agent_id = ? AND h.recorded_at >= ?
-ORDER BY h.key, h.recorded_at`,
-		agentID, since)
+WHERE h.recorded_at >= ?`
+	args := []any{since}
+	if agentID != "" {
+		query += ` AND h.agent_id = ?`
+		args = append(args, agentID)
+	}
+	query += ` ORDER BY h.agent_id, h.key, h.recorded_at`
+
+	rows, err := DB.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -731,25 +749,25 @@ ORDER BY h.key, h.recorded_at`,
 
 	incidents := make([]models.AgentIncident, 0)
 	var open *models.AgentIncident
-	prevKey := ""
+	prevAgent, prevKey := "", ""
 	for rows.Next() {
-		var key, name string
+		var agent, key, name string
 		var healthy int
 		var recordedAt time.Time
-		if err := rows.Scan(&key, &name, &healthy, &recordedAt); err != nil {
+		if err := rows.Scan(&agent, &key, &name, &healthy, &recordedAt); err != nil {
 			return nil, err
 		}
-		if key != prevKey {
-			// key boundary: an episode still open for the previous key stays active
+		if agent != prevAgent || key != prevKey {
+			// group boundary: an episode still open for the previous one stays active
 			if open != nil {
 				incidents = append(incidents, *open)
 				open = nil
 			}
-			prevKey = key
+			prevAgent, prevKey = agent, key
 		}
 		switch {
 		case healthy == 0 && open == nil:
-			open = &models.AgentIncident{Key: key, ServiceName: name, StartedAt: recordedAt, Active: true}
+			open = &models.AgentIncident{AgentID: agent, Key: key, ServiceName: name, StartedAt: recordedAt, Active: true}
 		case healthy == 1 && open != nil:
 			ended := recordedAt
 			open.EndedAt = &ended

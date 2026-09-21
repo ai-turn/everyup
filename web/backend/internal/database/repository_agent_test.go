@@ -207,3 +207,76 @@ func TestAgentUptimeAndIncidents(t *testing.T) {
 		t.Fatalf("resolved incident duration: %d", got)
 	}
 }
+
+// GetAllAgentIncidents must group episodes by (agent_id, key). Two agents
+// running a service under the same key are different targets; merging them
+// would splice their samples into one long fake outage.
+func TestAllAgentIncidentsGroupByAgentAndKey(t *testing.T) {
+	openTestDB(t)
+
+	repo := database.NewAgentRepository()
+	now := time.Now()
+	for _, id := range []string{"agent-a", "agent-b"} {
+		if err := repo.UpsertAgent(models.Agent{ID: id, Name: id, LastSeenAt: now}); err != nil {
+			t.Fatalf("UpsertAgent %s: %v", id, err)
+		}
+	}
+
+	svc := func(agentID string, healthy bool) models.AgentService {
+		// Same key on both agents — that is the whole point of this test.
+		return models.AgentService{AgentID: agentID, Key: "api", Name: "api", CheckType: "http", Endpoint: "http://x", Healthy: healthy}
+	}
+	// agent-a is STILL DOWN at the end of its samples; agent-b recovers.
+	// Rows arrive ordered by agent_id, so agent-a's open episode is live exactly
+	// when agent-b's first healthy sample is read. Grouping by key alone would
+	// let that sample close agent-a's episode — the episode would report as
+	// resolved, with an end timestamp that precedes its own start.
+	steps := []struct {
+		at  time.Time
+		aOK bool
+		bOK bool
+	}{
+		{now.Add(-3 * time.Hour), true, true},
+		{now.Add(-2 * time.Hour), false, false},
+		{now.Add(-1 * time.Hour), false, true},
+	}
+	for _, s := range steps {
+		if err := repo.UpsertServices("agent-a", s.at, []models.AgentService{svc("agent-a", s.aOK)}); err != nil {
+			t.Fatalf("UpsertServices agent-a: %v", err)
+		}
+		if err := repo.UpsertServices("agent-b", s.at, []models.AgentService{svc("agent-b", s.bOK)}); err != nil {
+			t.Fatalf("UpsertServices agent-b: %v", err)
+		}
+	}
+
+	all, err := repo.GetAllAgentIncidents(30, 20)
+	if err != nil {
+		t.Fatalf("GetAllAgentIncidents: %v", err)
+	}
+	if len(all) != 2 {
+		t.Fatalf("expected one episode per agent, got %d: %+v", len(all), all)
+	}
+
+	byAgent := map[string]models.AgentIncident{}
+	for _, in := range all {
+		if in.AgentID == "" {
+			t.Fatalf("episode is missing AgentID, cross-agent links would break: %+v", in)
+		}
+		byAgent[in.AgentID] = in
+	}
+	if a, ok := byAgent["agent-a"]; !ok || !a.Active || a.EndedAt != nil {
+		t.Fatalf("agent-a should still be down, not closed by agent-b's sample: %+v", byAgent["agent-a"])
+	}
+	if b, ok := byAgent["agent-b"]; !ok || b.Active || b.EndedAt == nil {
+		t.Fatalf("agent-b should have a closed episode: %+v", byAgent["agent-b"])
+	}
+
+	// The per-agent entry point must keep its original behaviour.
+	scoped, err := repo.GetAgentIncidents("agent-b", 30, 20)
+	if err != nil {
+		t.Fatalf("GetAgentIncidents: %v", err)
+	}
+	if len(scoped) != 1 || scoped[0].AgentID != "agent-b" {
+		t.Fatalf("scoped query leaked other agents: %+v", scoped)
+	}
+}

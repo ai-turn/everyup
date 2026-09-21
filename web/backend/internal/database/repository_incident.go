@@ -15,6 +15,53 @@ func NewIncidentRepository() *IncidentRepository {
 	return &IncidentRepository{}
 }
 
+// UptimeIncident is one episode from the `incidents` table joined to the uptime
+// monitor that produced it. Unlike Docker episodes these are stored explicitly
+// by the checker, so start/end and message are recorded rather than derived.
+type UptimeIncident struct {
+	ServiceID   string
+	ServiceName string
+	Message     string
+	StartedAt   time.Time
+	ResolvedAt  *time.Time
+}
+
+// GetRecentUptimeIncidents returns uptime-monitor episodes started within the
+// window, newest first. Episodes that began before the window but are still
+// open are included — an outage running for a week is exactly what a timeline
+// must not hide.
+func (r *IncidentRepository) GetRecentUptimeIncidents(days, limit int) ([]UptimeIncident, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+	since := time.Now().AddDate(0, 0, -days)
+	rows, err := DB.Query(`
+SELECT i.service_id, COALESCE(s.name, i.service_id), COALESCE(i.message, ''), i.started_at, i.resolved_at
+FROM incidents i
+LEFT JOIN services s ON s.id = i.service_id
+WHERE i.started_at >= ? OR i.resolved_at IS NULL
+ORDER BY i.started_at DESC
+LIMIT ?`, since, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make([]UptimeIncident, 0)
+	for rows.Next() {
+		var in UptimeIncident
+		var resolved sql.NullTime
+		if err := rows.Scan(&in.ServiceID, &in.ServiceName, &in.Message, &in.StartedAt, &resolved); err != nil {
+			return nil, err
+		}
+		if resolved.Valid {
+			in.ResolvedAt = &resolved.Time
+		}
+		out = append(out, in)
+	}
+	return out, rows.Err()
+}
+
 // Create creates a new incident
 func (r *IncidentRepository) Create(i *models.Incident) error {
 	result, err := DB.Exec(`

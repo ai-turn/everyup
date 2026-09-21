@@ -92,6 +92,24 @@ test.describe('live demo', () => {
     await expect(page.getByText('현재 확인이 필요한 이상이 없습니다')).toBeVisible();
   });
 
+  test('overview timeline lists outages from both history sources', async ({ page }) => {
+    await page.goto('./');
+
+    const timeline = page.getByRole('region', { name: '최근 장애 이력' });
+    await expect(timeline).toBeVisible();
+    // Scope is part of the claim: direct-connection services keep no history,
+    // so the card must not imply it covers every monitored target.
+    await expect(timeline.getByText('업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.')).toBeVisible();
+
+    // An ongoing Docker outage and a resolved uptime episode, newest first.
+    await expect(timeline.getByRole('link', { name: /payment-worker/ })).toBeVisible();
+    await expect(timeline.getByText('HTTP 503 from origin')).toBeVisible();
+
+    // The server builds targetPath; following it must land on the real target.
+    await timeline.getByRole('link', { name: /payment-worker/ }).click();
+    await expect(page.getByRole('navigation', { name: '현재 위치' })).toContainText('payment-worker');
+  });
+
   test('partial failure preserves successful overview regions', async ({ page }) => {
     await page.goto('./');
     await page.getByRole('button', { name: '데모 시나리오' }).click();

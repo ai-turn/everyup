@@ -20,27 +20,12 @@ import { AgentServiceRequestTrends } from '../../features/healthcheck/components
 import { AgentCheckHistoryBar } from '../../features/healthcheck/components/AgentCheckHistoryBar';
 import { getErrorMessage } from '../../utils/errors';
 import { activatable } from '../../utils/a11y';
+import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 
 function agentOnline(agent: ConnectedAgent): boolean {
   return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
 }
 
-function formatDuration(sec: number): string {
-  if (sec < 60) return `${sec}초`;
-  const m = Math.floor(sec / 60);
-  if (m < 60) return `${m}분`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}시간 ${m % 60}분`;
-  return `${Math.floor(h / 24)}일 ${h % 24}시간`;
-}
-
-function formatIncidentTime(iso: string): string {
-  const d = new Date(iso);
-  const sameDay = new Date().toDateString() === d.toDateString();
-  return sameDay
-    ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-}
 
 // One KPI stat card for the project dashboard header row.
 function KpiCard({ label, value, unit, sub, tone }: {

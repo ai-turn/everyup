@@ -67,6 +67,8 @@ export type {
   ServiceUptimeDay,
   AgentIncident,
   AgentOverview,
+  IncidentSource,
+  TimelineIncident,
 } from './agents';
 export type {
   ApiRequestStatBucket,
