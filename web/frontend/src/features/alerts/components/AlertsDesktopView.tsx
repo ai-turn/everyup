@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, MaterialIcon, PageHeader, EmptyState, Toggle } from '../../../components/common';
+import { Button, IconButton, MaterialIcon, PageHeader, EmptyState, Toggle } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { AlertRulesTab } from './AlertRulesTab';
 import { ChannelForm } from './ChannelForm';
@@ -380,28 +380,12 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => onTest(channel.id)}
-                      disabled={!channel.isEnabled}
-                      className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-ui-border-dark dark:bg-bg-surface-dark dark:text-text-base-dark dark:hover:bg-ui-hover-dark"
-                    >
+                    <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} className="whitespace-nowrap">
                       <MaterialIcon size={16} name="send" />
                       테스트
-                    </button>
-                    <button
-                      onClick={() => onEdit(channel)}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-ui-hover-dark dark:hover:text-white"
-                      aria-label="수정" title="수정"
-                    >
-                      <MaterialIcon size={16} name="edit" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(channel.id)}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
-                      aria-label="삭제" title="삭제"
-                    >
-                      <MaterialIcon size={16} name="delete_outline" />
-                    </button>
+                    </Button>
+                    <IconButton icon="edit" label="수정" size="sm" onClick={() => onEdit(channel)} />
+                    <IconButton icon="delete_outline" label="삭제" size="sm" tone="danger" onClick={() => onDelete(channel.id)} />
                   </div>
                 </td>
               </tr>

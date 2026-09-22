@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CopyButton, MaterialIcon } from '../../../components/common';
+import { CopyButton, ICON_ACTION_SM, MaterialIcon } from '../../../components/common';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
 import { useOverlay, SCRIM_PANEL } from '../../../hooks/useOverlay';
 import { getErrorMessage } from '../../../utils/errors';
@@ -70,7 +70,7 @@ function copyButton(onCopy: () => Promise<boolean>, label: string) {
   return (
     <CopyButton
       onCopy={onCopy}
-      className="ml-auto shrink-0 rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-ui-active-dark dark:hover:text-slate-200"
+      className={`${ICON_ACTION_SM} ml-auto`}
       title={label}
     />
   );
@@ -313,7 +313,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           </code>
           <CopyButton
             onCopy={() => copy(traceId)}
-            className="p-1 rounded hover:bg-ui-hover text-slate-400 hover:text-text-secondary cursor-pointer shrink-0"
+            className={ICON_ACTION_SM}
             title="트레이스 ID 복사"
           />
           <button

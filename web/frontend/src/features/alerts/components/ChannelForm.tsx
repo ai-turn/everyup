@@ -467,13 +467,13 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     {watchedType === 'telegram' ? (
                                         <>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-slate-400 font-mono uppercase text-xs tracking-wide">Bot Token</span>
+                                                <span className="text-slate-400 uppercase text-xs tracking-wide">Bot Token</span>
                                                 <span className="font-mono text-text-muted">
                                                     {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim italic">미입력</span>}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-slate-400 font-mono uppercase text-xs tracking-wide">Chat ID</span>
+                                                <span className="text-slate-400 uppercase text-xs tracking-wide">Chat ID</span>
                                                 <span className="font-mono text-text-muted">
                                                     {watchedChatId || <span className="text-text-dim italic">미입력</span>}
                                                 </span>
@@ -481,7 +481,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         </>
                                     ) : (
                                         <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg gap-3">
-                                            <span className="text-slate-400 font-mono uppercase text-xs tracking-wide shrink-0">Webhook</span>
+                                            <span className="text-slate-400 uppercase text-xs tracking-wide shrink-0">Webhook</span>
                                             <span className="font-mono text-text-muted truncate text-right">
                                                 {watchedWebhook
                                                     ? watchedWebhook.replace(/^https?:\/\//, '').slice(0, 32) + (watchedWebhook.length > 40 ? '…' : '')

@@ -9,13 +9,13 @@ import {
   EmptyState,
   MaterialIcon,
   PageHeader,
-  Select,
   TimeRangePicker,
   type GlobalTimeRange,
 } from '../../components/common';
 import { DirectServiceMetricsTab } from '../../features/healthcheck/components/AgentServiceMetricsTab';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/RotatedTelemetryKeyDialog';
+import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -133,7 +133,25 @@ export function DirectMetricsDetailPage() {
 
   return (
     <div>
-      <PageHeader title={service.name} subtitle="직접 연결한 OpenTelemetry Metrics 서비스입니다." />
+      <PageHeader
+        title={service.name}
+        subtitle="직접 연결한 OpenTelemetry Metrics 서비스입니다."
+        meta={
+          <DirectConnectionMeta
+            isActive={service.isActive}
+            apiKeyMasked={service.apiKeyMasked}
+            lastSeenAt={service.lastSeenAt}
+            detail={{ label: '허용 신호', value: service.signals.join(', ') }}
+            onRotateKey={() => setConfirmAction('rotate')}
+            projects={projects}
+            projectId={projectId}
+            savedProjectId={service.projectId ?? ''}
+            onProjectChange={setProjectId}
+            onSaveProject={() => void saveProject()}
+            savingProject={savingProject}
+          />
+        }
+      />
       <DetailActionToolbar
         controls={
           <>
@@ -145,45 +163,10 @@ export function DirectMetricsDetailPage() {
           <>
           <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'direct', serviceId: service.id }))}><MaterialIcon name="notifications" />알림 규칙</Button>
           {service.isActive && <Button variant="ghost" onClick={() => setConfirmAction('revoke')}><MaterialIcon name="block" />연결 중지</Button>}
-          <Button variant="ghost" className="text-status-error hover:text-status-error" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete" />삭제</Button>
+          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete" />삭제</Button>
           </>
         }
       />
-
-      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <section className="rounded-xl border border-ui-border bg-bg-surface p-5 lg:col-span-2">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <h2 className="type-card-title text-text-base">직접 수집 연결</h2>
-            <span className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs ${service.isActive ? 'bg-status-healthy/10 text-status-healthy' : 'bg-status-error/10 text-status-error'}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${service.isActive ? 'bg-status-healthy' : 'bg-status-error'}`} aria-hidden="true" />
-              {service.isActive ? '수집 가능' : '중지됨'}
-            </span>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-ui-hover-soft p-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-text-dim">수집 키</p>
-              <p className="mt-1 truncate font-mono text-sm text-text-secondary">{service.apiKeyMasked || '마스킹된 키 없음'}</p>
-            </div>
-            <Button variant="secondary" size="sm" onClick={() => setConfirmAction('rotate')}><MaterialIcon name="key" />키 재발급</Button>
-          </div>
-          <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-lg bg-ui-hover-soft p-3"><dt className="text-xs text-text-dim">마지막 수집</dt><dd className="mt-1 text-sm text-text-secondary">{service.lastSeenAt ? new Date(service.lastSeenAt).toLocaleString() : '아직 없음'}</dd></div>
-            <div className="rounded-lg bg-ui-hover-soft p-3"><dt className="text-xs text-text-dim">허용 신호</dt><dd className="mt-1 font-mono text-sm text-text-secondary">{service.signals.join(', ')}</dd></div>
-          </dl>
-        </section>
-
-        <section className="rounded-xl border border-ui-border bg-bg-surface p-5">
-          <h2 className="type-card-title text-text-base">Project</h2>
-          <p className="mt-1 text-sm text-text-muted">직접 서비스는 Docker 환경과 별도로 Project에 배정합니다.</p>
-          <div className="mt-4 space-y-3">
-            <Select value={projectId} onChange={event => setProjectId(event.target.value)} aria-label="Project 선택">
-              <option value="">미분류</option>
-              {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
-            </Select>
-            <Button size="sm" onClick={() => void saveProject()} disabled={savingProject || projectId === (service.projectId ?? '')}>{savingProject ? '저장 중...' : '배정 저장'}</Button>
-          </div>
-        </section>
-      </div>
 
       <DirectServiceMetricsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} />
 

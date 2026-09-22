@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button, MaterialIcon, PageHeader, Toggle } from '../../../components/common';
+import { Button, IconButton, MaterialIcon, PageHeader, Toggle } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { getChannelStyle } from '../utils/channelMeta';
 import { ChannelHealthMeta } from './ChannelHealthMeta';
@@ -197,20 +197,8 @@ export function AlertsMobileView({
                       <MaterialIcon size={16} name="send" />
                       {testingIds.has(channel.id) ? '전송 중' : '테스트'}
                     </Button>
-                    <button
-                      onClick={() => onEditChannel(channel)}
-                      aria-label="채널 편집"
-                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-ui-hover text-text-muted transition-colors active:scale-95"
-                    >
-                      <MaterialIcon size={16} name="edit" />
-                    </button>
-                    <button
-                      onClick={() => onDeleteChannel(channel.id)}
-                      aria-label="채널 삭제"
-                      className="flex h-10 w-10 items-center justify-center rounded-lg text-status-error transition-colors hover:bg-ui-hover active:scale-95"
-                    >
-                      <MaterialIcon size={16} name="delete" />
-                    </button>
+                    <IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} />
+                    <IconButton icon="delete" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} />
                   </div>
                 </div>
               );

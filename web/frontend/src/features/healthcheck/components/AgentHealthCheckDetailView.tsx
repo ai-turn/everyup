@@ -1,7 +1,7 @@
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, MaterialIcon, StatusBadge, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
+import { Button, IconButton, MaterialIcon, StatusBadge, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
 import { useSpinAction } from '../../../hooks/useSpinAction';
 import { useIsMobile } from '../../../hooks/useMediaQuery';
 import type { AgentServiceFlat } from '../../../services/api';
@@ -69,15 +69,7 @@ function ContainerMeta({ service }: { service: AgentServiceFlat }) {
 
 function RefreshButton({ onRefresh }: { onRefresh: () => void }) {
   const { spinning, trigger: handleRefresh } = useSpinAction(onRefresh);
-  return (
-    <button
-      onClick={handleRefresh}
-      aria-label="새로고침" title="새로고침"
-      className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-muted hover:text-text-base hover:bg-ui-hover transition-colors"
-    >
-      <MaterialIcon size={20} name="refresh" className={`${spinning ? 'animate-spin' : ''}`} />
-    </button>
-  );
+  return <IconButton icon="refresh" label="새로고침" onClick={handleRefresh} iconClassName={spinning ? 'animate-spin' : ''} />;
 }
 
 function DesktopLayout(props: LayoutProps) {

@@ -27,7 +27,7 @@ export function ChartStatsLegend({
   if (rows.length === 0) return null;
 
   return (
-    <table className="w-full text-xs font-mono tabular-nums">
+    <table className="w-full text-xs">
       <thead>
         <tr className="text-text-dim">
           <th className="py-0.5 text-left font-medium" />
@@ -54,7 +54,7 @@ export function ChartStatsLegend({
                 </span>
               </td>
               {stats.map(([key, v]) => (
-                <td key={key} className="text-right">
+                <td key={key} className="text-right font-mono tabular-nums">
                   {valueFormatter(v)}
                   <span className="ml-0.5 text-text-dim">{unit}</span>
                 </td>

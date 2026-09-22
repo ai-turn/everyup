@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
-import { Button, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
+import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { api, type AlertRule, type NotificationChannel, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
@@ -534,31 +534,15 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                             disabled={togglingIds.has(rule.id)}
                             title={rule.isEnabled ? '비활성화' : '활성화'}
                           />
-                          <button
-                            onClick={() => handleEdit(rule)}
-                            className="p-1 text-slate-500 hover:text-text-base hover:bg-ui-hover rounded transition-all"
-                            aria-label="수정"
-                          title="수정"
-                          >
-                            <MaterialIcon size={16} name="edit" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (!rule.isSystem) setDeleteTargetId(rule.id);
-                            }}
-                            aria-label="삭제"
+                          <IconButton icon="edit" label="수정" size="sm" onClick={() => handleEdit(rule)} />
+                          <IconButton
+                            icon="delete_outline"
+                            label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'}
+                            size="sm"
+                            tone="danger"
                             disabled={rule.isSystem || isDeleting}
-                            className={`p-1 rounded transition-all ${
-                              rule.isSystem
-                                ? 'cursor-not-allowed text-text-dim'
-                                : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50'
-                            }`}
-                            title={rule.isSystem
-                              ? '시스템 규칙은 삭제할 수 없습니다'
-                              : '삭제'}
-                          >
-                            <MaterialIcon size={16} name="delete_outline" />
-                          </button>
+                            onClick={() => setDeleteTargetId(rule.id)}
+                          />
                         </div>
                       </td>
                     </tr>

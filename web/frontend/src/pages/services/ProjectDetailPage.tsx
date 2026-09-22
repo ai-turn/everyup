@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
+import { IconButton } from '../../components/common/IconButton';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import {
@@ -273,48 +274,13 @@ export function ProjectDetailPage() {
           </p>
         </div>
         <div className="flex self-end items-center gap-1 shrink-0 md:self-auto">
-          <button
-            onClick={handleRefresh}
-            aria-label="새로고침"
-            title="새로고침"
-            className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-text-base hover:bg-ui-hover transition-colors"
-          >
-            <MaterialIcon size={20} name="refresh" className={`${spinning ? 'animate-spin' : ''}`} />
-          </button>
+          <IconButton icon="refresh" label="새로고침" onClick={handleRefresh} iconClassName={spinning ? 'animate-spin' : ''} />
           {agent && (
             <>
-              <button
-                onClick={() => setShowInstall(true)}
-                aria-label="Docker 수집기 설치 또는 재설치"
-                title="Docker 수집기 설치 또는 재설치"
-                className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
-              >
-                <MaterialIcon size={20} name="download" />
-              </button>
-              <button
-                onClick={() => setShowKey(true)}
-                aria-label="API 키 보기"
-                title="API 키 보기"
-                className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
-              >
-                <MaterialIcon size={20} name="key" />
-              </button>
-              <button
-                onClick={() => setShowInstrumentation(true)}
-                aria-label="OTel 계측 설정 (헤더·바디)"
-                title="OTel 계측 설정 (헤더·바디)"
-                className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
-              >
-                <MaterialIcon size={20} name="integration_instructions" />
-              </button>
-              <button
-                onClick={() => setDeleteConfirm(true)}
-                aria-label="Docker 환경 비활성화"
-                title="Docker 환경 비활성화"
-                className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-              >
-                <MaterialIcon size={20} name="delete_outline" />
-              </button>
+              <IconButton icon="download" label="Docker 수집기 설치 또는 재설치" onClick={() => setShowInstall(true)} />
+              <IconButton icon="key" label="API 키 보기" onClick={() => setShowKey(true)} />
+              <IconButton icon="integration_instructions" label="OTel 계측 설정 (헤더·바디)" onClick={() => setShowInstrumentation(true)} />
+              <IconButton icon="delete_outline" label="Docker 환경 비활성화" tone="danger" onClick={() => setDeleteConfirm(true)} />
             </>
           )}
         </div>

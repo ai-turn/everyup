@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CopyButton, COPY_ACTION_PRIMARY } from '../../../components/common/CopyButton';
+import { ICON_ACTION_SM } from '../../../components/common/IconButton';
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
 import { Input } from '../../../components/common/Input';
 import { Select } from '../../../components/common/Select';
@@ -73,7 +74,7 @@ function CommandRow({
         <CopyButton
           onCopy={() => onCopy(command)}
           title={`${label} 복사`}
-          className="rounded p-1 text-slate-500 hover:text-primary"
+          className={ICON_ACTION_SM}
         />
       </div>
       <code className="block overflow-x-auto whitespace-nowrap font-mono text-xs text-text-secondary">

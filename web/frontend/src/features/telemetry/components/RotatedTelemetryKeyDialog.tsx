@@ -23,7 +23,7 @@ export function RotatedTelemetryKeyDialog({
     >
       <div className="flex items-center justify-between border-b border-ui-border px-6 py-4">
         <h2 id="rotated-telemetry-key-title" className="type-card-title text-text-base">직접 수집 키 재발급</h2>
-        <Button variant="ghost" size="sm" aria-label="닫기" onClick={onClose}><MaterialIcon name="close" /></Button>
+        <Button variant="quiet" size="sm" aria-label="닫기" onClick={onClose}><MaterialIcon name="close" /></Button>
       </div>
       <DirectTelemetrySetupResult setup={setup} title="새 키가 발급되었습니다" onDone={onClose} />
     </dialog>

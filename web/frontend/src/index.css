@@ -37,6 +37,12 @@
   --color-primary: #3b76c9;
   --color-primary-dark: #3F6FDB;
 
+  /* 액션 어포던스 전용 primary 변주 — 채움 없는 버튼의 라벨·아이콘 색.
+     primary 자체는 표면 위 텍스트로 쓰면 AA 미달이다(라이트 4.15 / 다크 3.15,
+     둘 다 hover 배경 기준). 이 값은 표면·hover 배경 모두에서 4.5를 넘는다. */
+  --color-action: #1e5fb3;
+  --color-action-dark: #7aa2f7;
+
   /* 2. Backgrounds */
   --color-bg-main: #fbfcfe;
   --color-bg-main-dark: #0d1117;   /* GitHub Dark 수준 — 눈 피로 감소 */
@@ -94,8 +100,14 @@
      bg-bg-surface로 통합했다. 쓰이지 않던 chart-surface/chart-hover/text-chart-dim도 함께 제거. */
   --color-chart-border: #e2e8f0;
 
-  /* 8. Mono: 숫자·코드·타임스탬프 전용. font-mono 유틸리티 전체에 자동 반영 */
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  /* 7. Sans: 본문 전용. body와 font-sans 유틸리티가 같은 값을 보게 한다 —
+     토큰을 안 정의하면 font-sans가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다. */
+  --font-sans: 'Spoqa Han Sans Neo', system-ui, sans-serif;
+
+  /* 8. Mono: 숫자·코드·타임스탬프 전용. font-mono 유틸리티 전체에 자동 반영.
+     JetBrains Mono에 한글 글리프가 없어 '17회'·'9월 22일'처럼 섞인 값이 브라우저 기본
+     고정폭(굴림 등)으로 떨어졌다. Spoqa를 2순위에 둬 한글만 본문 폰트로 받는다. */
+  --font-mono: 'JetBrains Mono Variable', 'Spoqa Han Sans Neo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* 실제 로드한 굵기와 Tailwind 이름을 그대로 맞춘다: normal 400 / medium 500 / bold 700.
      Spoqa에 없는 600(semibold)은 사용하지 않는다. */
@@ -174,6 +186,7 @@
   /* 시맨틱 토큰 재할당: bg-primary / text-text-muted / border-ui-border 등
      모든 Tailwind 유틸리티에 자동 반영 → 컴포넌트에 dark: 접두 불필요 */
   --color-primary: var(--color-primary-dark);
+  --color-action: var(--color-action-dark);
 
   --color-bg-main: var(--color-bg-main-dark);
   --color-bg-surface: var(--color-bg-surface-dark);
@@ -207,7 +220,7 @@ body {
   margin: 0;
   background-color: var(--app-bg);
   color: var(--app-text);
-  font-family: 'Spoqa Han Sans Neo', system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-weight: 400;
   transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: auto;

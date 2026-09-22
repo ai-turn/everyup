@@ -84,7 +84,7 @@ export function UptimeMonitorDialog({
             </h2>
             <p className="mt-1 text-sm text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
           </div>
-          <Button type="button" variant="ghost" size="sm" aria-label="닫기" onClick={onClose} disabled={saving}>
+          <Button type="button" variant="quiet" size="sm" aria-label="닫기" onClick={onClose} disabled={saving}>
             <MaterialIcon name="close" />
           </Button>
         </div>

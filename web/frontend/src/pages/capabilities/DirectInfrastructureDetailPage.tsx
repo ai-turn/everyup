@@ -9,13 +9,13 @@ import {
   EmptyState,
   MaterialIcon,
   PageHeader,
-  Select,
   TimeRangePicker,
   type GlobalTimeRange,
 } from '../../components/common';
 import { InfraGauges } from '../../features/infra/components/InfraGauges';
 import { InfraTrends } from '../../features/infra/components/InfraTrends';
 import { InfrastructureCollectorKeyDialog } from '../../features/infrastructure/components/InfrastructureCollectorKeyDialog';
+import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -110,7 +110,25 @@ export function DirectInfrastructureDetailPage() {
 
   return (
     <div>
-      <PageHeader title={resource.name} subtitle="표준 OpenTelemetry Collector hostmetrics 리소스입니다." />
+      <PageHeader
+        title={resource.name}
+        subtitle="표준 OpenTelemetry Collector hostmetrics 리소스입니다."
+        meta={
+          <DirectConnectionMeta
+            isActive={resource.isActive}
+            apiKeyMasked={resource.apiKeyMasked}
+            lastSeenAt={resource.lastSeenAt}
+            detail={{ label: '어댑터', value: 'OpenTelemetry Collector' }}
+            onRotateKey={() => setConfirmAction('rotate')}
+            projects={projects}
+            projectId={projectId}
+            savedProjectId={resource.projectId ?? ''}
+            onProjectChange={setProjectId}
+            onSaveProject={() => void saveProject()}
+            savingProject={savingProject}
+          />
+        }
+      />
       <DetailActionToolbar
         controls={
           <>
@@ -122,44 +140,10 @@ export function DirectInfrastructureDetailPage() {
           <>
           <Button variant="secondary" onClick={() => navigate('/alerts')}><MaterialIcon name="notifications" />알림 규칙</Button>
           {resource.isActive && <Button variant="ghost" onClick={() => setConfirmAction('revoke')}><MaterialIcon name="block" />연결 중지</Button>}
-          <Button variant="ghost" className="text-status-error hover:text-status-error" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete" />삭제</Button>
+          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete" />삭제</Button>
           </>
         }
       />
-
-      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <section className="rounded-xl border border-ui-border bg-bg-surface p-5 lg:col-span-2">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <h2 className="type-card-title text-text-base">Collector 연결</h2>
-            <span className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs ${resource.isActive ? 'bg-status-healthy/10 text-status-healthy' : 'bg-status-error/10 text-status-error'}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${resource.isActive ? 'bg-status-healthy' : 'bg-status-error'}`} aria-hidden="true" />
-              {resource.isActive ? '수집 가능' : '중지됨'}
-            </span>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-ui-hover-soft p-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-text-dim">수집 키</p>
-              <p className="mt-1 truncate font-mono text-sm text-text-secondary">{resource.apiKeyMasked || '마스킹된 키 없음'}</p>
-            </div>
-            <Button variant="secondary" size="sm" onClick={() => setConfirmAction('rotate')}><MaterialIcon name="key" />키 재발급</Button>
-          </div>
-          <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-lg bg-ui-hover-soft p-3"><dt className="text-xs text-text-dim">마지막 수집</dt><dd className="mt-1 text-sm text-text-secondary">{resource.lastSeenAt ? new Date(resource.lastSeenAt).toLocaleString() : '아직 없음'}</dd></div>
-            <div className="rounded-lg bg-ui-hover-soft p-3"><dt className="text-xs text-text-dim">어댑터</dt><dd className="mt-1 text-sm text-text-secondary">OpenTelemetry Collector</dd></div>
-          </dl>
-        </section>
-        <section className="rounded-xl border border-ui-border bg-bg-surface p-5">
-          <h2 className="type-card-title text-text-base">Project</h2>
-          <p className="mt-1 text-sm text-text-muted">Collector 리소스는 Docker 환경과 별도로 Project에 배정합니다.</p>
-          <div className="mt-4 space-y-3">
-            <Select value={projectId} onChange={event => setProjectId(event.target.value)} aria-label="Project 선택">
-              <option value="">미분류</option>
-              {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
-            </Select>
-            <Button size="sm" onClick={() => void saveProject()} disabled={savingProject || projectId === (resource.projectId ?? '')}>{savingProject ? '저장 중...' : '배정 저장'}</Button>
-          </div>
-        </section>
-      </div>
 
       <InfraGauges hostId={resource.id} refreshKey={refreshKey} />
       <InfraTrends hostId={resource.id} refreshKey={refreshKey} range={range} />

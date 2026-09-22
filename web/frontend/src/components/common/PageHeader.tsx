@@ -3,10 +3,12 @@ import React from 'react';
 interface PageHeaderProps {
     title: string;
     subtitle?: string;
+    /** 제목이 가리키는 대상의 메타데이터. 헤더 띠 안, 설명 아래에 한 줄로 붙는다. */
+    meta?: React.ReactNode;
     children?: React.ReactNode;
 }
 
-export function PageHeader({ title, subtitle, children }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, meta, children }: PageHeaderProps) {
     return (
         <div className="mb-6 border-b border-ui-border pb-5">
             <h1 className="type-page-title text-text-base">{title}</h1>
@@ -24,6 +26,7 @@ export function PageHeader({ title, subtitle, children }: PageHeaderProps) {
                     )}
                 </div>
             )}
+            {meta && <div className="mt-3">{meta}</div>}
         </div>
     );
 }

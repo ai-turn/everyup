@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import {
   Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { Button, ConfirmDialog, MaterialIcon } from '../../components/common';
+import { Button, ConfirmDialog, IconButton, MaterialIcon } from '../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, formatAxisValue, getChartTheme,
   gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
@@ -209,18 +209,10 @@ export function UptimeMonitorDetailPage() {
             <p className="mt-1 text-xs text-text-dim">{monitor.type.toUpperCase()} · {monitor.interval}{'초마다 확인'} · 직접 설정</p>
           </div>
           <div className="flex flex-wrap gap-2 md:shrink-0">
-            <button
-              type="button"
-              aria-label="새로고침"
-              title="새로고침"
-              onClick={() => void load()}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base"
-            >
-              <MaterialIcon name="refresh" />
-            </button>
+            <IconButton icon="refresh" label="새로고침" onClick={() => void load()} />
             <Button variant="secondary" disabled={processing} onClick={() => void toggleActive()}>{monitor.isActive ? '일시정지' : '재개'}</Button>
             <Button variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button variant="ghost" onClick={() => setDeleting(true)}><MaterialIcon name="delete" className="text-status-error" />삭제</Button>
+            <Button variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete" />삭제</Button>
           </div>
         </div>
       </div>

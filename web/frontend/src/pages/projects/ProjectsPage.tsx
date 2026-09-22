@@ -56,7 +56,7 @@ function ProjectDialog({ project, onClose, onSave }: {
 }
 
 function AssignedRow({ label, detail, onRemove, removeLabel }: { label: string; detail?: string; onRemove: () => void; removeLabel: string }) {
-  return <div className="flex items-center justify-between gap-2 rounded-lg border border-ui-border-soft px-3 py-2"><span className="min-w-0 truncate text-sm text-text-secondary">{label}{detail && <span className="ml-1 font-mono text-xs text-text-dim">{detail}</span>}</span><Button variant="ghost" size="sm" aria-label={removeLabel} onClick={onRemove}><MaterialIcon name="close" /></Button></div>;
+  return <div className="flex items-center justify-between gap-2 rounded-lg border border-ui-border-soft px-3 py-2"><span className="min-w-0 truncate text-sm text-text-secondary">{label}{detail && <span className="ml-1 text-xs text-text-dim">{detail}</span>}</span><Button variant="ghost" size="sm" aria-label={removeLabel} onClick={onRemove}><MaterialIcon name="close" /></Button></div>;
 }
 
 function ProjectCard({ project, agents, monitors, directServices, infrastructureResources, unassignedAgents, unassignedMonitors, unassignedDirect, unassignedInfrastructure, onEdit, onDelete, onAssignAgent, onUnassignAgent, onAssignMonitor, onUnassignMonitor, onAssignDirect, onUnassignDirect, onAssignInfrastructure, onUnassignInfrastructure }: {
@@ -90,7 +90,7 @@ function ProjectCard({ project, agents, monitors, directServices, infrastructure
     <article className="rounded-xl border border-ui-border bg-bg-surface p-5">
       <ResourceCardHeader
         title={<h2 className="truncate type-card-title text-text-base"><Link to={`/projects/${project.id}`} className="hover:text-primary">{project.name}</Link></h2>}
-        status={<div className="flex gap-1"><Button variant="ghost" size="sm" aria-label="Project 수정" title="Project 수정" onClick={onEdit}><MaterialIcon name="edit" /></Button><Button variant="ghost" size="sm" aria-label="Project 삭제" title="Project 삭제" onClick={onDelete}><MaterialIcon name="delete" className="text-status-error" /></Button></div>}
+        status={<div className="flex gap-1"><Button variant="ghost" size="sm" aria-label="Project 수정" title="Project 수정" onClick={onEdit}><MaterialIcon name="edit" /></Button><Button variant="destructive" size="sm" aria-label="Project 삭제" title="Project 삭제" onClick={onDelete}><MaterialIcon name="delete" /></Button></div>}
       />
       <p className="mt-3 type-body text-text-muted">{project.description || '설명이 없습니다'}</p>
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">

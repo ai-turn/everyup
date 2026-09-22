@@ -109,7 +109,7 @@ export function DirectTelemetrySetupDialog({
           <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{title}</h2>
           <p className="mt-0.5 text-sm text-text-muted">{description}</p>
         </div>
-        <Button variant="ghost" size="sm" aria-label="닫기" onClick={onClose} disabled={submitting}>
+        <Button variant="quiet" size="sm" aria-label="닫기" onClick={onClose} disabled={submitting}>
           <MaterialIcon name="close" />
         </Button>
       </div>

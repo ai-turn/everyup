@@ -81,7 +81,7 @@ function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capa
   return <dialog ref={ref} aria-label={`${label} 연결`} onCancel={event => { event.preventDefault(); onClose(); }} className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface p-6 ${SCRIM_MODAL_DIALOG}`}>
     <div className="flex items-start justify-between gap-3">
       <h2 className="type-card-title text-text-base">{label} 연결</h2>
-      <Button variant="ghost" size="sm" aria-label="닫기" onClick={onClose}><MaterialIcon name="close" /></Button>
+      <Button variant="quiet" size="sm" aria-label="닫기" onClick={onClose}><MaterialIcon name="close" /></Button>
     </div>
     {mode === 'receipt' && selected ? <div className="mt-4 space-y-4">
       <p className="type-body text-text-secondary">{selected.label}의 기존 연결을 사용합니다.</p>
@@ -102,6 +102,6 @@ function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capa
         </div>
       </div>
     </div>}
-    <div className="mt-5 flex justify-end"><Button variant="ghost" onClick={onClose}>닫기</Button></div>
+    <div className="mt-5 flex justify-end"><Button variant="quiet" onClick={onClose}>닫기</Button></div>
   </dialog>;
 }

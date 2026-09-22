@@ -1,5 +1,5 @@
 import { toast } from 'react-hot-toast';
-import { Button, COPY_ACTION_SUBTLE, CopyButton, MaterialIcon } from '../../../components/common';
+import { Button, COPY_ACTION_SUBTLE, CopyButton, ICON_ACTION, MaterialIcon } from '../../../components/common';
 import { useConnectionAddress } from '../../services/useConnectionAddress';
 import { ConnectionAddressField } from '../../services/components/ConnectionAddressField';
 import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
@@ -68,7 +68,7 @@ export function InfrastructureCollectorSetupResult({
         <p className="type-label text-text-secondary">Collector API 키</p>
         <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
           <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
-          <CopyButton onCopy={() => copy(setup.apiKey)} title="API 키 복사" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-ui-hover" />
+          <CopyButton onCopy={() => copy(setup.apiKey)} title="API 키 복사" className={ICON_ACTION} />
         </div>
       </div>
       <div className="space-y-2">

@@ -54,7 +54,7 @@ export function InfrastructureCollectorSetupDialog({
           <h2 id="infrastructure-collector-dialog-title" className="type-card-title text-text-base">OpenTelemetry Collector 연결</h2>
           <p className="mt-0.5 text-sm text-text-muted">표준 hostmetrics receiver로 CPU, 메모리, 디스크를 수집합니다.</p>
         </div>
-        <Button variant="ghost" size="sm" aria-label="닫기" onClick={onClose} disabled={submitting}><MaterialIcon name="close" /></Button>
+        <Button variant="quiet" size="sm" aria-label="닫기" onClick={onClose} disabled={submitting}><MaterialIcon name="close" /></Button>
       </div>
       {setup ? (
         <InfrastructureCollectorSetupResult setup={setup} title="Collector 연결이 준비되었습니다" onDone={done} />

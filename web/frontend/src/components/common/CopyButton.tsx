@@ -8,7 +8,7 @@ import { MaterialIcon } from './MaterialIcon';
 /** Primary copy action — matches a `sm` Button. */
 export const COPY_ACTION_PRIMARY = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40';
 /** Quiet copy action beside a field or code block. */
-export const COPY_ACTION_SUBTLE = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40';
+export const COPY_ACTION_SUBTLE = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-action transition-colors hover:bg-action/10 disabled:cursor-not-allowed disabled:opacity-40';
 
 interface CopyButtonProps {
   onCopy: () => Promise<boolean> | boolean | void;

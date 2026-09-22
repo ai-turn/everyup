@@ -745,7 +745,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                     >
                                         <ChannelIcon type={ch.type} size={16} className={getChannelStyle(ch.type).text} />
                                         <span className="text-sm flex-1 text-left">{ch.name}</span>
-                                        <span className="text-sm uppercase tracking-wider text-slate-400 font-mono">{ch.type}</span>
+                                        <span className="text-sm uppercase tracking-wider text-slate-400">{ch.type}</span>
                                     </button>
                                 ))}
                             </div>
@@ -863,7 +863,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                             <div key={ch.id} className="flex items-center gap-2 px-3 py-1.5 bg-ui-hover-soft/50 rounded-lg">
                                                 <ChannelIcon type={ch.type} size={14} className={getChannelStyle(ch.type).text} />
                                                 <span className="text-sm font-medium text-text-secondary flex-1 truncate">{ch.name}</span>
-                                                <span className="text-xs text-slate-400 uppercase font-mono">{ch.type}</span>
+                                                <span className="text-xs text-slate-400 uppercase">{ch.type}</span>
                                             </div>
                                         ))}
                                         {previewChannels.length > 5 && (

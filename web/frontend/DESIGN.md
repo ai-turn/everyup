@@ -62,6 +62,8 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 **primary** `#3b76c9` (dark `#3F6FDB`) — 주 액션, 링크, 선택 상태, 차트 첫 시리즈
 
+**action** `#1e5fb3` (dark `#7aa2f7`) — 채움 없는 액션(버튼 라벨·아이콘)의 색. primary를 그대로 텍스트로 쓰면 hover 배경(`ui-hover`) 위에서 라이트 4.15 / 다크 3.15로 AA 미달이라 명도만 옮긴 변주를 둔다. 표면·hover 배경 모두에서 라이트 5.7~6.3, 다크 5.8~6.9다. **채움에는 쓰지 않는다** — `bg-primary`는 그대로 primary다.
+
 **상태색도 시맨틱 토큰이다.** `emerald-600 dark:emerald-400` 같은 primitive 직접 사용 금지 — 토큰이 `.dark`에서 자가 전환하므로 `dark:` 짝이 필요 없다.
 
 | 상태 | 클래스 | light | dark |
@@ -133,10 +135,11 @@ primary #3b76c9 → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 ### 2.1 폰트
 
-- **본문** Spoqa Han Sans Neo (self-hosted, `spoqa-han-sans` 패키지)
+- **본문** Spoqa Han Sans Neo (self-hosted, `spoqa-han-sans` 패키지) → `--font-sans`. body와 `font-sans` 유틸리티가 같은 토큰을 본다 — 토큰 없이 두면 `font-sans`가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다
 - **정적 폰트다.** 굵기는 100/300/400/500/700 다섯 개뿐이고 가변 축이 없다 — 중간 굵기를 만들 수 없다
-- **숫자·코드·타임스탬프** JetBrains Mono Variable → `font-mono`
+- **숫자·코드·타임스탬프** JetBrains Mono Variable → `font-mono`. JetBrains Mono에 한글 글리프가 없어 폴백 2순위가 Spoqa다 — `17회`·`9월 22일`처럼 한글이 섞인 값도 본문 폰트로 떨어진다
 - 숫자가 자리 이동하면 안 되는 곳(KPI, 차트 범례, 테이블)은 `tabular-nums`를 함께 건다
+- **mono는 값에만 건다 — 라벨·분류명·제품명은 본문 폰트다.** `Docker 환경`·`Collector`·`OpenTelemetry Collector`·`Bot Token`·`TELEGRAM`처럼 우리가 UI에 써 넣은 말은 mono가 아니다. 컨테이너(`<table>`, 메타 줄)에 `font-mono`를 걸면 라벨까지 같이 딸려오니, 숫자 셀에 직접 건다. 값 하나를 여러 성격이 공유하는 prop(`detail={{label, value}}`)은 특히 주의 — 한쪽이 코드면 다른 쪽은 아닐 확률이 높다
 
 ### 2.2 역할별 타이포그래피
 
@@ -276,12 +279,13 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 | **`TimeRangePicker`** | `value: GlobalTimeRange` `onChange` | `1h`\|`6h`\|`24h`. SegmentedControl 래퍼 |
 | **`ConfirmDialog`** | `isOpen` `title` `message` `variant` `icon` … | `window.confirm()` 금지 — 항상 이것 |
 | **`EmptyState`** | `icon` `title` `description?` `action?` `children?` | 빈 목록의 정본. 라벨+핸들러면 `action`, 자체 상태를 가진 트리거(연결 다이얼로그 등)는 children |
-| **`PageHeader`** | `title` `subtitle?` `children` | h1 등급 고정 |
+| **`PageHeader`** | `title` `subtitle?` `meta?` `children` | h1 등급 고정. `meta`는 대상 메타데이터 한 줄 |
 | **`ListToolbar`** | `search` `children?` | 목록 검색은 왼쪽, 필터는 그다음 |
 | **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
 | **`SummaryCard`** | `label` `value` `detail` `tone?` | KPI 카드. 라벨 좌 / 숫자 우 1행 + 설명 1행 |
 | **`DetailActionToolbar`** | `controls` `actions` | 상세의 조회 제어·변경 액션을 반응형으로 분리 |
 | **`MaterialIcon`** | `name` `size` `className` `style` | 로컬 정적 SVG |
+| **`IconButton`** | `icon` `label` `tone?` `size?` `iconClassName?` | 라벨 없는 아이콘 액션. `tone`은 `action`(기본)·`danger`·`quiet`. className을 받는 자리(CopyButton)는 같은 파일의 `ICON_ACTION`/`ICON_ACTION_SM` |
 | **`CopyButton`** | `onCopy` `title` `className` … | 3초 완료 피드백. 클래스는 같은 파일이 export하는 `COPY_ACTION_PRIMARY`/`COPY_ACTION_SUBTLE`을 쓴다 |
 
 **Button 스펙**
@@ -289,9 +293,15 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 | variant | 용도 | 클래스 |
 |---------|------|--------|
 | `primary` | 주 액션 (화면당 1개) | `bg-primary text-white` |
-| `secondary` | 취소·보조 | `bg-bg-surface border border-ui-border` |
-| `ghost` | 배경 없는 3순위 | `text-text-muted hover:bg-ui-hover` |
-| `danger` | 삭제·파괴 | `bg-red-600 text-white` |
+| `secondary` | 보더 있는 보조 액션 | `border border-ui-border text-text-base` + 아이콘 `action` |
+| `ghost` | 배경 없는 3순위 | `text-action hover:bg-action/10` |
+| `destructive` | 삭제·중지 (채움 없이) | `text-status-error hover:bg-status-error/10` |
+| `quiet` | 닫기·취소 — 눈에 띄지 않아야 하는 이탈 | `text-text-muted hover:bg-ui-hover` |
+| `danger` | 확인 다이얼로그의 파괴 확정 | `bg-red-600 text-white` |
+
+**액션에는 색을 싣는다 (§5.3).** 채움도 보더도 없는 버튼이 본문과 같은 회색이면 hover 전까지 버튼으로 읽히지 않는다 — *"기본값으로 색상이 달라야 한다."* 그래서 `ghost`는 라벨·아이콘 전부 `action`, `secondary`는 라벨을 `text-base`로 올리고 아이콘만 `action`을 싣는다(보더가 이미 버튼임을 말하므로 라벨까지 칠할 이유가 없다). **예외는 이탈 액션뿐이다** — 닫기·취소를 색으로 강조하면 정작 그 화면의 주 액션보다 먼저 눈에 들어온다. `quiet`가 그 자리다.
+
+**버튼 색을 `className`으로 덮어쓰지 않는다.** `variant="ghost" className="text-status-error"`로 쓰던 삭제 버튼 5곳이 전부 회색으로 렌더되고 있었다 — Tailwind가 같은 속성의 유틸리티를 **알파벳 순**으로 내보내기 때문에 `text-status-error`가 `text-text-muted`보다 앞서 나가 매번 졌다. 색은 variant로 고른다.
 
 | size | 높이 | 용도 |
 |------|------|------|
@@ -315,6 +325,7 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 - 검색·필터는 페이지 헤더에 섞지 않고 그 아래의 보조 툴바에 둔다. 모바일에서는 툴바가 CTA보다 앞서지 않는다.
 - 목록의 보조 툴바는 `ListToolbar`를 쓴다. 검색창은 왼쪽 320px(`sm` 미만 전체 폭), 필터는 오른쪽부터 이어지며 공간이 부족하면 다음 줄로 흐른다. 검색·필터·버튼 높이는 모두 40px다. 탭 안의 검색은 해당 탭의 목록 위에 둔다. 검색 기능이 없는 화면에 정렬만을 위한 빈 검색창을 만들지 않는다.
 - 상세 화면은 `DetailActionToolbar`로 조회 제어와 변경 액션을 분리한다. 모바일에서는 두 그룹이 제목 아래에서 차례로 쌓이고, `md` 이상에서는 양 끝에 둔다.
+- **대상의 속성은 본문이 아니라 헤더 띠 안에 둔다.** 수집 키·키 재발급·마지막 수집·Project 배정처럼 제목이 가리키는 대상을 설명하는 값은 `PageHeader`의 `meta`에 한 줄로 싣는다(`type-caption`, 라벨 `dim` / 값 `secondary`, `gap-x-5`로 항목 구분). 직접 연결 상세 4종이 이 값들을 본문 최상단에 카드 두 장(`lg:col-span-2` + Project)으로 펼치고 있어서, 정작 그 페이지가 보여줘야 할 로그·차트가 첫 화면 밖으로 밀려났다 — 메타데이터는 읽는 대상이 아니라 확인하는 값이다. 메타 줄 안의 버튼·입력은 다른 줄과 마찬가지로 40px로 맞춘다.
 - 페이지·상세 헤더의 아이콘 전용 액션은 `h-10 w-10`이다. `h-8 w-8`은 테이블 행처럼 조밀한 맥락에서만 쓴다.
 
 **아이콘 크기** — `MaterialIcon`은 `size`로 SVG 크기를 정한다. 기본 16px는 인라인·버튼, 20px는 내비게이션·섹션, 24px는 주요 상태용이다. 스피너·빈 상태에는 32/36/48px를 허용한다. `text-*`는 색에만 사용하고 폰트 크기를 아이콘 크기로 사용하지 않는다. 아이콘 획은 SVG 도형이 결정하므로 `font-*`로 두께를 조절하지 않는다. 같은 영역에서는 같은 아이콘 계열을 사용한다.
@@ -557,7 +568,8 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 4. **`dark:` 이중 작성 금지** (§1.1) — `text-slate-500 dark:text-text-muted-dark` → `text-text-muted`
 5. **상태색 primitive 직접 사용 금지** — `text-emerald-600 dark:text-emerald-400` → `text-status-healthy` (§1.4). 대비·색각 조정이 index.css 한 곳에서 끝나야 한다
 6. **`text-[Npx]` 임의값 금지** (§2.2) — 스케일 토큰만
-7. **버튼 클래스 직접 작성 금지** — `<button className="px-4 py-2 bg-primary …">` → `<Button>` (§4.1). 높이·radius·굵기가 화면마다 어긋나는 것을 막는다
+7. **버튼 클래스 직접 작성 금지** — `<button className="px-4 py-2 bg-primary …">` → `<Button>` (§4.1). 높이·radius·굵기가 화면마다 어긋나는 것을 막는다. 아이콘만 있는 액션은 `IconButton`이다 — `text-slate-400 hover:text-primary` 문자열을 손으로 쓰지 않는다
+7a. **버튼 색을 `className`으로 덮어쓰기 금지** (§4.1) — variant로 고른다. Tailwind 유틸리티 순서 때문에 override가 조용히 무시된다
 8. **`window.confirm()` 금지** → `ConfirmDialog`
 9. **recharts `<Legend>` 금지** → `ChartStatsLegend` / `ChartLegend`
 10. **차트 시리즈 색 하드코딩 금지** → `SERIES_HEX`
@@ -607,7 +619,8 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | 축 | 예 | 토큰 |
 |----|-----|------|
 | **대상의 정상/장애 여부** | 서비스 정상/장애, 체크 결과, HTTP 2xx/4xx/5xx, 게이지 임계, 알림 전송 성공/실패, 진단 ok/issue | **`status-*` ✓** |
-| 액션 의미 | `danger` 버튼, 삭제 링크, 복사 완료 피드백 | primitive |
+| 액션 의미 | 채움 `danger` 버튼, 복사 완료 피드백 | primitive |
+| 채움 없는 파괴 액션 | `destructive` 버튼·`IconButton tone="danger"` | **`status-error` ✓** — 다크에서 red-600은 표면 대비 3.0이라 primitive로는 AA를 못 맞춘다 |
 | 카테고리 분류 | HTTP 메서드, span kind(SERVER/CLIENT), 이벤트 타입 | primitive |
 | 별도 축 | 로그 레벨(§1.5), 알림 severity(critical/warning/info) | primitive |
 | 폼 | 필수 표시 `*`, 검증 경고, 로그인 에러 | primitive |
