@@ -44,14 +44,14 @@ export function SetupGuide({ type }: SetupGuideProps) {
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-ui-hover-soft transition-colors"
             >
-                <MaterialIcon size={16}
+                <MaterialIcon size={20}
                     name="help_outline"
                     className="text-primary shrink-0"
                 />
                 <span className="text-sm font-medium text-text-secondary flex-1">
                     API 키는 어떻게 발급받나요?
                 </span>
-                <MaterialIcon size={16}
+                <MaterialIcon size={20}
                     name={isOpen ? 'expand_less' : 'expand_more'}
                     className="text-text-dim shrink-0"
                 />
@@ -72,7 +72,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
 
                     {tip && (
                         <div className="flex gap-2 px-2.5 py-2 rounded-md bg-ui-hover-soft border border-ui-border">
-                            <MaterialIcon size={16} name="lightbulb" className="text-amber-500 shrink-0 mt-0.5" />
+                            <MaterialIcon size={20} name="lightbulb" className="text-amber-500 shrink-0 mt-0.5" />
                             <p className="text-sm text-text-secondary">{tip}</p>
                         </div>
                     )}
@@ -83,7 +83,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
                     >
-                        <MaterialIcon size={16} name="open_in_new" />
+                        <MaterialIcon size={20} name="open_in_new" />
                         상세 가이드 보기
                     </a>
                 </div>

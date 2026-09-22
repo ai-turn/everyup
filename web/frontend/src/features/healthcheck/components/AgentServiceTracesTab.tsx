@@ -99,7 +99,7 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
             errorsOnly ? 'bg-red-500 text-white' : 'bg-ui-hover text-text-muted hover:bg-ui-active'
           }`}
         >
-          <MaterialIcon size={16} name="error_outline" />
+          <MaterialIcon size={20} name="error_outline" />
           에러만
         </button>
       </div>

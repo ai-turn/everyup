@@ -205,7 +205,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
                   title={`${exemplar.traceId} 트레이스 열기`}
                   className="inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/5 px-2 py-0.5 font-mono text-xs text-primary hover:bg-primary/10 cursor-pointer"
                 >
-                  <MaterialIcon size={16} name="timeline" />
+                  <MaterialIcon size={20} name="timeline" />
                   {formatMetricValue(exemplar.value, unit)}
                 </button>
               ))}

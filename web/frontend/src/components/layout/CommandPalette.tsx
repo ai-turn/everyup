@@ -181,7 +181,7 @@ export function CommandPalette() {
                 }`}
               >
                 {item.icon ? (
-                  <MaterialIcon size={16} name={item.icon} className="shrink-0 text-text-dim" />
+                  <MaterialIcon size={20} name={item.icon} className="shrink-0 text-text-dim" />
                 ) : (
                   <span
                     role="img"

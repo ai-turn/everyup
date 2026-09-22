@@ -78,7 +78,7 @@ export function ChannelFormPage() {
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <MaterialIcon size={16} name="save" />
+                  <MaterialIcon size={20} name="save" />
                   저장
                 </>
               )}

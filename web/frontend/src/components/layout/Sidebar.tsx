@@ -77,7 +77,7 @@ export function Sidebar() {
         onClick={() => window.dispatchEvent(new Event('everyup:command-palette'))}
         className="mx-3 mb-2 flex items-center gap-2 rounded-lg border border-ui-border bg-bg-main px-3 py-1.5 text-text-dim transition-colors hover:border-primary/40 hover:text-text-base"
       >
-        <MaterialIcon size={16} name="search" className="shrink-0" />
+        <MaterialIcon size={20} name="search" className="shrink-0" />
         <span className="flex-1 text-left text-xs">검색</span>
         <kbd className="rounded border border-ui-border px-1 py-0.5 text-xs font-medium">{navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl K'}</kbd>
       </button>

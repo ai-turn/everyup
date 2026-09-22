@@ -502,7 +502,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                         {/* Test send card */}
                         <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
-                                <MaterialIcon size={16} name="send" className="text-slate-400" />
+                                <MaterialIcon size={20} name="send" className="text-slate-400" />
                                 <div>
                                     <p className="text-sm font-medium text-text-base uppercase tracking-widest">테스트 전송</p>
                                     <p className="text-sm text-text-muted mt-0.5">실제 채널로 테스트 메시지 발송</p>
@@ -526,7 +526,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         </>
                                     ) : (
                                         <>
-                                            <MaterialIcon size={16} name="send" />
+                                            <MaterialIcon size={20} name="send" />
                                             테스트 전송
                                         </>
                                     )}
@@ -534,7 +534,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                                 {testState === 'success' && (
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">
-                                        <MaterialIcon size={16} name="check_circle" className="text-emerald-500 mt-0.5 shrink-0" />
+                                        <MaterialIcon size={20} name="check_circle" className="text-emerald-500 mt-0.5 shrink-0" />
                                         <div>
                                             <p className="text-sm text-emerald-600 dark:text-emerald-400">발송 성공</p>
                                             <p className="text-sm text-text-muted mt-0.5">{`${testTime}에 전송되었습니다`}</p>
@@ -544,7 +544,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                                 {testState === 'error' && (
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">
-                                        <MaterialIcon size={16} name="error" className="text-red-500 mt-0.5 shrink-0" />
+                                        <MaterialIcon size={20} name="error" className="text-red-500 mt-0.5 shrink-0" />
                                         <div>
                                             <p className="text-sm text-red-600 dark:text-red-400">발송 실패</p>
                                             <p className="text-sm text-text-muted mt-0.5">{testError}</p>

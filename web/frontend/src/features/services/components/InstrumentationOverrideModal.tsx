@@ -171,7 +171,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
             className="cursor-pointer rounded p-1.5 text-slate-400 hover:bg-ui-hover hover:text-text-secondary"
             aria-label="닫기"
           >
-            <MaterialIcon size={16} name="close" />
+            <MaterialIcon size={20} name="close" />
           </button>
         </div>
 
@@ -308,7 +308,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               <details className="rounded-xl border border-ui-border">
                 <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 type-label text-text-secondary">
                   적용 후 관리 명령
-                  <MaterialIcon size={16} name="expand_more" className="ml-auto text-text-dim" />
+                  <MaterialIcon size={20} name="expand_more" className="ml-auto text-text-dim" />
                 </summary>
                 <div className="space-y-2 border-t border-ui-border-soft p-3">
                   <CommandRow label="상태 확인" command={statusCommand} onCopy={copy} />

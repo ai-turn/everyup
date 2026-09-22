@@ -133,7 +133,7 @@ export function Select({
         className={`${FIELD_SHELL} ${FIELD_HEIGHT} inline-flex items-center justify-between gap-2 border-ui-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         <span className="min-w-0 flex-1 truncate">{selected?.label}</span>
-        <MaterialIcon size={16} name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-text-muted" />
+        <MaterialIcon size={20} name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-text-muted" />
       </button>
       {open && createPortal(
         <div ref={menuRef} id={menuId} role="listbox" aria-label={ariaLabel} style={{ top: position.top, left: position.left, width: position.width }} className="fixed z-[60] max-h-64 overflow-y-auto rounded-lg border border-ui-border bg-bg-surface p-1 shadow-lg">
@@ -142,7 +142,7 @@ export function Select({
             return (
               <button key={option.value} type="button" role="option" aria-selected={isSelected} disabled={option.disabled} onClick={() => selectValue(option.value)} className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isSelected ? 'bg-primary/10 font-medium text-primary' : 'text-text-secondary hover:bg-ui-hover'}`}>
                 <span className="min-w-0 flex-1 truncate">{option.label}</span>
-                {isSelected && <MaterialIcon size={16} name="check" className="ml-2 shrink-0" />}
+                {isSelected && <MaterialIcon size={20} name="check" className="ml-2 shrink-0" />}
               </button>
             );
           })}

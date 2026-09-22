@@ -8,7 +8,7 @@ interface MaterialIconProps {
   style?: CSSProperties;
 }
 
-export function MaterialIcon({ name, size = 16, className = '', style }: MaterialIconProps) {
+export function MaterialIcon({ name, size = 20, className = '', style }: MaterialIconProps) {
   // Static markup generated from @mui/icons-material at build time — safe to inject.
   const markup = iconMarkup[name] ?? iconMarkup.help_outline;
 

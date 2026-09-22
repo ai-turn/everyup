@@ -134,7 +134,7 @@ export function OverviewPage() {
     <div className="space-y-5">
       <PageHeader title="모니터링 개요" subtitle="수집 상태와 현재 이상을 먼저 확인하세요.">
         <Button onClick={() => navigate('/environments')}>
-          <MaterialIcon size={16} name="add" />
+          <MaterialIcon size={20} name="add" />
           모니터링 시작
         </Button>
       </PageHeader>
@@ -216,7 +216,7 @@ export function OverviewPage() {
                 ))}
               </dl>
               <Link to="/projects" className="mt-5 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-                Project로 대상 정리하기 <MaterialIcon size={16} name="arrow_forward" />
+                Project로 대상 정리하기 <MaterialIcon size={20} name="arrow_forward" />
               </Link>
             </article>
           </section>

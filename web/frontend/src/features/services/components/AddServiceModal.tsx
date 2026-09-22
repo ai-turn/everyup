@@ -51,7 +51,7 @@ function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: 
                 ? 'bg-emerald-500 text-white'
                 : item.active ? 'bg-primary text-white' : 'bg-ui-hover text-text-muted'
             }`}>
-              {item.complete ? <MaterialIcon size={16} name="check" /> : index + 1}
+              {item.complete ? <MaterialIcon size={20} name="check" /> : index + 1}
             </span>
             <span className={`truncate text-xs font-medium ${item.active ? 'text-primary' : item.complete ? 'text-text-secondary' : 'text-text-dim'}`}>
               {item.label}
@@ -230,7 +230,7 @@ function AgentInstallCommand({
         <span className="ml-auto text-xs font-normal text-text-dim">
           {connected ? '재설치할 때 사용' : 'Linux Docker 서버에서 실행'}
         </span>
-        <MaterialIcon size={16} name="expand_more" className="text-text-dim transition-transform group-open:rotate-180" />
+        <MaterialIcon size={20} name="expand_more" className="text-text-dim transition-transform group-open:rotate-180" />
       </summary>
       <div className="space-y-4 border-t border-ui-border-soft p-4">
         <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
@@ -280,7 +280,7 @@ function AgentInstallCommand({
             ['sensors', '자동 발견', 'Docker 수집기와 eBPF Observer를 함께 시작'],
           ].map(([icon, title, description]) => (
             <div key={title} className="rounded-lg bg-ui-hover-soft p-2.5">
-              <MaterialIcon size={16} name={icon} className="text-primary" />
+              <MaterialIcon size={20} name={icon} className="text-primary" />
               <p className="mt-1 font-medium text-text-secondary">{title}</p>
               <p className="mt-0.5 type-body text-text-muted">{description}</p>
             </div>

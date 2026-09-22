@@ -99,7 +99,7 @@ export function SettingsDesktopView({
                       onClick={() => onThemeChange(t_)}
                       className={`flex items-center gap-1.5 ${segmentedButtonClass(theme === t_)}`}
                     >
-                      <MaterialIcon size={16} name={t_ === 'light' ? 'light_mode' : 'dark_mode'} />
+                      <MaterialIcon size={20} name={t_ === 'light' ? 'light_mode' : 'dark_mode'} />
                       {t_ === 'light' ? '라이트' : '다크'}
                     </button>
                   ))}

@@ -32,7 +32,7 @@ export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Pr
                   onClick={onViewKey}
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-text-secondary hover:bg-ui-hover"
                 >
-                  <MaterialIcon size={16} name="key" />
+                  <MaterialIcon size={20} name="key" />
                   API 키
                 </button>
                 <button
@@ -40,7 +40,7 @@ export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Pr
                   onClick={() => onDelete(agent.id)}
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-status-error hover:bg-ui-hover"
                 >
-                  <MaterialIcon size={16} name="delete_outline" />
+                  <MaterialIcon size={20} name="delete_outline" />
                   비활성화
                 </button>
               </div>
@@ -53,7 +53,7 @@ export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Pr
         <p className="min-w-0 truncate text-sm text-text-muted">Docker 수집기 연결 대기</p>
         <Button size="sm" onClick={onInstall}>
           설치 명령어
-          <MaterialIcon size={16} name="arrow_forward" />
+          <MaterialIcon size={20} name="arrow_forward" />
         </Button>
       </div>
     </div>

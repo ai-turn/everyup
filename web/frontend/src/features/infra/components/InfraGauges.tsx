@@ -53,7 +53,7 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
         </p>
         {gauge.trend && (
           <span className={`inline-flex shrink-0 items-center gap-0.5 rounded text-xs px-1.5 py-0.5 ${trend.soft} ${trend.text}`}>
-            <MaterialIcon size={16} name={trend.icon} />
+            <MaterialIcon size={20} name={trend.icon} />
             {gauge.trend}
           </span>
         )}

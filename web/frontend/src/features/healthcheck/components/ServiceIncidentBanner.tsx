@@ -38,7 +38,7 @@ export function ServiceIncidentBanner({ service, onInvestigate }: ServiceInciden
       </div>
       <Button variant="danger" onClick={onInvestigate}>
         로그 확인
-        <MaterialIcon size={16} name="arrow_forward" />
+        <MaterialIcon size={20} name="arrow_forward" />
       </Button>
     </div>
   );

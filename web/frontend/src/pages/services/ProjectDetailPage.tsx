@@ -103,7 +103,7 @@ function ServiceCard({ service, metric, onOpen }: {
           {!service.healthy && (
             <span className="text-xs text-status-error bg-status-error/10 px-1.5 py-0.5 rounded">장애</span>
           )}
-          <MaterialIcon size={16} name="chevron_right" className="text-text-dim group-hover:text-primary transition-colors" />
+          <MaterialIcon size={20} name="chevron_right" className="text-text-dim group-hover:text-primary transition-colors" />
         </div>
       </div>
 
@@ -241,7 +241,7 @@ export function ProjectDetailPage() {
         onClick={() => navigate('/')}
         className="lg:hidden flex items-center gap-1 text-sm text-text-muted hover:text-text-base transition-colors"
       >
-        <MaterialIcon size={16} name="arrow_back" />
+        <MaterialIcon size={20} name="arrow_back" />
         Docker 환경 목록
       </button>
 
@@ -311,7 +311,7 @@ export function ProjectDetailPage() {
           </span>
           <span className="ml-auto text-xs font-medium text-primary shrink-0 flex items-center">
             서비스 열기
-            <MaterialIcon size={16} name="chevron_right" />
+            <MaterialIcon size={20} name="chevron_right" />
           </span>
         </button>
       )}

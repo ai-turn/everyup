@@ -87,7 +87,7 @@ export function AlertsMobileView({
       <PageHeader title="알림" subtitle="이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.">
         {activeTab === 'channels' && (
           <Button className="w-full" onClick={onAddChannel}>
-            <MaterialIcon size={16} name="add" />
+            <MaterialIcon size={20} name="add" />
             추가하기
           </Button>
         )}
@@ -194,7 +194,7 @@ export function AlertsMobileView({
                   </div>
                   <div className="flex gap-2">
                     <Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)} className="flex-1">
-                      <MaterialIcon size={16} name="send" />
+                      <MaterialIcon size={20} name="send" />
                       {testingIds.has(channel.id) ? '전송 중' : '테스트'}
                     </Button>
                     <IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} />

@@ -321,21 +321,21 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
             className="p-1.5 rounded hover:bg-ui-hover text-slate-400 hover:text-text-secondary cursor-pointer shrink-0"
             aria-label="닫기"
           >
-            <MaterialIcon size={16} name="close" />
+            <MaterialIcon size={20} name="close" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
           {loading && (
             <div className="flex items-center justify-center py-10 text-sm text-text-muted">
-              <MaterialIcon size={16} name="sync" className="mr-2 animate-spin" />
+              <MaterialIcon size={20} name="sync" className="mr-2 animate-spin" />
               트레이스 불러오는 중...
             </div>
           )}
 
           {error && (
             <div className="flex items-start gap-2 px-3 py-2 bg-ui-hover-soft rounded-lg border border-ui-border">
-              <MaterialIcon size={16} name="error" className="text-status-error shrink-0 mt-0.5" />
+              <MaterialIcon size={20} name="error" className="text-status-error shrink-0 mt-0.5" />
               <p className="text-sm text-text-secondary">{error}</p>
             </div>
           )}
@@ -357,7 +357,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
                   onClick={() => jumpTo('logs')}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 cursor-pointer"
                 >
-                  <MaterialIcon size={16} name="article" />
+                  <MaterialIcon size={20} name="article" />
                   {`로그 (${logs.length})`}
                 </button>
               )}
@@ -367,7 +367,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
                   onClick={() => jumpTo('requests')}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 cursor-pointer"
                 >
-                  <MaterialIcon size={16} name="http" />
+                  <MaterialIcon size={20} name="http" />
                   {`API 요청 (${apiRequests.length})`}
                 </button>
               )}
@@ -401,7 +401,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
 function PanelSectionHeader({ icon, title, count }: { icon: string; title: string; count: number }) {
   return (
     <div className="flex items-center gap-2 mb-2">
-      <MaterialIcon size={16} name={icon} className="text-primary" />
+      <MaterialIcon size={20} name={icon} className="text-primary" />
       <h4 className="type-label text-text-base">{title}</h4>
       <span className="text-xs font-medium text-text-secondary bg-ui-active px-2 py-0.5 rounded-md">
         {count}
@@ -554,7 +554,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
     <section>
       <PanelSectionHeader icon="data_object" title="캡처된 바디" count={items.length} />
       <p className="mb-2 flex items-center gap-1.5 text-xs text-text-dim">
-        <MaterialIcon size={16} name="policy" />
+        <MaterialIcon size={20} name="policy" />
         관리자 전용 · 모든 열람은 감사 로그에 기록됩니다
       </p>
       <ul className="space-y-2">

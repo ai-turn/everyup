@@ -14,7 +14,7 @@ interface SearchInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> 
 export function SearchInput({ wrapperClassName = '', className = '', ...props }: SearchInputProps) {
   return (
     <div className={`relative ${wrapperClassName}`}>
-      <MaterialIcon size={16}
+      <MaterialIcon size={20}
         name="search"
         className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-text-dim"
       />

@@ -140,7 +140,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
               className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-700"
               aria-label="검색어 지우기" title="검색어 지우기"
             >
-              <MaterialIcon size={16} name="close" />
+              <MaterialIcon size={20} name="close" />
             </button>
           )}
         </div>

@@ -100,7 +100,7 @@ export function LoginPage() {
               {error && (
                 <div className="flex items-start gap-2 text-red-500 dark:text-red-400 type-body bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={16} name="error_outline" className="leading-none" />
+                    <MaterialIcon size={20} name="error_outline" className="leading-none" />
                   </span>
                   <span>{error}</span>
                 </div>
@@ -109,7 +109,7 @@ export function LoginPage() {
               {isSetup && (
                 <div className="flex items-start gap-2 text-sky-600 dark:text-sky-400 type-body bg-sky-500/10 border border-sky-500/20 rounded-lg px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={16} name="info" className="leading-none" />
+                    <MaterialIcon size={20} name="info" className="leading-none" />
                   </span>
                   <span>처음 실행되었습니다. 관리자 계정을 설정하세요.</span>
                 </div>
@@ -155,7 +155,7 @@ export function LoginPage() {
                   </div>
                 )}
                 <Button type="submit" size="lg" disabled={loading} className="w-full mt-2">
-                  {loading && <MaterialIcon size={16} name="progress_activity" className="animate-spin" />}
+                  {loading && <MaterialIcon size={20} name="progress_activity" className="animate-spin" />}
                   {loading ? '처리 중...' : isSetup ? '계정 생성' : '로그인'}
                 </Button>
               </form>
@@ -219,7 +219,7 @@ docker compose up -d`}
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 type-body text-text-dim hover:text-primary dark:hover:text-primary transition-colors"
                 >
-                  <MaterialIcon size={16} name="open_in_new" />
+                  <MaterialIcon size={20} name="open_in_new" />
                   GitHub README
                 </a>
               </div>

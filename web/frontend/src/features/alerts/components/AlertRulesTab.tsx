@@ -320,10 +320,10 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
         disabled={formLoading || isSubmitting}
       >
         {isSubmitting ? (
-          <MaterialIcon size={16} name="sync" className="animate-spin" />
+          <MaterialIcon size={20} name="sync" className="animate-spin" />
         ) : (
           <>
-            <MaterialIcon size={16} name="check" />
+            <MaterialIcon size={20} name="check" />
             {formRule ? '저장' : '규칙 생성'}
           </>
         )}
@@ -403,7 +403,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
               aria-label="검색어 지우기"
               title="검색어 지우기"
             >
-              <MaterialIcon size={16} name="close" />
+              <MaterialIcon size={20} name="close" />
             </button>
           )}
         </div>
@@ -493,7 +493,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                             {rule.name}
                           </span>
                           {rule.isSystem && (
-                            <MaterialIcon size={16} name="lock" className="shrink-0 text-slate-400" />
+                            <MaterialIcon size={20} name="lock" className="shrink-0 text-slate-400" />
                           )}
                         </div>
                         <p className="truncate text-xs text-text-dim">
@@ -600,7 +600,7 @@ function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: Notific
   if (ruleChannels.length === 0) {
     return (
       <span className="inline-flex max-w-full items-center gap-1.5 text-sm text-text-dim">
-        <MaterialIcon size={16} name="notifications_off" className="shrink-0" />
+        <MaterialIcon size={20} name="notifications_off" className="shrink-0" />
         <span className="truncate">등록된 알림 채널이 없습니다</span>
       </span>
     );

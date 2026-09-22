@@ -233,7 +233,7 @@ export function LogsPage() {
                         <td className="px-4 py-3 align-top"><span className={`${LEVEL_BASE} ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>{log.level.toUpperCase()}</span></td>
                         <td className="whitespace-nowrap px-4 py-3 align-top">
                           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
-                            <MaterialIcon size={16}
+                            <MaterialIcon size={20}
                               name={log.agentId ? 'deployed_code' : 'sensors'}
                               className="text-text-dim"
                             />

@@ -56,7 +56,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview }: ProjectC
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm text-text-muted">{`서비스 ${total}개`}</span>
         <span className={`flex items-center gap-1 text-sm ${allHealthy ? 'text-status-healthy' : 'text-status-error'}`}>
-          <MaterialIcon size={16} name={allHealthy ? 'check_circle' : 'cancel'} />
+          <MaterialIcon size={20} name={allHealthy ? 'check_circle' : 'cancel'} />
           {healthy}/{total} 정상
         </span>
       </div>
@@ -203,7 +203,7 @@ export function ServiceGridPage() {
         subtitle="연결된 Docker 환경과 모니터링 서비스 현황"
       >
         <Button onClick={() => setShowAddModal(true)}>
-          <MaterialIcon size={16} name="add" />
+          <MaterialIcon size={20} name="add" />
           Docker 연결
         </Button>
       </PageHeader>

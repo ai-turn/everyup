@@ -45,7 +45,7 @@ export function FormSidePanel({ open, icon, title, onClose, footer, children }: 
                         aria-label="Close panel"
                         className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-muted hover:bg-ui-hover hover:text-text-secondary cursor-pointer shrink-0"
                     >
-                        <MaterialIcon size={16} name="close" />
+                        <MaterialIcon size={20} name="close" />
                     </button>
                 </div>
 

@@ -164,7 +164,7 @@ function ServiceRequestsPanel({
               : 'bg-ui-hover text-text-muted hover:bg-ui-active'
           }`}
         >
-          <MaterialIcon size={16} name="error_outline" />
+          <MaterialIcon size={20} name="error_outline" />
           에러만
         </button>
 
@@ -180,7 +180,7 @@ function ServiceRequestsPanel({
             <button type="button" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }}
               aria-label="검색어 지우기" title="검색어 지우기"
               className="px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-red-500 transition-colors">
-              <MaterialIcon size={16} name="close" />
+              <MaterialIcon size={20} name="close" />
             </button>
           )}
         </form>
@@ -258,7 +258,7 @@ function ServiceRequestsPanel({
                 <span className="shrink-0 text-xs text-text-dim">{req.durationMs}ms</span>
                 <span className="shrink-0 text-xs text-text-dim">{formatTime(req.createdAt)}</span>
                 {clickable && (
-                  <MaterialIcon size={16} name="timeline" className="shrink-0 text-text-dim" />
+                  <MaterialIcon size={20} name="timeline" className="shrink-0 text-text-dim" />
                 )}
               </div>
             );

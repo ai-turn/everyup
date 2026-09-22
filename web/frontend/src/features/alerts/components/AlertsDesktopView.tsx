@@ -106,7 +106,7 @@ export function AlertsDesktopView({
       >
         {activeTab !== 'history' && (
           <Button onClick={activeTab === 'rules' ? onAddRule : () => openChannelForm()}>
-            <MaterialIcon size={16} name="add" />
+            <MaterialIcon size={20} name="add" />
             추가하기
           </Button>
         )}
@@ -243,10 +243,10 @@ function ChannelFormActions({ isSubmitting, isEdit, onCancel }: { isSubmitting: 
       </Button>
       <Button type="submit" form="channel-form" disabled={isSubmitting}>
         {isSubmitting ? (
-          <MaterialIcon size={16} name="sync" className="animate-spin" />
+          <MaterialIcon size={20} name="sync" className="animate-spin" />
         ) : (
           <>
-            <MaterialIcon size={16} name="check" />
+            <MaterialIcon size={20} name="check" />
             {isEdit ? '저장' : '추가하기'}
           </>
         )}
@@ -381,7 +381,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} className="whitespace-nowrap">
-                      <MaterialIcon size={16} name="send" />
+                      <MaterialIcon size={20} name="send" />
                       테스트
                     </Button>
                     <IconButton icon="edit" label="수정" size="sm" onClick={() => onEdit(channel)} />

@@ -47,7 +47,7 @@ export function IconButton({
       className={`${BASE} ${TONES[tone]} ${SIZES[size]} ${className}`}
       {...props}
     >
-      <MaterialIcon name={icon} size={size === 'sm' ? 16 : 20} className={iconClassName} />
+      <MaterialIcon name={icon} size={20} className={iconClassName} />
     </button>
   );
 }

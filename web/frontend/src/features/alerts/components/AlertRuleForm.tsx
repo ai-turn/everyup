@@ -171,7 +171,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                             ) : channels.map(ch => (
                                 <button key={ch.id} type="button" onClick={() => handleToggleChannel(ch.id)}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-all ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-primary' : 'border-ui-border-soft text-slate-500'}`}>
-                                    <ChannelIcon type={ch.type} size={16} className={getChannelStyle(ch.type).text} />
+                                    <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
                                     <span className="text-sm flex-1 text-left">{ch.name}</span>
                                 </button>
                             ))}
@@ -187,7 +187,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                     <div className="sticky top-0 space-y-4">
                         <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
-                                <MaterialIcon size={16} name="lock" className="text-slate-400" />
+                                <MaterialIcon size={20} name="lock" className="text-slate-400" />
                                 <div>
                                     <p className="text-sm font-medium text-text-base uppercase tracking-widest">
                                         시스템 규칙
@@ -457,7 +457,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                                 : 'border-ui-border-soft text-text-muted hover:border-slate-200 dark:hover:border-slate-600'
                                         }`}
                                     >
-                                        <MaterialIcon size={16} name={cat.icon} />
+                                        <MaterialIcon size={20} name={cat.icon} />
                                         <span className="text-sm">{cat.label}</span>
                                     </button>
                                 ))}
@@ -584,7 +584,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                                 : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
                                         }`}
                                     >
-                                        <MaterialIcon size={16} name={p.icon} />
+                                        <MaterialIcon size={20} name={p.icon} />
                                         {p.label}
                                     </button>
                                 ))}
@@ -743,7 +743,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                                 : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
                                         }`}
                                     >
-                                        <ChannelIcon type={ch.type} size={16} className={getChannelStyle(ch.type).text} />
+                                        <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
                                         <span className="text-sm flex-1 text-left">{ch.name}</span>
                                         <span className="text-sm uppercase tracking-wider text-slate-400">{ch.type}</span>
                                     </button>

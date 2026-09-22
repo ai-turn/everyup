@@ -126,7 +126,7 @@ function SetupStep({
       <div className="flex items-start gap-2.5">
         <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs ${appearance.circle}`}>
           {state === 'ready' || state === 'issue' ? (
-            <MaterialIcon size={16} name={appearance.icon} />
+            <MaterialIcon size={20} name={appearance.icon} />
           ) : appearance.icon}
         </span>
         <div className="min-w-0 flex-1">
@@ -151,7 +151,7 @@ function SetupStep({
           className="mt-2 inline-flex items-center justify-center gap-1 rounded-lg border border-ui-border bg-bg-surface px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-primary/40 hover:text-primary"
         >
           {actionLabel}
-          <MaterialIcon size={16} name="arrow_forward" />
+          <MaterialIcon size={20} name="arrow_forward" />
         </button>
       )}
     </div>

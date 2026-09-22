@@ -92,7 +92,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
                         ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                         : 'bg-ui-hover text-text-secondary hover:bg-ui-active'
                     }`}>
-                    <MaterialIcon size={16} name={copied ? 'check' : 'content_copy'} />
+                    <MaterialIcon size={20} name={copied ? 'check' : 'content_copy'} />
                   </button>
                 </div>
               </div>
@@ -113,7 +113,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
           {!loading && (
             <button onClick={handleRotate} disabled={rotating}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-ui-hover text-text-secondary hover:bg-ui-active disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-              <MaterialIcon size={16} name="autorenew" />
+              <MaterialIcon size={20} name="autorenew" />
               {rotating ? '재발급 중...' : 'API 키 재발급'}
             </button>
           )}

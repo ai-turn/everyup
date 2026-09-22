@@ -117,12 +117,12 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
             className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/5 px-2 py-1 text-xs text-primary hover:bg-primary/10 cursor-pointer"
             title="트레이스 보기"
           >
-            <MaterialIcon size={16} name="timeline" />
+            <MaterialIcon size={20} name="timeline" />
             트레이스
           </button>
         )}
         {hasMeta && (
-          <MaterialIcon size={16}
+          <MaterialIcon size={20}
             name={expanded ? 'expand_less' : 'expand_more'}
             className="text-text-dim shrink-0 mt-0.5"
           />
@@ -297,7 +297,7 @@ function ServiceLogsPanel(props: Props) {
             <button type="button" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }}
               aria-label="검색어 지우기" title="검색어 지우기"
               className="px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-red-500 transition-colors">
-              <MaterialIcon size={16} name="close" />
+              <MaterialIcon size={20} name="close" />
             </button>
           )}
         </form>
@@ -311,7 +311,7 @@ function ServiceLogsPanel(props: Props) {
             className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-2 py-1 font-mono text-xs text-primary hover:bg-primary/10 cursor-pointer"
           >
             <span>{attrFilter.key}={attrFilter.value}</span>
-            <MaterialIcon size={16} name="close" />
+            <MaterialIcon size={20} name="close" />
           </button>
         )}
 
@@ -341,7 +341,7 @@ function ServiceLogsPanel(props: Props) {
               : 'bg-ui-hover text-text-muted hover:bg-ui-active'
           }`}
         >
-          <MaterialIcon size={16} name="tune" />
+          <MaterialIcon size={20} name="tune" />
           수집 설정
         </button>
       </div>
@@ -376,7 +376,7 @@ function ServiceLogsPanel(props: Props) {
           </div>
           <div className="flex items-center gap-3">
             <Button type="button" size="sm" onClick={saveIngestFilter} disabled={savingFilter}>
-              <MaterialIcon size={16} name="save" />
+              <MaterialIcon size={20} name="save" />
               {savingFilter ? '저장 중...' : '저장'}
             </Button>
             <span className="text-xs text-text-dim">

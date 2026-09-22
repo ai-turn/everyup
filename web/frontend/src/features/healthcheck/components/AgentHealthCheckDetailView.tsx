@@ -84,7 +84,7 @@ function DesktopLayout(props: LayoutProps) {
           <h1 className="text-2xl font-bold text-text-base truncate">{service.name}</h1>
           <StatusBadge healthy={service.healthy} />
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'agent', agentId, serviceKey }))}><MaterialIcon size={16} name="notifications" />알림 규칙</Button>
+            <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'agent', agentId, serviceKey }))}><MaterialIcon size={20} name="notifications" />알림 규칙</Button>
             <TimeRangePicker value={range} onChange={onRangeChange} />
             <RefreshButton onRefresh={onRefresh} />
           </div>
@@ -123,7 +123,7 @@ function MobileLayout(props: LayoutProps) {
           <span className="text-sm">목록으로</span>
         </button>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={() => navigate(alertRulesPath({ kind: 'agent', agentId, serviceKey }))}><MaterialIcon size={16} name="notifications" />알림 규칙</Button>
+          <Button variant="secondary" size="sm" onClick={() => navigate(alertRulesPath({ kind: 'agent', agentId, serviceKey }))}><MaterialIcon size={20} name="notifications" />알림 규칙</Button>
           <TimeRangePicker value={range} onChange={onRangeChange} />
           <RefreshButton onRefresh={onRefresh} />
         </div>
