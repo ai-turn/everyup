@@ -48,7 +48,7 @@ export function UptimeOverview({ stats, days, loading = false, className = '' }:
           {stats.map((stat, index) => (
             <div key={stat.label}>
               <dt className="text-xs text-text-muted">{stat.label}</dt>
-              <dd className={`mt-1 font-mono tabular-nums text-text-base ${index === 0 ? 'text-2xl' : 'text-base'}`}>
+              <dd className={`mt-1 tabular-nums text-text-base ${index === 0 ? 'text-2xl' : 'text-base'}`}>
                 {stat.value}
               </dd>
             </div>

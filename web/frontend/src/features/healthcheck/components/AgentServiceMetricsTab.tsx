@@ -188,9 +188,9 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
           {quantiles && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
               <span className="text-text-muted">분포</span>
-              <span className="font-mono text-text-base">p50 {formatMetricValue(quantiles.p50, unit)}</span>
-              <span className="font-mono text-text-base">p95 {formatMetricValue(quantiles.p95, unit)}</span>
-              <span className="font-mono text-text-base">p99 {formatMetricValue(quantiles.p99, unit)}</span>
+              <span className="text-text-base">p50 {formatMetricValue(quantiles.p50, unit)}</span>
+              <span className="text-text-base">p95 {formatMetricValue(quantiles.p95, unit)}</span>
+              <span className="text-text-base">p99 {formatMetricValue(quantiles.p99, unit)}</span>
               <span className="text-text-dim">{`· ${quantiles.count.toLocaleString()}건 기준`}</span>
             </div>
           )}
@@ -294,7 +294,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
                     <td className={`py-2 pr-3 font-mono text-xs ${active ? 'font-medium text-primary' : 'text-text-secondary'}`}>{name.metricName}</td>
                     <td className="py-2 pr-3 text-xs text-text-muted">{name.metricType}</td>
                     <td className="py-2 pr-3 text-xs text-text-muted">{name.unit || '—'}</td>
-                    <td className="whitespace-nowrap py-2 text-right font-mono text-xs text-text-dim">{new Date(name.lastAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="whitespace-nowrap py-2 text-right text-xs text-text-dim">{new Date(name.lastAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' })}</td>
                   </tr>
                 );
               })}

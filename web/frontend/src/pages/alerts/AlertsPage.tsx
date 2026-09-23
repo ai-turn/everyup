@@ -8,6 +8,9 @@ import { AlertsMobileView } from '../../features/alerts/components/AlertsMobileV
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { Button, ConfirmDialog, MaterialIcon } from '../../components/common';
 import { parseAlertTarget } from '../../features/alerts/alertTarget';
+import { FormSidePanel } from '../../features/alerts/components/FormSidePanel';
+import { FormActions } from '../../features/alerts/components/FormLayout';
+import { AlertRuleForm } from '../../features/alerts/components/AlertRuleForm';
 
 type TabType = 'channels' | 'rules' | 'history';
 
@@ -33,6 +36,9 @@ export function AlertsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [rulesLoading, setRulesLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(true);
+  // 모바일은 규칙 표(AlertRulesTab)를 쓰지 않으므로 생성 폼 패널을 여기서 띄운다.
+  const [mobileRuleFormOpen, setMobileRuleFormOpen] = useState(false);
+  const [mobileRuleSubmitting, setMobileRuleSubmitting] = useState(false);
   const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
   const [testingIds, setTestingIds] = useState<Set<string>>(new Set());
   const [channelsError, setChannelsError] = useState<string | null>(null);
@@ -254,6 +260,7 @@ export function AlertsPage() {
           activeTab={activeTab}
           setActiveTab={handleSetActiveTab}
           onAddChannel={handleAddChannel}
+          onAddRule={() => setMobileRuleFormOpen(true)}
           onEditChannel={handleEditChannel}
           onDeleteChannel={handleDeleteChannel}
           onToggleChannel={handleToggleChannel}
@@ -264,6 +271,20 @@ export function AlertsPage() {
           errors={{ channels: channelsError, rules: rulesError, history: historyError }}
           onRetry={{ channels: refreshChannels, rules: loadRules, history: loadHistory }}
         />
+        <FormSidePanel
+          open={mobileRuleFormOpen}
+          icon="rule"
+          title="새 알림 규칙"
+          onClose={() => setMobileRuleFormOpen(false)}
+          footer={<FormActions formId="alert-rule-form" isEdit={false} isSubmitting={mobileRuleSubmitting} onCancel={() => setMobileRuleFormOpen(false)} />}
+        >
+          <AlertRuleForm
+            channels={channels}
+            onSuccess={() => { setMobileRuleFormOpen(false); void loadRules(); }}
+            onCancel={() => setMobileRuleFormOpen(false)}
+            onSubmittingChange={setMobileRuleSubmitting}
+          />
+        </FormSidePanel>
         {deleteDialog}
       </>
     );

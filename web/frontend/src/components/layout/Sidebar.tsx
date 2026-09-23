@@ -55,9 +55,6 @@ export function Sidebar() {
   }, []);
 
   const path = location.pathname;
-  const serviceTab = new URLSearchParams(location.search).get('tab') ?? 'health';
-  const serviceDetail = path.startsWith('/services/');
-  const detailActive = (tab: string) => serviceDetail && serviceTab === tab;
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-ui-border bg-bg-surface lg:flex">
@@ -79,19 +76,19 @@ export function Sidebar() {
       >
         <MaterialIcon size={20} name="search" className="shrink-0" />
         <span className="flex-1 text-left text-xs">검색</span>
-        <kbd className="rounded border border-ui-border px-1 py-0.5 text-xs font-medium">{navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl K'}</kbd>
+        <kbd className="font-sans rounded border border-ui-border px-1 py-0.5 text-xs font-medium">{navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl K'}</kbd>
       </button>
 
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3" aria-label="주 메뉴">
         <NavItem to="/#attention" icon="dashboard" label="개요" active={path === '/'} badge={services.filter((service) => !service.healthy).length} />
         <NavItem to="/projects" icon="folder_open" label="Projects" active={path.startsWith('/projects')} />
-        <NavItem to="/environments" icon="dns" label="Docker 환경" active={path.startsWith('/environments') || path.startsWith('/agents/')} />
+        <NavItem to="/environments" icon="dns" label="Docker 환경" active={path.startsWith('/environments') || path.startsWith('/agents/') || path.startsWith('/services/')} />
         <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">관측</p>
-        <NavItem to="/uptime" icon="monitor_heart" label="업타임" active={path.startsWith('/uptime') || detailActive('health')} />
-        <NavItem to="/logs" icon="article" label="로그" active={path.startsWith('/logs') || detailActive('logs')} />
-        <NavItem to="/infrastructure" icon="memory" label="인프라" active={path.startsWith('/infrastructure') || detailActive('infra')} />
-        <NavItem to="/api" icon="api" label="API 요청" active={path.startsWith('/api') || detailActive('requests')} />
-        <NavItem to="/metrics" icon="monitoring" label="메트릭" active={path.startsWith('/metrics') || detailActive('metrics')} />
+        <NavItem to="/uptime" icon="monitor_heart" label="업타임" active={path.startsWith('/uptime')} />
+        <NavItem to="/logs" icon="article" label="로그" active={path.startsWith('/logs')} />
+        <NavItem to="/infrastructure" icon="memory" label="인프라" active={path.startsWith('/infrastructure')} />
+        <NavItem to="/api" icon="api" label="API 요청" active={path.startsWith('/api')} />
+        <NavItem to="/metrics" icon="monitoring" label="메트릭" active={path.startsWith('/metrics')} />
         <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">대응 및 관리</p>
         <NavItem to="/alerts" icon="notifications" label="알림" active={path.startsWith('/alerts')} />
         <NavItem to="/settings" icon="settings" label="환경 설정" active={path.startsWith('/settings')} />
@@ -99,7 +96,7 @@ export function Sidebar() {
 
       <div className="flex shrink-0 flex-col gap-2 p-3">
         <div className="flex items-center justify-between">
-          <button onClick={toggleTheme} aria-label="Toggle theme" className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base">
+          <button onClick={toggleTheme} aria-label="테마 전환" title="테마 전환" className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base">
             <MaterialIcon size={20} name={theme === 'light' ? 'dark_mode' : 'light_mode'} />
           </button>
         </div>

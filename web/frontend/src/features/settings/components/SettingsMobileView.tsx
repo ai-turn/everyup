@@ -60,7 +60,7 @@ export function SettingsMobileView({
         <p className="text-sm text-text-muted mt-0.5">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
       </div>
       {settingsError && (
-        <div role="alert" className="flex flex-wrap items-center gap-2 rounded-xl border border-status-warn/30 bg-status-warn/10 px-3 py-2.5 text-sm text-text-secondary">
+        <div role="alert" className="flex flex-wrap items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2.5 text-sm text-text-secondary">
           <MaterialIcon name="sync_problem" className="text-status-warn" />
           <span className="min-w-0 flex-1">일부 설정을 불러오지 못했습니다.</span>
           <Button size="sm" variant="secondary" onClick={onRetryLoad}>다시 시도</Button>

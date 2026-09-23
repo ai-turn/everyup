@@ -1,4 +1,4 @@
-import { Button, ConfirmDialog, MaterialIcon } from '../../../components/common';
+import { Button, ConfirmDialog, MaterialIcon, PageHeader } from '../../../components/common';
 import { useAuth } from '../../../contexts/AuthContext';
 import { SectionCard } from './SectionCard';
 import { SettingRow } from './SettingRow';
@@ -68,13 +68,9 @@ export function SettingsDesktopView({
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-text-base">환경 설정</h1>
-        <p className="text-sm text-text-muted mt-1">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
-      </div>
+      <PageHeader title="환경 설정" subtitle="계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다." />
       {settingsError && (
-        <div role="alert" className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-status-warn/30 bg-status-warn/10 px-4 py-3 text-sm text-text-secondary">
+        <div role="alert" className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3 text-sm text-text-secondary">
           <MaterialIcon name="sync_problem" className="text-status-warn" />
           <span className="min-w-0 flex-1">일부 설정을 불러오지 못했습니다. {settingsError}</span>
           <Button size="sm" variant="secondary" onClick={onRetryLoad}>다시 시도</Button>
@@ -123,7 +119,7 @@ export function SettingsDesktopView({
                         <button
                           key={sec}
                           onClick={() => onCollectIntervalChange(sec)}
-                          className={`font-mono ${segmentedButtonClass(collectInterval === sec)}`}
+                          className={`${segmentedButtonClass(collectInterval === sec)}`}
                         >
                           {intervalLabel(sec)}
                         </button>
@@ -137,7 +133,7 @@ export function SettingsDesktopView({
                         <button
                           key={opt}
                           onClick={() => onMetricsRetentionChange(opt)}
-                          className={`font-mono ${segmentedButtonClass(metricsRetention === opt)}`}
+                          className={`${segmentedButtonClass(metricsRetention === opt)}`}
                         >
                           {retentionLabel(opt)}
                         </button>
@@ -151,7 +147,7 @@ export function SettingsDesktopView({
                         <button
                           key={opt}
                           onClick={() => onLogsRetentionChange(opt)}
-                          className={`font-mono ${segmentedButtonClass(logsRetention === opt)}`}
+                          className={`${segmentedButtonClass(logsRetention === opt)}`}
                         >
                           {retentionLabel(opt)}
                         </button>

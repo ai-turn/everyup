@@ -21,7 +21,7 @@ export function SummaryCard({ label, value, detail, tone = 'idle' }: {
     <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
       <div className="flex items-baseline justify-between gap-3">
         <p className="min-w-0 truncate type-label text-text-secondary">{label}</p>
-        <p className="shrink-0 font-mono text-2xl tabular-nums text-text-base">{value}</p>
+        <p className="shrink-0 text-2xl tabular-nums text-text-base">{value}</p>
       </div>
       <p className={`mt-2 type-caption ${detailClass}`}>{detail}</p>
     </article>

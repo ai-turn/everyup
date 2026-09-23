@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import {
   Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { Button, ConfirmDialog, IconButton, MaterialIcon } from '../../components/common';
+import { Button, ConfirmDialog, DetailActionToolbar, MaterialIcon, PageHeader } from '../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, formatAxisValue, getChartTheme,
   gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
@@ -87,8 +87,8 @@ function RecentChecks({ metrics }: { metrics: UptimeMonitorMetric[] }) {
                 <p className="truncate text-sm text-text-secondary">{metric.errorMessage || metric.status === 'success' ? '정상 응답' : '체크 실패'}</p>
                 <p className="mt-0.5 text-xs text-text-dim">{new Date(metric.checkedAt).toLocaleString()}</p>
               </div>
-              {metric.statusCode ? <span className="font-mono text-xs text-text-muted">HTTP {metric.statusCode}</span> : null}
-              <span className="w-16 text-right font-mono text-xs tabular-nums text-text-muted">{metric.responseTime}ms</span>
+              {metric.statusCode ? <span className="text-xs text-text-muted">HTTP {metric.statusCode}</span> : null}
+              <span className="w-16 text-right text-xs tabular-nums text-text-muted">{metric.responseTime}ms</span>
             </div>
           ))}
         </div>
@@ -194,28 +194,32 @@ export function UptimeMonitorDetailPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        {/* 데스크톱은 AppHeader breadcrumb의 첫 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
-        <Link to="/uptime" className="mb-3 inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-primary lg:hidden">
-          <MaterialIcon size={20} name="arrow_back" />업타임
-        </Link>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="truncate text-2xl font-bold text-text-base">{monitor.name}</h1>
-              <UptimeMonitorStatusBadge monitor={monitor} />
-            </div>
-            <p className="mt-1 truncate font-mono text-sm text-text-muted">{target}</p>
-            <p className="mt-1 text-xs text-text-dim">{monitor.type.toUpperCase()} · {monitor.interval}{'초마다 확인'} · 직접 설정</p>
+      {/* 데스크톱은 AppHeader breadcrumb의 첫 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
+      <Link to="/uptime" className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-primary lg:hidden">
+        <MaterialIcon size={20} name="arrow_back" />업타임
+      </Link>
+      <PageHeader
+        title={monitor.name}
+        meta={
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption">
+            <UptimeMonitorStatusBadge monitor={monitor} />
+            <span className="min-w-0 truncate font-mono text-text-secondary">{target}</span>
+            <span className="text-text-dim">{monitor.type.toUpperCase()} · {monitor.interval}초마다 확인 · 직접 설정</span>
           </div>
-          <div className="flex flex-wrap gap-2 md:shrink-0">
-            <IconButton icon="refresh" label="새로고침" onClick={() => void load()} />
-            <Button variant="secondary" disabled={processing} onClick={() => void toggleActive()}>{monitor.isActive ? '일시정지' : '재개'}</Button>
+        }
+      />
+      <DetailActionToolbar
+        controls={<Button variant="secondary" onClick={() => void load()}><MaterialIcon name="refresh" />새로고침</Button>}
+        actions={
+          <>
             <Button variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete" />삭제</Button>
-          </div>
-        </div>
-      </div>
+            <Button variant="ghost" disabled={processing} onClick={() => void toggleActive()}>
+              <MaterialIcon name={monitor.isActive ? 'pause' : 'play_arrow'} />{monitor.isActive ? '일시정지' : '재개'}
+            </Button>
+            <Button variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+          </>
+        }
+      />
 
       <UptimeOverview
         stats={[

@@ -1,5 +1,5 @@
 import { ReactNode, useRef } from 'react';
-import { MaterialIcon } from '../../../components/common';
+import { IconButton, MaterialIcon } from '../../../components/common';
 import { useOverlay, SCRIM_PANEL } from '../../../hooks/useOverlay';
 
 interface FormSidePanelProps {
@@ -39,14 +39,7 @@ export function FormSidePanel({ open, icon, title, onClose, footer, children }: 
                         <MaterialIcon size={20} name={icon} />
                     </div>
                     <h3 className="flex-1 min-w-0 truncate type-card-title text-text-base">{title}</h3>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        aria-label="Close panel"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-text-muted hover:bg-ui-hover hover:text-text-secondary cursor-pointer shrink-0"
-                    >
-                        <MaterialIcon size={20} name="close" />
-                    </button>
+                    <IconButton icon="close" label="닫기" tone="quiet" onClick={onClose} />
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>

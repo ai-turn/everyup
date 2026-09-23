@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CopyButton, COPY_ACTION_PRIMARY } from '../../../components/common/CopyButton';
-import { ICON_ACTION_SM } from '../../../components/common/IconButton';
+import { ICON_ACTION_SM, IconButton } from '../../../components/common/IconButton';
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
 import { Input } from '../../../components/common/Input';
 import { Select } from '../../../components/common/Select';
@@ -165,14 +165,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               감지된 Java·Node.js 서비스에 OpenTelemetry를 안전하게 적용합니다.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="cursor-pointer rounded p-1.5 text-slate-400 hover:bg-ui-hover hover:text-text-secondary"
-            aria-label="닫기"
-          >
-            <MaterialIcon size={20} name="close" />
-          </button>
+          <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">

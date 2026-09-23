@@ -23,6 +23,7 @@ interface AlertsMobileViewProps {
   activeTab: MobileTab;
   setActiveTab: (tab: MobileTab) => void;
   onAddChannel: () => void;
+  onAddRule: () => void;
   onEditChannel: (channel: NotificationChannel) => void;
   onDeleteChannel: (id: string) => void;
   onToggleChannel: (id: string) => void;
@@ -59,6 +60,7 @@ export function AlertsMobileView({
   activeTab,
   setActiveTab,
   onAddChannel,
+  onAddRule,
   onEditChannel,
   onDeleteChannel,
   onToggleChannel,
@@ -73,6 +75,8 @@ export function AlertsMobileView({
   const visibleRules = alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules;
   const targetDescription = alertTarget?.kind === 'direct'
     ? `직접 서비스 ${alertTarget.serviceId}`
+    : alertTarget?.kind === 'infrastructure'
+    ? `인프라 ${alertTarget.resourceId}`
     : alertTarget ? `Docker 서비스 ${alertTarget.serviceKey}` : undefined;
 
   const tabs: { key: MobileTab; label: string; icon: string; count?: number }[] = [
@@ -85,8 +89,8 @@ export function AlertsMobileView({
     <div className="space-y-4">
       {/* Header */}
       <PageHeader title="알림" subtitle="이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.">
-        {activeTab === 'channels' && (
-          <Button className="w-full" onClick={onAddChannel}>
+        {activeTab !== 'history' && (
+          <Button className="w-full" onClick={activeTab === 'rules' ? onAddRule : onAddChannel}>
             <MaterialIcon size={20} name="add" />
             추가하기
           </Button>
@@ -157,12 +161,7 @@ export function AlertsMobileView({
               <p className="text-sm text-text-dim mt-2">
                 구성된 알림 채널이 없습니다
               </p>
-              <button
-                onClick={onAddChannel}
-                className="mt-3 text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
-              >
-                추가하기 →
-              </button>
+              <Button variant="ghost" className="mt-3" onClick={onAddChannel}>추가하기</Button>
             </div>
           ) : (
             channels.map(channel => {
@@ -198,7 +197,7 @@ export function AlertsMobileView({
                       {testingIds.has(channel.id) ? '전송 중' : '테스트'}
                     </Button>
                     <IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} />
-                    <IconButton icon="delete" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} />
+                    <IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} />
                   </div>
                 </div>
               );
@@ -210,7 +209,7 @@ export function AlertsMobileView({
       {/* Rules Tab */}
       {activeTab === 'rules' && (
         <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-2">
-          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary" role="status"><MaterialIcon size={20} name="filter_alt" /><span className="truncate">대상: {targetDescription}</span></div>}
+          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="truncate">대상: {targetDescription}</span></div>}
           {errors.rules && <InlineError message={errors.rules} onRetry={onRetry.rules} />}
           {rulesLoading ? (
             [1, 2].map(i => (
@@ -222,6 +221,7 @@ export function AlertsMobileView({
               <p className="text-sm text-text-dim mt-2">
                 등록된 알림 규칙이 없습니다
               </p>
+              <Button variant="ghost" className="mt-3" onClick={onAddRule}>추가하기</Button>
             </div>
           ) : (
             visibleRules.map(rule => {

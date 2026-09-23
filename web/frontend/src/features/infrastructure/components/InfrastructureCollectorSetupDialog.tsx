@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, Input, MaterialIcon, Select } from '../../../components/common';
+import { Button, Input, MaterialIcon, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
@@ -54,7 +54,7 @@ export function InfrastructureCollectorSetupDialog({
           <h2 id="infrastructure-collector-dialog-title" className="type-card-title text-text-base">OpenTelemetry Collector 연결</h2>
           <p className="mt-0.5 text-sm text-text-muted">표준 hostmetrics receiver로 CPU, 메모리, 디스크를 수집합니다.</p>
         </div>
-        <Button variant="quiet" size="sm" aria-label="닫기" onClick={onClose} disabled={submitting}><MaterialIcon name="close" /></Button>
+        <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
       </div>
       {setup ? (
         <InfrastructureCollectorSetupResult setup={setup} title="Collector 연결이 준비되었습니다" onDone={done} />

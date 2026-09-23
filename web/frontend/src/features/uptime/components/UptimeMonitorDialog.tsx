@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, Input, MaterialIcon, Select } from '../../../components/common';
+import { Button, Input, MaterialIcon, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import type { UptimeMonitor, UptimeMonitorInput, UptimeMonitorType } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
@@ -84,9 +84,7 @@ export function UptimeMonitorDialog({
             </h2>
             <p className="mt-1 text-sm text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
           </div>
-          <Button type="button" variant="quiet" size="sm" aria-label="닫기" onClick={onClose} disabled={saving}>
-            <MaterialIcon name="close" />
-          </Button>
+          <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
         </div>
         <div className="space-y-4 p-6">
           <label className="block space-y-1.5">

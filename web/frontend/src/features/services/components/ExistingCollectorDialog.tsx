@@ -69,8 +69,8 @@ export function ExistingCollectorDialog({ capability, initialAgentId, onView, on
       </> : <p className="text-sm text-text-muted">수집 설정 확인 중...</p>}
     </div> : <p className="mt-4 text-sm text-text-muted">등록된 Docker 환경이 없습니다.</p>}
     <div className="mt-5 flex justify-end gap-2 border-t border-ui-border pt-4">
-      <Button variant="secondary" onClick={onNew} disabled={saving}>새 Docker 환경</Button>
       <Button variant="quiet" onClick={onClose} disabled={saving}>닫기</Button>
+      <Button variant="secondary" onClick={onNew} disabled={saving}>새 Docker 환경</Button>
     </div>
   </dialog>;
 }

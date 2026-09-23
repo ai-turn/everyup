@@ -194,7 +194,7 @@ export function DirectApiDetailPage() {
           <>
           <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'direct', serviceId: service.id }))}><MaterialIcon name="notifications" />알림 규칙</Button>
           {service.isActive && <Button variant="ghost" onClick={() => setConfirmAction('revoke')}><MaterialIcon name="block" />연결 중지</Button>}
-          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete" />삭제</Button>
+          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
       />

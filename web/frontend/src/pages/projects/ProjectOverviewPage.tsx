@@ -1,7 +1,8 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, EmptyState, MaterialIcon } from '../../components/common';
+import { toast } from 'react-hot-toast';
+import { Button, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, SummaryCard } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
@@ -12,6 +13,7 @@ import {
   type UptimeMonitor,
 } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { ProjectDialog } from './ProjectsPage';
 import { isCollectorFresh } from '../../utils/operationalStatus';
 
 type ProjectData = {
@@ -41,6 +43,9 @@ export function ProjectOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [failedSources, setFailedSources] = useState<string[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deletingProject, setDeletingProject] = useState(false);
   useBreadcrumb(data.project ? [{ label: data.project.name }] : []);
 
   const load = useCallback(async () => {
@@ -107,19 +112,32 @@ export function ProjectOverviewPage() {
   if (error) return <EmptyState icon="sync_problem" title="Project를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} />;
   if (!data.project) return <EmptyState icon="folder_open" title="Project를 찾을 수 없습니다" action={{ label: 'Projects', onClick: () => navigate('/projects') }} />;
 
+  const project = data.project;
+  const deleteProject = async () => {
+    setDeletingProject(true);
+    try { await api.deleteProject(project.id); navigate('/projects'); }
+    catch (requestError) { toast.error(getErrorMessage(requestError)); setDeletingProject(false); }
+  };
+
   const directPath = (service: ObservedService) => service.signals.includes('logs') ? `/logs/${service.id}` : service.signals.includes('metrics') ? `/metrics/${service.id}` : `/api/${service.id}`;
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0"><h1 className="truncate text-2xl font-bold text-text-base">{data.project.name}</h1><p className="mt-1 text-sm text-text-muted">{data.project.description || '이 Project의 모니터링 범위와 현재 이상을 확인하세요.'}</p></div>
-        <Button variant="secondary" onClick={() => navigate('/projects')}>Project 관리</Button>
-      </div>
+      <PageHeader title={project.name} subtitle={project.description || '이 Project의 모니터링 범위와 현재 이상을 확인하세요.'} />
+      <DetailActionToolbar
+        controls={null}
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
+            <Button variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+          </>
+        }
+      />
 
       <section aria-label="Project 요약" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-ui-border bg-bg-surface p-4"><p className="text-xs text-text-muted">모니터링 대상</p><p className="mt-1 font-mono text-2xl tabular-nums text-text-base">{totalTargets}</p><p className="mt-3 text-xs font-medium text-text-muted">환경, 모니터, 직접 연결, 인프라</p></div>
-        <div className="rounded-xl border border-ui-border bg-bg-surface p-4"><p className="text-xs text-text-muted">수집 확인 필요</p><p className={`mt-1 font-mono text-2xl tabular-nums ${connectionIssues ? 'text-status-warn' : 'text-status-healthy'}`}>{connectionIssues}</p><p className={`mt-3 text-xs ${connectionIssues ? 'text-status-warn' : 'text-status-healthy'}`}>{connectionIssues ? '지연 또는 미확인 대상이 있습니다' : '연결이 모두 최신입니다'}</p></div>
-        <div className="rounded-xl border border-ui-border bg-bg-surface p-4"><p className="text-xs text-text-muted">서비스 장애</p><p className={`mt-1 font-mono text-2xl tabular-nums ${unhealthyServices + unhealthyMonitors ? 'text-status-error' : 'text-status-healthy'}`}>{unhealthyServices + unhealthyMonitors}</p><p className={`mt-3 text-xs ${unhealthyServices + unhealthyMonitors ? 'text-status-error' : 'text-status-healthy'}`}>{unhealthyServices + unhealthyMonitors ? `Docker ${unhealthyServices}개 · 업타임 ${unhealthyMonitors}개` : '현재 서비스 장애가 없습니다'}</p></div>
+        <SummaryCard label="모니터링 대상" value={totalTargets} detail="환경, 모니터, 직접 연결, 인프라" />
+        <SummaryCard label="수집 확인 필요" value={connectionIssues} detail={connectionIssues ? '지연 또는 미확인 대상이 있습니다' : '연결이 모두 최신입니다'} tone={connectionIssues ? 'warn' : 'idle'} />
+        <SummaryCard label="서비스 장애" value={unhealthyServices + unhealthyMonitors} detail={unhealthyServices + unhealthyMonitors ? `Docker ${unhealthyServices}개 · 업타임 ${unhealthyMonitors}개` : '현재 서비스 장애가 없습니다'} tone={unhealthyServices + unhealthyMonitors ? 'error' : 'idle'} />
       </section>
 
       {failedSources.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="text-sm font-medium text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 text-sm text-text-muted">{failedSources.join(', ')} 정보를 제외한 결과입니다.</p></div></div><Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button></section>}
@@ -136,6 +154,9 @@ export function ProjectOverviewPage() {
           </div>
         </section>
       )}
+
+      {editing && <ProjectDialog project={project} onClose={() => setEditing(false)} onSave={async input => { await api.updateProject(project.id, input); await load(); }} />}
+      <ConfirmDialog isOpen={deleting} onClose={() => setDeleting(false)} onConfirm={() => void deleteProject()} title="Project를 삭제할까요?" message="배정된 Docker 환경, 업타임 모니터, 직접 서비스와 Collector는 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import { InfraTrends } from '../../features/infra/components/InfraTrends';
 import { InfrastructureCollectorKeyDialog } from '../../features/infrastructure/components/InfrastructureCollectorKeyDialog';
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../services/api';
+import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { getErrorMessage } from '../../utils/errors';
 
 type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
@@ -138,9 +139,9 @@ export function DirectInfrastructureDetailPage() {
         }
         actions={
           <>
-          <Button variant="secondary" onClick={() => navigate('/alerts')}><MaterialIcon name="notifications" />알림 규칙</Button>
+          <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'infrastructure', resourceId: resource.id }))}><MaterialIcon name="notifications" />알림 규칙</Button>
           {resource.isActive && <Button variant="ghost" onClick={() => setConfirmAction('revoke')}><MaterialIcon name="block" />연결 중지</Button>}
-          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete" />삭제</Button>
+          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
       />

@@ -55,10 +55,9 @@ export function SidePanel() {
                         type="button"
                         className="flex h-10 w-10 items-center justify-center -mr-2 rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base shrink-0"
                         onClick={closePanel}
-                        aria-label="Close panel"
+                        aria-label="닫기"
                     >
                         <MaterialIcon size={20} name="close" />
-                        <span className="sr-only">Close panel</span>
                     </button>
                 </div>
 

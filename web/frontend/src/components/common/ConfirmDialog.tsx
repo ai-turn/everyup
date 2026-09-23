@@ -90,14 +90,14 @@ export function ConfirmDialog({
         )}
       </div>
 
-      <div className="px-6 pb-6 flex gap-3">
+      {/* 푸터 규칙(DESIGN.md §7): 우측 정렬, [취소][주 액션]. 진행 중에도 라벨을 유지해 폭이 흔들리지 않게 한다 */}
+      <div className="px-6 pb-6 flex justify-end gap-2">
         <Button
           ref={cancelRef}
           type="button"
           variant="secondary"
           onClick={onClose}
           disabled={isProcessing}
-          className="flex-1"
         >
           {cancelLabel ?? '취소'}
         </Button>
@@ -106,16 +106,9 @@ export function ConfirmDialog({
           variant={variant}
           onClick={onConfirm}
           disabled={isProcessing}
-          className="flex-1"
         >
-          {isProcessing ? (
-            <MaterialIcon size={20} name="sync" className="animate-spin" />
-          ) : (
-            <>
-              {variant === 'danger' && <MaterialIcon size={20} name="delete" />}
-              {confirmLabel ?? '삭제'}
-            </>
-          )}
+          {isProcessing && <MaterialIcon size={20} name="sync" className="animate-spin" />}
+          {confirmLabel ?? '삭제'}
         </Button>
       </div>
     </dialog>

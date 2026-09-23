@@ -27,7 +27,7 @@ export function AlertsSection({ value, loading, onChange }: {
               <button
                 key={n}
                 onClick={() => onChange(n)}
-                className={`cursor-pointer h-9 px-3 rounded-md type-label font-mono transition-all ${
+                className={`cursor-pointer h-9 px-3 rounded-md type-label transition-all ${
                   value === n
                     ? 'bg-ui-raised text-primary shadow-sm'
                     : 'text-text-muted hover:text-text-secondary'

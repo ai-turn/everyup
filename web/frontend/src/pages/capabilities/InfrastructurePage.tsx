@@ -31,7 +31,7 @@ function ResourceCard({ resource }: { resource: InfrastructureResource }) {
           {values.map(([label, value]) => (
             <div key={label}>
               <p className="text-xs text-text-dim">{label}</p>
-              <p className="font-mono text-base text-text-base">{value == null ? '—' : `${value.toFixed(1)}%`}</p>
+              <p className="text-base text-text-base">{value == null ? '—' :`${value.toFixed(1)}%`}</p>
             </div>
           ))}
         </div>
@@ -75,7 +75,7 @@ export function InfrastructurePage() {
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">인프라 대상</h2>
-            <span className="font-mono text-xs text-text-dim">{resources.length}</span>
+            <span className="text-xs text-text-dim">{resources.length}</span>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {resources.map(resource => <ResourceCard key={resource.id} resource={resource} />)}

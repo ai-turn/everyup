@@ -61,7 +61,7 @@ function MetricCard({
           <p className="mt-4 break-all font-mono text-xs text-text-muted">{metric.metricName}</p>
           <div className="mt-6 flex items-end justify-between gap-3">
             <span className="text-xs text-text-muted">현재 값</span>
-            <span className="font-mono text-2xl tabular-nums text-text-base">{formatMetric(metric.value, metric.unit)}</span>
+            <span className="text-2xl tabular-nums text-text-base">{formatMetric(metric.value, metric.unit)}</span>
           </div>
         </>
       ) : (
@@ -139,7 +139,7 @@ export function MetricsPage() {
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">메트릭 서비스</h2>
-            <span className="font-mono text-xs text-text-dim">{directServices.length + visibleAgentMetrics.length}</span>
+            <span className="text-xs text-text-dim">{directServices.length + visibleAgentMetrics.length}</span>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {directServices.map(service => (

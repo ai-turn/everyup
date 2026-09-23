@@ -19,7 +19,8 @@
   font-display: swap;
   src: url('spoqa-han-sans/Subset/SpoqaHanSansNeo/SpoqaHanSansNeo-Bold.woff2') format('woff2');
 }
-/* JetBrains Mono Variable — 숫자·코드 전용, self-hosted, CSP-safe. unicode-range로 latin subset만 로드 */
+/* JetBrains Mono Variable — 코드·로그 전용, self-hosted, CSP-safe. unicode-range로 latin subset만 로드.
+   font-mono로 그린 글자가 화면에 있을 때만 받는다 — 숫자는 Spoqa라 개요·목록에서는 받지 않는다. */
 @import '@fontsource-variable/jetbrains-mono';
 
 @import "tailwindcss";
@@ -104,10 +105,11 @@
      토큰을 안 정의하면 font-sans가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다. */
   --font-sans: 'Spoqa Han Sans Neo', system-ui, sans-serif;
 
-  /* 8. Mono: 숫자·코드·타임스탬프 전용. font-mono 유틸리티 전체에 자동 반영.
-     JetBrains Mono에 한글 글리프가 없어 '17회'·'9월 22일'처럼 섞인 값이 브라우저 기본
-     고정폭(굴림 등)으로 떨어졌다. Spoqa를 2순위에 둬 한글만 본문 폰트로 받는다. */
-  --font-mono: 'JetBrains Mono Variable', 'Spoqa Han Sans Neo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  /* 8. Mono: 기계 문자열(코드·설정 블록·로그 본문·키·ID·URL·경로·메트릭명) 전용 — 숫자는 쓰지 않는다.
+     Spoqa는 숫자가 원래 고정폭이라 KPI·표·시간은 본문 폰트로 충분하다. 코드·로그는 OS와 무관하게
+     같은 모양이도록 JetBrains Mono를 쓴다. 한글 글리프가 없어 '17회' 같은 값이 굴림으로
+     떨어지지 않게 Spoqa를 2순위에 둔다. */
+  --font-mono: 'JetBrains Mono Variable', 'Spoqa Han Sans Neo', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* 실제 로드한 굵기와 Tailwind 이름을 그대로 맞춘다: normal 400 / medium 500 / bold 700.
      Spoqa에 없는 600(semibold)은 사용하지 않는다. */
