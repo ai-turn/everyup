@@ -116,7 +116,8 @@ export function ProjectOverviewPage() {
   const deleteProject = async () => {
     setDeletingProject(true);
     try { await api.deleteProject(project.id); navigate('/projects'); }
-    catch (requestError) { toast.error(getErrorMessage(requestError)); setDeletingProject(false); }
+    catch (requestError) { toast.error(getErrorMessage(requestError)); }
+    finally { setDeletingProject(false); }
   };
 
   const directPath = (service: ObservedService) => service.signals.includes('logs') ? `/logs/${service.id}` : service.signals.includes('metrics') ? `/metrics/${service.id}` : `/api/${service.id}`;

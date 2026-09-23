@@ -213,9 +213,7 @@ export function UptimeMonitorDetailPage() {
         actions={
           <>
             <Button variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button variant="ghost" disabled={processing} onClick={() => void toggleActive()}>
-              <MaterialIcon name={monitor.isActive ? 'pause' : 'play_arrow'} />{monitor.isActive ? '일시정지' : '재개'}
-            </Button>
+            <Button variant="ghost" disabled={processing} onClick={() => void toggleActive()}>{monitor.isActive ? '일시정지' : '재개'}</Button>
             <Button variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
