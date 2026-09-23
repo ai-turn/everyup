@@ -4,8 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { IconButton } from '../../components/common/IconButton';
+import { Button, DetailActionToolbar, PageHeader } from '../../components/common';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
+import { StatusBadge } from '../../components/common/StatusBadge';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import {
   api,
@@ -43,7 +44,7 @@ function KpiCard({ label, value, unit, sub, tone }: {
   return (
     <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
       <div className="text-xs text-text-muted">{label}</div>
-      <div className={`text-xl mt-1 font-mono ${valueColor}`}>
+      <div className={`text-xl mt-1 ${valueColor}`}>
         {value}
         {unit && <span className="text-xs text-text-dim ml-0.5">{unit}</span>}
       </div>
@@ -89,20 +90,13 @@ function ServiceCard({ service, metric, onOpen }: {
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span
-            role="img"
-            aria-label={service.healthy ? '정상' : '장애'}
-            className={`h-2.5 w-2.5 rounded-full shrink-0 mt-0.5 ${service.healthy ? 'bg-status-healthy' : 'bg-status-error animate-pulse'}`}
-          />
           <div className="min-w-0">
             <h3 className="type-card-title text-text-base truncate">{service.name}</h3>
             <span className="text-xs text-text-dim truncate block">{service.runtime ?? service.checkType}</span>
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {!service.healthy && (
-            <span className="text-xs text-status-error bg-status-error/10 px-1.5 py-0.5 rounded">장애</span>
-          )}
+          <StatusBadge healthy={service.healthy} />
           <MaterialIcon size={20} name="chevron_right" className="text-text-dim group-hover:text-primary transition-colors" />
         </div>
       </div>
@@ -110,11 +104,11 @@ function ServiceCard({ service, metric, onOpen }: {
       <div className="grid grid-cols-3 gap-3 text-sm">
         <div className="min-w-0">
           <div className="text-xs text-text-dim">응답시간</div>
-          <div className="font-mono font-medium text-text-base truncate">{service.lastLatency ?? '—'}</div>
+          <div className="font-medium text-text-base truncate">{service.lastLatency ?? '—'}</div>
         </div>
         <div className="min-w-0">
           <div className="text-xs text-text-dim">상태</div>
-          <div className={`font-mono ${service.healthy ? 'text-status-healthy' : 'text-status-error'}`}>
+          <div className={`${service.healthy ? 'text-status-healthy' : 'text-status-error'}`}>
             {service.lastStatus ?? '—'}
           </div>
         </div>
@@ -123,7 +117,7 @@ function ServiceCard({ service, metric, onOpen }: {
             <div className="text-xs text-text-dim truncate" title={metric.metricName}>
               {metricLabel(metric.metricName)}
             </div>
-            <div className="font-mono font-medium text-text-base truncate">
+            <div className="font-medium text-text-base truncate">
               {formatMetricValue(metric.value, metric.unit)}
             </div>
           </div>
@@ -201,7 +195,7 @@ export function ProjectDetailPage() {
     try {
       await api.deleteAgent(agentId);
       toast.success('Docker 환경이 비활성화됐습니다');
-      navigate('/');
+      navigate('/environments');
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -236,9 +230,9 @@ export function ProjectDetailPage() {
 
   return (
     <div className="space-y-5">
-      {/* Back — mobile only; desktop navigates via the always-present sidebar */}
+      {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4) */}
       <button
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/environments')}
         className="lg:hidden flex items-center gap-1 text-sm text-text-muted hover:text-text-base transition-colors"
       >
         <MaterialIcon size={20} name="arrow_back" />
@@ -246,45 +240,43 @@ export function ProjectDetailPage() {
       </button>
 
       {loadError && (
-        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-status-warn/30 bg-status-warn/10 px-4 py-3 text-sm text-text-secondary">
-          <MaterialIcon name="sync_problem" className="shrink-0 text-status-warn" />
-          <span className="min-w-0 flex-1">Docker 환경 정보를 불러오지 못했습니다. {loadError}</span>
-          <button type="button" onClick={() => void load()} className="rounded-lg border border-ui-border bg-bg-surface px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-ui-hover">다시 시도</button>
-        </div>
+        <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <MaterialIcon name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
+            <p className="type-body text-text-secondary">Docker 환경 정보를 불러오지 못했습니다. {loadError}</p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
+        </section>
       )}
 
-      {/* Project header + actions */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-1 min-w-0">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-text-base truncate">{agentName}</h1>
+      <PageHeader
+        title={agentName}
+        meta={
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption">
             <CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />
-            {agent?.version && <span className="text-xs text-text-dim">v{agent.version}</span>}
+            <span className="text-text-secondary">
+              서비스 {services.length}개 · 정상 {healthy}
+              {!allHealthy && ` · 장애 ${services.length - healthy}`}
+            </span>
+            {agent?.version && <span className="text-text-dim">v{agent.version}</span>}
           </div>
-          <p className="text-sm text-text-muted flex items-center gap-1.5">
-            <span>서비스 {services.length}개</span>
-            <span className="text-text-dim">·</span>
-            <span className="text-status-healthy">{healthy} 정상</span>
-            {!allHealthy && (
-              <>
-                <span className="text-text-dim">·</span>
-                <span className="text-status-error">{services.length - healthy} 장애</span>
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex self-end items-center gap-1 shrink-0 md:self-auto">
-          <IconButton icon="refresh" label="새로고침" onClick={handleRefresh} iconClassName={spinning ? 'animate-spin' : ''} />
-          {agent && (
-            <>
-              <IconButton icon="download" label="Docker 수집기 설치 또는 재설치" onClick={() => setShowInstall(true)} />
-              <IconButton icon="key" label="API 키 보기" onClick={() => setShowKey(true)} />
-              <IconButton icon="integration_instructions" label="OTel 계측 설정 (헤더·바디)" onClick={() => setShowInstrumentation(true)} />
-              <IconButton icon="delete_outline" label="Docker 환경 비활성화" tone="danger" onClick={() => setDeleteConfirm(true)} />
-            </>
-          )}
-        </div>
-      </div>
+        }
+      />
+      <DetailActionToolbar
+        controls={
+          <Button variant="secondary" onClick={handleRefresh}>
+            <MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
+          </Button>
+        }
+        actions={agent && (
+          <>
+            <Button variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />수집기 설치</Button>
+            <Button variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API 키</Button>
+            <Button variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />계측 설정</Button>
+            <Button variant="destructive" onClick={() => setDeleteConfirm(true)}><MaterialIcon name="delete_outline" />비활성화</Button>
+          </>
+        )}
+      />
 
       {agent && (
         <MonitoringSetupPanel
@@ -412,7 +404,7 @@ export function ProjectDetailPage() {
                 <div className="space-y-0.5">
                   {events.map((e) => (
                     <div key={e.id} className="flex items-baseline gap-2.5 py-1.5 border-b border-ui-border-soft/50 last:border-0">
-                      <span className="text-xs font-mono text-text-dim w-10 shrink-0">
+                      <span className="text-xs text-text-dim w-10 shrink-0">
                         {new Date(e.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       <span className={`h-1.5 w-1.5 rounded-full shrink-0 translate-y-px ${

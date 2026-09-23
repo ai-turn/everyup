@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, MaterialIcon, Select } from '../../../components/common';
+import { Button, MaterialIcon, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { api, type ConnectedAgent, type ObservedService, type TelemetrySignal } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
@@ -81,7 +81,7 @@ function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capa
   return <dialog ref={ref} aria-label={`${label} 연결`} onCancel={event => { event.preventDefault(); onClose(); }} className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface p-6 ${SCRIM_MODAL_DIALOG}`}>
     <div className="flex items-start justify-between gap-3">
       <h2 className="type-card-title text-text-base">{label} 연결</h2>
-      <Button variant="quiet" size="sm" aria-label="닫기" onClick={onClose}><MaterialIcon name="close" /></Button>
+      <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
     </div>
     {mode === 'receipt' && selected ? <div className="mt-4 space-y-4">
       <p className="type-body text-text-secondary">{selected.label}의 기존 연결을 사용합니다.</p>

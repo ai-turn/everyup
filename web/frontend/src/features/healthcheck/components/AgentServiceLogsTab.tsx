@@ -103,11 +103,11 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
       aria-expanded={hasMeta ? expanded : undefined}
     >
       <div className="flex items-start gap-3">
-        <span className={`${LEVEL_BASE} mt-1 ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
+        <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
           {log.level}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-text-base wrap-break-word">{log.message}</p>
+          <p className="font-mono text-sm text-text-base wrap-break-word">{log.message}</p>
           <p className="text-xs text-text-dim mt-0.5">{formatTime(log.createdAt)}</p>
         </div>
         {log.traceId && (

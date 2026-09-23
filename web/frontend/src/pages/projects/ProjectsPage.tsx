@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, EmptyState, Input, MaterialIcon, PageHeader, ResourceCardHeader, Select } from '../../components/common';
+import { Button, ConfirmDialog, EmptyState, IconButton, Input, MaterialIcon, PageHeader, ResourceCardHeader, Select } from '../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import {
   api,
@@ -14,7 +14,7 @@ import {
 } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
-function ProjectDialog({ project, onClose, onSave }: {
+export function ProjectDialog({ project, onClose, onSave }: {
   project: Project | null;
   onClose: () => void;
   onSave: (input: ProjectInput) => Promise<void>;
@@ -90,11 +90,11 @@ function ProjectCard({ project, agents, monitors, directServices, infrastructure
     <article className="rounded-xl border border-ui-border bg-bg-surface p-5">
       <ResourceCardHeader
         title={<h2 className="truncate type-card-title text-text-base"><Link to={`/projects/${project.id}`} className="hover:text-primary">{project.name}</Link></h2>}
-        status={<div className="flex gap-1"><Button variant="ghost" size="sm" aria-label="Project 수정" title="Project 수정" onClick={onEdit}><MaterialIcon name="edit" /></Button><Button variant="destructive" size="sm" aria-label="Project 삭제" title="Project 삭제" onClick={onDelete}><MaterialIcon name="delete" /></Button></div>}
+        status={<div className="flex gap-1"><IconButton icon="edit" label="Project 수정" size="sm" onClick={onEdit} /><IconButton icon="delete_outline" label="Project 삭제" size="sm" tone="danger" onClick={onDelete} /></div>}
       />
       <p className="mt-3 type-body text-text-muted">{project.description || '설명이 없습니다'}</p>
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[['Docker 환경', agents.length], ['업타임', monitors.length], ['직접 서비스', directServices.length], ['Collector', infrastructureResources.length]].map(([label, count]) => <div key={String(label)} className="rounded-lg bg-ui-hover-soft p-3"><p className="text-xs text-text-dim">{label}</p><p className="mt-1 font-mono text-lg text-text-base">{count}</p></div>)}
+        {[['Docker 환경', agents.length], ['업타임', monitors.length], ['직접 서비스', directServices.length], ['Collector', infrastructureResources.length]].map(([label, count]) => <div key={String(label)} className="rounded-lg bg-ui-hover-soft p-3"><p className="text-xs text-text-dim">{label}</p><p className="mt-1 text-lg text-text-base">{count}</p></div>)}
       </div>
       <div className="mt-5 space-y-2">
         {agents.map(agent => <AssignedRow key={agent.id} label={agent.name} detail="Docker 환경" removeLabel="Docker 환경 해제" onRemove={() => onUnassignAgent(agent.id)} />)}

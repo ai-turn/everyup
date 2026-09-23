@@ -51,8 +51,8 @@ function ApiCard({
         status={<StatusBadge healthy={active} />}
       />
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <div><p className="text-xs text-text-dim">요청</p><p className="font-mono text-lg text-text-base">{total.toLocaleString()}</p></div>
-        <div><p className="text-xs text-text-dim">5xx</p><p className={`font-mono text-lg ${hasErrors ? 'text-status-error' : 'text-text-base'}`}>{summary.count5xx.toLocaleString()}</p></div>
+        <div><p className="text-xs text-text-dim">요청</p><p className="text-lg text-text-base">{total.toLocaleString()}</p></div>
+        <div><p className="text-xs text-text-dim">5xx</p><p className={`text-lg ${hasErrors ? 'text-status-error' : 'text-text-base'}`}>{summary.count5xx.toLocaleString()}</p></div>
       </div>
       {summary.top5xxPath ? (
         <p className="mt-4 truncate font-mono text-xs text-text-muted">{summary.top5xxMethod} {summary.top5xxPath}</p>
@@ -115,7 +115,7 @@ export function ApiPage() {
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">API 대상</h2>
-            <span className="font-mono text-xs text-text-dim">{directRows.length + agentRows.length}</span>
+            <span className="text-xs text-text-dim">{directRows.length + agentRows.length}</span>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {directRows.map(({ service, summary }) => (

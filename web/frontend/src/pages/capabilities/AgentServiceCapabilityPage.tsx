@@ -105,12 +105,12 @@ export function AgentServiceCapabilityPage() {
       {loading ? <ServiceListSkeleton /> : error ? (
         <EmptyState icon="error_outline" title="대상을 불러오지 못했습니다" description={error} />
       ) : empty ? (
-        <EmptyState icon="monitor_heart" title={normalizedQuery ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={normalizedQuery ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} />
+        <EmptyState icon="monitor_heart" title={normalizedQuery ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={normalizedQuery ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={normalizedQuery ? undefined : { label: '추가하기', onClick: () => setAdding(true) }} />
       ) : (
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">모니터링 대상</h2>
-            <span className="font-mono text-xs text-text-dim">{filteredMonitors.length + filteredAgentServices.length}</span>
+            <span className="text-xs text-text-dim">{filteredMonitors.length + filteredAgentServices.length}</span>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {filteredMonitors.map((monitor) => (

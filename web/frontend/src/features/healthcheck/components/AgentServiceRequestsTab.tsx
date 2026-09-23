@@ -249,7 +249,7 @@ function ServiceRequestsPanel({
                 <span className={`shrink-0 px-1.5 py-0.5 rounded text-xs uppercase ${methodClass(req.method)}`}>
                   {req.method}
                 </span>
-                <span className={`shrink-0 font-mono text-sm ${statusClass(req.statusCode)}`}>
+                <span className={`shrink-0 text-sm ${statusClass(req.statusCode)}`}>
                   {req.statusCode}
                 </span>
                 <span className="flex-1 min-w-0 text-sm text-text-secondary truncate font-mono">

@@ -133,9 +133,9 @@ export function OverviewPage() {
   return (
     <div className="space-y-5">
       <PageHeader title="모니터링 개요" subtitle="수집 상태와 현재 이상을 먼저 확인하세요.">
-        <Button onClick={() => navigate('/environments')}>
+        <Button onClick={() => navigate('/environments?connect=docker')}>
           <MaterialIcon size={20} name="add" />
-          모니터링 시작
+          Docker 연결
         </Button>
       </PageHeader>
 
@@ -158,7 +158,7 @@ export function OverviewPage() {
             icon="sensors"
             title="아직 모니터링 대상이 없습니다"
             description="Docker 환경, 업타임 모니터 또는 직접 OpenTelemetry 연결 중 하나를 선택해 시작하세요."
-            action={{ label: '모니터링 시작', onClick: () => navigate('/environments') }}
+            action={{ label: 'Docker 연결', onClick: () => navigate('/environments?connect=docker') }}
           />
         </section>
       ) : (
@@ -170,7 +170,7 @@ export function OverviewPage() {
                   <h2 className="type-card-title text-text-base">현재 확인 필요</h2>
                   <p className="mt-0.5 text-sm text-text-muted">서비스 상태와 수집 상태를 분리해 보여줍니다.</p>
                 </div>
-                <span className="font-mono text-sm tabular-nums text-text-muted">{attention.length}</span>
+                <span className="text-sm tabular-nums text-text-muted">{attention.length}</span>
               </div>
               {attention.length === 0 ? (
                 <div className="flex min-h-44 flex-col items-center justify-center p-5 text-center">
@@ -211,7 +211,7 @@ export function OverviewPage() {
                 ].map(([label, count, to]) => (
                   <div key={String(label)} className="flex items-center justify-between gap-3">
                     <dt className="text-sm text-text-secondary">{label}</dt>
-                    <dd><Link to={String(to)} className="font-mono text-sm tabular-nums text-primary hover:underline">{count}</Link></dd>
+                    <dd><Link to={String(to)} className="text-sm tabular-nums text-primary hover:underline">{count}</Link></dd>
                   </div>
                 ))}
               </dl>
@@ -231,7 +231,7 @@ export function OverviewPage() {
                     범위를 밝히지 않으면 "전부 조용하다"로 오독된다. */}
                 <p className="mt-0.5 text-sm text-text-muted">업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.</p>
               </div>
-              <span className="font-mono text-sm tabular-nums text-text-muted">{timeline.length}</span>
+              <span className="text-sm tabular-nums text-text-muted">{timeline.length}</span>
             </div>
             {timeline.length === 0 ? (
               <div className="flex min-h-32 flex-col items-center justify-center p-5 text-center">

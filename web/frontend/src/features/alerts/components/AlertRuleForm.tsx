@@ -635,7 +635,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                             className={thresholdUnit ? "rounded-r-none" : ""}
                                         />
                                         {thresholdUnit && (
-                                            <span className="px-3 py-2.5 bg-ui-hover border border-l-0 border-ui-border rounded-r-lg text-sm font-medium text-text-muted font-mono">
+                                            <span className="px-3 py-2.5 bg-ui-hover border border-l-0 border-ui-border rounded-r-lg text-sm font-medium text-text-muted">
                                                 {thresholdUnit}
                                             </span>
                                         )}
@@ -677,7 +677,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                 <Input
                                     type="number" min={1} max={20}
                                     {...register('duration', { valueAsNumber: true })}
-                                    className="w-16 text-right font-mono tabular-nums"
+                                    className="w-16 text-right tabular-nums"
                                 />
                             </div>
                         )}

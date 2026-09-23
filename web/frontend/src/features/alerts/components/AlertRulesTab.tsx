@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
-import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
+import { IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { api, type AlertRule, type NotificationChannel, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
 import { AlertRuleForm } from './AlertRuleForm';
 import { FormSidePanel } from './FormSidePanel';
+import { FormActions } from './FormLayout';
 import { SeverityBadge } from './SeverityBadge';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -282,6 +283,8 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
 
   const selectedTargetLabel = target?.kind === 'direct'
     ? directServices.find((service) => service.id === target.serviceId)?.name ?? target.serviceId
+    : target?.kind === 'infrastructure'
+    ? infrastructureResources.find((resource) => resource.id === target.resourceId)?.name ?? target.resourceId
     : target
       ? (() => {
           const service = agentServices.find((item) => item.agentId === target.agentId && item.key === target.serviceKey);
@@ -289,8 +292,8 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
         })()
       : null;
   const targetNotice = selectedTargetLabel && (
-    <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary" role="status">
-      <MaterialIcon size={20} name="filter_alt" />
+    <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status">
+      <MaterialIcon size={20} name="filter_alt" className="text-action" />
       <span className="truncate">대상: {selectedTargetLabel}</span>
     </div>
   );
@@ -310,25 +313,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
   // Inline expanding form — reuses AlertRuleForm; submit button lives here and
   // targets the form via form="alert-rule-form" (same wiring as the old page).
   const formActions = (
-    <div className="flex items-center gap-2 shrink-0">
-      <Button type="button" variant="secondary" onClick={closeForm}>
-        취소
-      </Button>
-      <Button
-        type="submit"
-        form="alert-rule-form"
-        disabled={formLoading || isSubmitting}
-      >
-        {isSubmitting ? (
-          <MaterialIcon size={20} name="sync" className="animate-spin" />
-        ) : (
-          <>
-            <MaterialIcon size={20} name="check" />
-            {formRule ? '저장' : '규칙 생성'}
-          </>
-        )}
-      </Button>
-    </div>
+    <FormActions formId="alert-rule-form" isEdit={!!formRule} isSubmitting={isSubmitting} disabled={formLoading} onCancel={closeForm} />
   );
 
   const formPanel = (
@@ -507,7 +492,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                       </td>
                       <td className="px-4 py-2.5 align-middle">
                         <span
-                          className="inline-block max-w-full truncate rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700 dark:bg-ui-hover-dark dark:text-text-base-dark"
+                          className="inline-block max-w-full truncate rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-ui-hover-dark dark:text-text-base-dark"
                           title={targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}
                         >
                           {targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}

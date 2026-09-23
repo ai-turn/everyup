@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CopyButton, ICON_ACTION_SM, MaterialIcon } from '../../../components/common';
+import { CopyButton, ICON_ACTION_SM, IconButton, MaterialIcon } from '../../../components/common';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
 import { useOverlay, SCRIM_PANEL } from '../../../hooks/useOverlay';
 import { getErrorMessage } from '../../../utils/errors';
@@ -316,13 +316,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
             className={ICON_ACTION_SM}
             title="트레이스 ID 복사"
           />
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded hover:bg-ui-hover text-slate-400 hover:text-text-secondary cursor-pointer shrink-0"
-            aria-label="닫기"
-          >
-            <MaterialIcon size={20} name="close" />
-          </button>
+          <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
@@ -458,7 +452,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                     {span.statusCode}
                   </span>
                 )}
-                <span className="text-text-muted font-mono shrink-0">
+                <span className="text-text-muted shrink-0">
                   {formatDuration(span.durationMs)}
                 </span>
                 {copyButton(() => onCopy(formatSpanCopy(span)), '스팬 행 복사')}
@@ -576,7 +570,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
                 {item.spanName}
               </span>
               {typeof item.size === 'number' && (
-                <span className="font-mono text-xs text-text-dim">
+                <span className="text-xs text-text-dim">
                   {item.size}B
                 </span>
               )}
@@ -619,7 +613,7 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
             }`}>
               {req.statusCode}
             </span>
-            <span className="text-text-muted font-mono shrink-0">
+            <span className="text-text-muted shrink-0">
               {formatDuration(req.durationMs)}
             </span>
             {copyButton(() => onCopy(formatApiRequestCopy(req)), 'API 요청 행 복사')}
@@ -644,7 +638,7 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs shrink-0 ${logLevelBadge(log.level)}`}>
               {log.level.toUpperCase()}
             </span>
-            <span className="text-text-muted font-mono shrink-0 mt-0.5">
+            <span className="text-text-muted shrink-0 mt-0.5">
               {formatTime(log.createdAt)}
             </span>
             <span className="text-text-secondary break-all flex-1 min-w-0">

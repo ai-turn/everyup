@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, Input, MaterialIcon, SegmentedControl, Select } from '../../../components/common';
+import { Button, Input, MaterialIcon, SegmentedControl, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import {
   api,
@@ -109,9 +109,7 @@ export function DirectTelemetrySetupDialog({
           <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{title}</h2>
           <p className="mt-0.5 text-sm text-text-muted">{description}</p>
         </div>
-        <Button variant="quiet" size="sm" aria-label="닫기" onClick={onClose} disabled={submitting}>
-          <MaterialIcon name="close" />
-        </Button>
+        <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
       </div>
 
       {setup ? (

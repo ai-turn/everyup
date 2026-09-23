@@ -149,7 +149,7 @@ function ServiceRequestTrends({
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs">
               {classes.map((c) => (
-                <span key={c.label} className={`font-mono ${c.text}`}>
+                <span key={c.label} className={`${c.text}`}>
                   {c.label} {((c.count / total) * 100).toFixed(1)}%
                 </span>
               ))}

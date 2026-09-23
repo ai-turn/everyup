@@ -4,6 +4,7 @@ import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { AlertRulesTab } from './AlertRulesTab';
 import { ChannelForm } from './ChannelForm';
 import { FormSidePanel } from './FormSidePanel';
+import { FormActions } from './FormLayout';
 import { NotificationHistoryTab } from './NotificationHistoryTab';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -202,11 +203,7 @@ export function AlertsDesktopView({
               : '채널 추가'}
             onClose={closeChannelForm}
             footer={
-              <ChannelFormActions
-                isSubmitting={channelSubmitting}
-                isEdit={!!channelFormTarget}
-                onCancel={closeChannelForm}
-              />
+              <FormActions formId="channel-form" isEdit={!!channelFormTarget} isSubmitting={channelSubmitting} onCancel={closeChannelForm} />
             }
           >
             <ChannelForm
@@ -232,26 +229,6 @@ export function AlertsDesktopView({
         <AlertRulesTab addTrigger={rulesAddTrigger} target={alertTarget} />
       )}
     </>
-  );
-}
-
-function ChannelFormActions({ isSubmitting, isEdit, onCancel }: { isSubmitting: boolean; isEdit: boolean; onCancel: () => void }) {
-  return (
-    <div className="flex items-center gap-2 shrink-0">
-      <Button type="button" variant="secondary" onClick={onCancel}>
-        취소
-      </Button>
-      <Button type="submit" form="channel-form" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <MaterialIcon size={20} name="sync" className="animate-spin" />
-        ) : (
-          <>
-            <MaterialIcon size={20} name="check" />
-            {isEdit ? '저장' : '추가하기'}
-          </>
-        )}
-      </Button>
-    </div>
   );
 }
 

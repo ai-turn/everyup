@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MaterialIcon } from '../../../components/common';
+import { IconButton, MaterialIcon } from '../../../components/common';
 import { api } from '../../../services/api';
 import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
 import { getErrorMessage } from '../../../utils/errors';
@@ -69,10 +69,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
           <h2 className="type-card-title text-text-base truncate">
             {agentName} · API 키
           </h2>
-          <button onClick={onClose} aria-label="닫기" title="닫기"
-            className="p-1 rounded-lg text-slate-400 hover:text-text-base transition-colors">
-            <MaterialIcon size={20} name="close" />
-          </button>
+          <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
         <div className="p-6 space-y-5">

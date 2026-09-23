@@ -54,7 +54,7 @@ export function ChartStatsLegend({
                 </span>
               </td>
               {stats.map(([key, v]) => (
-                <td key={key} className="text-right font-mono tabular-nums">
+                <td key={key} className="text-right tabular-nums">
                   {valueFormatter(v)}
                   <span className="ml-0.5 text-text-dim">{unit}</span>
                 </td>
@@ -121,7 +121,7 @@ export function ChartTooltip({
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
               {item.name}
             </span>
-            <span className="font-mono tabular-nums text-text-base">
+            <span className="tabular-nums text-text-base">
               {valueFormatter(Number(item.value) || 0)}
               <span className="ml-0.5 text-xs font-medium text-text-dim">{unit}</span>
             </span>

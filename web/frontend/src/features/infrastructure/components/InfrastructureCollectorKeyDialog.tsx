@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Button, MaterialIcon } from '../../../components/common';
+import { IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import type { InfrastructureResourceSetup } from '../../../services/api';
 import { InfrastructureCollectorSetupResult } from './InfrastructureCollectorSetupResult';
@@ -23,7 +23,7 @@ export function InfrastructureCollectorKeyDialog({
     >
       <div className="flex items-center justify-between border-b border-ui-border px-6 py-4">
         <h2 id="collector-key-dialog-title" className="type-card-title text-text-base">Collector 키 재발급</h2>
-        <Button variant="quiet" size="sm" aria-label="닫기" onClick={onClose}><MaterialIcon name="close" /></Button>
+        <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
       </div>
       <InfrastructureCollectorSetupResult setup={setup} title="새 Collector 키가 발급되었습니다" onDone={onClose} />
     </dialog>

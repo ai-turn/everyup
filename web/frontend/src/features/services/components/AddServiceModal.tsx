@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '../../../components/common/Button';
+import { IconButton } from '../../../components/common/IconButton';
 import { CopyButton } from '../../../components/common/CopyButton';
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
 import { Input } from '../../../components/common/Input';
@@ -191,12 +192,13 @@ function AgentForm({
           </div>
         )}
       </div>
-      <div className="flex gap-2 pt-1">
-        <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
+      <div className="flex justify-end gap-2 pt-1">
+        <Button type="button" variant="secondary" onClick={onClose}>
           취소
         </Button>
-        <Button type="submit" disabled={!name.trim() || submitting || (profileKind === 'custom' && customCapabilities.length === 0)} className="flex-1">
-          {submitting ? '생성 중...' : '생성'}
+        <Button type="submit" disabled={!name.trim() || submitting || (profileKind === 'custom' && customCapabilities.length === 0)}>
+          <MaterialIcon name="add" />
+          {submitting ? '추가 중…' : '추가하기'}
         </Button>
       </div>
     </form>
@@ -461,9 +463,7 @@ export function AddServiceModal({
           <h2 className="type-card-title text-text-base">
             {step === 'form' ? 'Docker 연결' : 'Docker 수집기 설치'}
           </h2>
-          <button type="button" onClick={onClose} aria-label="닫기" className="p-1 rounded-lg text-text-dim hover:text-text-base transition-colors">
-            <MaterialIcon size={20} name="close" />
-          </button>
+          <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
         <SetupProgress step={step} connected={connected} diagnosed={diagnosed} />
@@ -538,34 +538,31 @@ export function AddServiceModal({
               onRefreshCode={handleRefreshCode}
             />
 
-            <div className="flex gap-2">
+            <div className="flex justify-end gap-2">
               {connected ? (
                 <>
                   {injectableCount > 0 && onConfigureInstrumentation && (
                     <Button
                       variant="secondary"
                       onClick={() => onConfigureInstrumentation(agentId)}
-                      className="flex-1"
                     >
                       상세 계측 설정
                     </Button>
                   )}
                   <Button
                     onClick={() => onOpenProject ? onOpenProject(agentId) : onClose()}
-                    className="flex-1"
                   >
                     {onOpenProject ? 'Docker 환경 열기' : '완료'}
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="secondary" onClick={onClose} className="flex-1">
+                  <Button variant="secondary" onClick={onClose}>
                     나중에 확인
                   </Button>
                   <Button
                     onClick={() => void refreshConnection(true)}
                     disabled={checkingConnection}
-                    className="flex-1"
                   >
                     {checkingConnection ? '연결 확인 중...' : '연결 확인'}
                   </Button>

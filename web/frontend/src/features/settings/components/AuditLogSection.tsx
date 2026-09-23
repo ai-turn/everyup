@@ -61,7 +61,7 @@ export function AuditLogSection() {
                     {`본문 ${count}건`}
                   </span>
                 )}
-                <span className="font-mono text-xs text-text-dim">
+                <span className="text-xs text-text-dim">
                   {new Date(event.createdAt).toLocaleString()}
                 </span>
               </li>

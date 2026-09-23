@@ -66,7 +66,7 @@ test('existing Docker service opens the selected monitoring tab', async ({ page 
 
 test('instrumentation requires explicit targets and invalidates changed previews', async ({ page }) => {
   await page.goto('./agents/agent_demo_01');
-  await page.getByRole('button', { name: 'OTel 계측 설정 (헤더·바디)' }).click();
+  await page.getByRole('button', { name: '계측 설정', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'OpenTelemetry 자동 적용' });
   await expect(dialog.getByRole('button', { name: '변경 사항 확인' })).toBeDisabled();
   await dialog.getByRole('checkbox', { name: 'api 계측' }).check();

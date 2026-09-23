@@ -20,8 +20,6 @@ export interface ServiceTabsProps {
   /** Shared chart time range picked in the page header. */
   range: GlobalTimeRange;
   traceId?: string;
-  /** Hide the service name + status badge in the health tab (e.g. when a sidebar already shows them). */
-  showServiceName?: boolean;
 }
 
 export type DetailTab = 'overview' | 'uptime' | 'logs' | 'requests' | 'traces' | 'metrics' | 'infra';
@@ -65,14 +63,14 @@ function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange:
   );
 }
 
-function OverviewContent({ service, showServiceName = true }: Pick<ServiceTabsProps, 'service' | 'showServiceName'>) {
-  return <AgentIdentity service={service} showName={showServiceName} />;
+function OverviewContent({ service }: Pick<ServiceTabsProps, 'service'>) {
+  return <AgentIdentity service={service} />;
 }
 
-function UptimeContent({ service, agentId, serviceKey, refreshKey, range, showServiceName = true }: ServiceTabsProps) {
+function UptimeContent({ service, agentId, serviceKey, refreshKey, range }: ServiceTabsProps) {
   return (
     <>
-      <AgentIdentity service={service} showName={showServiceName} />
+      <AgentIdentity service={service} />
       <AgentUptimeOverview agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
       <AgentResponseTimeChart agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
       <AgentFailureHistory agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
@@ -80,14 +78,14 @@ function UptimeContent({ service, agentId, serviceKey, refreshKey, range, showSe
   );
 }
 
-function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, traceId, showServiceName }: { tab: DetailTab } & ServiceTabsProps) {
-  if (tab === 'overview') return <OverviewContent service={service} showServiceName={showServiceName} />;
+function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, traceId }: { tab: DetailTab } & ServiceTabsProps) {
+  if (tab === 'overview') return <OverviewContent service={service} />;
   if (tab === 'logs')     return <AgentServiceLogsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} traceId={traceId} />;
   if (tab === 'requests') return <AgentServiceRequestsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} traceId={traceId} runtime={service.runtime} />;
   if (tab === 'traces')   return <AgentServiceTracesTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
   if (tab === 'metrics')  return <AgentServiceMetricsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
   if (tab === 'infra')    return <AgentServiceInfraTab agentId={agentId} refreshKey={refreshKey} range={range} />;
-  return <UptimeContent service={service} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} showServiceName={showServiceName} />;
+  return <UptimeContent service={service} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
 }
 
 // Tab bar + content for a single agent service. Reused by the full-page service

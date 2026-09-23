@@ -97,7 +97,7 @@ info가 sky인 이유: primary(#3b76c9)와 붙어 있으면 "선택된 항목"�
 **로그 행의 레벨은 채움 없는 mono 텍스트다** (`LEVEL_BASE` = `inline-block shrink-0 w-12 font-mono text-xs font-medium uppercase`). 2026-09-20까지는 `bg-red-100` 계열 불투명 파스텔 틴트를 깐 배지였는데, 사용자 피드백은 *"색상이 너무 AI스럽다"*였다. 두 가지가 겹쳐 있었다:
 
 1. **`-100` 틴트는 부트스트랩 alert 팔레트 그대로다.** §9.3이 다른 자리에서는 이미 금지하던 패턴인데 배지만 예외였고, 로그 표는 행마다 색 블록이 찍혀 그 예외가 가장 크게 드러나는 자리였다.
-2. **기계 토큰에 가변폭 sans를 썼다.** 같은 표의 시간·메시지 컬럼이 전부 `font-mono`인데 레벨만 Spoqa였다. `ERROR`/`WARN`/`INFO`는 글자폭이 제각각이라 컬럼이 들쭉날쭉했고, **틴트가 그 들쭉날쭉함을 덮는 역할도 하고 있었다.** mono 고정폭 + `w-12`로 컬럼 모양을 잡으면 채움이 필요 없어진다.
+2. **기계 토큰에 가변폭 sans를 썼다.** 같은 표의 메시지 컬럼이 `font-mono`인데 레벨만 Spoqa였다(시간 컬럼은 2026-09-23부터 Spoqa — §2.1). `ERROR`/`WARN`/`INFO`는 글자폭이 제각각이라 컬럼이 들쭉날쭉했고, **틴트가 그 들쭉날쭉함을 덮는 역할도 하고 있었다.** mono 고정폭 + `w-12`로 컬럼 모양을 잡으면 채움이 필요 없어진다.
 
 틴트를 빼서 대비가 같이 올랐다 — 실측 라이트 error 6.42 / warn 5.03 / info 5.86 (행 hover 위에서도 4.81 이상), 다크 error 5.99 / warn 10.04 / info 7.94.
 
@@ -137,9 +137,9 @@ primary #3b76c9 → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 - **본문** Spoqa Han Sans Neo (self-hosted, `spoqa-han-sans` 패키지) → `--font-sans`. body와 `font-sans` 유틸리티가 같은 토큰을 본다 — 토큰 없이 두면 `font-sans`가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다
 - **정적 폰트다.** 굵기는 100/300/400/500/700 다섯 개뿐이고 가변 축이 없다 — 중간 굵기를 만들 수 없다
-- **숫자·코드·타임스탬프** JetBrains Mono Variable → `font-mono`. JetBrains Mono에 한글 글리프가 없어 폴백 2순위가 Spoqa다 — `17회`·`9월 22일`처럼 한글이 섞인 값도 본문 폰트로 떨어진다
-- 숫자가 자리 이동하면 안 되는 곳(KPI, 차트 범례, 테이블)은 `tabular-nums`를 함께 건다
-- **mono는 값에만 건다 — 라벨·분류명·제품명은 본문 폰트다.** `Docker 환경`·`Collector`·`OpenTelemetry Collector`·`Bot Token`·`TELEGRAM`처럼 우리가 UI에 써 넣은 말은 mono가 아니다. 컨테이너(`<table>`, 메타 줄)에 `font-mono`를 걸면 라벨까지 같이 딸려오니, 숫자 셀에 직접 건다. 값 하나를 여러 성격이 공유하는 prop(`detail={{label, value}}`)은 특히 주의 — 한쪽이 코드면 다른 쪽은 아닐 확률이 높다
+- **본문과 숫자는 Spoqa, 코드·로그만 JetBrains Mono다** (2026-09-23). **숫자·시간·개수도 Spoqa다** — Spoqa는 숫자 글리프가 원래 고정폭이다(실측 20px에서 `0000`·`1111`·`8888` 모두 47.69px). KPI·표·차트 범례·타임스탬프에 mono를 쓸 이유가 없다. 자리 이동이 없어야 하는 곳은 의도를 드러내려 `tabular-nums`를 그대로 건다
+- **`font-mono`는 기계 문자열에만** — 코드·설정 블록(`<pre>`, YAML·명령어), 로그 메시지 본문·스택 트레이스, API 키·trace ID·span 이름, URL·경로·HTTP method+path, 이미지명·메트릭명, `key=value` 속성 칩, 로그 레벨 토큰(§1.5). 기준은 **"들여쓰기·줄 맞춤이 의미이거나, `l`/`I`/`1`·`O`/`0`을 가려 읽어야 하는가"**다. 폰트는 JetBrains Mono Variable(latin subset, self-hosted)이다 — 로그·트레이스처럼 오래 읽는 화면이 OS와 무관하게 같은 모양이어야 해서 OS 고정폭 대신 웹폰트를 쓴다. 브라우저는 `font-mono` 글자가 화면에 있을 때만 파일을 받으므로 숫자를 뺀 뒤로는 개요·목록에서 내려받지 않는다. `<kbd>`·`<code>`·`<pre>`는 브라우저 기본값이 mono라는 점에 주의 — 단축키 표시(`Ctrl K`)는 UI 라벨이므로 `font-sans`를 건다(사이드바 `<kbd>` 하나 때문에 모든 페이지가 이 폰트를 받고 있었다). 한글 글리프가 없어 폴백 2순위가 Spoqa다 — 한글이 섞인 줄은 폭이 정확히 맞지 않는다(한글 줄 맞춤이 필요해지면 D2Coding 서브셋을 검토)
+- **mono는 값에만 건다 — 라벨·분류명·제품명은 본문 폰트다.** `Docker 환경`·`Collector`·`OpenTelemetry Collector`·`Bot Token`·`TELEGRAM`처럼 우리가 UI에 써 넣은 말은 mono가 아니다. 컨테이너(`<table>`, 메타 줄)에 `font-mono`를 걸면 라벨까지 같이 딸려오니, 해당 값 셀에 직접 건다. 값 하나를 여러 성격이 공유하는 prop(`detail={{label, value}}`)은 특히 주의 — 한쪽이 코드면 다른 쪽은 아닐 확률이 높다
 
 ### 2.2 역할별 타이포그래피
 
@@ -154,7 +154,7 @@ primary #3b76c9 → emerald #059669 → amber #d97706 → violet #7c3aed → red
 | 버튼·폼 라벨·조밀한 항목 제목 | `type-label` | 14 / 20px | 500 |
 | 메타·시간·짧은 보조 값 | `type-caption` | 12 / 16px | 400 |
 
-페이지 헤더는 [PageHeader](src/components/common/PageHeader.tsx)를 쓴다. 모바일 전용 화면의 h1은 기존 `text-xl font-bold`(20px)을 허용한다. KPI 수치는 24~30px, `font-mono tabular-nums`를 사용한다. 404 같은 디스플레이 숫자는 별도 크기를 허용한다.
+페이지 헤더는 [PageHeader](src/components/common/PageHeader.tsx)를 쓴다. 모바일 전용 화면의 h1은 기존 `text-xl font-bold`(20px)을 허용한다. KPI 수치는 24~30px, `tabular-nums`를 사용한다(본문 폰트 — §2.1). 404 같은 디스플레이 숫자는 별도 크기를 허용한다.
 
 크기 토큰은 `text-xs`(12), `text-sm`(14), `text-base`(16), `text-lg`(18), `text-xl`(20), `text-2xl`(24), `text-3xl`(30)이다. `text-[Npx]`로 임의 크기를 추가하지 않는다. 역할 유틸리티 위에 다른 크기·굵기·행간을 중복 지정하지 않는다.
 
@@ -220,6 +220,7 @@ bg-bg-surface border border-ui-border rounded-xl
 - `lg` 이상: 좌측 `Sidebar`(로고 → nav → Docker 수집기 상태 푸터) + 상단 `AppHeader`(위치 표시). `Header`는 `lg:hidden`으로 모바일 전용
 - `lg` 미만: `Header` + `BottomNavMobile`. 하단바 겹침은 `pb-safe-bottom` 유틸리티가 처리
 - 뒤로가기 버튼은 **데스크톱에 두지 않는다** — 사이드바가 상시 내비이고, `AppHeader`의 첫 크럼이 목록 링크다
+- **사이드바 활성 항목은 브레드크럼의 첫 크럼과 같다** — 담김 관계를 따른다. 서비스 상세(`/services/…`)는 어떤 탭을 보고 있든 `Docker 환경`이 활성이다. 탭은 위치가 아니다(아래 "탭은 크럼이 아니다")
 
 #### `AppHeader` — 현재 위치 (데스크톱 전용, 2026-09-20)
 
@@ -244,7 +245,7 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 페이지 h1은 그대로 둔다 — 헤더는 "어디에 있나", 본문 h1은 "이 페이지가 무엇인가"로 역할이 갈리고, h1은 부제·CTA를 함께 이고 있다.
 
-전체 화면 높이를 계산하는 페이지는 **`lg`에서 빼는 값이 다르다** — 모바일 `Header` 3.5rem 대신 `AppHeader` 4rem이 추가로 붙어 `lg:h-[calc(100dvh-8rem)]`이다 (`ChannelFormPage`).
+전체 화면 높이를 계산하는 페이지는 **`lg`에서 빼는 값이 다르다** — 모바일 `Header` 3.5rem 대신 `AppHeader` 4rem이 추가로 붙어 `lg:h-[calc(100dvh-8rem)]`이다. 모바일은 높이를 계산하지 않고 자연 높이로 두며, 하단 제출 바를 `sticky`로 하단 내비(4rem + safe-area) 위에 붙인다 — 데모 배너처럼 위쪽 크롬이 늘면 높이 계산이 틀려 제출 바가 `BottomNavMobile` 뒤로 숨었다 (`ChannelFormPage`).
 
 **헤더는 본문과 같은 스크롤바 거터를 예약해야 좌변이 맞는다.** 본문 스크롤 컨테이너가 `[scrollbar-gutter:stable]`로 15px(플랫폼마다 다름)을 예약하는데 `AppHeader`는 그 바깥이다. 안쪽 `max-w-320` 박스를 `mx-auto`로 가운데 두면 그 15px이 양쪽 7.5px씩 갈려 **헤더 크럼이 본문 제목보다 7.5px 오른쪽**으로 밀린다. 그래서 헤더에도 `overflow-y-hidden [scrollbar-gutter:stable]`을 건다 — 장식이 아니라 정렬 장치다. 오버레이 스크롤바 환경(macOS 기본)에서는 양쪽 다 0을 예약하므로 자동으로 맞는다. 헤더에 드롭다운처럼 넘치는 요소를 넣으려면 이 클립을 먼저 풀고 거터를 다른 방법으로 맞춰야 한다.
 
@@ -270,9 +271,11 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 |----------|-------|------|
 | **`Button`** | `variant` `size` + 네이티브 button | 라벨 있는 액션 버튼의 **유일한** 진입점 |
 | **`Input`** | `invalid?` `warn?` `mono?` | 폼 입력 (§6) |
+| **`Textarea`** | `invalid?` `mono?` + 네이티브 textarea | 여러 줄 입력. `Input`과 같은 셸 (§6) |
 | **`Select`** | 네이티브 `option` children + 기존 select props | 앱 스타일 listbox (§6) |
 | **`SearchInput`** | `wrapperClassName?` | 아이콘 붙은 검색창 (§6) |
-| **`StatusBadge`** | `healthy: boolean` | 정상/장애 보더칩 (§5.1) |
+| **`StatusLight`** | `tone` `label` `pulse?` | 대상 상태의 정본 — 점 + 라벨 (§5.1) |
+| **`StatusBadge`** | `healthy: boolean` | 정상/장애 `StatusLight` 래퍼 (§5.1) |
 | **`CollectionStatusBadge`** | `collecting` \| `partial` \| `delayed` \| `waiting` \| `not-configured` | 수집 신선도·설정 상태. 서비스 상태와 별도 축 (§5.1) |
 | **`Toggle`** | `checked` `onChange` `disabled` `title` | w-9 h-5, `role="switch"` |
 | **`SegmentedControl<T>`** | `options` `value` `onChange` `size` `ariaLabel` | 2~4지 배타 선택 |
@@ -283,7 +286,8 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 | **`ListToolbar`** | `search` `children?` | 목록 검색은 왼쪽, 필터는 그다음 |
 | **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
 | **`SummaryCard`** | `label` `value` `detail` `tone?` | KPI 카드. 라벨 좌 / 숫자 우 1행 + 설명 1행 |
-| **`DetailActionToolbar`** | `controls` `actions` | 상세의 조회 제어·변경 액션을 반응형으로 분리 |
+| **`DetailActionToolbar`** | `controls` `actions` | 상세의 조회 제어(좌)·변경 액션(우). 모든 상세 화면의 정본 (§4.1 액션 앵커) |
+| **`Pagination`** | `page` `totalPages` `onChange` … | 목록 페이지 이동 |
 | **`MaterialIcon`** | `name` `size` `className` `style` | 로컬 정적 SVG |
 | **`IconButton`** | `icon` `label` `tone?` `size?` `iconClassName?` | 라벨 없는 아이콘 액션. `tone`은 `action`(기본)·`danger`·`quiet`. className을 받는 자리(CopyButton)는 같은 파일의 `ICON_ACTION`/`ICON_ACTION_SM` |
 | **`CopyButton`** | `onCopy` `title` `className` … | 3초 완료 피드백. 클래스는 같은 파일이 export하는 `COPY_ACTION_PRIMARY`/`COPY_ACTION_SUBTLE`을 쓴다 |
@@ -296,10 +300,10 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 | `secondary` | 보더 있는 보조 액션 | `border border-ui-border text-text-base` + 아이콘 `action` |
 | `ghost` | 배경 없는 3순위 | `text-action hover:bg-action/10` |
 | `destructive` | 삭제·중지 (채움 없이) | `text-status-error hover:bg-status-error/10` |
-| `quiet` | 닫기·취소 — 눈에 띄지 않아야 하는 이탈 | `text-text-muted hover:bg-ui-hover` |
+| `quiet` | 정보만 보여주는 다이얼로그의 `닫기` — 눈에 띄지 않아야 하는 이탈 | `text-text-muted hover:bg-ui-hover` |
 | `danger` | 확인 다이얼로그의 파괴 확정 | `bg-red-600 text-white` |
 
-**액션에는 색을 싣는다 (§5.3).** 채움도 보더도 없는 버튼이 본문과 같은 회색이면 hover 전까지 버튼으로 읽히지 않는다 — *"기본값으로 색상이 달라야 한다."* 그래서 `ghost`는 라벨·아이콘 전부 `action`, `secondary`는 라벨을 `text-base`로 올리고 아이콘만 `action`을 싣는다(보더가 이미 버튼임을 말하므로 라벨까지 칠할 이유가 없다). **예외는 이탈 액션뿐이다** — 닫기·취소를 색으로 강조하면 정작 그 화면의 주 액션보다 먼저 눈에 들어온다. `quiet`가 그 자리다.
+**액션에는 색을 싣는다 (§5.3).** 채움도 보더도 없는 버튼이 본문과 같은 회색이면 hover 전까지 버튼으로 읽히지 않는다 — *"기본값으로 색상이 달라야 한다."* 그래서 `ghost`는 라벨·아이콘 전부 `action`, `secondary`는 라벨을 `text-base`로 올리고 아이콘만 `action`을 싣는다(보더가 이미 버튼임을 말하므로 라벨까지 칠할 이유가 없다). **예외는 이탈 액션뿐이다** — 닫기를 색으로 강조하면 정작 그 화면의 주 액션보다 먼저 눈에 들어온다. `quiet`가 그 자리다. 폼 푸터의 `취소`는 주 액션과 짝을 이루므로 `secondary`다(§7 푸터 규칙).
 
 **버튼 색을 `className`으로 덮어쓰지 않는다.** `variant="ghost" className="text-status-error"`로 쓰던 삭제 버튼 5곳이 전부 회색으로 렌더되고 있었다 — Tailwind가 같은 속성의 유틸리티를 **알파벳 순**으로 내보내기 때문에 `text-status-error`가 `text-text-muted`보다 앞서 나가 매번 졌다. 색은 variant로 고른다.
 
@@ -318,21 +322,27 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 - 페이지의 주 액션은 `PageHeader`의 `children`에 둔다. `md` 이상에서는 **설명과 같은 행의 우측 끝**, 그 미만에서는 설명 아래가 고정 위치다. 제목은 자기 행을 독차지한다 — 제목 행에 버튼을 같이 두면 세 글자짜리 제목과 버튼 사이가 1000px 넘게 비어 서로 무관한 요소로 읽혔다.
 - 액션은 **보조 → 주 액션** 순서로 전달해 주 액션을 우측 끝에 둔다. 헤더 내부에 별도 flex 래퍼를 만들지 않는다. 40px 버튼의 중심을 설명 행의 중심에 맞춘다(`md:items-center`). `sm` 미만에서는 버튼을 전체 폭으로 쌓고, 그 이상에서는 같은 순서로 줄바꿈한다. 버튼 아이콘은 20px, 버튼 간격은 8px, 헤더 아래 간격은 24px다.
-- 대상을 새로 만드는 액션의 라벨은 **`추가하기` 하나다.** 페이지 헤더 CTA, 빈 상태의 액션, 다이얼로그 제출 버튼 전부 같은 문구를 쓴다. `업타임 추가`·`Logs 직접 추가`·`Collector 추가`처럼 대상을 앞에 붙이지 않는다 — 대상은 페이지 제목이나 모달 제목이 이미 말하고, 명사를 각자 고르게 두면 한글·영어가 섞이고 화면마다 어긋난다. 라벨에 영어 리소스명(`Logs`·`Metrics`·`Collector`)을 넣지 않는다.
+- 대상을 새로 만드는 액션의 라벨은 **`추가하기` 하나다.** 편집 제출은 `저장`, 진행 중에는 `추가 중…`/`저장 중…`이다. `생성`·`규칙 생성`처럼 동사를 바꾸지 않는다. 페이지 헤더 CTA, 빈 상태의 액션, 다이얼로그 제출 버튼 전부 같은 문구를 쓴다. `업타임 추가`·`Logs 직접 추가`·`Collector 추가`처럼 대상을 앞에 붙이지 않는다 — 대상은 페이지 제목이나 모달 제목이 이미 말하고, 명사를 각자 고르게 두면 한글·영어가 섞이고 화면마다 어긋난다. 라벨에 영어 리소스명(`Logs`·`Metrics`·`Collector`)을 넣지 않는다.
 - **제목은 이 규칙 밖이다** — 다이얼로그·페이지 제목은 `업타임 추가`·`채널 추가`처럼 대상을 밝힌다. 라벨에서 명사를 뺄 수 있는 근거가 제목이므로, 제목까지 비우면 맥락이 사라진다.
-- 로그·API·메트릭·인프라의 연결 진입점은 `로그 연결`·`API 연결`·`메트릭 연결`·`인프라 연결` 하나로 통합한다. 기존 대상 재사용과 새 대상 등록을 모두 포함하므로 위의 생성 전용 `추가하기` 규칙과 구분한다. 연결 화면 안에서 Docker와 직접 OpenTelemetry 경로를 선택한다.
+- Docker·로그·API·메트릭·인프라의 연결 진입점은 `Docker 연결`·`로그 연결`·`API 연결`·`메트릭 연결`·`인프라 연결` 하나로 통합한다. 기존 대상 재사용과 새 대상 등록을 모두 포함하므로 위의 생성 전용 `추가하기` 규칙과 구분한다. 연결 화면 안에서 Docker와 직접 OpenTelemetry 경로를 선택한다.
 - 헤더 블록은 `border-b border-ui-border pb-5`로 띠를 이룬다. 제목과 우측 CTA 사이가 1000px 넘게 벌어지는 넓은 화면에서, 이 선이 없으면 버튼이 헤더에 속하지 않고 구석에 떠 있는 요소로 읽혔다.
 - 검색·필터는 페이지 헤더에 섞지 않고 그 아래의 보조 툴바에 둔다. 모바일에서는 툴바가 CTA보다 앞서지 않는다.
 - 목록의 보조 툴바는 `ListToolbar`를 쓴다. 검색창은 왼쪽 320px(`sm` 미만 전체 폭), 필터는 오른쪽부터 이어지며 공간이 부족하면 다음 줄로 흐른다. 검색·필터·버튼 높이는 모두 40px다. 탭 안의 검색은 해당 탭의 목록 위에 둔다. 검색 기능이 없는 화면에 정렬만을 위한 빈 검색창을 만들지 않는다.
-- 상세 화면은 `DetailActionToolbar`로 조회 제어와 변경 액션을 분리한다. 모바일에서는 두 그룹이 제목 아래에서 차례로 쌓이고, `md` 이상에서는 양 끝에 둔다.
+- **상세 화면의 헤더는 하나다 — `PageHeader`(제목·설명·`meta`) + `DetailActionToolbar`.** 제목 행에 버튼을 두지 않는 목록 규칙이 상세에도 그대로 적용된다. 대상의 상태(`StatusLight`)는 제목 옆이 아니라 `meta` 줄의 첫 항목이다. 2026-09-23까지 상세 9곳 중 5곳이 `h1`을 직접 쓰고 버튼을 제목 행에 붙여서, 새로고침이 좌측 라벨 버튼·우측 첫 아이콘·우측 끝 아이콘으로 화면마다 달랐고 삭제는 라벨 버튼과 라벨 없는 빨간 아이콘이 섞여 있었다.
+  - **좌측 `controls` = 조회 제어**: 기간 선택 → `새로고침`. 새로고침은 라벨 있는 `secondary` 버튼이다(아이콘 전용 아님).
+  - **우측 `actions` = 변경 액션, 순서 고정**: 이동(`알림 규칙`) → 편집(`수정`·설정 다이얼로그, `secondary`) → 상태 전환(`일시정지`·`연결 중지`, `ghost`) → 파괴(`삭제`·`비활성화`, `destructive`)가 **항상 맨 끝**.
+  - 상세의 액션은 **라벨 버튼**이다. 아이콘 전용 버튼을 나란히 두지 않는다 — 라벨 없는 아이콘 다섯 개(설치·API 키·계측·비활성화)는 hover 전까지 무엇인지 읽히지 않았다.
+  - 모바일에서는 두 그룹이 제목 아래에서 차례로 쌓이고, `md` 이상에서는 양 끝에 둔다.
 - **대상의 속성은 본문이 아니라 헤더 띠 안에 둔다.** 수집 키·키 재발급·마지막 수집·Project 배정처럼 제목이 가리키는 대상을 설명하는 값은 `PageHeader`의 `meta`에 한 줄로 싣는다(`type-caption`, 라벨 `dim` / 값 `secondary`, `gap-x-5`로 항목 구분). 직접 연결 상세 4종이 이 값들을 본문 최상단에 카드 두 장(`lg:col-span-2` + Project)으로 펼치고 있어서, 정작 그 페이지가 보여줘야 할 로그·차트가 첫 화면 밖으로 밀려났다 — 메타데이터는 읽는 대상이 아니라 확인하는 값이다. 메타 줄 안의 버튼·입력은 다른 줄과 마찬가지로 40px로 맞춘다.
-- 페이지·상세 헤더의 아이콘 전용 액션은 `h-10 w-10`이다. `h-8 w-8`은 테이블 행처럼 조밀한 맥락에서만 쓴다.
+- 아이콘 전용 액션은 `h-10 w-10`이다. `h-8 w-8`은 테이블 행·다이얼로그 헤더처럼 조밀한 맥락에서만 쓴다.
+- **행·카드 액션은 우측 끝**, 순서는 상태 토글 → 보조(`테스트` 등) → 수정 → 삭제다. 표 행은 `IconButton size="sm"`, 카드는 `ResourceCardHeader`의 `status` 슬롯(우측 상단)에 둔다.
+- **다시 시도**: 화면 일부가 실패하면 그 자리의 중립 배너(`bg-bg-surface border-ui-border` + `status-warn` 아이콘) 안에 `Button variant="secondary" size="sm"`, 화면 전체가 실패하면 `EmptyState`의 `action`.
 
-**아이콘 크기** — `MaterialIcon`은 `size`로 SVG 크기를 정한다. 기본이자 본문 크기는 20px다 — 인라인·버튼·내비게이션·섹션이 전부 같은 20px를 쓴다(2026-09-22, 16px 층 폐지). 24px는 주요 상태용이다. 스피너·빈 상태에는 32/36/48px를 허용한다. `text-*`는 색에만 사용하고 폰트 크기를 아이콘 크기로 사용하지 않는다. 아이콘 획은 SVG 도형이 결정하므로 `font-*`로 두께를 조절하지 않는다. 같은 영역에서는 같은 아이콘 계열을 사용한다.
+**아이콘 크기** — `MaterialIcon`은 `size`로 SVG 크기를 정한다. 기본이자 본문 크기는 20px다 — 인라인·버튼·내비게이션·섹션이 전부 같은 20px를 쓴다(2026-09-22, 16px 층 폐지). 24px는 주요 상태용이다. 스피너·빈 상태에는 32/36/48px를 허용한다. `text-*`는 색에만 사용하고 폰트 크기를 아이콘 크기로 사용하지 않는다. 아이콘 획은 SVG 도형이 결정하므로 `font-*`로 두께를 조절하지 않는다. 같은 영역에서는 같은 아이콘 계열을 사용한다. 삭제는 `delete_outline` 하나다(`delete` 채움형과 섞지 않는다). 제출 버튼 아이콘은 생성(`add`)에만 붙인다.
 
 **MaterialIcon 함정** — `iconMarkup` 맵에 없는 `name`은 `help_outline`(`?`)로 폴백한다. 신규 아이콘은 반드시 [`materialIconPaths.ts`](src/components/common/materialIconPaths.ts)에 path를 추가한다.
 
-**KPI 카드(`SummaryCard`)는 2행이다** — 라벨(좌)과 숫자(우)가 베이스라인을 맞춘 한 행, 그 아래 설명 한 행. 이전에는 라벨/숫자/설명이 3행으로 쌓이고 아이콘만 우측 상단에 혼자 떠 있어서, 카드 폭 ~300px 중 오른쪽 절반이 비고 내용은 좌측에 쏠렸다. 숫자를 오른쪽 끝으로 보내 그 여백을 쓴다. 숫자는 `font-mono tabular-nums`라 카드마다 우측 정렬 위치가 같다(실측 전부 카드 우변에서 17px).
+**KPI 카드(`SummaryCard`)는 2행이다** — 라벨(좌)과 숫자(우)가 베이스라인을 맞춘 한 행, 그 아래 설명 한 행. 이전에는 라벨/숫자/설명이 3행으로 쌓이고 아이콘만 우측 상단에 혼자 떠 있어서, 카드 폭 ~300px 중 오른쪽 절반이 비고 내용은 좌측에 쏠렸다. 숫자를 오른쪽 끝으로 보내 그 여백을 쓴다. 숫자는 `tabular-nums`(Spoqa는 숫자가 원래 고정폭)라 카드마다 우측 정렬 위치가 같다.
 
 **KPI 설명문의 색은 `warn`·`error`일 때만 싣는다.** `healthy`·`idle`은 `text-text-muted`다. 카드 4장이 전부 색 문장을 달고 있으면 정작 문제인 카드가 묻힌다 — §5.1 `StatusLight`와 같은 논리다. 이 규칙이 기존 오용도 함께 걷어냈다: 업타임 `정상` 카드의 `전체 5개 대상 중`(분모)과 개요 `Projects` 카드의 `대상을 운영 단위로 묶고 있습니다`(설명)가 `tone="healthy"`를 타고 초록으로 칠해지고 있었는데, 둘 다 상태가 아니다.
 
@@ -431,7 +441,7 @@ inline-flex items-center gap-1.5  type-caption  text-text-secondary
 
 `badge`는 `index.css`의 공통 형태다: **12px / 16px, 500, 최소 높이 24px, 좌우 6px 패딩, 4px radius**.
 
-**남은 소비처는 넷뿐이고 전부 "표 컬럼에 반복되는 고정 어휘"다** — 로그 레벨(`AgentServiceLogsTab`·`LogsPage`), 알림 severity(`SeverityBadge`), span kind(`AgentServiceTracesTab`). 여기서는 박스가 제 값을 한다: 좁은 컬럼에서 `ERROR`/`WARN`/`INFO`가 같은 폭의 덩어리로 보여야 세로 스캔이 된다. 대상 상태처럼 카드마다 하나씩 흩어지는 자리와 다르다.
+**남은 소비처는 둘뿐이고 전부 "표 컬럼에 반복되는 고정 어휘"다** — 알림 severity(`SeverityBadge`), span kind(`AgentServiceTracesTab`). 로그 레벨은 2026-09-20에 배지를 떠나 mono 텍스트 토큰이 됐다(§1.5). 여기서는 박스가 제 값을 한다: 좁은 컬럼에서 severity·span kind 값이 같은 폭의 덩어리로 보여야 세로 스캔이 된다. 대상 상태처럼 카드마다 하나씩 흩어지는 자리와 다르다.
 
 **강조 수단은 하나만 쓴다 — 틴트 배경·보더·단색 채움 중 택1.** Radix Themes·shadcn의 배지 variant가 `soft`(틴트+텍스트) / `outline`(보더+텍스트) / `solid`(단색+흰 텍스트)로 갈리는 것과 같은 규칙이다. 셋을 겹치는 `surface` 변형은 배경이 복잡해 배지가 자기 경계를 만들어야 할 때만 쓰는데, 우리 배지는 아래 제약대로 평면 표면 위에만 놓이므로 해당 없다.
 
@@ -465,7 +475,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 **점이 유일한 정보원이면 이름을 준다** — 점 옆에 같은 뜻의 텍스트(배지·라벨)가 없으면 색만으로 상태를 전달하는 것이라 WCAG 1.4.1 위반이다:
 ```tsx
-<span role="img" aria-label={healthy ? t('정상') : t('장애')} className="h-1.5 w-1.5 rounded-full bg-status-healthy" />
+<span role="img" aria-label={healthy ? '정상' : '장애'} className="h-1.5 w-1.5 rounded-full bg-status-healthy" />
 ```
 인접 텍스트가 이미 상태를 말하고 있으면(장애 배너, 온라인/오프라인 라벨) 점은 장식이므로 그대로 둔다.
 
@@ -496,7 +506,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 셸은 `Input.tsx`가 `FIELD_SHELL`·`FIELD_HEIGHT`로 export한다 — `Select`와 텍스트영역이 같은 상수를 쓴다. **높이는 `h-10`으로 고정**한다(Button과 같은 이유, `px/py` 조합 금지). `Select`는 보이는 trigger + portal listbox를 렌더하고, 네이티브 `<select>`는 폼 값과 기존 `onChange` 계약을 유지하는 숨김 요소다. 따라서 브라우저의 기본 option 메뉴가 노출되지 않는다. 높이가 자유로워야 하는 텍스트영역만 `FIELD_SHELL`에 자기 `py`를 덧붙인다.
 
 **상태 표현**
-- `invalid` — 검증 실패. 붉은 보더 + `aria-invalid`. 메시지는 필드 아래 `text-xs text-red-500`
+- `invalid` — 검증 실패. 붉은 보더 + `aria-invalid`. 메시지는 필드 아래 `type-body text-status-error` — 경고문이므로 14px(§2.2)이고, `red-500`은 흰 배경 3.8:1로 AA 미달이다
 - `warn` — 제출은 막지 않는 주의(예: 원격에서 안 통할 주소). 앰버 보더
 
 보더 색은 컴포넌트 내부에서 결정한다. `className`으로 넘기면 base의 `border-ui-border`와 **특이도가 같아** 생성된 CSS 순서로 승패가 갈린다 — 호출부가 이길 거라 가정하면 안 된다.
@@ -507,7 +517,9 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 **목록 툴바 필터도 `Select`를 사용한다.** `ListToolbar`의 검색창·버튼과 같은 40px 높이로 맞추며, 시각 라벨이 없으면 `aria-label`을 지정한다. 필터 폭은 `wrapperClassName`으로 바깥 래퍼에 지정한다. 조회 제어의 위치와 폭은 §4.1을 따른다.
 
-**텍스트영역**은 아직 공용 컴포넌트가 없다 — `AlertRuleForm`의 `textareaCls` 하나를 2곳이 공유한다. 세 번째 사용처가 생기면 `Textarea`로 뽑는다.
+**텍스트영역**은 `Textarea`(`components/common/Textarea.tsx`)다. `FIELD_SHELL`에 자기 `py`만 덧붙인다.
+
+**`Field`** (`features/alerts/components/FormLayout.tsx`) — 라벨 + 입력 + 에러/힌트 한 묶음. `htmlFor`를 줄 때만 `<label>`로, 없으면 `<span>` 캡션으로 렌더한다(자식이 버튼 그리드면 `<label>`이 첫 버튼을 눌러버린다). 한글 라벨·힌트에 `uppercase`·`italic`을 걸지 않는다 — 한글에는 대문자가 없어 자간만 벌어지고, 기울임 글리프가 없어 브라우저가 가짜 기울임을 만든다.
 
 ---
 
@@ -520,6 +532,19 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | **사이드 패널** | 긴 폼·상세 (알림 규칙, 트레이스) | `FormSidePanel` / `SidePanel` / `TracePanel` |
 
 **공통 규약** — z-index `z-50`(SidePanel만 `z-40`), 배경 클릭 닫기.
+
+**푸터 규칙 (2026-09-23)** — 모달·다이얼로그·사이드 패널·폼 페이지가 전부 같다.
+
+| 항목 | 규칙 |
+|---|---|
+| 정렬 | 우측 정렬. 모달은 위 구분선, 사이드 패널·폼 페이지는 하단 고정 바. 50:50 전체 폭 배치는 쓰지 않는다 |
+| 순서 | [보조] [취소] [주 액션] — **주 액션은 항상 오른쪽 끝.** 이탈 버튼이 주 액션 자리에 오지 않는다 |
+| 변형 | 취소 `secondary`, 주 액션 `primary`, 삭제 확인 `danger`. 정보만 보여주는 다이얼로그는 `닫기`(`quiet`) 하나 |
+| 라벨 | 생성 `추가하기` / 편집 `저장` / 진행 중 `추가 중…`·`저장 중…`. 진행 중에도 라벨을 스피너로 바꾸지 않는다 — 버튼 폭이 흔들린다 |
+| 아이콘 | 생성 버튼에만 `add`. 저장·확인에는 붙이지 않는다 |
+| X 닫기 | `<IconButton icon="close" label="닫기" tone="quiet" />` — 모달 헤더는 `size="sm"` |
+
+알림 규칙·채널 폼의 제출 바는 `FormActions`(`FormLayout.tsx`)가 이 규칙을 담고 있다. 같은 폼이 데스크톱에서는 사이드 패널, 모바일에서는 전용 페이지(`ChannelFormPage`)로 열려도 제출 바는 둘 다 하단 우측이다.
 
 **비네이티브 오버레이는 [`useOverlay(open, onClose, overlayRef)`](src/hooks/useOverlay.ts)를 쓴다.** 직접 `keydown` 리스너를 달지 않는다. `overlayRef`를 넘겨 Escape, 최초 포커스, Tab 순환, 트리거 포커스 복귀를 함께 보장한다. 네이티브 `ConfirmDialog`는 `<dialog>`의 동작을 쓴다.
 
@@ -563,7 +588,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 사용자 피드백에서 확정된 규칙이다. 근거까지 함께 적는다.
 
 1. **카드 좌측 상태 보더 금지** — warn/crit 3px 세로 컬러 라인. *"AI 생성 디자인 같다."* 상태는 배지·아이콘·텍스트 색으로만.
-2. **danger zone 스타일 금지** — 붉은 카드 보더, 붉은 섹션 제목, 앰버 경고 박스. 파괴적 액션은 **중립 카드 + `text-xs font-medium text-red-600` 텍스트 링크**. 주의문은 앰버 박스 대신 muted 본문.
+2. **danger zone 스타일 금지** — 붉은 카드 보더, 붉은 섹션 제목, 앰버 경고 박스. 파괴적 액션은 **중립 카드 + `<Button variant="destructive">`**(채움 없는 `status-error` 텍스트). `text-red-600` 텍스트 링크는 다크에서 표면 대비 3.0이라 쓰지 않는다(§10 경계표). 주의문은 앰버 박스 대신 muted 본문.
 3. **파스텔 틴트 박스 금지** — `bg-emerald-50` / `bg-amber-50` / `bg-red-50` 계열 공지 박스. `bg-ui-hover-soft + border-ui-border` + 상태색 아이콘 악센트로 대체. (배지·게이지 채움·hover는 데이터 시맨틱이라 예외)
 4. **`dark:` 이중 작성 금지** (§1.1) — `text-slate-500 dark:text-text-muted-dark` → `text-text-muted`
 5. **상태색 primitive 직접 사용 금지** — `text-emerald-600 dark:text-emerald-400` → `text-status-healthy` (§1.4). 대비·색각 조정이 index.css 한 곳에서 끝나야 한다
@@ -584,7 +609,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 ## 10. 알려진 부채
 
-2026-07-26 전수 스캔(`src/**/*.tsx` 76개). 규약 대비 이탈 목록.
+2026-07-26 전수 스캔(`src/**/*.tsx` 76개). 규약 대비 이탈 목록. 2026-09-23 재집계: `dark:` 변형 82건/22파일(대부분 primitive 축 — 아래 B), `slate-*` 하드코딩 117건/18파일.
 
 ### A. 토큰 규약 이탈
 
@@ -593,6 +618,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | 시맨틱 토큰 + `dark:` 짝 | 10 | `dark:` 제거 |
 | `*-dark` 접미 토큰 직접 사용 | 37 | 사이트별 확인 후 치환 |
 | `bg-white` / `slate-*` 하드코딩 | 109 | 상태색 목적이 아니면 토큰으로 |
+| emerald/amber/red/sky primitive | 214 | **대부분 정상** — 아래 B 경계 참조 |
 
 **대부분은 색 문제가 아니라 다른 문제의 증상이었다.** 2026-07-27에 225건을 분류해 다섯 덩어리를 걷어냈다.
 
@@ -608,11 +634,12 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 **남은 것은 1회성이고 시각 변화가 따른다.** 반복되는 역할은 다 걷어냈으므로, 이제부터는 한 곳씩 열어 "이 색이 의도인가"를 판단해야 한다 — 자동화할 수 있는 구간은 끝났다.
 
 새 이탈을 발견하면 색을 치환하기 전에 **역할에 이름이 없는지, 컴포넌트가 중복인지**부터 의심할 것.
-| emerald/amber/red/sky primitive | 214 | **대부분 정상** — 아래 경계 참조 |
 
 **기계적 일괄 치환이 안 되는 이유** — 라이트/다크 클래스가 문자열 안에서 인접해 있지 않고(`bg-white … dark:bg-ui-active-dark`), 값이 토큰과 정확히 같지도 않다. 예를 들어 `bg-white dark:bg-ui-active-dark`는 라이트 `#fff`·다크 `#374151`인데 이런 토큰 쌍은 없다. 토큰과 값이 정확히 일치하는 쌍(6파일)은 2026-07-26에 이미 치환했고, 남은 것은 **사이트별로 의도를 확인해야** 한다.
 
 `ChartElements.tsx:77`은 **공용 컴포넌트인데도** `dark:` 이탈 상태라 우선순위가 높다.
+
+### B. 상태색 primitive — 대부분 정상
 
 **상태색 primitive 214건은 일괄 치환 대상이 아니다.** 2026-07-26에 374건을 전수 분류해 상태에 해당하는 160건만 `status-*` 토큰으로 옮겼고, 남은 214건은 의도적으로 primitive다. 경계:
 
@@ -646,15 +673,37 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 밀집 파일: `AlertRuleForm`(5) · `InfrastructureCollectorSetupResult`(3) · `ChannelForm`(3) · `ApiKeyModal`(2) · `AddServiceModal`(2) · `InstrumentationOverrideModal`(2) · `DirectTelemetrySetupResult`(2). 해당 파일을 다른 일로 열 때 함께 판단한다.
 
-### E. 사이드바 활성 항목과 breadcrumb 섹션이 어긋난다 (2026-09-20)
+### ~~E. 사이드바 활성 항목과 breadcrumb 섹션이 어긋난다 (2026-09-20)~~ → 담김 관계로 통일 (2026-09-23)
 
 서비스 상세(`/services/:agentId/:key`)에서 사이드바는 **활성 탭**을 따라간다(`?tab=logs`면 `로그` 하이라이트). `AppHeader`는 **담김 관계**를 따라 `Docker 환경 › 에이전트 › 서비스`를 보여준다. 그래서 탭을 바꾸면 사이드바 하이라이트만 움직이고 breadcrumb은 그대로다.
 
-둘 다 각자의 논리는 맞다 — 탭은 "무엇을 보고 있나"이고 breadcrumb은 "어디에 있나"다. 다만 화면에 동시에 보이면 어긋나 보인다. 어느 쪽에 맞출지는 내비게이션 의미론 결정이라 별도로 판단한다.
+둘 다 각자의 논리는 맞다 — 탭은 "무엇을 보고 있나"이고 breadcrumb은 "어디에 있나"다. 다만 화면에 동시에 보이면 어긋나 보인다. **결정: 사이드바를 breadcrumb에 맞췄다** — 서비스 상세는 어떤 탭이든 `Docker 환경`이 활성이다(§3.4). "탭은 위치가 아니다"라는 §3.4 원칙과 같은 방향이고, 사이드바의 탭별 active 판정(`detailActive`)은 제거했다.
 
 ### 경로 → 라벨 목록이 세 벌 (2026-09-20)
 
-`Sidebar`의 `NavItem`, `CommandPalette`의 `page-*` 항목, 새 `navSections.ts`가 각자 경로→라벨을 갖고 있고 이미 어긋나 있다(`환경설정` vs `환경 설정`, CommandPalette에는 `Docker 환경`이 없음). 하나로 합치려면 사이드바의 그룹 헤더·알림 badge·탭별 active 판정을 함께 옮겨야 해서 단순 치환이 안 된다. `navSections.ts`는 사이드바 표기를 정본으로 삼았다.
+`Sidebar`의 `NavItem`, `CommandPalette`의 `page-*` 항목, 새 `navSections.ts`가 각자 경로→라벨을 갖고 있고 이미 어긋나 있다(`환경설정` vs `환경 설정`, CommandPalette에는 `Docker 환경`이 없음). 하나로 합치려면 사이드바의 그룹 헤더·알림 badge를 함께 옮겨야 해서 단순 치환이 안 된다. `navSections.ts`는 사이드바 표기를 정본으로 삼았다.
+
+### 해결됨 (2026-09-23) — 숫자는 Spoqa, mono는 코드·로그만
+
+- ~~JetBrains Mono Variable을 숫자·시간·코드 전부에 사용~~ → Spoqa 숫자가 이미 고정폭이라 KPI·표·시간·개수 50곳에서 `font-mono`를 뺐다
+- 코드·로그·키·ID·URL 41곳만 `font-mono`(JetBrains Mono)로 남겼다 — YAML 들여쓰기와 `l`/`1`·`O`/`0` 구분 때문 (§2.1). 한때 OS 고정폭 스택으로 바꿨으나 로그 화면이 OS마다 달라 보여 JetBrains Mono로 되돌렸다
+
+### 해결됨 (2026-09-23) — 메뉴 간 액션 위치 통일
+
+점검 결과: 목록 화면 9곳은 CTA가 전부 `PageHeader` 우측으로 이미 통일돼 있었고, 흔들리는 곳은 **상세 화면**이었다. 상세 9곳의 헤더가 5가지였다.
+
+- ~~업타임·Docker 환경·Docker 서비스·Project 상세가 `h1`을 직접 쓰고 버튼을 제목 행에 붙임~~ → `PageHeader` + `DetailActionToolbar` (§4.1 상세 헤더). 새로고침은 좌측 라벨 버튼, 파괴 액션은 우측 끝
+- ~~Docker 환경 상세의 라벨 없는 아이콘 5개(비활성화 포함)~~ → 라벨 버튼 `수집기 설치`·`API 키`·`계측 설정`·`비활성화`
+- ~~Docker 서비스 상세의 데스크톱/모바일 레이아웃 2벌(모바일은 서비스 이름 h1이 두 번)~~ → 한 벌. `AgentIdentity`의 중복 제목·`showServiceName` 제거
+- ~~Project 상세에 수정·삭제가 없고 `Project 관리`(목록 이동)만 있음~~ → `수정`·`삭제`. KPI를 `SummaryCard`로(정상일 때 초록 제거)
+- ~~모달 푸터 4종(50:50 · 우측 · 이탈 버튼이 주 액션 자리 · 헤더 상단)~~ → §7 푸터 규칙 하나. `ConfirmDialog`·Docker 연결 모달 우측 정렬, 채널 페이지 제출 바를 하단으로, 알림 폼 제출 바는 `FormActions`로 공유
+- ~~제출 라벨 `생성`·`규칙 생성`·새 채널 `저장`~~ → `추가하기`
+- ~~X 닫기가 `Button quiet sm` 6곳 · 손으로 만든 `<button>` 5곳(`Close panel` 영어 라벨 포함)~~ → `IconButton tone="quiet"`
+- ~~개요 `모니터링 시작`(add 아이콘인데 동작은 페이지 이동)~~ → `Docker 연결`, 연결 모달을 바로 연다(`/environments?connect=docker`)
+- ~~업타임 목록 빈 상태에만 CTA 없음~~ → `추가하기`
+- ~~모바일 알림에 규칙 추가 진입점 없음~~ → 규칙 탭에도 `추가하기`(생성 패널)
+- 버그: Docker 환경 상세의 모바일 뒤로가기·비활성화 후 이동이 개요(`/`)로 가던 것 → `/environments`. 인프라 상세 `알림 규칙`이 필터 없이 열리던 것 → `alertTarget`에 `infrastructure` 대상 추가
+- 문서: §5.2 `t()` 잔재, §5.1b 배지 소비처, §6 `Textarea`·`Field`, §9.2 파괴 액션 표기, §10 표 구조를 코드에 맞춤
 
 ### 해결됨 (2026-09-20) — KPI 카드 2행화 · 개요 KPI 행 제거
 
@@ -688,7 +737,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 - ~~기계 토큰(`ERROR`/`WARN`)에 가변폭 Spoqa~~ → `font-mono` + `w-12` 고정폭. 같은 표의 시간·메시지가 전부 mono인데 레벨만 sans였고, 그래서 생긴 들쭉날쭉함을 틴트가 덮고 있었다
 - 대비 동반 상승: 라이트 error 5.30→6.42, warn 4.51→5.03, info 5.17→5.86
 - `LEVEL_STYLE` 하나를 `LEVEL_BASE`+`LEVEL_TEXT`(행)와 `LEVEL_CHIP`(필터 선택 상태)으로 분리 — 필터 칩의 채움은 토글 상태 표시라 남겨야 한다
-- 스택 로그 행은 토큰(16px 행간)과 메시지(24px 행간)의 첫 줄 중심을 `mt-1`로 맞춤(실측 offset 0)
+- 스택 로그 행은 토큰(16px 행간)과 메시지(20px 행간)의 첫 줄 중심을 `mt-0.5`로 맞춤(실측 offset 0 — 2026-09-23 재측정, 이전 `mt-1`은 메시지 행간이 24px이던 시절 값이라 2px 어긋나 있었다)
 
 ### 해결됨 (2026-09-20) — 대상 카드 아이콘 제거 · 위치 표시 헤더
 
@@ -706,7 +755,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 - ~~서비스·업타임·수집 상태가 틴트 배지~~ → `StatusLight`(점 + 라벨) 신설, 세 도메인 컴포넌트가 이를 감싼다. 라벨은 상태색이 아니라 `text-secondary`
 - 라벨 대비 **4.78 → 10.35**, 점은 표면 대비 5.48~7.58로 1.4.11 여유 확보(틴트가 형태를 그리던 1.1 대비)
-- `badge` 유틸은 표 컬럼 토큰 4곳(로그 레벨 ×2, severity, span kind)만 남았다 — 좁은 컬럼의 세로 스캔에는 박스가 제 값을 한다
+- `badge` 유틸은 표 컬럼 토큰 4곳(로그 레벨 ×2, severity, span kind)만 남았다 — 좁은 컬럼의 세로 스캔에는 박스가 제 값을 한다. (같은 날 로그 레벨이 mono 텍스트로 빠져 지금은 2곳 — §5.1b)
 - §5.2를 "라벨 없는 맨 점" 전용으로 좁혀 `StatusLight`와의 역할 중복 해소
 
 ### 해결됨 (2026-09-20) — 배지 3중 장식 · 카드 정렬

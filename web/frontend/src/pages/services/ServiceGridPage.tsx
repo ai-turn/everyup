@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -73,13 +73,13 @@ function ProjectCard({ agentId, agent, agentName, services, overview }: ProjectC
         <div className="flex items-center gap-4 text-sm">
           <div>
             <div className="text-xs text-text-dim">가동률 30일</div>
-            <div className="font-mono font-medium text-text-base">
+            <div className="font-medium text-text-base">
               {overview.uptimePct != null ? `${overview.uptimePct.toFixed(2)}%` : '—'}
             </div>
           </div>
           <div>
             <div className="text-xs text-text-dim">요청 24h</div>
-            <div className="font-mono font-medium text-text-base">
+            <div className="font-medium text-text-base">
               {overview.requests24h > 0
                 ? Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(overview.requests24h)
                 : '—'}
@@ -87,7 +87,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview }: ProjectC
           </div>
           <div>
             <div className="text-xs text-text-dim">p95</div>
-            <div className={`font-mono font-medium ${
+            <div className={`font-medium ${
               overview.p95Ms != null && overview.p95Ms > 500
                 ? 'text-status-warn'
                 : 'text-text-base'
@@ -110,7 +110,13 @@ export function ServiceGridPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
+  // 개요의 `Docker 연결`은 ?connect=docker로 와서 연결 모달을 바로 연다. 새로고침 때 다시
+  // 열리지 않게 파라미터는 읽자마자 지운다.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showAddModal, setShowAddModal] = useState(() => searchParams.get('connect') === 'docker');
+  useEffect(() => {
+    if (searchParams.has('connect')) setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
   const [installModalAgent, setInstallModalAgent] = useState<{ id: string; name: string } | null>(null);
   const [instrumentationAgentId, setInstrumentationAgentId] = useState<string | null>(null);
   const [keyModalAgent, setKeyModalAgent] = useState<{ id: string; name: string } | null>(null);

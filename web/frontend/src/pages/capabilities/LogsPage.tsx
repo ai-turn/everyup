@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ConnectionSourceBadge, EmptyState, ListToolbar, MaterialIcon, PageHeader, Pagination, ResourceCardHeader, SearchInput, Select } from '../../components/common';
+import {
+  ConnectionSourceBadge, EmptyState, ListToolbar, MaterialIcon, PageHeader, Pagination, ResourceCardHeader, SearchInput, Select, IconButton,
+} from '../../components/common';
 import { LEVEL_BASE, LEVEL_TEXT } from '../../features/healthcheck/logLevelStyle';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { api, type AgentServiceFlat, type LogEntry, type ObservedService } from '../../services/api';
@@ -127,9 +129,7 @@ export function LogsPage() {
             wrapperClassName="min-w-0 flex-1"
           />
           {search && (
-            <Button type="button" variant="ghost" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }} aria-label="검색어 지우기" title="검색어 지우기">
-              <MaterialIcon name="close" />
-            </Button>
+            <IconButton icon="close" label="검색어 지우기" tone="quiet" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }} />
           )}
         </form>
       }>
@@ -148,7 +148,7 @@ export function LogsPage() {
         <section className="mb-6">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">로그 서비스</h2>
-            <span className="font-mono text-xs text-text-dim">{directServices.length + agentCards.length}</span>
+            <span className="text-xs text-text-dim">{directServices.length + agentCards.length}</span>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {directServices.map(service => (
@@ -229,7 +229,7 @@ export function LogsPage() {
                       : directService ? `/logs/${directService.id}` : undefined;
                     return (
                       <tr key={log.id} className="hover:bg-ui-hover-soft">
-                        <td className="whitespace-nowrap px-4 py-3 align-top font-mono text-xs text-text-dim">{formatTime(log.createdAt)}</td>
+                        <td className="whitespace-nowrap px-4 py-3 align-top text-xs text-text-dim">{formatTime(log.createdAt)}</td>
                         <td className="px-4 py-3 align-top"><span className={`${LEVEL_BASE} ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>{log.level.toUpperCase()}</span></td>
                         <td className="whitespace-nowrap px-4 py-3 align-top">
                           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
