@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MaterialIcon, Pagination, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
+import { MaterialIcon, Pagination, SegmentedControl, SearchInput, ListToolbar, Select, IconButton } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { api, NotificationChannel, NotificationHistory, NotificationStats } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
@@ -132,16 +132,10 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="메시지 검색" aria-label="알림 메시지 검색"
-            className="pr-7"
+            className="pr-10"
           />
           {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-700"
-              aria-label="검색어 지우기" title="검색어 지우기"
-            >
-              <MaterialIcon size={20} name="close" />
-            </button>
+            <IconButton icon="close" label="검색어 지우기" tone="quiet" size="sm" onClick={() => setSearch('')} className="absolute right-1 top-1/2 -translate-y-1/2" />
           )}
         </div>
       }>

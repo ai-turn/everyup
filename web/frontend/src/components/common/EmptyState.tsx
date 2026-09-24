@@ -1,15 +1,13 @@
 import type { ReactNode } from 'react';
 import { MaterialIcon } from './MaterialIcon';
-import { Button } from './Button';
+import { Button, ButtonLink } from './Button';
 
 interface EmptyStateProps {
   icon: string;
   title: string;
   description?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
+  /** `to`면 링크(ButtonLink) — 다른 화면으로 가는 액션은 `<a href>`여야 한다. */
+  action?: { label: string; onClick: () => void } | { label: string; to: string };
   /** Action slot for triggers that own their own state (e.g. a dialog opener). */
   children?: ReactNode;
 }
@@ -29,9 +27,9 @@ export function EmptyState({ icon, title, description, action, children }: Empty
         </p>
       )}
       {action ? (
-        <Button onClick={action.onClick}>
-          {action.label}
-        </Button>
+        'to' in action
+          ? <ButtonLink to={action.to}>{action.label}</ButtonLink>
+          : <Button onClick={action.onClick}>{action.label}</Button>
       ) : children}
     </div>
   );

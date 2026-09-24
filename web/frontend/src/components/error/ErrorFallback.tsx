@@ -34,12 +34,9 @@ export function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
         )}
 
         <div className="flex gap-4 justify-center">
-          <button
-            onClick={onReset}
-            className="px-4 py-2 border border-ui-border text-text-secondary font-medium rounded-lg hover:bg-ui-hover transition-colors"
-          >
+          <Button variant="secondary" onClick={onReset}>
             다시 시도
-          </button>
+          </Button>
           <Button onClick={handleGoHome}>
             홈으로 돌아가기
           </Button>

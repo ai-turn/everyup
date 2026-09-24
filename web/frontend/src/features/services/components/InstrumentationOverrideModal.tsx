@@ -267,7 +267,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               </label>
 
               <div className="space-y-1.5">
-                <Button onClick={() => void prepare()} disabled={preparing || targets.length === 0 || webAddressMissing || composePathMissing}>{preparing ? '준비 중...' : '변경 사항 확인'}</Button>
+                <Button onClick={() => void prepare()} disabled={targets.length === 0 || webAddressMissing || composePathMissing} loading={preparing}>변경 사항 확인</Button>
                 {targets.length === 0 && <p className="type-body text-text-muted">적용할 서비스를 하나 이상 선택하세요.</p>}
               </div>
               {plan && <div className="space-y-3 rounded-xl border border-ui-border p-4" aria-label="계측 변경 미리보기">

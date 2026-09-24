@@ -196,9 +196,9 @@ function AgentForm({
         <Button type="button" variant="secondary" onClick={onClose}>
           취소
         </Button>
-        <Button type="submit" disabled={!name.trim() || submitting || (profileKind === 'custom' && customCapabilities.length === 0)}>
+        <Button type="submit" disabled={!name.trim() || (profileKind === 'custom' && customCapabilities.length === 0)} loading={submitting}>
           <MaterialIcon name="add" />
-          {submitting ? '추가 중…' : '추가하기'}
+          추가
         </Button>
       </div>
     </form>
@@ -243,14 +243,7 @@ function AgentInstallCommand({
               {expiryLabel || '10분 후'}까지 한 번만 사용할 수 있습니다. 장기 API 키는 서버에 직접 저장됩니다.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onRefreshCode}
-            disabled={refreshingCode}
-            className="shrink-0 text-xs font-medium text-primary hover:underline disabled:opacity-50"
-          >
-            {refreshingCode ? '발급 중' : '새 코드'}
-          </button>
+          <Button variant="ghost" size="sm" onClick={onRefreshCode} loading={refreshingCode}>새 코드</Button>
         </div>
 
         <ConnectionAddressField address={address} />
@@ -504,14 +497,9 @@ export function AddServiceModal({
                   <p className="text-sm text-text-base">Docker 수집기 연결을 기다리는 중</p>
                   <p className="mt-0.5 type-body text-text-muted">명령을 실행하면 최대 5초 간격으로 자동 확인합니다.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => void refreshConnection(true)}
-                  disabled={checkingConnection}
-                  className="shrink-0 text-xs font-medium text-primary hover:underline disabled:opacity-50"
-                >
-                  {checkingConnection ? '확인 중' : '지금 확인'}
-                </button>
+                <Button variant="ghost" size="sm" onClick={() => void refreshConnection(true)} loading={checkingConnection}>
+                  지금 확인
+                </Button>
               </div>
             )}
 
@@ -562,9 +550,9 @@ export function AddServiceModal({
                   </Button>
                   <Button
                     onClick={() => void refreshConnection(true)}
-                    disabled={checkingConnection}
+                    loading={checkingConnection}
                   >
-                    {checkingConnection ? '연결 확인 중...' : '연결 확인'}
+                    연결 확인
                   </Button>
                 </>
               )}

@@ -3,14 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
-  Button,
-  ConfirmDialog,
-  DetailActionToolbar,
-  EmptyState,
-  MaterialIcon,
-  PageHeader,
-  TimeRangePicker,
-  type GlobalTimeRange,
+  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, type GlobalTimeRange,
 } from '../../components/common';
 import { DirectServiceMetricsTab } from '../../features/healthcheck/components/AgentServiceMetricsTab';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
@@ -106,7 +99,7 @@ export function DirectMetricsDetailPage() {
 
   if (loading) return <div className="h-96 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
   if (error || !service) {
-    return <EmptyState icon="error_outline" title="직접 Metrics 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: 'Metrics로 돌아가기', onClick: () => navigate('/metrics') }} />;
+    return <EmptyState icon="error_outline" title="직접 Metrics 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: '메트릭으로 돌아가기', to: '/metrics' }} />;
   }
 
   const confirmCopy = {
@@ -143,6 +136,7 @@ export function DirectMetricsDetailPage() {
             lastSeenAt={service.lastSeenAt}
             detail={{ label: '허용 신호', value: service.signals.join(', ') }}
             onRotateKey={() => setConfirmAction('rotate')}
+            onRevoke={() => setConfirmAction('revoke')}
             projects={projects}
             projectId={projectId}
             savedProjectId={service.projectId ?? ''}
@@ -156,14 +150,13 @@ export function DirectMetricsDetailPage() {
         controls={
           <>
           <TimeRangePicker value={range} onChange={setRange} />
-          <Button variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
+          <Button collapseLabel variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
           </>
         }
         actions={
           <>
-          <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'direct', serviceId: service.id }))}><MaterialIcon name="notifications" />알림 규칙</Button>
-          {service.isActive && <Button variant="ghost" onClick={() => setConfirmAction('revoke')}><MaterialIcon name="block" />연결 중지</Button>}
-          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
+          <Button collapseLabel variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
       />

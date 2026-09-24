@@ -3,16 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
-  Button,
-  ConfirmDialog,
-  DetailActionToolbar,
-  EmptyState,
-  MaterialIcon,
-  PageHeader,
-  SegmentedControl,
-  Textarea,
-  TimeRangePicker,
-  type GlobalTimeRange,
+  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, SegmentedControl, Textarea, TimeRangePicker, type GlobalTimeRange,
 } from '../../components/common';
 import { DirectServiceRequestsTab } from '../../features/healthcheck/components/AgentServiceRequestsTab';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
@@ -137,7 +128,7 @@ export function DirectApiDetailPage() {
 
   if (loading) return <div className="h-96 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
   if (error || !service) {
-    return <EmptyState icon="error_outline" title="직접 API 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: 'API로 돌아가기', onClick: () => navigate('/api') }} />;
+    return <EmptyState icon="error_outline" title="직접 API 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: 'API로 돌아가기', to: '/api' }} />;
   }
 
   const confirmCopy = {
@@ -174,6 +165,7 @@ export function DirectApiDetailPage() {
             lastSeenAt={service.lastSeenAt}
             detail={{ label: '허용 신호', value: service.signals.join(', ') }}
             onRotateKey={() => setConfirmAction('rotate')}
+            onRevoke={() => setConfirmAction('revoke')}
             projects={projects}
             projectId={projectId}
             savedProjectId={service.projectId ?? ''}
@@ -187,14 +179,13 @@ export function DirectApiDetailPage() {
         controls={
           <>
           <TimeRangePicker value={range} onChange={setRange} />
-          <Button variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
+          <Button collapseLabel variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
           </>
         }
         actions={
           <>
-          <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'direct', serviceId: service.id }))}><MaterialIcon name="notifications" />알림 규칙</Button>
-          {service.isActive && <Button variant="ghost" onClick={() => setConfirmAction('revoke')}><MaterialIcon name="block" />연결 중지</Button>}
-          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
+          <Button collapseLabel variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
       />
@@ -205,8 +196,8 @@ export function DirectApiDetailPage() {
             <h2 className="type-card-title text-text-base">API 제외 경로</h2>
             <p className="mt-1 text-sm text-text-muted">수집 전에 제외할 경로를 한 줄에 하나씩 입력합니다. 정확한 경로 또는 끝에 *를 붙인 prefix를 지원합니다.</p>
           </div>
-          <Button size="sm" onClick={() => void saveExclusions()} disabled={savingExclusions || excludePaths === savedExcludePaths}>
-            {savingExclusions ? '저장 중...' : '제외 경로 저장'}
+          <Button size="sm" onClick={() => void saveExclusions()} disabled={excludePaths === savedExcludePaths} loading={savingExclusions}>
+            제외 경로 저장
           </Button>
         </div>
         <Textarea

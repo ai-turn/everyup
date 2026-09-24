@@ -3,7 +3,7 @@ import {
   ResponsiveContainer, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
-import { Button, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange } from '../../../components/common';
+import { Button, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange, IconButton } from '../../../components/common';
 import { CHART_INITIAL_DIMENSION, ChartTooltip, chartCardClass, getChartTheme, gridProps, xAxisProps, yAxisProps } from '../../../components/charts';
 import { api, type LogEntry, type LogHistogramBucket, type LogLevel } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
@@ -111,15 +111,15 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
           <p className="text-xs text-text-dim mt-0.5">{formatTime(log.createdAt)}</p>
         </div>
         {log.traceId && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={(e) => { e.stopPropagation(); onOpenTrace(log.traceId!); }}
-            className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/5 px-2 py-1 text-xs text-primary hover:bg-primary/10 cursor-pointer"
             title="트레이스 보기"
           >
-            <MaterialIcon size={20} name="timeline" />
+            <MaterialIcon name="timeline" />
             트레이스
-          </button>
+          </Button>
         )}
         {hasMeta && (
           <MaterialIcon size={20}
@@ -133,17 +133,18 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
           {attributes.length > 0 && (
             <div className="mt-3 ml-11 flex flex-wrap gap-1.5">
               {attributes.map(([key, value]) => (
-                <button
+                <Button
                   key={key}
-                  type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={(e) => { e.stopPropagation(); onFilterAttribute(key, value); }}
                   title={`${key}=${value} 로 필터`}
-                  className="inline-flex items-center gap-1 rounded-lg border border-ui-border bg-bg-surface px-2 py-0.5 font-mono text-xs text-text-muted hover:border-primary/30 hover:text-primary cursor-pointer"
+                  className="font-mono"
                 >
                   <span className="text-text-dim">{key}</span>
                   <span>=</span>
                   <span>{value}</span>
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -294,25 +295,22 @@ function ServiceLogsPanel(props: Props) {
             placeholder="메시지 검색..."
           />
           {search && (
-            <button type="button" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }}
-              aria-label="검색어 지우기" title="검색어 지우기"
-              className="px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-red-500 transition-colors">
-              <MaterialIcon size={20} name="close" />
-            </button>
+            <IconButton icon="close" label="검색어 지우기" tone="quiet" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }} />
           )}
         </form>
 
         {/* Active attribute filter, set by clicking an attribute on a row */}
         {attrFilter && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => { setAttrFilter(null); setPage(1); }}
             title="속성 필터 해제"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-2 py-1 font-mono text-xs text-primary hover:bg-primary/10 cursor-pointer"
+            className="font-mono"
           >
             <span>{attrFilter.key}={attrFilter.value}</span>
             <MaterialIcon size={20} name="close" />
-          </button>
+          </Button>
         )}
 
         {/* Live tail: 5s silent polling while on */}
@@ -375,9 +373,8 @@ function ServiceLogsPanel(props: Props) {
             })}
           </div>
           <div className="flex items-center gap-3">
-            <Button type="button" size="sm" onClick={saveIngestFilter} disabled={savingFilter}>
-              <MaterialIcon size={20} name="save" />
-              {savingFilter ? '저장 중...' : '저장'}
+            <Button type="button" size="sm" onClick={saveIngestFilter} loading={savingFilter}>
+              저장
             </Button>
             <span className="text-xs text-text-dim">
               {ingestLevels.length === 0 ? '전체 수집' : `${ingestLevels.length}개 레벨 수집`}

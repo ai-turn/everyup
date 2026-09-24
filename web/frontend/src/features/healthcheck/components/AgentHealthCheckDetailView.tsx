@@ -1,7 +1,7 @@
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, DetailActionToolbar, MaterialIcon, PageHeader, StatusBadge, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
+import { Link } from 'react-router-dom';
+import { Button, ButtonLink, DetailActionToolbar, MaterialIcon, PageHeader, StatusBadge, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
 import { useSpinAction } from '../../../hooks/useSpinAction';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
@@ -61,7 +61,6 @@ function ContainerMeta({ service }: { service: AgentServiceFlat }) {
 }
 
 export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProps) {
-  const navigate = useNavigate();
   const { service, agentId, serviceKey } = props;
   // Shared chart range for all tabs; survives service switches (Tabs remount on key).
   const [range, setRange] = useState<GlobalTimeRange>('6h');
@@ -92,15 +91,15 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
         controls={
           <>
             <TimeRangePicker value={range} onChange={setRange} />
-            <Button variant="secondary" onClick={handleRefresh}>
+            <Button collapseLabel variant="secondary" onClick={handleRefresh}>
               <MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
             </Button>
           </>
         }
         actions={
-          <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'agent', agentId, serviceKey }))}>
+          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'agent', agentId, serviceKey })}>
             <MaterialIcon name="notifications" />알림 규칙
-          </Button>
+          </ButtonLink>
         }
       />
       <AgentServiceTabs

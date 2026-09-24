@@ -105,9 +105,8 @@ export function ConfirmDialog({
           type="button"
           variant={variant}
           onClick={onConfirm}
-          disabled={isProcessing}
+          loading={isProcessing}
         >
-          {isProcessing && <MaterialIcon size={20} name="sync" className="animate-spin" />}
           {confirmLabel ?? '삭제'}
         </Button>
       </div>

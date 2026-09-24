@@ -5,15 +5,16 @@ interface DetailActionToolbarProps {
   actions: ReactNode;
 }
 
-// 상세 화면의 조회 제어와 변경 액션을 분리한다.
-// 모바일에서는 두 그룹이 제목 아래에서 순서대로 쌓이고, md 이상에서는 양 끝에 고정된다.
+// 상세 화면의 조회 제어와 변경 액션을 분리한다 — 조회 제어는 왼쪽, 변경 액션은 오른쪽 끝.
+// 좁은 화면에서는 호출부가 버튼에 collapseLabel을 걸어 아이콘만 남기므로 보통 한 줄에 들어가고,
+// 그래도 넘치면 줄이 바뀌어도 액션 그룹은 오른쪽에 붙는다(ml-auto).
 export function DetailActionToolbar({ controls, actions }: DetailActionToolbarProps) {
   return (
-    <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-2">
         {controls}
       </div>
-      <div className="flex flex-wrap items-center gap-2 md:justify-end">
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
         {actions}
       </div>
     </div>

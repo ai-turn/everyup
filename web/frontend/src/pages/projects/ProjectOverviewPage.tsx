@@ -110,7 +110,7 @@ export function ProjectOverviewPage() {
 
   if (loading) return <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">{[0, 1, 2].map((item) => <div key={item} className="h-32 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>;
   if (error) return <EmptyState icon="sync_problem" title="Project를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} />;
-  if (!data.project) return <EmptyState icon="folder_open" title="Project를 찾을 수 없습니다" action={{ label: 'Projects', onClick: () => navigate('/projects') }} />;
+  if (!data.project) return <EmptyState icon="folder_open" title="Project를 찾을 수 없습니다" action={{ label: 'Projects', to: '/projects' }} />;
 
   const project = data.project;
   const deleteProject = async () => {
@@ -129,8 +129,8 @@ export function ProjectOverviewPage() {
         controls={null}
         actions={
           <>
-            <Button variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
+            <Button collapseLabel variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
       />
@@ -143,7 +143,7 @@ export function ProjectOverviewPage() {
 
       {failedSources.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="text-sm font-medium text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 text-sm text-text-muted">{failedSources.join(', ')} 정보를 제외한 결과입니다.</p></div></div><Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button></section>}
 
-      {totalTargets === 0 ? <section className="rounded-xl border border-ui-border bg-bg-surface"><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="Project 관리 화면에서 환경과 모니터링 대상을 배정하세요." action={{ label: 'Project 관리', onClick: () => navigate('/projects') }} /></section> : (
+      {totalTargets === 0 ? <section className="rounded-xl border border-ui-border bg-bg-surface"><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="Project 관리 화면에서 환경과 모니터링 대상을 배정하세요." action={{ label: 'Project 관리', to: '/projects' }} /></section> : (
         <section className="rounded-xl border border-ui-border bg-bg-surface">
           <div className="border-b border-ui-border px-4 py-3.5"><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 text-sm text-text-muted">서비스 상태와 수집 상태는 대상 상세에서 분리해 확인할 수 있습니다.</p></div>
           <div className="divide-y divide-ui-border-soft">

@@ -37,6 +37,11 @@
   /* 1. Primary: 다크모드에서 조금 더 화사한 블루 채택 */
   --color-primary: #3b76c9;
   --color-primary-dark: #3F6FDB;
+  /* primary 채움의 hover·누름. 채움 위 흰 글자라 **더 진하게** 간다 — 이전 `primary/90`은
+     배경과 섞여 밝아지면서 흰 글자 대비가 4.54 → 3.80으로 AA 아래로 떨어졌다.
+     라이트 5.58 / 다크 5.92. */
+  --color-primary-hover: #3268b3;
+  --color-primary-hover-dark: #355fc0;
 
   /* 액션 어포던스 전용 primary 변주 — 채움 없는 버튼의 라벨·아이콘 색.
      primary 자체는 표면 위 텍스트로 쓰면 AA 미달이다(라이트 4.15 / 다크 3.15,
@@ -188,6 +193,7 @@
   /* 시맨틱 토큰 재할당: bg-primary / text-text-muted / border-ui-border 등
      모든 Tailwind 유틸리티에 자동 반영 → 컴포넌트에 dark: 접두 불필요 */
   --color-primary: var(--color-primary-dark);
+  --color-primary-hover: var(--color-primary-hover-dark);
   --color-action: var(--color-action-dark);
 
   --color-bg-main: var(--color-bg-main-dark);

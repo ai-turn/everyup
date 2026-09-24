@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CopyButton, ICON_ACTION_SM, IconButton, MaterialIcon } from '../../../components/common';
+import { Button, CopyButton, ICON_ACTION_SM, IconButton, MaterialIcon } from '../../../components/common';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
 import { useOverlay, SCRIM_PANEL } from '../../../hooks/useOverlay';
 import { getErrorMessage } from '../../../utils/errors';
@@ -346,24 +346,16 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
                 탭에서 보기:
               </span>
               {logs.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => jumpTo('logs')}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 cursor-pointer"
-                >
-                  <MaterialIcon size={20} name="article" />
+                <Button variant="ghost" size="sm" onClick={() => jumpTo('logs')}>
+                  <MaterialIcon name="article" />
                   {`로그 (${logs.length})`}
-                </button>
+                </Button>
               )}
               {apiRequests.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => jumpTo('requests')}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 cursor-pointer"
-                >
-                  <MaterialIcon size={20} name="http" />
+                <Button variant="ghost" size="sm" onClick={() => jumpTo('requests')}>
+                  <MaterialIcon name="http" />
                   {`API 요청 (${apiRequests.length})`}
-                </button>
+                </Button>
               )}
             </div>
           )}

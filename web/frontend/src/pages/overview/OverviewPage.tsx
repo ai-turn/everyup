@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
+import { Link } from 'react-router-dom';
+import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
@@ -24,7 +24,6 @@ interface AttentionItem {
 }
 
 export function OverviewPage() {
-  const navigate = useNavigate();
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
@@ -133,10 +132,10 @@ export function OverviewPage() {
   return (
     <div className="space-y-5">
       <PageHeader title="모니터링 개요" subtitle="수집 상태와 현재 이상을 먼저 확인하세요.">
-        <Button onClick={() => navigate('/environments?connect=docker')}>
+        <ButtonLink to="/environments?connect=docker">
           <MaterialIcon size={20} name="add" />
           Docker 연결
-        </Button>
+        </ButtonLink>
       </PageHeader>
 
       {failedSources.length > 0 && (
@@ -158,7 +157,7 @@ export function OverviewPage() {
             icon="sensors"
             title="아직 모니터링 대상이 없습니다"
             description="Docker 환경, 업타임 모니터 또는 직접 OpenTelemetry 연결 중 하나를 선택해 시작하세요."
-            action={{ label: 'Docker 연결', onClick: () => navigate('/environments?connect=docker') }}
+            action={{ label: 'Docker 연결', to: '/environments?connect=docker' }}
           />
         </section>
       ) : (

@@ -1,4 +1,5 @@
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
+import { Button } from '../../../components/common/Button';
 import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
 import { ReceiptPanel } from './TelemetryReceiptStatus';
@@ -145,14 +146,10 @@ function SetupStep({
         </p>
       )}
       {actionLabel && onAction && (
-        <button
-          type="button"
-          onClick={onAction}
-          className="mt-2 inline-flex items-center justify-center gap-1 rounded-lg border border-ui-border bg-bg-surface px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-primary/40 hover:text-primary"
-        >
+        <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
           {actionLabel}
           <MaterialIcon size={20} name="arrow_forward" />
-        </button>
+        </Button>
       )}
     </div>
   );

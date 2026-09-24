@@ -81,7 +81,7 @@ test.describe('live demo', () => {
     await page.getByRole('option', { name: '첫 시작' }).click();
 
     await expect(page.getByText('아직 모니터링 대상이 없습니다')).toBeVisible();
-    await expect(page.locator('section').filter({ hasText: '아직 모니터링 대상이 없습니다' }).getByRole('button', { name: 'Docker 연결', exact: true })).toBeVisible();
+    await expect(page.locator('section').filter({ hasText: '아직 모니터링 대상이 없습니다' }).getByRole('link', { name: 'Docker 연결', exact: true })).toBeVisible();
   });
 
   test('normal scenario shows that no action is needed', async ({ page }) => {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
-import { IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
+import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { api, type AlertRule, type NotificationChannel, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
@@ -360,7 +360,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
           <EmptyState
             icon="rule"
             title="구성된 알림 규칙이 없습니다"
-            action={{ label: '추가하기', onClick: handleAddRule }}
+            action={{ label: '추가', onClick: handleAddRule }}
           />
         </div>
       </>
@@ -379,17 +379,10 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
             onChange={e => setSearchQuery(e.target.value)}
             aria-label="규칙 이름 또는 대상 검색"
             placeholder="규칙 이름 · 대상 검색"
-            className="pr-7"
+            className="pr-10"
           />
           {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-700"
-              aria-label="검색어 지우기"
-              title="검색어 지우기"
-            >
-              <MaterialIcon size={20} name="close" />
-            </button>
+            <IconButton icon="close" label="검색어 지우기" tone="quiet" size="sm" onClick={() => setSearchQuery('')} className="absolute right-1 top-1/2 -translate-y-1/2" />
           )}
         </div>
       }>
@@ -459,9 +452,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                 <tr>
                   <td colSpan={7} className="p-10 text-center text-sm text-text-muted">
                     조건에 맞는 규칙이 없습니다{' · '}
-                    <button onClick={clearFilters} className="text-primary hover:underline font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 rounded">
-                      필터 초기화
-                    </button>
+                    <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button>
                   </td>
                 </tr>
               ) : (
@@ -525,8 +516,10 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                             label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'}
                             size="sm"
                             tone="danger"
-                            disabled={rule.isSystem || isDeleting}
-                            onClick={() => setDeleteTargetId(rule.id)}
+                            // 시스템 규칙은 aria-disabled — 포커스·hover가 살아 있어야 이유(title)가 보인다
+                            aria-disabled={rule.isSystem || undefined}
+                            disabled={isDeleting}
+                            onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }}
                           />
                         </div>
                       </td>

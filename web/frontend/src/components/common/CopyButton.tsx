@@ -6,7 +6,7 @@ import { MaterialIcon } from './MaterialIcon';
 // the two shapes they take live here instead of being re-typed per screen.
 // Heights are fixed like every other control — never built from px/py.
 /** Primary copy action — matches a `sm` Button. */
-export const COPY_ACTION_PRIMARY = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40';
+export const COPY_ACTION_PRIMARY = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40';
 /** Quiet copy action beside a field or code block. */
 export const COPY_ACTION_SUBTLE = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-action transition-colors hover:bg-action/10 disabled:cursor-not-allowed disabled:opacity-40';
 

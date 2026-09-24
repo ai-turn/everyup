@@ -166,9 +166,9 @@ export function DirectTelemetrySetupDialog({
 
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
             <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
-            <Button type="submit" disabled={submitting || (mode === 'new' ? !name.trim() : !selected)}>
+            <Button type="submit" disabled={mode === 'new' ? !name.trim() : !selected} loading={submitting}>
               <MaterialIcon name="add" />
-              {submitting ? '추가 중...' : '추가하기'}
+              추가
             </Button>
           </div>
         </form>

@@ -15,7 +15,8 @@ import type { ComponentPropsWithRef } from 'react';
 export const FIELD_SHELL =
   'w-full rounded-lg border bg-ui-hover-soft px-3 text-sm text-text-base transition-colors';
 
-export const FIELD_HEIGHT = 'h-10';
+// 터치 화면(sm 미만)에서 44px — Button md와 같은 규칙이라 나란히 놓여도 밑변이 맞는다.
+export const FIELD_HEIGHT = 'h-11 sm:h-10';
 
 const BASE = `${FIELD_SHELL} ${FIELD_HEIGHT} placeholder:text-text-dim disabled:opacity-50 disabled:cursor-not-allowed`;
 

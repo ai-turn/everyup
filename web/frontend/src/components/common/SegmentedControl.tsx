@@ -15,7 +15,7 @@ interface SegmentedOption<T extends string> {
 
 const SIZES = {
   sm: 'h-7 px-3 text-xs',
-  md: 'h-9 px-3 text-sm',
+  md: 'h-10 px-3 text-sm sm:h-9', // 트랙 포함 44 / sm 이상 40
 } as const;
 
 export function SegmentedControl<T extends string>({
