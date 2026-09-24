@@ -16,6 +16,8 @@ export interface TooltipPayloadItem {
   dataKey?: string | number;
   name?: string;
   value?: number | string;
+  /** Overrides ChartTooltip's `unit` for this row. */
+  unit?: string;
 }
 
 // Recharts otherwise renders once with its -1×-1 sentinel before the first

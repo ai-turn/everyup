@@ -160,7 +160,7 @@ export function ChartTooltip({
             </span>
             <span className="tabular-nums text-text-base">
               {valueFormatter(Number(item.value) || 0)}
-              <span className="ml-0.5 text-xs font-medium text-text-dim">{unit}</span>
+              <span className="ml-0.5 text-xs font-medium text-text-dim">{item.unit ?? unit}</span>
             </span>
           </div>
         ))}
