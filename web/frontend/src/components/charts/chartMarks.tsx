@@ -3,19 +3,26 @@ import { ReferenceArea, ReferenceLine } from 'recharts';
 /* 차트 위 표시 — 컴포넌트가 아니라 요소 배열을 돌려준다: Recharts는 직계 자식만 읽으므로
  * 차트 안에 `{rangeAreas(...)}`처럼 직접 펼친다. */
 
-/** 시간 구간 음영 — 수집 공백(`splitGaps`)이나 실패한 체크. */
-export function rangeAreas(ranges: [number, number][], color: string, label: string, opacity = 0.12) {
+/**
+ * 시간 구간 음영 — 수집 공백(`splitGaps`)이나 실패한 체크. 글자 라벨은 달지 않는다: 좁은 띠
+ * 위의 빨간 글씨는 스티커처럼 떠 보였다. 무엇인지는 카드 제목 줄(예: 실패 2회)이 말한다.
+ */
+export function rangeAreas(ranges: [number, number][], color: string, opacity = 0.1) {
   return ranges.map(([x1, x2]) => (
-    <ReferenceArea
-      key={`${label}-${x1}`}
-      x1={x1}
-      x2={x2}
-      fill={color}
-      fillOpacity={opacity}
-      strokeOpacity={0}
-      label={{ value: label, position: 'insideTop', fill: color, fontSize: 12 }}
-    />
+    <ReferenceArea key={x1} x1={x1} x2={x2} fill={color} fillOpacity={opacity} strokeOpacity={0} />
   ));
+}
+
+/** `areaProps(id)`가 가리키는 세로 그라데이션 — 차트 안에 `{areaGradient(id, color)}`로 펼친다. */
+export function areaGradient(id: string, color: string) {
+  return (
+    <defs>
+      <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={color} stopOpacity={0.18} />
+        <stop offset="100%" stopColor={color} stopOpacity={0} />
+      </linearGradient>
+    </defs>
+  );
 }
 
 const OPERATOR_LABEL: Record<string, string> = { gt: '>', gte: '≥', lt: '<', lte: '≤', eq: '=' };

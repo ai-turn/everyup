@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   ResponsiveContainer, ComposedChart, Area, Line,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
-import type { GlobalTimeRange } from '../../../components/common';
+import { StatusLight, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, coverRanges, formatAxisValue,
-  gridProps, lineProps, medianStep, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  CHART_INITIAL_DIMENSION, ChartSummary, ChartTooltip, areaGradient, areaProps, chartCardClass, formatAxisValue,
+  gridProps, lineProps, niceYAxis, rangeAreas, runRanges, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import { api, type ServiceHistoryPoint } from '../../../services/api';
@@ -43,25 +43,35 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
   }, [agentId, serviceKey, range, refreshKey]);
 
   const theme = useChartTheme();
+  const gradientId = useId().replace(/[^\w-]/g, '');
   const thresholds = useAlertThresholds({ kind: 'agent', agentId, serviceKey }, 'response_time');
 
   // Each point is a bucket of checks. latencyMs averages the healthy checks only,
   // so a bucket where every check failed has no latency at all.
-  const buckets = points.map((p) => ({
-    t: new Date(p.time).getTime(),
-    latencyMs: p.uptimePct > 0 ? Math.round(p.latencyMs) : null,
-    failed: Math.round(p.total * (1 - p.uptimePct / 100)),
-  }));
-  const step = medianStep(buckets.map((b) => b.t));
+  const windowStart = loadedAt - RANGE_MS[range];
+  const buckets = points
+    .map((p) => ({
+      t: new Date(p.time).getTime(),
+      latencyMs: p.uptimePct > 0 ? Math.round(p.latencyMs) : null,
+      failed: Math.round(p.total * (1 - p.uptimePct / 100)),
+    }))
+    // Summary, scale and bands describe the chart's window only.
+    .filter((b) => b.t >= windowStart);
   const failedChecks = buckets.reduce((sum, b) => sum + b.failed, 0);
-  const downRanges = coverRanges(buckets.filter((b) => b.failed > 0).map((b) => b.t), step);
   const latencies = buckets.flatMap((b) => (b.latencyMs === null ? [] : [b.latencyMs]));
-  const { rows, gaps } = splitGaps(buckets, step);
+  const { rows, gaps } = splitGaps(buckets);
+  const round = (v: number) => String(Math.round(v));
 
   return (
     <div className={`mb-8 p-6 ${chartCardClass}`}>
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <h3 className="type-card-title text-text-base">응답 시간</h3>
+        {!loading && (
+          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+            {failedChecks > 0 && <StatusLight tone="error" label={`실패 ${failedChecks}회`} />}
+            <ChartSummary values={latencies} unit="ms" valueFormatter={round} />
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -71,51 +81,36 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
           데이터 없음
         </div>
       ) : (
-        <>
-          <ResponsiveContainer width="100%" height={192} initialDimension={CHART_INITIAL_DIMENSION}>
-            <ComposedChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid {...gridProps(theme)} />
-              <XAxis {...timeXAxisProps(theme, [loadedAt - RANGE_MS[range], loadedAt])} />
-              <YAxis
-                {...yAxisProps(theme, 52)}
-                {...niceYAxis(Math.max(0, ...latencies, ...thresholds.map((r) => r.threshold)))}
-                tickFormatter={(v) => formatAxisValue(v, 'ms')}
-              />
-              {rangeAreas(gaps, theme.tickColor, '체크 없음', 0.08)}
-              {rangeAreas(downRanges, theme.errorColor, '다운')}
-              {thresholdLines(thresholds, theme.errorColor, 'ms')}
-              <Tooltip
-                cursor={tooltipCursor(theme)}
-                content={({ active, label, payload }) => (
-                  <ChartTooltip
-                    active={active}
-                    label={label}
-                    payload={payload as import('../../../components/charts').TooltipPayloadItem[]}
-                    unit="ms"
-                    theme={theme}
-                    valueFormatter={(v) => String(Math.round(v))}
-                  />
-                )}
-              />
-              <Area {...areaProps(theme.primaryColor)} dataKey="latencyMs" />
-              <Line {...lineProps(theme.primaryColor, theme)} dataKey="latencyMs" name="응답 시간" />
-            </ComposedChart>
-          </ResponsiveContainer>
-          <div className="mt-2">
-            <ChartStatsLegend
-              series={[{
-                label: '응답 시간',
-                color: theme.primaryColor,
-                values: latencies,
-              }]}
-              unit="ms"
-              valueFormatter={(v) => String(Math.round(v))}
+        <ResponsiveContainer width="100%" height={192} initialDimension={CHART_INITIAL_DIMENSION}>
+          <ComposedChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            {areaGradient(gradientId, theme.primaryColor)}
+            <CartesianGrid {...gridProps(theme)} />
+            <XAxis {...timeXAxisProps(theme, [windowStart, loadedAt])} />
+            <YAxis
+              {...yAxisProps(theme, 52)}
+              {...niceYAxis(Math.max(0, ...latencies, ...thresholds.map((r) => r.threshold)))}
+              tickFormatter={(v) => formatAxisValue(v, 'ms')}
             />
-          </div>
-          {failedChecks > 0 && (
-            <p className="mt-2 type-body text-text-muted">{`실패한 체크 ${failedChecks}회는 빨간 구간으로 표시하고 응답 시간 통계에서 뺐습니다.`}</p>
-          )}
-        </>
+            {rangeAreas(gaps, theme.tickColor, 0.06)}
+            {rangeAreas(runRanges(buckets, (b) => b.failed > 0, (b) => b.latencyMs === null), theme.errorColor)}
+            {thresholdLines(thresholds, theme.errorColor, 'ms')}
+            <Tooltip
+              cursor={tooltipCursor(theme)}
+              content={({ active, label, payload }) => (
+                <ChartTooltip
+                  active={active}
+                  label={label}
+                  payload={payload as import('../../../components/charts').TooltipPayloadItem[]}
+                  unit="ms"
+                  theme={theme}
+                  valueFormatter={round}
+                />
+              )}
+            />
+            <Area {...areaProps(gradientId)} dataKey="latencyMs" />
+            <Line {...lineProps(theme.primaryColor, theme)} dataKey="latencyMs" name="응답 시간" />
+          </ComposedChart>
+        </ResponsiveContainer>
       )}
     </div>
   );

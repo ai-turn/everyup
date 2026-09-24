@@ -30,10 +30,10 @@ function getCssVar(name: string): string {
 /* ── EveryUp 차트 스펙 (Grafana풍) ────────────────────────────────
  * 모든 recharts 차트는 아래 팩토리/상수를 사용한다. 개별 차트에서
  * 선 굵기·그리드·축 스타일을 다시 정의하지 말 것.
- * 규칙: 첫 시리즈=프라이머리, 직선(linear)+둥근 캡, 얇은 1.5px 라인,
- *       단일 시리즈만 평면 10% 채움, 얕은 실선 그리드, medium 12px 눈금,
- *       숫자 시간축(정시 눈금·24시간제), 수집 공백은 선을 끊는다,
- *       애니메이션 없음, 트렌드 차트 범례는 ChartStatsLegend(Last/Min/Max/Avg). */
+ * 규칙: 첫 시리즈=프라이머리, monotoneX+둥근 캡, 얇은 1.5px 라인,
+ *       단일 시리즈만 아래로 옅어지는 채움, 얕은 실선 그리드, medium 12px 눈금,
+ *       숫자 시간축(정시 눈금·24시간제), 수집 공백은 선을 끊는다, 애니메이션 없음.
+ *       통계: 단일 시리즈는 카드 제목 옆 ChartSummary, 다중 시리즈는 ChartStatsLegend. */
 
 /* 시리즈 hex 단일 소스 — 정적 컨텍스트(데이터 변환 등)용. 컴포넌트에서는 getSeriesPalette 사용.
  *
@@ -97,12 +97,13 @@ export function tooltipCursor(theme: ChartTheme) {
   return { stroke: theme.gridColor, strokeWidth: 1, strokeDasharray: '4 4' } as const;
 }
 
-/* 곡선(monotoneX)은 짧은 스파이크를 완만한 언덕으로 뭉개고, 계단형 변화를 비스듬하게 만든다 —
- * 모니터링에서는 값이 언제 튀었는지가 핵심이라 직선을 쓴다(Grafana 기본값도 linear).
+/* monotoneX는 모든 표본점을 정확히 지나고 점 사이에서 위아래로 튀어나가지 않는다 — 값은 그대로
+ * 두고 모서리만 둥글린다. 직선(linear)은 30분 간격 같은 성긴 표본에서 각진 꺾은선이 되어
+ * 조잡해 보였다(2026-09-24 되돌림).
  * connectNulls를 끄는 것은 splitGaps가 넣은 빈 행에서 선을 끊기 위해서다. */
 export function lineProps(color: string, theme: ChartTheme) {
   return {
-    type: 'linear',
+    type: 'monotoneX',
     stroke: color,
     strokeWidth: 1.5,
     strokeLinecap: 'round',
@@ -115,13 +116,15 @@ export function lineProps(color: string, theme: ChartTheme) {
   } as const;
 }
 
-/** 라인 아래 평면 10% 채움 — 선은 별도 Line으로 그린다. 시리즈가 2개 이상이면 쓰지 않는다(채움이 겹쳐 탁해진다). */
-export function areaProps(color: string) {
+/**
+ * 라인 아래 채움 — 선은 별도 Line으로 그린다. 위 18%에서 바닥 0%로 옅어진다(`areaGradient`와 짝):
+ * 평면 채움은 값이 높을수록 차트 전체를 덮는 파란 판이 됐다. 시리즈가 2개 이상이면 쓰지 않는다.
+ */
+export function areaProps(gradientId: string) {
   return {
-    type: 'linear',
+    type: 'monotoneX',
     stroke: 'none',
-    fill: color,
-    fillOpacity: 0.1,
+    fill: `url(#${gradientId})`,
     // 채움은 장식이다 — 툴팁 행은 같은 dataKey의 Line이 이름과 함께 낸다.
     tooltipType: 'none',
     isAnimationActive: false,
@@ -207,6 +210,8 @@ export function timeXAxisProps(theme: ChartTheme, [from, to]: [number, number]) 
     type: 'number',
     scale: 'time',
     domain: [from, to],
+    // 창 밖 데이터는 잘라낸다 — 도메인을 데이터에 맞춰 늘리면 눈금(창 기준)이 한쪽으로 몰린다.
+    allowDataOverflow: true,
     ticks: timeTicks(from, to),
     tickFormatter: formatTimeTick,
   } as const;
@@ -232,18 +237,23 @@ export function splitGaps<T extends { t: number }>(rows: T[], step = medianStep(
   return { rows: out, gaps };
 }
 
-/** 시각들을 구간으로 묶는다 — 각 시각이 [t, t + width]를 덮고, 겹치거나 맞닿으면 합친다. 실패한 체크 음영용. */
-export function coverRanges(times: number[], width: number): [number, number][] {
+/**
+ * 조건에 맞는 행이 이어진 구간 — 실패한 체크 음영용. 각 행은 다음 행까지를 덮고, 그 행에서
+ * 선이 끊겼다면(`breaksLine`) 앞 행까지 넓힌다: 끊긴 선의 양 끝에 음영이 맞닿아야 선과
+ * 음영 사이에 흰 틈이 생기지 않는다.
+ */
+export function runRanges<T extends { t: number }>(rows: T[], hit: (row: T) => boolean, breaksLine = hit): [number, number][] {
   const out: [number, number][] = [];
-  for (const t of times) {
+  rows.forEach((row, i) => {
+    if (!hit(row)) return;
+    const from = breaksLine(row) ? rows[i - 1]?.t ?? row.t : row.t;
+    const to = rows[i + 1]?.t ?? row.t;
     const last = out[out.length - 1];
-    if (last && t <= last[1]) last[1] = t + width;
-    else out.push([t, t + width]);
-  }
+    if (last && from <= last[1]) last[1] = Math.max(last[1], to);
+    else out.push([from, to]);
+  });
   return out;
 }
-
-export { medianStep };
 
 /** 빈 버킷 채우기 — 서버는 데이터가 있는 버킷만 준다. 건수 차트에서 비어 있는 버킷은 "0건"이지 "모름"이 아니다. */
 export function fillBuckets<T extends { t: number }>(rows: T[], [from, to]: [number, number], step: number, empty: (t: number) => T): T[] {
