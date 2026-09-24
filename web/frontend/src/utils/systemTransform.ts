@@ -95,18 +95,12 @@ export function formatThroughput(mbPerSec: number): { value: string; unit: strin
 }
 
 // --- SystemMetricsHistory → ChartData[] ---
-function formatTimestamp(ts: string): string {
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return ts;
-  return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-}
-
 export function historyToCharts(history: SystemMetricsHistory, currentInfo?: SystemInfo | null): ChartData[] {
   const points = history.points ?? [];
   if (points.length === 0 && !currentInfo) return [];
 
-  const data = points.map((p) => ({
-    time: formatTimestamp(p.timestamp),
+  const data: ChartData['data'] = points.map((p) => ({
+    t: new Date(p.timestamp).getTime(),
     cpu: Math.round(p.cpu),
     memUsed: parseFloat(p.memUsed.toFixed(1)),
     memCached: parseFloat((p.memCached || 0).toFixed(1)),
@@ -117,20 +111,17 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
   }));
 
   if (currentInfo) {
+    // memCached는 현재값 API에 없다 — 0을 넣으면 Cached 선이 끝에서 바닥으로 떨어지고 Last가 0이 된다.
     data.push({
-      time: formatTimestamp(new Date().toISOString()),
+      t: Date.now(),
       cpu: Math.round(currentInfo.cpu.usage),
       memUsed: parseFloat(currentInfo.memory.used.toFixed(1)),
-      memCached: 0,
       diskRead: parseFloat((currentInfo.disk.readSpeed ?? 0).toFixed(2)),
       diskWrite: parseFloat((currentInfo.disk.writeSpeed ?? 0).toFixed(2)),
       netIn: parseFloat((currentInfo.network?.in ?? 0).toFixed(2)),
       netOut: parseFloat((currentInfo.network?.out ?? 0).toFixed(2)),
     });
   }
-
-  const diskMax = Math.max(...data.map((p) => Math.max(p.diskRead, p.diskWrite)), 1);
-  const networkMax = Math.max(...data.map((p) => Math.max(p.netIn || 0, p.netOut || 0)), 1);
 
   return [
     {
@@ -152,7 +143,6 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
     {
       title: 'Disk I/O',
       unit: 'MB/s',
-      yMax: parseFloat((diskMax * 1.2).toFixed(2)),
       data,
       series: [
         { key: 'diskRead', label: 'Read', color: SERIES_HEX.primary },
@@ -162,7 +152,6 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
     {
       title: 'Network Traffic',
       unit: 'MB/s',
-      yMax: parseFloat((networkMax * 1.2).toFixed(2)),
       data,
       series: [
         { key: 'netIn', label: 'In', color: SERIES_HEX.primary },

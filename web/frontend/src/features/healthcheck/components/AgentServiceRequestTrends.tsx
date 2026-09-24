@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import {
   ResponsiveContainer, ComposedChart, Line, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import {
-  CHART_INITIAL_DIMENSION, ChartLegend, ChartStatsLegend, ChartTooltip, SERIES_HEX, chartCardClass, formatAxisValue,
-  getChartTheme, gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
+  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, SERIES_HEX, chartCardClass, fillBuckets, formatAxisValue,
+  gridProps, lineProps, niceYAxis, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  type ChartTheme, type TooltipPayloadItem,
 } from '../../../components/charts';
 import { api, type ApiRequestStatBucket, type ApiRequestStatusSummary } from '../../../services/api';
 import { TimeRangePicker } from '../../../components/common/TimeRangePicker';
@@ -39,13 +40,14 @@ type RequestTrendSource =
   | { kind: 'direct'; observedServiceId: string };
 
 interface ChartPoint {
-  timeLabel: string;
+  t: number;
   count: number;
-  errorRate: number; // percent
-  p50: number;
-  p95: number;
-  hasLatency: boolean;
+  errorRate: number | null; // percent; null when the bucket had no requests
+  p50: number | null;
+  p95: number | null;
 }
+
+type Panel = 'latency' | 'count' | 'error';
 
 function ServiceRequestTrends({
   source,
@@ -55,8 +57,12 @@ function ServiceRequestTrends({
   const [localRange, setLocalRange] = useState<TimeRange>('6h');
   const range = controlledRange ?? localRange;
   const [buckets, setBuckets] = useState<ApiRequestStatBucket[]>([]);
+  const [timeWindow, setTimeWindow] = useState<[number, number]>([0, 1]);
   const [summary, setSummary] = useState<ApiRequestStatusSummary | null>(null);
+  // First load only — a refresh keeps the previous chart instead of flashing the skeleton.
   const [loading, setLoading] = useState(true);
+  // The three panels share a crosshair (syncId); only the hovered one shows its tooltip box.
+  const [hovered, setHovered] = useState<Panel | null>(null);
   const sourceKind = source.kind;
   const agentId = source.kind === 'agent' ? source.agentId : '';
   const serviceKey = source.kind === 'agent' ? source.serviceKey : undefined;
@@ -65,9 +71,9 @@ function ServiceRequestTrends({
   useEffect(() => {
     const load = async () => {
       const r = RANGES.find((x) => x.value === range)!;
-      const from = new Date(Date.now() - r.hours * 3600 * 1000).toISOString();
+      const to = Date.now();
+      const from = new Date(to - r.hours * 3600 * 1000).toISOString();
       const params = { from, bucketMins: r.bucketMins };
-      setLoading(true);
       const fetchStats = sourceKind === 'direct'
         ? api.getObservedServiceRequestStats(observedServiceId, params)
         : serviceKey
@@ -78,6 +84,7 @@ function ServiceRequestTrends({
       } catch {
         setBuckets([]);
       } finally {
+        setTimeWindow([Date.parse(from), to]);
         setLoading(false);
       }
       // Non-critical — the strip hides itself when the summary is missing.
@@ -92,40 +99,43 @@ function ServiceRequestTrends({
     void load();
   }, [agentId, observedServiceId, range, refreshKey, serviceKey, sourceKind]);
 
-  const theme = getChartTheme();
+  const theme = useChartTheme();
+  const bucketMs = RANGES.find((x) => x.value === range)!.bucketMins * 60_000;
 
-  const data: ChartPoint[] = useMemo(() => buckets.map((b) => ({
-    timeLabel: new Date(b.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    count: b.count,
-    errorRate: b.count > 0 ? Math.round((b.errorCount / b.count) * 1000) / 10 : 0,
-    p50: b.p50,
-    p95: b.p95,
-    hasLatency: b.timed > 0,
-  })), [buckets]);
+  // The server only returns buckets that had requests; an absent bucket is zero
+  // requests, not missing data, so the volume bars must show it as such.
+  const data: ChartPoint[] = useMemo(() => fillBuckets(
+    buckets.map((b) => ({
+      t: Date.parse(b.time),
+      count: b.count,
+      errorRate: b.count > 0 ? Math.round((b.errorCount / b.count) * 1000) / 10 : null,
+      p50: b.timed > 0 ? b.p50 : null,
+      p95: b.timed > 0 ? b.p95 : null,
+    })),
+    timeWindow,
+    bucketMs,
+    (t) => ({ t, count: 0, errorRate: null, p50: null, p95: null }),
+  ), [buckets, timeWindow, bucketMs]);
 
   // Latency series only render when at least one bucket has timed requests —
   // access-log-only services (no duration) show volume + error rate alone.
-  const anyLatency = data.some((d) => d.hasLatency);
+  const anyLatency = buckets.some((b) => b.timed > 0);
+  const values = (key: 'p50' | 'p95' | 'count' | 'errorRate') =>
+    data.flatMap((d) => (d[key] === null ? [] : [d[key]]));
 
   if (loading) {
     return <div className="h-56 bg-ui-hover rounded-xl animate-pulse" />;
   }
-  if (data.length === 0) {
+  if (buckets.length === 0) {
     return null; // empty state is handled by the request list below
   }
+
+  const panelProps = { data, timeWindow, theme, hovered, onHover: setHovered };
 
   return (
     <div className={`p-6 ${chartCardClass}`}>
       <div className="flex items-center justify-between mb-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h3 className="type-card-title text-text-base">요청 추이</h3>
-          <ChartLegend
-            items={[
-              { label: '요청 수', color: theme.primaryColor },
-              { label: '에러율(%)', color: SERIES_HEX.red },
-            ]}
-          />
-        </div>
+        <h3 className="type-card-title text-text-base">요청 추이</h3>
         {!controlledRange && (
           <TimeRangePicker value={range} onChange={setLocalRange} />
         )}
@@ -163,49 +173,83 @@ function ServiceRequestTrends({
         );
       })()}
 
-      {/* Latency percentiles (only when we have timed requests) */}
-      {anyLatency && (
-        <>
-          <ResponsiveContainer width="100%" height={160} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-            <ComposedChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid {...gridProps(theme)} />
-              <XAxis dataKey="timeLabel" {...xAxisProps(theme)} />
-              <YAxis {...yAxisProps(theme, 52)} tickFormatter={(v) => formatAxisValue(v, 'ms')} />
-              <Tooltip cursor={tooltipCursor(theme)} content={({ active, label, payload }) => (
-                <ChartTooltip active={active} label={label} payload={payload as import('../../../components/charts').TooltipPayloadItem[]} unit="ms" theme={theme} valueFormatter={(v) => String(Math.round(v))} />
-              )} />
-              <Line {...lineProps(theme.primaryColor)} dataKey="p50" name="p50" />
-              <Line {...lineProps(SERIES_HEX.amber)} dataKey="p95" name="p95" />
-            </ComposedChart>
-          </ResponsiveContainer>
-          <div className="mb-3 mt-2">
-            <ChartStatsLegend
-              series={[
-                { label: 'p50', color: theme.primaryColor, values: data.filter((d) => d.hasLatency).map((d) => d.p50) },
-                { label: 'p95', color: SERIES_HEX.amber, values: data.filter((d) => d.hasLatency).map((d) => d.p95) },
-              ]}
-              unit="ms"
-              valueFormatter={(v) => String(Math.round(v))}
-            />
-          </div>
-        </>
-      )}
+      {/* One measure per panel. The error rate used to share a fixed 0–100%
+          right axis with request volume, which flattened a 5% spike onto the floor. */}
+      <div className="space-y-4">
+        {anyLatency && (
+          <TrendPanel
+            {...panelProps}
+            id="latency"
+            title="지연 시간"
+            unit="ms"
+            height={150}
+            max={Math.max(0, ...values('p95'), ...values('p50'))}
+            valueFormatter={(v) => String(Math.round(v))}
+            legend={(
+              <ChartStatsLegend
+                series={[
+                  { label: 'p50', color: theme.primaryColor, values: values('p50') },
+                  { label: 'p95', color: SERIES_HEX.amber, values: values('p95') },
+                ]}
+                unit="ms"
+                valueFormatter={(v) => String(Math.round(v))}
+              />
+            )}
+          >
+            <Line {...lineProps(theme.primaryColor, theme)} dataKey="p50" name="p50" />
+            <Line {...lineProps(SERIES_HEX.amber, theme)} dataKey="p95" name="p95" />
+          </TrendPanel>
+        )}
+        <TrendPanel {...panelProps} id="count" title="요청 수" unit="건" height={100} max={Math.max(0, ...values('count'))} valueFormatter={(v) => String(v)}>
+          <Bar dataKey="count" name="요청 수" fill={theme.primaryColor} fillOpacity={0.45} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+        </TrendPanel>
+        <TrendPanel {...panelProps} id="error" title="에러율" unit="%" height={120} max={Math.max(0, ...values('errorRate'))} valueFormatter={(v) => String(v)} showTimeAxis>
+          <Line {...lineProps(SERIES_HEX.red, theme)} dataKey="errorRate" name="에러율" />
+        </TrendPanel>
+      </div>
+    </div>
+  );
+}
 
-      {/* Volume + error rate */}
-      <ResponsiveContainer width="100%" height={140} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-        <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+function TrendPanel({
+  id, title, unit, height, max, valueFormatter, legend, showTimeAxis = false, children,
+  data, timeWindow, theme, hovered, onHover,
+}: {
+  id: Panel;
+  title: string;
+  unit: string;
+  height: number;
+  max: number;
+  valueFormatter: (value: number) => string;
+  legend?: ReactNode;
+  /** Only the bottom panel labels the shared time axis. */
+  showTimeAxis?: boolean;
+  children: ReactNode;
+  data: ChartPoint[];
+  timeWindow: [number, number];
+  theme: ChartTheme;
+  hovered: Panel | null;
+  onHover: (panel: Panel | null) => void;
+}) {
+  return (
+    <section aria-label={title} onMouseEnter={() => onHover(id)} onMouseLeave={() => onHover(null)}>
+      <div className="mb-1.5 flex items-baseline gap-2">
+        <h4 className="type-label text-text-base">{title}</h4>
+        <span className="type-caption text-text-dim">{unit}</span>
+      </div>
+      <ResponsiveContainer width="100%" height={height + (showTimeAxis ? 24 : 0)} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
+        <ComposedChart data={data} syncId="request-trends" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid {...gridProps(theme)} />
-          <XAxis dataKey="timeLabel" {...xAxisProps(theme)} />
-          <YAxis yAxisId="count" {...yAxisProps(theme, 40)} domain={[0, 'dataMax']} allowDataOverflow allowDecimals={false} />
-          <YAxis yAxisId="err" {...yAxisProps(theme, 40)} orientation="right" tickFormatter={(v) => `${v}%`} domain={[0, 100]} />
-          <Tooltip cursor={tooltipCursor(theme)} content={({ active, label, payload }) => (
-            <ChartTooltip active={active} label={label} payload={payload as import('../../../components/charts').TooltipPayloadItem[]} unit="" theme={theme} valueFormatter={(v) => String(v)} />
+          <XAxis {...timeXAxisProps(theme, timeWindow)} hide={!showTimeAxis} />
+          <YAxis {...yAxisProps(theme, 52)} {...niceYAxis(max)} tickFormatter={(v) => formatAxisValue(v)} />
+          <Tooltip cursor={tooltipCursor(theme)} content={({ active, label, payload }) => hovered === id && (
+            <ChartTooltip active={active} label={label} payload={payload as TooltipPayloadItem[]} unit={unit} theme={theme} valueFormatter={valueFormatter} />
           )} />
-          <Bar yAxisId="count" dataKey="count" name="요청 수" fill={theme.primaryColor} fillOpacity={0.35} radius={[2, 2, 0, 0]} isAnimationActive={false} />
-          <Line {...lineProps(SERIES_HEX.red)} yAxisId="err" dataKey="errorRate" name="에러율(%)" />
+          {children}
         </ComposedChart>
       </ResponsiveContainer>
-    </div>
+      {legend && <div className="mt-2">{legend}</div>}
+    </section>
   );
 }
 

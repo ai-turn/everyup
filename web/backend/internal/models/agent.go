@@ -52,7 +52,7 @@ type AgentServiceFlat struct {
 // ServiceHistoryPoint is one time-bucketed data point for response-time charts.
 type ServiceHistoryPoint struct {
 	Time      string  `json:"time"`
-	LatencyMs float64 `json:"latencyMs"`
+	LatencyMs float64 `json:"latencyMs"` // average over healthy checks; 0 when none were healthy
 	UptimePct float64 `json:"uptimePct"`
 	Total     int     `json:"total"`
 }

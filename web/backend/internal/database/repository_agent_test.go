@@ -142,6 +142,48 @@ func TestAgentRepositoryRoundTrip(t *testing.T) {
 	}
 }
 
+// A failed check's latency is how long it waited before giving up, not a
+// response time — it must not inflate the bucket's average.
+func TestServiceHistoryLatencyAveragesHealthyChecksOnly(t *testing.T) {
+	openTestDB(t)
+
+	repo := database.NewAgentRepository()
+	agent := models.Agent{ID: "agent-lat", Name: "lat", LastSeenAt: time.Now()}
+	if err := repo.UpsertAgent(agent); err != nil {
+		t.Fatalf("UpsertAgent: %v", err)
+	}
+	bucket := time.Now().UTC().Truncate(time.Hour).Add(-2 * time.Hour)
+	checks := []struct {
+		healthy bool
+		latency string
+	}{{true, "100ms"}, {false, "5s"}, {true, "200ms"}}
+	for i, c := range checks {
+		svc := models.AgentService{AgentID: agent.ID, Key: "web", Name: "web", CheckType: "http", Endpoint: "http://x", Healthy: c.healthy, Seen: true, LastLatency: c.latency}
+		if err := repo.UpsertServices(agent.ID, bucket.Add(time.Duration(i)*time.Minute), []models.AgentService{svc}); err != nil {
+			t.Fatalf("UpsertServices: %v", err)
+		}
+	}
+	// A bucket where every check failed carries no latency.
+	down := models.AgentService{AgentID: agent.ID, Key: "web", Name: "web", CheckType: "http", Endpoint: "http://x", Healthy: false, Seen: true, LastLatency: "5s"}
+	if err := repo.UpsertServices(agent.ID, bucket.Add(30*time.Minute), []models.AgentService{down}); err != nil {
+		t.Fatalf("UpsertServices: %v", err)
+	}
+
+	points, err := repo.GetServiceHistoryBuckets(agent.ID, "web", bucket.Add(-time.Minute), 20)
+	if err != nil {
+		t.Fatalf("GetServiceHistoryBuckets: %v", err)
+	}
+	if len(points) != 2 {
+		t.Fatalf("expected 2 buckets, got %+v", points)
+	}
+	if points[0].LatencyMs != 150 || points[0].Total != 3 {
+		t.Fatalf("mixed bucket: latency=%v total=%d, want 150 over 3 checks", points[0].LatencyMs, points[0].Total)
+	}
+	if points[1].LatencyMs != 0 || points[1].UptimePct != 0 {
+		t.Fatalf("all-failed bucket: %+v, want latency 0 and uptime 0", points[1])
+	}
+}
+
 // Agent-level uptime rollup + incident derivation from history transitions.
 func TestAgentUptimeAndIncidents(t *testing.T) {
 	openTestDB(t)

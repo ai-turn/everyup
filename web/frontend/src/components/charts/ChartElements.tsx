@@ -1,5 +1,25 @@
 import type { ReactNode } from 'react';
-import { ChartTheme, TooltipPayloadItem, formatMetricValue } from './chartTheme';
+import { ReferenceArea } from 'recharts';
+import { ChartTheme, TooltipPayloadItem, formatMetricValue, formatTimeLabel } from './chartTheme';
+
+/**
+ * 시간 구간 음영 — 수집 공백(`splitGaps`)이나 실패한 체크. 컴포넌트가 아니라 요소 배열을
+ * 돌려준다: 차트 안에 `{rangeAreas(...)}`로 직접 펼친다.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function rangeAreas(ranges: [number, number][], color: string, label: string, opacity = 0.12) {
+  return ranges.map(([x1, x2]) => (
+    <ReferenceArea
+      key={`${label}-${x1}`}
+      x1={x1}
+      x2={x2}
+      fill={color}
+      fillOpacity={opacity}
+      strokeOpacity={0}
+      label={{ value: label, position: 'insideTop', fill: color, fontSize: 12 }}
+    />
+  ));
+}
 
 interface ChartTooltipProps {
   active?: boolean;
@@ -112,7 +132,7 @@ export function ChartTooltip({
       }}
     >
       <p className="mb-2 text-xs" style={{ color: theme.tickColor }}>
-        {labelFormatter ? labelFormatter(label) : label}
+        {labelFormatter ? labelFormatter(label) : typeof label === 'number' ? formatTimeLabel(label) : label}
       </p>
       <div className="space-y-1.5">
         {rows.map((item) => (

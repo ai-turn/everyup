@@ -249,8 +249,9 @@ body {
 
   /* Recharts 3 accessibilityLayer가 svg를 포커스 가능하게 만들어 클릭 시
      브라우저 기본 링(Windows Chrome=검정)이 뜬다. 마우스 클릭만 숨기고
-     키보드 포커스(:focus-visible)는 위 primary 링을 유지한다. */
-  .recharts-surface:focus:not(:focus-visible) {
+     키보드 포커스(:focus-visible)는 위 primary 링을 유지한다.
+     막대를 누를 때는 svg 안의 <g tabindex="-1">가 포커스를 받으므로 래퍼 전체에 건다. */
+  .recharts-wrapper :focus:not(:focus-visible) {
     outline: none;
   }
 }

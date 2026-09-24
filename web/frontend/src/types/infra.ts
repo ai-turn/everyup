@@ -45,7 +45,8 @@ export interface ChartData {
   title: string;
   unit: string;
   yMax?: number;
-  data: Record<string, number | string>[];
+  /** 행마다 `t`(epoch ms) + 시리즈 key별 값. */
+  data: ({ t: number } & Record<string, number>)[];
   series: ChartSeries[];
 }
 
