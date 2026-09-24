@@ -96,7 +96,7 @@ export function DirectInfrastructureDetailPage() {
   }
 
   const confirmCopy = {
-    rotate: { title: 'Collector 키를 재발급할까요?', message: '현재 키는 즉시 폐기됩니다. 실행 중인 OpenTelemetry Collector 설정에 새 키를 반영해야 합니다.', label: '재발급', variant: 'primary' as const },
+    rotate: { title: 'API Key를 재발급할까요?', message: '현재 키는 즉시 폐기됩니다. 실행 중인 OpenTelemetry Collector 설정에 새 키를 반영해야 합니다.', label: '재발급', variant: 'primary' as const },
     revoke: { title: 'Collector 연결을 중지할까요?', message: '새 hostmetrics 수집이 즉시 차단됩니다. 저장된 이력은 유지됩니다.', label: '연결 중지', variant: 'danger' as const },
     delete: { title: '인프라 리소스를 삭제할까요?', message: '저장된 호스트 메트릭 이력과 대상별 리소스 알림 규칙을 함께 삭제합니다.', label: '삭제', variant: 'danger' as const },
   };
@@ -106,13 +106,12 @@ export function DirectInfrastructureDetailPage() {
     <div>
       <PageHeader
         title={resource.name}
-        subtitle="표준 OpenTelemetry Collector hostmetrics 리소스입니다."
         meta={
           <DirectConnectionMeta
             isActive={resource.isActive}
             apiKeyMasked={resource.apiKeyMasked}
             lastSeenAt={resource.lastSeenAt}
-            detail={{ label: '어댑터', value: 'OpenTelemetry Collector' }}
+            detail={{ label: '연결 방식', value: 'OpenTelemetry Collector' }}
             onRotateKey={() => setConfirmAction('rotate')}
             onRevoke={() => setConfirmAction('revoke')}
             projects={projects}

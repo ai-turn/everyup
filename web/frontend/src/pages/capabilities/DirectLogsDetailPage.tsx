@@ -102,7 +102,7 @@ export function DirectLogsDetailPage() {
 
   const confirmCopy = {
     rotate: {
-      title: '직접 수집 키를 재발급할까요?',
+      title: 'API Key를 재발급할까요?',
       message: '현재 키는 즉시 폐기됩니다. 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.',
       label: '재발급',
       variant: 'primary' as const,
@@ -126,13 +126,12 @@ export function DirectLogsDetailPage() {
     <div>
       <PageHeader
         title={service.name}
-        subtitle="직접 연결한 OpenTelemetry 로그 서비스입니다."
         meta={
           <DirectConnectionMeta
             isActive={service.isActive}
             apiKeyMasked={service.apiKeyMasked}
             lastSeenAt={service.lastSeenAt}
-            detail={{ label: '허용 신호', value: service.signals.join(', ') }}
+            detail={{ label: '수집 데이터', value: service.signals.join(', ') }}
             onRotateKey={() => setConfirmAction('rotate')}
             onRevoke={() => setConfirmAction('revoke')}
             projects={projects}

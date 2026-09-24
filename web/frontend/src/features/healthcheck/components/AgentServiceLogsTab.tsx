@@ -305,7 +305,7 @@ function ServiceLogsPanel(props: Props) {
             variant="ghost"
             size="sm"
             onClick={() => { setAttrFilter(null); setPage(1); }}
-            title="속성 필터 해제"
+            title="Attribute 필터 해제"
             className="font-mono"
           >
             <span>{attrFilter.key}={attrFilter.value}</span>

@@ -5,6 +5,7 @@ export { Textarea } from './Textarea';
 export { Select } from './Select';
 export { SearchInput } from './SearchInput';
 export { PageHeader } from './PageHeader';
+export { DetailMeta, type DetailMetaField } from './DetailMeta';
 export { ListToolbar } from './ListToolbar';
 export { ResourceCardHeader } from './ResourceCardHeader';
 export { ConnectionSourceBadge } from './ConnectionSourceBadge';

@@ -151,7 +151,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
       className={`fixed inset-0 z-50 flex items-stretch justify-center sm:items-center sm:p-4 ${SCRIM_MODAL}`}
       role="dialog"
       aria-modal="true"
-      aria-label="OpenTelemetry 자동 적용"
+      aria-label="상세 수집 설정"
       onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
       <div ref={panelRef} className="flex h-full max-h-full w-full max-w-2xl flex-col bg-bg-surface shadow-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
@@ -160,7 +160,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
             <MaterialIcon size={20} name="integration_instructions" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="type-card-title text-text-base">상세 API 모니터링 적용</h3>
+            <h3 className="type-card-title text-text-base">상세 수집 설정</h3>
             <p className="mt-0.5 text-sm text-text-muted">
               감지된 Java·Node.js 서비스에 OpenTelemetry를 안전하게 적용합니다.
             </p>
@@ -204,7 +204,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                         key={target.composeService}
                         className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${checked ? 'border-primary/20 bg-primary/10 text-primary' : 'border-ui-border text-text-secondary hover:bg-ui-hover'}`}
                       >
-                        <input type="checkbox" aria-label={`${target.name} 계측`} checked={checked} onChange={event => {
+                        <input type="checkbox" aria-label={`${target.name} 상세 수집`} checked={checked} onChange={event => {
                           setSelectedKeys(current => event.target.checked ? [...current, key] : current.filter(item => item !== key));
                         }} className="h-4 w-4 cursor-pointer accent-primary" />
                         {target.name}
@@ -270,9 +270,9 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 <Button onClick={() => void prepare()} disabled={targets.length === 0 || webAddressMissing || composePathMissing} loading={preparing}>변경 사항 확인</Button>
                 {targets.length === 0 && <p className="type-body text-text-muted">적용할 서비스를 하나 이상 선택하세요.</p>}
               </div>
-              {plan && <div className="space-y-3 rounded-xl border border-ui-border p-4" aria-label="계측 변경 미리보기">
+              {plan && <div className="space-y-3 rounded-xl border border-ui-border p-4" aria-label="상세 수집 변경 미리보기">
                 <p className="type-label text-text-base">재시작 대상: {targets.map(target => target.name).join(', ')}</p>
-                <p className="type-body text-text-muted">선택한 서비스에 Java agent 또는 Node preload, OTLP 전송 설정, 계측 파일 볼륨과 모니터링 네트워크를 추가합니다. 다른 서비스의 기존 계측은 유지합니다.</p>
+                <p className="type-body text-text-muted">선택한 서비스에 Java agent 또는 Node preload, OTLP 전송 설정, 주입 파일 볼륨과 모니터링 네트워크를 추가합니다. 다른 서비스의 기존 설정은 유지합니다.</p>
                 <p className="type-body text-text-muted">먼저 서버 미리보기 명령으로 실제 Compose를 검증한 뒤 적용하세요. 실행 기록은 1시간 내 시작할 수 있으며, 적용·실패·복구 결과가 아래에 표시됩니다.</p>
                 <CommandRow label="서버 변경 미리보기" command={planCommand} onCopy={copy} />
               </div>}
@@ -319,7 +319,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 <p className="type-body text-text-muted">
                   Authorization, Cookie 등 민감 헤더는 서버에서 자동 마스킹됩니다.{' '}
                   <a href={DOC_URL} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                    상세 계측 문서
+                    상세 수집 문서
                   </a>
                 </p>
               </div>

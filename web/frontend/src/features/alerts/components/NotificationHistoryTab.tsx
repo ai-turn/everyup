@@ -10,7 +10,7 @@ import { ko } from 'date-fns/locale';
 const HISTORY_TYPE_LABELS: Record<string, string> = {
   resource: '리소스',
   healthcheck: '헬스체크',
-  endpoint: '엔드포인트',
+  endpoint: 'Endpoint',
   log: '로그',
   scheduled: '스케줄',
   system: '시스템',
@@ -160,7 +160,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
           <option value="all">전체 타입</option>
           <option value="resource">리소스</option>
           <option value="healthcheck">헬스체크</option>
-          <option value="endpoint">엔드포인트</option>
+          <option value="endpoint">Endpoint</option>
           <option value="log">로그</option>
           <option value="scheduled">스케줄</option>
           <option value="system">시스템</option>

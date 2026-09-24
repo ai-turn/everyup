@@ -72,7 +72,7 @@ export function InfrastructureCollectorSetupDialog({
             </Select>
           </label>
           <div className="rounded-xl border border-ui-border bg-ui-hover-soft p-4 text-sm text-text-muted">
-            설정 파일과 일회성 API 키를 발급합니다. Collector는 metrics 신호만 전송할 수 있으며 Docker 환경은 추가되지 않습니다.
+            설정 파일과 일회성 API Key를 발급합니다. Collector는 metrics 데이터만 전송할 수 있으며 Docker 환경은 추가되지 않습니다.
           </div>
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
             <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>

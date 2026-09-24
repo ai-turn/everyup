@@ -1,7 +1,7 @@
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, DetailActionToolbar, MaterialIcon, PageHeader, StatusBadge, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusBadge, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
 import { useSpinAction } from '../../../hooks/useSpinAction';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
@@ -35,29 +35,17 @@ function formatUptime(startedAt?: string): string | null {
 // Container provenance line (image · restarts · uptime). Non-container services
 // have no image → renders nothing. A restart count ≥3 is highlighted as a
 // possible crash/restart loop.
-function ContainerMeta({ service }: { service: AgentServiceFlat }) {
-  if (!service.image) return null;
+function containerFields(service: AgentServiceFlat): DetailMetaField[] {
+  if (!service.image) return [];
   const uptime = formatUptime(service.startedAt);
   const restarts = service.restartCount ?? 0;
-  return (
-    <div className="flex items-center gap-2 text-text-dim min-w-0">
-      <span className="font-mono truncate">{service.image}</span>
-      {restarts > 0 && (
-        <>
-          <span className="text-text-dim shrink-0">·</span>
-          <span className={`shrink-0 ${restarts >= 3 ? 'text-status-warn' : ''}`}>
-            재시작 {restarts}회
-          </span>
-        </>
-      )}
-      {uptime && (
-        <>
-          <span className="text-text-dim shrink-0">·</span>
-          <span className="shrink-0">업타임 {uptime}</span>
-        </>
-      )}
-    </div>
-  );
+  return [
+    { label: 'Image', value: <span className="truncate font-mono">{service.image}</span> },
+    ...(uptime ? [{ label: 'Uptime', value: uptime }] : []),
+    ...(restarts > 0
+      ? [{ label: 'Restarts', value: <span className={restarts >= 3 ? 'text-status-warn' : ''}>{restarts}회</span> }]
+      : []),
+  ];
 }
 
 export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProps) {
@@ -81,10 +69,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
       <PageHeader
         title={service.name}
         meta={
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption">
-            <StatusBadge healthy={service.healthy} />
-            <ContainerMeta service={service} />
-          </div>
+          <DetailMeta status={<StatusBadge healthy={service.healthy} />} fields={containerFields(service)} />
         }
       />
       <DetailActionToolbar

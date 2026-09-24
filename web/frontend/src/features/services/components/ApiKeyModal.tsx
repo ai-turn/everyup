@@ -52,7 +52,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
       const res = await api.rotateAgentKey(agentId);
       setApiKey(res.apiKey);
       setAvailable(true);
-      toast.success('새 API 키가 발급됐습니다');
+      toast.success('새 API Key가 발급됐습니다');
       onRotated?.();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -67,7 +67,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ui-border-soft">
           <h2 className="type-card-title text-text-base truncate">
-            {agentName} · API 키
+            {agentName} · API Key
           </h2>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
@@ -78,16 +78,16 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
           ) : available ? (
             <>
               <div className="space-y-1.5">
-                <p className="text-xs text-text-muted uppercase tracking-wider">API 키</p>
+                <p className="text-xs text-text-muted uppercase tracking-wider">API Key</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 px-3 py-2.5 rounded-xl bg-ui-hover-soft border border-ui-border text-xs font-mono text-text-base break-all">
                     {apiKey}
                   </code>
-                  <CopyButton onCopy={handleCopy} title="API 키 복사" className={COPY_ACTION_SUBTLE} />
+                  <CopyButton onCopy={handleCopy} title="API Key 복사" className={COPY_ACTION_SUBTLE} />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <p className="text-xs text-text-muted uppercase tracking-wider">Docker 수집기 설정</p>
+                <p className="text-xs text-text-muted uppercase tracking-wider">Docker Collector 설정</p>
                 <pre className="px-3 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-950 text-xs font-mono text-slate-100 overflow-x-auto">{`EVERYUP_AGENT_API_KEY=${apiKey}`}</pre>
               </div>
             </>
@@ -103,7 +103,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
           {!loading && (
             <Button variant="secondary" onClick={() => setConfirmRotate(true)} loading={rotating} className="w-full">
               <MaterialIcon name="autorenew" />
-              API 키 재발급
+              API Key 재발급
             </Button>
           )}
         </div>
@@ -112,8 +112,8 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
         isOpen={confirmRotate}
         onClose={() => setConfirmRotate(false)}
         onConfirm={() => void handleRotate()}
-        title="API 키를 재발급할까요?"
-        message={`'${agentName}' Docker 수집기의 기존 키는 즉시 무효화되며, Docker 수집기 설정을 새 키로 교체해야 합니다.`}
+        title="API Key를 재발급할까요?"
+        message={`'${agentName}' Docker Collector의 기존 키는 즉시 무효화되며, Docker Collector 설정을 새 키로 교체해야 합니다.`}
         confirmLabel="재발급"
         isProcessing={rotating}
       />

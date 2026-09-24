@@ -28,7 +28,7 @@ const channelSchema = z.object({
 }).superRefine((data, ctx) => {
     if (data.type === 'telegram') {
         if (!data.botToken?.trim()) {
-            ctx.addIssue({ code: 'custom', path: ['botToken'], message: '봇 토큰을 입력하세요' });
+            ctx.addIssue({ code: 'custom', path: ['botToken'], message: 'Bot Token을 입력하세요' });
         }
         if (!data.chatId?.trim()) {
             ctx.addIssue({ code: 'custom', path: ['chatId'], message: '채팅 ID를 입력하세요' });
@@ -37,9 +37,9 @@ const channelSchema = z.object({
 
     if (data.type === 'discord' || data.type === 'slack') {
         if (!data.webhookUrl?.trim()) {
-            ctx.addIssue({ code: 'custom', path: ['webhookUrl'], message: '웹훅 URL을 입력하세요' });
+            ctx.addIssue({ code: 'custom', path: ['webhookUrl'], message: 'Webhook URL을 입력하세요' });
         } else if (!/^https?:\/\/.+/.test(data.webhookUrl)) {
-            ctx.addIssue({ code: 'custom', path: ['webhookUrl'], message: '웹훅 URL은 http:// 또는 https://로 시작해야 합니다' });
+            ctx.addIssue({ code: 'custom', path: ['webhookUrl'], message: 'Webhook URL은 http:// 또는 https://로 시작해야 합니다' });
         }
     }
 });
@@ -383,7 +383,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                             <>
                                 <Field
                                     htmlFor="channel-bot-token"
-                                    label="봇 토큰"
+                                    label="Bot Token"
                                     required
                                     error={errors.botToken?.message}
                                     hint="BotFather에서 발급받은 Bot Token"
@@ -415,7 +415,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                             <>
                                 <Field
                                     htmlFor="channel-webhook-url"
-                                    label="웹훅 URL"
+                                    label="Webhook URL"
                                     required
                                     error={errors.webhookUrl?.message}
                                     hint={watchedType === 'slack' ? 'Slack Incoming Webhooks URL' : 'Discord Channel Webhook URL'}

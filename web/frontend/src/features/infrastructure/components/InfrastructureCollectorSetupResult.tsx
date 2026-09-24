@@ -60,15 +60,15 @@ export function InfrastructureCollectorSetupResult({
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-status-healthy/10 text-status-healthy"><MaterialIcon name="check" /></span>
         <div>
           <h3 className="type-card-title text-text-base">{title}</h3>
-          <p className="mt-1 text-sm text-text-muted">Collector API 키는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
+          <p className="mt-1 text-sm text-text-muted">Collector API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
         </div>
       </div>
       <ConnectionAddressField address={address} />
       <div className="space-y-2">
-        <p className="type-label text-text-secondary">Collector API 키</p>
+        <p className="type-label text-text-secondary">Collector API Key</p>
         <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
           <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
-          <CopyButton onCopy={() => copy(setup.apiKey)} title="API 키 복사" className={ICON_ACTION} />
+          <CopyButton onCopy={() => copy(setup.apiKey)} title="API Key 복사" className={ICON_ACTION} />
         </div>
       </div>
       <div className="space-y-2">

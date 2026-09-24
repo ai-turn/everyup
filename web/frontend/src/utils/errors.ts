@@ -35,7 +35,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   HOST_EXISTS: '이미 존재하는 호스트 ID입니다.',
   SERVICE_EXISTS: '이미 존재하는 서비스 ID입니다.',
   SSRF_BLOCKED: '보안상 허용되지 않는 주소입니다.',
-  NO_COLLECTOR: '수집기가 등록되지 않았습니다.',
+  NO_COLLECTOR: 'Collector가 등록되지 않았습니다.',
   COLLECT_FAILED: '시스템 정보 수집에 실패했습니다.',
   UNKNOWN_ERROR: '알 수 없는 오류가 발생했습니다.',
 };

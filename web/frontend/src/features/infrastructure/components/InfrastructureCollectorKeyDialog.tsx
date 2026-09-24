@@ -22,10 +22,10 @@ export function InfrastructureCollectorKeyDialog({
       className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="flex items-center justify-between border-b border-ui-border px-6 py-4">
-        <h2 id="collector-key-dialog-title" className="type-card-title text-text-base">Collector 키 재발급</h2>
+        <h2 id="collector-key-dialog-title" className="type-card-title text-text-base">API Key 재발급</h2>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
       </div>
-      <InfrastructureCollectorSetupResult setup={setup} title="새 Collector 키가 발급되었습니다" onDone={onClose} />
+      <InfrastructureCollectorSetupResult setup={setup} title="새 API Key가 발급되었습니다" onDone={onClose} />
     </dialog>
   );
 }

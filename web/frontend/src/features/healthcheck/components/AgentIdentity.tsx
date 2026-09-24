@@ -32,7 +32,7 @@ export function AgentIdentity({ service }: { service: AgentServiceFlat }) {
         <InfoChip icon="language" label="타입" value={service.checkType.toUpperCase()} />
         {service.runtime && <InfoChip icon="code" label="런타임" value={runtimeLabel(service.runtime)} />}
         {service.lastLatency && (
-          <InfoChip icon="speed" label="지연시간" value={service.lastLatency} />
+          <InfoChip icon="speed" label="지연 시간" value={service.lastLatency} />
         )}
         <InfoChip icon="event" label="마지막 체크" value={lastCheckedText} />
       </div>

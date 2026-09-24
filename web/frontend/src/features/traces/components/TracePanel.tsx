@@ -417,7 +417,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
 
   return (
     <section>
-      <PanelSectionHeader icon="account_tree" title="스팬" count={spans.length} />
+      <PanelSectionHeader icon="account_tree" title="Span" count={spans.length} />
       <ul className="space-y-1.5">
         {spans.map((span) => {
           const leftPct = Math.min(Math.max(((span.startUnixNano - traceStart) / total) * 100, 0), 100);
@@ -447,7 +447,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                 <span className="text-text-muted shrink-0">
                   {formatDuration(span.durationMs)}
                 </span>
-                {copyButton(() => onCopy(formatSpanCopy(span)), '스팬 행 복사')}
+                {copyButton(() => onCopy(formatSpanCopy(span)), 'Span 행 복사')}
               </div>
               {/* Waterfall track: bar positioned/sized by the span's time window */}
               <div className="relative mt-1.5 h-1.5 w-full rounded bg-slate-200/70 dark:bg-ui-active-dark">

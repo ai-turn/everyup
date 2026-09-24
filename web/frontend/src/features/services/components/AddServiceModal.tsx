@@ -38,9 +38,9 @@ type Step = 'form' | 'install';
 function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: boolean; diagnosed: boolean }) {
   const steps = [
     { label: 'Docker 환경', complete: step === 'install', active: step === 'form' },
-    { label: '수집기 설치', complete: connected, active: step === 'install' && !connected },
+    { label: 'Collector 설치', complete: connected, active: step === 'install' && !connected },
     { label: '기능 확인', complete: diagnosed, active: connected && !diagnosed },
-    { label: '상세 계측', complete: false, active: diagnosed },
+    { label: '상세 수집', complete: false, active: diagnosed },
   ];
   return (
     <div className="border-b border-ui-border-soft px-6 py-3">
@@ -96,7 +96,7 @@ const CAPABILITY_OPTIONS: { capability: AgentCollectionCapability; label: string
   { capability: 'uptime', label: '업타임', description: 'Docker 서비스 상태와 헬스체크를 수집합니다.' },
   { capability: 'logs', label: '로그', description: 'Docker stdout·stderr 로그를 읽습니다.' },
   { capability: 'infrastructure', label: '인프라', description: '호스트 CPU·메모리·디스크를 수집합니다.' },
-  { capability: 'api', label: 'API', description: 'privileged eBPF Observer로 요청 추적을 수집합니다.' },
+  { capability: 'api', label: 'API', description: 'privileged eBPF Observer로 API 요청을 수집합니다.' },
   { capability: 'metrics', label: '메트릭', description: 'OTLP 메트릭을 수신할 수 있게 합니다.' },
 ];
 
@@ -153,7 +153,7 @@ function AgentForm({
       <div className="space-y-2">
         <div>
           <span className="text-sm text-text-secondary">수집 범위</span>
-          <p className="mt-0.5 type-body text-text-muted">필요한 권한과 수집기만 설치합니다.</p>
+          <p className="mt-0.5 type-body text-text-muted">필요한 권한과 Collector만 설치합니다.</p>
         </div>
         <SegmentedControl
           options={PROFILE_OPTIONS}
@@ -180,7 +180,7 @@ function AgentForm({
                     onChange={(enabled) => toggleCapability(option.capability, enabled)}
                     disabled={disabled}
                     ariaLabel={`${option.label} 수집 ${checked ? '사용' : '사용 안 함'}`}
-                    title={disabled ? '로그 또는 API 추적에 필요합니다' : undefined}
+                    title={disabled ? '로그 또는 API 요청 수집에 필요합니다' : undefined}
                   />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-text-base">{option.label}</p>
@@ -228,7 +228,7 @@ function AgentInstallCommand({
     <details open={expanded} className="group rounded-xl border border-ui-border bg-bg-surface">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm text-text-base">
         <MaterialIcon size={20} name="terminal" className="text-primary" />
-        Docker 수집기 설치 명령
+        Docker Collector 설치 명령
         <span className="ml-auto text-xs font-normal text-text-dim">
           {connected ? '재설치할 때 사용' : 'Linux Docker 서버에서 실행'}
         </span>
@@ -240,7 +240,7 @@ function AgentInstallCommand({
           <div className="min-w-0 flex-1">
             <p className="type-label text-text-base">일회용 연결 코드</p>
             <p className="mt-0.5 type-body text-text-muted">
-              {expiryLabel || '10분 후'}까지 한 번만 사용할 수 있습니다. 장기 API 키는 서버에 직접 저장됩니다.
+              {expiryLabel || '10분 후'}까지 한 번만 사용할 수 있습니다. 장기 API Key는 서버에 직접 저장됩니다.
             </p>
           </div>
           <Button variant="ghost" size="sm" onClick={onRefreshCode} loading={refreshingCode}>새 코드</Button>
@@ -252,7 +252,7 @@ function AgentInstallCommand({
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="type-label text-text-base">설치 명령</p>
-              <p className="mt-0.5 type-body text-text-muted">검사, 설정 백업, Docker 수집기·eBPF 시작을 한 번에 처리합니다.</p>
+              <p className="mt-0.5 type-body text-text-muted">검사, 설정 백업, Docker Collector·eBPF 시작을 한 번에 처리합니다.</p>
             </div>
             <CopyButton
               onCopy={() => copyInstallCommand(installCommand)}
@@ -272,7 +272,7 @@ function AgentInstallCommand({
           {[
             ['rule', '환경 검사', 'Docker와 Compose 조건을 먼저 확인'],
             ['backup', '안전한 설치', '기존 설정을 백업하고 새 설정 저장'],
-            ['sensors', '자동 발견', 'Docker 수집기와 eBPF Observer를 함께 시작'],
+            ['sensors', '자동 발견', 'Docker Collector와 eBPF Observer를 함께 시작'],
           ].map(([icon, title, description]) => (
             <div key={title} className="rounded-lg bg-ui-hover-soft p-2.5">
               <MaterialIcon size={20} name={icon} className="text-primary" />
@@ -375,7 +375,7 @@ export function AddServiceModal({
       const installationConfirmed = !existingAgent || Boolean(expiresAt && status.lastEnrolledAt && new Date(status.lastEnrolledAt).getTime() >= new Date(expiresAt).getTime() - 600_000);
       if (status.connected && status.configApplied && installationConfirmed && !announcedConnection.current) {
         announcedConnection.current = true;
-        if (!firstCheck) toast.success('Docker 수집기 연결을 확인했습니다');
+        if (!firstCheck) toast.success('Docker Collector 연결을 확인했습니다');
         onCreated();
       }
     } catch (error) {
@@ -447,14 +447,14 @@ export function AddServiceModal({
     <dialog
       ref={dialogRef}
       className={`fixed inset-0 z-50 m-auto h-full max-h-none w-full max-w-none items-center justify-center bg-transparent p-4 open:flex ${SCRIM_MODAL_DIALOG}`}
-      aria-label={step === 'form' ? 'Docker 연결' : 'Docker 수집기 설치 및 모니터링 설정'}
+      aria-label={step === 'form' ? 'Docker 연결' : 'Docker Collector 설치 및 모니터링 설정'}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
     >
       <div className={`w-full ${step === 'install' ? 'max-w-2xl' : 'max-w-md'} max-h-[92vh] bg-bg-surface rounded-xl shadow-lg border border-ui-border overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ui-border-soft">
           <h2 className="type-card-title text-text-base">
-            {step === 'form' ? 'Docker 연결' : 'Docker 수집기 설치'}
+            {step === 'form' ? 'Docker 연결' : 'Docker Collector 설치'}
           </h2>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
@@ -481,9 +481,9 @@ export function AddServiceModal({
               <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-ui-hover-soft p-4">
                 <MaterialIcon size={20} name="check_circle" className="mt-0.5 shrink-0 text-status-healthy" />
                 <div>
-                  <p className="text-sm text-text-base">Docker 수집기 연결을 확인했습니다</p>
+                  <p className="text-sm text-text-base">Docker Collector 연결을 확인했습니다</p>
                   <p className="mt-1 type-body text-text-muted">
-                    기능 호환성과 발견된 서비스를 자동으로 확인했습니다. 이 화면에서 선택 계측까지 이어서 설정할 수 있습니다.
+                    기능 호환성과 발견된 서비스를 자동으로 확인했습니다. 이 화면에서 상세 수집까지 이어서 설정할 수 있습니다.
                   </p>
                 </div>
               </div>
@@ -494,7 +494,7 @@ export function AddServiceModal({
                   <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-text-base">Docker 수집기 연결을 기다리는 중</p>
+                  <p className="text-sm text-text-base">Docker Collector 연결을 기다리는 중</p>
                   <p className="mt-0.5 type-body text-text-muted">명령을 실행하면 최대 5초 간격으로 자동 확인합니다.</p>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => void refreshConnection(true)} loading={checkingConnection}>
@@ -534,7 +534,7 @@ export function AddServiceModal({
                       variant="secondary"
                       onClick={() => onConfigureInstrumentation(agentId)}
                     >
-                      상세 계측 설정
+                      상세 수집 설정
                     </Button>
                   )}
                   <Button

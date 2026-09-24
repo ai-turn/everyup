@@ -72,7 +72,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview }: ProjectC
       {overview && (
         <div className="flex items-center gap-4 text-sm">
           <div>
-            <div className="text-xs text-text-dim">가동률 30일</div>
+            <div className="text-xs text-text-dim">업타임 30일</div>
             <div className="font-medium text-text-base">
               {overview.uptimePct != null ? `${overview.uptimePct.toFixed(2)}%` : '—'}
             </div>
@@ -319,7 +319,7 @@ export function ServiceGridPage() {
         onConfirm={confirmDelete}
         title="Docker 환경 비활성화"
         message={`${deleteTarget?.name ?? ''} Docker 환경을 비활성화하시겠습니까?`}
-        description="Docker 수집기 연결이 차단되며 수집 데이터는 보존됩니다."
+        description="Docker Collector 연결이 차단되며 수집 데이터는 보존됩니다."
         confirmLabel="비활성화"
       />
 
