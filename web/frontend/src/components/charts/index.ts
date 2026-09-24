@@ -6,4 +6,5 @@ export {
   coverRanges, medianStep,
 } from './chartTheme';
 export type { ChartTheme, TooltipPayloadItem } from './chartTheme';
-export { ChartTooltip, ChartLegend, ChartStatsLegend, rangeAreas } from './ChartElements';
+export { ChartTooltip, ChartLegend, ChartStatsLegend } from './ChartElements';
+export { rangeAreas } from './rangeAreas';

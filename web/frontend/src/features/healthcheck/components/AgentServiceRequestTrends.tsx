@@ -100,7 +100,7 @@ function ServiceRequestTrends({
   }, [agentId, observedServiceId, range, refreshKey, serviceKey, sourceKind]);
 
   const theme = useChartTheme();
-  const bucketMs = RANGES.find((x) => x.value === range)!.bucketMins * 60_000;
+  const bucketMs = (RANGES.find((x) => x.value === range) ?? RANGES[0]).bucketMins * 60_000;
 
   // The server only returns buckets that had requests; an absent bucket is zero
   // requests, not missing data, so the volume bars must show it as such.
