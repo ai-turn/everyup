@@ -83,13 +83,13 @@ export function Sidebar() {
         <NavItem to="/#attention" icon="dashboard" label="개요" active={path === '/'} badge={services.filter((service) => !service.healthy).length} />
         <NavItem to="/projects" icon="folder_open" label="Projects" active={path.startsWith('/projects')} />
         <NavItem to="/environments" icon="dns" label="Docker 환경" active={path.startsWith('/environments') || path.startsWith('/agents/') || path.startsWith('/services/')} />
-        <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">관측</p>
+        <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">메뉴</p>
         <NavItem to="/uptime" icon="monitor_heart" label="업타임" active={path.startsWith('/uptime')} />
         <NavItem to="/logs" icon="article" label="로그" active={path.startsWith('/logs')} />
         <NavItem to="/infrastructure" icon="memory" label="인프라" active={path.startsWith('/infrastructure')} />
         <NavItem to="/api" icon="api" label="API 요청" active={path.startsWith('/api')} />
         <NavItem to="/metrics" icon="monitoring" label="메트릭" active={path.startsWith('/metrics')} />
-        <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">대응 및 관리</p>
+        <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">관리</p>
         <NavItem to="/alerts" icon="notifications" label="알림" active={path.startsWith('/alerts')} />
         <NavItem to="/settings" icon="settings" label="환경 설정" active={path.startsWith('/settings')} />
       </nav>
