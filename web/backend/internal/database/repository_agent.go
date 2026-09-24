@@ -613,15 +613,19 @@ ORDER BY recorded_at`,
 		b := buckets[t]
 		b.total++
 		b.healthy += rec.healthy
-		b.sumLatency += rec.latencyMs
+		// A failed check's latency is time spent until giving up (often the
+		// timeout), not a response time — keep it out of the average.
+		if rec.healthy == 1 {
+			b.sumLatency += rec.latencyMs
+		}
 	}
 
 	points := make([]models.ServiceHistoryPoint, 0, len(ordered))
 	for _, t := range ordered {
 		b := buckets[t]
 		avgLat := 0.0
-		if b.total > 0 {
-			avgLat = b.sumLatency / float64(b.total)
+		if b.healthy > 0 {
+			avgLat = b.sumLatency / float64(b.healthy)
 		}
 		uptimePct := 0.0
 		if b.total > 0 {

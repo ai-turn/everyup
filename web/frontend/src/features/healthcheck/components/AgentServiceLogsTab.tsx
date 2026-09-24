@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  ResponsiveContainer, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, BarChart, Bar, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, useActiveTooltipLabel,
 } from 'recharts';
 import { Button, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange, IconButton } from '../../../components/common';
-import { CHART_INITIAL_DIMENSION, ChartTooltip, chartCardClass, getChartTheme, gridProps, xAxisProps, yAxisProps } from '../../../components/charts';
+import {
+  CHART_INITIAL_DIMENSION, ChartLegend, ChartTooltip, chartCardClass, fillBuckets, formatTimeTick, gridProps,
+  niceYAxis, timeXAxisProps, useChartTheme, yAxisProps, type TooltipPayloadItem,
+} from '../../../components/charts';
 import { api, type LogEntry, type LogHistogramBucket, type LogLevel } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { activatable } from '../../../utils/a11y';
@@ -67,6 +70,72 @@ const PAGE_SIZE = 25;
 
 function rangeFrom(range: GlobalTimeRange): string {
   return new Date(Date.now() - RANGE_BUCKET[range].hours * 3600 * 1000).toISOString();
+}
+
+/**
+ * Reports the histogram's hovered/keyboard-focused bucket, so a click or Enter
+ * can pick it. The active bucket lives in Recharts' own store, and this hook is
+ * the only way to read it — hence the effect instead of lifted state.
+ */
+function ActiveBucketSync({ onChange }: { onChange: (t: number | undefined) => void }) {
+  const label = useActiveTooltipLabel();
+  useEffect(() => { onChange(typeof label === 'number' ? label : undefined); }, [label, onChange]);
+  return null;
+}
+
+/** Stacked per-level log volume over the header range; a picked bar narrows the list to its bucket. */
+function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onPick }: {
+  buckets: LogHistogramBucket[];
+  window: [number, number];
+  bucketMs: number;
+  activeBucket: number | null;
+  onPick: (bucketStart: number) => void;
+}) {
+  const theme = useChartTheme();
+  const hovered = useRef<number | undefined>(undefined);
+  const syncHovered = useCallback((t: number | undefined) => { hovered.current = t; }, []);
+  const pick = () => { if (hovered.current !== undefined) onPick(hovered.current); };
+
+  // The server returns only buckets that had logs; an absent one is zero logs.
+  const data = fillBuckets(
+    buckets.map((b) => ({ ...b, t: Date.parse(b.time) })),
+    span,
+    bucketMs,
+    (t) => ({ t, time: '', error: 0, warn: 0, info: 0, debug: 0, trace: 0 }),
+  );
+  const totals = LEVEL_BAR.map((l) => ({ ...l, count: data.reduce((sum, b) => sum + b[l.key], 0) }));
+  const peak = Math.max(0, ...data.map((b) => LEVEL_BAR.reduce((sum, l) => sum + b[l.key], 0)));
+
+  return (
+    <div className={`p-4 ${chartCardClass}`}>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <ChartLegend items={totals.filter((l) => l.count > 0).map((l) => ({ label: `${l.name} ${l.count.toLocaleString()}`, color: l.color }))} />
+        <span className="type-caption text-text-dim">막대를 누르면 그 구간의 로그만 봅니다</span>
+      </div>
+      {/* Recharts' accessibility layer lets arrow keys walk the bars; Enter picks one. */}
+      <div onKeyDown={(e) => { if (e.key === 'Enter') pick(); }}>
+        <ResponsiveContainer width="100%" height={110} initialDimension={CHART_INITIAL_DIMENSION}>
+          <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} onClick={pick} style={{ cursor: 'pointer' }}>
+            <CartesianGrid {...gridProps(theme)} />
+            <XAxis {...timeXAxisProps(theme, span)} padding={{ left: 6, right: 6 }} />
+            <YAxis {...yAxisProps(theme, 36)} {...niceYAxis(peak)} allowDecimals={false} />
+            <Tooltip content={({ active, label, payload }) => (
+              <ChartTooltip active={active} label={label} payload={(payload as TooltipPayloadItem[] | undefined)?.filter((item) => Number(item.value) > 0)} unit="" theme={theme} valueFormatter={(v) => String(v)} />
+            )} />
+            <ActiveBucketSync onChange={syncHovered} />
+            {LEVEL_BAR.map((l) => (
+              // A surface-coloured stroke leaves a hairline between stacked segments.
+              <Bar key={l.key} dataKey={l.key} stackId="lv" fill={l.color} stroke={theme.tooltipBg} strokeWidth={1} name={l.name} isAnimationActive={false}>
+                {data.map((b) => (
+                  <Cell key={b.t} fillOpacity={activeBucket === null || b.t === activeBucket ? 1 : 0.35} />
+                ))}
+              </Bar>
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
 }
 
 function formatTime(ts: string) {
@@ -171,7 +240,12 @@ function ServiceLogsPanel(props: Props) {
   const [inputValue, setInputValue] = useState('');
   // Exact match on one structured attribute, set by clicking it on a row.
   const [attrFilter, setAttrFilter] = useState<{ key: string; value: string } | null>(null);
-  const [histogram, setHistogram] = useState<LogHistogramBucket[]>([]);
+  const [histogram, setHistogram] = useState<{ buckets: LogHistogramBucket[]; window: [number, number] }>({ buckets: [], window: [0, 1] });
+  // A histogram bucket picked by click/Enter narrows the list to that slice.
+  // Tied to the range it was picked in, so switching range drops it.
+  const [picked, setPicked] = useState<{ from: number; range: GlobalTimeRange } | null>(null);
+  const activeBucket = picked?.range === range ? picked.from : null;
+  const bucketMs = RANGE_BUCKET[range].bucketMins * 60_000;
   const [live, setLive] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -216,7 +290,8 @@ function ServiceLogsPanel(props: Props) {
         attrKey: attrFilter?.key,
         attrValue: attrFilter?.value,
         traceId,
-        from: rangeFrom(range),
+        from: activeBucket === null ? rangeFrom(range) : new Date(activeBucket).toISOString(),
+        to: activeBucket === null ? undefined : new Date(activeBucket + bucketMs).toISOString(),
         limit: PAGE_SIZE,
         offset: (page - 1) * PAGE_SIZE,
       };
@@ -236,27 +311,29 @@ function ServiceLogsPanel(props: Props) {
     } finally {
       setLoading(false);
     }
-  }, [agentId, directServiceId, serviceKey, refreshKey, level, search, attrFilter, range, page, traceId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agentId, directServiceId, serviceKey, refreshKey, level, search, attrFilter, range, page, traceId, activeBucket]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch(); }, [fetch]);
 
   // Volume histogram — follows the header range and the level/search view filters.
   const fetchHistogram = useCallback(() => {
     const r = RANGE_BUCKET[range];
+    const to = Date.now();
+    const from = to - r.hours * 3600 * 1000;
     const params = {
       level: level || undefined,
       search: search || undefined,
       attrKey: attrFilter?.key,
       attrValue: attrFilter?.value,
-      from: rangeFrom(range),
+      from: new Date(from).toISOString(),
       bucketMins: r.bucketMins,
     };
     const request = directServiceId
       ? api.getObservedServiceLogHistogram(directServiceId, params)
       : api.getAgentServiceLogHistogram(agentId!, serviceKey!, params);
     request
-      .then((b) => setHistogram(b ?? []))
-      .catch(() => setHistogram([]));
+      .then((b) => setHistogram({ buckets: b ?? [], window: [from, to] }))
+      .catch(() => setHistogram({ buckets: [], window: [from, to] }));
   }, [agentId, directServiceId, serviceKey, level, search, attrFilter, range, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchHistogram(); }, [fetchHistogram]);
@@ -309,6 +386,19 @@ function ServiceLogsPanel(props: Props) {
             className="font-mono"
           >
             <span>{attrFilter.key}={attrFilter.value}</span>
+            <MaterialIcon size={20} name="close" />
+          </Button>
+        )}
+
+        {/* Active time-slice filter, set by picking a histogram bar */}
+        {activeBucket !== null && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setPicked(null); setPage(1); }}
+            title="구간 필터 해제"
+          >
+            <span className="tabular-nums">{formatTimeTick(activeBucket)} – {formatTimeTick(activeBucket + bucketMs)}</span>
             <MaterialIcon size={20} name="close" />
           </Button>
         )}
@@ -384,30 +474,15 @@ function ServiceLogsPanel(props: Props) {
       )}
 
       {/* Volume histogram — stacked per-level counts over the header range */}
-      {histogram.length > 0 && (() => {
-        const theme = getChartTheme();
-        const data = histogram.map((b) => ({
-          ...b,
-          timeLabel: new Date(b.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        }));
-        return (
-          <div className={`p-4 ${chartCardClass}`}>
-            <ResponsiveContainer width="100%" height={110} initialDimension={CHART_INITIAL_DIMENSION}>
-              <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid {...gridProps(theme)} />
-                <XAxis dataKey="timeLabel" {...xAxisProps(theme)} />
-                <YAxis {...yAxisProps(theme, 36)} allowDecimals={false} />
-                <Tooltip content={({ active, label, payload }) => (
-                  <ChartTooltip active={active} label={label} payload={payload as import('../../../components/charts').TooltipPayloadItem[]} unit="" theme={theme} valueFormatter={(v) => String(v)} />
-                )} />
-                {LEVEL_BAR.map((l) => (
-                  <Bar key={l.key} dataKey={l.key} stackId="lv" fill={l.color} name={l.name} isAnimationActive={false} />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        );
-      })()}
+      {histogram.buckets.length > 0 && (
+        <LogVolumeHistogram
+          buckets={histogram.buckets}
+          window={histogram.window}
+          bucketMs={bucketMs}
+          activeBucket={activeBucket}
+          onPick={(from) => { setPicked({ from, range }); setPage(1); }}
+        />
+      )}
 
       {/* Count */}
       {!loading && total > 0 && (

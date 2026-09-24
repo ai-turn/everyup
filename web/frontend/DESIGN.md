@@ -376,36 +376,56 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 **팩토리를 스프레드해서 쓴다. 개별 차트에서 선 굵기·그리드·축을 다시 정의하지 않는다.**
 
 ```tsx
-const theme = getChartTheme();
-<CartesianGrid {...gridProps(theme)} />
-<XAxis {...xAxisProps(theme)} />
-<YAxis {...yAxisProps(theme)} />
-<Area {...areaProps(color)} />
-<Line {...lineProps(color)} />
+const theme = useChartTheme();                       // 테마 전환 시 다시 그린다
+const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
+<ComposedChart data={rows}>
+  <CartesianGrid {...gridProps(theme)} />
+  <XAxis {...timeXAxisProps(theme, [from, to])} />   // 조회한 창
+  <YAxis {...yAxisProps(theme)} {...niceYAxis(max)} />
+  {rangeAreas(gaps, theme.tickColor, '수집 없음', 0.08)}
+  <Area {...areaProps(color)} dataKey="v" />          // 시리즈 1개일 때만
+  <Line {...lineProps(color, theme)} dataKey="v" name="…" />
+</ComposedChart>
 ```
 
 | export | 역할 |
 |--------|------|
-| `getChartTheme()` | CSS var를 읽어 `{gridColor, tickColor, tooltipBg, tooltipBorder, primaryColor}` |
+| `useChartTheme()` | CSS var를 읽어 `{gridColor, tickColor, tooltipBg, tooltipBorder, primaryColor, errorColor}`. `<html>.dark` 변경을 구독한다 — 렌더 시점에 한 번 읽는 방식은 테마를 바꿔도 라이트 색이 남았다 |
 | `gridProps` `xAxisProps` `yAxisProps` `tooltipCursor` | 축·그리드 |
-| `lineProps(color)` `areaProps(color)` | 시리즈 |
+| `timeXAxisProps` `timeTicks` `formatTimeTick` `formatTimeLabel` | 숫자 시간축 — 정시 눈금, 24시간제, 툴팁 제목에 날짜 |
+| `niceYAxis` `niceTicks` | Y축 눈금 1·2·2.5·5×10ⁿ (0·25·50·75·100) |
+| `splitGaps` `fillBuckets` `coverRanges` `medianStep` | 공백·빈 버킷·구간 |
+| `rangeAreas` `thresholdLines` | 수집 공백·실패 구간 음영, 알림 임계값 점선 |
+| `lineProps(color, theme)` `areaProps(color)` | 시리즈 |
 | `SERIES_HEX` `getSeriesPalette` | 색 |
 | `chartCardClass` | 차트 카드 컨테이너 |
-| `getYAxisMax` `formatAxisValue` `formatMetricValue` | 스케일·포맷 |
+| `formatAxisValue` `formatMetricValue` | 포맷 |
 | `ChartTooltip` `ChartStatsLegend` `ChartLegend` | 툴팁·범례 |
 
-**룩 (Grafana풍, 2026-07-10 확정)**
-- 1.5px `monotoneX` 라인, 둥근 캡, dot 없음
-- 라인 아래 **평면 10% 채움** — 그라디언트 아님
+**룩 (Grafana풍 2026-07-10 확정, 2026-09-24 개정)**
+- 1.5px **직선(`linear`)** 라인, 둥근 캡, dot 없음. 곡선(`monotoneX`)은 짧은 스파이크를 언덕으로 뭉개고 계단형 변화를 비스듬하게 만들어 폐기했다 — Grafana 기본값도 linear다
+- 라인 아래 **평면 10% 채움**은 **시리즈가 1개일 때만** — 2개 이상이면 채움이 겹쳐 탁해진다(Read 파랑 + Write 주황 = 갈색)
 - 수평 실선 그리드만 (`vertical: false`, opacity 0.55)
 - medium 12px 눈금, 축선·틱선 없음
 - **애니메이션 없음** (`isAnimationActive: false`)
-- activeDot = r4 + 흰 테두리 2px
+- activeDot = r4 + **표면색** 테두리 2px (흰색 고정은 다크 카드에서 번쩍인다)
+
+**데이터를 정직하게 그리는 규칙 (2026-09-24)**
+- **X축은 숫자 시간축이다.** 문자열 라벨(카테고리) 축은 행을 균등 간격으로 늘어놓아 수집이 끊긴 두 시간을 한 시간 반과 같은 폭으로 그렸다. 도메인은 데이터 범위가 아니라 **조회한 창**이다 — 1시간치만 있으면 6시간 창의 나머지는 비어 보여야 한다
+- **공백은 선을 끊고 음영으로 표시한다** (`splitGaps` → `connectNulls: false` + `rangeAreas`). 여러 시리즈의 타임스탬프가 조금씩 어긋나는 OTel 메트릭만 예외로 선을 잇고 음영만 둔다
+- **건수 차트의 빈 버킷은 0이다** (`fillBuckets`) — 서버는 데이터가 있는 버킷만 준다. 반대로 지연·에러율처럼 건수가 0이면 값이 없는 지표는 null로 비운다
+- **실패한 체크는 응답 시간이 아니다.** 타임아웃까지 기다린 시간이라, 선·통계에서 빼고 빨간 구간(`rangeAreas(…, theme.errorColor, '다운')`)으로 그린다. 백엔드 버킷 평균도 성공한 체크만 집계한다
+- **이중축 금지.** 단위가 다른 두 지표는 패널을 나누고 `syncId`로 크로스헤어만 맞춘다. 요청 수 + 에러율(0–100% 고정 오른쪽 축)에서 에러율 5% 스파이크가 바닥에 깔려 보이지 않았다
+- **나란한 차트는 크로스헤어를 공유한다** (`syncId`). 툴팁 상자는 마우스가 있는 차트에만 띄운다
+- **알림 임계값은 점선이다** (`thresholdLines`). 대상에 걸린 규칙만 — 전역 규칙은 어느 차트에서 왔는지 말할 수 없다. 단위가 맞는 차트에만 긋는다(메모리·디스크 규칙은 사용률 %인데 차트는 GB·MB/s라 긋지 않는다). Y 스케일에 임계값을 포함해 데이터보다 높아도 보이게 한다
+- **새로고침은 이전 차트를 유지한다.** 스켈레톤은 첫 로드와 보는 대상이 바뀔 때만
 
 **범례**
 - 트렌드 차트 → `ChartStatsLegend` (시리즈별 Last/Min/Max/Avg 테이블)
-- 바 차트 헤더 → `ChartLegend` (칩)
+- 바 차트 헤더 → `ChartLegend` (칩) — 로그 히스토그램은 레벨별 건수를 함께 쓴다
 - recharts `<Legend>` **사용 금지**
+
+**KPI 게이지 카드 (`InfraGauges`)** — 색은 임계값(85%)을 넘은 카드에만 싣는다. 비율 지표(CPU·Network)는 6시간 스파크라인, 용량 지표(Memory·Disk)는 막대. 추세 배지·상태 pill·색 막대를 한 카드에 겹치지 않는다(§9-12의 3중 강조와 같은 문제).
 
 ### 4.3 `components/layout/`
 

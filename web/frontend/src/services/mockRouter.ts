@@ -631,14 +631,22 @@ const mockAgentServiceRequests: ApiRequest[] = [
   { id: 204, serviceId: '', serviceName: 'api', requestId: 'r04', method: 'GET',    path: '/api/v1/products',        pathTemplate: '/api/v1/products',    statusCode: 200, durationMs: 67,  isError: false, createdAt: new Date(nowAgent - 600_000).toISOString() },
 ];
 
-// 5-minute buckets over the last 6h: rising volume with a latency spike +
+// Like the server: `bucketMins`-wide buckets aligned to multiples of the width.
+function mockBucketStart(endpoint: string, fallbackMins: number) {
+  const mins = Number(new URLSearchParams(endpoint.split('?')[1] ?? '').get('bucketMins')) || fallbackMins;
+  const width = mins * 60_000;
+  return { width, last: Math.floor(nowAgent / width) * width, count: Math.round((6 * 60) / mins) };
+}
+
+// Buckets over the last 6h: rising volume with a latency spike +
 // error burst in the middle so the trends chart shows movement.
-function mockRequestStats() {
+function mockRequestStats(endpoint: string) {
   const buckets = [];
-  for (let i = 72; i >= 0; i -= 1) {
-    const time = new Date(nowAgent - i * 5 * 60_000).toISOString();
-    const spike = i > 30 && i < 40; // a rough patch mid-window
-    const count = Math.round(20 + 30 * Math.sin(i / 8) + Math.random() * 10 + (spike ? 25 : 0));
+  const { width, last, count: n } = mockBucketStart(endpoint, 5);
+  for (let i = n; i >= 0; i -= 1) {
+    const time = new Date(last - i * width).toISOString();
+    const spike = i > n * 0.42 && i < n * 0.55; // a rough patch mid-window
+    const count = Math.max(0, Math.round(20 + 30 * Math.sin((i * width) / (40 * 60_000)) + Math.random() * 10 + (spike ? 25 : 0)));
     const errorCount = spike ? Math.round(count * 0.18) : Math.round(count * 0.01 + Math.random());
     const p50 = Math.round(35 + 10 * Math.sin(i / 5) + (spike ? 120 : 0));
     const p95 = Math.round(p50 * 2.3 + (spike ? 300 : 40));
@@ -647,13 +655,14 @@ function mockRequestStats() {
   return buckets;
 }
 
-// 10-minute buckets over the last 6h: mostly info with a warn/error burst
+// Buckets over the last 6h: mostly info with a warn/error burst
 // mid-window so the logs-tab volume histogram shows movement.
-function mockLogHistogram() {
+function mockLogHistogram(endpoint: string) {
   const buckets = [];
-  for (let i = 36; i >= 0; i -= 1) {
-    const time = new Date(nowAgent - i * 10 * 60_000).toISOString();
-    const burst = i > 14 && i < 20;
+  const { width, last, count: n } = mockBucketStart(endpoint, 10);
+  for (let i = n; i >= 0; i -= 1) {
+    const time = new Date(last - i * width).toISOString();
+    const burst = i > n * 0.4 && i < n * 0.55;
     buckets.push({
       time,
       error: burst ? Math.round(4 + Math.random() * 4) : Math.random() < 0.15 ? 1 : 0,
@@ -1298,7 +1307,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const rows = allMockLogs.map(log => ({ ...log, serviceId: service?.id ?? observedLogsMatch[1], serviceName: service?.name ?? 'direct-service', agentId: undefined }));
     return pageMockRows(filterMockLogs(rows, endpoint), endpoint) as T;
   }
-  if (/^\/observed-services\/[^/]+\/log-histogram/.test(endpoint)) return mockLogHistogram() as T;
+  if (/^\/observed-services\/[^/]+\/log-histogram/.test(endpoint)) return mockLogHistogram(endpoint) as T;
   const observedFilterMatch = endpoint.match(/^\/observed-services\/([^/]+)\/log-filter$/);
   if (observedFilterMatch) return { levels: mockDirectLogFilters.get(observedFilterMatch[1]) ?? [] } as T;
   if (/^\/observed-services\/[^/]+\/traces/.test(endpoint)) return mockTraceList(endpoint) as T;
@@ -1316,7 +1325,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     }));
     return pageMockRows(filterMockRequests(rows, endpoint), endpoint) as T;
   }
-  if (/^\/observed-services\/[^/]+\/request-stats/.test(endpoint)) return mockRequestStats() as T;
+  if (/^\/observed-services\/[^/]+\/request-stats/.test(endpoint)) return mockRequestStats(endpoint) as T;
   if (/^\/observed-services\/[^/]+\/request-status-summary/.test(endpoint)) {
     return {
       count2xx: 2394, count3xx: 96, count4xx: 89, count5xx: 21, countOther: 0,
@@ -1377,7 +1386,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     return { levels: ['error', 'warn', 'info'] } as T;
   // /agents/:agentId/services/:key/log-histogram
   if (/^\/agents\/[^/]+\/services\/[^/]+\/log-histogram/.test(endpoint))
-    return mockLogHistogram() as T;
+    return mockLogHistogram(endpoint) as T;
   // /agents/:agentId/services/:key/logs
   if (/^\/agents\/[^/]+\/services\/[^/]+\/logs/.test(endpoint))
   {
@@ -1385,10 +1394,10 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   }
   // /agents/:agentId/services/:key/request-stats
   if (/^\/agents\/[^/]+\/services\/[^/]+\/request-stats/.test(endpoint))
-    return mockRequestStats() as T;
+    return mockRequestStats(endpoint) as T;
   // /agents/:agentId/request-stats — project-level rollup (all services)
   if (/^\/agents\/[^/]+\/request-stats/.test(endpoint))
-    return mockRequestStats() as T;
+    return mockRequestStats(endpoint) as T;
   // status-class distribution + top 5xx (service + agent level)
   if (/^\/agents\/[^/]+(\/services\/[^/]+)?\/request-status-summary/.test(endpoint))
     return {

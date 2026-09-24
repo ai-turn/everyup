@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ChartTheme, TooltipPayloadItem, formatMetricValue } from './chartTheme';
+import { ChartTheme, TooltipPayloadItem, formatMetricValue, formatTimeLabel } from './chartTheme';
 
 interface ChartTooltipProps {
   active?: boolean;
@@ -112,7 +112,7 @@ export function ChartTooltip({
       }}
     >
       <p className="mb-2 text-xs" style={{ color: theme.tickColor }}>
-        {labelFormatter ? labelFormatter(label) : label}
+        {labelFormatter ? labelFormatter(label) : typeof label === 'number' ? formatTimeLabel(label) : label}
       </p>
       <div className="space-y-1.5">
         {rows.map((item) => (

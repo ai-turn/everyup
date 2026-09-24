@@ -5,9 +5,10 @@ import {
 } from 'recharts';
 import { Button, MaterialIcon, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, chartCardClass, formatAxisValue, getChartTheme,
-  getSeriesPalette, getSeriesDash, gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
+  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, chartCardClass, formatAxisValue, getSeriesPalette,
+  getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
+import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import { api, type OtelHistogramQuantiles, type OtelMetricName, type OtelMetricPoint } from '../../../services/api';
 import { TracePanel } from '../../traces/components/TracePanel';
 
@@ -58,6 +59,9 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   const [namesLoading, setNamesLoading] = useState(true);
   const [selected, setSelected] = useState('');
   const [points, setPoints] = useState<OtelMetricPoint[]>([]);
+  // Which metric/range the current points belong to, and when they were read.
+  // A refresh of the same view keeps the chart; only a different view shows the skeleton.
+  const [shown, setShown] = useState({ view: '', at: 0 });
   const [pointsLoading, setPointsLoading] = useState(false);
   const [quantiles, setQuantiles] = useState<OtelHistogramQuantiles | null>(null);
   const [activeTraceId, setActiveTraceId] = useState<string | null>(null);
@@ -101,6 +105,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
       } catch {
         if (!cancelled) setPoints([]);
       } finally {
+        if (!cancelled) setShown({ view: `${selected}|${range}`, at: Date.now() });
         // Guarded on purpose: a cancelled read clearing the flag would hide the
         // skeleton while its replacement is still in flight. The replacement
         // owns the flag, and `selected` is only empty when no metric exists at
@@ -137,31 +142,44 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   }, [source.kind, agentId, serviceKey, observedServiceId, selected, range, refreshKey, names]);
 
   const selectedMeta = names.find(item => item.metricName === selected);
-  const { chartData, seriesKeys, truncatedSeries } = useMemo(() => {
+  const { chartData, seriesKeys, truncatedSeries, gaps } = useMemo(() => {
     const keys: string[] = [];
     for (const point of points) {
       const label = seriesLabel(point.attributes);
       if (!keys.includes(label)) keys.push(label);
     }
     const kept = keys.slice(0, MAX_SERIES);
-    const rows = new Map<string, Record<string, number | string>>();
+    const rows = new Map<number, { t: number } & Record<string, number>>();
     for (const point of points) {
       const label = seriesLabel(point.attributes);
       if (!kept.includes(label)) continue;
-      const timeLabel = new Date(point.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const row = rows.get(point.createdAt) ?? { timeLabel };
+      // One collection stamps its points microseconds apart — merge them per second.
+      const t = Math.round(Date.parse(point.createdAt) / 1000) * 1000;
+      const row = rows.get(t) ?? { t };
       row[label || 'value'] = point.value;
-      rows.set(point.createdAt, row);
+      rows.set(t, row);
     }
+    // Series from one export share a timestamp only roughly, so a row often
+    // lacks some series — the lines connect across those (connectNulls below)
+    // and a real silence is shown as a shaded band instead of a break.
+    const sorted = [...rows.values()].sort((a, b) => a.t - b.t);
+    const split = splitGaps(sorted);
     return {
-      chartData: [...rows.values()],
+      chartData: sorted,
       seriesKeys: kept.map(key => key || 'value'),
       truncatedSeries: keys.length - kept.length,
+      gaps: split.gaps,
     };
   }, [points]);
 
-  const theme = getChartTheme();
+  const theme = useChartTheme();
   const seriesColors = getSeriesPalette(theme);
+  const thresholds = useAlertThresholds(
+    source.kind === 'direct' ? { kind: 'direct', serviceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey },
+    'otel_metric',
+    selected,
+  );
+  const maxValue = Math.max(0, ...thresholds.map(rule => rule.threshold), ...chartData.flatMap(row => seriesKeys.map(key => row[key]).filter(Number.isFinite)));
   const unit = selectedMeta?.unit ?? '';
 
   if (namesLoading) return <div className="h-64 animate-pulse rounded-xl bg-ui-hover" />;
@@ -213,7 +231,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
           )}
         </div>
 
-        {pointsLoading ? (
+        {pointsLoading && shown.view !== `${selected}|${range}` ? (
           <div className="h-64 animate-pulse rounded bg-ui-hover" />
         ) : chartData.length === 0 ? (
           <div className="flex h-64 items-center justify-center text-sm text-text-dim">데이터 없음</div>
@@ -222,8 +240,10 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
             <ResponsiveContainer width="100%" height={256} initialDimension={CHART_INITIAL_DIMENSION}>
               <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid {...gridProps(theme)} />
-                <XAxis dataKey="timeLabel" {...xAxisProps(theme)} />
-                <YAxis {...yAxisProps(theme, 64)} tickFormatter={value => formatMetricValue(value, unit)} />
+                <XAxis {...timeXAxisProps(theme, [shown.at - RANGE_HOURS[range] * 3_600_000, shown.at])} />
+                <YAxis {...yAxisProps(theme, 64)} {...niceYAxis(maxValue)} tickFormatter={value => formatMetricValue(value, unit)} />
+                {rangeAreas(gaps, theme.tickColor, '수신 없음', 0.08)}
+                {thresholdLines(thresholds, theme.errorColor, unit === 'By' ? '' : unit)}
                 <Tooltip
                   cursor={tooltipCursor(theme)}
                   content={({ active, label, payload }) => (
@@ -238,7 +258,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
                   )}
                 />
                 {seriesKeys.map((key, index) => (
-                  <Line key={key} {...lineProps(seriesColors[index % seriesColors.length])} strokeDasharray={getSeriesDash(index)} dataKey={key} />
+                  <Line key={key} {...lineProps(seriesColors[index % seriesColors.length], theme)} connectNulls strokeDasharray={getSeriesDash(index)} dataKey={key} />
                 ))}
               </ComposedChart>
             </ResponsiveContainer>

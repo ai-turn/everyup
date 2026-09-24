@@ -7,9 +7,10 @@ import {
 } from 'recharts';
 import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader } from '../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, formatAxisValue, getChartTheme,
-  gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
+  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, coverRanges, formatAxisValue,
+  gridProps, lineProps, medianStep, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../components/charts';
+import { useAlertThresholds } from '../../features/alerts/useAlertThresholds';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeOverview } from '../../features/uptime/components/UptimeOverview';
 import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
@@ -21,27 +22,39 @@ import { getErrorMessage } from '../../utils/errors';
 
 const HISTORY_DAYS = 90;
 
-function ResponseTimeChart({ metrics }: { metrics: UptimeMonitorMetric[] }) {
+function ResponseTimeChart({ monitorId, metrics }: { monitorId: string; metrics: UptimeMonitorMetric[] }) {
 
-  const theme = getChartTheme();
-  const chartData = [...metrics].reverse().map((metric) => ({
-    latencyMs: metric.responseTime,
-    timeLabel: new Date(metric.checkedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  const theme = useChartTheme();
+  const thresholds = useAlertThresholds({ kind: 'direct', serviceId: monitorId }, 'response_time');
+  // A failed check's responseTime is how long it waited before giving up (the
+  // timeout), not a response — plotting it reads as "slow" and stretches the axis.
+  const checks = [...metrics].reverse().map((metric) => ({
+    t: new Date(metric.checkedAt).getTime(),
+    latencyMs: metric.status === 'success' ? metric.responseTime : null,
   }));
-  const maxLatency = chartData.length > 0 ? Math.max(...chartData.map((point) => point.latencyMs)) : 0;
+  // The observed spacing, not the configured interval — history recorded under
+  // an older interval would otherwise read as missed checks.
+  const step = medianStep(checks.map((check) => check.t));
+  const failedTimes = checks.filter((check) => check.latencyMs === null).map((check) => check.t - step / 2);
+  const latencies = checks.flatMap((check) => (check.latencyMs === null ? [] : [check.latencyMs]));
+  const { rows, gaps } = splitGaps(checks, step);
+  const domain: [number, number] = checks.length > 0 ? [checks[0].t, checks[checks.length - 1].t] : [0, 1];
 
   return (
     <div className={`p-6 ${chartCardClass}`}>
       <h2 className="mb-6 type-card-title text-text-base">응답 시간</h2>
-      {chartData.length === 0 ? (
+      {checks.length === 0 ? (
         <div className="flex h-48 items-center justify-center text-sm text-text-dim">데이터 없음</div>
       ) : (
         <>
           <ResponsiveContainer width="100%" height={192} initialDimension={CHART_INITIAL_DIMENSION}>
-            <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <ComposedChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid {...gridProps(theme)} />
-              <XAxis dataKey="timeLabel" {...xAxisProps(theme)} />
-              <YAxis {...yAxisProps(theme, 52)} tickFormatter={(value) => formatAxisValue(value, 'ms')} domain={[0, Math.max(maxLatency * 1.2, 100)]} />
+              <XAxis {...timeXAxisProps(theme, domain)} />
+              <YAxis {...yAxisProps(theme, 52)} {...niceYAxis(Math.max(0, ...latencies, ...thresholds.map((r) => r.threshold)))} tickFormatter={(value) => formatAxisValue(value, 'ms')} />
+              {rangeAreas(gaps, theme.tickColor, '체크 없음', 0.08)}
+              {rangeAreas(coverRanges(failedTimes, step), theme.errorColor, '다운')}
+              {thresholdLines(thresholds, theme.errorColor, 'ms')}
               <Tooltip
                 cursor={tooltipCursor(theme)}
                 content={({ active, label, payload }) => (
@@ -56,16 +69,19 @@ function ResponseTimeChart({ metrics }: { metrics: UptimeMonitorMetric[] }) {
                 )}
               />
               <Area {...areaProps(theme.primaryColor)} dataKey="latencyMs" />
-              <Line {...lineProps(theme.primaryColor)} dataKey="latencyMs" />
+              <Line {...lineProps(theme.primaryColor, theme)} dataKey="latencyMs" name="응답 시간" />
             </ComposedChart>
           </ResponsiveContainer>
           <div className="mt-2">
             <ChartStatsLegend
-              series={[{ label: '응답 시간', color: theme.primaryColor, values: chartData.map((point) => point.latencyMs) }]}
+              series={[{ label: '응답 시간', color: theme.primaryColor, values: latencies }]}
               unit="ms"
               valueFormatter={(value) => String(Math.round(value))}
             />
           </div>
+          {failedTimes.length > 0 && (
+            <p className="mt-2 type-body text-text-muted">{`실패한 체크 ${failedTimes.length}회는 빨간 구간으로 표시하고 응답 시간 통계에서 뺐습니다.`}</p>
+          )}
         </>
       )}
     </div>
@@ -123,9 +139,10 @@ export function UptimeMonitorDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [processing, setProcessing] = useState(false);
 
+  // `loading` covers the first load only — a refresh keeps the page on screen
+  // instead of swapping it for the spinner.
   const load = useCallback(async () => {
     if (!monitorId) return;
-    setLoading(true);
     setError(null);
     try {
       const [monitorData, metricData, summaryData, historyData] = await Promise.all([
@@ -247,7 +264,7 @@ export function UptimeMonitorDetailPage() {
         ]}
         days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
       />
-      <ResponseTimeChart metrics={metrics} />
+      <ResponseTimeChart monitorId={monitor.id} metrics={metrics} />
       <RecentChecks metrics={metrics} />
 
       {editing && <UptimeMonitorDialog monitor={monitor} onClose={() => setEditing(false)} onSave={updateMonitor} />}

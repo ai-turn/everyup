@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -11,8 +12,11 @@ import {
 import { MaterialIcon, type GlobalTimeRange } from '../../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, formatAxisValue,
-  getChartTheme, getYAxisMax, gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
+  gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  type ChartTheme,
 } from '../../../components/charts';
+import { useAlertThresholds } from '../../alerts/useAlertThresholds';
+import type { AlertRule } from '../../../services/api';
 import { useMonitoringTrends } from '../../../hooks/useInfra';
 import { Skeleton } from '../../../components/skeleton';
 import type { ChartData } from '../../../types/infra';
@@ -24,16 +28,17 @@ interface InfraTrendsProps {
   range: GlobalTimeRange;
 }
 
-function getXAxisInterval(pointCount: number): number {
-  if (pointCount <= 8) return 0;
-  return Math.max(1, Math.ceil(pointCount / 6));
-}
+const RANGE_MS: Record<GlobalTimeRange, number> = { '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000 };
 
 export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps) {
 
   const { data: charts, loading } = useMonitoringTrends(hostId, range, refreshKey);
+  // Charts share a crosshair (syncId); only the hovered one shows its tooltip box.
+  const [hovered, setHovered] = useState<string | null>(null);
 
-  const theme = getChartTheme();
+  const theme = useChartTheme();
+  // Memory/disk rules are usage %, while those charts plot GB and MB/s — only CPU lines up.
+  const cpuRules = useAlertThresholds({ kind: 'infrastructure', resourceId: hostId }, 'cpu');
 
   const rangeLabel: Record<GlobalTimeRange, string> = {
     '1h': '최근 1시간',
@@ -41,8 +46,9 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
     '24h': '최근 24시간',
   };
 
-  const pointCount = charts?.reduce((max, chart) => Math.max(max, chart.data.length), 0) ?? 12;
-  const xInterval = getXAxisInterval(pointCount);
+  // The newest row is the "now" sample appended at fetch time, so the window ends there.
+  const lastT = Math.max(0, ...(charts ?? []).flatMap((chart) => chart.data.map((row) => row.t)));
+  const domain: [number, number] = [lastT - RANGE_MS[range], lastT];
 
   return (
     <>
@@ -69,9 +75,12 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
             <ChartCard
               key={chart.title}
               chart={chart}
-              xInterval={xInterval}
+              domain={domain}
               rangeLabel={rangeLabel[range]}
               theme={theme}
+              showTooltip={hovered === chart.title}
+              onHover={setHovered}
+              thresholds={chart.series.some((s) => s.key === 'cpu') ? cpuRules : []}
             />
           ))}
         </div>
@@ -82,27 +91,34 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
 
 function ChartCard({
   chart,
-  xInterval,
+  domain,
   rangeLabel,
   theme,
+  showTooltip,
+  onHover,
+  thresholds,
 }: {
   chart: ChartData;
-  xInterval: number;
+  domain: [number, number];
   rangeLabel: string;
-  theme: ReturnType<typeof getChartTheme>;
+  theme: ChartTheme;
+  showTooltip: boolean;
+  onHover: (title: string | null) => void;
+  thresholds: AlertRule[];
 }) {
 
   const allValues = chart.series.flatMap((s) =>
     chart.data.map((p) => Number(p[s.key])).filter(Number.isFinite)
   );
   const maxVal = allValues.length > 0 ? Math.max(...allValues) : 0;
-  const yMax = getYAxisMax(chart, allValues);
   const isEmpty = chart.data.length === 0 || maxVal < 0.001;
+  const { rows, gaps } = splitGaps(chart.data);
 
   return (
     <section className={`overflow-hidden ${chartCardClass}`} aria-label={chart.title}>
-      <div className="px-5 pb-1 pt-5">
+      <div className="flex items-baseline gap-2 px-5 pb-1 pt-5">
         <p className="truncate text-base text-text-base">{chart.title}</p>
+        <span className="shrink-0 text-xs text-text-dim">{chart.unit}</span>
       </div>
 
       {isEmpty ? (
@@ -113,33 +129,36 @@ function ChartCard({
           </p>
         </div>
       ) : (
-        <div className="px-2 pb-4 pt-1">
+        <div className="px-2 pb-4 pt-1" onMouseEnter={() => onHover(chart.title)} onMouseLeave={() => onHover(null)}>
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-              <ComposedChart data={chart.data} margin={{ top: 16, right: 20, left: 0, bottom: 2 }}>
+              <ComposedChart data={rows} syncId="infra-trends" margin={{ top: 16, right: 20, left: 0, bottom: 2 }}>
                 <CartesianGrid {...gridProps(theme)} />
 
-                <XAxis dataKey="time" {...xAxisProps(theme)} interval={xInterval} minTickGap={20} />
+                <XAxis {...timeXAxisProps(theme, domain)} />
 
                 <YAxis
                   {...yAxisProps(theme, 42)}
-                  domain={[0, yMax]}
-                  tickCount={5}
-                  allowDecimals={chart.unit !== '%'}
+                  {...niceYAxis(Math.max(chart.yMax ?? maxVal, ...thresholds.map((r) => r.threshold)))}
                   tickFormatter={(value) => formatAxisValue(Number(value), chart.unit)}
                 />
 
+                {rangeAreas(gaps, theme.tickColor, '수집 없음', 0.08)}
+                {thresholdLines(thresholds, theme.errorColor, chart.unit)}
+
                 <Tooltip
                   cursor={tooltipCursor(theme)}
-                  content={<ChartTooltip unit={chart.unit} theme={theme} />}
+                  content={({ active, label, payload }) => showTooltip && (
+                    <ChartTooltip active={active} label={label} payload={payload as import('../../../components/charts').TooltipPayloadItem[]} unit={chart.unit} theme={theme} />
+                  )}
                 />
 
-                {chart.series.map((s) => (
-                  <Area key={`${s.key}-area`} {...areaProps(s.color)} dataKey={s.key} />
-                ))}
+                {chart.series.length === 1 && (
+                  <Area {...areaProps(chart.series[0].color)} dataKey={chart.series[0].key} />
+                )}
 
                 {chart.series.map((s) => (
-                  <Line key={`${s.key}-line`} {...lineProps(s.color)} dataKey={s.key} name={s.label} />
+                  <Line key={`${s.key}-line`} {...lineProps(s.color, theme)} dataKey={s.key} name={s.label} />
                 ))}
               </ComposedChart>
             </ResponsiveContainer>

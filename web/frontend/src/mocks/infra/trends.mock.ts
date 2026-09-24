@@ -4,13 +4,9 @@ import { SERIES_HEX } from '../../components/charts';
 export type { ChartData };
 
 const now = Date.now();
-const makePoints = (count: number, genFn: (i: number) => Record<string, number | string>) =>
+const makePoints = (count: number, genFn: (i: number) => Record<string, number>) =>
   Array.from({ length: count }, (_, i) => ({
-    time: new Date(now - (count - 1 - i) * 30 * 60 * 1000).toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }),
+    t: now - (count - 1 - i) * 30 * 60 * 1000,
     ...genFn(i),
   }));
 
