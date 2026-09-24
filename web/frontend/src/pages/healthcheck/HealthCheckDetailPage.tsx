@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button, MaterialIcon } from '../../components/common';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { Button, ButtonLink, MaterialIcon } from '../../components/common';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { api, type AgentServiceFlat } from '../../services/api';
 import { AgentHealthCheckDetailView } from '../../features/healthcheck/components/AgentHealthCheckDetailView';
@@ -9,7 +9,6 @@ import type { DetailTab } from '../../features/healthcheck/components/AgentServi
 export function HealthCheckDetailPage() {
   const { agentId, key } = useParams<{ agentId: string; key: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
 
   const [service, setService] = useState<AgentServiceFlat | null>(null);
@@ -59,7 +58,7 @@ export function HealthCheckDetailPage() {
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <MaterialIcon size={32} name="sync_problem" className="text-status-warn" />
         <div className="text-center"><p className="text-sm font-medium text-text-base">서비스를 불러오지 못했습니다</p><p className="mt-1 type-body text-text-muted">{loadError}</p></div>
-        <div className="flex gap-2"><Button variant="secondary" onClick={() => navigate('/environments')}>Docker 환경</Button><Button onClick={() => void fetchService()}>다시 시도</Button></div>
+        <div className="flex gap-2"><ButtonLink variant="secondary" to="/environments">Docker 환경</ButtonLink><Button onClick={() => void fetchService()}>다시 시도</Button></div>
       </div>
     );
   }
@@ -71,9 +70,9 @@ export function HealthCheckDetailPage() {
         <p className="text-text-muted">
           서비스를 찾을 수 없습니다
         </p>
-        <Button onClick={() => navigate('/environments')}>
+        <ButtonLink to="/environments">
           Docker 환경으로
-        </Button>
+        </ButtonLink>
       </div>
     );
   }

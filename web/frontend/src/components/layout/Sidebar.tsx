@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
-import { MaterialIcon } from '../common';
+import { IconButton, MaterialIcon } from '../common';
 import { api, type AgentServiceFlat } from '../../services/api';
 import { env } from '../../config/env';
 import logo from '../../assets/logo.png';
@@ -96,9 +96,7 @@ export function Sidebar() {
 
       <div className="flex shrink-0 flex-col gap-2 p-3">
         <div className="flex items-center justify-between">
-          <button onClick={toggleTheme} aria-label="테마 전환" title="테마 전환" className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base">
-            <MaterialIcon size={20} name={theme === 'light' ? 'dark_mode' : 'light_mode'} />
-          </button>
+          <IconButton icon={theme === 'light' ? 'dark_mode' : 'light_mode'} label="테마 전환" tone="quiet" size="sm" onClick={toggleTheme} />
         </div>
       </div>
     </aside>

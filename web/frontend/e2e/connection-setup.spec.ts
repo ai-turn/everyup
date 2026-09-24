@@ -39,7 +39,7 @@ test('direct setup uses an external endpoint and waits for actual data', async (
   await page.getByRole('button', { name: 'OpenTelemetry로 직접 연결' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('서비스 이름').fill('new-log-service');
-  await dialog.getByRole('button', { name: '추가하기', exact: true }).click();
+  await dialog.getByRole('button', { name: '추가', exact: true }).click();
   await expect(dialog.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
   await expect(dialog.locator('pre')).toContainText('OTEL_EXPORTER_OTLP_ENDPOINT=https://monitor.example.com/api/v1/otlp');
   const receipts = dialog.getByRole('region', { name: '데이터 수신 확인' });

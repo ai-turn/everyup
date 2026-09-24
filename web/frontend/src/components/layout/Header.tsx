@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import logoDark from '../../assets/logo-dark.png';
 import { useIsMobile } from '../../hooks/useMediaQuery';
-import { MaterialIcon } from '../common';
+import { IconButton, MaterialIcon } from '../common';
 import { OPEN_PALETTE_EVENT } from './CommandPalette';
 
 export function Header() {
@@ -47,13 +47,7 @@ export function Header() {
                 {/* Icon buttons */}
                 <div className="flex items-center gap-1">
                     {!isMobile && (
-                        <button
-                            onClick={toggleTheme}
-                            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-ui-hover text-text-muted hover:text-text-base transition-colors"
-                            aria-label="Toggle theme"
-                        >
-                            <MaterialIcon size={20} name={theme === 'light' ? 'dark_mode' : 'light_mode'} />
-                        </button>
+                        <IconButton icon={theme === 'light' ? 'dark_mode' : 'light_mode'} label="테마 전환" tone="quiet" onClick={toggleTheme} />
                     )}
                     {!isMobile && (
                         <>

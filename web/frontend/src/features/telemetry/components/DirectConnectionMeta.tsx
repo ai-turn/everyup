@@ -12,6 +12,8 @@ interface DirectConnectionMetaProps {
   /** 신호 목록(직접 서비스) 또는 어댑터(Collector) */
   detail: { label: string; value: string };
   onRotateKey: () => void;
+  /** 수집 중일 때만 — 상태 옆에 붙는 연결 중지 */
+  onRevoke: () => void;
   projects: Project[];
   projectId: string;
   savedProjectId: string;
@@ -35,6 +37,7 @@ export function DirectConnectionMeta({
   lastSeenAt,
   detail,
   onRotateKey,
+  onRevoke,
   projects,
   projectId,
   savedProjectId,
@@ -44,7 +47,11 @@ export function DirectConnectionMeta({
 }: DirectConnectionMetaProps) {
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption">
-      <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '수집 가능' : '중지됨'} />
+      {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 자리 */}
+      <span className="inline-flex items-center gap-2">
+        <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '수집 가능' : '중지됨'} />
+        {isActive && <Button variant="ghost" onClick={onRevoke}><MaterialIcon name="block" />연결 중지</Button>}
+      </span>
       <MetaItem label="수집 키">
         <span className="truncate font-mono text-text-secondary">{apiKeyMasked || '마스킹된 키 없음'}</span>
         <Button variant="ghost" onClick={onRotateKey}><MaterialIcon name="key" />키 재발급</Button>
@@ -63,7 +70,7 @@ export function DirectConnectionMeta({
           {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
         </Select>
         {projectId !== savedProjectId && (
-          <Button onClick={onSaveProject} disabled={savingProject}>{savingProject ? '저장 중...' : '배정 저장'}</Button>
+          <Button onClick={onSaveProject} loading={savingProject}>배정 저장</Button>
         )}
       </MetaItem>
     </div>

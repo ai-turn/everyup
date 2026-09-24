@@ -108,7 +108,7 @@ export function AlertsDesktopView({
         {activeTab !== 'history' && (
           <Button onClick={activeTab === 'rules' ? onAddRule : () => openChannelForm()}>
             <MaterialIcon size={20} name="add" />
-            추가하기
+            추가
           </Button>
         )}
       </PageHeader>
@@ -126,12 +126,10 @@ export function AlertsDesktopView({
               {totalFailed}
             </span>
             {totalFailed > 0 && (
-              <button
-                onClick={viewFailedLogs}
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                실패 로그 보기 →
-              </button>
+              <Button variant="ghost" size="sm" onClick={viewFailedLogs}>
+                실패 로그 보기
+                <MaterialIcon name="arrow_forward" />
+              </Button>
             )}
           </span>
         </div>
@@ -280,7 +278,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
           icon="notifications_off"
           title="구성된 알림 채널이 없습니다"
           description="Slack, Discord, Telegram 채널을 추가해 알림을 받아보세요."
-          action={{ label: '추가하기', onClick: onAdd }}
+          action={{ label: '추가', onClick: onAdd }}
         />
       </div>
     );

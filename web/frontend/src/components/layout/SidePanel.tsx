@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { MaterialIcon } from '../common';
+import { IconButton, MaterialIcon } from '../common';
 import { useSidePanel } from '../../contexts/SidePanelContext';
 import { useOverlay, SCRIM_PANEL } from '../../hooks/useOverlay';
 
@@ -51,14 +51,7 @@ export function SidePanel() {
                             {title}
                         </h2>
                     </div>
-                    <button
-                        type="button"
-                        className="flex h-10 w-10 items-center justify-center -mr-2 rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base shrink-0"
-                        onClick={closePanel}
-                        aria-label="닫기"
-                    >
-                        <MaterialIcon size={20} name="close" />
-                    </button>
+                    <IconButton icon="close" label="닫기" tone="quiet" onClick={closePanel} className="-mr-2" />
                 </div>
 
                 {/* Content — forms provide their own scroll area + footer */}

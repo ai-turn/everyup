@@ -21,7 +21,7 @@ export function SearchInput({ wrapperClassName = '', className = '', ...props }:
       <input
         type="text"
         className={
-          'h-10 w-full rounded-lg border border-ui-border bg-bg-surface pl-8 pr-3 ' +
+          'h-11 sm:h-10 w-full rounded-lg border border-ui-border bg-bg-surface pl-8 pr-3 ' +
           `text-sm text-text-base placeholder:text-text-dim transition-colors ${className}`
         }
         {...props}

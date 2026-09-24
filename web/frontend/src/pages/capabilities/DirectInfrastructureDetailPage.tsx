@@ -3,14 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
-  Button,
-  ConfirmDialog,
-  DetailActionToolbar,
-  EmptyState,
-  MaterialIcon,
-  PageHeader,
-  TimeRangePicker,
-  type GlobalTimeRange,
+  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, type GlobalTimeRange,
 } from '../../components/common';
 import { InfraGauges } from '../../features/infra/components/InfraGauges';
 import { InfraTrends } from '../../features/infra/components/InfraTrends';
@@ -99,7 +92,7 @@ export function DirectInfrastructureDetailPage() {
 
   if (loading) return <div className="h-96 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
   if (error || !resource) {
-    return <EmptyState icon="error_outline" title="인프라 리소스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: '인프라로 돌아가기', onClick: () => navigate('/infrastructure') }} />;
+    return <EmptyState icon="error_outline" title="인프라 리소스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: '인프라로 돌아가기', to: '/infrastructure' }} />;
   }
 
   const confirmCopy = {
@@ -121,6 +114,7 @@ export function DirectInfrastructureDetailPage() {
             lastSeenAt={resource.lastSeenAt}
             detail={{ label: '어댑터', value: 'OpenTelemetry Collector' }}
             onRotateKey={() => setConfirmAction('rotate')}
+            onRevoke={() => setConfirmAction('revoke')}
             projects={projects}
             projectId={projectId}
             savedProjectId={resource.projectId ?? ''}
@@ -134,14 +128,13 @@ export function DirectInfrastructureDetailPage() {
         controls={
           <>
           <TimeRangePicker value={range} onChange={setRange} />
-          <Button variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
+          <Button collapseLabel variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
           </>
         }
         actions={
           <>
-          <Button variant="secondary" onClick={() => navigate(alertRulesPath({ kind: 'infrastructure', resourceId: resource.id }))}><MaterialIcon name="notifications" />알림 규칙</Button>
-          {resource.isActive && <Button variant="ghost" onClick={() => setConfirmAction('revoke')}><MaterialIcon name="block" />연결 중지</Button>}
-          <Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'infrastructure', resourceId: resource.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
+          <Button collapseLabel variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
       />

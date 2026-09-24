@@ -92,7 +92,7 @@ export function AlertsMobileView({
         {activeTab !== 'history' && (
           <Button className="w-full" onClick={activeTab === 'rules' ? onAddRule : onAddChannel}>
             <MaterialIcon size={20} name="add" />
-            추가하기
+            추가
           </Button>
         )}
       </PageHeader>
@@ -161,7 +161,7 @@ export function AlertsMobileView({
               <p className="text-sm text-text-dim mt-2">
                 구성된 알림 채널이 없습니다
               </p>
-              <Button variant="ghost" className="mt-3" onClick={onAddChannel}>추가하기</Button>
+              <Button variant="ghost" className="mt-3" onClick={onAddChannel}>추가</Button>
             </div>
           ) : (
             channels.map(channel => {
@@ -221,7 +221,7 @@ export function AlertsMobileView({
               <p className="text-sm text-text-dim mt-2">
                 등록된 알림 규칙이 없습니다
               </p>
-              <Button variant="ghost" className="mt-3" onClick={onAddRule}>추가하기</Button>
+              <Button variant="ghost" className="mt-3" onClick={onAddRule}>추가</Button>
             </div>
           ) : (
             visibleRules.map(rule => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { IconButton, MaterialIcon } from '../../../components/common';
+import { Button, ConfirmDialog, COPY_ACTION_SUBTLE, CopyButton, IconButton, MaterialIcon } from '../../../components/common';
 import { api } from '../../../services/api';
 import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
 import { getErrorMessage } from '../../../utils/errors';
@@ -19,7 +19,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
   const [loading, setLoading] = useState(true);
   const [apiKey, setApiKey] = useState('');
   const [available, setAvailable] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [confirmRotate, setConfirmRotate] = useState(false);
   const [rotating, setRotating] = useState(false);
 
   useEffect(() => {
@@ -38,15 +38,15 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
   const handleCopy = async () => {
     try {
       await copyTextToClipboard(apiKey);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      return true;
     } catch {
       toast.error('복사에 실패했습니다. 키를 직접 선택해 복사하세요.');
+      return false;
     }
   };
 
   const handleRotate = async () => {
-    if (!confirm(`'${agentName}' Docker 수집기의 API 키를 재발급하시겠습니까?\n기존 키는 즉시 무효화되며, Docker 수집기 설정을 새 키로 교체해야 합니다.`)) return;
+    setConfirmRotate(false);
     setRotating(true);
     try {
       const res = await api.rotateAgentKey(agentId);
@@ -83,14 +83,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
                   <code className="flex-1 px-3 py-2.5 rounded-xl bg-ui-hover-soft border border-ui-border text-xs font-mono text-text-base break-all">
                     {apiKey}
                   </code>
-                  <button onClick={handleCopy} aria-label="API 키 복사"
-                    className={`shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      copied
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                        : 'bg-ui-hover text-text-secondary hover:bg-ui-active'
-                    }`}>
-                    <MaterialIcon size={20} name={copied ? 'check' : 'content_copy'} />
-                  </button>
+                  <CopyButton onCopy={handleCopy} title="API 키 복사" className={COPY_ACTION_SUBTLE} />
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -108,14 +101,22 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
           )}
 
           {!loading && (
-            <button onClick={handleRotate} disabled={rotating}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-ui-hover text-text-secondary hover:bg-ui-active disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-              <MaterialIcon size={20} name="autorenew" />
-              {rotating ? '재발급 중...' : 'API 키 재발급'}
-            </button>
+            <Button variant="secondary" onClick={() => setConfirmRotate(true)} loading={rotating} className="w-full">
+              <MaterialIcon name="autorenew" />
+              API 키 재발급
+            </Button>
           )}
         </div>
       </div>
+      <ConfirmDialog
+        isOpen={confirmRotate}
+        onClose={() => setConfirmRotate(false)}
+        onConfirm={() => void handleRotate()}
+        title="API 키를 재발급할까요?"
+        message={`'${agentName}' Docker 수집기의 기존 키는 즉시 무효화되며, Docker 수집기 설정을 새 키로 교체해야 합니다.`}
+        confirmLabel="재발급"
+        isProcessing={rotating}
+      />
     </div>
   );
 }

@@ -264,16 +264,16 @@ export function ProjectDetailPage() {
       />
       <DetailActionToolbar
         controls={
-          <Button variant="secondary" onClick={handleRefresh}>
+          <Button collapseLabel variant="secondary" onClick={handleRefresh}>
             <MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
           </Button>
         }
         actions={agent && (
           <>
-            <Button variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />수집기 설치</Button>
-            <Button variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API 키</Button>
-            <Button variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />계측 설정</Button>
-            <Button variant="destructive" onClick={() => setDeleteConfirm(true)}><MaterialIcon name="delete_outline" />비활성화</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />수집기 설치</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API 키</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />계측 설정</Button>
+            <Button collapseLabel variant="destructive" onClick={() => setDeleteConfirm(true)}><MaterialIcon name="delete_outline" />비활성화</Button>
           </>
         )}
       />

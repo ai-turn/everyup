@@ -11,11 +11,14 @@ const TONES = {
   quiet: 'text-text-muted hover:text-text-base hover:bg-ui-hover',
 } as const;
 
-const SIZES = { sm: 'h-8 w-8', md: 'h-10 w-10' } as const;
+// md는 터치 화면(sm 미만)에서 44px — Button md와 같은 규칙.
+const SIZES = { sm: 'h-8 w-8', md: 'h-11 w-11 sm:h-10 sm:w-10' } as const;
 
 const BASE =
   'inline-flex shrink-0 items-center justify-center rounded-lg transition-colors cursor-pointer ' +
-  'disabled:opacity-50 disabled:pointer-events-none';
+  'disabled:opacity-50 disabled:pointer-events-none ' +
+  // 이유를 title로 보여 줘야 하는 비활성은 aria-disabled — disabled는 hover를 막아 툴팁이 안 뜬다
+  'aria-disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:hover:bg-transparent';
 
 /** className을 받는 자리(CopyButton 등)에서 쓰는 조합. */
 export const ICON_ACTION = `${BASE} ${TONES.action} ${SIZES.md}`;

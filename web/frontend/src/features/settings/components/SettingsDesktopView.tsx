@@ -178,13 +178,9 @@ export function SettingsDesktopView({
                 <p className="type-body text-text-muted">
                   {env.useMock ? '데모 환경에서는 계정 초기화를 사용할 수 없습니다.' : '모든 계정 정보가 삭제되며, 다시 계정을 생성해야 합니다. 이 작업은 되돌릴 수 없습니다.'}
                 </p>
-                <button
-                  onClick={onResetClick}
-                  disabled={env.useMock}
-                  className="shrink-0 text-xs font-medium text-red-600 dark:text-red-400 hover:underline disabled:opacity-40 disabled:cursor-not-allowed disabled:no-underline cursor-pointer"
-                >
+                <Button variant="destructive" onClick={onResetClick} disabled={env.useMock}>
                   계정 초기화
-                </button>
+                </Button>
               </div>
             </SectionCard>
           </section>

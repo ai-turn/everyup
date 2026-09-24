@@ -148,15 +148,14 @@ export function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowForgot(!showForgot)}
-                      className="type-body text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
+                      className="type-body text-action hover:text-text-base underline underline-offset-2 transition-colors"
                     >
                       계정 정보를 잊으셨나요?
                     </button>
                   </div>
                 )}
-                <Button type="submit" size="lg" disabled={loading} className="w-full mt-2">
-                  {loading && <MaterialIcon size={20} name="progress_activity" className="animate-spin" />}
-                  {loading ? '처리 중...' : isSetup ? '계정 생성' : '로그인'}
+                <Button type="submit" loading={loading} className="w-full mt-2">
+                  {isSetup ? '계정 생성' : '로그인'}
                 </Button>
               </form>
             </div>

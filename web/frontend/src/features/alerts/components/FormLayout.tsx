@@ -58,7 +58,7 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
     );
 }
 
-/** 폼 제출 바. 순서·라벨은 DESIGN.md §7 — [취소][주 액션], 생성=추가하기 / 편집=저장. */
+/** 폼 제출 바. 순서·라벨은 DESIGN.md §7 — [취소][주 액션], 생성=추가 / 편집=저장. */
 export function FormActions({ formId, isEdit, isSubmitting, disabled, onCancel }: {
     formId: string; isEdit: boolean; isSubmitting: boolean; disabled?: boolean; onCancel: () => void;
 }) {
@@ -67,9 +67,9 @@ export function FormActions({ formId, isEdit, isSubmitting, disabled, onCancel }
             <Button type="button" variant="secondary" onClick={onCancel}>
                 취소
             </Button>
-            <Button type="submit" form={formId} disabled={disabled || isSubmitting}>
+            <Button type="submit" form={formId} disabled={disabled} loading={isSubmitting}>
                 {!isEdit && <MaterialIcon name="add" />}
-                {isSubmitting ? (isEdit ? '저장 중…' : '추가 중…') : isEdit ? '저장' : '추가하기'}
+                {isEdit ? '저장' : '추가'}
             </Button>
         </div>
     );

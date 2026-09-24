@@ -121,9 +121,9 @@ export function UptimeMonitorDialog({
         </div>
         <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button>
-          <Button type="submit" disabled={saving}>
-            {saving && <MaterialIcon name="sync" className="animate-spin" />}
-            {monitor ? '저장' : '추가하기'}
+          <Button type="submit" loading={saving}>
+            {!monitor && <MaterialIcon name="add" />}
+            {monitor ? '저장' : '추가'}
           </Button>
         </div>
       </form>

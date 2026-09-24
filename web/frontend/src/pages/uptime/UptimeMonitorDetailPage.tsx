@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import {
   Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { Button, ConfirmDialog, DetailActionToolbar, MaterialIcon, PageHeader } from '../../components/common';
+import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, MaterialIcon, PageHeader } from '../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, formatAxisValue, getChartTheme,
   gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
@@ -97,6 +97,17 @@ function RecentChecks({ metrics }: { metrics: UptimeMonitorMetric[] }) {
   );
 }
 
+// 일시정지/재개 — 상태에 따라 아이콘·라벨이 바뀐다. 페이지 함수에 삼항을 더하면
+// 복잡도 한도를 넘어서 따로 뺐다.
+function ActiveToggleButton({ active, disabled, onClick }: { active: boolean; disabled: boolean; onClick: () => void }) {
+  return (
+    <Button variant="ghost" disabled={disabled} onClick={onClick}>
+      <MaterialIcon name={active ? 'pause' : 'play_arrow'} />
+      {active ? '일시정지' : '재개'}
+    </Button>
+  );
+}
+
 export function UptimeMonitorDetailPage() {
   const { monitorId } = useParams<{ monitorId: string }>();
   const navigate = useNavigate();
@@ -182,7 +193,7 @@ export function UptimeMonitorDetailPage() {
       <div className="flex h-64 flex-col items-center justify-center gap-4 text-center">
         <MaterialIcon size={32} name="error_outline" className="text-status-error" />
         <div><p className="font-medium text-text-base">업타임 모니터를 찾을 수 없습니다</p>{error && <p className="mt-1 text-sm text-text-muted">{error}</p>}</div>
-        <Button variant="secondary" onClick={() => navigate('/uptime')}>업타임으로 돌아가기</Button>
+        <ButtonLink variant="secondary" to="/uptime">업타임으로 돌아가기</ButtonLink>
       </div>
     );
   }
@@ -202,19 +213,22 @@ export function UptimeMonitorDetailPage() {
         title={monitor.name}
         meta={
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption">
-            <UptimeMonitorStatusBadge monitor={monitor} />
+            {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 자리 (§4.1) */}
+            <span className="inline-flex items-center gap-2">
+              <UptimeMonitorStatusBadge monitor={monitor} />
+              <ActiveToggleButton active={monitor.isActive} disabled={processing} onClick={() => void toggleActive()} />
+            </span>
             <span className="min-w-0 truncate font-mono text-text-secondary">{target}</span>
             <span className="text-text-dim">{monitor.type.toUpperCase()} · {monitor.interval}초마다 확인 · 직접 설정</span>
           </div>
         }
       />
       <DetailActionToolbar
-        controls={<Button variant="secondary" onClick={() => void load()}><MaterialIcon name="refresh" />새로고침</Button>}
+        controls={<Button collapseLabel variant="secondary" onClick={() => void load()}><MaterialIcon name="refresh" />새로고침</Button>}
         actions={
           <>
-            <Button variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button variant="ghost" disabled={processing} onClick={() => void toggleActive()}>{monitor.isActive ? '일시정지' : '재개'}</Button>
-            <Button variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
+            <Button collapseLabel variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
       />

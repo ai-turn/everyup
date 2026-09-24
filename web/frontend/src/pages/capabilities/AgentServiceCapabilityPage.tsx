@@ -87,7 +87,7 @@ export function AgentServiceCapabilityPage() {
   return (
     <div>
       <PageHeader title="업타임" subtitle="서비스가 정상적으로 응답하는지 확인하고, 장애가 발생한 대상을 빠르게 찾습니다.">
-        <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가하기</Button>
+        <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>
 
       {!loading && !error && monitors.length + agentServices.length > 0 && (
@@ -105,7 +105,7 @@ export function AgentServiceCapabilityPage() {
       {loading ? <ServiceListSkeleton /> : error ? (
         <EmptyState icon="error_outline" title="대상을 불러오지 못했습니다" description={error} />
       ) : empty ? (
-        <EmptyState icon="monitor_heart" title={normalizedQuery ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={normalizedQuery ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={normalizedQuery ? undefined : { label: '추가하기', onClick: () => setAdding(true) }} />
+        <EmptyState icon="monitor_heart" title={normalizedQuery ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={normalizedQuery ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={normalizedQuery ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
       ) : (
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
@@ -122,10 +122,7 @@ export function AgentServiceCapabilityPage() {
                 subtitle="HTTP/TCP 모니터"
                 status={<UptimeMonitorStatusBadge monitor={monitor} />}
                 actions={
-                  <Button size="sm" variant="secondary" aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>
-                    <MaterialIcon name={monitor.isActive ? 'pause' : 'play_arrow'} />
-                    {monitor.isActive ? '일시정지' : '재개'}
-                  </Button>
+                  <Button size="sm" variant="ghost" aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>{monitor.isActive ? '일시정지' : '재개'}</Button>
                 }
                 endpoint={monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url}
                 meta={<p className="text-xs text-text-muted">{monitor.type.toUpperCase()} · {monitor.interval}초</p>}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MaterialIcon, Pagination, SearchInput, type GlobalTimeRange } from '../../../components/common';
+import { MaterialIcon, Pagination, SearchInput, type GlobalTimeRange, IconButton } from '../../../components/common';
 import { api, type ApiRequest } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { activatable } from '../../../utils/a11y';
@@ -177,11 +177,7 @@ function ServiceRequestsPanel({
             placeholder="경로 검색..."
           />
           {search && (
-            <button type="button" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }}
-              aria-label="검색어 지우기" title="검색어 지우기"
-              className="px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-red-500 transition-colors">
-              <MaterialIcon size={20} name="close" />
-            </button>
+            <IconButton icon="close" label="검색어 지우기" tone="quiet" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }} />
           )}
         </form>
       </div>

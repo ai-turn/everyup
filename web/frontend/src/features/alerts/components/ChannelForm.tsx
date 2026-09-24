@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
 import { FormStep, Field } from './FormLayout';
-import { MaterialIcon, Input } from '../../../components/common';
+import { Button, MaterialIcon, Input } from '../../../components/common';
 import { IconTelegram, IconDiscord, IconSlack } from '../../../components/icons/ChannelIcons';
 import {
     api,
@@ -513,24 +513,16 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     현재 입력값으로 테스트 메시지를 보냅니다. 채널은 저장되지 않습니다.
                                 </p>
 
-                                <button
+                                <Button
                                     type="button"
+                                    variant="secondary"
                                     onClick={handleTest}
-                                    disabled={testState === 'loading'}
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-slate-800 text-white text-sm rounded-xl hover:bg-slate-700 dark:hover:bg-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                                    loading={testState === 'loading'}
+                                    className="w-full"
                                 >
-                                    {testState === 'loading' ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            전송 중...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <MaterialIcon size={20} name="send" />
-                                            테스트 전송
-                                        </>
-                                    )}
-                                </button>
+                                    <MaterialIcon name="send" />
+                                    테스트 전송
+                                </Button>
 
                                 {testState === 'success' && (
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">

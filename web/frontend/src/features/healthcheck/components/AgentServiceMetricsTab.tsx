@@ -3,7 +3,7 @@ import {
   ResponsiveContainer, ComposedChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
-import { MaterialIcon, type GlobalTimeRange } from '../../../components/common';
+import { Button, MaterialIcon, type GlobalTimeRange } from '../../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, chartCardClass, formatAxisValue, getChartTheme,
   getSeriesPalette, getSeriesDash, gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
@@ -198,16 +198,16 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               <span className="text-text-muted">느린 예시</span>
               {quantiles.exemplars.map(exemplar => (
-                <button
+                <Button
                   key={exemplar.traceId}
-                  type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setActiveTraceId(exemplar.traceId)}
                   title={`${exemplar.traceId} 트레이스 열기`}
-                  className="inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/5 px-2 py-0.5 font-mono text-xs text-primary hover:bg-primary/10 cursor-pointer"
                 >
-                  <MaterialIcon size={20} name="timeline" />
+                  <MaterialIcon name="timeline" />
                   {formatMetricValue(exemplar.value, unit)}
-                </button>
+                </Button>
               ))}
             </div>
           )}
