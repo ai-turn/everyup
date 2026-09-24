@@ -6,8 +6,9 @@ import {
 import { Button, MaterialIcon, type GlobalTimeRange } from '../../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, chartCardClass, formatAxisValue, getSeriesPalette,
-  getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
+import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import { api, type OtelHistogramQuantiles, type OtelMetricName, type OtelMetricPoint } from '../../../services/api';
 import { TracePanel } from '../../traces/components/TracePanel';
 
@@ -173,7 +174,12 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
 
   const theme = useChartTheme();
   const seriesColors = getSeriesPalette(theme);
-  const maxValue = Math.max(0, ...chartData.flatMap(row => seriesKeys.map(key => row[key]).filter(Number.isFinite)));
+  const thresholds = useAlertThresholds(
+    source.kind === 'direct' ? { kind: 'direct', serviceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey },
+    'otel_metric',
+    selected,
+  );
+  const maxValue = Math.max(0, ...thresholds.map(rule => rule.threshold), ...chartData.flatMap(row => seriesKeys.map(key => row[key]).filter(Number.isFinite)));
   const unit = selectedMeta?.unit ?? '';
 
   if (namesLoading) return <div className="h-64 animate-pulse rounded-xl bg-ui-hover" />;
@@ -237,6 +243,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
                 <XAxis {...timeXAxisProps(theme, [shown.at - RANGE_HOURS[range] * 3_600_000, shown.at])} />
                 <YAxis {...yAxisProps(theme, 64)} {...niceYAxis(maxValue)} tickFormatter={value => formatMetricValue(value, unit)} />
                 {rangeAreas(gaps, theme.tickColor, '수신 없음', 0.08)}
+                {thresholdLines(thresholds, theme.errorColor, unit === 'By' ? '' : unit)}
                 <Tooltip
                   cursor={tooltipCursor(theme)}
                   content={({ active, label, payload }) => (

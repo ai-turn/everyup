@@ -12,9 +12,11 @@ import {
 import { MaterialIcon, type GlobalTimeRange } from '../../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, formatAxisValue,
-  gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
   type ChartTheme,
 } from '../../../components/charts';
+import { useAlertThresholds } from '../../alerts/useAlertThresholds';
+import type { AlertRule } from '../../../services/api';
 import { useMonitoringTrends } from '../../../hooks/useInfra';
 import { Skeleton } from '../../../components/skeleton';
 import type { ChartData } from '../../../types/infra';
@@ -35,6 +37,8 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
   const [hovered, setHovered] = useState<string | null>(null);
 
   const theme = useChartTheme();
+  // Memory/disk rules are usage %, while those charts plot GB and MB/s — only CPU lines up.
+  const cpuRules = useAlertThresholds({ kind: 'infrastructure', resourceId: hostId }, 'cpu');
 
   const rangeLabel: Record<GlobalTimeRange, string> = {
     '1h': '최근 1시간',
@@ -76,6 +80,7 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
               theme={theme}
               showTooltip={hovered === chart.title}
               onHover={setHovered}
+              thresholds={chart.series.some((s) => s.key === 'cpu') ? cpuRules : []}
             />
           ))}
         </div>
@@ -91,6 +96,7 @@ function ChartCard({
   theme,
   showTooltip,
   onHover,
+  thresholds,
 }: {
   chart: ChartData;
   domain: [number, number];
@@ -98,6 +104,7 @@ function ChartCard({
   theme: ChartTheme;
   showTooltip: boolean;
   onHover: (title: string | null) => void;
+  thresholds: AlertRule[];
 }) {
 
   const allValues = chart.series.flatMap((s) =>
@@ -132,11 +139,12 @@ function ChartCard({
 
                 <YAxis
                   {...yAxisProps(theme, 42)}
-                  {...niceYAxis(chart.yMax ?? maxVal)}
+                  {...niceYAxis(Math.max(chart.yMax ?? maxVal, ...thresholds.map((r) => r.threshold)))}
                   tickFormatter={(value) => formatAxisValue(Number(value), chart.unit)}
                 />
 
                 {rangeAreas(gaps, theme.tickColor, '수집 없음', 0.08)}
+                {thresholdLines(thresholds, theme.errorColor, chart.unit)}
 
                 <Tooltip
                   cursor={tooltipCursor(theme)}

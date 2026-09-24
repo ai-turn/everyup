@@ -7,4 +7,4 @@ export {
 } from './chartTheme';
 export type { ChartTheme, TooltipPayloadItem } from './chartTheme';
 export { ChartTooltip, ChartLegend, ChartStatsLegend } from './ChartElements';
-export { rangeAreas } from './rangeAreas';
+export { rangeAreas, thresholdLines } from './chartMarks';

@@ -8,8 +8,9 @@ import {
 import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader } from '../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, coverRanges, formatAxisValue,
-  gridProps, lineProps, medianStep, niceYAxis, rangeAreas, splitGaps, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  gridProps, lineProps, medianStep, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../components/charts';
+import { useAlertThresholds } from '../../features/alerts/useAlertThresholds';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeOverview } from '../../features/uptime/components/UptimeOverview';
 import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
@@ -21,9 +22,10 @@ import { getErrorMessage } from '../../utils/errors';
 
 const HISTORY_DAYS = 90;
 
-function ResponseTimeChart({ metrics }: { metrics: UptimeMonitorMetric[] }) {
+function ResponseTimeChart({ monitorId, metrics }: { monitorId: string; metrics: UptimeMonitorMetric[] }) {
 
   const theme = useChartTheme();
+  const thresholds = useAlertThresholds({ kind: 'direct', serviceId: monitorId }, 'response_time');
   // A failed check's responseTime is how long it waited before giving up (the
   // timeout), not a response — plotting it reads as "slow" and stretches the axis.
   const checks = [...metrics].reverse().map((metric) => ({
@@ -49,9 +51,10 @@ function ResponseTimeChart({ metrics }: { metrics: UptimeMonitorMetric[] }) {
             <ComposedChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid {...gridProps(theme)} />
               <XAxis {...timeXAxisProps(theme, domain)} />
-              <YAxis {...yAxisProps(theme, 52)} {...niceYAxis(Math.max(0, ...latencies))} tickFormatter={(value) => formatAxisValue(value, 'ms')} />
+              <YAxis {...yAxisProps(theme, 52)} {...niceYAxis(Math.max(0, ...latencies, ...thresholds.map((r) => r.threshold)))} tickFormatter={(value) => formatAxisValue(value, 'ms')} />
               {rangeAreas(gaps, theme.tickColor, '체크 없음', 0.08)}
               {rangeAreas(coverRanges(failedTimes, step), theme.errorColor, '다운')}
+              {thresholdLines(thresholds, theme.errorColor, 'ms')}
               <Tooltip
                 cursor={tooltipCursor(theme)}
                 content={({ active, label, payload }) => (
@@ -261,7 +264,7 @@ export function UptimeMonitorDetailPage() {
         ]}
         days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
       />
-      <ResponseTimeChart metrics={metrics} />
+      <ResponseTimeChart monitorId={monitor.id} metrics={metrics} />
       <RecentChecks metrics={metrics} />
 
       {editing && <UptimeMonitorDialog monitor={monitor} onClose={() => setEditing(false)} onSave={updateMonitor} />}

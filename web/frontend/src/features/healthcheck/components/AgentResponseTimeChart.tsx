@@ -6,8 +6,9 @@ import {
 import type { GlobalTimeRange } from '../../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, coverRanges, formatAxisValue,
-  gridProps, lineProps, medianStep, niceYAxis, rangeAreas, splitGaps, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  gridProps, lineProps, medianStep, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
+import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import { api, type ServiceHistoryPoint } from '../../../services/api';
 
 interface AgentResponseTimeChartProps {
@@ -42,6 +43,7 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
   }, [agentId, serviceKey, range, refreshKey]);
 
   const theme = useChartTheme();
+  const thresholds = useAlertThresholds({ kind: 'agent', agentId, serviceKey }, 'response_time');
 
   // Each point is a bucket of checks. latencyMs averages the healthy checks only,
   // so a bucket where every check failed has no latency at all.
@@ -76,11 +78,12 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
               <XAxis {...timeXAxisProps(theme, [loadedAt - RANGE_MS[range], loadedAt])} />
               <YAxis
                 {...yAxisProps(theme, 52)}
-                {...niceYAxis(Math.max(0, ...latencies))}
+                {...niceYAxis(Math.max(0, ...latencies, ...thresholds.map((r) => r.threshold)))}
                 tickFormatter={(v) => formatAxisValue(v, 'ms')}
               />
               {rangeAreas(gaps, theme.tickColor, '체크 없음', 0.08)}
               {rangeAreas(downRanges, theme.errorColor, '다운')}
+              {thresholdLines(thresholds, theme.errorColor, 'ms')}
               <Tooltip
                 cursor={tooltipCursor(theme)}
                 content={({ active, label, payload }) => (
