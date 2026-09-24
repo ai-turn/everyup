@@ -18,12 +18,12 @@ test('existing collector gains metrics without creating a new Docker environment
   await page.getByRole('button', { name: '기존 대상 연결 확인' }).click();
   const chooser = page.getByRole('dialog');
   await chooser.getByRole('button', { name: '메트릭 추가 및 적용 명령' }).click();
-  const installer = page.getByRole('dialog', { name: 'Docker 수집기 설치 및 모니터링 설정' });
-  await expect(installer.getByText('Docker 수집기 연결을 기다리는 중', { exact: true })).toBeVisible();
+  const installer = page.getByRole('dialog', { name: 'Docker Collector 설치 및 모니터링 설정' });
+  await expect(installer.getByText('Docker Collector 연결을 기다리는 중', { exact: true })).toBeVisible();
   await expect(installer.getByText(/사용 업타임, 로그, 메트릭/)).toBeVisible();
   await expect(installer.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
   await expect(installer.getByRole('button', { name: '설치 명령 복사' })).toBeEnabled();
-  await expect(installer.getByText('Docker 수집기 연결을 확인했습니다', { exact: true })).toHaveCount(0);
+  await expect(installer.getByText('Docker Collector 연결을 확인했습니다', { exact: true })).toHaveCount(0);
   await installer.getByRole('button', { name: '나중에 확인' }).click();
   await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
   await page.getByRole('button', { name: '기존 대상 연결 확인' }).click();
@@ -48,7 +48,7 @@ test('direct setup uses an external endpoint and waits for actual data', async (
   await dialog.getByRole('button', { name: '처음 설정', exact: true }).click();
   await dialog.getByRole('button', { name: '앱 언어' }).click();
   await page.getByRole('option', { name: 'Go', exact: true }).click();
-  await expect(dialog.getByRole('link', { name: 'Go 계측·SDK 설정 예제' })).toBeVisible();
+  await expect(dialog.getByRole('link', { name: 'Go SDK 설정 예제' })).toBeVisible();
   await dialog.getByLabel('EveryUp 외부 연결 주소').fill('http://localhost:3001');
   await expect(dialog.getByRole('button', { name: '환경 변수 복사' })).toBeDisabled();
 });
@@ -66,17 +66,17 @@ test('existing Docker service opens the selected monitoring tab', async ({ page 
 
 test('instrumentation requires explicit targets and invalidates changed previews', async ({ page }) => {
   await page.goto('./agents/agent_demo_01');
-  await page.getByRole('button', { name: '계측 설정', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'OpenTelemetry 자동 적용' });
+  await page.getByRole('button', { name: '상세 수집 설정', exact: true }).first().click();
+  const dialog = page.getByRole('dialog', { name: '상세 수집 설정' });
   await expect(dialog.getByRole('button', { name: '변경 사항 확인' })).toBeDisabled();
-  await dialog.getByRole('checkbox', { name: 'api 계측' }).check();
+  await dialog.getByRole('checkbox', { name: 'api 상세 수집' }).check();
   await dialog.getByRole('button', { name: '변경 사항 확인' }).click();
   await expect(dialog.getByText('재시작 대상: api', { exact: true })).toBeVisible();
   await expect(dialog.getByRole('button', { name: '서버 변경 미리보기 복사' })).toBeVisible();
   await expect(dialog.locator('pre')).toContainText('--report=');
   await expect(dialog.locator('pre')).toContainText("'api=node'");
-  await expect(dialog.getByRole('region', { name: '계측 실행 결과' })).toContainText('서버에서 명령 실행 대기');
-  await dialog.getByRole('checkbox', { name: 'api 계측' }).uncheck();
+  await expect(dialog.getByRole('region', { name: '상세 수집 적용 결과' })).toContainText('서버에서 명령 실행 대기');
+  await dialog.getByRole('checkbox', { name: 'api 상세 수집' }).uncheck();
   await expect(dialog.getByRole('button', { name: '안전 적용 명령 복사' })).toHaveCount(0);
 });
 

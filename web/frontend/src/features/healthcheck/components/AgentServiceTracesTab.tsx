@@ -120,7 +120,7 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
                 <th className="px-4 py-2 font-medium">트레이스</th>
                 <th className="px-4 py-2 font-medium">종류</th>
                 <th className="px-4 py-2 text-right font-medium">소요</th>
-                <th className="px-4 py-2 text-right font-medium">스팬</th>
+                <th className="px-4 py-2 text-right font-medium">Span</th>
                 <th className="px-4 py-2 text-right font-medium">시작</th>
               </tr>
             </thead>

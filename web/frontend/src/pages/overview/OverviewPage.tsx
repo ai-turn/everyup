@@ -92,7 +92,7 @@ export function OverviewPage() {
     ...staleAgents.map((agent) => ({
       id: `agent-${agent.id}`,
       title: agent.name,
-      detail: 'Docker 수집기 데이터가 지연되었거나 끊겼습니다',
+      detail: 'Docker Collector 데이터가 지연되었거나 끊겼습니다',
       to: `/agents/${agent.id}`,
       tone: 'warn' as const,
       icon: 'sensors_off',

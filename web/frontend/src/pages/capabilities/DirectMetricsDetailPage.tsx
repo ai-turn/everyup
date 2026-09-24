@@ -104,20 +104,20 @@ export function DirectMetricsDetailPage() {
 
   const confirmCopy = {
     rotate: {
-      title: '직접 수집 키를 재발급할까요?',
+      title: 'API Key를 재발급할까요?',
       message: '현재 키는 즉시 폐기됩니다. 이 서비스의 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.',
       label: '재발급',
       variant: 'primary' as const,
     },
     revoke: {
       title: '직접 수집 연결을 중지할까요?',
-      message: '이 키를 사용하는 모든 신호의 수집을 즉시 차단합니다. 저장된 데이터는 유지됩니다.',
+      message: '이 키를 사용하는 모든 데이터의 수집을 즉시 차단합니다. 저장된 데이터는 유지됩니다.',
       label: '연결 중지',
       variant: 'danger' as const,
     },
     delete: {
       title: '이 Observed Service를 삭제할까요?',
-      message: '이 서비스의 메트릭과 연결된 다른 신호 데이터, 직접 수집 연결, 대상별 알림 규칙을 함께 삭제합니다.',
+      message: '이 서비스의 메트릭과 연결된 다른 데이터, 직접 수집 연결, 대상별 알림 규칙을 함께 삭제합니다.',
       label: '삭제',
       variant: 'danger' as const,
     },
@@ -128,13 +128,12 @@ export function DirectMetricsDetailPage() {
     <div>
       <PageHeader
         title={service.name}
-        subtitle="직접 연결한 OpenTelemetry Metrics 서비스입니다."
         meta={
           <DirectConnectionMeta
             isActive={service.isActive}
             apiKeyMasked={service.apiKeyMasked}
             lastSeenAt={service.lastSeenAt}
-            detail={{ label: '허용 신호', value: service.signals.join(', ') }}
+            detail={{ label: '수집 데이터', value: service.signals.join(', ') }}
             onRotateKey={() => setConfirmAction('rotate')}
             onRevoke={() => setConfirmAction('revoke')}
             projects={projects}

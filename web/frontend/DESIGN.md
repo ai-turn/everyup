@@ -140,7 +140,7 @@ primary #3b76c9 → emerald #059669 → amber #d97706 → violet #7c3aed → red
 - **본문** Spoqa Han Sans Neo (self-hosted, `spoqa-han-sans` 패키지) → `--font-sans`. body와 `font-sans` 유틸리티가 같은 토큰을 본다 — 토큰 없이 두면 `font-sans`가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다
 - **정적 폰트다.** 굵기는 100/300/400/500/700 다섯 개뿐이고 가변 축이 없다 — 중간 굵기를 만들 수 없다
 - **본문과 숫자는 Spoqa, 코드·로그만 JetBrains Mono다** (2026-09-23). **숫자·시간·개수도 Spoqa다** — Spoqa는 숫자 글리프가 원래 고정폭이다(실측 20px에서 `0000`·`1111`·`8888` 모두 47.69px). KPI·표·차트 범례·타임스탬프에 mono를 쓸 이유가 없다. 자리 이동이 없어야 하는 곳은 의도를 드러내려 `tabular-nums`를 그대로 건다
-- **`font-mono`는 기계 문자열에만** — 코드·설정 블록(`<pre>`, YAML·명령어), 로그 메시지 본문·스택 트레이스, API 키·trace ID·span 이름, URL·경로·HTTP method+path, 이미지명·메트릭명, `key=value` 속성 칩, 로그 레벨 토큰(§1.5). 기준은 **"들여쓰기·줄 맞춤이 의미이거나, `l`/`I`/`1`·`O`/`0`을 가려 읽어야 하는가"**다. 폰트는 JetBrains Mono Variable(latin subset, self-hosted)이다 — 로그·트레이스처럼 오래 읽는 화면이 OS와 무관하게 같은 모양이어야 해서 OS 고정폭 대신 웹폰트를 쓴다. 브라우저는 `font-mono` 글자가 화면에 있을 때만 파일을 받으므로 숫자를 뺀 뒤로는 개요·목록에서 내려받지 않는다. `<kbd>`·`<code>`·`<pre>`는 브라우저 기본값이 mono라는 점에 주의 — 단축키 표시(`Ctrl K`)는 UI 라벨이므로 `font-sans`를 건다(사이드바 `<kbd>` 하나 때문에 모든 페이지가 이 폰트를 받고 있었다). 한글 글리프가 없어 폴백 2순위가 Spoqa다 — 한글이 섞인 줄은 폭이 정확히 맞지 않는다(한글 줄 맞춤이 필요해지면 D2Coding 서브셋을 검토)
+- **`font-mono`는 기계 문자열에만** — 코드·설정 블록(`<pre>`, YAML·명령어), 로그 메시지 본문·스택 트레이스, API Key·trace ID·span 이름, URL·경로·HTTP method+path, 이미지명·메트릭명, `key=value` 속성 칩, 로그 레벨 토큰(§1.5). 기준은 **"들여쓰기·줄 맞춤이 의미이거나, `l`/`I`/`1`·`O`/`0`을 가려 읽어야 하는가"**다. 폰트는 JetBrains Mono Variable(latin subset, self-hosted)이다 — 로그·트레이스처럼 오래 읽는 화면이 OS와 무관하게 같은 모양이어야 해서 OS 고정폭 대신 웹폰트를 쓴다. 브라우저는 `font-mono` 글자가 화면에 있을 때만 파일을 받으므로 숫자를 뺀 뒤로는 개요·목록에서 내려받지 않는다. `<kbd>`·`<code>`·`<pre>`는 브라우저 기본값이 mono라는 점에 주의 — 단축키 표시(`Ctrl K`)는 UI 라벨이므로 `font-sans`를 건다(사이드바 `<kbd>` 하나 때문에 모든 페이지가 이 폰트를 받고 있었다). 한글 글리프가 없어 폴백 2순위가 Spoqa다 — 한글이 섞인 줄은 폭이 정확히 맞지 않는다(한글 줄 맞춤이 필요해지면 D2Coding 서브셋을 검토)
 - **mono는 값에만 건다 — 라벨·분류명·제품명은 본문 폰트다.** `Docker 환경`·`Collector`·`OpenTelemetry Collector`·`Bot Token`·`TELEGRAM`처럼 우리가 UI에 써 넣은 말은 mono가 아니다. 컨테이너(`<table>`, 메타 줄)에 `font-mono`를 걸면 라벨까지 같이 딸려오니, 해당 값 셀에 직접 건다. 값 하나를 여러 성격이 공유하는 prop(`detail={{label, value}}`)은 특히 주의 — 한쪽이 코드면 다른 쪽은 아닐 확률이 높다
 
 ### 2.2 역할별 타이포그래피
@@ -219,7 +219,7 @@ bg-bg-surface border border-ui-border rounded-xl
 
 ### 3.4 내비게이션 셸
 
-- `lg` 이상: 좌측 `Sidebar`(로고 → nav → Docker 수집기 상태 푸터) + 상단 `AppHeader`(위치 표시). `Header`는 `lg:hidden`으로 모바일 전용
+- `lg` 이상: 좌측 `Sidebar`(로고 → nav → Docker Collector 상태 푸터) + 상단 `AppHeader`(위치 표시). `Header`는 `lg:hidden`으로 모바일 전용
 - `lg` 미만: `Header` + `BottomNavMobile`. 하단바 겹침은 `pb-safe-bottom` 유틸리티가 처리
 - 뒤로가기 버튼은 **데스크톱에 두지 않는다** — 사이드바가 상시 내비이고, `AppHeader`의 첫 크럼이 목록 링크다
 - **사이드바 활성 항목은 브레드크럼의 첫 크럼과 같다** — 담김 관계를 따른다. 서비스 상세(`/services/…`)는 어떤 탭을 보고 있든 `Docker 환경`이 활성이다. 탭은 위치가 아니다(아래 "탭은 크럼이 아니다")
@@ -284,7 +284,8 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 | **`TimeRangePicker`** | `value: GlobalTimeRange` `onChange` | `1h`\|`6h`\|`24h`. SegmentedControl 래퍼 |
 | **`ConfirmDialog`** | `isOpen` `title` `message` `variant` `icon` … | `window.confirm()` 금지 — 항상 이것 |
 | **`EmptyState`** | `icon` `title` `description?` `action?` `children?` | 빈 목록의 정본. 라벨+핸들러면 `action`, 자체 상태를 가진 트리거(연결 다이얼로그 등)는 children |
-| **`PageHeader`** | `title` `subtitle?` `meta?` `children` | h1 등급 고정. `meta`는 대상 메타데이터 한 줄 |
+| **`PageHeader`** | `title` `subtitle?` `meta?` `children` | h1 등급 고정. `meta`는 대상 메타데이터 — 상세는 `DetailMeta` |
+| **`DetailMeta`** | `status` `fields?` | 상세 헤더 `meta`의 정본. 상태 줄 + 속성 목록(라벨 좌 / 값 우, `sm` 이상 2열) |
 | **`ListToolbar`** | `search` `children?` | 목록 검색은 왼쪽, 필터는 그다음 |
 | **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
 | **`SummaryCard`** | `label` `value` `detail` `tone?` | KPI 카드. 라벨 좌 / 숫자 우 1행 + 설명 1행 |
@@ -341,12 +342,12 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 - **상세 화면의 헤더는 하나다 — `PageHeader`(제목·설명·`meta`) + `DetailActionToolbar`.** 제목 행에 버튼을 두지 않는 목록 규칙이 상세에도 그대로 적용된다. 대상의 상태(`StatusLight`)는 제목 옆이 아니라 `meta` 줄의 첫 항목이다. 2026-09-23까지 상세 9곳 중 5곳이 `h1`을 직접 쓰고 버튼을 제목 행에 붙여서, 새로고침이 좌측 라벨 버튼·우측 첫 아이콘·우측 끝 아이콘으로 화면마다 달랐고 삭제는 라벨 버튼과 라벨 없는 빨간 아이콘이 섞여 있었다.
   - **좌측 `controls` = 조회 제어**: 기간 선택 → `새로고침`. 새로고침은 라벨 있는 `secondary` 버튼이다(아이콘 전용 아님).
   - **우측 `actions` = 대상 자체에 대한 액션, 순서 고정**: 이동(`알림 규칙`) → 편집(`수정`·설정 다이얼로그) → 파괴(`삭제`·`비활성화`)가 **항상 맨 끝**. `수정 | 삭제`는 붙어 있는 짝이다.
-  - **상태 전환은 툴바가 아니라 `meta` 줄의 상태 바로 옆**이다 — `● 정상 [일시정지]`, `● 수집 가능 [연결 중지]`. 대상을 고치거나 지우는 것과 운영 상태를 켜고 끄는 것은 성격이 달라서, 툴바에 섞어 두면 `수정 | 일시정지 | 삭제`처럼 짝이 끊겼다(2026-09-24). `수집 키 ••• [키 재발급]`처럼 **속성 옆에 그 속성을 바꾸는 액션**을 두는 meta 줄 규칙과 같은 원리다. 버튼은 meta 줄의 다른 액션처럼 `ghost` md, 상태 표시(`StatusLight`)와는 별개 요소다(§5.1 — 상태 표시는 읽기 전용).
+  - **상태 전환은 툴바가 아니라 `meta` 줄의 상태 바로 옆**이다 — `● 정상 [일시정지]`, `● 수집 가능 [연결 중지]`. 대상을 고치거나 지우는 것과 운영 상태를 켜고 끄는 것은 성격이 달라서, 툴바에 섞어 두면 `수정 | 일시정지 | 삭제`처럼 짝이 끊겼다(2026-09-24). `API Key ••• [키 재발급]`처럼 **속성 옆에 그 속성을 바꾸는 액션**을 두는 meta 줄 규칙과 같은 원리다. 버튼은 meta 줄의 다른 액션처럼 `ghost` md, 상태 표시(`StatusLight`)와는 별개 요소다(§5.1 — 상태 표시는 읽기 전용).
   - **툴바 안 버튼은 모두 같은 모양이다** — 테두리 있는 `secondary`, 파괴만 `destructive`(같은 테두리에 빨간 글자), 전부 아이콘 + 라벨. 역할을 `secondary`/`ghost`/`destructive` 모양으로 가르면 한 줄에 놓였을 때 위계가 아니라 들쭉날쭉으로 읽혔다(2026-09-24, *"왜 뭐는 border를 넣고 뭐는 안 넣었어?"*). 위계는 순서와 색으로 말한다 — Primer·Polaris의 danger 버튼도 기본 버튼과 모양이 같다. 테두리 없는 `ghost`는 카드·문장 안의 인라인 액션 전용이다.
   - **좁은 화면(sm 미만)에서는 아이콘만** — 툴바 버튼에 `collapseLabel`을 건다. 라벨은 sr-only로 남아 접근 가능한 이름이 되고 title 툴팁으로도 나온다. 그래서 툴바의 모든 버튼에는 아이콘이 있어야 한다.
-  - 상세의 액션은 **라벨 버튼**이다(sm 이상). 데스크톱에서 아이콘 전용 버튼을 나란히 두지 않는다 — 라벨 없는 아이콘 다섯 개(설치·API 키·계측·비활성화)는 hover 전까지 무엇인지 읽히지 않았다. 모바일의 아이콘만 표시는 공간 때문에 허용한 예외이고, title·sr-only 라벨로 보완한다.
+  - 상세의 액션은 **라벨 버튼**이다(sm 이상). 데스크톱에서 아이콘 전용 버튼을 나란히 두지 않는다 — 라벨 없는 아이콘 다섯 개(설치·API Key·상세 수집 설정·비활성화)는 hover 전까지 무엇인지 읽히지 않았다. 모바일의 아이콘만 표시는 공간 때문에 허용한 예외이고, title·sr-only 라벨로 보완한다.
   - 두 그룹은 양 끝에 둔다. 넘치면 줄이 바뀌어도 액션 그룹은 오른쪽에 붙는다.
-- **대상의 속성은 본문이 아니라 헤더 띠 안에 둔다.** 수집 키·키 재발급·마지막 수집·Project 배정처럼 제목이 가리키는 대상을 설명하는 값은 `PageHeader`의 `meta`에 한 줄로 싣는다(`type-caption`, 라벨 `dim` / 값 `secondary`, `gap-x-5`로 항목 구분). 직접 연결 상세 4종이 이 값들을 본문 최상단에 카드 두 장(`lg:col-span-2` + Project)으로 펼치고 있어서, 정작 그 페이지가 보여줘야 할 로그·차트가 첫 화면 밖으로 밀려났다 — 메타데이터는 읽는 대상이 아니라 확인하는 값이다. 메타 줄 안의 버튼·입력은 다른 줄과 마찬가지로 40px로 맞춘다.
+- **대상의 속성은 본문이 아니라 헤더 띠 안에 둔다.** API Key·키 재발급·마지막 수집·Project 배정처럼 제목이 가리키는 대상을 설명하는 값은 `PageHeader`의 `meta`에 `DetailMeta`로 싣는다. **상태 줄**(`status`, `type-caption`)은 상태 → 수시로 바뀌는 값(마지막 수집·서비스 수) → 상태 전환 버튼 순이고, **속성 목록**(`fields`)은 라벨 좌(`type-body` `dim`, 96px 고정) / 값 우(`type-body` `base`) 행을 `sm` 이상 2열로 둔다. 값을 바꾸는 액션(`키 재발급`·Project `Select`)은 그 값의 행 안에 둔다. 2026-09-24까지는 모든 항목을 12px 한 줄에 흘려서 라벨·값·버튼이 한 문장처럼 읽혔고, 라벨 위/값 아래 그리드도 시안에서 검토했으나 시선이 칸마다 위아래로 오르내려 기각했다 — 속성 몇 개를 확인하는 자리는 좌→우로 읽히는 키-값 행이 맞다. **상세 헤더에는 `subtitle`을 두지 않는다** — `직접 연결한 OpenTelemetry traces 서비스입니다.` 같은 설명은 `허용 신호`·`어댑터` 행을 문장으로 한 번 더 말할 뿐이었다(2026-09-24). 대상의 종류는 `meta`가 말한다. **`fields` 라벨은 개발자가 쓰는 용어 그대로다** — `API Key`·`URL`/`Host`·`Protocol`·`Interval`·`Signals`·`Image`·`Uptime`·`Restarts`·`Version`. `수집 키`·`대상`·`허용 신호`·`어댑터`처럼 기술 용어를 한글로 풀어 쓰지 않는다(2026-09-24 — 모니터링 사용자는 개발자다). 한글이 더 정확한 곳만 한글(`연결 방식`)이고, 값이 늘 같은 행(`출처: 직접 설정`)은 두지 않는다. 직접 연결 상세 4종이 이 값들을 본문 최상단에 카드 두 장(`lg:col-span-2` + Project)으로 펼치고 있어서, 정작 그 페이지가 보여줘야 할 로그·차트가 첫 화면 밖으로 밀려났다 — 메타데이터는 읽는 대상이 아니라 확인하는 값이다. 메타 줄 안의 버튼·입력은 다른 줄과 마찬가지로 40px로 맞춘다.
 - 아이콘 전용 액션은 `IconButton md`(`h-11 w-11 sm:h-10 sm:w-10`)다. `sm`(32px)은 테이블 행·다이얼로그 헤더·입력 안의 지우기처럼 조밀한 맥락에서만 쓴다.
 - **인라인 액션**(문장 속 `필터 초기화`, 카드 안 `트레이스`·`로그 보기` 이동, `새 코드`)은 `Button variant="ghost" size="sm"`이다. 파란 밑줄 텍스트 링크 버튼이나 `primary/5` 틴트 칩(배경·보더·글자 3중)을 손으로 만들지 않는다. 외부 문서로 가는 진짜 `<a>`는 링크 모양을 유지한다.
 - **행·카드 액션은 우측 끝**, 순서는 상태 토글 → 보조(`테스트` 등) → 수정 → 삭제다. 표 행은 `IconButton size="sm"`, 카드는 `ResourceCardHeader`의 `status` 슬롯(우측 상단)에 둔다.
@@ -542,7 +543,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | 종류 | 용도 | 구현 |
 |------|------|------|
 | **ConfirmDialog** | 파괴적 확인 | `components/common/ConfirmDialog` |
-| **모달** | 짧은 단일 작업 (API 키, 서비스 추가) | `features/services/*Modal` |
+| **모달** | 짧은 단일 작업 (API Key, 서비스 추가) | `features/services/*Modal` |
 | **사이드 패널** | 긴 폼·상세 (알림 규칙, 트레이스) | `FormSidePanel` / `SidePanel` / `TracePanel` |
 
 **공통 규약** — z-index `z-50`(SidePanel만 `z-40`), 배경 클릭 닫기.
@@ -616,6 +617,8 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 12. **대상의 상태를 배지로 표시 금지** (§5.1) — 정상/장애/수집 상태는 `StatusLight`(점 + 라벨). 배지는 표 컬럼의 고정 어휘 토큰 전용이다. 배지 안에서도 보더·배경·텍스트 색 3중 적용 금지 — 강조 수단은 택1. *"초등학생 디자인 같다."* `/20` 보더는 대비 1.33~1.64라 보이지도 않으면서 스티커 테두리 느낌만 남긴다
 13. **분류 축을 칩으로 만들지 않기** (§5.3) — 출처·종류 라벨은 배경 없는 `type-caption text-text-muted`. 칩은 상태 전용이다. 중립 칩도 안 되는 이유는 §5.3 참조(`status-idle`과 `text-muted`가 같은 색)
 14. **카드 안에 좌측 기준선 2개 금지** (§4.1) — 부제·본문은 아이콘 거터가 아니라 카드 패딩에 정렬한다
+
+15. **기술 용어를 한글로 번역하지 않기** — 사용자는 개발자다. 업계에서 영어로 부르는 말은 영어 그대로 쓴다(2026-09-24, *"개발자가 쓰는 용어를 쓰라고"*). `API Key`(수집 키·API 키 ✗) · `Docker Collector`(수집기·Agent ✗ — [ADR 0005](../../docs/adr/0005-docker-environment-and-collector-product-terminology.md), 문맥상 분명하면 `Collector`) · `attribute`(속성 ✗) · `Span`(스팬 ✗) · `Endpoint`(엔드포인트 ✗) · `Webhook`·`Bot Token`(웹훅·봇 토큰 ✗) · `URL`/`Host`(대상 ✗). 라벨·제목의 첫 영어 단어는 대문자(`Bot Token`), 문장 안의 일반명사는 소문자(`exporter`). **반대로, 영어로 옮겨도 어색한 OTel 개념어는 하는 일을 한국어로 말한다** — 원어도 번역어도 사용자에게 낯설기 때문이다: signal → `데이터`·`데이터 유형`(`Signals` 라벨은 `수집 데이터`), API tracing → `API 요청 수집`(메뉴명 `API 요청`과 같은 말), trace context propagation → `서비스 간 트레이스 연결`, distributed tracing → `분산 트레이싱`, 헤더·바디 instrumentation 주입 → `상세 수집`(`상세 수집 설정`·`상세 수집 적용 결과`). `계측`·`추적`·`신호`는 쓰지 않는다. 이미 한국어로 굳은 음차(로그·메트릭·트레이스·업타임)와 일반어(응답 시간·임계값·환경 변수·대상 목록)는 그대로 둔다. 외부 서비스 화면의 문구를 인용할 때(Discord의 `새 웹후크`)는 그 화면의 표기를 따른다.
 
 1~3, 12~13은 같은 취향의 계열이다: **색은 데이터와 액션에만, 컨테이너는 중립.**
 

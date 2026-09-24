@@ -35,8 +35,8 @@ const capabilityReasons: Record<string, string> = {
   btf_missing: '커널 BTF 정보가 없습니다',
   docker_required: 'Docker 자동 탐색이 필요합니다',
   observer_not_running: 'eBPF Observer가 실행 중이 아닙니다',
-  automatic_tracing_unavailable: '자동 API 추적을 먼저 사용할 수 있어야 합니다',
-  not_enabled: '고급 분산 추적 옵션이 꺼져 있습니다',
+  automatic_tracing_unavailable: 'API 요청 자동 수집을 먼저 사용할 수 있어야 합니다',
+  not_enabled: '고급 분산 트레이싱 옵션이 꺼져 있습니다',
   kernel_too_old: 'Linux 5.17 이상이 필요합니다',
   kernel_lockdown: '커널 Lockdown 정책이 eBPF 쓰기를 차단합니다',
   lockdown_unknown: '커널 Lockdown 상태를 확인해야 합니다',
@@ -200,7 +200,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
   const traceDetail = capabilityDetail(report?.automaticTracing);
   const propagation = report?.contextPropagation;
   const propagationDetail = propagation
-    ? `분산 추적 전파: ${capabilityLabel(propagation)}${capabilityDetail(propagation) ? ` · ${capabilityDetail(propagation)}` : ''}`
+    ? `서비스 간 트레이스 연결: ${capabilityLabel(propagation)}${capabilityDetail(propagation) ? ` · ${capabilityDetail(propagation)}` : ''}`
     : undefined;
   const host = report
     ? [report.host.os, report.host.kernelVersion && `kernel ${report.host.kernelVersion}`, report.host.arch]
@@ -216,7 +216,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
     ? '컨테이너 상태, stdout 로그와 호스트 메트릭을 수집합니다.'
     : containerCollectionEnabled ? '컨테이너 상태와 stdout 로그를 수집합니다.'
     : infrastructureEnabled ? '호스트 CPU·메모리·디스크를 수집합니다.'
-    : '이 프로필에서는 별도 기본 수집기를 시작하지 않습니다.';
+    : '이 프로필에서는 별도 기본 Collector를 시작하지 않습니다.';
 
   return (
     <section className={`rounded-xl border border-ui-border bg-bg-surface p-4 ${className}`}>
@@ -230,7 +230,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           </div>
           <p className="mt-0.5 type-body text-text-muted">
             {requiredComplete
-              ? '기본 모니터링 설정이 완료됐습니다. 필요할 때 상세 계측을 추가하세요.'
+              ? '기본 모니터링 설정이 완료됐습니다. 필요할 때 상세 수집을 추가하세요.'
               : '위에서 아래 순서로 확인하면 별도 앱 수정 없이 기본 모니터링을 시작할 수 있습니다.'}
           </p>
           <p className="mt-2 type-body text-text-muted">
@@ -251,11 +251,11 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
       <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${compact ? '' : 'xl:grid-cols-4'}`}>
         <SetupStep
           number={1}
-          title="Docker 수집기 연결"
+          title="Docker Collector 연결"
           description="대상 Docker 서버와 EveryUp을 안전하게 연결합니다."
           state={connected ? 'ready' : 'waiting'}
           stateLabel={connected ? '완료' : '설치 필요'}
-          detail={connected ? `Docker 수집기 ${agent.version ? `v${agent.version}` : ''} 연결됨` : '일회용 명령을 서버에서 실행하세요.'}
+          detail={connected ? `Docker Collector ${agent.version ? `v${agent.version}` : ''} 연결됨` : '일회용 명령을 서버에서 실행하세요.'}
           actionLabel={onInstall ? (connected ? '재설치 명령' : '설치 명령') : undefined}
           onAction={onInstall}
         />
@@ -269,22 +269,22 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
         />
         <SetupStep
           number={3}
-          title="자동 API 추적"
-          description="eBPF Observer로 코드 변경 없이 지연시간과 트레이스를 수집합니다."
+          title="API 요청 자동 수집"
+          description="eBPF Observer로 코드 변경 없이 지연 시간과 트레이스를 수집합니다."
           state={tracingState}
           stateLabel={tracingState === 'optional' ? '미선택' : tracingState === 'waiting' ? '첫 요청 대기' : capabilityLabel(report?.automaticTracing)}
           detail={tracingState === 'optional' ? '현재 프로필에서 수집하지 않습니다.' : traceDetail || propagationDetail}
         />
         <SetupStep
           number={4}
-          title="헤더·바디 상세 계측"
+          title="헤더·바디 상세 수집"
           description="Java·Node.js에 OTel을 붙여 요청 진단 정보를 확장합니다."
           state="optional"
           stateLabel="선택 기능"
           detail={injectable.length > 0
             ? `${injectable.length}개 서비스에 안전 적용 가능`
             : services.length > 0 ? '현재 자동 적용 가능한 Java·Node.js 서비스가 없습니다.' : '서비스가 발견되면 적용 대상을 확인합니다.'}
-          actionLabel={injectable.length > 0 && onInstrument ? '상세 계측 설정' : undefined}
+          actionLabel={injectable.length > 0 && onInstrument ? '상세 수집 설정' : undefined}
           onAction={onInstrument}
         />
       </div>
@@ -293,7 +293,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           signals={status?.signals ?? []}
           expected={enabledCapabilities.map(capability => capability === 'api' ? 'traces' : capability)}
           error={statusRequest.error}
-          note={!connected ? '최근 수집기 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
+          note={!connected ? '최근 Collector 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
         />
       </div>
     </section>

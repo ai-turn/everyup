@@ -8,7 +8,7 @@ import { getErrorMessage } from '../../../utils/errors';
 import { useSetupStatus } from '../useSetupStatus';
 import { ReceiptPanel } from './TelemetryReceiptStatus';
 
-const labels: Record<AgentCollectionCapability, string> = { uptime: '컨테이너 상태', logs: '로그', infrastructure: '인프라', api: 'API 추적', metrics: '메트릭' };
+const labels: Record<AgentCollectionCapability, string> = { uptime: '컨테이너 상태', logs: '로그', infrastructure: '인프라', api: 'API 요청', metrics: '메트릭' };
 
 export function ExistingCollectorDialog({ capability, initialAgentId, onView, onClose, onNew, onInstall }: {
   initialAgentId?: string;
@@ -50,7 +50,7 @@ export function ExistingCollectorDialog({ capability, initialAgentId, onView, on
   };
   return <dialog ref={ref} aria-labelledby="existing-collector-title" onCancel={event => { event.preventDefault(); if (!saving) onClose(); }} className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface p-6 ${SCRIM_MODAL_DIALOG}`}>
     <h2 id="existing-collector-title" className="type-card-title text-text-base">{labels[capability]} Docker 연결</h2>
-    <p className="mt-2 text-sm text-text-muted">같은 서버에 수집기가 있다면 기존 연결을 사용하세요. ID·키·수집 이력이 유지됩니다.</p>
+    <p className="mt-2 text-sm text-text-muted">같은 서버에 Collector가 있다면 기존 연결을 사용하세요. ID·키·수집 이력이 유지됩니다.</p>
     {error && <p role="alert" className="mt-3 text-sm text-status-error">{error}</p>}
     {loading ? <p className="mt-4 text-sm text-text-muted">기존 Docker 환경 확인 중...</p> : agents.length > 0 ? <div className="mt-4 space-y-3">
       <label className="block space-y-1.5 text-sm text-text-secondary">사용할 Docker 환경
@@ -59,12 +59,12 @@ export function ExistingCollectorDialog({ capability, initialAgentId, onView, on
         </Select>
       </label>
       {statusError ? <p role="alert" className="text-sm text-status-warn">{statusError}</p> : status ? <>
-        <p className="text-sm text-text-muted">{status.connected ? '최근 수집기 통신 확인됨' : '최근 수집기 통신 없음'} · 현재 선택: {status.profile.capabilities.map(item => labels[item]).join(', ')}</p>
+        <p className="text-sm text-text-muted">{status.connected ? '최근 Collector 통신 확인됨' : '최근 Collector 통신 없음'} · 현재 선택: {status.profile.capabilities.map(item => labels[item]).join(', ')}</p>
         {enabled ? <>
           <p className="text-sm text-text-secondary">이미 선택된 기능입니다. 데이터 수신 기록을 확인하세요.</p>
           <ReceiptPanel signals={status.signals} expected={[capability === 'api' ? 'traces' : capability]} />
           {onView && selected && <Button onClick={() => onView(selected)}>{labels[capability]} 보기</Button>}
-        </> : <p className="text-sm text-text-muted">이 Docker 환경 전체에 기능을 추가합니다. 적용 명령을 서버에서 실행해야 하며, API 추적은 eBPF Observer와 호스트 권한을 추가합니다. 앱 재시작은 필요하지 않습니다.</p>}
+        </> : <p className="text-sm text-text-muted">이 Docker 환경 전체에 기능을 추가합니다. 적용 명령을 서버에서 실행해야 하며, API 요청 수집은 eBPF Observer와 호스트 권한을 추가합니다. 앱 재시작은 필요하지 않습니다.</p>}
         {(!enabled || !status.configApplied || !status.connected) && <Button onClick={() => void apply()} loading={saving}>{enabled ? '설정 적용 명령' : `${labels[capability]} 추가 및 적용 명령`}</Button>}
       </> : <p className="text-sm text-text-muted">수집 설정 확인 중...</p>}
     </div> : <p className="mt-4 text-sm text-text-muted">등록된 Docker 환경이 없습니다.</p>}

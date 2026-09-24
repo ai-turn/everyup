@@ -125,7 +125,7 @@ export function DirectTelemetrySetupDialog({
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-status-healthy/10 text-status-healthy"><MaterialIcon name="check" /></span>
             <div>
               <h3 className="type-card-title text-text-base">{`기존 서비스에 ${capabilityLabel}를 추가했습니다`}</h3>
-              <p className="mt-1 text-sm text-text-muted">{`기존 직접 수집 키에 ${capabilityLabel} 권한을 추가했습니다. 실행 중인 OpenTelemetry 설정은 같은 키를 계속 사용합니다.`}</p>
+              <p className="mt-1 text-sm text-text-muted">{`기존 API Key에 ${capabilityLabel} 권한을 추가했습니다. 실행 중인 OpenTelemetry 설정은 같은 키를 계속 사용합니다.`}</p>
             </div>
           </div>
           <TelemetrySetupGuidance signals={[signal]} />

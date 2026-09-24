@@ -5,7 +5,7 @@
 <h1 align="center">EveryUp</h1>
 
 <p align="center">
-  A self-hosted monitoring dashboard with a lightweight Docker collector.
+  A self-hosted monitoring dashboard with a lightweight Docker Collector.
 </p>
 
 <p align="center">
@@ -38,13 +38,13 @@
 
 EveryUp is a self-hosted tool for monitoring your Docker services in one place.
 Run **Web** once on a dashboard server, then connect each **Docker environment**
-with the lightweight EveryUp Docker collector. There is no large observability
+with the lightweight EveryUp Docker Collector. There is no large observability
 stack to set up.
 
 | Part | What it does | Where it runs |
 | --- | --- | --- |
 | **Web** | Dashboard, users, alert rules, notification channels, history | Your dashboard server |
-| **Docker collector** | Docker discovery, container state, logs, host metrics | Each Docker host you monitor |
+| **Docker Collector** | Docker discovery, container state, logs, host metrics | Each Docker host you monitor |
 
 ## Features
 
@@ -52,12 +52,12 @@ stack to set up.
 
 |  | Feature | Description |
 | :-: | --- | --- |
-| 🟢 | 💓 Health checks | Automatic Docker container discovery, container state and health |
+| 🟢 | 💓 Uptime | Automatic Docker container discovery, container state and health |
 | 🟢 | 🖥️ Infrastructure | Host CPU, memory, disk, and network metrics |
 | 🟢 | 📜 Logs | Container stdout/stderr collection |
 | 🟢 | 🌐 API status | Request status codes (method, path, status) parsed from access logs |
 | 🟢 | 🔔 Notifications | Telegram, Discord, and Slack channels |
-| 🔵 | ⚡ API latency & traces | Automatic eBPF observer — no app changes |
+| 🔵 | ⚡ API latency & traces | Automatic eBPF Observer — no app changes |
 | 🔵 | 🔍 API headers & bodies | OpenTelemetry instrumentation — one app restart |
 
 ## Quick Start
@@ -117,7 +117,7 @@ Name the environment, then choose its collection scope:
 
 - **All** configures uptime, logs, infrastructure, API tracing, and metrics.
 - **Basic** collects Docker service state and logs only.
-- **Custom** installs only the collectors and permissions required for the
+- **Custom** installs only the components and permissions required for the
   capabilities you select.
 
 The connection flow then shows an installation command containing a join code
@@ -129,8 +129,8 @@ during installation.
 
 The installer starts only the components required by the selected collection
 scope. The **All** profile, or a custom profile with API tracing, starts the
-Docker collector together with an isolated OBI eBPF observer. The **Basic**
-profile collects Docker service state and logs without the eBPF observer. Your
+Docker Collector together with an isolated eBPF Observer (OBI). The **Basic**
+profile collects Docker service state and logs without the eBPF Observer. Your
 application Compose file, images, ports, and containers are left unchanged.
 Docker Compose 2.23.1 or newer is required.
 
@@ -144,11 +144,11 @@ Docker installation screen and copy the refreshed command.
 
 Within about 30 seconds the Docker environment shows as online in Web. When
 uptime collection is enabled, the containers on that server appear
-automatically. When API tracing is enabled, the eBPF observer discovers
+automatically. When API tracing is enabled, the eBPF Observer discovers
 container processes automatically, so there is no port list to maintain. If
 something goes wrong, see [Troubleshooting](#troubleshooting).
 
-The Docker environment's **Monitoring setup guide** checks collector connection, baseline
+The Docker environment's **Monitoring setup guide** checks Collector connection, baseline
 collection, and automatic API tracing in order. When Java or Node.js services
 are discovered, the same guide continues into the optional detailed
 header/body instrumentation flow.
@@ -160,17 +160,17 @@ collection history. EveryUp issues a new apply command; run it on the target
 server to enable the capability across that Docker environment.
 
 For a service connected directly through OpenTelemetry, EveryUp keeps the
-existing ID and collection key and adds only the required signal permission.
+existing ID and API Key and adds only the required signal permission.
 Follow the on-screen guidance to update the application or Collector, generate
 data, and confirm receipt.
 
-The setup guide distinguishes collector contact within the last two minutes
+The setup guide distinguishes Collector contact within the last two minutes
 from confirmation that the requested collection scope was applied. EveryUp
 records the first and latest stored receipt for logs, traces, metrics, and
 infrastructure data and refreshes the display every five seconds. A signal is
 shown as **Delayed** after ten minutes without a receipt and **Waiting** until
 the first receipt arrives. These states describe receipt history and do not by
-themselves guarantee that the connection is currently healthy. Older collectors
+themselves guarantee that the connection is currently healthy. Older Collectors
 may remain in the waiting state even while communicating; update them with the
 latest installation command. Receipt history is not backfilled for data stored
 before the database migration.
@@ -192,20 +192,20 @@ a lack of traffic does not trigger rollback.
 
 ## Optional Features
 
-### Automatic eBPF observer: API latency and traces
+### Automatic eBPF Observer: API latency and traces
 
-The default Docker collector reads method, path, and status from access logs. To see real
+The default Docker Collector reads method, path, and status from access logs. To see real
 latency and traces, the bundled Compose file starts `everyup-ebpf` automatically.
 It discovers processes running in Docker/OCI containers, so there is no
 `BEYLA_OPEN_PORT` or application port configuration.
 
 This does not change your app code, Dockerfile, or app containers. On a native
-Linux host, eBPF observes host processes to build traces and the Docker collector
+Linux host, eBPF observes host processes to build traces and the Docker Collector
 attributes each span to the matching Docker service. Docker Desktop has the
 PID-translation limitation, so use app-side OpenTelemetry when automatic service
 attribution is unavailable. Requires Linux kernel 5.8+ with BTF. See
 "Zero-Code Tracing" in [agent/README.md](agent/README.md) for details. The
-observer needs elevated eBPF permissions; remove the `everyup-ebpf` service if
+Observer needs elevated eBPF permissions; remove the `everyup-ebpf` service if
 that is not acceptable. Logs, health, events, and host metrics keep working.
 
 ### OpenTelemetry instrumentation: request/response headers and bodies
@@ -214,11 +214,11 @@ To diagnose why a request failed, use app-side OpenTelemetry instrumentation.
 It requires one app restart, but for Java and Node.js it attaches through a
 Compose override without touching your code or Dockerfile.
 
-In the web UI, open a Docker environment, choose **Detailed API monitoring**,
+In the web UI, open a Docker environment, choose **Detailed collection settings**,
 and run the displayed one-line command on the application server. The `everyup-otel` helper
 generates a `docker-compose.everyup.yml` tailored to the detected Java/Node.js
 runtimes and recreates only those services. It verifies the injected options,
-shared volume, collector network, and container state, automatically restoring the
+shared volume, Collector network, and container state, automatically restoring the
 previous configuration if a check fails.
 
 Automatic body capture is currently available for Node.js. Bodies are masked
@@ -229,9 +229,9 @@ the full setup, see the
 
 ## What Gets Collected
 
-### Default Docker collector
+### Default Docker Collector
 
-Collected with no app changes. The Docker collector mounts the Docker socket and
+Collected with no app changes. The Docker Collector mounts the Docker socket and
 `/hostfs` read-only.
 
 | Data | Source |
@@ -245,11 +245,11 @@ API status codes appear when the app or a proxy writes access logs to
 stdout/stderr. Without access logs, container state, regular logs, and host
 metrics are still collected.
 
-### Automatic eBPF observer in the monitoring bundle
+### Automatic eBPF Observer in the monitoring bundle
 
 | Data | Source |
 | --- | --- |
-| API traces with real latency | `everyup-ebpf` observer (OBI/eBPF) |
+| API traces with real latency | `everyup-ebpf` eBPF Observer (OBI) |
 | method, path, status, duration | Host process observation |
 | Many languages including Go, and HTTPS services | OpenTelemetry eBPF Instrumentation |
 
@@ -259,17 +259,17 @@ metrics are still collected.
 | --- | --- |
 | Request/response headers | `http.*.header.*` span attributes |
 | Request/response bodies | `*_body_masked` span events |
-| App metrics (JVM memory, GC, custom counters) | App OTel -> Docker collector `:4318` |
+| App metrics (JVM memory, GC, custom counters) | App OTel -> Docker Collector `:4318` |
 
 ## Troubleshooting
 
 **The Docker environment does not show as online.**
 `EVERYUP_WEB_BASE_URL` must be a Web address reachable from inside the Docker
-collector container. Even on the same server, `localhost` inside the container
-may point to the collector itself, not Web. Use a Compose service name or a
+Collector container. Even on the same server, `localhost` inside the container
+may point to the Collector itself, not Web. Use a Compose service name or a
 host-reachable IP.
 
-**The Docker collector cannot read the Docker socket.**
+**The Docker Collector cannot read the Docker socket.**
 This is a permission issue. The one-line installer detects the Docker socket
 group ID and writes `EVERYUP_DOCKER_GID` automatically. For a manual deployment,
 set that value to `stat -c '%g' /var/run/docker.sock` and add it through
@@ -279,12 +279,12 @@ narrow socket access in production, use the
 
 **Logs are not showing up.**
 Logs written only to a file inside the container are not visible to Docker, so
-the Docker collector cannot collect them. Write app or proxy logs to stdout/stderr.
+the Docker Collector cannot collect them. Write app or proxy logs to stdout/stderr.
 
 **Backups for production deployments.**
 Back up `/app/data`. If you set `EVERYUP_ENCRYPTION_KEY`, keep that same
 64-char hex key with your deployment secrets. A database backup alone cannot
-restore encrypted Docker collector keys or notification secrets without the key.
+restore encrypted Docker Collector API Keys or notification secrets without the key.
 See the [backup and restore guide](docs/BACKUP_RESTORE.md) for details.
 
 ## Documentation
@@ -292,11 +292,11 @@ See the [backup and restore guide](docs/BACKUP_RESTORE.md) for details.
 | Document | What's inside |
 | --- | --- |
 | [web/README.md](web/README.md) | Web setup, environment variables, API areas, local development |
-| [agent/README.md](agent/README.md) | Docker collector setup, full environment variable reference, Compose settings |
-| [agent/docs/docker-socket-proxy.md](agent/docs/docker-socket-proxy.md) | Stricter Docker socket access for production collector deployments |
-| [agent/docs/web-connected-mode.md](agent/docs/web-connected-mode.md) | How Docker collector enrollment and Web sync work |
+| [agent/README.md](agent/README.md) | Docker Collector setup, full environment variable reference, Compose settings |
+| [agent/docs/docker-socket-proxy.md](agent/docs/docker-socket-proxy.md) | Stricter Docker socket access for production Collector deployments |
+| [agent/docs/web-connected-mode.md](agent/docs/web-connected-mode.md) | How Docker Collector enrollment and Web sync work |
 | [agent/docs/host-metrics.md](agent/docs/host-metrics.md) | Host CPU, memory, disk, and network collection details |
-| [agent/docs/otel-collector.md](agent/docs/otel-collector.md) | Optional OTel collector configuration generated by the Docker collector |
+| [agent/docs/otel-collector.md](agent/docs/otel-collector.md) | Optional OTel Collector configuration generated by the Docker Collector |
 | [docs/NOTIFICATION_SETUP.md](docs/NOTIFICATION_SETUP.md) | Telegram / Discord / Slack channel credentials and configuration ([한국어](docs/NOTIFICATION_SETUP.ko.md)) |
 | [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) | Backing up and restoring the `/app/data` directory ([한국어](docs/BACKUP_RESTORE.ko.md)) |
 | [docs/OTEL_API_INSTRUMENTATION.md](docs/OTEL_API_INSTRUMENTATION.md) | Capturing request/response headers and bodies via OpenTelemetry, per language ([한국어](docs/OTEL_API_INSTRUMENTATION.ko.md)) |
@@ -304,7 +304,7 @@ See the [backup and restore guide](docs/BACKUP_RESTORE.md) for details.
 
 ## Reference
 
-**Networking.** The Docker collector reaches containers and logs through the mounted
+**Networking.** The Docker Collector reaches containers and logs through the mounted
 Docker socket, so it works even from its own Compose project. The cleanest
 setup is to put `everyup-agent` in the same Compose file as the app stack on
 that server.
@@ -317,10 +317,10 @@ web/
   frontend/                # React 19 / Vite dashboard
   docker-compose.yml       # Web-only Compose template
 agent/
-  cmd/                     # Docker collector entrypoint
-  docs/                    # Docker collector deployment and operations notes
+  cmd/                     # Docker Collector entrypoint
+  docs/                    # Docker Collector deployment and operations notes
   instrumentation/         # Bundled app-side OTel helpers
-  docker-compose.yml       # Docker collector Compose template
+  docker-compose.yml       # Docker Collector Compose template
 docs/                      # User docs, backup/restore, notifications, OTel guide
 docker-compose.yml         # root convenience Compose file (Web only)
 ```
@@ -328,12 +328,12 @@ docker-compose.yml         # root convenience Compose file (Web only)
 **Development**
 
 Prerequisites for source development: Docker, pnpm, Go 1.24 for Web, and Go
-1.25 for the Docker collector.
+1.25 for the Docker Collector.
 
 ```bash
 cd web/backend && go test ./...     # backend tests
 cd web/frontend && pnpm build       # frontend build
-cd agent && go test ./...           # Docker collector tests
+cd agent && go test ./...           # Docker Collector tests
 ```
 
 For a disposable Node.js and Java application that exercises instrumentation,

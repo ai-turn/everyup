@@ -97,7 +97,7 @@ function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capa
       <div className="space-y-3 border-t border-ui-border pt-4">
         <p className="type-label text-text-base">새로운 대상</p>
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => { setSelectedId(''); setMode('install'); }}>Docker 수집기 설치</Button>
+          <Button variant="secondary" onClick={() => { setSelectedId(''); setMode('install'); }}>Docker Collector 설치</Button>
           <Button variant="secondary" onClick={() => { setSelectedId(''); setMode('direct'); }}>{capability === 'infrastructure' ? '표준 Collector 연결' : 'OpenTelemetry로 직접 연결'}</Button>
         </div>
       </div>

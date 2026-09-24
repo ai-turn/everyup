@@ -3,7 +3,7 @@ import React from 'react';
 interface PageHeaderProps {
     title: string;
     subtitle?: string;
-    /** 제목이 가리키는 대상의 메타데이터. 헤더 띠 안, 설명 아래에 한 줄로 붙는다. */
+    /** 제목이 가리키는 대상의 메타데이터. 헤더 띠 안, 설명 아래. 상세 화면은 `DetailMeta`를 쓴다. */
     meta?: React.ReactNode;
     children?: React.ReactNode;
 }

@@ -1,6 +1,6 @@
 # EveryUp Docker Collector
 
-The EveryUp Docker collector is the lightweight component that runs on a Docker host you want to
+The EveryUp Docker Collector is the lightweight component that runs on a Docker host you want to
 monitor. It discovers Docker containers automatically, reads stdout/stderr logs,
 collects host metrics, and syncs everything to EveryUp Web. API status codes are
 derived by parsing access-log lines out of the logs it already collects — no
@@ -8,38 +8,38 @@ proxy, no app changes. Request/response headers and bodies are an optional Tier 
 feature delivered by app-side OpenTelemetry instrumentation.
 
 Alert rules, notification channels, and dashboard behavior are configured in Web.
-The Docker collector only collects and forwards data. Its binary, environment
+The Docker Collector only collects and forwards data. Its binary, environment
 variables, storage paths, and compatibility API retain the internal `agent` name.
 
 ## Quick Start
 
 Download the monitoring bundle on the Docker server you want to monitor. It
-contains the regular Docker collector and an isolated OBI eBPF observer. You do not need
+contains the regular Docker Collector and an isolated eBPF Observer (OBI). You do not need
 to add EveryUp settings to each application service. Docker Compose 2.23.1 or
 newer is required because the OBI configuration is embedded in the Compose file.
 
 In EveryUp Web, open **Docker -> Connect Docker**, name the Docker environment, and run the one-line
 installation command shown there on the target server. The command contains a
-join code that expires after ten minutes and works once; the long-lived collector
-key is exchanged directly between the target server and EveryUp Web.
+join code that expires after ten minutes and works once; the long-lived Collector API
+Key is exchanged directly between the target server and EveryUp Web.
 
 The installer validates Linux, Docker Engine, and Docker Compose before using
 the code. It stores the generated bundle in `/opt/everyup-agent/compose.yaml`,
 backs up an existing configuration, and starts both services automatically.
 If the code expires, issue a new one from the installation screen.
 
-The Docker environment should appear online in Web within about 30 seconds. The observer
+The Docker environment should appear online in Web within about 30 seconds. The Observer
 automatically discovers application processes running in Docker/OCI containers;
 there is no application port list to configure.
 
-Web keeps the remaining setup visible as one guided flow: collector connection,
+Web keeps the remaining setup visible as one guided flow: Collector connection,
 baseline collection, automatic API tracing, then optional Java/Node detailed
 instrumentation. Compatibility failures are shown on the relevant step without
 hiding the features that still work.
 
 ## What Works Without App Changes
 
-With only the Docker collector service running, EveryUp can collect:
+With only the Docker Collector service running, EveryUp can collect:
 
 - Container running/stopped state
 - Docker events
@@ -48,14 +48,14 @@ With only the Docker collector service running, EveryUp can collect:
 - Host CPU, memory, disk, and network metrics
 
 The default monitoring bundle additionally collects HTTP/S and gRPC traces with
-real latency through the eBPF observer. If eBPF cannot run on the host, the Docker collector
+real latency through the eBPF Observer. If eBPF cannot run on the host, the Docker Collector
 features above continue working independently.
 
-Your application containers do not need the EveryUp Web URL or Docker collector API key.
+Your application containers do not need the EveryUp Web URL or Docker Collector API Key.
 
 ## Logs And API Requests
 
-The Docker collector reads Docker stdout/stderr and stores those lines as logs in Web. Check
+The Docker Collector reads Docker stdout/stderr and stores those lines as logs in Web. Check
 what it can see with:
 
 ```bash
@@ -75,14 +75,14 @@ spans, which Web projects into the **API** tab. There is no latency in access
 logs, so duration is unknown; an app that emits no access logs simply shows no
 API rows while logs and metrics keep flowing.
 
-For real latency without touching your apps, use the automatic eBPF observer
+For real latency without touching your apps, use the automatic eBPF Observer
 included in the monitoring bundle (below).
 For request/response **headers and bodies**, instrument the app with
-OpenTelemetry pointed at the Docker collector's OTLP gateway (`http://everyup-agent:4318`).
+OpenTelemetry pointed at the Docker Collector's OTLP gateway (`http://everyup-agent:4318`).
 See [docs/OTEL_API_INSTRUMENTATION.md](../docs/OTEL_API_INSTRUMENTATION.md).
 
 If logs are written only to files inside the container, Docker cannot show them
-and the Docker collector cannot collect them in compose-only mode. Configure the application
+and the Docker Collector cannot collect them in compose-only mode. Configure the application
 or reverse proxy to write logs to stdout.
 
 ## Zero-Code Tracing (eBPF, Automatic)
@@ -94,10 +94,10 @@ port configuration, app changes, or service restarts. It captures real SERVER
 spans (method, path, status, **latency**) across supported runtimes, including
 Go and HTTPS traffic.
 
-How it fits together: OBI sends spans to the Docker collector's OTLP gateway, tagged
-`everyup.source=ebpf`. The collector maps each span to a service by the
+How it fits together: OBI sends spans to the Docker Collector's OTLP gateway, tagged
+`everyup.source=ebpf`. The Collector maps each span to a service by the
 instrumented process's PID (via Docker) and renames it accordingly; spans it
-cannot match — host processes, the observer itself, or stale PIDs — are dropped
+cannot match — host processes, the Observer itself, or stale PIDs — are dropped
 so they never appear as phantom services. Services covered by real spans stop
 receiving synthetic access-log spans automatically (no double counting).
 
@@ -106,12 +106,12 @@ Notes:
 - Requires a Linux kernel 5.8+ with BTF (`/sys/kernel/btf/vmlinux` exists).
   Docker Desktop's VM qualifies.
 - `privileged` + `pid: host` are required by this simple eBPF deployment. The
-  elevated observer is kept separate from the regular Docker collector. Remove it if that
+  elevated Observer is kept separate from the regular Docker Collector. Remove it if that
   is not acceptable for your host; everything else keeps working.
 - The default OBI policy does not capture headers or bodies. Use app-side
   OpenTelemetry for the current EveryUp deep-inspection flow (see above).
 - A service freshly (re)started may drop its first seconds of spans until the
-  collector's next PID refresh (one check interval).
+  Collector's next PID refresh (one check interval).
 - OBI is pinned to a tested release in the Compose file. Upgrade it only after
   validating the target kernel and the PID attribution contract.
 
@@ -120,7 +120,7 @@ Notes:
 The default eBPF policy above needs zero changes and captures
 method/path/status/latency. For
 **headers and bodies** the app itself must be instrumented. Java and Node.js
-still require no code or Dockerfile changes: the one-time Docker collector installer also
+still require no code or Dockerfile changes: the one-time Docker Collector installer also
 installs `/usr/local/bin/everyup-otel`.
 
 Open the project in Web, choose **Detailed API monitoring**, enter the path to
@@ -130,11 +130,11 @@ server. The helper:
 - validates Linux, Docker, the base Compose file, target runtimes, and the
   currently running containers before changing anything;
 - creates a shared `everyup-monitoring` network and populates the
-  `everyup-instrumentation` volume from the Docker collector image;
+  `everyup-instrumentation` volume from the Docker Collector image;
 - preserves existing `JAVA_TOOL_OPTIONS` or `NODE_OPTIONS` and writes a managed
   `docker-compose.everyup.yml` next to the original Compose file;
 - recreates only the selected services, then checks health, injection options,
-  the read-only `/everyup` mount, and collector network connectivity;
+  the read-only `/everyup` mount, and Collector network connectivity;
 - automatically restores and recreates the previous configuration if restart
   or verification fails.
 
@@ -149,14 +149,14 @@ sudo everyup-otel rollback ./compose.yml
 
 Notes:
 
-- The Docker collector's telemetry gateway attributes spans to the right service
+- The Docker Collector's telemetry gateway attributes spans to the right service
   automatically; sensitive headers (authorization, cookie, ...) are masked at
   ingest regardless of what you list.
 - Body capture (`EVERYUP_CAPTURE_BODIES`) is Node-only today and masks the
   fields in `EVERYUP_MASKED_BODY_FIELDS` (password, token, ... by default)
   before anything leaves the app. Viewing bodies in the web UI is admin-only
   and audited.
-- The helper attaches the app and Docker collector to the shared `everyup-monitoring`
+- The helper attaches the app and Docker Collector to the shared `everyup-monitoring`
   network so `everyup-agent:4318` resolves without publishing an OTLP port.
 - Existing `JAVA_TOOL_OPTIONS` / `NODE_OPTIONS` values are retained and the
   EveryUp option is appended once.
@@ -164,7 +164,7 @@ Notes:
 
 ## Networking Notes
 
-The Docker collector discovers containers through the mounted Docker socket. It can run in
+The Docker Collector discovers containers through the mounted Docker socket. It can run in
 the same Compose file as your application or in a separate Compose project on the
 same Docker host.
 
@@ -187,10 +187,10 @@ Only the three `yes` rows are required; everything else has a working default.
 
 | Variable | Required | Default | Description |
 | --- | ---: | --- | --- |
-| `TZ` | no | `UTC` | Timezone for the collector's own log lines (e.g. `Asia/Seoul`); synced data always carries zone info regardless |
+| `TZ` | no | `UTC` | Timezone for the Collector's own log lines (e.g. `Asia/Seoul`); synced data always carries zone info regardless |
 | `EVERYUP_AGENT_NAME` | no | `everyup-agent` | Docker environment name |
-| `EVERYUP_SERVICE_NAME` | no | `local-service` | Default service name for the collector's own checks |
-| `EVERYUP_DATA_DIR` | no | `/data` | Where collector state (`agent-state.json`, `audit.jsonl`) is stored |
+| `EVERYUP_SERVICE_NAME` | no | `local-service` | Default service name for the Collector's own checks |
+| `EVERYUP_DATA_DIR` | no | `/data` | Where Collector state (`agent-state.json`, `audit.jsonl`) is stored |
 | `EVERYUP_CHECK_INTERVAL_SECONDS` | no | `30` | Health-check interval |
 | `EVERYUP_HTTP_TIMEOUT_SECONDS` | no | `5` | HTTP request timeout |
 | `EVERYUP_ALERT_COOLDOWN_SECONDS` | no | `300` | Minimum seconds between repeat alerts for the same target |
@@ -222,16 +222,16 @@ days (default 7).
 | `EVERYUP_HOST_MEMORY_PERCENT` | no | `0` | Host memory% alert threshold; `0` disables |
 | `EVERYUP_HOST_DISK_PERCENT` | no | `0` | Host disk% alert threshold; `0` disables |
 
-**OTel collector & telemetry gateway**
+**OTel Collector & telemetry gateway**
 
 | Variable | Required | Default | Description |
 | --- | ---: | --- | --- |
-| `EVERYUP_OTEL_CONFIG_ENABLED` | no | `false` | Generate an OTel collector config on startup |
+| `EVERYUP_OTEL_CONFIG_ENABLED` | no | `false` | Generate an OTel Collector config on startup |
 | `EVERYUP_OTEL_CONFIG_PATH` | no | `/etc/everyup/generated/otel-config.yaml` | Where the generated OTel config is written |
 | `EVERYUP_OTEL_CONF_DIR` | no | `/etc/everyup/conf.d` | Directory scanned for OTel config fragments |
 | `EVERYUP_OTEL_FILELOG_PATHS` | no | | Comma-separated file paths for the OTel filelog receiver |
-| `EVERYUP_TELEMETRY_GATEWAY_ENABLED` | no | `true` | Run the Docker collector's OTLP gateway that forwards telemetry to Web |
-| `EVERYUP_TELEMETRY_GATEWAY_LISTEN_ADDR` | no | `:4318` | Listen address for the Docker collector's OTLP gateway |
+| `EVERYUP_TELEMETRY_GATEWAY_ENABLED` | no | `true` | Run the Docker Collector's OTLP gateway that forwards telemetry to Web |
+| `EVERYUP_TELEMETRY_GATEWAY_LISTEN_ADDR` | no | `:4318` | Listen address for the Docker Collector's OTLP gateway |
 
 **Heartbeat watchdog**
 

@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import {
   Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
-import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, MaterialIcon, PageHeader } from '../../components/common';
+import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader } from '../../components/common';
 import {
   CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, formatAxisValue, getChartTheme,
   gridProps, lineProps, tooltipCursor, xAxisProps, yAxisProps,
@@ -212,15 +212,20 @@ export function UptimeMonitorDetailPage() {
       <PageHeader
         title={monitor.name}
         meta={
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption">
-            {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 자리 (§4.1) */}
-            <span className="inline-flex items-center gap-2">
-              <UptimeMonitorStatusBadge monitor={monitor} />
-              <ActiveToggleButton active={monitor.isActive} disabled={processing} onClick={() => void toggleActive()} />
-            </span>
-            <span className="min-w-0 truncate font-mono text-text-secondary">{target}</span>
-            <span className="text-text-dim">{monitor.type.toUpperCase()} · {monitor.interval}초마다 확인 · 직접 설정</span>
-          </div>
+          <DetailMeta
+            status={
+              <>
+                {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 자리 (§4.1) */}
+                <UptimeMonitorStatusBadge monitor={monitor} />
+                <ActiveToggleButton active={monitor.isActive} disabled={processing} onClick={() => void toggleActive()} />
+              </>
+            }
+            fields={[
+              { label: monitor.type === 'tcp' ? 'Host' : 'URL', value: <span className="truncate font-mono">{target}</span> },
+              { label: 'Protocol', value: monitor.type.toUpperCase() },
+              { label: 'Interval', value: `${monitor.interval}초` },
+            ]}
+          />
         }
       />
       <DetailActionToolbar

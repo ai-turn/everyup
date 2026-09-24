@@ -8,7 +8,7 @@ interface SetupGuideProps {
 const GUIDE_TIPS: Record<SetupGuideProps['type'], string> = {
     telegram: '그룹 채팅의 Chat ID는 마이너스(-)로 시작합니다 (예: -100123456789). 봇을 먼저 그룹에 추가한 후 getUpdates를 확인하세요.',
     discord: '웹후크는 특정 채널에 연결됩니다. 여러 채널에 알림을 보내려면 채널별로 웹후크를 따로 만드세요.',
-    slack: '각 웹훅은 특정 채널에 연결됩니다. 같은 Slack 앱에서 여러 채널용 웹훅을 만들 수 있습니다.',
+    slack: '각 Webhook은 특정 채널에 연결됩니다. 같은 Slack 앱에서 여러 채널용 Webhook을 만들 수 있습니다.',
 };
 
 export function SetupGuide({ type }: SetupGuideProps) {
@@ -19,7 +19,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
         telegram: [
             '텔레그램에서 @BotFather를 검색하세요',
             '/newbot 명령어를 보내고 안내에 따라 봇을 생성하세요',
-            'BotFather가 제공하는 봇 토큰을 복사하세요',
+            'BotFather가 제공하는 Bot Token을 복사하세요',
             '봇에게 아무 메시지를 보낸 후, https://api.telegram.org/bot<TOKEN>/getUpdates 에 접속하여 Chat ID를 확인하세요',
         ],
         discord: [
@@ -30,7 +30,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
         slack: [
             'https://api.slack.com/apps 에서 새 앱을 생성하세요 (또는 기존 앱 선택)',
             '"Incoming Webhooks"로 이동하여 활성화한 후 "Add New Webhook to Workspace"를 클릭하세요',
-            '알림을 보낼 채널을 선택하고, 웹훅 URL을 복사하여 위 입력란에 붙여넣으세요',
+            '알림을 보낼 채널을 선택하고, Webhook URL을 복사하여 위 입력란에 붙여넣으세요',
         ],
     };
 
@@ -49,7 +49,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                     className="text-primary shrink-0"
                 />
                 <span className="text-sm font-medium text-text-secondary flex-1">
-                    API 키는 어떻게 발급받나요?
+                    API Key는 어떻게 발급받나요?
                 </span>
                 <MaterialIcon size={20}
                     name={isOpen ? 'expand_less' : 'expand_more'}

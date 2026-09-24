@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailActionToolbar, PageHeader } from '../../components/common';
+import { Button, DetailActionToolbar, DetailMeta, PageHeader } from '../../components/common';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useSpinAction } from '../../hooks/useSpinAction';
@@ -103,7 +103,7 @@ function ServiceCard({ service, metric, onOpen }: {
 
       <div className="grid grid-cols-3 gap-3 text-sm">
         <div className="min-w-0">
-          <div className="text-xs text-text-dim">응답시간</div>
+          <div className="text-xs text-text-dim">응답 시간</div>
           <div className="font-medium text-text-base truncate">{service.lastLatency ?? '—'}</div>
         </div>
         <div className="min-w-0">
@@ -252,14 +252,19 @@ export function ProjectDetailPage() {
       <PageHeader
         title={agentName}
         meta={
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption">
-            <CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />
-            <span className="text-text-secondary">
-              서비스 {services.length}개 · 정상 {healthy}
-              {!allHealthy && ` · 장애 ${services.length - healthy}`}
-            </span>
-            {agent?.version && <span className="text-text-dim">v{agent.version}</span>}
-          </div>
+          <DetailMeta
+            status={
+              <>
+                <CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />
+                <span aria-hidden="true">·</span>
+                <span>
+                  서비스 {services.length}개 · 정상 {healthy}
+                  {!allHealthy && ` · 장애 ${services.length - healthy}`}
+                </span>
+              </>
+            }
+            fields={agent?.version ? [{ label: 'Version', value: `v${agent.version}` }] : []}
+          />
         }
       />
       <DetailActionToolbar
@@ -270,9 +275,9 @@ export function ProjectDetailPage() {
         }
         actions={agent && (
           <>
-            <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />수집기 설치</Button>
-            <Button collapseLabel variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API 키</Button>
-            <Button collapseLabel variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />계측 설정</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />Collector 설치</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API Key</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />상세 수집 설정</Button>
             <Button collapseLabel variant="destructive" onClick={() => setDeleteConfirm(true)}><MaterialIcon name="delete_outline" />비활성화</Button>
           </>
         )}
@@ -311,7 +316,7 @@ export function ProjectDetailPage() {
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
-          label="가동률 · 30일"
+          label="업타임 · 30일"
           value={uptime30 !== null ? uptime30.toFixed(2) : '—'}
           unit={uptime30 !== null ? '%' : undefined}
         />
@@ -429,7 +434,7 @@ export function ProjectDetailPage() {
         onConfirm={handleConfirmDelete}
         title="Docker 환경 비활성화"
         message={`'${agent?.name ?? agentId}' Docker 환경을 비활성화하시겠습니까?`}
-        description="Docker 수집기 연결이 차단되며 수집 데이터는 보존됩니다."
+        description="Docker Collector 연결이 차단되며 수집 데이터는 보존됩니다."
         confirmLabel="비활성화"
       />
 
