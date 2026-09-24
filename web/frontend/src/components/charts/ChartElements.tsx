@@ -11,7 +11,45 @@ interface ChartTooltipProps {
   labelFormatter?: (label?: string | number) => ReactNode;
 }
 
-/** Grafana풍 스탯 범례 — 트렌드 차트 아래에 시리즈별 Last/Min/Max/Avg를 렌더. */
+const finite = (values: number[]) => values.filter(Number.isFinite);
+const average = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
+
+/**
+ * 단일 시리즈 차트의 요약 — 카드 제목 줄 오른쪽에 `현재 105 · 평균 116 · 최대 149 ms`.
+ * 시리즈가 하나면 제목이 곧 범례라, 차트 아래에 범례 표를 따로 두지 않는다.
+ */
+export function ChartSummary({
+  values,
+  unit,
+  valueFormatter = formatMetricValue,
+}: {
+  values: number[];
+  unit: string;
+  valueFormatter?: (value: number) => string;
+}) {
+  const v = finite(values);
+  if (v.length === 0) return null;
+  const items: [string, number][] = [['현재', v[v.length - 1]], ['평균', average(v)], ['최대', Math.max(...v)]];
+
+  return (
+    <dl className="flex items-baseline gap-4">
+      {items.map(([label, value]) => (
+        <div key={label} className="flex items-baseline gap-1.5">
+          <dt className="type-caption text-text-muted">{label}</dt>
+          <dd className="type-label tabular-nums text-text-base">
+            {valueFormatter(value)}
+            <span className="ml-0.5 type-caption text-text-dim">{unit}</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * 다중 시리즈 범례 겸 통계 — 차트 아래 왼쪽에 붙는 좁은 표. 카드 폭 전체로 펼치면 숫자가
+ * 시리즈 이름에서 멀어져 눈이 행을 따라가지 못했다.
+ */
 export function ChartStatsLegend({
   series,
   unit,
@@ -22,19 +60,18 @@ export function ChartStatsLegend({
   valueFormatter?: (value: number) => string;
 }) {
   const rows = series
-    .map((s) => ({ ...s, values: s.values.filter(Number.isFinite) }))
+    .map((s) => ({ ...s, values: finite(s.values) }))
     .filter((s) => s.values.length > 0);
   if (rows.length === 0) return null;
 
   return (
-    <table className="w-full text-xs">
+    <table className="text-xs">
       <thead>
         <tr className="text-text-dim">
-          <th className="py-0.5 text-left font-medium" />
-          <th className="text-right font-medium">Last</th>
-          <th className="text-right font-medium">Min</th>
-          <th className="text-right font-medium">Max</th>
-          <th className="text-right font-medium">Avg</th>
+          <th className="py-0.5 pr-4 text-left font-normal"><span className="sr-only">시리즈</span></th>
+          {['현재', '최소', '최대', '평균'].map((label) => (
+            <th key={label} className="pl-5 text-right font-normal">{label}</th>
+          ))}
         </tr>
       </thead>
       <tbody>
@@ -43,18 +80,18 @@ export function ChartStatsLegend({
             ['last', s.values[s.values.length - 1]],
             ['min', Math.min(...s.values)],
             ['max', Math.max(...s.values)],
-            ['avg', s.values.reduce((sum, v) => sum + v, 0) / s.values.length],
+            ['avg', average(s.values)],
           ];
           return (
             <tr key={s.label} className="text-text-secondary">
-              <td className="py-0.5">
-                <span className="inline-flex items-center gap-1.5 font-medium">
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
+              <td className="py-0.5 pr-4">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
                   {s.label}
                 </span>
               </td>
               {stats.map(([key, v]) => (
-                <td key={key} className="text-right tabular-nums">
+                <td key={key} className="pl-5 text-right tabular-nums text-text-base">
                   {valueFormatter(v)}
                   <span className="ml-0.5 text-text-dim">{unit}</span>
                 </td>

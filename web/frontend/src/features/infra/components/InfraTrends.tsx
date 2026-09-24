@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { MaterialIcon, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, areaProps, chartCardClass, formatAxisValue,
+  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartSummary, ChartTooltip, areaGradient, areaProps, chartCardClass, formatAxisValue,
   gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
   type ChartTheme,
 } from '../../../components/charts';
@@ -113,12 +113,17 @@ function ChartCard({
   const maxVal = allValues.length > 0 ? Math.max(...allValues) : 0;
   const isEmpty = chart.data.length === 0 || maxVal < 0.001;
   const { rows, gaps } = splitGaps(chart.data);
+  const single = chart.series.length === 1 ? chart.series[0] : null;
+  const gradientId = useId().replace(/[^\w-]/g, '');
 
   return (
     <section className={`overflow-hidden ${chartCardClass}`} aria-label={chart.title}>
-      <div className="flex items-baseline gap-2 px-5 pb-1 pt-5">
-        <p className="truncate text-base text-text-base">{chart.title}</p>
-        <span className="shrink-0 text-xs text-text-dim">{chart.unit}</span>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 pb-1 pt-5">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <p className="truncate text-base text-text-base">{chart.title}</p>
+          <span className="shrink-0 text-xs text-text-dim">{chart.unit}</span>
+        </div>
+        {single && !isEmpty && <ChartSummary values={chart.data.map((p) => Number(p[single.key]))} unit={chart.unit} />}
       </div>
 
       {isEmpty ? (
@@ -143,7 +148,8 @@ function ChartCard({
                   tickFormatter={(value) => formatAxisValue(Number(value), chart.unit)}
                 />
 
-                {rangeAreas(gaps, theme.tickColor, '수집 없음', 0.08)}
+                {single && areaGradient(gradientId, single.color)}
+                {rangeAreas(gaps, theme.tickColor, 0.06)}
                 {thresholdLines(thresholds, theme.errorColor, chart.unit)}
 
                 <Tooltip
@@ -153,9 +159,7 @@ function ChartCard({
                   )}
                 />
 
-                {chart.series.length === 1 && (
-                  <Area {...areaProps(chart.series[0].color)} dataKey={chart.series[0].key} />
-                )}
+                {single && <Area {...areaProps(gradientId)} dataKey={single.key} />}
 
                 {chart.series.map((s) => (
                   <Line key={`${s.key}-line`} {...lineProps(s.color, theme)} dataKey={s.key} name={s.label} />
@@ -164,6 +168,7 @@ function ChartCard({
             </ResponsiveContainer>
           </div>
 
+          {!single && (
           <div className="mt-2 px-3">
             <ChartStatsLegend
               series={chart.series.map((s) => ({
@@ -174,6 +179,7 @@ function ChartCard({
               unit={chart.unit}
             />
           </div>
+          )}
         </div>
       )}
     </section>

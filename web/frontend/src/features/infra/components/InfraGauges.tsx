@@ -1,6 +1,7 @@
+import { useId } from 'react';
 import { Area, ComposedChart, Line, ResponsiveContainer, YAxis } from 'recharts';
 import { StatusLight } from '../../../components/common';
-import { CHART_INITIAL_DIMENSION, areaProps, lineProps, useChartTheme } from '../../../components/charts';
+import { CHART_INITIAL_DIMENSION, areaGradient, areaProps, lineProps, useChartTheme } from '../../../components/charts';
 import { useMonitoringGauges } from '../../../hooks/useInfra';
 import { Skeleton } from '../../../components/skeleton';
 import type { GaugeData } from '../../../types/infra';
@@ -77,13 +78,15 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
 
 function Sparkline({ values }: { values: number[] }) {
   const theme = useChartTheme();
+  const gradientId = useId().replace(/[^\w-]/g, '');
   const data = values.map((v, i) => ({ i, v }));
   return (
     <div className="h-8 w-full" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
         <ComposedChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+          {areaGradient(gradientId, theme.primaryColor)}
           <YAxis hide domain={[0, 'dataMax']} />
-          <Area {...areaProps(theme.primaryColor)} dataKey="v" />
+          <Area {...areaProps(gradientId)} dataKey="v" />
           <Line {...lineProps(theme.primaryColor, theme)} dataKey="v" activeDot={false} />
         </ComposedChart>
       </ResponsiveContainer>

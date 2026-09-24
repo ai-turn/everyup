@@ -242,7 +242,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
                 <CartesianGrid {...gridProps(theme)} />
                 <XAxis {...timeXAxisProps(theme, [shown.at - RANGE_HOURS[range] * 3_600_000, shown.at])} />
                 <YAxis {...yAxisProps(theme, 64)} {...niceYAxis(maxValue)} tickFormatter={value => formatMetricValue(value, unit)} />
-                {rangeAreas(gaps, theme.tickColor, '수신 없음', 0.08)}
+                {rangeAreas(gaps, theme.tickColor, 0.06)}
                 {thresholdLines(thresholds, theme.errorColor, unit === 'By' ? '' : unit)}
                 <Tooltip
                   cursor={tooltipCursor(theme)}
