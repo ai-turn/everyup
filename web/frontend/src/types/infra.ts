@@ -29,8 +29,8 @@ export interface GaugeData {
   percentage: number;
   color: string;
   subtitle: string;
-  trend: string;
-  trendType: 'up' | 'down' | 'stable';
+  /** 최근 추이(비율 지표만) — 카드에 스파크라인으로 그린다. 없으면 용량 막대. */
+  spark?: number[];
   displayValue?: string;
   displayUnit?: string;
 }

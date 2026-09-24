@@ -24,22 +24,6 @@ export function systemInfoToResources(info: SystemInfo): Resource[] {
 // Network gauge uses a 125 MB/s baseline (1 Gbps link) to map throughput → %.
 const NETWORK_FULL_SCALE_MBPS = 125;
 
-// 추세 배지: history(6h)의 앞·뒤 절반 평균을 비교한 상대 변화율(%).
-// 단위에 무관하므로 %·GB·throughput 어떤 series든 방향/크기가 일관된다.
-// 시계열이 없거나(디스크 용량) 변화가 미미하면 빈 값 → 카드에서 배지 숨김.
-function trendFromSeries(series: number[]): Pick<GaugeData, 'trend' | 'trendType'> {
-  const vals = series.filter(Number.isFinite);
-  if (vals.length < 4) return { trend: '', trendType: 'stable' };
-  const mid = Math.floor(vals.length / 2);
-  const mean = (a: number[]) => a.reduce((s, v) => s + v, 0) / a.length;
-  const older = mean(vals.slice(0, mid));
-  const newer = mean(vals.slice(mid));
-  if (older <= 0) return { trend: '', trendType: 'stable' };
-  const pct = ((newer - older) / older) * 100;
-  if (Math.abs(pct) < 1) return { trend: '', trendType: 'stable' };
-  return { trend: `${pct > 0 ? '+' : '-'}${Math.abs(pct).toFixed(1)}%`, trendType: pct > 0 ? 'up' : 'down' };
-}
-
 export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHistory): GaugeData[] {
   const pts = history?.points ?? [];
   const gauges: GaugeData[] = [
@@ -48,23 +32,19 @@ export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHist
       percentage: info.cpu.usage,
       color: SERIES_HEX.primary,
       subtitle: `${info.cpu.cores} Cores Online`,
-      ...trendFromSeries(pts.map((p) => p.cpu)),
+      spark: pts.map((p) => p.cpu),
     },
     {
       label: 'Memory',
       percentage: info.memory.usage,
       color: SERIES_HEX.emerald,
       subtitle: `${info.memory.used} GB / ${info.memory.total} GB`,
-      ...trendFromSeries(pts.map((p) => p.memUsed)),
     },
     {
       label: 'Disk',
       percentage: info.disk.usage,
       color: SERIES_HEX.amber,
       subtitle: `${info.disk.used} GB / ${info.disk.total} GB`,
-      // 디스크 용량%는 history에 시계열이 없어 추세 미산출 (diskRead/Write는 I/O throughput).
-      trend: '',
-      trendType: 'stable',
     },
   ];
 
@@ -80,7 +60,7 @@ export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHist
     subtitle: `In ${formatThroughput(netIn).value} ${formatThroughput(netIn).unit} · Out ${formatThroughput(netOut).value} ${formatThroughput(netOut).unit}`,
     displayValue: value,
     displayUnit: unit,
-    ...trendFromSeries(pts.map((p) => (p.netIn ?? 0) + (p.netOut ?? 0))),
+    spark: pts.map((p) => (p.netIn ?? 0) + (p.netOut ?? 0)),
   });
 
   return gauges;

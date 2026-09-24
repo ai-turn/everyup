@@ -1,13 +1,13 @@
-import { MaterialIcon } from '../../../components/common';
+import { Area, ComposedChart, Line, ResponsiveContainer, YAxis } from 'recharts';
+import { StatusLight } from '../../../components/common';
+import { CHART_INITIAL_DIMENSION, areaProps, lineProps, useChartTheme } from '../../../components/charts';
 import { useMonitoringGauges } from '../../../hooks/useInfra';
 import { Skeleton } from '../../../components/skeleton';
 import type { GaugeData } from '../../../types/infra';
 
-const LOAD_STATE_LABELS: Record<'normal' | 'elevated' | 'critical', string> = {
-  normal: '정상',
-  elevated: '상승',
-  critical: '위험',
-};
+// 부하 임계값: 85% 이상이면 위험. 색은 이 선을 넘은 카드에만 싣는다 —
+// 정상 카드까지 초록·주황으로 칠하면 정작 넘은 카드가 묻힌다.
+const CRITICAL_PCT = 85;
 
 interface InfraGaugesProps {
   hostId: string;
@@ -39,76 +39,58 @@ export function InfraGauges({ hostId, refreshKey = 0 }: InfraGaugesProps) {
 function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
 
   const pct = clampPercent(gauge.percentage);
-  const tone = getGaugeTone(pct);
-  const trend = getTrendTone(gauge.trendType);
+  const critical = pct >= CRITICAL_PCT;
   const displayValue = gauge.displayValue ?? pct;
   const displayUnit = gauge.displayUnit ?? '%';
 
   return (
-    <article className="rounded-xl border border-ui-border bg-bg-surface p-4 shadow-sm">
-      {/* 상단: 레이블 + 추세 배지 */}
-      <div className="flex items-center justify-between gap-2">
+    <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
+      <div className="flex min-h-5 items-center justify-between gap-2">
         <p className="truncate text-xs font-medium uppercase tracking-wider text-text-muted">
           {gauge.label}
         </p>
-        {gauge.trend && (
-          <span className={`inline-flex shrink-0 items-center gap-0.5 rounded text-xs px-1.5 py-0.5 ${trend.soft} ${trend.text}`}>
-            <MaterialIcon size={20} name={trend.icon} />
-            {gauge.trend}
-          </span>
-        )}
+        {critical && <StatusLight tone="error" label="위험" />}
       </div>
 
-      {/* 값 + 단위 + 상태 pill */}
-      <div className="mt-3 flex items-baseline gap-1.5">
-        <span className="text-2xl tracking-tight tabular-nums text-text-base">
+      <div className="mt-2 flex items-baseline gap-1">
+        <span className="text-2xl tracking-tight text-text-base">
           {displayValue}
         </span>
         <span className="text-sm text-text-dim">{displayUnit}</span>
-        <span className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-xs ${tone.soft} ${tone.text}`}>
-          {LOAD_STATE_LABELS[getGaugeState(pct)]}
-        </span>
       </div>
 
-      {/* 가로 프로그레스 바 */}
-      <div className="my-3 h-1.5 overflow-hidden rounded-full bg-ui-hover">
-        <div className={`h-full rounded-full ${tone.bar} transition-all duration-700`} style={{ width: `${pct}%` }} />
+      {/* Rates (CPU·Network) read best as a trend; capacities (Memory·Disk) as fill. */}
+      <div className="my-3 flex h-8 items-center">
+        {gauge.spark && gauge.spark.length > 1 ? (
+          <Sparkline values={gauge.spark} />
+        ) : (
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-ui-hover">
+            <div className={`h-full rounded-full ${critical ? 'bg-status-error' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+          </div>
+        )}
       </div>
 
-      {/* 부가 설명 */}
       <p className="truncate text-xs text-text-dim">{gauge.subtitle}</p>
     </article>
   );
 }
 
+function Sparkline({ values }: { values: number[] }) {
+  const theme = useChartTheme();
+  const data = values.map((v, i) => ({ i, v }));
+  return (
+    <div className="h-8 w-full" aria-hidden="true">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
+        <ComposedChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+          <YAxis hide domain={[0, 'dataMax']} />
+          <Area {...areaProps(theme.primaryColor)} dataKey="v" />
+          <Line {...lineProps(theme.primaryColor, theme)} dataKey="v" activeDot={false} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 function clampPercent(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
-}
-
-// 부하 임계값: 85%+ 위험(red), 60%+ 주의(amber), 그 외 정상(green).
-function getGaugeTone(pct: number) {
-  if (pct >= 85) {
-    return { bar: 'bg-status-error', text: 'text-status-error', soft: 'bg-status-error/10' };
-  }
-  if (pct >= 60) {
-    return { bar: 'bg-status-warn', text: 'text-status-warn', soft: 'bg-status-warn/10' };
-  }
-  return { bar: 'bg-status-healthy', text: 'text-status-healthy', soft: 'bg-status-healthy/10' };
-}
-
-function getGaugeState(pct: number) {
-  if (pct >= 85) return 'critical';
-  if (pct >= 60) return 'elevated';
-  return 'normal';
-}
-
-// 추세 배지는 부하 수준이 아니라 변화 '방향'으로 색을 정한다 (상승=주의, 하락=양호).
-function getTrendTone(trendType: GaugeData['trendType']) {
-  if (trendType === 'up') {
-    return { icon: 'arrow_upward', text: 'text-status-warn', soft: 'bg-status-warn/10' };
-  }
-  if (trendType === 'down') {
-    return { icon: 'arrow_downward', text: 'text-status-healthy', soft: 'bg-status-healthy/10' };
-  }
-  return { icon: 'remove', text: 'text-text-muted', soft: 'bg-ui-hover' };
 }
