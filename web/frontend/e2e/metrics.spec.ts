@@ -14,20 +14,24 @@ test('metric values are scaled to a readable unit before ticks are picked', () =
   expect(metricDisplayUnit('{request}', 3).unit).toBe('');
 });
 
-test('metric list shows one card per service and the picker sits beside the chart', async ({ page }) => {
+test('metric list shows one card per service and the detail shows every metric at once', async ({ page }) => {
   await page.goto('./metrics');
   // The API returns one row per (service, metric); the demo api service exports two.
   await expect(page.getByRole('heading', { level: 3, name: 'api', exact: true })).toHaveCount(1);
   await expect(page.getByText('메트릭 2개')).toBeVisible();
 
   await page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true }).click();
-  const picker = page.getByRole('group', { name: '메트릭' });
-  await picker.getByRole('button', { name: /jvm\.memory\.used/ }).click();
-  await expect(picker.getByRole('button', { name: /jvm\.memory\.used/ })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByRole('heading', { name: 'jvm.memory.used', exact: true })).toBeVisible();
+  const panels = ['http.server.active_requests', 'http.server.request.duration', 'jvm.memory.used'];
+  for (const name of panels) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   await expect(page.getByText('gauge · MB', { exact: true })).toBeVisible();
-
-  await picker.getByRole('button', { name: /http\.server\.request\.duration/ }).click();
   await expect(page.getByText('histogram · 구간 평균 · ms', { exact: true })).toBeVisible();
+
+  // A panel's title opens that metric alone, with the histogram distribution.
+  await page.getByRole('button', { name: 'http.server.request.duration', exact: true }).click();
+  await expect(page).toHaveURL(/metric=http\.server\.request\.duration/);
   await expect(page.getByText('전체 기간 분포', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'jvm.memory.used', exact: true })).toHaveCount(0);
+
+  await page.goBack();
+  for (const name of panels) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
 });
