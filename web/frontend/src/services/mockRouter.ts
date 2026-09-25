@@ -512,8 +512,10 @@ const mockAgentServicesFlat: AgentServiceFlat[] = [
   },
 ];
 
-// Representative OTel metric per service (project cards). Keyed by service name.
+// Latest value per (service, metric), like the backend. The project cards keep
+// the last row per service, so each service's card metric is its last row.
 const mockServiceMetrics: OtelServiceMetric[] = [
+  { serviceName: 'api', metricName: 'http.server.request.duration', metricType: 'histogram', unit: 's', value: 0.042 },
   { serviceName: 'postgres', metricName: 'container.memory.usage', metricType: 'gauge', unit: 'By', value: 268_435_456 },
   { serviceName: 'api', metricName: 'container.cpu.utilization', metricType: 'gauge', unit: '1', value: 0.12 },
   { serviceName: 'payment-worker', metricName: 'queue.messages.pending', metricType: 'gauge', unit: '', value: 1843 },
@@ -1292,14 +1294,14 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (endpoint === '/observed-services/service-metrics') {
     return scenarioObservedServices(scenario)
       .filter(service => service.signals.includes('metrics'))
-      .map(service => ({
+      .flatMap(service => mockOtelMetricNames.map(metric => ({
         serviceId: service.id,
         serviceName: service.name,
-        metricName: 'jvm.memory.used',
-        metricType: 'gauge',
-        unit: 'By',
-        value: 312 * 1024 * 1024,
-      })) as T;
+        metricName: metric.metricName,
+        metricType: metric.metricType,
+        unit: metric.unit,
+        value: metric.metricName === 'jvm.memory.used' ? 312 * 1024 * 1024 : 1,
+      }))) as T;
   }
   const observedLogsMatch = endpoint.match(/^\/observed-services\/([^/]+)\/logs(?:\?|$)/);
   if (observedLogsMatch) {
