@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import {
-  CHART_INITIAL_DIMENSION, ChartLegend, ChartTooltip, SERIES_HEX, areaGradient, areaProps, chartCardClass, fillBuckets,
+  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartLegend, ChartSkeleton, ChartTooltip, SERIES_HEX, areaGradient, areaProps, fillBuckets,
   formatAxisValue, gridProps, lineProps, niceYAxis, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
   type ChartTheme, type TooltipPayloadItem,
 } from '../../../components/charts';
@@ -122,7 +122,7 @@ function ServiceRequestTrends({
   ), [buckets, timeWindow, bucketMs]);
 
   if (loading) {
-    return <div className="h-56 bg-ui-hover rounded-xl animate-pulse" />;
+    return <ChartCard title="요청 추이"><ChartSkeleton /></ChartCard>;
   }
   if (buckets.length === 0) {
     return null; // empty state is handled by the request list below
@@ -158,13 +158,7 @@ function ServiceRequestTrends({
   }[shown];
 
   return (
-    <div className={`p-6 ${chartCardClass}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="type-card-title text-text-base">요청 추이</h3>
-        {!controlledRange && (
-          <TimeRangePicker value={range} onChange={setLocalRange} />
-        )}
-      </div>
+    <ChartCard title="요청 추이" right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
 
       {/* Status-class distribution + top 5xx endpoint (1a 콘솔 prototype) */}
       {summary && (summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther) > 0 && (() => {
@@ -228,7 +222,7 @@ function ServiceRequestTrends({
         <span className="type-caption text-text-dim">{view.caption}</span>
         {view.legend.length > 0 && <ChartLegend items={view.legend} />}
       </div>
-      <ResponsiveContainer width="100%" height={220} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
         <ComposedChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
           {shown === 'error' && areaGradient(gradientId, SERIES_HEX.red)}
           <CartesianGrid {...gridProps(theme)} />
@@ -262,7 +256,7 @@ function ServiceRequestTrends({
           ]}
         </ComposedChart>
       </ResponsiveContainer>
-    </div>
+    </ChartCard>
   );
 }
 

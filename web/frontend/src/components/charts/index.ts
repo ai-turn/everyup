@@ -1,6 +1,6 @@
 export {
   useChartTheme, formatAxisValue, formatMetricValue, CHART_HEIGHT, CHART_STRIP_HEIGHT,
-  CHART_INITIAL_DIMENSION, SERIES_HEX, getSeriesPalette, getSeriesDash, chartCardClass,
+  CHART_INITIAL_DIMENSION, SERIES_HEX, getSeriesPalette, getSeriesDash,
   gridProps, xAxisProps, yAxisProps, tooltipCursor, lineProps, areaProps,
   niceTicks, niceYAxis, timeTicks, timeXAxisProps, formatTimeTick, formatTimeLabel, splitGaps, fillBuckets,
   runRanges,
