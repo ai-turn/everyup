@@ -105,14 +105,14 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
 
   return [
     {
-      title: 'CPU Usage',
+      title: 'CPU',
       unit: '%',
       yMax: 100,
       data,
       series: [{ key: 'cpu', label: 'Usage', color: SERIES_HEX.primary }],
     },
     {
-      title: 'Memory Flow',
+      title: '메모리',
       unit: 'GB',
       data,
       series: [
@@ -121,16 +121,16 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
       ],
     },
     {
-      title: 'Disk I/O',
+      title: '디스크 I/O',
       unit: 'MB/s',
       data,
       series: [
-        { key: 'diskRead', label: 'Read', color: SERIES_HEX.primary },
-        { key: 'diskWrite', label: 'Write', color: SERIES_HEX.amber },
+        { key: 'diskRead', label: '읽기', color: SERIES_HEX.primary },
+        { key: 'diskWrite', label: '쓰기', color: SERIES_HEX.amber },
       ],
     },
     {
-      title: 'Network Traffic',
+      title: '네트워크',
       unit: 'MB/s',
       data,
       series: [

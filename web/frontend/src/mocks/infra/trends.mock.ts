@@ -12,7 +12,7 @@ const makePoints = (count: number, genFn: (i: number) => Record<string, number>)
 
 export const mockCharts: ChartData[] = [
   {
-    title: 'CPU Usage',
+    title: 'CPU',
     unit: '%',
     yMax: 100,
     data: makePoints(12, (i) => ({
@@ -21,7 +21,7 @@ export const mockCharts: ChartData[] = [
     series: [{ key: 'cpu', label: 'Usage', color: SERIES_HEX.primary }],
   },
   {
-    title: 'Memory Flow',
+    title: '메모리',
     unit: 'GB',
     data: makePoints(12, (i) => ({
       memUsed: parseFloat((20 + Math.sin(i * 0.5) * 5 + i * 0.3).toFixed(1)),
@@ -33,19 +33,19 @@ export const mockCharts: ChartData[] = [
     ],
   },
   {
-    title: 'Disk I/O',
+    title: '디스크 I/O',
     unit: 'MB/s',
     data: makePoints(12, (i) => ({
       diskRead: parseFloat((Math.abs(Math.sin(i * 1.2)) * 80 + 10).toFixed(2)),
       diskWrite: parseFloat((Math.abs(Math.cos(i * 0.9)) * 40 + 5).toFixed(2)),
     })),
     series: [
-      { key: 'diskRead', label: 'Read', color: SERIES_HEX.primary },
-      { key: 'diskWrite', label: 'Write', color: SERIES_HEX.amber },
+      { key: 'diskRead', label: '읽기', color: SERIES_HEX.primary },
+      { key: 'diskWrite', label: '쓰기', color: SERIES_HEX.amber },
     ],
   },
   {
-    title: 'Network Traffic',
+    title: '네트워크',
     unit: 'MB/s',
     data: makePoints(12, (i) => ({
       netIn: parseFloat((Math.abs(Math.sin(i * 0.7)) * 24 + 4).toFixed(2)),

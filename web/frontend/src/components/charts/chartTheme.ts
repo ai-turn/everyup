@@ -68,6 +68,10 @@ export function getSeriesDash(index: number): string | undefined {
   return index < 3 ? undefined : DASH_PATTERNS[(index - 3) % DASH_PATTERNS.length];
 }
 
+/** 차트 높이는 두 가지뿐 — 일반 차트, 그리고 목록 위에 붙는 막대 띠(로그 발생량). */
+export const CHART_HEIGHT = 220;
+export const CHART_STRIP_HEIGHT = 120;
+
 /** 차트 카드 공통 클래스 — 패딩(p-4/p-6)은 소비처에서 붙인다. */
 export const chartCardClass =
   'rounded-xl border border-ui-border bg-bg-surface';
