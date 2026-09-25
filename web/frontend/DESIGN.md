@@ -399,11 +399,11 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 1. **제목 + 단위** — 왼쪽. `type-card-title` + `type-caption text-text-dim`. 제목은 한국어, 기술 용어는 영어(`CPU`·`메모리`·`디스크 I/O`·`네트워크`). 메트릭 이름처럼 식별자인 제목만 `font-mono text-sm`
 2. **오른쪽 칸 — 하나만** — 요약(`ChartSummary` 현재·평균·최대, 이미 계산된 값은 `ChartStats`) · 상태(`StatusLight`) + 요약 · 범례 칩(`ChartLegend`) · 기간 선택 중 하나
 3. **지표 타일** — 한 대상의 지표가 여럿이고 동시에 볼 필요가 없을 때만(요청 추이). 인프라는 네 추이를 동시에 보는 편이 낫다고 판단해 2×2를 유지했다
-4. **캡션 줄** — 타일 카드에서만: 단위 · 범례 칩. 메트릭 탐색은 느린 예시 버튼 줄
+4. **캡션 줄** — 타일 카드에서만: 단위 · 범례 칩. 메트릭 탐색은 histogram일 때 분포 줄(아래 "메트릭 탐색")
 5. **차트** — `CHART_HEIGHT` 220px. 목록 위에 붙는 막대 띠(로그 발생량)만 `CHART_STRIP_HEIGHT` 120px
 6. **빈 상태 · 로딩** — `ChartEmpty`("이 기간에 데이터 없음") · `ChartSkeleton`, 둘 다 차트 높이. 예외: 요청 추이는 데이터가 없으면 카드 자체를 숨긴다 — 바로 아래 요청 목록이 수집 설정 안내를 보여 주므로 빈 카드는 소음이다
 
-카드 여백은 `p-6` 하나. 차트 아래 표·설명 문장은 두지 않는다 — 메트릭 탐색의 시리즈 표(이름이 attribute 조합이라 칩에 안 들어간다)와 데이터가 잘렸다는 경고만 예외. 조작 안내("막대를 누르면…")는 `ChartTooltip`의 `footer`로 포인터가 있는 자리에 둔다.
+카드 여백은 `p-6` 하나. 차트 아래 표·설명 문장은 두지 않는다 — 메트릭 탐색의 시리즈 표(시리즈 2개 이상일 때 — 이름이 attribute 조합이라 칩에 안 들어간다)와 데이터가 잘렸다는 경고만 예외. 조작 안내("막대를 누르면…")는 `ChartTooltip`의 `footer`로 포인터가 있는 자리에 둔다.
 
 | export | 역할 |
 |--------|------|
@@ -416,7 +416,7 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 | `lineProps(color, theme)` `areaProps(gradientId)` | 시리즈 |
 | `SERIES_HEX` `getSeriesPalette` | 색 |
 | `ChartCard` `ChartEmpty` `ChartSkeleton` `CHART_HEIGHT` `CHART_STRIP_HEIGHT` | 카드 틀 · 빈 상태 · 로딩 · 높이 |
-| `formatAxisValue` `formatMetricValue` | 포맷 |
+| `formatAxisValue` `formatMetricValue` `metricDisplayUnit` | 포맷 · OTel 단위 → 표시 단위 환산 |
 | `ChartTooltip` `ChartSummary` `ChartStats` `ChartStatsLegend` `ChartLegend` | 툴팁·요약·범례 |
 
 **룩 (Grafana풍 2026-07-10 확정, 2026-09-24 개정)**
@@ -442,10 +442,15 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 **범례**
 - **시리즈 1개** → 범례 없음(제목이 곧 범례). 통계는 카드 제목 줄 오른쪽 `ChartSummary` — `현재 105 · 평균 116 · 최대 149 ms`
-- **시리즈 2개 이상** → 제목 줄 오른쪽 범례 칩(`ChartLegend`). 시리즈별 통계 표(`ChartStatsLegend`)는 메트릭 탐색에만 — 차트 아래 왼쪽에 붙는 좁은 표로. 카드 폭 전체로 펼친 표는 숫자가 시리즈 이름에서 멀어져 읽히지 않았다
+- **시리즈 2개 이상** → 제목 줄 오른쪽 범례 칩(`ChartLegend`). 시리즈별 통계 표(`ChartStatsLegend`)는 메트릭 탐색에서 시리즈가 2개 이상일 때만 — 차트 아래 왼쪽에 붙는 좁은 표로. 1개면 메트릭 탐색도 위의 `ChartSummary`다(`value` 한 줄짜리 표가 붙어 있었다). 카드 폭 전체로 펼친 표는 숫자가 시리즈 이름에서 멀어져 읽히지 않았다
 - 차트 아래에 설명 문장을 붙이지 않는다 — 말해야 할 사실(실패 횟수)은 제목 줄로 올린다
 - 바 차트 헤더 → `ChartLegend` (칩) — 로그 히스토그램은 레벨별 건수를 함께 쓴다. 지표 타일 차트도 시리즈 이름은 차트 위 칩이다(통계는 타일이 맡는다 — 지표를 바꿀 때 아래 표가 생겼다 사라지며 높이가 흔들리지 않게)
 - recharts `<Legend>` **사용 금지**
+
+**메트릭 탐색 (`AgentServiceMetricsTab`, 2026-09-25)** — 한 차트를 보려고 눈이 여섯 곳을 오간다는 피드백(*"정보가 너무 흩어져 있다"*)으로 고쳤다.
+- **메트릭 목록은 차트 왼쪽 레일이다** (`lg` 이상 `17rem` 열, 모바일은 차트 위). 차트 아래 표에서 고르면 화면 밖의 차트가 바뀌었다. 항목은 `aria-pressed` 버튼, 순서는 **이름순** — API는 마지막 수신순이라 새로고침마다 목록이 뒤섞였다. 8개를 넘으면 검색창
+- **값은 표시 단위로 먼저 환산한다** (`metricDisplayUnit`). OTel은 s·By로 보낸다 — 그대로면 `0.05s`와 `95.4MB · 190.7MB` 눈금(10진 nice tick을 2진으로 찍음)이 된다. 환산 후 눈금·통계·툴팁·임계값이 모두 같은 단위이고, 단위는 제목 옆 캡션에만 쓴다(`gauge · MB`). `1`과 `{request}`는 단위가 아니라 비운다
+- **histogram 선은 구간 평균이다** — 캡션에 `histogram · 구간 평균 · ms`라고 쓴다. p50·p95·p99는 전체 기간·전체 시리즈의 분포라 선에서 찾을 수 없는 값이다. 제목 줄에 두면 선과 같은 것을 재는 숫자로 읽혀서, **"전체 기간 분포" 서브블록 한 줄**로 내리고 느린 예시(exemplar) 버튼도 같은 줄에 묶는다
 
 **KPI 게이지 카드 (`InfraGauges`)** — 색은 임계값(85%)을 넘은 카드에만 싣는다. 비율 지표(CPU·Network)는 6시간 스파크라인, 용량 지표(Memory·Disk)는 막대. 추세 배지·상태 pill·색 막대를 한 카드에 겹치지 않는다(§9-12의 3중 강조와 같은 문제).
 
