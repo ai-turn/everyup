@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { Button, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange, IconButton } from '../../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartLegend, ChartTooltip, chartCardClass, fillBuckets, formatTimeTick, gridProps,
+  CHART_INITIAL_DIMENSION, CHART_STRIP_HEIGHT, ChartCard, ChartLegend, ChartTooltip, fillBuckets, formatTimeTick, gridProps,
   niceYAxis, timeXAxisProps, useChartTheme, yAxisProps, type TooltipPayloadItem,
 } from '../../../components/charts';
 import { api, type LogEntry, type LogHistogramBucket, type LogLevel } from '../../../services/api';
@@ -107,20 +107,29 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
   const peak = Math.max(0, ...data.map((b) => LEVEL_BAR.reduce((sum, l) => sum + b[l.key], 0)));
 
   return (
-    <div className={`p-4 ${chartCardClass}`}>
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <ChartLegend items={totals.filter((l) => l.count > 0).map((l) => ({ label: `${l.name} ${l.count.toLocaleString()}`, color: l.color }))} />
-        <span className="type-caption text-text-dim">막대를 누르면 그 구간의 로그만 봅니다</span>
-      </div>
+    <ChartCard
+      title="로그 발생량"
+      unit={`건 / ${bucketMs / 60_000}분`}
+      right={<ChartLegend items={totals.filter((l) => l.count > 0).map((l) => ({ label: `${l.name} ${l.count.toLocaleString()}`, color: l.color }))} />}
+    >
       {/* Recharts' accessibility layer lets arrow keys walk the bars; Enter picks one. */}
       <div onKeyDown={(e) => { if (e.key === 'Enter') pick(); }}>
-        <ResponsiveContainer width="100%" height={110} initialDimension={CHART_INITIAL_DIMENSION}>
+        <ResponsiveContainer width="100%" height={CHART_STRIP_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
           <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} onClick={pick} style={{ cursor: 'pointer' }}>
             <CartesianGrid {...gridProps(theme)} />
             <XAxis {...timeXAxisProps(theme, span)} padding={{ left: 6, right: 6 }} />
             <YAxis {...yAxisProps(theme, 36)} {...niceYAxis(peak)} allowDecimals={false} />
             <Tooltip content={({ active, label, payload }) => (
-              <ChartTooltip active={active} label={label} payload={(payload as TooltipPayloadItem[] | undefined)?.filter((item) => Number(item.value) > 0)} unit="" theme={theme} valueFormatter={(v) => String(v)} />
+              <ChartTooltip
+                active={active}
+                label={label}
+                payload={(payload as TooltipPayloadItem[] | undefined)?.filter((item) => Number(item.value) > 0)}
+                unit="건"
+                theme={theme}
+                valueFormatter={(v) => String(v)}
+                // The hint lives where the pointer already is, not as a sentence under the chart.
+                footer="누르면 이 구간 로그만 봅니다"
+              />
             )} />
             <ActiveBucketSync onChange={syncHovered} />
             {LEVEL_BAR.map((l) => (
@@ -134,7 +143,7 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </ChartCard>
   );
 }
 
