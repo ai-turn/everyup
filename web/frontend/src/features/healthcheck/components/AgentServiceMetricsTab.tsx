@@ -1,26 +1,30 @@
 import { useEffect, useId, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ResponsiveContainer, ComposedChart, Area, Line,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import { Button, MaterialIcon, SearchInput, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSkeleton, ChartStats, ChartStatsLegend, ChartSummary, ChartTooltip,
-  areaGradient, areaProps, formatAxisValue, formatTimeTick, getSeriesPalette, metricDisplayUnit,
+  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSkeleton, ChartStats, ChartStatsLegend, ChartSummary, ChartTooltip,
+  areaGradient, areaProps, formatAxisValue, getSeriesPalette, metricDisplayUnit,
   getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
+import { Skeleton } from '../../../components/skeleton';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
-import { api, type OtelHistogramQuantiles, type OtelMetricName, type OtelMetricPoint } from '../../../services/api';
+import { api, type AlertRule, type OtelHistogramQuantiles, type OtelMetricName, type OtelMetricPoint } from '../../../services/api';
 import { TracePanel } from '../../traces/components/TracePanel';
 
 const MAX_SERIES = 6;
-// Below this the whole list fits at a glance and a search box is noise.
+// Below this the whole grid fits at a glance and a search box is noise.
 const SEARCH_MIN_METRICS = 8;
 // The server caps a point read at 5000 and applies the cap before grouping by
 // attribute series, so a metric with many series silently returns a shorter
 // window than asked for. Asking explicitly lets us say so instead.
 const POINT_LIMIT = 5000;
 const RANGE_HOURS: Record<GlobalTimeRange, number> = { '1h': 1, '6h': 6, '24h': 24 };
+// Metrics don't share row arrays, so the grid's crosshair syncs by time, not index.
+const SYNC_ID = 'otel-metrics';
 
 type MetricSource =
   | { kind: 'agent'; agentId: string; serviceKey: string }
@@ -50,136 +54,65 @@ function seriesLabel(attributes?: Record<string, unknown>): string {
   return entries.map(([key, value]) => `${key.split('.').pop()}=${String(value)}`).join(', ');
 }
 
-// The picker sits beside the chart it drives — below it, a pick changed a chart
-// scrolled out of view.
-function MetricPicker({ names, selected, onSelect }: { names: OtelMetricName[]; selected: string; onSelect: (name: string) => void }) {
-  const [query, setQuery] = useState('');
-  const visibleNames = names.filter(item => item.metricName.includes(query.trim()));
-  return (
-    <aside className="rounded-xl border border-ui-border bg-bg-surface p-4">
-      <div className="mb-3 flex items-baseline justify-between gap-2">
-        <h3 className="type-card-title text-text-base">메트릭</h3>
-        <span className="type-caption text-text-dim">{names.length}</span>
-      </div>
-      {names.length > SEARCH_MIN_METRICS && (
-        <SearchInput
-          value={query}
-          onChange={event => setQuery(event.target.value)}
-          placeholder="이름으로 찾기"
-          aria-label="메트릭 이름으로 찾기"
-          wrapperClassName="mb-2"
-        />
-      )}
-      <div role="group" aria-label="메트릭" className="max-h-64 space-y-0.5 overflow-y-auto lg:max-h-[32rem]">
-        {visibleNames.map(name => {
-          const active = name.metricName === selected;
-          return (
-            <button
-              key={`${name.metricName}:${name.metricType}`}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onSelect(name.metricName)}
-              className={`block w-full rounded-md px-2.5 py-2 text-left transition-colors ${active ? 'bg-primary/5' : 'hover:bg-ui-hover-soft'}`}
-            >
-              <span className={`block break-all font-mono text-xs ${active ? 'font-medium text-primary' : 'text-text-secondary'}`}>{name.metricName}</span>
-              <span className="mt-0.5 flex justify-between gap-2 type-caption text-text-dim">
-                <span>{name.metricType}</span>
-                <span>{formatTimeTick(Date.parse(name.lastAt))}</span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </aside>
-  );
-}
-
-function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { source: MetricSource }) {
-  const [names, setNames] = useState<OtelMetricName[]>([]);
-  const [namesLoading, setNamesLoading] = useState(true);
-  const [selected, setSelected] = useState('');
+/**
+ * One metric's chart. In the grid it is a compact panel whose title opens it;
+ * opened, it adds the distribution line, slow examples and per-series stats.
+ */
+function MetricChart({ source, meta, range, refreshKey, rules, expanded = false, onExpand, showTooltip, onHover }: CommonProps & {
+  source: MetricSource;
+  meta: OtelMetricName;
+  rules: AlertRule[];
+  expanded?: boolean;
+  onExpand?: () => void;
+  showTooltip: boolean;
+  onHover?: (name: string | null) => void;
+}) {
+  const name = meta.metricName;
   const [points, setPoints] = useState<OtelMetricPoint[]>([]);
-  // Which metric/range the current points belong to, and when they were read.
-  // A refresh of the same view keeps the chart; only a different view shows the skeleton.
-  const [shown, setShown] = useState({ view: '', at: 0 });
-  const [pointsLoading, setPointsLoading] = useState(false);
+  // Which range the current points belong to, and when they were read. A refresh
+  // keeps the chart; only the first load or a new range shows the skeleton.
+  const [shown, setShown] = useState<{ range: GlobalTimeRange | null; at: number }>({ range: null, at: 0 });
   const [quantiles, setQuantiles] = useState<OtelHistogramQuantiles | null>(null);
   const [activeTraceId, setActiveTraceId] = useState<string | null>(null);
 
   const agentId = source.kind === 'agent' ? source.agentId : '';
   const serviceKey = source.kind === 'agent' ? source.serviceKey : '';
   const observedServiceId = source.kind === 'direct' ? source.observedServiceId : '';
+  const histogram = meta.metricType === 'histogram';
 
+  // ponytail: one points read per panel. Dozens of metrics mean dozens of reads;
+  // load panels as they scroll into view, or add a batch endpoint, if that bites.
   useEffect(() => {
     // A refresh can overlap the previous read; only the newest may land.
     let cancelled = false;
-    const loadNames = async () => {
-      setNamesLoading(true);
-      try {
-        const loaded = source.kind === 'agent'
-          ? await api.getAgentServiceOtelMetricNames(agentId, serviceKey)
-          : await api.getObservedServiceOtelMetricNames(observedServiceId);
-        if (cancelled) return;
-        // The API orders by last received, which reshuffles the list on every
-        // refresh. By name it stays put and prefixes (http.*, jvm.*) group.
-        const list = [...loaded].sort((a, b) => a.metricName.localeCompare(b.metricName));
-        setNames(list);
-        setSelected(previous => list.some(item => item.metricName === previous) ? previous : (list[0]?.metricName ?? ''));
-      } catch {
-        if (cancelled) return;
-        setNames([]);
-        setSelected('');
-      } finally {
-        if (!cancelled) setNamesLoading(false);
-      }
-    };
-    void loadNames();
-    return () => { cancelled = true; };
-  }, [source.kind, agentId, serviceKey, observedServiceId, refreshKey]);
-
-  useEffect(() => {
-    if (!selected) return;
-    // Switching metrics starts a second read while the first is in flight; a
-    // late response for the old metric must not land on the new one.
-    let cancelled = false;
     const loadPoints = async () => {
-      setPointsLoading(true);
       const from = new Date(Date.now() - RANGE_HOURS[range] * 3_600_000).toISOString();
       try {
         const loaded = source.kind === 'agent'
-          ? await api.getAgentServiceOtelMetricPoints(agentId, serviceKey, { name: selected, from, limit: POINT_LIMIT })
-          : await api.getObservedServiceOtelMetricPoints(observedServiceId, { name: selected, from, limit: POINT_LIMIT });
+          ? await api.getAgentServiceOtelMetricPoints(agentId, serviceKey, { name, from, limit: POINT_LIMIT })
+          : await api.getObservedServiceOtelMetricPoints(observedServiceId, { name, from, limit: POINT_LIMIT });
         if (!cancelled) setPoints(loaded);
       } catch {
         if (!cancelled) setPoints([]);
       } finally {
-        if (!cancelled) setShown({ view: `${selected}|${range}`, at: Date.now() });
-        // Guarded on purpose: a cancelled read clearing the flag would hide the
-        // skeleton while its replacement is still in flight. The replacement
-        // owns the flag, and `selected` is only empty when no metric exists at
-        // all, where the empty state renders instead of the chart.
-        if (!cancelled) setPointsLoading(false);
+        if (!cancelled) setShown({ range, at: Date.now() });
       }
     };
     void loadPoints();
     return () => { cancelled = true; };
-  }, [source.kind, agentId, serviceKey, observedServiceId, selected, range, refreshKey]);
+  }, [source.kind, agentId, serviceKey, observedServiceId, name, range, refreshKey]);
 
   // Histograms are stored as an average plus their bucket vector; the buckets
-  // are what makes the tail visible, so fetch the recovered distribution.
+  // are what makes the tail visible, so the opened view fetches the distribution.
   useEffect(() => {
-    const meta = names.find(item => item.metricName === selected);
-    if (!selected || meta?.metricType !== 'histogram') {
-      setQuantiles(null);
-      return;
-    }
+    if (!expanded || !histogram) return;
     let cancelled = false;
     const loadQuantiles = async () => {
       const from = new Date(Date.now() - RANGE_HOURS[range] * 3_600_000).toISOString();
       try {
         const loaded = source.kind === 'agent'
-          ? await api.getAgentServiceOtelMetricQuantiles(agentId, serviceKey, { name: selected, from })
-          : await api.getObservedServiceOtelMetricQuantiles(observedServiceId, { name: selected, from });
+          ? await api.getAgentServiceOtelMetricQuantiles(agentId, serviceKey, { name, from })
+          : await api.getObservedServiceOtelMetricQuantiles(observedServiceId, { name, from });
         if (!cancelled) setQuantiles(loaded);
       } catch {
         if (!cancelled) setQuantiles(null);
@@ -187,12 +120,10 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
     };
     void loadQuantiles();
     return () => { cancelled = true; };
-  }, [source.kind, agentId, serviceKey, observedServiceId, selected, range, refreshKey, names]);
+  }, [source.kind, agentId, serviceKey, observedServiceId, name, range, refreshKey, expanded, histogram]);
 
-  const selectedMeta = names.find(item => item.metricName === selected);
-  const rawUnit = selectedMeta?.unit ?? '';
   const { chartData, seriesKeys, truncatedSeries, gaps, display } = useMemo(() => {
-    const display = metricDisplayUnit(rawUnit, Math.max(0, ...points.map(point => Math.abs(point.value))));
+    const display = metricDisplayUnit(meta.unit ?? '', Math.max(0, ...points.map(point => Math.abs(point.value))));
     const keys: string[] = [];
     for (const point of points) {
       const label = seriesLabel(point.attributes);
@@ -221,82 +152,78 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
       gaps: split.gaps,
       display,
     };
-  }, [points, rawUnit]);
+  }, [points, meta.unit]);
 
   const theme = useChartTheme();
   const gradientId = useId().replace(/[^\w-]/g, '');
   const seriesColors = getSeriesPalette(theme);
-  const rules = useAlertThresholds(
-    source.kind === 'direct' ? { kind: 'direct', serviceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey },
-    'otel_metric',
-    selected,
-  );
   // Rules are written in the raw OTel unit; the chart is drawn in the display unit.
   const thresholds = rules.map(rule => ({ ...rule, threshold: Number((rule.threshold * display.factor).toPrecision(12)) }));
   const maxValue = Math.max(0, ...thresholds.map(rule => rule.threshold), ...chartData.flatMap(row => seriesKeys.map(key => row[key]).filter(Number.isFinite)));
   const { unit, factor } = display;
   const single = seriesKeys.length === 1;
+  const hasData = chartData.length > 0;
 
-  if (namesLoading) return <div className="h-64 animate-pulse rounded-xl bg-ui-hover" />;
-  if (names.length === 0) {
-    return (
-      <div className="rounded-xl border border-ui-border bg-bg-surface p-8 text-center">
-        <p className="text-sm text-text-muted">수신한 메트릭이 없습니다. OpenTelemetry SDK가 메트릭을 보내면 여기에 표시됩니다.</p>
-      </div>
-    );
-  }
+  // One series: its numbers sit in the title row. Several: their names, as chips —
+  // the opened view has room for a per-series stats table instead.
+  const right = !hasData ? null
+    : single ? <ChartSummary values={chartData.map(row => row[seriesKeys[0]])} unit={unit} valueFormatter={formatValue} />
+    : expanded ? null
+    : <ChartLegend items={seriesKeys.map((key, index) => ({ label: key, color: seriesColors[index % seriesColors.length] }))} />;
 
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[17rem_minmax(0,1fr)]">
-      <MetricPicker names={names} selected={selected} onSelect={setSelected} />
+    <ChartCard
+      title={expanded ? name : (
+        <button type="button" onClick={onExpand} title="크게 보기" className="block max-w-full truncate text-left underline-offset-4 hover:text-primary hover:underline">
+          {name}
+        </button>
+      )}
+      // A metric name is an identifier, so it reads in mono like other code.
+      titleClassName="font-mono text-sm"
+      // A histogram is stored as each export's average, so that is what the line is.
+      unit={[meta.metricType, histogram && '구간 평균', unit].filter(Boolean).join(' · ')}
+      right={right}
+    >
+      {/* Quantiles cover the whole window and every series, so they get their own
+          labelled line instead of sitting beside the averages in the title row. */}
+      {expanded && quantiles && (
+        <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md border border-ui-border bg-ui-hover-soft px-3 py-1.5">
+          <span className="type-caption text-text-muted">전체 기간 분포</span>
+          <ChartStats items={[
+            { label: 'p50', value: formatValue(quantiles.p50 * factor), unit },
+            { label: 'p95', value: formatValue(quantiles.p95 * factor), unit },
+            { label: 'p99', value: formatValue(quantiles.p99 * factor), unit },
+            { label: '표본', value: quantiles.count.toLocaleString(), unit: '건' },
+          ]} />
+          {quantiles.exemplars && quantiles.exemplars.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="type-caption text-text-muted">느린 예시</span>
+              {quantiles.exemplars.map(exemplar => (
+                <Button
+                  key={exemplar.traceId}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveTraceId(exemplar.traceId)}
+                  title={`${exemplar.traceId} 트레이스 열기`}
+                >
+                  <MaterialIcon name="timeline" />
+                  {formatValue(exemplar.value * factor)}{unit}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-      <ChartCard
-        title={selected}
-        // A metric name is an identifier, so it reads in mono like other code.
-        titleClassName="font-mono text-sm"
-        // A histogram is stored as each export's average, so that is what the line is.
-        unit={selectedMeta ? [selectedMeta.metricType, selectedMeta.metricType === 'histogram' && '구간 평균', unit].filter(Boolean).join(' · ') : undefined}
-        right={single && <ChartSummary values={chartData.map(row => row[seriesKeys[0]])} unit={unit} valueFormatter={formatValue} />}
-      >
-        {/* Quantiles cover the whole window and every series, so they get their own
-            labelled line instead of sitting beside the averages in the title row. */}
-        {quantiles && (
-          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md border border-ui-border bg-ui-hover-soft px-3 py-1.5">
-            <span className="type-caption text-text-muted">전체 기간 분포</span>
-            <ChartStats items={[
-              { label: 'p50', value: formatValue(quantiles.p50 * factor), unit },
-              { label: 'p95', value: formatValue(quantiles.p95 * factor), unit },
-              { label: 'p99', value: formatValue(quantiles.p99 * factor), unit },
-              { label: '표본', value: quantiles.count.toLocaleString(), unit: '건' },
-            ]} />
-            {quantiles.exemplars && quantiles.exemplars.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1">
-                <span className="type-caption text-text-muted">느린 예시</span>
-                {quantiles.exemplars.map(exemplar => (
-                  <Button
-                    key={exemplar.traceId}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setActiveTraceId(exemplar.traceId)}
-                    title={`${exemplar.traceId} 트레이스 열기`}
-                  >
-                    <MaterialIcon name="timeline" />
-                    {formatValue(exemplar.value * factor)}{unit}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {pointsLoading && shown.view !== `${selected}|${range}` ? (
-          <ChartSkeleton />
-        ) : chartData.length === 0 ? (
-          <ChartEmpty />
-        ) : (
-          <>
-            <ResponsiveContainer width="100%" height={CHART_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
-              <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+      {shown.range !== range ? (
+        <ChartSkeleton />
+      ) : !hasData ? (
+        <ChartEmpty />
+      ) : (
+        <>
+          <div onMouseEnter={() => onHover?.(name)} onMouseLeave={() => onHover?.(null)}>
+            <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
+              <ComposedChart data={chartData} syncId={expanded ? undefined : SYNC_ID} syncMethod="value" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 {single && areaGradient(gradientId, seriesColors[0])}
                 <CartesianGrid {...gridProps(theme)} />
                 <XAxis {...timeXAxisProps(theme, [shown.at - RANGE_HOURS[range] * 3_600_000, shown.at])} />
@@ -305,7 +232,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
                 {thresholdLines(thresholds, theme.errorColor, unit)}
                 <Tooltip
                   cursor={tooltipCursor(theme)}
-                  content={({ active, label, payload }) => (
+                  content={({ active, label, payload }) => showTooltip && (
                     <ChartTooltip
                       active={active}
                       label={label}
@@ -322,27 +249,152 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
                 ))}
               </ComposedChart>
             </ResponsiveContainer>
-            {/* One series: the title row already carries its summary (ChartSummary). */}
-            {!single && (
-              <div className="mt-2">
-                <ChartStatsLegend
-                  series={seriesKeys.map((key, index) => ({
-                    label: key,
-                    color: seriesColors[index % seriesColors.length],
-                    values: chartData.map(row => Number(row[key])),
-                  }))}
-                  unit={unit}
-                  valueFormatter={formatValue}
-                />
-              </div>
-            )}
-            {truncatedSeries > 0 && <p className="mt-2 type-body text-text-muted">{`Attribute 조합이 많아 상위 ${MAX_SERIES}개 시리즈만 표시합니다. (+${truncatedSeries}개 생략)`}</p>}
-            {points.length >= POINT_LIMIT && <p className="mt-2 type-body text-text-muted">{`데이터 포인트가 상한(${POINT_LIMIT.toLocaleString()}개)에 도달해 최근 구간만 표시합니다. 시간 범위를 좁히면 전체가 보입니다.`}</p>}
-          </>
-        )}
-      </ChartCard>
+          </div>
+          {expanded && !single && (
+            <div className="mt-2">
+              <ChartStatsLegend
+                series={seriesKeys.map((key, index) => ({
+                  label: key,
+                  color: seriesColors[index % seriesColors.length],
+                  values: chartData.map(row => Number(row[key])),
+                }))}
+                unit={unit}
+                valueFormatter={formatValue}
+              />
+            </div>
+          )}
+          {truncatedSeries > 0 && <p className="mt-2 type-body text-text-muted">{`Attribute 조합이 많아 상위 ${MAX_SERIES}개 시리즈만 표시합니다. (+${truncatedSeries}개 생략)`}</p>}
+          {points.length >= POINT_LIMIT && <p className="mt-2 type-body text-text-muted">{`데이터 포인트가 상한(${POINT_LIMIT.toLocaleString()}개)에 도달해 최근 구간만 표시합니다. 시간 범위를 좁히면 전체가 보입니다.`}</p>}
+        </>
+      )}
 
       {activeTraceId && <TracePanel traceId={activeTraceId} target={source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }} onClose={() => setActiveTraceId(null)} />}
+    </ChartCard>
+  );
+}
+
+/**
+ * Every metric at once, as a grid of panels sharing a crosshair — like a
+ * Grafana dashboard. A panel's title opens that metric alone (`?metric=`), so
+ * the browser's back button returns to the grid.
+ */
+function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { source: MetricSource }) {
+  const [names, setNames] = useState<OtelMetricName[]>([]);
+  const [namesLoading, setNamesLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  // Panels share a crosshair (syncId); only the hovered one shows its tooltip box.
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [params, setParams] = useSearchParams();
+
+  const agentId = source.kind === 'agent' ? source.agentId : '';
+  const serviceKey = source.kind === 'agent' ? source.serviceKey : '';
+  const observedServiceId = source.kind === 'direct' ? source.observedServiceId : '';
+
+  useEffect(() => {
+    // A refresh can overlap the previous read; only the newest may land.
+    let cancelled = false;
+    const loadNames = async () => {
+      setNamesLoading(true);
+      try {
+        const loaded = source.kind === 'agent'
+          ? await api.getAgentServiceOtelMetricNames(agentId, serviceKey)
+          : await api.getObservedServiceOtelMetricNames(observedServiceId);
+        // The API orders by last received, which reshuffles the grid on every
+        // refresh. By name it stays put and prefixes (http.*, jvm.*) group.
+        if (!cancelled) setNames([...loaded].sort((a, b) => a.metricName.localeCompare(b.metricName)));
+      } catch {
+        if (!cancelled) setNames([]);
+      } finally {
+        if (!cancelled) setNamesLoading(false);
+      }
+    };
+    void loadNames();
+    return () => { cancelled = true; };
+  }, [source.kind, agentId, serviceKey, observedServiceId, refreshKey]);
+
+  // One rules read for every panel; each panel takes the rules for its metric.
+  const rules = useAlertThresholds(
+    source.kind === 'direct' ? { kind: 'direct', serviceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey },
+    'otel_metric',
+  );
+  const rulesFor = (name: string) => rules.filter(rule => rule.metricName === name);
+
+  const openMetric = (name: string) => setParams(previous => {
+    const next = new URLSearchParams(previous);
+    next.set('metric', name);
+    return next;
+  });
+  // Replace rather than push, so the browser's back button doesn't reopen the metric.
+  const closeMetric = () => setParams(previous => {
+    const next = new URLSearchParams(previous);
+    next.delete('metric');
+    return next;
+  }, { replace: true });
+
+  if (namesLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {[1, 2, 3, 4].map(item => <Skeleton key={item} className="h-80 w-full rounded-xl" />)}
+      </div>
+    );
+  }
+  if (names.length === 0) {
+    return (
+      <div className="rounded-xl border border-ui-border bg-bg-surface p-8 text-center">
+        <p className="text-sm text-text-muted">수신한 메트릭이 없습니다. OpenTelemetry SDK가 메트릭을 보내면 여기에 표시됩니다.</p>
+      </div>
+    );
+  }
+
+  const opened = names.find(item => item.metricName === params.get('metric'));
+  if (opened) {
+    return (
+      <div className="space-y-3">
+        <Button variant="ghost" size="sm" onClick={closeMetric}><MaterialIcon name="arrow_back" />전체 메트릭</Button>
+        <MetricChart
+          source={source}
+          meta={opened}
+          range={range}
+          refreshKey={refreshKey}
+          rules={rulesFor(opened.metricName)}
+          expanded
+          showTooltip
+        />
+      </div>
+    );
+  }
+
+  const visible = names.filter(item => item.metricName.includes(query.trim()));
+  return (
+    <div>
+      {names.length > SEARCH_MIN_METRICS && (
+        <SearchInput
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+          placeholder="메트릭 이름으로 찾기"
+          aria-label="메트릭 이름으로 찾기"
+          wrapperClassName="mb-4 sm:w-72"
+        />
+      )}
+      {visible.length === 0 ? (
+        <p className="type-body text-text-muted">{`'${query.trim()}'와 일치하는 메트릭이 없습니다.`}</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {visible.map(meta => (
+            <MetricChart
+              key={`${meta.metricName}:${meta.metricType}`}
+              source={source}
+              meta={meta}
+              range={range}
+              refreshKey={refreshKey}
+              rules={rulesFor(meta.metricName)}
+              onExpand={() => openMetric(meta.metricName)}
+              showTooltip={hovered === meta.metricName}
+              onHover={setHovered}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
