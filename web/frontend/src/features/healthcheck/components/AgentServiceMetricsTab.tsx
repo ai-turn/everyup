@@ -50,11 +50,54 @@ function seriesLabel(attributes?: Record<string, unknown>): string {
   return entries.map(([key, value]) => `${key.split('.').pop()}=${String(value)}`).join(', ');
 }
 
+// The picker sits beside the chart it drives — below it, a pick changed a chart
+// scrolled out of view.
+function MetricPicker({ names, selected, onSelect }: { names: OtelMetricName[]; selected: string; onSelect: (name: string) => void }) {
+  const [query, setQuery] = useState('');
+  const visibleNames = names.filter(item => item.metricName.includes(query.trim()));
+  return (
+    <aside className="rounded-xl border border-ui-border bg-bg-surface p-4">
+      <div className="mb-3 flex items-baseline justify-between gap-2">
+        <h3 className="type-card-title text-text-base">메트릭</h3>
+        <span className="type-caption text-text-dim">{names.length}</span>
+      </div>
+      {names.length > SEARCH_MIN_METRICS && (
+        <SearchInput
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+          placeholder="이름으로 찾기"
+          aria-label="메트릭 이름으로 찾기"
+          wrapperClassName="mb-2"
+        />
+      )}
+      <div role="group" aria-label="메트릭" className="max-h-64 space-y-0.5 overflow-y-auto lg:max-h-[32rem]">
+        {visibleNames.map(name => {
+          const active = name.metricName === selected;
+          return (
+            <button
+              key={`${name.metricName}:${name.metricType}`}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onSelect(name.metricName)}
+              className={`block w-full rounded-md px-2.5 py-2 text-left transition-colors ${active ? 'bg-primary/5' : 'hover:bg-ui-hover-soft'}`}
+            >
+              <span className={`block break-all font-mono text-xs ${active ? 'font-medium text-primary' : 'text-text-secondary'}`}>{name.metricName}</span>
+              <span className="mt-0.5 flex justify-between gap-2 type-caption text-text-dim">
+                <span>{name.metricType}</span>
+                <span>{formatTimeTick(Date.parse(name.lastAt))}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </aside>
+  );
+}
+
 function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { source: MetricSource }) {
   const [names, setNames] = useState<OtelMetricName[]>([]);
   const [namesLoading, setNamesLoading] = useState(true);
   const [selected, setSelected] = useState('');
-  const [query, setQuery] = useState('');
   const [points, setPoints] = useState<OtelMetricPoint[]>([]);
   // Which metric/range the current points belong to, and when they were read.
   // A refresh of the same view keeps the chart; only a different view shows the skeleton.
@@ -68,25 +111,30 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   const observedServiceId = source.kind === 'direct' ? source.observedServiceId : '';
 
   useEffect(() => {
+    // A refresh can overlap the previous read; only the newest may land.
+    let cancelled = false;
     const loadNames = async () => {
       setNamesLoading(true);
       try {
         const loaded = source.kind === 'agent'
           ? await api.getAgentServiceOtelMetricNames(agentId, serviceKey)
           : await api.getObservedServiceOtelMetricNames(observedServiceId);
+        if (cancelled) return;
         // The API orders by last received, which reshuffles the list on every
         // refresh. By name it stays put and prefixes (http.*, jvm.*) group.
         const list = [...loaded].sort((a, b) => a.metricName.localeCompare(b.metricName));
         setNames(list);
         setSelected(previous => list.some(item => item.metricName === previous) ? previous : (list[0]?.metricName ?? ''));
       } catch {
+        if (cancelled) return;
         setNames([]);
         setSelected('');
       } finally {
-        setNamesLoading(false);
+        if (!cancelled) setNamesLoading(false);
       }
     };
     void loadNames();
+    return () => { cancelled = true; };
   }, [source.kind, agentId, serviceKey, observedServiceId, refreshKey]);
 
   useEffect(() => {
@@ -188,7 +236,6 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   const maxValue = Math.max(0, ...thresholds.map(rule => rule.threshold), ...chartData.flatMap(row => seriesKeys.map(key => row[key]).filter(Number.isFinite)));
   const { unit, factor } = display;
   const single = seriesKeys.length === 1;
-  const visibleNames = names.filter(item => item.metricName.includes(query.trim()));
 
   if (namesLoading) return <div className="h-64 animate-pulse rounded-xl bg-ui-hover" />;
   if (names.length === 0) {
@@ -201,42 +248,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
 
   return (
     <div className="grid items-start gap-5 lg:grid-cols-[17rem_minmax(0,1fr)]">
-      {/* The picker sits beside the chart it drives — below it, a pick changed a chart scrolled out of view. */}
-      <aside className="rounded-xl border border-ui-border bg-bg-surface p-4">
-        <div className="mb-3 flex items-baseline justify-between gap-2">
-          <h3 className="type-card-title text-text-base">메트릭</h3>
-          <span className="type-caption text-text-dim">{names.length}</span>
-        </div>
-        {names.length > SEARCH_MIN_METRICS && (
-          <SearchInput
-            value={query}
-            onChange={event => setQuery(event.target.value)}
-            placeholder="이름으로 찾기"
-            aria-label="메트릭 이름으로 찾기"
-            wrapperClassName="mb-2"
-          />
-        )}
-        <div role="group" aria-label="메트릭" className="max-h-64 space-y-0.5 overflow-y-auto lg:max-h-[32rem]">
-          {visibleNames.map(name => {
-            const active = name.metricName === selected;
-            return (
-              <button
-                key={`${name.metricName}:${name.metricType}`}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setSelected(name.metricName)}
-                className={`block w-full rounded-md px-2.5 py-2 text-left transition-colors ${active ? 'bg-primary/5' : 'hover:bg-ui-hover-soft'}`}
-              >
-                <span className={`block break-all font-mono text-xs ${active ? 'font-medium text-primary' : 'text-text-secondary'}`}>{name.metricName}</span>
-                <span className="mt-0.5 flex justify-between gap-2 type-caption text-text-dim">
-                  <span>{name.metricType}</span>
-                  <span>{formatTimeTick(Date.parse(name.lastAt))}</span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </aside>
+      <MetricPicker names={names} selected={selected} onSelect={setSelected} />
 
       <ChartCard
         title={selected}
