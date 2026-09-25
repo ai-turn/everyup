@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight } from '../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartSummary, ChartTooltip, areaGradient, areaProps, chartCardClass, formatAxisValue,
+  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
   gridProps, lineProps, niceYAxis, rangeAreas, runRanges, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../components/charts';
 import { useAlertThresholds } from '../../features/alerts/useAlertThresholds';
@@ -42,18 +42,21 @@ function ResponseTimeChart({ monitorId, metrics }: { monitorId: string; metrics:
   const round = (value: number) => String(Math.round(value));
 
   return (
-    <div className={`p-6 ${chartCardClass}`}>
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <h2 className="type-card-title text-text-base">응답 시간</h2>
+    <ChartCard
+      as="h2"
+      title="응답 시간"
+      unit="ms"
+      right={(
         <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
           {failedCount > 0 && <StatusLight tone="error" label={`실패 ${failedCount}회`} />}
           <ChartSummary values={latencies} unit="ms" valueFormatter={round} />
         </div>
-      </div>
+      )}
+    >
       {checks.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-sm text-text-dim">데이터 없음</div>
+        <ChartEmpty />
       ) : (
-        <ResponsiveContainer width="100%" height={192} initialDimension={CHART_INITIAL_DIMENSION}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
           <ComposedChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             {areaGradient(gradientId, theme.primaryColor)}
             <CartesianGrid {...gridProps(theme)} />
@@ -80,7 +83,7 @@ function ResponseTimeChart({ monitorId, metrics }: { monitorId: string; metrics:
           </ComposedChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </ChartCard>
   );
 }
 

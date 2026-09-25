@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { StatusLight, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartSummary, ChartTooltip, areaGradient, areaProps, chartCardClass, formatAxisValue,
+  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSkeleton, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
   gridProps, lineProps, niceYAxis, rangeAreas, runRanges, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
@@ -63,25 +63,23 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
   const round = (v: number) => String(Math.round(v));
 
   return (
-    <div className={`mb-8 p-6 ${chartCardClass}`}>
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <h3 className="type-card-title text-text-base">응답 시간</h3>
-        {!loading && (
-          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
-            {failedChecks > 0 && <StatusLight tone="error" label={`실패 ${failedChecks}회`} />}
-            <ChartSummary values={latencies} unit="ms" valueFormatter={round} />
-          </div>
-        )}
-      </div>
-
-      {loading ? (
-        <div className="h-48 bg-ui-hover rounded animate-pulse" />
-      ) : buckets.length === 0 ? (
-        <div className="flex items-center justify-center h-48 text-text-dim text-sm">
-          데이터 없음
+    <ChartCard
+      className="mb-8"
+      title="응답 시간"
+      unit="ms"
+      right={!loading && (
+        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+          {failedChecks > 0 && <StatusLight tone="error" label={`실패 ${failedChecks}회`} />}
+          <ChartSummary values={latencies} unit="ms" valueFormatter={round} />
         </div>
+      )}
+    >
+      {loading ? (
+        <ChartSkeleton />
+      ) : buckets.length === 0 ? (
+        <ChartEmpty />
       ) : (
-        <ResponsiveContainer width="100%" height={192} initialDimension={CHART_INITIAL_DIMENSION}>
+        <ResponsiveContainer width="100%" height={CHART_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
           <ComposedChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             {areaGradient(gradientId, theme.primaryColor)}
             <CartesianGrid {...gridProps(theme)} />
@@ -112,6 +110,6 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
           </ComposedChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </ChartCard>
   );
 }
