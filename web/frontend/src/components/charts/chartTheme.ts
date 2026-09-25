@@ -289,3 +289,21 @@ export function formatMetricValue(value: number): string {
   if (value >= 10) return value.toFixed(1);
   return value.toFixed(2);
 }
+
+/* ── OTel 단위 → 표시 단위 ─────────────────────────────────────
+ * OTel은 UCUM 기본 단위로 보낸다 — 시간은 s, 크기는 By. 그대로 그리면 0.05s 같은 소수가 되고,
+ * 바이트는 10진 nice tick을 2진으로 찍어 95.4MB · 190.7MB 눈금이 된다. 값에 factor를 먼저 곱한 뒤
+ * 눈금·통계·툴팁을 모두 표시 단위로 계산한다. */
+const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+export function metricDisplayUnit(unit: string, max: number): { unit: string; factor: number } {
+  if (unit === 'By') {
+    const i = Math.min(BYTE_UNITS.length - 1, Math.floor(Math.log(Math.max(max, 1)) / Math.log(1024)));
+    return { unit: BYTE_UNITS[i], factor: 1024 ** -i };
+  }
+  if (unit === 's' && max < 1) return { unit: 'ms', factor: 1000 };
+  if (unit === 'ms' && max >= 1000) return { unit: 's', factor: 0.001 };
+  // "1"은 무차원, {request} 같은 중괄호는 UCUM 주석 — 둘 다 단위가 아니다.
+  if (unit === '1' || /^\{.*\}$/.test(unit)) return { unit: '', factor: 1 };
+  return { unit, factor: 1 };
+}

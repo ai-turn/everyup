@@ -11,35 +11,33 @@ import {
 } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
-interface AgentMetricRow extends OtelServiceMetric {
+// The API returns one row per (service, metric); a card is one service.
+interface DockerMetricCard {
   agent: ConnectedAgent;
-  service?: AgentServiceFlat;
+  service: AgentServiceFlat;
+  metricNames: string[];
 }
 
 const METRIC_SKELETONS = ['metric-1', 'metric-2', 'metric-3', 'metric-4', 'metric-5', 'metric-6'];
 
-function formatMetric(value: number, unit?: string) {
-  if (unit === 'By') {
-    if (Math.abs(value) >= 1024 ** 3) return `${(value / 1024 ** 3).toFixed(1)} GB`;
-    if (Math.abs(value) >= 1024 ** 2) return `${(value / 1024 ** 2).toFixed(1)} MB`;
-    if (Math.abs(value) >= 1024) return `${(value / 1024).toFixed(1)} KB`;
-  }
-  const formatted = Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 2 }).format(value);
-  return unit ? `${formatted} ${unit}` : formatted;
-}
+const METRIC_NAMES_SHOWN = 3;
+
+// Same order as the metric picker in the detail view.
+const sortedNames = (names: string[] = []) => [...names].sort((a, b) => a.localeCompare(b));
 
 function MetricCard({
   name,
   connection,
   subtitle,
-  metric,
+  metricNames,
   to,
   active = true,
 }: {
   name: string;
   connection: 'direct' | 'docker';
   subtitle?: string;
-  metric?: OtelServiceMetric;
+  /** Sorted by name — the detail opens on the first one. */
+  metricNames: string[];
   to: string;
   active?: boolean;
 }) {
@@ -56,14 +54,19 @@ function MetricCard({
           </span>
         }
       />
-      {metric ? (
-        <>
-          <p className="mt-4 break-all font-mono text-xs text-text-muted">{metric.metricName}</p>
-          <div className="mt-6 flex items-end justify-between gap-3">
-            <span className="text-xs text-text-muted">현재 값</span>
-            <span className="text-2xl tabular-nums text-text-base">{formatMetric(metric.value, metric.unit)}</span>
-          </div>
-        </>
+      {/* No single "current value": which of a service's metrics would represent it is arbitrary. */}
+      {metricNames.length > 0 ? (
+        <div className="mt-4">
+          <p className="type-caption text-text-muted">메트릭 {metricNames.length}개</p>
+          <ul className="mt-1.5 space-y-1">
+            {metricNames.slice(0, METRIC_NAMES_SHOWN).map(metricName => (
+              <li key={metricName} className="truncate font-mono text-xs text-text-secondary">{metricName}</li>
+            ))}
+          </ul>
+          {metricNames.length > METRIC_NAMES_SHOWN && (
+            <p className="mt-1 type-caption text-text-dim">외 {metricNames.length - METRIC_NAMES_SHOWN}개</p>
+          )}
+        </div>
       ) : (
         <div className="mt-6 rounded-lg bg-ui-hover-soft px-3 py-4 text-sm text-text-muted">첫 메트릭 수신을 기다리는 중입니다.</div>
       )}
@@ -72,7 +75,7 @@ function MetricCard({
 }
 
 export function MetricsPage() {
-  const [agentMetrics, setAgentMetrics] = useState<AgentMetricRow[]>([]);
+  const [dockerCards, setDockerCards] = useState<DockerMetricCard[]>([]);
   const [directServices, setDirectServices] = useState<ObservedService[]>([]);
   const [directMetrics, setDirectMetrics] = useState<OtelServiceMetric[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,16 +93,20 @@ export function MetricsPage() {
     ])
       .then(async ([agents, services, observedServices, observedMetrics]) => {
         const servicesByName = new Map(services.map(service => [`${service.agentId}:${service.name}`, service]));
-        const rows = await Promise.all(agents.map(async agent => {
+        const cards = new Map<string, DockerMetricCard>();
+        await Promise.all(agents.map(async agent => {
           const items = await api.getAgentServiceMetrics(agent.id);
-          return items.map(metric => ({
-            ...metric,
-            agent,
-            service: servicesByName.get(`${agent.id}:${metric.serviceName}`),
-          }));
+          for (const metric of items) {
+            const key = `${agent.id}:${metric.serviceName}`;
+            const service = servicesByName.get(key);
+            if (!service) continue;
+            const card = cards.get(key) ?? { agent, service, metricNames: [] };
+            card.metricNames.push(metric.metricName);
+            cards.set(key, card);
+          }
         }));
         if (!alive) return;
-        setAgentMetrics(rows.flat());
+        setDockerCards([...cards.values()]);
         setDirectServices(observedServices ?? []);
         setDirectMetrics(observedMetrics ?? []);
       })
@@ -108,16 +115,16 @@ export function MetricsPage() {
     return () => { alive = false; };
   }, [reloadKey]);
 
-  const directByService = useMemo(
-    () => new Map(directMetrics.map(metric => [metric.serviceId, metric])),
-    [directMetrics],
-  );
-  const visibleAgentMetrics = useMemo(
-    () => agentMetrics.filter(metric => metric.service),
-    [agentMetrics],
-  );
+  const directNamesByService = useMemo(() => {
+    const names = new Map<string, string[]>();
+    for (const metric of directMetrics) {
+      if (!metric.serviceId) continue;
+      names.set(metric.serviceId, [...(names.get(metric.serviceId) ?? []), metric.metricName]);
+    }
+    return names;
+  }, [directMetrics]);
 
-  const isEmpty = directServices.length === 0 && visibleAgentMetrics.length === 0;
+  const isEmpty = directServices.length === 0 && dockerCards.length === 0;
 
   return (
     <div>
@@ -139,7 +146,7 @@ export function MetricsPage() {
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">메트릭 서비스</h2>
-            <span className="text-xs text-text-dim">{directServices.length + visibleAgentMetrics.length}</span>
+            <span className="text-xs text-text-dim">{directServices.length + dockerCards.length}</span>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {directServices.map(service => (
@@ -147,21 +154,21 @@ export function MetricsPage() {
                 key={service.id}
                 name={service.name}
                 connection="direct"
-                metric={directByService.get(service.id)}
+                metricNames={sortedNames(directNamesByService.get(service.id))}
                 to={`/metrics/${service.id}`}
                 active={service.isActive}
               />
             ))}
-            {visibleAgentMetrics.map(metric => metric.service ? (
+            {dockerCards.map(card => (
               <MetricCard
-                key={`${metric.agent.id}:${metric.serviceName}:${metric.metricName}`}
-                name={metric.serviceName}
+                key={`${card.agent.id}:${card.service.name}`}
+                name={card.service.name}
                 connection="docker"
-                subtitle={metric.agent.name}
-                metric={metric}
-                to={`/services/${metric.service.agentId}/${encodeURIComponent(metric.service.key)}?tab=metrics`}
+                subtitle={card.agent.name}
+                metricNames={sortedNames(card.metricNames)}
+                to={`/services/${card.service.agentId}/${encodeURIComponent(card.service.key)}?tab=metrics`}
               />
-            ) : null)}
+            ))}
           </div>
         </section>
       )}

@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import {
-  ResponsiveContainer, ComposedChart, Line,
+  ResponsiveContainer, ComposedChart, Area, Line,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
-import { Button, MaterialIcon, type GlobalTimeRange } from '../../../components/common';
+import { Button, MaterialIcon, SearchInput, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSkeleton, ChartStats, ChartStatsLegend, ChartTooltip,
-  formatAxisValue, getSeriesPalette,
+  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSkeleton, ChartStats, ChartStatsLegend, ChartSummary, ChartTooltip,
+  areaGradient, areaProps, formatAxisValue, formatTimeTick, getSeriesPalette, metricDisplayUnit,
   getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
@@ -14,6 +14,8 @@ import { api, type OtelHistogramQuantiles, type OtelMetricName, type OtelMetricP
 import { TracePanel } from '../../traces/components/TracePanel';
 
 const MAX_SERIES = 6;
+// Below this the whole list fits at a glance and a search box is noise.
+const SEARCH_MIN_METRICS = 8;
 // The server caps a point read at 5000 and applies the cap before grouping by
 // attribute series, so a metric with many series silently returns a shorter
 // window than asked for. Asking explicitly lets us say so instead.
@@ -38,21 +40,58 @@ interface DirectProps extends CommonProps {
   observedServiceId: string;
 }
 
-function formatMetricValue(value: number, unit: string): string {
-  if (unit === 'By') {
-    const absolute = Math.abs(value);
-    if (absolute >= 1024 ** 3) return `${(value / 1024 ** 3).toFixed(1)}GB`;
-    if (absolute >= 1024 ** 2) return `${(value / 1024 ** 2).toFixed(1)}MB`;
-    if (absolute >= 1024) return `${(value / 1024).toFixed(1)}KB`;
-    return `${Math.round(value)}B`;
-  }
-  return formatAxisValue(value, unit);
-}
+// Values are already in the display unit (metricDisplayUnit), so the tooltip,
+// stats and exemplars share one plain formatter.
+const formatValue = (value: number) => String(Math.round(value * 100) / 100);
 
 function seriesLabel(attributes?: Record<string, unknown>): string {
   const entries = Object.entries(attributes ?? {});
   if (entries.length === 0) return '';
   return entries.map(([key, value]) => `${key.split('.').pop()}=${String(value)}`).join(', ');
+}
+
+// The picker sits beside the chart it drives — below it, a pick changed a chart
+// scrolled out of view.
+function MetricPicker({ names, selected, onSelect }: { names: OtelMetricName[]; selected: string; onSelect: (name: string) => void }) {
+  const [query, setQuery] = useState('');
+  const visibleNames = names.filter(item => item.metricName.includes(query.trim()));
+  return (
+    <aside className="rounded-xl border border-ui-border bg-bg-surface p-4">
+      <div className="mb-3 flex items-baseline justify-between gap-2">
+        <h3 className="type-card-title text-text-base">메트릭</h3>
+        <span className="type-caption text-text-dim">{names.length}</span>
+      </div>
+      {names.length > SEARCH_MIN_METRICS && (
+        <SearchInput
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+          placeholder="이름으로 찾기"
+          aria-label="메트릭 이름으로 찾기"
+          wrapperClassName="mb-2"
+        />
+      )}
+      <div role="group" aria-label="메트릭" className="max-h-64 space-y-0.5 overflow-y-auto lg:max-h-[32rem]">
+        {visibleNames.map(name => {
+          const active = name.metricName === selected;
+          return (
+            <button
+              key={`${name.metricName}:${name.metricType}`}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onSelect(name.metricName)}
+              className={`block w-full rounded-md px-2.5 py-2 text-left transition-colors ${active ? 'bg-primary/5' : 'hover:bg-ui-hover-soft'}`}
+            >
+              <span className={`block break-all font-mono text-xs ${active ? 'font-medium text-primary' : 'text-text-secondary'}`}>{name.metricName}</span>
+              <span className="mt-0.5 flex justify-between gap-2 type-caption text-text-dim">
+                <span>{name.metricType}</span>
+                <span>{formatTimeTick(Date.parse(name.lastAt))}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </aside>
+  );
 }
 
 function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { source: MetricSource }) {
@@ -72,22 +111,30 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   const observedServiceId = source.kind === 'direct' ? source.observedServiceId : '';
 
   useEffect(() => {
+    // A refresh can overlap the previous read; only the newest may land.
+    let cancelled = false;
     const loadNames = async () => {
       setNamesLoading(true);
       try {
-        const list = source.kind === 'agent'
+        const loaded = source.kind === 'agent'
           ? await api.getAgentServiceOtelMetricNames(agentId, serviceKey)
           : await api.getObservedServiceOtelMetricNames(observedServiceId);
+        if (cancelled) return;
+        // The API orders by last received, which reshuffles the list on every
+        // refresh. By name it stays put and prefixes (http.*, jvm.*) group.
+        const list = [...loaded].sort((a, b) => a.metricName.localeCompare(b.metricName));
         setNames(list);
         setSelected(previous => list.some(item => item.metricName === previous) ? previous : (list[0]?.metricName ?? ''));
       } catch {
+        if (cancelled) return;
         setNames([]);
         setSelected('');
       } finally {
-        setNamesLoading(false);
+        if (!cancelled) setNamesLoading(false);
       }
     };
     void loadNames();
+    return () => { cancelled = true; };
   }, [source.kind, agentId, serviceKey, observedServiceId, refreshKey]);
 
   useEffect(() => {
@@ -143,7 +190,9 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   }, [source.kind, agentId, serviceKey, observedServiceId, selected, range, refreshKey, names]);
 
   const selectedMeta = names.find(item => item.metricName === selected);
-  const { chartData, seriesKeys, truncatedSeries, gaps } = useMemo(() => {
+  const rawUnit = selectedMeta?.unit ?? '';
+  const { chartData, seriesKeys, truncatedSeries, gaps, display } = useMemo(() => {
+    const display = metricDisplayUnit(rawUnit, Math.max(0, ...points.map(point => Math.abs(point.value))));
     const keys: string[] = [];
     for (const point of points) {
       const label = seriesLabel(point.attributes);
@@ -157,7 +206,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
       // One collection stamps its points microseconds apart — merge them per second.
       const t = Math.round(Date.parse(point.createdAt) / 1000) * 1000;
       const row = rows.get(t) ?? { t };
-      row[label || 'value'] = point.value;
+      row[label || 'value'] = point.value * display.factor;
       rows.set(t, row);
     }
     // Series from one export share a timestamp only roughly, so a row often
@@ -170,18 +219,23 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
       seriesKeys: kept.map(key => key || 'value'),
       truncatedSeries: keys.length - kept.length,
       gaps: split.gaps,
+      display,
     };
-  }, [points]);
+  }, [points, rawUnit]);
 
   const theme = useChartTheme();
+  const gradientId = useId().replace(/[^\w-]/g, '');
   const seriesColors = getSeriesPalette(theme);
-  const thresholds = useAlertThresholds(
+  const rules = useAlertThresholds(
     source.kind === 'direct' ? { kind: 'direct', serviceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey },
     'otel_metric',
     selected,
   );
+  // Rules are written in the raw OTel unit; the chart is drawn in the display unit.
+  const thresholds = rules.map(rule => ({ ...rule, threshold: Number((rule.threshold * display.factor).toPrecision(12)) }));
   const maxValue = Math.max(0, ...thresholds.map(rule => rule.threshold), ...chartData.flatMap(row => seriesKeys.map(key => row[key]).filter(Number.isFinite)));
-  const unit = selectedMeta?.unit ?? '';
+  const { unit, factor } = display;
+  const single = seriesKeys.length === 1;
 
   if (namesLoading) return <div className="h-64 animate-pulse rounded-xl bg-ui-hover" />;
   if (names.length === 0) {
@@ -193,38 +247,47 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid items-start gap-5 lg:grid-cols-[17rem_minmax(0,1fr)]">
+      <MetricPicker names={names} selected={selected} onSelect={setSelected} />
+
       <ChartCard
         title={selected}
         // A metric name is an identifier, so it reads in mono like other code.
         titleClassName="font-mono text-sm"
-        unit={selectedMeta ? `${selectedMeta.metricType}${unit ? ` · ${unit}` : ''}` : undefined}
-        right={quantiles && (
-          <ChartStats items={[
-            { label: 'p50', value: formatMetricValue(quantiles.p50, unit) },
-            { label: 'p95', value: formatMetricValue(quantiles.p95, unit) },
-            { label: 'p99', value: formatMetricValue(quantiles.p99, unit) },
-            { label: '표본', value: quantiles.count.toLocaleString(), unit: '건' },
-          ]} />
-        )}
+        // A histogram is stored as each export's average, so that is what the line is.
+        unit={selectedMeta ? [selectedMeta.metricType, selectedMeta.metricType === 'histogram' && '구간 평균', unit].filter(Boolean).join(' · ') : undefined}
+        right={single && <ChartSummary values={chartData.map(row => row[seriesKeys[0]])} unit={unit} valueFormatter={formatValue} />}
       >
-          {quantiles?.exemplars && quantiles.exemplars.length > 0 && (
-            <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 type-caption">
-              <span className="text-text-muted">느린 예시</span>
-              {quantiles.exemplars.map(exemplar => (
-                <Button
-                  key={exemplar.traceId}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setActiveTraceId(exemplar.traceId)}
-                  title={`${exemplar.traceId} 트레이스 열기`}
-                >
-                  <MaterialIcon name="timeline" />
-                  {formatMetricValue(exemplar.value, unit)}
-                </Button>
-              ))}
-            </div>
-          )}
+        {/* Quantiles cover the whole window and every series, so they get their own
+            labelled line instead of sitting beside the averages in the title row. */}
+        {quantiles && (
+          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md border border-ui-border bg-ui-hover-soft px-3 py-1.5">
+            <span className="type-caption text-text-muted">전체 기간 분포</span>
+            <ChartStats items={[
+              { label: 'p50', value: formatValue(quantiles.p50 * factor), unit },
+              { label: 'p95', value: formatValue(quantiles.p95 * factor), unit },
+              { label: 'p99', value: formatValue(quantiles.p99 * factor), unit },
+              { label: '표본', value: quantiles.count.toLocaleString(), unit: '건' },
+            ]} />
+            {quantiles.exemplars && quantiles.exemplars.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1">
+                <span className="type-caption text-text-muted">느린 예시</span>
+                {quantiles.exemplars.map(exemplar => (
+                  <Button
+                    key={exemplar.traceId}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveTraceId(exemplar.traceId)}
+                    title={`${exemplar.traceId} 트레이스 열기`}
+                  >
+                    <MaterialIcon name="timeline" />
+                    {formatValue(exemplar.value * factor)}{unit}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {pointsLoading && shown.view !== `${selected}|${range}` ? (
           <ChartSkeleton />
@@ -234,11 +297,12 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
           <>
             <ResponsiveContainer width="100%" height={CHART_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
               <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                {single && areaGradient(gradientId, seriesColors[0])}
                 <CartesianGrid {...gridProps(theme)} />
                 <XAxis {...timeXAxisProps(theme, [shown.at - RANGE_HOURS[range] * 3_600_000, shown.at])} />
-                <YAxis {...yAxisProps(theme, 64)} {...niceYAxis(maxValue)} tickFormatter={value => formatMetricValue(value, unit)} />
+                <YAxis {...yAxisProps(theme)} {...niceYAxis(maxValue)} tickFormatter={value => formatAxisValue(value, unit)} />
                 {rangeAreas(gaps, theme.tickColor, 0.06)}
-                {thresholdLines(thresholds, theme.errorColor, unit === 'By' ? '' : unit)}
+                {thresholdLines(thresholds, theme.errorColor, unit)}
                 <Tooltip
                   cursor={tooltipCursor(theme)}
                   content={({ active, label, payload }) => (
@@ -246,28 +310,32 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
                       active={active}
                       label={label}
                       payload={payload as import('../../../components/charts').TooltipPayloadItem[]}
-                      unit={unit === 'By' ? '' : unit}
+                      unit={unit}
                       theme={theme}
-                      valueFormatter={value => unit === 'By' ? formatMetricValue(value, unit) : String(Math.round(value * 100) / 100)}
+                      valueFormatter={formatValue}
                     />
                   )}
                 />
+                {single && <Area {...areaProps(gradientId)} connectNulls dataKey={seriesKeys[0]} />}
                 {seriesKeys.map((key, index) => (
                   <Line key={key} {...lineProps(seriesColors[index % seriesColors.length], theme)} connectNulls strokeDasharray={getSeriesDash(index)} dataKey={key} />
                 ))}
               </ComposedChart>
             </ResponsiveContainer>
-            <div className="mt-2">
-              <ChartStatsLegend
-                series={seriesKeys.map((key, index) => ({
-                  label: key,
-                  color: seriesColors[index % seriesColors.length],
-                  values: chartData.map(row => Number(row[key])),
-                }))}
-                unit={unit === 'By' ? '' : unit}
-                valueFormatter={value => unit === 'By' ? formatMetricValue(value, unit) : String(Math.round(value * 100) / 100)}
-              />
-            </div>
+            {/* One series: the title row already carries its summary (ChartSummary). */}
+            {!single && (
+              <div className="mt-2">
+                <ChartStatsLegend
+                  series={seriesKeys.map((key, index) => ({
+                    label: key,
+                    color: seriesColors[index % seriesColors.length],
+                    values: chartData.map(row => Number(row[key])),
+                  }))}
+                  unit={unit}
+                  valueFormatter={formatValue}
+                />
+              </div>
+            )}
             {truncatedSeries > 0 && <p className="mt-2 type-body text-text-muted">{`Attribute 조합이 많아 상위 ${MAX_SERIES}개 시리즈만 표시합니다. (+${truncatedSeries}개 생략)`}</p>}
             {points.length >= POINT_LIMIT && <p className="mt-2 type-body text-text-muted">{`데이터 포인트가 상한(${POINT_LIMIT.toLocaleString()}개)에 도달해 최근 구간만 표시합니다. 시간 범위를 좁히면 전체가 보입니다.`}</p>}
           </>
@@ -275,48 +343,6 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
       </ChartCard>
 
       {activeTraceId && <TracePanel traceId={activeTraceId} target={source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }} onClose={() => setActiveTraceId(null)} />}
-
-      <div className="rounded-xl border border-ui-border bg-bg-surface p-6">
-        <div className="mb-2 flex items-center gap-2">
-          <h3 className="type-card-title text-text-base">전체 시리즈</h3>
-          <span className="text-xs text-text-dim">행을 선택해 차트에 표시</span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead><tr className="border-b border-ui-border-soft text-left text-xs font-medium uppercase tracking-wider text-text-muted">
-              <th className="py-1.5 pr-3 font-medium">시리즈</th>
-              <th className="py-1.5 pr-3 font-medium">유형</th>
-              <th className="py-1.5 pr-3 font-medium">단위</th>
-              <th className="py-1.5 text-right font-medium">마지막 수신</th>
-            </tr></thead>
-            <tbody>
-              {names.map(name => {
-                const active = name.metricName === selected;
-                return (
-                  <tr
-                    key={`${name.metricName}:${name.metricType}`}
-                    tabIndex={0}
-                    aria-current={active || undefined}
-                    onClick={() => setSelected(name.metricName)}
-                    onKeyDown={event => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        setSelected(name.metricName);
-                      }
-                    }}
-                    className={`cursor-pointer border-b border-ui-border-soft/50 transition-colors last:border-0 ${active ? 'bg-primary/5' : 'hover:bg-ui-hover-soft'}`}
-                  >
-                    <td className={`py-2 pr-3 font-mono text-xs ${active ? 'font-medium text-primary' : 'text-text-secondary'}`}>{name.metricName}</td>
-                    <td className="py-2 pr-3 text-xs text-text-muted">{name.metricType}</td>
-                    <td className="py-2 pr-3 text-xs text-text-muted">{name.unit || '—'}</td>
-                    <td className="whitespace-nowrap py-2 text-right text-xs text-text-dim">{new Date(name.lastAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' })}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }
