@@ -5,7 +5,8 @@ import {
 } from 'recharts';
 import { Button, MaterialIcon, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartTooltip, chartCardClass, formatAxisValue, getSeriesPalette,
+  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSkeleton, ChartStats, ChartStatsLegend, ChartTooltip,
+  formatAxisValue, getSeriesPalette,
   getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
@@ -193,27 +194,22 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
 
   return (
     <div className="space-y-4">
-      <div className={`p-6 ${chartCardClass}`}>
-        <div className="mb-6 space-y-2">
-          <div className="flex min-w-0 flex-wrap items-center gap-3">
-            <span className="truncate font-mono text-sm font-medium text-text-base">{selected}</span>
-            {selectedMeta && (
-              <span className="shrink-0 rounded-full bg-ui-hover px-2 py-0.5 text-xs text-text-muted">
-                {selectedMeta.metricType}{unit ? ` · ${unit}` : ''}
-              </span>
-            )}
-          </div>
-          {quantiles && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-              <span className="text-text-muted">분포</span>
-              <span className="text-text-base">p50 {formatMetricValue(quantiles.p50, unit)}</span>
-              <span className="text-text-base">p95 {formatMetricValue(quantiles.p95, unit)}</span>
-              <span className="text-text-base">p99 {formatMetricValue(quantiles.p99, unit)}</span>
-              <span className="text-text-dim">{`· ${quantiles.count.toLocaleString()}건 기준`}</span>
-            </div>
-          )}
+      <ChartCard
+        title={selected}
+        // A metric name is an identifier, so it reads in mono like other code.
+        titleClassName="font-mono text-sm"
+        unit={selectedMeta ? `${selectedMeta.metricType}${unit ? ` · ${unit}` : ''}` : undefined}
+        right={quantiles && (
+          <ChartStats items={[
+            { label: 'p50', value: formatMetricValue(quantiles.p50, unit) },
+            { label: 'p95', value: formatMetricValue(quantiles.p95, unit) },
+            { label: 'p99', value: formatMetricValue(quantiles.p99, unit) },
+            { label: '표본', value: quantiles.count.toLocaleString(), unit: '건' },
+          ]} />
+        )}
+      >
           {quantiles?.exemplars && quantiles.exemplars.length > 0 && (
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 type-caption">
               <span className="text-text-muted">느린 예시</span>
               {quantiles.exemplars.map(exemplar => (
                 <Button
@@ -229,15 +225,14 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
               ))}
             </div>
           )}
-        </div>
 
         {pointsLoading && shown.view !== `${selected}|${range}` ? (
-          <div className="h-64 animate-pulse rounded bg-ui-hover" />
+          <ChartSkeleton />
         ) : chartData.length === 0 ? (
-          <div className="flex h-64 items-center justify-center text-sm text-text-dim">데이터 없음</div>
+          <ChartEmpty />
         ) : (
           <>
-            <ResponsiveContainer width="100%" height={256} initialDimension={CHART_INITIAL_DIMENSION}>
+            <ResponsiveContainer width="100%" height={CHART_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
               <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid {...gridProps(theme)} />
                 <XAxis {...timeXAxisProps(theme, [shown.at - RANGE_HOURS[range] * 3_600_000, shown.at])} />
@@ -277,7 +272,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
             {points.length >= POINT_LIMIT && <p className="mt-2 type-body text-text-muted">{`데이터 포인트가 상한(${POINT_LIMIT.toLocaleString()}개)에 도달해 최근 구간만 표시합니다. 시간 범위를 좁히면 전체가 보입니다.`}</p>}
           </>
         )}
-      </div>
+      </ChartCard>
 
       {activeTraceId && <TracePanel traceId={activeTraceId} target={source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }} onClose={() => setActiveTraceId(null)} />}
 
