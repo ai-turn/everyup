@@ -373,12 +373,14 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 ### 4.2 `components/charts/` — 차트 스펙
 
-**팩토리를 스프레드해서 쓴다. 개별 차트에서 선 굵기·그리드·축을 다시 정의하지 않는다.**
+**차트는 `ChartCard` 안에 넣고, 팩토리를 스프레드해서 쓴다. 개별 차트에서 카드 헤더·선 굵기·그리드·축을 다시 정의하지 않는다.**
 
 ```tsx
 const theme = useChartTheme();                       // 테마 전환 시 다시 그린다
 const gradientId = useId().replace(/[^\w-]/g, '');
 const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
+<ChartCard title="응답 시간" unit="ms" right={<ChartSummary values={v} unit="ms" />}>
+<ResponsiveContainer height={CHART_HEIGHT}>
 <ComposedChart data={rows}>
   {areaGradient(gradientId, color)}
   <CartesianGrid {...gridProps(theme)} />
@@ -388,7 +390,20 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
   <Area {...areaProps(gradientId)} dataKey="v" />     // 시리즈 1개일 때만
   <Line {...lineProps(color, theme)} dataKey="v" name="…" />
 </ComposedChart>
+</ResponsiveContainer>
+</ChartCard>
 ```
+
+**차트 카드 표준 구조 (2026-09-25)** — 메뉴마다 제목 크기·여백·숫자 요약·범례·높이·빈 상태가 제각각이던 것을 `ChartCard` 하나로 고정했다. 캔버스 ⑦에 해부도가 있다.
+
+1. **제목 + 단위** — 왼쪽. `type-card-title` + `type-caption text-text-dim`. 제목은 한국어, 기술 용어는 영어(`CPU`·`메모리`·`디스크 I/O`·`네트워크`). 메트릭 이름처럼 식별자인 제목만 `font-mono text-sm`
+2. **오른쪽 칸 — 하나만** — 요약(`ChartSummary` 현재·평균·최대, 이미 계산된 값은 `ChartStats`) · 상태(`StatusLight`) + 요약 · 범례 칩(`ChartLegend`) · 기간 선택 중 하나
+3. **지표 타일** — 한 대상의 지표가 여럿이고 동시에 볼 필요가 없을 때만(요청 추이). 인프라는 네 추이를 동시에 보는 편이 낫다고 판단해 2×2를 유지했다
+4. **캡션 줄** — 타일 카드에서만: 단위 · 범례 칩. 메트릭 탐색은 느린 예시 버튼 줄
+5. **차트** — `CHART_HEIGHT` 220px. 목록 위에 붙는 막대 띠(로그 발생량)만 `CHART_STRIP_HEIGHT` 120px
+6. **빈 상태 · 로딩** — `ChartEmpty`("이 기간에 데이터 없음") · `ChartSkeleton`, 둘 다 차트 높이. 예외: 요청 추이는 데이터가 없으면 카드 자체를 숨긴다 — 바로 아래 요청 목록이 수집 설정 안내를 보여 주므로 빈 카드는 소음이다
+
+카드 여백은 `p-6` 하나. 차트 아래 표·설명 문장은 두지 않는다 — 메트릭 탐색의 시리즈 표(이름이 attribute 조합이라 칩에 안 들어간다)와 데이터가 잘렸다는 경고만 예외. 조작 안내("막대를 누르면…")는 `ChartTooltip`의 `footer`로 포인터가 있는 자리에 둔다.
 
 | export | 역할 |
 |--------|------|
@@ -400,9 +415,9 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 | `rangeAreas` `thresholdLines` `areaGradient` | 공백·실패 구간 음영(라벨 없음), 알림 임계값 점선, 채움 그라데이션 |
 | `lineProps(color, theme)` `areaProps(gradientId)` | 시리즈 |
 | `SERIES_HEX` `getSeriesPalette` | 색 |
-| `chartCardClass` | 차트 카드 컨테이너 |
+| `ChartCard` `ChartEmpty` `ChartSkeleton` `CHART_HEIGHT` `CHART_STRIP_HEIGHT` | 카드 틀 · 빈 상태 · 로딩 · 높이 |
 | `formatAxisValue` `formatMetricValue` | 포맷 |
-| `ChartTooltip` `ChartSummary` `ChartStatsLegend` `ChartLegend` | 툴팁·요약·범례 |
+| `ChartTooltip` `ChartSummary` `ChartStats` `ChartStatsLegend` `ChartLegend` | 툴팁·요약·범례 |
 
 **룩 (Grafana풍 2026-07-10 확정, 2026-09-24 개정)**
 - 1.5px `monotoneX` 라인, 둥근 캡, dot 없음. monotoneX는 모든 표본점을 정확히 지나고 점 사이에서 튀어나가지 않는다. 2026-09-24에 잠깐 직선(`linear`)으로 바꿨다가 되돌렸다 — 30분 간격처럼 성긴 표본에서 각진 꺾은선이 되어 *"초등학생이 그린 것 같다"*는 피드백을 받았다
@@ -427,7 +442,7 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 **범례**
 - **시리즈 1개** → 범례 없음(제목이 곧 범례). 통계는 카드 제목 줄 오른쪽 `ChartSummary` — `현재 105 · 평균 116 · 최대 149 ms`
-- **시리즈 2개 이상** → 차트 아래 왼쪽에 붙은 좁은 `ChartStatsLegend`(현재·최소·최대·평균). 카드 폭 전체로 펼친 표는 숫자가 시리즈 이름에서 멀어져 읽히지 않았다
+- **시리즈 2개 이상** → 제목 줄 오른쪽 범례 칩(`ChartLegend`). 시리즈별 통계 표(`ChartStatsLegend`)는 메트릭 탐색에만 — 차트 아래 왼쪽에 붙는 좁은 표로. 카드 폭 전체로 펼친 표는 숫자가 시리즈 이름에서 멀어져 읽히지 않았다
 - 차트 아래에 설명 문장을 붙이지 않는다 — 말해야 할 사실(실패 횟수)은 제목 줄로 올린다
 - 바 차트 헤더 → `ChartLegend` (칩) — 로그 히스토그램은 레벨별 건수를 함께 쓴다. 지표 타일 차트도 시리즈 이름은 차트 위 칩이다(통계는 타일이 맡는다 — 지표를 바꿀 때 아래 표가 생겼다 사라지며 높이가 흔들리지 않게)
 - recharts `<Legend>` **사용 금지**

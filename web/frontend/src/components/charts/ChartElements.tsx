@@ -1,5 +1,75 @@
 import type { ReactNode } from 'react';
-import { ChartTheme, TooltipPayloadItem, formatMetricValue, formatTimeLabel } from './chartTheme';
+import { Skeleton } from '../skeleton';
+import {
+  CHART_HEIGHT, ChartTheme, TooltipPayloadItem, chartCardClass, formatMetricValue, formatTimeLabel,
+} from './chartTheme';
+
+/**
+ * 차트 카드 표준 틀 (DESIGN.md §4.2) — 왼쪽 제목 + 단위, 오른쪽 칸 하나(요약 · 상태 · 범례 칩 ·
+ * 기간 선택 중 하나), 그 아래 본문. 메뉴마다 제목 크기 · 여백 · 헤더 배치가 달랐던 것을 여기서 고정한다.
+ */
+export function ChartCard({
+  title,
+  unit,
+  right,
+  titleClassName = '',
+  as: Heading = 'h3',
+  className = '',
+  children,
+}: {
+  title: ReactNode;
+  unit?: string;
+  right?: ReactNode;
+  /** 메트릭 이름처럼 식별자인 제목만 — `font-mono text-sm`. */
+  titleClassName?: string;
+  as?: 'h2' | 'h3';
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={`p-6 ${chartCardClass} ${className}`}>
+      <div className="flex min-h-6 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <Heading className={`truncate type-card-title text-text-base ${titleClassName}`}>{title}</Heading>
+          {unit && <span className="shrink-0 type-caption text-text-dim">{unit}</span>}
+        </div>
+        {right}
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+/** 빈 상태 — 차트와 같은 높이, 문구 하나. */
+export function ChartEmpty({ height = CHART_HEIGHT }: { height?: number }) {
+  return (
+    <div className="flex items-center justify-center rounded-lg bg-ui-hover-soft type-body text-text-dim" style={{ height }}>
+      이 기간에 데이터 없음
+    </div>
+  );
+}
+
+/** 첫 로드 — 차트와 같은 높이라 데이터가 들어와도 카드가 움직이지 않는다. */
+export function ChartSkeleton({ height = CHART_HEIGHT }: { height?: number }) {
+  return <Skeleton className="w-full rounded-lg" height={`${height}px`} />;
+}
+
+/** 제목 줄 오른쪽 수치 목록 — `30일 99.98% · 90일 99.98%`처럼 이미 계산된 값. */
+export function ChartStats({ items }: { items: { label: string; value: string; unit?: string }[] }) {
+  return (
+    <dl className="flex flex-wrap items-baseline justify-end gap-x-4 gap-y-1">
+      {items.map((item) => (
+        <div key={item.label} className="flex items-baseline gap-1.5">
+          <dt className="type-caption text-text-muted">{item.label}</dt>
+          <dd className="type-label tabular-nums text-text-base">
+            {item.value}
+            {item.unit && <span className="ml-0.5 type-caption text-text-dim">{item.unit}</span>}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 interface ChartTooltipProps {
   active?: boolean;
@@ -9,6 +79,8 @@ interface ChartTooltipProps {
   theme: ChartTheme;
   valueFormatter?: (value: number) => string;
   labelFormatter?: (label?: string | number) => ReactNode;
+  /** 상자 맨 아래 안내 한 줄 — 예: 막대를 누르면 무엇이 되는지. */
+  footer?: ReactNode;
 }
 
 const finite = (values: number[]) => values.filter(Number.isFinite);
@@ -30,20 +102,7 @@ export function ChartSummary({
   const v = finite(values);
   if (v.length === 0) return null;
   const items: [string, number][] = [['현재', v[v.length - 1]], ['평균', average(v)], ['최대', Math.max(...v)]];
-
-  return (
-    <dl className="flex items-baseline gap-4">
-      {items.map(([label, value]) => (
-        <div key={label} className="flex items-baseline gap-1.5">
-          <dt className="type-caption text-text-muted">{label}</dt>
-          <dd className="type-label tabular-nums text-text-base">
-            {valueFormatter(value)}
-            <span className="ml-0.5 type-caption text-text-dim">{unit}</span>
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
+  return <ChartStats items={items.map(([label, value]) => ({ label, value: valueFormatter(value), unit }))} />;
 }
 
 /**
@@ -129,6 +188,7 @@ export function ChartTooltip({
   theme,
   valueFormatter = formatMetricValue,
   labelFormatter,
+  footer,
 }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
 
@@ -165,6 +225,7 @@ export function ChartTooltip({
           </div>
         ))}
       </div>
+      {footer && <p className="mt-2 border-t border-ui-border pt-1.5 text-xs text-text-dim">{footer}</p>}
     </div>
   );
 }

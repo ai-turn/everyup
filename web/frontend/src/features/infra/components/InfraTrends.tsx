@@ -9,9 +9,9 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
-import { MaterialIcon, type GlobalTimeRange } from '../../../components/common';
+import type { GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, ChartStatsLegend, ChartSummary, ChartTooltip, areaGradient, areaProps, chartCardClass, formatAxisValue,
+  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
   gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
   type ChartTheme,
 } from '../../../components/charts';
@@ -72,11 +72,10 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
       ) : (
         <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {(charts || []).map((chart) => (
-            <ChartCard
+            <TrendCard
               key={chart.title}
               chart={chart}
               domain={domain}
-              rangeLabel={rangeLabel[range]}
               theme={theme}
               showTooltip={hovered === chart.title}
               onHover={setHovered}
@@ -89,10 +88,9 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
   );
 }
 
-function ChartCard({
+function TrendCard({
   chart,
   domain,
-  rangeLabel,
   theme,
   showTooltip,
   onHover,
@@ -100,7 +98,6 @@ function ChartCard({
 }: {
   chart: ChartData;
   domain: [number, number];
-  rangeLabel: string;
   theme: ChartTheme;
   showTooltip: boolean;
   onHover: (title: string | null) => void;
@@ -116,72 +113,45 @@ function ChartCard({
   const single = chart.series.length === 1 ? chart.series[0] : null;
   const gradientId = useId().replace(/[^\w-]/g, '');
 
+  // One series: its numbers sit in the title row. Several: their names do, as chips.
+  const right = isEmpty
+    ? null
+    : single
+      ? <ChartSummary values={chart.data.map((p) => Number(p[single.key]))} unit={chart.unit} />
+      : <ChartLegend items={chart.series.map((s) => ({ label: s.label, color: s.color }))} />;
+
   return (
-    <section className={`overflow-hidden ${chartCardClass}`} aria-label={chart.title}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 pb-1 pt-5">
-        <div className="flex min-w-0 items-baseline gap-2">
-          <p className="truncate text-base text-text-base">{chart.title}</p>
-          <span className="shrink-0 text-xs text-text-dim">{chart.unit}</span>
-        </div>
-        {single && !isEmpty && <ChartSummary values={chart.data.map((p) => Number(p[single.key]))} unit={chart.unit} />}
-      </div>
-
+    <ChartCard title={chart.title} unit={chart.unit} right={right}>
       {isEmpty ? (
-        <div className="flex h-60 flex-col items-center justify-center gap-2 text-text-dim">
-          <MaterialIcon size={36} name="show_chart" className="opacity-30" />
-          <p className="text-sm">
-            {`${rangeLabel} 동안 활동 없음`}
-          </p>
-        </div>
+        <ChartEmpty />
       ) : (
-        <div className="px-2 pb-4 pt-1" onMouseEnter={() => onHover(chart.title)} onMouseLeave={() => onHover(null)}>
-          <div className="h-60 w-full">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-              <ComposedChart data={rows} syncId="infra-trends" margin={{ top: 16, right: 20, left: 0, bottom: 2 }}>
-                <CartesianGrid {...gridProps(theme)} />
-
-                <XAxis {...timeXAxisProps(theme, domain)} />
-
-                <YAxis
-                  {...yAxisProps(theme, 42)}
-                  {...niceYAxis(Math.max(chart.yMax ?? maxVal, ...thresholds.map((r) => r.threshold)))}
-                  tickFormatter={(value) => formatAxisValue(Number(value), chart.unit)}
-                />
-
-                {single && areaGradient(gradientId, single.color)}
-                {rangeAreas(gaps, theme.tickColor, 0.06)}
-                {thresholdLines(thresholds, theme.errorColor, chart.unit)}
-
-                <Tooltip
-                  cursor={tooltipCursor(theme)}
-                  content={({ active, label, payload }) => showTooltip && (
-                    <ChartTooltip active={active} label={label} payload={payload as import('../../../components/charts').TooltipPayloadItem[]} unit={chart.unit} theme={theme} />
-                  )}
-                />
-
-                {single && <Area {...areaProps(gradientId)} dataKey={single.key} />}
-
-                {chart.series.map((s) => (
-                  <Line key={`${s.key}-line`} {...lineProps(s.color, theme)} dataKey={s.key} name={s.label} />
-                ))}
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-
-          {!single && (
-          <div className="mt-2 px-3">
-            <ChartStatsLegend
-              series={chart.series.map((s) => ({
-                label: s.label,
-                color: s.color,
-                values: chart.data.map((p) => Number(p[s.key])),
-              }))}
-              unit={chart.unit}
-            />
-          </div>
-          )}
+        <div onMouseEnter={() => onHover(chart.title)} onMouseLeave={() => onHover(null)}>
+          <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
+            <ComposedChart data={rows} syncId="infra-trends" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid {...gridProps(theme)} />
+              <XAxis {...timeXAxisProps(theme, domain)} />
+              <YAxis
+                {...yAxisProps(theme, 42)}
+                {...niceYAxis(Math.max(chart.yMax ?? maxVal, ...thresholds.map((r) => r.threshold)))}
+                tickFormatter={(value) => formatAxisValue(Number(value), chart.unit)}
+              />
+              {single && areaGradient(gradientId, single.color)}
+              {rangeAreas(gaps, theme.tickColor, 0.06)}
+              {thresholdLines(thresholds, theme.errorColor, chart.unit)}
+              <Tooltip
+                cursor={tooltipCursor(theme)}
+                content={({ active, label, payload }) => showTooltip && (
+                  <ChartTooltip active={active} label={label} payload={payload as import('../../../components/charts').TooltipPayloadItem[]} unit={chart.unit} theme={theme} />
+                )}
+              />
+              {single && <Area {...areaProps(gradientId)} dataKey={single.key} />}
+              {chart.series.map((s) => (
+                <Line key={`${s.key}-line`} {...lineProps(s.color, theme)} dataKey={s.key} name={s.label} />
+              ))}
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       )}
-    </section>
+    </ChartCard>
   );
 }
