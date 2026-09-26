@@ -48,6 +48,30 @@ function medianStep(times: number[]): number | null {
 
 const round = (value: number) => String(Math.round(value));
 
+/** Summary, or the hovered check — the same line as the 90-day strip's. */
+function SummaryLine({ slot, latencies, failedChecks }: { slot: ResponseSlot | null; latencies: number[]; failedChecks: number }) {
+  return (
+    <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 pl-11 type-caption text-text-muted" aria-live="polite">
+      {slot ? (
+        <span className="text-text-secondary">
+          <span className="font-medium">{formatTimeLabel(slot.t)}</span>
+          {` — ${slot.latencyMs === null ? '실패' : `${round(slot.latencyMs)}ms`} · ${slot.detail}`}
+        </span>
+      ) : (
+        <>
+          {latencies.length > 0 && (
+            <>
+              <span>평균 <span className="font-medium tabular-nums text-text-base">{round(latencies.reduce((sum, v) => sum + v, 0) / latencies.length)}</span> ms</span>
+              <span>최대 <span className="font-medium tabular-nums text-text-base">{round(Math.max(...latencies))}</span> ms</span>
+            </>
+          )}
+          <span>실패 <span className={`font-medium tabular-nums ${failedChecks > 0 ? 'text-status-error' : 'text-text-base'}`}>{failedChecks}</span>회</span>
+        </>
+      )}
+    </p>
+  );
+}
+
 /**
  * 응답 시간 — Datadog Synthetics처럼 체크마다 결과 칸 하나와 막대 하나를 세로로 맞춘다. 실패는
  * 결과 칸의 빨강과 바닥의 짧은 빨간 막대로만 말한다: 실패한 체크의 시간은 타임아웃이라 막대 높이가
@@ -152,27 +176,7 @@ export function ResponseTimeCard({ slots, failedChecks, caption, window, thresho
             </div>
           </div>
 
-          {/* Summary, or the hovered check — the same line as the 90-day strip's. */}
-          <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 pl-11 type-caption text-text-muted" aria-live="polite">
-            {hoveredSlot ? (
-              <span className="text-text-secondary">
-                <span className="font-medium">{formatTimeLabel(hoveredSlot.t)}</span>
-                {' — '}
-                {hoveredSlot.latencyMs === null ? '실패' : `${round(hoveredSlot.latencyMs)}ms`}
-                {` · ${hoveredSlot.detail}`}
-              </span>
-            ) : (
-              <>
-                {latencies.length > 0 && (
-                  <>
-                    <span>평균 <span className="font-medium tabular-nums text-text-base">{round(latencies.reduce((sum, v) => sum + v, 0) / latencies.length)}</span> ms</span>
-                    <span>최대 <span className="font-medium tabular-nums text-text-base">{round(Math.max(...latencies))}</span> ms</span>
-                  </>
-                )}
-                <span>실패 <span className={`font-medium tabular-nums ${failedChecks > 0 ? 'text-status-error' : 'text-text-base'}`}>{failedChecks}</span>회</span>
-              </>
-            )}
-          </p>
+          <SummaryLine slot={hoveredSlot} latencies={latencies} failedChecks={failedChecks} />
         </>
       )}
     </ChartCard>
