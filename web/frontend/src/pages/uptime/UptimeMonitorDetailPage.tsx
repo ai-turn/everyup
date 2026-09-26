@@ -1,16 +1,11 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import {
-  Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from 'recharts';
 import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight } from '../../components/common';
-import {
-  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
-  gridProps, lineProps, niceYAxis, rangeAreas, rangeStrips, runRanges, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
-} from '../../components/charts';
+import { formatTimeLabel } from '../../components/charts';
 import { useAlertThresholds } from '../../features/alerts/useAlertThresholds';
+import { ResponseTimeCard } from '../../features/uptime/components/ResponseTimeCard';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeOverview } from '../../features/uptime/components/UptimeOverview';
 import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
@@ -23,89 +18,83 @@ import { getErrorMessage } from '../../utils/errors';
 const HISTORY_DAYS = 90;
 
 function ResponseTimeChart({ monitorId, metrics }: { monitorId: string; metrics: UptimeMonitorMetric[] }) {
-
-  const theme = useChartTheme();
-  const gradientId = useId().replace(/[^\w-]/g, '');
   const thresholds = useAlertThresholds({ kind: 'direct', serviceId: monitorId }, 'response_time');
   // A failed check's responseTime is how long it waited before giving up (the
-  // timeout), not a response — plotting it reads as "slow" and stretches the axis.
-  const checks = [...metrics].reverse().map((metric) => ({
-    t: new Date(metric.checkedAt).getTime(),
-    latencyMs: metric.status === 'success' ? metric.responseTime : null,
-  }));
-  const failedCount = checks.filter((check) => check.latencyMs === null).length;
-  const latencies = checks.flatMap((check) => (check.latencyMs === null ? [] : [check.latencyMs]));
-  // Gaps use the observed spacing, not the configured interval — history recorded
-  // under an older interval would otherwise read as missed checks.
-  const { rows, gaps } = splitGaps(checks);
-  const domain: [number, number] = checks.length > 0 ? [checks[0].t, checks[checks.length - 1].t] : [0, 1];
-  const round = (value: number) => String(Math.round(value));
+  // timeout), not a response — as a bar it would read as "slow" and stretch the axis.
+  const slots = [...metrics].reverse().map((metric) => {
+    const ok = metric.status === 'success';
+    const code = metric.statusCode ? `HTTP ${metric.statusCode}` : ok ? '정상 응답' : '';
+    return {
+      t: new Date(metric.checkedAt).getTime(),
+      latencyMs: ok ? metric.responseTime : null,
+      state: ok ? 'up' as const : 'down' as const,
+      detail: [code, ok ? '' : metric.errorMessage].filter(Boolean).join(' · ') || '체크 실패',
+    };
+  });
+  const hours = slots.length > 1 ? Math.round((slots[slots.length - 1].t - slots[0].t) / 3_600_000) : 0;
 
   return (
-    <ChartCard
-      as="h2"
-      title="응답 시간"
-      unit="ms"
-      right={(
-        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
-          {failedCount > 0 && <StatusLight tone="error" label={`실패 ${failedCount}회`} />}
-          <ChartSummary values={latencies} unit="ms" valueFormatter={round} />
-        </div>
-      )}
-    >
-      {checks.length === 0 ? (
-        <ChartEmpty />
-      ) : (
-        <ResponsiveContainer width="100%" height={CHART_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
-          <ComposedChart data={rows} margin={CHART_MARGIN}>
-            {areaGradient(gradientId, theme.primaryColor)}
-            <CartesianGrid {...gridProps(theme)} />
-            <XAxis {...timeXAxisProps(theme, domain)} />
-            <YAxis {...yAxisProps(theme, 52)} {...niceYAxis(Math.max(0, ...latencies, ...thresholds.map((r) => r.threshold)))} tickFormatter={(value) => formatAxisValue(value, 'ms')} />
-            {rangeAreas(gaps, theme.tickColor, 0.06)}
-            {rangeStrips(runRanges(checks, (check) => check.latencyMs === null), theme.errorColor)}
-            {thresholdLines(thresholds, theme.errorColor, 'ms')}
-            <Tooltip
-              cursor={tooltipCursor(theme)}
-              content={({ active, label, payload }) => (
-                <ChartTooltip
-                  active={active}
-                  label={label}
-                  payload={payload as import('../../components/charts').TooltipPayloadItem[]}
-                  unit="ms"
-                  theme={theme}
-                  valueFormatter={round}
-                />
-              )}
-            />
-            <Area {...areaProps(gradientId)} dataKey="latencyMs" />
-            <Line {...lineProps(theme.primaryColor, theme)} dataKey="latencyMs" name="응답 시간" />
-          </ComposedChart>
-        </ResponsiveContainer>
-      )}
-    </ChartCard>
+    <ResponseTimeCard
+      slots={slots}
+      failedChecks={slots.filter((slot) => slot.latencyMs === null).length}
+      caption={[`체크 ${slots.length}회`, hours > 0 && `최근 ${hours}시간`, 'ms'].filter(Boolean).join(' · ')}
+      thresholds={thresholds}
+    />
   );
 }
 
-function RecentChecks({ metrics }: { metrics: UptimeMonitorMetric[] }) {
+const CHECK_LOG_ROWS = 10;
+
+function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
+  const rows = metrics.slice(0, CHECK_LOG_ROWS);
+  // Bars share one scale across the table; failed checks have no response time to draw.
+  const longest = Math.max(1, ...rows.filter((metric) => metric.status === 'success').map((metric) => metric.responseTime));
   return (
     <section className="rounded-xl border border-ui-border bg-bg-surface p-6">
-      <h2 className="mb-4 type-card-title text-text-base">최근 체크 기록</h2>
-      {metrics.length === 0 ? (
+      <div className="mb-3 flex items-baseline gap-2">
+        <h2 className="type-card-title text-text-base">체크 기록</h2>
+        {rows.length > 0 && <span className="type-caption text-text-dim">최근 {rows.length}회</span>}
+      </div>
+      {rows.length === 0 ? (
         <div className="py-8 text-center text-sm text-text-dim">아직 체크 기록이 없습니다</div>
       ) : (
-        <div className="divide-y divide-ui-border-soft">
-          {metrics.slice(0, 10).map((metric) => (
-            <div key={metric.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-              <span role="img" aria-label={metric.status === 'success' ? '정상' : '장애'} className={`h-2.5 w-2.5 shrink-0 rounded-full ${metric.status === 'success' ? 'bg-status-healthy' : 'bg-status-error'}`} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-text-secondary">{metric.errorMessage || metric.status === 'success' ? '정상 응답' : '체크 실패'}</p>
-                <p className="mt-0.5 text-xs text-text-dim">{new Date(metric.checkedAt).toLocaleString()}</p>
-              </div>
-              {metric.statusCode ? <span className="text-xs text-text-muted">HTTP {metric.statusCode}</span> : null}
-              <span className="w-16 text-right text-xs tabular-nums text-text-muted">{metric.responseTime}ms</span>
-            </div>
-          ))}
+        <div className="-mx-2 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left type-caption text-text-muted">
+                <th className="px-2 py-2 font-normal">결과</th>
+                <th className="px-2 py-2 font-normal">시각</th>
+                <th className="px-2 py-2 font-normal">HTTP</th>
+                <th className="px-2 py-2 font-normal">응답 시간</th>
+                <th className="px-2 py-2 font-normal">메시지</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((metric) => {
+                const ok = metric.status === 'success';
+                return (
+                  <tr key={metric.id} className="border-t border-ui-border-soft">
+                    <td className="px-2 py-2.5"><StatusLight tone={ok ? 'healthy' : 'error'} label={ok ? '성공' : '실패'} /></td>
+                    <td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatTimeLabel(new Date(metric.checkedAt).getTime())}</td>
+                    <td className="px-2 py-2.5 tabular-nums text-text-muted">{metric.statusCode ?? '—'}</td>
+                    <td className="px-2 py-2.5">
+                      {ok ? (
+                        <div className="flex items-center gap-2.5">
+                          <span className="hidden h-1.5 w-40 rounded-full bg-ui-hover sm:block">
+                            <span className="block h-1.5 rounded-full bg-primary" style={{ width: `${(metric.responseTime / longest) * 100}%` }} />
+                          </span>
+                          <span className="tabular-nums text-text-base">{metric.responseTime.toLocaleString()}ms</span>
+                        </div>
+                      ) : (
+                        <span className="text-text-dim">—</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-2.5 font-mono text-xs text-text-muted">{ok ? '' : metric.errorMessage}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </section>
@@ -264,7 +253,7 @@ export function UptimeMonitorDetailPage() {
         days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
       />
       <ResponseTimeChart monitorId={monitor.id} metrics={metrics} />
-      <RecentChecks metrics={metrics} />
+      <CheckLog metrics={metrics} />
 
       {editing && <UptimeMonitorDialog monitor={monitor} onClose={() => setEditing(false)} onSave={updateMonitor} />}
       <ConfirmDialog
