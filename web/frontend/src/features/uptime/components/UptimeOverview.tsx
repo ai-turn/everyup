@@ -1,5 +1,4 @@
 import { useMemo, useState, type KeyboardEvent } from 'react';
-import { ChartCard, ChartStats } from '../../../components/charts';
 
 const HISTORY_DAYS = 90;
 
@@ -51,14 +50,32 @@ export function UptimeOverview({ stats, days, loading = false, className = '' }:
     setHoveredIndex(Math.max(0, Math.min(last, next)));
   };
 
-  return (
-    <ChartCard as="h2" title="업타임 현황" className={className} right={<ChartStats items={stats} />}>
+  // Same cut-offs as the bar colours below.
+  const partialDays = slots.filter(({ day }) => day !== null && day.uptime < 99.5 && day.uptime >= 50).length;
+  const downDays = slots.filter(({ day }) => day !== null && day.uptime < 50).length;
 
+  // Datadog-style header: the numbers read first, large, with no title above them.
+  return (
+    <section className={`rounded-xl border border-ui-border bg-bg-surface p-6 ${className}`}>
+      <h2 className="sr-only">업타임 현황</h2>
+      <dl className="grid grid-cols-2 gap-y-4 sm:flex">
+        {stats.map((stat, index) => (
+          <div key={stat.label} className={`pr-7 ${index > 0 ? 'sm:border-l sm:border-ui-border sm:pl-7' : ''}`}>
+            <dt className="type-caption text-text-muted">{stat.label}</dt>
+            <dd className="mt-1 text-2xl font-medium tabular-nums text-text-base">{stat.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-6 mb-2 flex justify-between gap-3 type-caption text-text-muted">
+        <span>지난 90일</span>
+        {!loading && <span>일부 실패 {partialDays}일 · 전체 실패 {downDays}일</span>}
+      </div>
       {loading ? (
-        <div className="h-8 animate-pulse rounded bg-ui-hover" />
+        <div className="h-7 animate-pulse rounded bg-ui-hover" />
       ) : (
         <div
-          className="flex gap-px"
+          className="flex gap-0.5"
           role="group"
           tabIndex={0}
           aria-label="최근 90일 일별 업타임 상태 — 방향키로 날짜를 옮깁니다"
@@ -69,7 +86,7 @@ export function UptimeOverview({ stats, days, loading = false, className = '' }:
           {slots.map(({ date, day }, index) => (
             <div
               key={date}
-              className={`h-8 flex-1 cursor-default rounded-sm transition-opacity hover:opacity-75 ${
+              className={`h-7 flex-1 cursor-default rounded-sm transition-opacity hover:opacity-75 ${
                 index === hoveredIndex ? 'opacity-75' : ''
               } ${
                 day === null
@@ -99,6 +116,6 @@ export function UptimeOverview({ stats, days, loading = false, className = '' }:
         )}
         <span className="shrink-0">오늘</span>
       </div>
-    </ChartCard>
+    </section>
   );
 }

@@ -247,24 +247,6 @@ export function splitGaps<T extends { t: number }>(rows: T[], step = medianStep(
   return { rows: out, gaps };
 }
 
-/**
- * 조건에 맞는 행이 이어진 구간 — 실패한 체크 음영용. 각 행은 다음 행까지를 덮고, 그 행에서
- * 선이 끊겼다면(`breaksLine`) 앞 행까지 넓힌다: 끊긴 선의 양 끝에 음영이 맞닿아야 선과
- * 음영 사이에 흰 틈이 생기지 않는다.
- */
-export function runRanges<T extends { t: number }>(rows: T[], hit: (row: T) => boolean, breaksLine = hit): [number, number][] {
-  const out: [number, number][] = [];
-  rows.forEach((row, i) => {
-    if (!hit(row)) return;
-    const from = breaksLine(row) ? rows[i - 1]?.t ?? row.t : row.t;
-    const to = rows[i + 1]?.t ?? row.t;
-    const last = out[out.length - 1];
-    if (last && from <= last[1]) last[1] = Math.max(last[1], to);
-    else out.push([from, to]);
-  });
-  return out;
-}
-
 /** 빈 버킷 채우기 — 서버는 데이터가 있는 버킷만 준다. 건수 차트에서 비어 있는 버킷은 "0건"이지 "모름"이 아니다. */
 export function fillBuckets<T extends { t: number }>(rows: T[], [from, to]: [number, number], step: number, empty: (t: number) => T): T[] {
   // 서버 버킷은 폭의 배수에 정렬돼 있다 — 슬롯으로 내려 맞추면 정렬되지 않은 입력에도 어긋나지 않는다.
