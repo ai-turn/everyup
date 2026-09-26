@@ -5,8 +5,8 @@ import {
 } from 'recharts';
 import { StatusLight, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSkeleton, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
-  gridProps, lineProps, niceYAxis, rangeAreas, runRanges, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSkeleton, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
+  gridProps, lineProps, niceYAxis, rangeAreas, rangeStrips, runRanges, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import { api, type ServiceHistoryPoint } from '../../../services/api';
@@ -80,7 +80,7 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
         <ChartEmpty />
       ) : (
         <ResponsiveContainer width="100%" height={CHART_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
-          <ComposedChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <ComposedChart data={rows} margin={CHART_MARGIN}>
             {areaGradient(gradientId, theme.primaryColor)}
             <CartesianGrid {...gridProps(theme)} />
             <XAxis {...timeXAxisProps(theme, [windowStart, loadedAt])} />
@@ -90,7 +90,7 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
               tickFormatter={(v) => formatAxisValue(v, 'ms')}
             />
             {rangeAreas(gaps, theme.tickColor, 0.06)}
-            {rangeAreas(runRanges(buckets, (b) => b.failed > 0, (b) => b.latencyMs === null), theme.errorColor)}
+            {rangeStrips(runRanges(buckets, (b) => b.failed > 0, (b) => b.latencyMs === null), theme.errorColor)}
             {thresholdLines(thresholds, theme.errorColor, 'ms')}
             <Tooltip
               cursor={tooltipCursor(theme)}

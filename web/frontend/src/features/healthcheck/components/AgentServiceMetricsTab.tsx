@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { Button, MaterialIcon, SearchInput, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSkeleton, ChartStats, ChartStatsLegend, ChartSummary, ChartTooltip,
+  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSkeleton, ChartStats, ChartStatsLegend, ChartSummary, ChartTooltip,
   areaGradient, areaProps, formatAxisValue, getSeriesPalette, metricDisplayUnit,
   getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
@@ -223,7 +223,7 @@ function MetricChart({ source, meta, range, refreshKey, rules, expanded = false,
         <>
           <div onMouseEnter={() => onHover?.(name)} onMouseLeave={() => onHover?.(null)}>
             <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-              <ComposedChart data={chartData} syncId={expanded ? undefined : SYNC_ID} syncMethod="value" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <ComposedChart data={chartData} syncId={expanded ? undefined : SYNC_ID} syncMethod="value" margin={CHART_MARGIN}>
                 {single && areaGradient(gradientId, seriesColors[0])}
                 <CartesianGrid {...gridProps(theme)} />
                 <XAxis {...timeXAxisProps(theme, [shown.at - RANGE_HOURS[range] * 3_600_000, shown.at])} />

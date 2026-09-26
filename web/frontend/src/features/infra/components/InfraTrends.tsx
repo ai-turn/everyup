@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import type { GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
+  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
   gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
   type ChartTheme,
 } from '../../../components/charts';
@@ -127,7 +127,7 @@ function TrendCard({
       ) : (
         <div onMouseEnter={() => onHover(chart.title)} onMouseLeave={() => onHover(null)}>
           <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-            <ComposedChart data={rows} syncId="infra-trends" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <ComposedChart data={rows} syncId="infra-trends" margin={CHART_MARGIN}>
               <CartesianGrid {...gridProps(theme)} />
               <XAxis {...timeXAxisProps(theme, domain)} />
               <YAxis
