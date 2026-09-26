@@ -7,8 +7,8 @@ import {
 } from 'recharts';
 import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight } from '../../components/common';
 import {
-  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
-  gridProps, lineProps, niceYAxis, rangeAreas, runRanges, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
+  gridProps, lineProps, niceYAxis, rangeAreas, rangeStrips, runRanges, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../components/charts';
 import { useAlertThresholds } from '../../features/alerts/useAlertThresholds';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
@@ -57,13 +57,13 @@ function ResponseTimeChart({ monitorId, metrics }: { monitorId: string; metrics:
         <ChartEmpty />
       ) : (
         <ResponsiveContainer width="100%" height={CHART_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
-          <ComposedChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <ComposedChart data={rows} margin={CHART_MARGIN}>
             {areaGradient(gradientId, theme.primaryColor)}
             <CartesianGrid {...gridProps(theme)} />
             <XAxis {...timeXAxisProps(theme, domain)} />
             <YAxis {...yAxisProps(theme, 52)} {...niceYAxis(Math.max(0, ...latencies, ...thresholds.map((r) => r.threshold)))} tickFormatter={(value) => formatAxisValue(value, 'ms')} />
             {rangeAreas(gaps, theme.tickColor, 0.06)}
-            {rangeAreas(runRanges(checks, (check) => check.latencyMs === null), theme.errorColor)}
+            {rangeStrips(runRanges(checks, (check) => check.latencyMs === null), theme.errorColor)}
             {thresholdLines(thresholds, theme.errorColor, 'ms')}
             <Tooltip
               cursor={tooltipCursor(theme)}

@@ -72,6 +72,10 @@ export function getSeriesDash(index: number): string | undefined {
 export const CHART_HEIGHT = 220;
 export const CHART_STRIP_HEIGHT = 120;
 
+/* 축이 있는 차트의 여백. niceYAxis는 맨 위 눈금을 도메인 최대값에 두므로 그 라벨이 플롯 위 끝에
+ * 걸린다 — 위 여백이 4px이면 12px 라벨의 윗부분이 잘렸다. */
+export const CHART_MARGIN = { top: 8, right: 8, left: 0, bottom: 0 } as const;
+
 /** 차트 카드 공통 클래스 — 패딩(p-4/p-6)은 소비처에서 붙인다. */
 export const chartCardClass =
   'rounded-xl border border-ui-border bg-bg-surface';

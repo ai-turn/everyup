@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { Button, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange, IconButton } from '../../../components/common';
 import {
-  CHART_INITIAL_DIMENSION, CHART_STRIP_HEIGHT, ChartCard, ChartLegend, ChartTooltip, fillBuckets, formatTimeTick, gridProps,
+  CHART_INITIAL_DIMENSION, CHART_MARGIN, CHART_STRIP_HEIGHT, ChartCard, ChartLegend, ChartTooltip, fillBuckets, formatTimeTick, gridProps,
   niceYAxis, timeXAxisProps, useChartTheme, yAxisProps, type TooltipPayloadItem,
 } from '../../../components/charts';
 import { api, type LogEntry, type LogHistogramBucket, type LogLevel } from '../../../services/api';
@@ -115,7 +115,7 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
       {/* Recharts' accessibility layer lets arrow keys walk the bars; Enter picks one. */}
       <div onKeyDown={(e) => { if (e.key === 'Enter') pick(); }}>
         <ResponsiveContainer width="100%" height={CHART_STRIP_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
-          <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} onClick={pick} style={{ cursor: 'pointer' }}>
+          <BarChart data={data} margin={CHART_MARGIN} onClick={pick} style={{ cursor: 'pointer' }}>
             <CartesianGrid {...gridProps(theme)} />
             <XAxis {...timeXAxisProps(theme, span)} padding={{ left: 6, right: 6 }} />
             <YAxis {...yAxisProps(theme, 36)} {...niceYAxis(peak)} allowDecimals={false} />

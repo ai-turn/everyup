@@ -381,7 +381,7 @@ const gradientId = useId().replace(/[^\w-]/g, '');
 const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 <ChartCard title="응답 시간" unit="ms" right={<ChartSummary values={v} unit="ms" />}>
 <ResponsiveContainer height={CHART_HEIGHT}>
-<ComposedChart data={rows}>
+<ComposedChart data={rows} margin={CHART_MARGIN}>
   {areaGradient(gradientId, color)}
   <CartesianGrid {...gridProps(theme)} />
   <XAxis {...timeXAxisProps(theme, [from, to])} />   // 조회한 창
@@ -412,10 +412,10 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 | `timeXAxisProps` `timeTicks` `formatTimeTick` `formatTimeLabel` | 숫자 시간축 — 정시 눈금, 24시간제, 툴팁 제목에 날짜 |
 | `niceYAxis` `niceTicks` | Y축 눈금 1·2·2.5·5×10ⁿ (0·25·50·75·100) |
 | `splitGaps` `fillBuckets` `runRanges` | 공백·빈 버킷·실패 구간 |
-| `rangeAreas` `thresholdLines` `areaGradient` | 공백·실패 구간 음영(라벨 없음), 알림 임계값 점선, 채움 그라데이션 |
+| `rangeAreas` `rangeStrips` `thresholdLines` `areaGradient` | 공백 음영 · 실패 구간 바닥 띠(둘 다 라벨 없음), 알림 임계값 점선, 채움 그라데이션 |
 | `lineProps(color, theme)` `areaProps(gradientId)` | 시리즈 |
 | `SERIES_HEX` `getSeriesPalette` | 색 |
-| `ChartCard` `ChartEmpty` `ChartSkeleton` `CHART_HEIGHT` `CHART_STRIP_HEIGHT` | 카드 틀 · 빈 상태 · 로딩 · 높이 |
+| `ChartCard` `ChartEmpty` `ChartSkeleton` `CHART_HEIGHT` `CHART_STRIP_HEIGHT` `CHART_MARGIN` | 카드 틀 · 빈 상태 · 로딩 · 높이 · 여백(위 8px — niceYAxis의 맨 위 눈금 라벨이 플롯 위 끝에 걸려, 4px이면 윗부분이 잘렸다) |
 | `formatAxisValue` `formatMetricValue` `metricDisplayUnit` | 포맷 · OTel 단위 → 표시 단위 환산 |
 | `ChartTooltip` `ChartSummary` `ChartStats` `ChartStatsLegend` `ChartLegend` | 툴팁·요약·범례 |
 
@@ -431,8 +431,8 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 - **X축은 숫자 시간축이다.** 문자열 라벨(카테고리) 축은 행을 균등 간격으로 늘어놓아 수집이 끊긴 두 시간을 한 시간 반과 같은 폭으로 그렸다. 도메인은 데이터 범위가 아니라 **조회한 창**이다 — 1시간치만 있으면 6시간 창의 나머지는 비어 보여야 한다
 - **공백은 선을 끊고 음영으로 표시한다** (`splitGaps` → `connectNulls: false` + `rangeAreas`). 여러 시리즈의 타임스탬프가 조금씩 어긋나는 OTel 메트릭만 예외로 선을 잇고 음영만 둔다
 - **건수 차트의 빈 버킷은 0이다** (`fillBuckets`) — 서버는 데이터가 있는 버킷만 준다. 반대로 지연·에러율처럼 건수가 0이면 값이 없는 지표는 null로 비운다
-- **실패한 체크는 응답 시간이 아니다.** 타임아웃까지 기다린 시간이라, 선·통계에서 빼고 옅은 빨간 구간(`rangeAreas(runRanges(…), theme.errorColor)`)으로 그린다. 구간은 끊긴 선의 양 끝에 맞닿는다(흰 틈 없음). 백엔드 버킷 평균도 성공한 체크만 집계한다
-- **음영 구간에 글자 라벨을 달지 않는다.** 좁은 띠 위의 빨간 "다운" 글씨는 스티커처럼 떠 보였다. 무엇인지는 카드 제목 줄의 `StatusLight`(● 실패 2회)가 한 번 말한다
+- **실패한 체크는 응답 시간이 아니다.** 타임아웃까지 기다린 시간이라, 선·통계에서 빼고 **플롯 바닥의 4px 빨간 띠**(`rangeStrips(runRanges(…), theme.errorColor)`)로 언제인지만 표시한다. 띠는 끊긴 선의 양 끝 사이를 덮고, 1px도 안 되는 한 번의 실패도 보이게 최소 폭 3px. 전체 높이 음영(2026-09-24~26)은 두 번의 실패가 차트에서 가장 큰 모양이 됐다(*"실패한 게 너무 우뚝 보인다"*) — 끊긴 선이 "값 없음"을, 제목 줄 `● 실패 2회`가 무엇인지를 이미 말한다. 백엔드 버킷 평균도 성공한 체크만 집계한다
+- **구간 표시(음영·띠)에 글자 라벨을 달지 않는다.** 좁은 띠 위의 빨간 "다운" 글씨는 스티커처럼 떠 보였다. 무엇인지는 카드 제목 줄의 `StatusLight`(● 실패 2회)가 한 번 말한다
 - **이중축 금지.** 요청 수 + 에러율(0–100% 고정 오른쪽 축)에서 에러율 5% 스파이크가 바닥에 깔려 보이지 않았다. 단위가 다른 지표를 한 카드에 둘 때는 둘 중 하나다:
   - **지표 타일 + 차트 1개** (요청 추이, 2026-09-25) — 카드 위 타일(`요청 수 1,530건 │ 에러율 0.5% │ 지연 시간 p95 121ms`)을 누르면 아래 차트가 그 지표로 바뀐다. 타일은 `aria-pressed` 버튼 그룹(`SegmentedControl`과 같은 이유로 ARIA 탭이 아니다), 선택은 `border-primary` + 안쪽 링. 툴팁은 어느 지표를 그리든 그 버킷의 모든 값을 보여준다(행마다 `unit`). 요청 수 막대는 에러를 빨간색으로 쌓아 기본 화면에서 요청량과 에러가 함께 보인다. 차트 높이는 지표를 바꿔도 같다. 세 패널을 위아래로 쌓은 이전 방식은 *"보기 어렵다"*는 피드백으로 바꿨다
   - **패널 분리 + `syncId`** — 여러 지표를 동시에 봐야 하는 자리(인프라 추세 4종, 메트릭 탐색 격자)

@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import {
-  CHART_HEIGHT, CHART_INITIAL_DIMENSION, ChartCard, ChartLegend, ChartSkeleton, ChartTooltip, SERIES_HEX, areaGradient, areaProps, fillBuckets,
+  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartLegend, ChartSkeleton, ChartTooltip, SERIES_HEX, areaGradient, areaProps, fillBuckets,
   formatAxisValue, gridProps, lineProps, niceYAxis, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
   type ChartTheme, type TooltipPayloadItem,
 } from '../../../components/charts';
@@ -223,7 +223,7 @@ function ServiceRequestTrends({
         {view.legend.length > 0 && <ChartLegend items={view.legend} />}
       </div>
       <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-        <ComposedChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+        <ComposedChart data={data} margin={CHART_MARGIN}>
           {shown === 'error' && areaGradient(gradientId, SERIES_HEX.red)}
           <CartesianGrid {...gridProps(theme)} />
           <XAxis {...timeXAxisProps(theme, timeWindow)} />
