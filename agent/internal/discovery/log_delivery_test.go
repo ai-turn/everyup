@@ -6,14 +6,33 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 )
 
+func TestDockerLogStreamCanOutliveControlRequestTimeout(t *testing.T) {
+	docker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprintln(w, "2026-09-12T00:00:01Z first")
+		w.(http.Flusher).Flush()
+		time.Sleep(60 * time.Millisecond)
+		_, _ = fmt.Fprintln(w, "2026-09-12T00:00:02Z second")
+	}))
+	defer docker.Close()
+	c := NewDockerClient("tcp://"+strings.TrimPrefix(docker.URL, "http://"), 20*time.Millisecond)
+	count := 0
+	if err := c.ReadLogsSince(t.Context(), "one", time.Time{}, 100, func(DockerLogLine) error { count++; return nil }); err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Fatalf("read %d of 2 streamed logs", count)
+	}
+}
+
 func TestIncrementalLogsNotLimitedToTail(t *testing.T) {
 	c := NewDockerClient("", time.Second)
-	c.client.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	c.logsClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		count := 150
 		if r.URL.Query().Get("tail") != "all" {
 			count = 100

@@ -76,7 +76,7 @@ func (c *DockerClient) ReadLogsSince(ctx context.Context, containerID string, si
 	if err != nil {
 		return fmt.Errorf("create docker logs request: %w", err)
 	}
-	resp, err := c.client.Do(req)
+	resp, err := c.logsClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("query docker logs: %w", err)
 	}
@@ -146,6 +146,7 @@ func (c *DockerClient) containerInspect(ctx context.Context, containerID string)
 type DockerClient struct {
 	socketPath string
 	client     *http.Client
+	logsClient *http.Client
 }
 
 type dockerContainer struct {
@@ -157,7 +158,8 @@ type dockerContainer struct {
 	Status          string            `json:"Status"` // human-readable, e.g. "Up 2 hours", "Exited (0) 3 minutes ago"
 	NetworkSettings struct {
 		Networks map[string]struct {
-			IPAddress string `json:"IPAddress"`
+			IPAddress         string `json:"IPAddress"`
+			GlobalIPv6Address string `json:"GlobalIPv6Address"`
 		} `json:"Networks"`
 	} `json:"NetworkSettings"`
 }
@@ -187,6 +189,7 @@ func NewDockerClient(socketPath string, timeout time.Duration) *DockerClient {
 	return &DockerClient{
 		socketPath: socketPath,
 		client:     &http.Client{Transport: transport, Timeout: timeout},
+		logsClient: &http.Client{Transport: transport, Timeout: max(time.Minute, timeout*12)},
 	}
 }
 
@@ -255,17 +258,18 @@ func (c *DockerClient) ListTargets(ctx context.Context) ([]Target, error) {
 // telemetry gateway can attribute inbound OTLP by connection source IP and
 // eBPF sidecar spans by server.address (Docker's rDNS hands the sidecar the
 // compose service alias, e.g. "whoami", not an IP). Best-effort: containers on
-// the host network carry no distinct identity here and are simply absent (the
-// app's own service.name, if any, still wins). A name claimed by two different
-// services (same compose service name in two projects) is dropped from the map
+// the host network carry no distinct identity here and are simply absent.
+// A name claimed by two different services (same compose service name in two
+// projects) is dropped from the map
 // — a missing span beats a misattributed one.
-func (c *DockerClient) ServiceIPMap(ctx context.Context) (map[string]string, error) {
+func (c *DockerClient) ServiceIPMap(ctx context.Context) (map[string]string, map[string]bool, error) {
 	containers, err := c.fetchContainers(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	keyToService := make(map[string]string)
+	observerIPs := make(map[string]bool)
 	ambiguous := make(map[string]bool)
 	add := func(key, service string) {
 		key = strings.TrimSpace(key)
@@ -281,14 +285,22 @@ func (c *DockerClient) ServiceIPMap(ctx context.Context) (map[string]string, err
 	}
 
 	for _, container := range containers {
+		if container.State != "running" {
+			continue
+		}
 		name := serviceNameFromDocker(container.ID, containerName(container), container.Labels)
 		for _, network := range container.NetworkSettings.Networks {
-			add(network.IPAddress, name)
+			for _, ip := range []string{network.IPAddress, network.GlobalIPv6Address} {
+				add(ip, name)
+				if containerName(container) == "everyup-ebpf" && ip != "" {
+					observerIPs[ip] = true
+				}
+			}
 		}
 		add(containerName(container), name)
 		add(container.Labels[ComposeServiceLabel], name)
 	}
-	return keyToService, nil
+	return keyToService, observerIPs, nil
 }
 
 // ServiceProcessMaps walks each running container's processes (docker top) and

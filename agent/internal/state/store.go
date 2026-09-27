@@ -23,9 +23,10 @@ type TargetState struct {
 }
 
 type Snapshot struct {
-	Version    int                    `json:"version"`
-	Targets    map[string]TargetState `json:"targets"`
-	LogCursors map[string]LogCursor   `json:"logCursors,omitempty"`
+	Version     int                    `json:"version"`
+	Targets     map[string]TargetState `json:"targets"`
+	LogCursors  map[string]LogCursor   `json:"logCursors,omitempty"`
+	AuditOffset int64                  `json:"auditOffset,omitempty"`
 }
 
 // Count distinguishes separate records sharing the cursor's timestamp.
@@ -127,7 +128,7 @@ func (s *Store) Save(snapshot Snapshot) error {
 
 func emptySnapshot() Snapshot {
 	return Snapshot{
-		Version: 1,
+		Version: 2,
 		Targets: make(map[string]TargetState),
 	}
 }

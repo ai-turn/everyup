@@ -42,10 +42,11 @@ type Agent struct {
 	pidIndex        *servicePIDIndex
 	traced          *tracedServices
 
-	mu         sync.RWMutex
-	states     map[string]*targetState
-	logCursors map[string]state.LogCursor
-	webEvents  []state.AuditEvent
+	mu          sync.RWMutex
+	saveMu      sync.Mutex
+	states      map[string]*targetState
+	logCursors  map[string]state.LogCursor
+	auditOffset int64
 	// runtimes maps service name -> detected language runtime ("java", "node",
 	// ...), refreshed from Docker process listings each check cycle and synced
 	// to Web so the UI can show runtime-specific OTel setup guidance.
@@ -112,7 +113,14 @@ func New(cfg config.Config) (*Agent, error) {
 	traced := newTracedServices(10 * time.Minute)
 	var gateway *telemetrygateway.Server
 	if cfg.TelemetryGatewayEnabled && web != nil && web.Enabled() {
-		gateway = telemetrygateway.New(cfg.TelemetryGatewayListenAddr, web, ipIndex, pidIndex, traced)
+		var resolver telemetrygateway.ServiceResolver
+		if docker != nil {
+			resolver = ipIndex
+		}
+		gateway = telemetrygateway.New(cfg.TelemetryGatewayListenAddr, web, resolver, pidIndex, traced)
+		if resolver == nil {
+			gateway.RequireServiceTokens(cfg.AgentAPIKey)
+		}
 	}
 
 	agent := &Agent{
@@ -132,7 +140,6 @@ func New(cfg config.Config) (*Agent, error) {
 		traced:          traced,
 		states:          make(map[string]*targetState),
 		logCursors:      make(map[string]state.LogCursor),
-		webEvents:       make([]state.AuditEvent, 0),
 		runtimes:        make(map[string]string),
 	}
 
@@ -149,15 +156,18 @@ func (a *Agent) Run(ctx context.Context) error {
 
 	a.auditEvent("agent_started", a.cfg.ServiceName, "", fmt.Sprintf("Docker collector %s is running.", a.cfg.AgentName), nil)
 	a.startWebSync(ctx)
-	a.startTelemetryGateway(ctx)
+	gatewayErrors := a.startTelemetryGateway(ctx)
 	a.startHeartbeat(ctx)
 
 	a.runChecks(ctx)
+	a.startDockerLogCollector(ctx)
 	ticker := time.NewTicker(a.cfg.CheckInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
+		case err := <-gatewayErrors:
+			return fmt.Errorf("telemetry gateway stopped: %w", err)
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
@@ -197,18 +207,21 @@ func (a *Agent) startWebSync(ctx context.Context) {
 	log.Printf("EveryUp Web sync enabled")
 }
 
-func (a *Agent) startTelemetryGateway(ctx context.Context) {
+func (a *Agent) startTelemetryGateway(ctx context.Context) <-chan error {
 	if a.gateway == nil || !a.gateway.Enabled() {
 		log.Printf("Telemetry gateway disabled")
-		return
+		return nil
 	}
+	errors := make(chan error, 1)
 	go func() {
 		if err := a.gateway.Run(ctx); err != nil {
 			log.Printf("telemetry gateway stopped with error: %v", err)
 			a.auditEvent("telemetry_gateway_failed", "", "", err.Error(), nil)
+			errors <- err
 		}
 	}()
 	log.Printf("Telemetry gateway enabled: listen=%s", a.cfg.TelemetryGatewayListenAddr)
+	return errors
 }
 func (a *Agent) startHeartbeat(ctx context.Context) {
 	if a.heartbeat == nil || !a.heartbeat.Enabled() {
@@ -251,27 +264,52 @@ func (a *Agent) flushWebEvents(ctx context.Context) {
 	if a.web == nil || !a.web.Enabled() || a.webAgentID == "" {
 		return
 	}
-
-	a.mu.Lock()
-	if len(a.webEvents) == 0 {
-		a.mu.Unlock()
-		return
-	}
-	events := append([]state.AuditEvent(nil), a.webEvents...)
-	a.webEvents = a.webEvents[:0]
-	a.mu.Unlock()
-
-	if err := a.web.SendEvents(ctx, webclient.EventRequest{AgentID: a.webAgentID, Events: events}); err != nil {
-		log.Printf("EveryUp Web event sync failed: %v", err)
-		a.mu.Lock()
-		a.webEvents = append(events, a.webEvents...)
-		if len(a.webEvents) > 500 {
-			a.webEvents = a.webEvents[len(a.webEvents)-500:]
+	for batch := 0; batch < 10 && ctx.Err() == nil; batch++ {
+		a.mu.RLock()
+		offset := a.auditOffset
+		a.mu.RUnlock()
+		events, next, err := a.audit.ReadBatch(offset, 100)
+		if err != nil {
+			log.Printf("EveryUp Web event read failed: %v", err)
+			return
 		}
-		a.mu.Unlock()
-		return
+		if len(events) == 0 {
+			if next != offset {
+				if err := a.persistAuditOffset(next); err != nil {
+					log.Printf("EveryUp Web event checkpoint failed: %v", err)
+				}
+			}
+			return
+		}
+		if err := a.web.SendEvents(ctx, webclient.EventRequest{AgentID: a.webAgentID, Events: events}); err != nil {
+			log.Printf("EveryUp Web event sync failed: %v", err)
+			return
+		}
+		if err := a.persistAuditOffset(next); err != nil {
+			log.Printf("EveryUp Web event checkpoint failed: %v", err)
+			return
+		}
+		log.Printf("synced %d events to EveryUp Web", len(events))
+		if len(events) < 100 {
+			return
+		}
 	}
-	log.Printf("synced %d events to EveryUp Web", len(events))
+}
+
+func (a *Agent) persistAuditOffset(next int64) error {
+	a.saveMu.Lock()
+	defer a.saveMu.Unlock()
+	a.mu.Lock()
+	previous := a.auditOffset
+	a.auditOffset = next
+	a.mu.Unlock()
+	if err := a.saveStateLocked(); err != nil {
+		a.mu.Lock()
+		a.auditOffset = previous
+		a.mu.Unlock()
+		return err
+	}
+	return nil
 }
 
 func (a *Agent) flushWebServices(ctx context.Context) {
@@ -424,8 +462,31 @@ func (a *Agent) runChecks(ctx context.Context) {
 	for _, target := range healthCheckTargets(targets) {
 		a.runCheck(ctx, target)
 	}
-	a.forwardDockerLogs(ctx, targets)
 	a.runHostResourceCheck(ctx)
+}
+
+func (a *Agent) startDockerLogCollector(ctx context.Context) {
+	if !a.cfg.DockerLogsEnabled || a.docker == nil || a.web == nil || !a.web.Enabled() {
+		return
+	}
+	go func() {
+		ticker := time.NewTicker(a.cfg.CheckInterval)
+		defer ticker.Stop()
+		for {
+			backlog := false
+			if targets := a.targets(ctx); targets != nil {
+				backlog = a.forwardDockerLogs(ctx, targets)
+			}
+			if backlog && ctx.Err() == nil {
+				continue
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+			}
+		}
+	}()
 }
 
 // Keep stable service health while collecting every replica's logs. Any stopped
@@ -456,12 +517,12 @@ func (a *Agent) refreshServiceIPIndex(ctx context.Context) {
 	if a.gateway == nil || a.docker == nil || a.ipIndex == nil {
 		return
 	}
-	m, err := a.docker.ServiceIPMap(ctx)
+	m, observerIPs, err := a.docker.ServiceIPMap(ctx)
 	if err != nil {
 		log.Printf("service IP index refresh failed: %v", err)
 		return
 	}
-	a.ipIndex.replace(m)
+	a.ipIndex.replace(m, observerIPs)
 
 	if a.pidIndex == nil {
 		return
@@ -690,7 +751,19 @@ func (a *Agent) loadState() error {
 	if err != nil {
 		return err
 	}
+	migrated := snapshot.Version < 2
 	a.logCursors = snapshot.LogCursors
+	if migrated {
+		// Version 1 did not track Web delivery. Replay up to the old queue's
+		// 500-event capacity so pending events survive upgrade; duplicates are
+		// possible for events already accepted by Web.
+		a.auditOffset, err = a.audit.TailOffset(500)
+		if err != nil {
+			return err
+		}
+	} else {
+		a.auditOffset = snapshot.AuditOffset
+	}
 	if a.logCursors == nil {
 		a.logCursors = make(map[string]state.LogCursor)
 	}
@@ -707,17 +780,29 @@ func (a *Agent) loadState() error {
 			updatedAt:       persisted.UpdatedAt,
 		}
 	}
+	if migrated {
+		if err := a.saveState(); err != nil {
+			return err
+		}
+	}
 	log.Printf("loaded %d persisted target states", len(a.states))
 	return nil
 }
 
 func (a *Agent) saveState() error {
+	a.saveMu.Lock()
+	defer a.saveMu.Unlock()
+	return a.saveStateLocked()
+}
+
+func (a *Agent) saveStateLocked() error {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	snapshot := state.Snapshot{
-		Version:    1,
-		Targets:    make(map[string]state.TargetState, len(a.states)),
-		LogCursors: a.logCursors,
+		Version:     2,
+		Targets:     make(map[string]state.TargetState, len(a.states)),
+		LogCursors:  a.logCursors,
+		AuditOffset: a.auditOffset,
 	}
 	for key, current := range a.states {
 		snapshot.Targets[key] = state.TargetState{
@@ -861,19 +946,6 @@ func (a *Agent) auditEvent(eventType, serviceName, key, message string, metadata
 	}
 	if err := a.audit.Append(event); err != nil {
 		log.Printf("failed to append audit event: %v", err)
-	}
-	a.enqueueWebEvent(event)
-}
-
-func (a *Agent) enqueueWebEvent(event state.AuditEvent) {
-	if !a.cfg.WebSyncEnabled {
-		return
-	}
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.webEvents = append(a.webEvents, event)
-	if len(a.webEvents) > 500 {
-		a.webEvents = a.webEvents[len(a.webEvents)-500:]
 	}
 }
 

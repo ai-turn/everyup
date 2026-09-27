@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -12,21 +13,27 @@ import (
 	"github.com/aiturn/everyup/agent/internal/webclient"
 )
 
-func (a *Agent) forwardDockerLogs(ctx context.Context, targets []discovery.Target) {
+var errLogScanLimit = errors.New("log scan limit reached")
+
+func (a *Agent) forwardDockerLogs(ctx context.Context, targets []discovery.Target) bool {
 	if !a.cfg.DockerLogsEnabled || a.docker == nil || a.web == nil || !a.web.Enabled() {
-		return
+		return false
 	}
+	backlog := false
 	for _, target := range targets {
 		if target.ID == "" || strings.HasPrefix(target.ID, "env:") {
 			continue
 		}
-		if err := a.forwardContainerLogs(ctx, target); err != nil {
+		if err := a.forwardContainerLogs(ctx, target); errors.Is(err, errLogScanLimit) {
+			backlog = true
+		} else if err != nil {
 			log.Printf("docker log delivery failed: service=%s container=%s err=%v", target.ServiceName, target.ID, err)
 		}
 		if ctx.Err() != nil {
-			return
+			return false
 		}
 	}
+	return backlog
 }
 
 func (a *Agent) forwardContainerLogs(ctx context.Context, target discovery.Target) error {
@@ -50,6 +57,7 @@ func (a *Agent) forwardContainerLogs(ctx context.Context, target discovery.Targe
 	batch := webclient.OTLPLogBatch{ServiceName: target.ServiceName, ContainerID: target.ID, ContainerName: targetKey(target)}
 	var positions []state.LogCursor
 	var spans []webclient.OTLPSpanEntry
+	collected := 0
 	flush := func() error {
 		if len(batch.Entries) == 0 {
 			return nil
@@ -100,17 +108,23 @@ func (a *Agent) forwardContainerLogs(ctx context.Context, target discovery.Targe
 		severity, number := inferLogSeverity(body)
 		batch.Entries = append(batch.Entries, webclient.OTLPLogEntry{Timestamp: stamp, Body: body, SeverityText: severity, SeverityNumber: number, Attributes: map[string]string{"everyup.target.key": targetKey(target)}})
 		positions = append(positions, next)
+		collected++
 		if method, path, status, ok := parseAccessLog(body); ok && emitSynthetic {
 			spans = append(spans, webclient.OTLPSpanEntry{Method: method, Path: path, StatusCode: status, Timestamp: stamp})
 		}
 		// Bound collection memory as well as each outbound request. The client
 		// additionally checks the actual encoded size before sending.
 		if len(batch.Entries) >= 100 {
-			return flush()
+			if err := flush(); err != nil {
+				return err
+			}
+		}
+		if collected >= 500 {
+			return errLogScanLimit
 		}
 		return nil
 	})
-	if err != nil {
+	if err != nil && !errors.Is(err, errLogScanLimit) {
 		return err
 	}
 	if err := flush(); err != nil {
@@ -119,7 +133,7 @@ func (a *Agent) forwardContainerLogs(ctx context.Context, target discovery.Targe
 	if next.At.IsZero() {
 		return a.persistLogCursor(target.ID, state.LogCursor{At: readStarted})
 	}
-	return nil
+	return err
 }
 
 func (a *Agent) persistLogCursor(id string, cursor state.LogCursor) error {

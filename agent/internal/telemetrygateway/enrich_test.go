@@ -28,6 +28,10 @@ func (f fakeIPResolver) ServiceNameByIP(ip string) (string, bool) {
 	return name, ok
 }
 
+func (f fakeIPResolver) IsObserverIP(ip string) bool {
+	return f[ip] == "everyup-ebpf"
+}
+
 func kv(key, value string) *commonpb.KeyValue {
 	return &commonpb.KeyValue{Key: key, Value: stringAttr(value)}
 }
@@ -87,7 +91,7 @@ func TestEnrichTracesConnectionAttribution(t *testing.T) {
 	}{
 		{"absent -> injected", "", "my-api"},
 		{"unknown_service default -> overridden", "unknown_service:node", "my-api"},
-		{"explicit -> respected", "billing", "billing"},
+		{"explicit -> bound to container", "billing", "my-api"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -100,8 +104,7 @@ func TestEnrichTracesConnectionAttribution(t *testing.T) {
 			if got := serviceNameOf(req.GetResourceSpans()[0]); got != tc.want {
 				t.Fatalf("service.name = %q, want %q", got, tc.want)
 			}
-			// The resolved connection service is always marked traced, even
-			// when the app's explicit name wins.
+			// The resolved connection service is marked traced.
 			if len(services) != 1 || services[0] != "my-api" {
 				t.Fatalf("services = %v, want [my-api]", services)
 			}
@@ -191,7 +194,7 @@ func TestInstancePID(t *testing.T) {
 }
 
 func TestEnrichMetrics(t *testing.T) {
-	appRM := &metricspb.ResourceMetrics{Resource: &resourcepb.Resource{}}
+	appRM := &metricspb.ResourceMetrics{Resource: &resourcepb.Resource{Attributes: []*commonpb.KeyValue{kv("service.name", "billing")}}}
 	ebpfRM := &metricspb.ResourceMetrics{Resource: &resourcepb.Resource{Attributes: []*commonpb.KeyValue{
 		kv("service.name", "whoami"),
 		kv("everyup.source", "ebpf"),
@@ -253,7 +256,7 @@ func TestInjectServiceNameLogs(t *testing.T) {
 	}{
 		{"absent -> injected", "", "my-api", true},
 		{"unknown_service default -> overridden", "unknown_service:node", "my-api", true},
-		{"explicit -> respected", "billing", "billing", false},
+		{"explicit -> bound to container", "billing", "my-api", true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -122,10 +122,10 @@ func (h *OTLPIngestHandler) IngestLogs(c *fiber.Ctx) error {
 		})
 	}
 
-	processed := 0
+	var pendingLogs []*models.Log
+	var pendingMetadata []map[string]interface{}
 	filtered := 0
 	failed := 0
-	receivedServices := make(map[string]bool)
 
 	for _, resourceLogs := range req.ResourceLogs {
 		resourceMap := attrsToMap(resourceLogs.GetResource().GetAttributes())
@@ -169,18 +169,21 @@ func (h *OTLPIngestHandler) IngestLogs(c *fiber.Ctx) error {
 					logEntry.CreatedAt = *otel.timestamp
 				}
 
-				if err := h.logHandler.logRepo.Create(logEntry); err != nil {
-					log.Printf("[OTLP] failed to store log for service %s: %v", serviceName, err)
-					failed++
-					continue
-				}
-				h.logHandler.triggerAlertIfNeeded(principal.ServiceID, principal.AgentID, serviceName, logEntry, entry.Metadata)
-				processed++
-				receivedServices[serviceName] = true
+				pendingLogs = append(pendingLogs, logEntry)
+				pendingMetadata = append(pendingMetadata, entry.Metadata)
 			}
 		}
 	}
 
+	if err := h.logHandler.logRepo.CreateBatch(pendingLogs); err != nil {
+		log.Printf("[OTLP] failed to store log batch for %s: %v", principal.Name, err)
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	receivedServices := make(map[string]bool)
+	for i, entry := range pendingLogs {
+		h.logHandler.triggerAlertIfNeeded(principal.ServiceID, principal.AgentID, entry.ServiceName, entry, pendingMetadata[i])
+		receivedServices[entry.ServiceName] = true
+	}
 	for name := range receivedServices {
 		recordReceipt(principal, name, "logs")
 	}
@@ -189,7 +192,7 @@ func (h *OTLPIngestHandler) IngestLogs(c *fiber.Ctx) error {
 		return err
 	}
 	c.Set(fiber.HeaderContentType, "application/x-protobuf")
-	c.Set("X-EveryUp-Processed", strconv.Itoa(processed))
+	c.Set("X-EveryUp-Processed", strconv.Itoa(len(pendingLogs)))
 	c.Set("X-EveryUp-Filtered", strconv.Itoa(filtered))
 	c.Set("X-EveryUp-Failed", strconv.Itoa(failed))
 	return c.Status(fiber.StatusOK).Send(body)

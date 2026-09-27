@@ -17,14 +17,12 @@ import (
 // ebpfSourceMarker is the resource attribute the bundled eBPF sidecar sets via
 // OTEL_RESOURCE_ATTRIBUTES (see the everyup-ebpf compose block). It scopes the
 // aggressive attribution rules below — per-resource rename and drop — to
-// payloads we generated ourselves; app SDK payloads are never dropped or
-// renamed past the existing "explicit service.name wins" rule.
+// payloads we generated ourselves; app SDK payloads are bound to their
+// Docker-verified source container.
 const ebpfSourceMarker = "ebpf"
 
 // injectServiceName sets service.name on every resource in an OTLP logs payload
-// when the app did not set a meaningful one — empty, or the OTel SDK
-// "unknown_service" default. An explicit service.name is left untouched, so
-// OTEL_SERVICE_NAME still wins when the app provides it. Returns the re-encoded
+// using the Docker-verified connection identity. Returns the re-encoded
 // payload and whether it changed; on any decode/encode error the original bytes
 // are forwarded as-is. Traces go through enrichTraces instead.
 func injectServiceName(signal string, body []byte, name string) ([]byte, bool) {
@@ -40,7 +38,7 @@ func injectServiceName(signal string, body []byte, name string) ([]byte, bool) {
 		if rl.Resource == nil {
 			rl.Resource = &resourcepb.Resource{}
 		}
-		if setServiceName(rl.Resource, name) {
+		if forceServiceName(rl.Resource, name) {
 			changed = true
 		}
 	}
@@ -58,29 +56,21 @@ func remarshal(msg proto.Message, orig []byte, changed bool) ([]byte, bool) {
 	return out, true
 }
 
-// setServiceName sets the service.name resource attribute unless the app already
-// set an explicit (non-"unknown_service") value. Returns whether it changed.
-func setServiceName(res *resourcepb.Resource, name string) bool {
-	for _, attr := range res.GetAttributes() {
-		if attr.GetKey() != "service.name" {
-			continue
-		}
-		existing := attr.GetValue().GetStringValue()
-		if existing != "" && !strings.HasPrefix(existing, "unknown_service") {
-			return false
-		}
-		attr.Value = stringAttr(name)
-		return true
-	}
-	res.Attributes = append(res.Attributes, &commonpb.KeyValue{
-		Key:   "service.name",
-		Value: stringAttr(name),
-	})
-	return true
-}
-
 func stringAttr(s string) *commonpb.AnyValue {
 	return &commonpb.AnyValue{Value: &commonpb.AnyValue_StringValue{StringValue: s}}
+}
+
+func hasEBPFSource(body []byte) bool {
+	var req collectortracepb.ExportTraceServiceRequest
+	if err := proto.Unmarshal(body, &req); err != nil {
+		return false
+	}
+	for _, rs := range req.GetResourceSpans() {
+		if resourceAttr(rs.GetResource(), "everyup.source") == ebpfSourceMarker {
+			return true
+		}
+	}
+	return false
 }
 
 // enrichTraces applies service attribution to a trace payload:
@@ -92,8 +82,7 @@ func stringAttr(s string) *commonpb.AnyValue {
 //     sidecar's executable-based service.name. Unresolvable eBPF resources are
 //     dropped — host noise (docker-proxy, the sidecar itself) must not surface
 //     as phantom services.
-//   - Other resources keep the existing rule: the connection's source IP names
-//     the service unless the app set an explicit service.name.
+//   - Other resources use the Docker-verified connection's service name.
 //
 // Returns the (possibly re-encoded) payload, the attributed service names, and
 // whether anything is left to forward.
@@ -129,12 +118,9 @@ func enrichTraces(body []byte, connName string, connOK bool, pids PIDResolver, i
 			continue
 		}
 		if connOK {
-			if setServiceName(rs.Resource, connName) {
+			if forceServiceName(rs.Resource, connName) {
 				changed = true
 			}
-			// Even when the app's explicit service.name wins, the spans came
-			// from that container: record the resolved service so the
-			// access-log path stops double-counting it with synthetic spans.
 			services[connName] = true
 		}
 		kept = append(kept, rs)
@@ -155,7 +141,7 @@ func enrichTraces(body []byte, connName string, connOK bool, pids PIDResolver, i
 // enrichMetrics applies service attribution to a metrics payload: resources
 // marked everyup.source=ebpf are dropped outright — the sidecar is configured
 // traces-only and its RED metrics would only duplicate span-derived stats —
-// and the rest get the connection-source-IP rule, like logs. Returns the
+// and the rest get the Docker-verified source-IP rule, like logs. Returns the
 // payload and whether anything is left to forward.
 func enrichMetrics(body []byte, connName string, connOK bool) ([]byte, bool) {
 	var req collectormetricspb.ExportMetricsServiceRequest
@@ -172,7 +158,7 @@ func enrichMetrics(body []byte, connName string, connOK bool) ([]byte, bool) {
 			changed = true
 			continue
 		}
-		if connOK && setServiceName(rm.Resource, connName) {
+		if connOK && forceServiceName(rm.Resource, connName) {
 			changed = true
 		}
 		kept = append(kept, rm)
@@ -240,19 +226,23 @@ func resourceAttr(res *resourcepb.Resource, key string) string {
 	return ""
 }
 
-// forceServiceName sets service.name unconditionally — unlike setServiceName it
-// overrides explicit values, because the eBPF sidecar's executable-derived
-// names ("node", "java") are placeholders, not user intent.
+// forceServiceName binds a resource to the service verified from Docker. It
+// also replaces the eBPF sidecar's executable-derived names ("node", "java").
 func forceServiceName(res *resourcepb.Resource, name string) bool {
+	found := false
+	changed := false
 	for _, attr := range res.GetAttributes() {
 		if attr.GetKey() != "service.name" {
 			continue
 		}
-		if attr.GetValue().GetStringValue() == name {
-			return false
+		found = true
+		if attr.GetValue().GetStringValue() != name {
+			attr.Value = stringAttr(name)
+			changed = true
 		}
-		attr.Value = stringAttr(name)
-		return true
+	}
+	if found {
+		return changed
 	}
 	res.Attributes = append(res.Attributes, &commonpb.KeyValue{
 		Key:   "service.name",

@@ -19,10 +19,13 @@ type Forwarder interface {
 // ServiceResolver maps a container network identity — source IP of an inbound
 // OTLP connection, or a server.address from an eBPF span (IP, container name,
 // or compose service alias) — to the service name it belongs to, so telemetry
-// can be attributed without the app setting OTEL_SERVICE_NAME. A nil resolver
-// disables enrichment (the app's own service.name is forwarded untouched).
+// can be attributed without the app setting OTEL_SERVICE_NAME. With a resolver,
+// unknown senders are rejected and service.name is bound to the source. A nil
+// resolver is used by profiles without Docker discovery; those profiles use
+// a service token to authenticate and name the sender.
 type ServiceResolver interface {
 	ServiceNameByIP(ip string) (string, bool)
+	IsObserverIP(ip string) bool
 }
 
 // PIDResolver maps a host-namespace PID to a service name. The bundled eBPF
@@ -42,12 +45,13 @@ type TraceObserver interface {
 }
 
 type Server struct {
-	addr      string
-	forwarder Forwarder
-	resolver  ServiceResolver
-	pids      PIDResolver
-	observer  TraceObserver
-	server    *http.Server
+	addr        string
+	forwarder   Forwarder
+	resolver    ServiceResolver
+	pids        PIDResolver
+	observer    TraceObserver
+	tokenSecret string
+	server      *http.Server
 }
 
 func New(addr string, forwarder Forwarder, resolver ServiceResolver, pids PIDResolver, observer TraceObserver) *Server {
@@ -55,6 +59,11 @@ func New(addr string, forwarder Forwarder, resolver ServiceResolver, pids PIDRes
 		addr = ":4318"
 	}
 	return &Server{addr: addr, forwarder: forwarder, resolver: resolver, pids: pids, observer: observer}
+}
+
+// RequireServiceTokens protects gateways that cannot use Docker source identity.
+func (s *Server) RequireServiceTokens(secret string) {
+	s.tokenSecret = secret
 }
 
 func (s *Server) Enabled() bool {
@@ -79,6 +88,10 @@ func (s *Server) Run(ctx context.Context) error {
 		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+	listener, err := net.Listen("tcp", s.addr)
+	if err != nil {
+		return err
+	}
 
 	go func() {
 		<-ctx.Done()
@@ -88,7 +101,7 @@ func (s *Server) Run(ctx context.Context) error {
 	}()
 
 	log.Printf("EveryUp telemetry gateway listening on %s", s.addr)
-	err := s.server.ListenAndServe()
+	err = s.server.Serve(listener)
 	if err != nil && err != http.ErrServerClosed {
 		return err
 	}
@@ -128,7 +141,27 @@ func (s *Server) handleOTLP(signal string) http.HandlerFunc {
 		var tracedServices []string
 		connName, connOK := "", false
 		if s.resolver != nil {
-			connName, connOK = s.resolver.ServiceNameByIP(clientIP(r.RemoteAddr))
+			sourceIP := clientIP(r.RemoteAddr)
+			connName, connOK = s.resolver.ServiceNameByIP(sourceIP)
+			if !connOK {
+				http.Error(w, "telemetry source is not a discovered container", http.StatusForbidden)
+				return
+			}
+			if signal == "traces" && hasEBPFSource(body) && !s.resolver.IsObserverIP(sourceIP) {
+				http.Error(w, "eBPF telemetry source is not the observer", http.StatusForbidden)
+				return
+			}
+		} else if s.tokenSecret != "" {
+			parts := strings.Fields(r.Header.Get("Authorization"))
+			if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+				http.Error(w, "service token required", http.StatusUnauthorized)
+				return
+			}
+			connName, connOK = serviceFromToken(s.tokenSecret, parts[1])
+			if !connOK || signal == "traces" && hasEBPFSource(body) {
+				http.Error(w, "invalid service token or telemetry source", http.StatusForbidden)
+				return
+			}
 		}
 		if signal == "traces" {
 			enriched, services, forward := enrichTraces(body, connName, connOK, s.pids, s.resolver)

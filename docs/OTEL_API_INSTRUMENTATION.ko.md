@@ -8,6 +8,8 @@ OpenTelemetry로 수집하는 방법을 다룹니다.
 앱이 보낸 span은 Docker Collector의 OTLP 게이트웨이 `http://everyup-agent:4318`(알맞은
 서비스에 귀속시켜 Web으로 포워딩)로 보내거나, Web에 직접
 `/api/v1/otlp/v1/traces`로 보냅니다.
+Docker 자동 탐지가 꺼진 Collector 프로필에서는 앱마다 서비스별 bearer 토큰을
+보내야 합니다. 발급 방법은 [네트워킹 안내](../agent/README.md#networking-notes)를 참고하세요.
 
 ## 가장 빠른 길 — 번들 자동 설정 (Java, Node.js)
 
