@@ -15,8 +15,8 @@ func TestStoreLoadMissingReturnsEmptySnapshot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load returned error: %v", err)
 	}
-	if snapshot.Version != 1 {
-		t.Fatalf("Version = %d, want 1", snapshot.Version)
+	if snapshot.Version != 2 {
+		t.Fatalf("Version = %d, want 2", snapshot.Version)
 	}
 	if len(snapshot.Targets) != 0 {
 		t.Fatalf("Targets length = %d, want 0", len(snapshot.Targets))
@@ -106,5 +106,25 @@ func TestAuditLoggerAppendWritesJSONLines(t *testing.T) {
 	}
 	if !strings.HasSuffix(text, "\n") {
 		t.Fatal("audit log should end with newline")
+	}
+}
+
+func TestAuditLoggerTailOffset(t *testing.T) {
+	logger := NewAuditLogger(filepath.Join(t.TempDir(), "audit.jsonl"))
+	for _, message := range []string{"first", "second", "third"} {
+		if err := logger.Append(AuditEvent{Type: "alert_sent", Message: message}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	offset, err := logger.TailOffset(2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	events, _, err := logger.ReadBatch(offset, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(events) != 2 || events[0].Message != "second" || events[1].Message != "third" {
+		t.Fatalf("tail events = %+v, want second and third", events)
 	}
 }

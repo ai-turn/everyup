@@ -14,12 +14,24 @@ import (
 
 	"github.com/aiturn/everyup/agent/internal/agent"
 	"github.com/aiturn/everyup/agent/internal/config"
+	"github.com/aiturn/everyup/agent/internal/telemetrygateway"
 )
 
 func main() {
 	cfg, err := config.LoadFromEnv()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
+	}
+	if len(os.Args) > 1 {
+		if len(os.Args) != 3 || os.Args[1] != "gateway-token" {
+			log.Fatal("usage: everyup-agent gateway-token <service-name>")
+		}
+		token, err := telemetrygateway.MintServiceToken(cfg.AgentAPIKey, os.Args[2])
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, _ = os.Stdout.WriteString(token + "\n")
+		return
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

@@ -142,6 +142,47 @@ func TestInitialFailureResumesBeyondTail(t *testing.T) {
 	}
 }
 
+func TestLogScanLimitResumesWithoutLoss(t *testing.T) {
+	stamp := time.Date(2026, 9, 12, 0, 0, 0, 0, time.UTC)
+	docker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for i := 0; i < 501; i++ {
+			fmt.Fprintf(w, "%s line-%d\n", stamp.Format(time.RFC3339Nano), i)
+		}
+	}))
+	defer docker.Close()
+	received := 0
+	web := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, _ := io.ReadAll(r.Body)
+		var req collectorlogspb.ExportLogsServiceRequest
+		if err := proto.Unmarshal(data, &req); err != nil {
+			t.Error(err)
+		}
+		for _, resource := range req.ResourceLogs {
+			for _, scope := range resource.ScopeLogs {
+				received += len(scope.LogRecords)
+			}
+		}
+	}))
+	defer web.Close()
+	a, _ := New(config.Config{DataDir: t.TempDir(), DockerDiscoveryEnabled: true, DockerLogsEnabled: true, DockerSocketPath: "tcp://" + strings.TrimPrefix(docker.URL, "http://"), WebBaseURL: web.URL, AgentAPIKey: "test", HTTPTimeout: time.Second})
+	target := discovery.Target{ID: "one", Key: "api", ServiceName: "api"}
+	if err := a.persistLogCursor("one", state.LogCursor{At: stamp}); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.forwardContainerLogs(t.Context(), target); err != errLogScanLimit {
+		t.Fatalf("first scan error = %v, want backlog limit", err)
+	}
+	if received != 500 {
+		t.Fatalf("first scan delivered %d, want 500", received)
+	}
+	if err := a.forwardContainerLogs(t.Context(), target); err != nil {
+		t.Fatal(err)
+	}
+	if received != 501 {
+		t.Fatalf("second scan delivered %d, want 501", received)
+	}
+}
+
 func TestDiscoveryFailurePreservesCursors(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(503) }))
 	defer server.Close()

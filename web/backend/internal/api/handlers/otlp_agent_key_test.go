@@ -13,6 +13,55 @@ import (
 	resourcepb "go.opentelemetry.io/proto/otlp/resource/v1"
 )
 
+func TestOTLPIngest_LogStorageFailureRollsBackBatch(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "testpass123")
+	auth := authHeader(token)
+	_, created := ts.doRequest(t, "POST", "/api/v1/agents", map[string]string{"name": "log-retry"}, auth...)
+	if !created.Success {
+		t.Fatalf("create agent: %v", created.Error)
+	}
+	var agent struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(created.Data, &agent); err != nil {
+		t.Fatal(err)
+	}
+	apiKey := revealAgentAPIKey(t, ts, agent.ID, auth...)
+	if _, err := database.DB.Exec(`CREATE TRIGGER reject_otlp_log BEFORE INSERT ON logs
+WHEN NEW.message = 'reject me' BEGIN SELECT RAISE(ABORT, 'rejected'); END`); err != nil {
+		t.Fatal(err)
+	}
+	request := &collectorlogspb.ExportLogsServiceRequest{ResourceLogs: []*logspb.ResourceLogs{{
+		ScopeLogs: []*logspb.ScopeLogs{{LogRecords: []*logspb.LogRecord{
+			{Body: stringValue("keep me"), SeverityNumber: logspb.SeverityNumber_SEVERITY_NUMBER_INFO},
+			{Body: stringValue("reject me"), SeverityNumber: logspb.SeverityNumber_SEVERITY_NUMBER_INFO},
+		}}},
+	}}}
+	if status := postOTLPStatus(t, ts, "/api/v1/otlp/v1/logs", apiKey, request); status != 500 {
+		t.Fatalf("failed batch status = %d, want 500", status)
+	}
+	var count int
+	if err := database.DB.QueryRow(`SELECT COUNT(*) FROM logs WHERE agent_id = ?`, agent.ID).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 0 {
+		t.Fatalf("failed batch stored %d logs, want none", count)
+	}
+	if _, err := database.DB.Exec(`DROP TRIGGER reject_otlp_log`); err != nil {
+		t.Fatal(err)
+	}
+	if status := postOTLPStatus(t, ts, "/api/v1/otlp/v1/logs", apiKey, request); status != 200 {
+		t.Fatalf("retry status = %d, want 200", status)
+	}
+	if err := database.DB.QueryRow(`SELECT COUNT(*) FROM logs WHERE agent_id = ?`, agent.ID).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Fatalf("retry stored %d logs, want 2", count)
+	}
+}
+
 // TestOTLPIngest_AgentKeyUnifiesLogsUnderService verifies the unified flow: the
 // single project (agent) key authenticates OTLP log ingestion, and a log tagged
 // with an OTLP service.name surfaces under the matching agent service — keyed by

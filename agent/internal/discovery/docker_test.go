@@ -90,6 +90,22 @@ func TestContainerStateByName(t *testing.T) {
 	}
 }
 
+func TestServiceIPMapIdentifiesObserverByContainerName(t *testing.T) {
+	client := NewDockerClient("tcp://unused", 0)
+	client.client.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		body := `[{"Id":"1","Names":["/everyup-ebpf"],"State":"running","NetworkSettings":{"Networks":{"mon":{"IPAddress":"172.19.0.2","GlobalIPv6Address":"fd00::2"}}}},` +
+			`{"Id":"2","Names":["/app"],"State":"running","Labels":{"com.docker.compose.service":"everyup-ebpf"},"NetworkSettings":{"Networks":{"mon":{"IPAddress":"172.19.0.3"}}}}]`
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header)}, nil
+	})
+	services, observers, err := client.ServiceIPMap(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if services["172.19.0.2"] != "everyup-ebpf" || services["fd00::2"] != "everyup-ebpf" || !observers["172.19.0.2"] || !observers["fd00::2"] || observers["172.19.0.3"] {
+		t.Fatalf("services=%v observers=%v", services, observers)
+	}
+}
+
 func TestParseDockerLogLinesWithTimestamp(t *testing.T) {
 	lines := parseDockerLogLines([]byte("2026-06-26T01:02:03.000000004Z hello world\nplain line\n"))
 	if len(lines) != 2 {

@@ -9,6 +9,8 @@ OpenTelemetry.
 Instrumented spans go to the Docker collector's OTLP gateway at
 `http://everyup-agent:4318` (which attributes them to the right service and
 forwards to Web), or directly to Web at `/api/v1/otlp/v1/traces`.
+If the collector profile disables Docker discovery, each app must send its
+service-scoped bearer token; see [Networking Notes](../agent/README.md#networking-notes).
 
 ## Quickest path — the bundled instrumentation (Java, Node.js)
 

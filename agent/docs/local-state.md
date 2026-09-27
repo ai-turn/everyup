@@ -7,8 +7,8 @@ survives container restarts.
 
 | File | Format | Purpose |
 |---|---|---|
-| `agent-state.json` | JSON | Per-target identity, health state, alert timestamps, and per-container log cursors |
-| `audit.jsonl` | JSON Lines | Startup, alert, and recovery events |
+| `agent-state.json` | JSON | Per-target identity, health state, alert timestamps, per-container log cursors, and the Web event delivery checkpoint |
+| `audit.jsonl` | JSON Lines | Startup, alert, and recovery event history used for Web delivery |
 
 ## `agent-state.json`
 
@@ -20,7 +20,8 @@ Example:
 
 ```json
 {
-  "version": 1,
+  "version": 2,
+  "auditOffset": 189,
   "targets": {
     "env:api": {
       "serviceName": "api",
@@ -61,7 +62,17 @@ not a durable copy of the log contents.
 ## `audit.jsonl`
 
 Each line is one event. This keeps appends simple and makes the file easy to
-ship into EveryUp Web. Events are flushed to Web over the connected-mode sync.
+ship into EveryUp Web. Events are flushed to Web over the connected-mode sync
+in batches of 100. `auditOffset` records the byte position after the last
+acknowledged batch. Failed Web requests leave the checkpoint unchanged, so
+events are retried after a restart. A lost response or a crash between Web's
+acknowledgement and checkpoint write can cause duplicate events.
+
+When upgrading a version 1 state file, the collector replays the audit file's
+last 500 events because earlier Web delivery was not tracked. Some old events
+may appear twice; pending ones are recovered where the audit file still has
+them. Keep `audit.jsonl` and
+`agent-state.json` together when restoring a backup.
 
 Example:
 

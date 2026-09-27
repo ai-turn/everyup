@@ -19,11 +19,34 @@ func NewLogRepository() *LogRepository {
 
 // Create creates a new log entry
 func (r *LogRepository) Create(l *models.Log) error {
+	return insertLog(DB, l)
+}
+
+// CreateBatch stores an OTLP request atomically so a failed insert can be retried.
+func (r *LogRepository) CreateBatch(logs []*models.Log) error {
+	if len(logs) == 0 {
+		return nil
+	}
+	return Transaction(func(tx *sql.Tx) error {
+		for _, entry := range logs {
+			if err := insertLog(tx, entry); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+type logExecer interface {
+	Exec(string, ...interface{}) (sql.Result, error)
+}
+
+func insertLog(db logExecer, l *models.Log) error {
 	if l.Source == "" {
 		l.Source = models.LogSourceInternal
 	}
 
-	result, err := DB.Exec(`
+	result, err := db.Exec(`
 		INSERT INTO logs (
 			service_id, agent_id, service_name, level, message, metadata, source, fingerprint, created_at,
 			trace_id, span_id, severity_number, observed_at, resource, attributes

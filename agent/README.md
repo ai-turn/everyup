@@ -168,6 +168,33 @@ The Docker Collector discovers containers through the mounted Docker socket. It 
 the same Compose file as your application or in a separate Compose project on the
 same Docker host.
 
+When Docker discovery is enabled, the OTLP gateway accepts telemetry only from
+running containers it discovers. It assigns each app payload the service name
+of its source container, even if the SDK supplies a different `service.name`;
+only the `everyup-ebpf` container can send eBPF-marked traces. A profile without
+Docker discovery (such as metrics-only) requires a service-scoped bearer token
+on every OTLP request. Generate one per application on the Docker host:
+
+```bash
+sudo docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-agent/compose.yaml \
+  exec -T everyup-agent everyup-agent gateway-token checkout
+```
+
+Configure that application's OTLP exporter to send
+`Authorization: Bearer <generated-token>` to `http://everyup-agent:4318`.
+For an OpenTelemetry SDK using OTLP/HTTP, set:
+
+```text
+OTEL_EXPORTER_OTLP_ENDPOINT=http://everyup-agent:4318
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20<generated-token>
+```
+
+The gateway assigns `service.name` from the token, regardless of the name in
+the payload. Keep the token with that application's credentials; generate a
+different token for each service. Rotating the Collector API key invalidates
+all service tokens.
+
 ## Compose Settings
 
 Only the three `yes` rows are required; everything else has a working default.
