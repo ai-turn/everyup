@@ -19,6 +19,7 @@ export { Toggle } from './Toggle';
 export { EmptyState } from './EmptyState';
 export { ConfirmDialog } from './ConfirmDialog';
 export { TimeRangePicker, type GlobalTimeRange } from './TimeRangePicker';
+export { parseTimeRange } from './timeRange';
 export { SegmentedControl } from './SegmentedControl';
 export { Pagination } from './Pagination';
 export { SummaryCard } from './SummaryCard';

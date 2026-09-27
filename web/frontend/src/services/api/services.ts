@@ -13,6 +13,42 @@ export interface LogHistogramBucket {
   trace: number;
 }
 
+export interface LogSample {
+  level: LogLevel;
+  message: string;
+  createdAt: string;
+}
+
+/** One log service's last 24h, keyed like ingest: direct by serviceId, Docker by agentId + serviceName. */
+export interface LogServiceSummary {
+  serviceId?: string;
+  agentId?: string;
+  serviceName: string;
+  error: number;
+  warn: number;
+  /** Newest error in the window, else the newest warn. */
+  latest?: LogSample;
+  /** When logs of any level last arrived — also for services quiet all day. */
+  lastReceivedAt?: string;
+  /** Hourly error/warn counts; empty hours are omitted. */
+  buckets: LogHistogramBucket[];
+}
+
+/** Error/warn logs that differ only in numbers or ids, counted over the last 24h. */
+export interface LogPattern {
+  fingerprint: string;
+  level: LogLevel;
+  serviceId?: string;
+  agentId?: string;
+  serviceName: string;
+  /** The newest occurrence, verbatim. */
+  message: string;
+  count: number;
+  /** Over everything retained, so a pattern first seen inside the window is new. */
+  firstSeen: string;
+  lastSeen: string;
+}
+
 export interface LinkedRequest {
   id: number;
   method: string;
@@ -190,6 +226,10 @@ export const servicesApi = {
 
   deleteUptimeMonitor: (id: string) =>
     request<void>(`/services/${id}`, { method: 'DELETE' }),
+
+  // Logs page: both cover the last 24 hours.
+  getLogSummary: () => request<LogServiceSummary[]>('/logs/summary'),
+  getLogPatterns: (limit = 10) => request<LogPattern[]>(`/logs/patterns?limit=${limit}`),
 
   getTrace: (traceId: string) =>
     request<TraceDetail>(`/traces/${traceId}`),

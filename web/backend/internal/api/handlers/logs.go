@@ -80,6 +80,37 @@ func (h *LogHandler) GetAll(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"data": logs, "total": total}})
 }
 
+// logsPageWindowStart is where the logs page's window begins: far enough back
+// to catch last night, recent enough that a finished incident stops counting.
+// UTC because OTLP stores UTC timestamps and the driver compares times as text.
+func logsPageWindowStart() time.Time {
+	return time.Now().UTC().Add(-24 * time.Hour)
+}
+
+// GetSummary returns each log service's error/warn activity over the logs page
+// window, bucketed hourly. GET /logs/summary
+func (h *LogHandler) GetSummary(c *fiber.Ctx) error {
+	summaries, err := h.repo.Summary(logsPageWindowStart(), 60)
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": summaries})
+}
+
+// GetPatterns returns the most frequent error/warn log patterns over the logs
+// page window. GET /logs/patterns?limit= (default 10)
+func (h *LogHandler) GetPatterns(c *fiber.Ctx) error {
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	if limit <= 0 || limit > 50 {
+		limit = 10
+	}
+	patterns, err := h.repo.Patterns(logsPageWindowStart(), limit)
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": patterns})
+}
+
 // GetByServiceID returns logs for a specific service
 func (h *LogHandler) GetByServiceID(c *fiber.Ctx) error {
 	serviceID := c.Params("id")

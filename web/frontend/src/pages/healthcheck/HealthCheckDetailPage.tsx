@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Button, ButtonLink, MaterialIcon } from '../../components/common';
+import { Button, ButtonLink, MaterialIcon, parseTimeRange } from '../../components/common';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { api, type AgentServiceFlat } from '../../services/api';
 import { AgentHealthCheckDetailView } from '../../features/healthcheck/components/AgentHealthCheckDetailView';
@@ -86,6 +86,7 @@ export function HealthCheckDetailPage() {
       onRefresh={refresh}
       tab={tab}
       traceId={searchParams.get('traceId') ?? undefined}
+      initialRange={parseTimeRange(searchParams.get('range'))}
       onTabChange={(nextTab) => {
         const next = new URLSearchParams(searchParams);
         if (nextTab === 'overview') next.delete('tab');

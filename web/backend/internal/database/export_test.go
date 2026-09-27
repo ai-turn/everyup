@@ -13,3 +13,6 @@ var (
 	MigrateV52ForTest = migrateV52
 	MigrateV53ForTest = migrateV53
 )
+
+// MigrateV54ForTest re-runs the fingerprint backfill once its marker is cleared.
+var MigrateV54ForTest = migrateV54

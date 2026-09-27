@@ -636,6 +636,7 @@ func (h *AgentHandler) GetServiceLogs(c *fiber.Ctx) error {
 		AttrKey:     c.Query("attrKey"),
 		AttrValue:   c.Query("attrValue"),
 		TraceID:     c.Query("traceId"),
+		Fingerprint: c.Query("fingerprint"),
 		Limit:       limit,
 		Offset:      offset,
 	}
@@ -678,6 +679,7 @@ func (h *AgentHandler) GetServiceLogHistogram(c *fiber.Ctx) error {
 		ServiceName: service.Name,
 		Level:       models.LogLevel(c.Query("level")),
 		Search:      c.Query("search"),
+		Fingerprint: c.Query("fingerprint"),
 	}
 	if from := c.Query("from"); from != "" {
 		if t, err2 := time.Parse(time.RFC3339, from); err2 == nil {

@@ -27,6 +27,8 @@ export type {
   LogEntry,
   LogLevel,
   LogHistogramBucket,
+  LogServiceSummary,
+  LogPattern,
   LinkedRequest,
   ApiRequest,
   TraceSpan,

@@ -120,6 +120,8 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	// Log endpoints
 	logHandler := handlers.NewLogHandler()
 	local.Get("/logs", logHandler.GetAll)
+	local.Get("/logs/summary", logHandler.GetSummary)
+	local.Get("/logs/patterns", logHandler.GetPatterns)
 	local.Get("/services/:id/logs", logHandler.GetByServiceID)
 
 	// Trace correlation

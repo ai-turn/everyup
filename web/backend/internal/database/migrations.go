@@ -287,6 +287,9 @@ func migrate() error {
 	if err := migrateV53(); err != nil {
 		return fmt.Errorf("v53 migration failed: %w", err)
 	}
+	if err := migrateV54(); err != nil {
+		return fmt.Errorf("v54 migration failed: %w", err)
+	}
 
 	return nil
 }

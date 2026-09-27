@@ -15,6 +15,8 @@ export interface AgentHealthCheckDetailViewProps {
   onRefresh: () => void;
   tab: DetailTab;
   traceId?: string;
+  /** Opening range when a link names one (`?range=`); the picker owns it after that. */
+  initialRange?: GlobalTimeRange;
   onTabChange: (tab: DetailTab) => void;
 }
 
@@ -51,7 +53,7 @@ function containerFields(service: AgentServiceFlat): DetailMetaField[] {
 export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProps) {
   const { service, agentId, serviceKey } = props;
   // Shared chart range for all tabs; survives service switches (Tabs remount on key).
-  const [range, setRange] = useState<GlobalTimeRange>('6h');
+  const [range, setRange] = useState<GlobalTimeRange>(props.initialRange ?? '6h');
   const { spinning, trigger: handleRefresh } = useSpinAction(props.onRefresh);
   // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 trail에 넣지 않는다 —
   // 실제 담김 관계는 Docker 환경 › 에이전트 › 서비스다.
