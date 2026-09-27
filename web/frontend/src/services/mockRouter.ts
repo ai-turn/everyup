@@ -1343,16 +1343,6 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     return scenarioObservedServices(scenario).filter(service => !signal || service.signals.includes(signal as 'logs' | 'metrics' | 'traces')) as T;
   }
   if (endpoint === '/services?type=http,tcp') return scenarioMonitors(scenario) as T;
-  // The fixture is authored grouped by service; the real handler is
-  // ORDER BY created_at DESC and filters serviceName/search/level server-side.
-  if (endpoint.startsWith('/logs?')) {
-    const query = new URLSearchParams(endpoint.split('?')[1] ?? '');
-    const serviceName = query.get('serviceName');
-    const matched = filterMockLogs(allMockLogs, endpoint)
-      .filter(log => !serviceName || log.serviceName === serviceName)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    return pageMockRows(matched, endpoint) as T;
-  }
   const uptimeSummaryMatch = endpoint.match(/^\/services\/([^/]+)\/metrics\/summary(?:\?|$)/);
   if (uptimeSummaryMatch) return (uptimeSummaryMatch[1] === 'uptime_mock_store' ? mockUptimeSummary : null) as T;
   const uptimeMetricsMatch = endpoint.match(/^\/services\/([^/]+)\/metrics(?:\?|$)/);
