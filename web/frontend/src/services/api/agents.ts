@@ -221,7 +221,7 @@ export const agentsApi = {
     request<AgentEvent[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/events?limit=${limit}`),
   getAgentServiceLogs: (
     agentId: string, key: string,
-    params?: { level?: string; search?: string; attrKey?: string; attrValue?: string; traceId?: string; from?: string; to?: string; limit?: number; offset?: number },
+    params?: { level?: string; search?: string; attrKey?: string; attrValue?: string; traceId?: string; fingerprint?: string; from?: string; to?: string; limit?: number; offset?: number },
   ) => {
     const p = new URLSearchParams();
     p.set('limit', String(params?.limit ?? 100));
@@ -230,6 +230,7 @@ export const agentsApi = {
     if (params?.search) p.set('search', params.search);
     if (params?.attrKey) { p.set('attrKey', params.attrKey); p.set('attrValue', params.attrValue ?? ''); }
     if (params?.traceId) p.set('traceId', params.traceId);
+    if (params?.fingerprint) p.set('fingerprint', params.fingerprint);
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     return request<{ data: LogEntry[]; total: number }>(`/agents/${agentId}/services/${encodeURIComponent(key)}/logs?${p}`);
@@ -237,12 +238,13 @@ export const agentsApi = {
   // Per-level log counts bucketed over time (logs-tab volume histogram).
   getAgentServiceLogHistogram: (
     agentId: string, key: string,
-    params?: { level?: string; search?: string; attrKey?: string; attrValue?: string; from?: string; to?: string; bucketMins?: number },
+    params?: { level?: string; search?: string; attrKey?: string; attrValue?: string; fingerprint?: string; from?: string; to?: string; bucketMins?: number },
   ) => {
     const p = new URLSearchParams();
     if (params?.level) p.set('level', params.level);
     if (params?.search) p.set('search', params.search);
     if (params?.attrKey) { p.set('attrKey', params.attrKey); p.set('attrValue', params.attrValue ?? ''); }
+    if (params?.fingerprint) p.set('fingerprint', params.fingerprint);
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     if (params?.bucketMins) p.set('bucketMins', String(params.bucketMins));

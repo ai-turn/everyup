@@ -44,6 +44,8 @@ export interface DirectLogQuery {
   attrKey?: string;
   attrValue?: string;
   traceId?: string;
+  // One LogPattern, from the logs page.
+  fingerprint?: string;
   from?: string;
   to?: string;
   limit?: number;
@@ -77,6 +79,7 @@ function logQuery(params?: DirectLogQuery): URLSearchParams {
   if (params?.search) query.set('search', params.search);
   if (params?.attrKey) { query.set('attrKey', params.attrKey); query.set('attrValue', params.attrValue ?? ''); }
   if (params?.traceId) query.set('traceId', params.traceId);
+  if (params?.fingerprint) query.set('fingerprint', params.fingerprint);
   if (params?.from) query.set('from', params.from);
   if (params?.to) query.set('to', params.to);
   return query;

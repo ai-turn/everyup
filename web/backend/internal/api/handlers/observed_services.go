@@ -119,16 +119,17 @@ func directLogFilter(c *fiber.Ctx) models.LogFilter {
 		offset = 0
 	}
 	return models.LogFilter{
-		ServiceID: c.Params("id"),
-		Level:     models.LogLevel(c.Query("level")),
-		Search:    c.Query("search"),
-		TraceID:   c.Query("traceId"),
-		AttrKey:   c.Query("attrKey"),
-		AttrValue: c.Query("attrValue"),
-		From:      parseLogTimeQuery(c.Query("from")),
-		To:        parseLogTimeQuery(c.Query("to")),
-		Limit:     limit,
-		Offset:    offset,
+		ServiceID:   c.Params("id"),
+		Level:       models.LogLevel(c.Query("level")),
+		Search:      c.Query("search"),
+		TraceID:     c.Query("traceId"),
+		Fingerprint: c.Query("fingerprint"),
+		AttrKey:     c.Query("attrKey"),
+		AttrValue:   c.Query("attrValue"),
+		From:        parseLogTimeQuery(c.Query("from")),
+		To:          parseLogTimeQuery(c.Query("to")),
+		Limit:       limit,
+		Offset:      offset,
 	}
 }
 

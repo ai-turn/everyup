@@ -11,6 +11,8 @@ import { getDemoScenario, type MockScenario } from '../mocks/demoScenario';
 
 import type {
   LogEntry,
+  LogPattern,
+  LogServiceSummary,
   SystemInfo,
   SystemMetricsHistory,
   AlertRule,
@@ -572,6 +574,12 @@ const mockAgentEvents: AgentEvent[] = [
   },
 ];
 
+// Level + message with the digits masked, like the server's pattern grouping.
+// The per-service log endpoints are already scoped, so no service part.
+function mockFingerprint(log: Pick<LogEntry, 'level' | 'message'>) {
+  return `${log.level}:${log.message.replace(/\d+/g, '#')}`;
+}
+
 // The real handler applies level/search/from server-side; mirror it so demo mode
 // responds to the filter bar and the header time range.
 function filterMockLogs(rows: LogEntry[], endpoint: string): LogEntry[] {
@@ -582,6 +590,7 @@ function filterMockLogs(rows: LogEntry[], endpoint: string): LogEntry[] {
   const attrKey = query.get('attrKey');
   const attrValue = query.get('attrValue') ?? '';
   const traceId = query.get('traceId');
+  const fingerprint = query.get('fingerprint');
   // A log with no such attribute must drop out, not match on a coerced blank.
   const matchesAttribute = (log: LogEntry) => {
     if (!attrKey) return true;
@@ -593,6 +602,7 @@ function filterMockLogs(rows: LogEntry[], endpoint: string): LogEntry[] {
     (!level || log.level === level)
     && (!search || log.message.toLowerCase().includes(search))
     && (!traceId || log.traceId === traceId)
+    && (!fingerprint || mockFingerprint(log) === fingerprint)
     && matchesAttribute(log)
     && (!from || log.createdAt >= from));
 }
@@ -675,6 +685,89 @@ function mockLogHistogram(endpoint: string) {
     });
   }
   return buckets;
+}
+
+// Hourly error/warn buckets for the logs page cards, newest last: errors keyed by
+// hours ago, plus a warn every `warnEvery` hours.
+function mockLogActivity(errorsByHoursAgo: Record<number, number>, warnEvery: number) {
+  const hour = 3_600_000;
+  const last = Math.floor(nowAgent / hour) * hour;
+  return Array.from({ length: 24 }, (_, hoursAgo) => ({
+    time: new Date(last - hoursAgo * hour).toISOString(),
+    error: errorsByHoursAgo[hoursAgo] ?? 0,
+    warn: warnEvery > 0 && hoursAgo % warnEvery === 0 ? 1 : 0,
+    info: 0,
+    debug: 0,
+    trace: 0,
+  })).filter(bucket => bucket.error + bucket.warn > 0).reverse();
+}
+
+const mockMsAgo = (ms: number) => new Date(nowAgent - ms).toISOString();
+const mockCheckoutError = allMockLogs.find(log => log.level === 'error')!;
+const [mockApiTimeout, mockApiRateLimit, , mockPaymentTimeout] = mockAgentServiceLogs;
+
+// payment-worker is the service in trouble, matching its failing health check;
+// in `attention` postgres has also gone quiet to show a collection delay.
+function mockLogSummary(scenario: MockScenario): LogServiceSummary[] {
+  if (scenario === 'empty') return [];
+  const summary = (
+    scope: Pick<LogServiceSummary, 'agentId' | 'serviceId' | 'serviceName'>,
+    buckets: LogServiceSummary['buckets'],
+    latest?: LogServiceSummary['latest'],
+    lastReceivedAt = mockMsAgo(20_000),
+  ): LogServiceSummary => ({
+    ...scope,
+    buckets,
+    latest,
+    lastReceivedAt,
+    error: buckets.reduce((sum, bucket) => sum + bucket.error, 0),
+    warn: buckets.reduce((sum, bucket) => sum + bucket.warn, 0),
+  });
+  const quietPostgres = scenario === 'attention';
+  return [
+    summary(
+      { agentId: 'agent_demo_01', serviceName: 'payment-worker' },
+      scenario === 'normal' ? mockLogActivity({ 7: 1 }, 0) : mockLogActivity({ 0: 11, 1: 9, 2: 4 }, 6),
+      { level: 'error', message: mockPaymentTimeout.message, createdAt: mockMsAgo(scenario === 'normal' ? 7 * 3_600_000 : 4 * 60_000) },
+    ),
+    summary(
+      { agentId: 'agent_demo_01', serviceName: 'api' },
+      mockLogActivity({ 0: 2, 5: 1, 13: 3 }, 3),
+      { level: 'error', message: mockApiTimeout.message, createdAt: mockApiTimeout.createdAt },
+    ),
+    summary(
+      { agentId: 'agent_demo_01', serviceName: 'postgres' },
+      quietPostgres ? [] : mockLogActivity({}, 8),
+      quietPostgres ? undefined : { level: 'warn', message: 'checkpoints are occurring too frequently (24 seconds apart)', createdAt: mockMsAgo(38 * 60_000) },
+      mockMsAgo(quietPostgres ? 2 * 86_400_000 : 20_000),
+    ),
+    summary(
+      { serviceId: 'observed_mock_checkout', serviceName: 'checkout-api' },
+      mockLogActivity({ 0: 1, 3: 2 }, 4),
+      { level: 'error', message: mockCheckoutError.message, createdAt: mockCheckoutError.createdAt },
+    ),
+  ];
+}
+
+// Counts line up with mockLogSummary; the fingerprints match mockFingerprint so
+// following a pattern filters the demo service logs.
+function mockLogPatterns(scenario: MockScenario): LogPattern[] {
+  if (scenario === 'empty') return [];
+  const worker = { agentId: 'agent_demo_01', serviceName: 'payment-worker' };
+  const apiScope = { agentId: 'agent_demo_01', serviceName: 'api' };
+  const checkout = { serviceId: 'observed_mock_checkout', serviceName: 'checkout-api' };
+  const pattern = (scope: typeof checkout | typeof worker, log: LogEntry, count: number, firstSeen: string, lastSeen: string): LogPattern => ({
+    ...scope, fingerprint: mockFingerprint(log), level: log.level, message: log.message, count, firstSeen, lastSeen,
+  });
+  const normal = scenario === 'normal';
+  return [
+    // Began with the worker's restart loop — the "새로 발생" case.
+    pattern(worker, mockPaymentTimeout, normal ? 1 : 24, mockMsAgo(normal ? 7 * 3_600_000 : 150 * 60_000), mockMsAgo(normal ? 7 * 3_600_000 : 4 * 60_000)),
+    pattern(apiScope, mockApiTimeout, 5, mockMsAgo(3 * 86_400_000), mockApiTimeout.createdAt),
+    pattern(checkout, mockCheckoutError, 3, mockMsAgo(2 * 86_400_000), mockCheckoutError.createdAt),
+    pattern(apiScope, mockPaymentTimeout, 1, mockMsAgo(26 * 3_600_000), mockPaymentTimeout.createdAt),
+    pattern(apiScope, mockApiRateLimit, 8, mockMsAgo(5 * 86_400_000), mockApiRateLimit.createdAt),
+  ].sort((a, b) => Number(b.level === 'error') - Number(a.level === 'error') || b.count - a.count);
 }
 
 const mockOtelMetricNames = [
@@ -1343,6 +1436,8 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     return scenarioObservedServices(scenario).filter(service => !signal || service.signals.includes(signal as 'logs' | 'metrics' | 'traces')) as T;
   }
   if (endpoint === '/services?type=http,tcp') return scenarioMonitors(scenario) as T;
+  if (endpoint === '/logs/summary') return mockLogSummary(scenario) as T;
+  if (endpoint.startsWith('/logs/patterns')) return mockLogPatterns(scenario) as T;
   const uptimeSummaryMatch = endpoint.match(/^\/services\/([^/]+)\/metrics\/summary(?:\?|$)/);
   if (uptimeSummaryMatch) return (uptimeSummaryMatch[1] === 'uptime_mock_store' ? mockUptimeSummary : null) as T;
   const uptimeMetricsMatch = endpoint.match(/^\/services\/([^/]+)\/metrics(?:\?|$)/);

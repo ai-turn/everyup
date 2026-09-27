@@ -82,6 +82,47 @@ type LogHistogramBucket struct {
 	Trace int       `json:"trace"`
 }
 
+// LogSample is one log line quoted on the logs page (a service's newest error).
+type LogSample struct {
+	Level     LogLevel  `json:"level"`
+	Message   string    `json:"message"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// LogServiceSummary is one log service's error/warn activity over the logs page
+// window. Services are keyed the way ingest scopes them: a direct connection by
+// ServiceID, a Docker service by AgentID + ServiceName.
+type LogServiceSummary struct {
+	ServiceID   string `json:"serviceId,omitempty"`
+	AgentID     string `json:"agentId,omitempty"`
+	ServiceName string `json:"serviceName"`
+	Error       int    `json:"error"`
+	Warn        int    `json:"warn"`
+	// Latest is the newest error in the window, else the newest warn.
+	Latest *LogSample `json:"latest,omitempty"`
+	// LastReceivedAt is when logs last arrived, from any level and at any time —
+	// zero error/warn counts mean nothing once this goes stale.
+	LastReceivedAt *time.Time `json:"lastReceivedAt,omitempty"`
+	// Buckets holds only the error/warn counts; empty buckets are omitted.
+	Buckets []LogHistogramBucket `json:"buckets"`
+}
+
+// LogPattern groups error/warn logs whose messages differ only in their
+// variable parts (numbers, ids), counted over the logs page window.
+type LogPattern struct {
+	Fingerprint string   `json:"fingerprint"`
+	Level       LogLevel `json:"level"`
+	ServiceID   string   `json:"serviceId,omitempty"`
+	AgentID     string   `json:"agentId,omitempty"`
+	ServiceName string   `json:"serviceName"`
+	// Message is the newest occurrence, verbatim.
+	Message string `json:"message"`
+	Count   int    `json:"count"`
+	// FirstSeen looks past the window, over everything still retained.
+	FirstSeen time.Time `json:"firstSeen"`
+	LastSeen  time.Time `json:"lastSeen"`
+}
+
 // LogFilter represents filter options for log queries
 type LogFilter struct {
 	ServiceID   string   `json:"serviceId,omitempty"`
@@ -90,6 +131,8 @@ type LogFilter struct {
 	Level       LogLevel `json:"level,omitempty"`
 	Search      string   `json:"search,omitempty"`
 	TraceID     string   `json:"traceId,omitempty"`
+	// Fingerprint narrows to one LogPattern.
+	Fingerprint string `json:"fingerprint,omitempty"`
 	// AttrKey/AttrValue match one structured attribute exactly, e.g.
 	// http.route=/orders. Search stays a message substring — attributes are
 	// stored as key/value so they can be filtered on rather than grepped.

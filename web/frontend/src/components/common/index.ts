@@ -18,7 +18,7 @@ export { CollectionStatusBadge, type CollectionStatus } from './CollectionStatus
 export { Toggle } from './Toggle';
 export { EmptyState } from './EmptyState';
 export { ConfirmDialog } from './ConfirmDialog';
-export { TimeRangePicker, type GlobalTimeRange } from './TimeRangePicker';
+export { TimeRangePicker, parseTimeRange, type GlobalTimeRange } from './TimeRangePicker';
 export { SegmentedControl } from './SegmentedControl';
 export { Pagination } from './Pagination';
 export { SummaryCard } from './SummaryCard';

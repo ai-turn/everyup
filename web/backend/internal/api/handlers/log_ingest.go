@@ -65,7 +65,7 @@ func (h *LogIngestHandler) processEntry(entry *models.LogIngestEntry, filter []m
 	}
 
 	// Generate fingerprint
-	fingerprint := alerter.GenerateFingerprint(fingerprintSeed, string(entry.Level), entry.Message)
+	fingerprint := database.LogFingerprint(fingerprintSeed, string(entry.Level), entry.Message)
 
 	// Marshal metadata
 	var metadataJSON json.RawMessage

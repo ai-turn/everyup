@@ -24,6 +24,15 @@ export const LEVEL_TEXT: Record<string, string> = {
 };
 
 /**
+ * 막대 채움 — 로그 페이지 카드의 추이 막대. 히스토그램 `LEVEL_BAR`와 같은 600단계다
+ * (500단계는 흰 배경에서 warn 2.15로 1.4.11의 3:1 미달).
+ */
+export const LEVEL_FILL: Record<string, string> = {
+  error: 'bg-red-600',
+  warn:  'bg-amber-600',
+};
+
+/**
  * 레벨 필터 칩의 **선택** 상태. 여기 채움은 장식이 아니라 토글이 켜졌음을 말하므로
  * 남긴다 — 읽기 전용 토큰과 달리 선택/비선택을 구분할 수단이 필요하다.
  */

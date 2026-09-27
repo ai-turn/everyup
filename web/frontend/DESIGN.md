@@ -84,7 +84,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 ### 1.5 로그 레벨 — 상태색과 별개 축
 
-[`logLevelStyle.ts`](src/features/healthcheck/logLevelStyle.ts)의 `LEVEL_BASE`·`LEVEL_TEXT`(로그 행) / `LEVEL_CHIP`(필터 칩 선택 상태), `AgentServiceLogsTab`의 `LEVEL_BAR`(히스토그램)가 SSOT.
+[`logLevelStyle.ts`](src/features/healthcheck/logLevelStyle.ts)의 `LEVEL_BASE`·`LEVEL_TEXT`(로그 행) / `LEVEL_CHIP`(필터 칩 선택 상태) / `LEVEL_FILL`(로그 카드 추이 막대), `AgentServiceLogsTab`의 `LEVEL_BAR`(히스토그램)가 SSOT.
 
 | 레벨 | 색 | 바 hex | 행 토큰 라이트 텍스트 |
 |------|-----|--------|------------------|
@@ -460,6 +460,13 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 - 제목 줄 오른쪽은 **범례 칩**(성공 · 일부 실패 · 실패) — 색이 결과를 말하는 차트라 범례가 먼저다. 요약(평균 · 최대 · 실패 N회)은 **차트 아래 한 줄**이고, 막대에 포인터를 올리거나 방향키로 옮기면 그 줄이 그 체크(`9월 26일 (토) 13:42 — 실패 · HTTP 503 · upstream timeout`)로 바뀐다 — 90일 띠와 같은 문법. recharts 대신 HTML이다: 결과 칸과 막대가 같은 요소 안에 있어 정렬이 어긋날 수 없다
 - 모니터 상세 아래 **체크 기록**은 표다 — 결과(`StatusLight`) · 시각 · HTTP · 응답 시간(같은 스케일의 막대 + 값, 실패는 `—`) · 메시지
 - **업타임 현황**(`UptimeOverview`)은 제목 없이 큰 수치 한 줄(`text-2xl`, 사이 구분선) + 지난 90일 띠(`일부 실패 N일 · 전체 실패 N일`). 프로젝트 상세에서도 카드 사이에 놓이므로 카드 테두리는 유지한다
+
+**로그 페이지 (`LogsPage`, 2026-09-27 — Grafana Logs Drilldown·Sentry Issues 참고)** — 질문은 "지금 이상이 있는가"이고 창은 24시간 하나다.
+- **서비스 카드**: ERROR·WARN 건수 → 시간대별 오류·경고 막대(HTML, 24칸) → 한 줄(가장 최근 오류, 없으면 경고 — 레벨 토큰 + mono 메시지 + 상대 시각). 오류가 많은 순으로 정렬한다
+- **추세 배지를 달지 않는다** — 막대가 추세를 말한다. 게이지 카드와 같은 이유다(아래)
+- **막대 척도는 카드마다지만 바닥이 10건이다.** 하루 경고 3건이 카드 높이를 꽉 채우자 급증처럼 읽혔다
+- **창 안에 수신한 로그가 하나도 없으면 건수는 `—`, 상태는 `수집 지연`**(수신 기록이 없으면 `수신 대기`)이다. 0건은 "이상 없음"이 아니라 "모름"이고, 문구도 "오류·경고 없음"이라 하지 않고 마지막 수신 시각만 말한다. 상태는 `CollectionStatusBadge`(수신 시각 = 서버 `signal_receipts`)
+- **자주 발생한 오류·경고**: 숫자·ID만 다른 메시지를 하나로 센 목록(오류 먼저, 건수순). 처음 발생이 창 안이면 `새로 발생 · …`을 `font-medium`으로 — 배지로 만들지 않는다(§5.1b). 행을 누르면 그 서비스 로그가 `?range=24h&pattern=`로 열리고, 필터는 `같은 패턴만` 칩으로 해제한다. 오류가 하나도 없으면 섹션째 숨긴다
 
 **KPI 게이지 카드 (`InfraGauges`)** — 색은 임계값(85%)을 넘은 카드에만 싣는다. 비율 지표(CPU·Network)는 6시간 스파크라인, 용량 지표(Memory·Disk)는 막대. 추세 배지·상태 pill·색 막대를 한 카드에 겹치지 않는다(§9-12의 3중 강조와 같은 문제).
 

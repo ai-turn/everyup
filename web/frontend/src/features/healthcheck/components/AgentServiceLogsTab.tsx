@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ResponsiveContainer, BarChart, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, useActiveTooltipLabel,
@@ -249,6 +250,13 @@ function ServiceLogsPanel(props: Props) {
   const [inputValue, setInputValue] = useState('');
   // Exact match on one structured attribute, set by clicking it on a row.
   const [attrFilter, setAttrFilter] = useState<{ key: string; value: string } | null>(null);
+  // One recurring error, set by following it from the logs page (?pattern=).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pattern = searchParams.get('pattern') ?? undefined;
+  const clearPattern = () => {
+    setSearchParams(params => { params.delete('pattern'); return params; }, { replace: true });
+    setPage(1);
+  };
   const [histogram, setHistogram] = useState<{ buckets: LogHistogramBucket[]; window: [number, number] }>({ buckets: [], window: [0, 1] });
   // A histogram bucket picked by click/Enter narrows the list to that slice.
   // Tied to the range it was picked in, so switching range drops it.
@@ -299,6 +307,7 @@ function ServiceLogsPanel(props: Props) {
         attrKey: attrFilter?.key,
         attrValue: attrFilter?.value,
         traceId,
+        fingerprint: pattern,
         from: activeBucket === null ? rangeFrom(range) : new Date(activeBucket).toISOString(),
         to: activeBucket === null ? undefined : new Date(activeBucket + bucketMs).toISOString(),
         limit: PAGE_SIZE,
@@ -320,7 +329,7 @@ function ServiceLogsPanel(props: Props) {
     } finally {
       setLoading(false);
     }
-  }, [agentId, directServiceId, serviceKey, refreshKey, level, search, attrFilter, range, page, traceId, activeBucket]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agentId, directServiceId, serviceKey, refreshKey, level, search, attrFilter, range, page, traceId, pattern, activeBucket]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -334,6 +343,7 @@ function ServiceLogsPanel(props: Props) {
       search: search || undefined,
       attrKey: attrFilter?.key,
       attrValue: attrFilter?.value,
+      fingerprint: pattern,
       from: new Date(from).toISOString(),
       bucketMins: r.bucketMins,
     };
@@ -343,7 +353,7 @@ function ServiceLogsPanel(props: Props) {
     request
       .then((b) => setHistogram({ buckets: b ?? [], window: [from, to] }))
       .catch(() => setHistogram({ buckets: [], window: [from, to] }));
-  }, [agentId, directServiceId, serviceKey, level, search, attrFilter, range, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [agentId, directServiceId, serviceKey, level, search, attrFilter, pattern, range, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchHistogram(); }, [fetchHistogram]);
 
@@ -395,6 +405,14 @@ function ServiceLogsPanel(props: Props) {
             className="font-mono"
           >
             <span>{attrFilter.key}={attrFilter.value}</span>
+            <MaterialIcon size={20} name="close" />
+          </Button>
+        )}
+
+        {/* Active pattern filter, set by following a recurring error from the logs page */}
+        {pattern && (
+          <Button variant="ghost" size="sm" onClick={clearPattern} title="패턴 필터 해제">
+            <span>같은 패턴만</span>
             <MaterialIcon size={20} name="close" />
           </Button>
         )}
@@ -511,7 +529,7 @@ function ServiceLogsPanel(props: Props) {
         <div className="py-16 text-center">
           <MaterialIcon size={36} name="article" className="text-text-dim mb-2" />
           <p className="text-sm text-text-dim">
-            {search || level || attrFilter ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
+            {search || level || attrFilter || pattern ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
           </p>
         </div>
       ) : (

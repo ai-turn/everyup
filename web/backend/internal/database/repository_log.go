@@ -109,6 +109,11 @@ func (r *LogRepository) GetAll(filter models.LogFilter) ([]models.Log, int, erro
 		countQuery += " AND l.trace_id = ?"
 		args = append(args, filter.TraceID)
 	}
+	if filter.Fingerprint != "" {
+		query += " AND l.fingerprint = ?"
+		countQuery += " AND l.fingerprint = ?"
+		args = append(args, filter.Fingerprint)
+	}
 	if !filter.From.IsZero() {
 		query += " AND l.created_at >= ?"
 		countQuery += " AND l.created_at >= ?"
@@ -229,6 +234,10 @@ func (r *LogRepository) Histogram(filter models.LogFilter, bucketMins int) ([]mo
 		query += attributeClause
 		args = append(args, path, filter.AttrValue)
 	}
+	if filter.Fingerprint != "" {
+		query += " AND l.fingerprint = ?"
+		args = append(args, filter.Fingerprint)
+	}
 	if !filter.From.IsZero() {
 		query += " AND l.created_at >= ?"
 		args = append(args, filter.From)
@@ -237,9 +246,11 @@ func (r *LogRepository) Histogram(filter models.LogFilter, bucketMins int) ([]mo
 		query += " AND l.created_at <= ?"
 		args = append(args, filter.To)
 	}
+	// Past the cap the oldest buckets go missing, never the newest — an empty
+	// right edge would read as logs having stopped.
 	const maxRows = 100000
 	args = append(args, maxRows)
-	rows, err := DB.Query(query+" ORDER BY l.created_at LIMIT ?", args...)
+	rows, err := DB.Query(query+" ORDER BY l.created_at DESC LIMIT ?", args...)
 	if err != nil {
 		return nil, err
 	}
@@ -278,9 +289,10 @@ func (r *LogRepository) Histogram(filter models.LogFilter, bucketMins int) ([]mo
 		return nil, err
 	}
 
+	// Rows came newest first; the chart reads buckets oldest first.
 	out := make([]models.LogHistogramBucket, 0, len(ordered))
-	for _, t := range ordered {
-		out = append(out, *buckets[t])
+	for i := len(ordered) - 1; i >= 0; i-- {
+		out = append(out, *buckets[ordered[i]])
 	}
 	return out, nil
 }

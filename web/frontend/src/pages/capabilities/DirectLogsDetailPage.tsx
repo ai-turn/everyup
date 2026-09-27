@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
-  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, type GlobalTimeRange,
+  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, parseTimeRange, type GlobalTimeRange,
 } from '../../components/common';
 import { DirectServiceLogsTab } from '../../features/healthcheck/components/AgentServiceLogsTab';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
@@ -21,7 +21,7 @@ export function DirectLogsDetailPage() {
   const [service, setService] = useState<ObservedService | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState('');
-  const [range, setRange] = useState<GlobalTimeRange>('6h');
+  const [range, setRange] = useState<GlobalTimeRange>(() => parseTimeRange(searchParams.get('range')) ?? '6h');
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
