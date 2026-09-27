@@ -65,19 +65,46 @@ function LogSparkline({ buckets, window: span }: { buckets: LogHistogramBucket[]
   );
 }
 
+// 창 안에 아무 로그도 없으면 0건은 "이상 없음"이 아니라 "모름"이다.
+function collectionOf(summary: LogServiceSummary | undefined, windowStart: number): CollectionStatus {
+  const lastReceived = summary?.lastReceivedAt;
+  if ((summary?.error ?? 0) + (summary?.warn ?? 0) > 0) return 'collecting';
+  if (!lastReceived) return 'waiting';
+  return Date.parse(lastReceived) >= windowStart ? 'collecting' : 'delayed';
+}
+
+function LevelCount({ label, value, tone, known }: { label: string; value: number; tone: string; known: boolean }) {
+  return (
+    <div>
+      <p className="text-xs text-text-dim">{label}</p>
+      {known
+        ? <p className={`text-lg tabular-nums ${value > 0 ? tone : 'text-text-base'}`}>{value.toLocaleString()}</p>
+        : <p className="text-lg text-text-dim" title="최근 24시간 수신한 로그 없음">—</p>}
+    </div>
+  );
+}
+
+/** 카드 맨 아래 한 줄 — 가장 최근 오류(없으면 경고), 그것도 없으면 마지막 수신 시각. */
+function LatestLine({ summary, known }: { summary?: LogServiceSummary; known: boolean }) {
+  const latest = summary?.latest;
+  if (latest) {
+    return (
+      <>
+        <span className={`${LEVEL_BASE} ${LEVEL_TEXT[latest.level] ?? LEVEL_TEXT.info}`}>{latest.level}</span>
+        <span className="min-w-0 flex-1 truncate font-mono text-text-secondary" title={latest.message}>{latest.message}</span>
+        <span className="shrink-0 text-text-dim">{ago(latest.createdAt)}</span>
+      </>
+    );
+  }
+  const lastReceived = summary?.lastReceivedAt;
+  if (!lastReceived) return <span className="text-text-muted">아직 수신한 로그가 없습니다</span>;
+  return <span className="text-text-muted">{`${known ? '오류·경고 없음 · ' : ''}마지막 수신 ${ago(lastReceived)}`}</span>;
+}
+
 function LogCard({ row, window: span }: { row: LogServiceRow; window: [number, number] }) {
   const summary = row.summary;
-  const error = summary?.error ?? 0;
-  const warn = summary?.warn ?? 0;
-  const lastReceived = summary?.lastReceivedAt;
-  // 창 안에 아무 로그도 없으면 0건은 "이상 없음"이 아니라 "모름"이다.
-  const receivedInWindow = error + warn > 0 || (!!lastReceived && Date.parse(lastReceived) >= span[0]);
-  const collection: CollectionStatus = receivedInWindow ? 'collecting' : lastReceived ? 'delayed' : 'waiting';
-  const count = (value: number, tone: string) => (
-    receivedInWindow
-      ? <p className={`text-lg tabular-nums ${value > 0 ? tone : 'text-text-base'}`}>{value.toLocaleString()}</p>
-      : <p className="text-lg text-text-dim" title="최근 24시간 수신한 로그 없음">—</p>
-  );
+  const collection = collectionOf(summary, span[0]);
+  const known = collection === 'collecting';
 
   return (
     <Link to={row.to} className="card-interactive group flex flex-col rounded-xl border border-ui-border bg-bg-surface p-4">
@@ -88,26 +115,14 @@ function LogCard({ row, window: span }: { row: LogServiceRow; window: [number, n
         status={row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collection} />}
       />
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <div><p className="text-xs text-text-dim">ERROR</p>{count(error, 'text-status-error')}</div>
-        <div><p className="text-xs text-text-dim">WARN</p>{count(warn, 'text-status-warn')}</div>
+        <LevelCount label="ERROR" value={summary?.error ?? 0} tone="text-status-error" known={known} />
+        <LevelCount label="WARN" value={summary?.warn ?? 0} tone="text-status-warn" known={known} />
       </div>
       <div className="mt-3">
         <LogSparkline buckets={summary?.buckets ?? []} window={span} />
       </div>
       <div className="mt-3 flex min-w-0 items-baseline gap-2 text-xs">
-        {summary?.latest ? (
-          <>
-            <span className={`${LEVEL_BASE} ${LEVEL_TEXT[summary.latest.level] ?? LEVEL_TEXT.info}`}>{summary.latest.level}</span>
-            <span className="min-w-0 flex-1 truncate font-mono text-text-secondary" title={summary.latest.message}>{summary.latest.message}</span>
-            <span className="shrink-0 text-text-dim">{ago(summary.latest.createdAt)}</span>
-          </>
-        ) : (
-          <span className="text-text-muted">
-            {!lastReceived
-              ? '아직 수신한 로그가 없습니다'
-              : receivedInWindow ? `오류·경고 없음 · 마지막 수신 ${ago(lastReceived)}` : `마지막 수신 ${ago(lastReceived)}`}
-          </span>
-        )}
+        <LatestLine summary={summary} known={known} />
       </div>
     </Link>
   );

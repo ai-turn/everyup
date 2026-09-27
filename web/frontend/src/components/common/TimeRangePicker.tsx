@@ -11,12 +11,6 @@ const OPTIONS: { label: string; value: GlobalTimeRange }[] = [
   { label: '24H', value: '24h' },
 ];
 
-/** A `?range=` value, when it is one of the presets — so a link can open a detail view on the window it summarized. */
-// eslint-disable-next-line react-refresh/only-export-components
-export function parseTimeRange(value: string | null): GlobalTimeRange | undefined {
-  return OPTIONS.find(option => option.value === value)?.value;
-}
-
 export function TimeRangePicker({ value, onChange }: {
   value: GlobalTimeRange;
   onChange: (range: GlobalTimeRange) => void;
