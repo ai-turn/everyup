@@ -23,6 +23,20 @@ jobs:
           go test ./...
           go vet ./...
 
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: agent/go.mod
+      - name: Test, vet, and build agent
+        working-directory: agent
+        run: |
+          go test ./...
+          go vet ./...
+          go build ./...
+
   frontend:
     # Main-branch frontend changes are verified by deploy-demo before deployment.
     if: github.event_name == 'pull_request'
