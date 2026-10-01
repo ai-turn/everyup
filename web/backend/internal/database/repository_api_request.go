@@ -319,7 +319,7 @@ func (r *ApiRequestRepository) List(f *models.ApiRequestFilter) ([]models.ApiReq
 }
 
 // RequestStats returns time-bucketed request aggregates (volume, errors, p50,
-// p95) for the trends chart. Scoped by the same agent/service/time filter as
+// p95, p99) for the trends chart. Scoped by the same agent/service/time filter as
 // List; rows are fetched raw and bucketed in Go (SQLite has no percentile
 // function — same approach as GetServiceHistoryBuckets). maxRows caps the scan.
 func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMins int) ([]models.ApiRequestStatBucket, error) {
@@ -330,29 +330,7 @@ func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMi
 		bucketMins = 5
 	}
 
-	where := "1=1"
-	args := []interface{}{}
-	if f.ServiceID != "" {
-		where += " AND service_id = ?"
-		args = append(args, f.ServiceID)
-	}
-	if f.AgentID != "" {
-		where += " AND agent_id = ?"
-		args = append(args, f.AgentID)
-	}
-	if f.ServiceName != "" {
-		where += " AND service_name = ?"
-		args = append(args, f.ServiceName)
-	}
-	if !f.From.IsZero() {
-		where += " AND created_at >= ?"
-		args = append(args, f.From)
-	}
-	if !f.To.IsZero() {
-		where += " AND created_at <= ?"
-		args = append(args, f.To)
-	}
-
+	where, args := requestScopeWhere(f)
 	const maxRows = 100000
 	args = append(args, maxRows)
 	rows, err := DB.Query(
@@ -417,6 +395,7 @@ func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMi
 			ErrorCount: b.errorCount,
 			P50:        percentile(b.durations, 50),
 			P95:        percentile(b.durations, 95),
+			P99:        percentile(b.durations, 99),
 			Timed:      len(b.durations),
 		})
 	}
@@ -429,28 +408,7 @@ func (r *ApiRequestRepository) StatusSummary(f *models.ApiRequestFilter) (*model
 	if f == nil {
 		f = &models.ApiRequestFilter{}
 	}
-	where := "1=1"
-	args := []interface{}{}
-	if f.ServiceID != "" {
-		where += " AND service_id = ?"
-		args = append(args, f.ServiceID)
-	}
-	if f.AgentID != "" {
-		where += " AND agent_id = ?"
-		args = append(args, f.AgentID)
-	}
-	if f.ServiceName != "" {
-		where += " AND service_name = ?"
-		args = append(args, f.ServiceName)
-	}
-	if !f.From.IsZero() {
-		where += " AND created_at >= ?"
-		args = append(args, f.From)
-	}
-	if !f.To.IsZero() {
-		where += " AND created_at <= ?"
-		args = append(args, f.To)
-	}
+	where, args := requestScopeWhere(f)
 
 	out := &models.ApiRequestStatusSummary{}
 	rows, err := DB.Query("SELECT status_code/100, COUNT(*) FROM api_requests WHERE "+where+" GROUP BY status_code/100", args...)
@@ -492,6 +450,66 @@ func (r *ApiRequestRepository) StatusSummary(f *models.ApiRequestFilter) (*model
 		}
 	}
 	return out, nil
+}
+
+// WindowStats aggregates the whole filter window into one bucket (volume,
+// errors, p95, p99) for request alert rules.
+func (r *ApiRequestRepository) WindowStats(f *models.ApiRequestFilter) (models.ApiRequestStatBucket, error) {
+	where, args := requestScopeWhere(f)
+	rows, err := DB.Query("SELECT duration_ms, is_error FROM api_requests WHERE "+where, args...)
+	if err != nil {
+		return models.ApiRequestStatBucket{}, err
+	}
+	defer rows.Close()
+
+	out := models.ApiRequestStatBucket{Time: f.From}
+	var durations []int
+	for rows.Next() {
+		var duration int
+		var isError bool
+		if err := rows.Scan(&duration, &isError); err != nil {
+			return models.ApiRequestStatBucket{}, err
+		}
+		out.Count++
+		if isError {
+			out.ErrorCount++
+		}
+		if duration > 0 {
+			durations = append(durations, duration)
+		}
+	}
+	out.Timed = len(durations)
+	out.P50 = percentile(durations, 50)
+	out.P95 = percentile(durations, 95)
+	out.P99 = percentile(durations, 99)
+	return out, rows.Err()
+}
+
+// requestScopeWhere is the agent/service/time scope shared by the aggregate queries.
+func requestScopeWhere(f *models.ApiRequestFilter) (string, []interface{}) {
+	where := "1=1"
+	args := []interface{}{}
+	if f.ServiceID != "" {
+		where += " AND service_id = ?"
+		args = append(args, f.ServiceID)
+	}
+	if f.AgentID != "" {
+		where += " AND agent_id = ?"
+		args = append(args, f.AgentID)
+	}
+	if f.ServiceName != "" {
+		where += " AND service_name = ?"
+		args = append(args, f.ServiceName)
+	}
+	if !f.From.IsZero() {
+		where += " AND created_at >= ?"
+		args = append(args, f.From)
+	}
+	if !f.To.IsZero() {
+		where += " AND created_at <= ?"
+		args = append(args, f.To)
+	}
+	return where, args
 }
 
 // percentile returns the p-th percentile (nearest-rank) of vals, or 0 when

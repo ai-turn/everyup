@@ -308,6 +308,9 @@ func (r *AgentRepository) UpsertServices(agentID string, observedAt time.Time, s
 			if service.UpdatedAt.IsZero() {
 				service.UpdatedAt = observedAt
 			}
+			if err := recordDeploy(tx, agentID, service); err != nil {
+				return err
+			}
 			if _, err := tx.Exec(`
 INSERT INTO agent_services(agent_id, key, name, check_type, endpoint, runtime, image, restart_count, started_at, healthy, seen, silenced, last_error, last_status, last_latency, updated_at, observed_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -358,6 +361,84 @@ VALUES (?, ?, ?, ?, ?)`,
 		}
 		return nil
 	})
+}
+
+// AgentEventDeploy marks a service rollout on charts; written by recordDeploy.
+const AgentEventDeploy = "deploy"
+
+// recordDeploy compares a service snapshot with the stored row and logs a
+// deploy event when the container was rolled out again.
+// ponytail: a rollout that lands between two syncs where the service drops out
+// of the snapshot is seen as a new service and not marked.
+func recordDeploy(tx *sql.Tx, agentID string, cur models.AgentService) error {
+	var prevImage string
+	var prevStarted sql.NullTime
+	var prevRestarts int
+	err := tx.QueryRow(`SELECT image, started_at, restart_count FROM agent_services WHERE agent_id = ? AND key = ?`,
+		agentID, cur.Key).Scan(&prevImage, &prevStarted, &prevRestarts)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if !isDeploy(prevImage, prevStarted.Time, prevRestarts, cur) {
+		return nil
+	}
+	metadata, _ := json.Marshal(map[string]string{"image": cur.Image, "previousImage": prevImage})
+	// UTC: chart windows bind UTC bounds and SQLite compares times as text.
+	at := cur.StartedAt.UTC()
+	_, err = tx.Exec(`
+INSERT INTO agent_events(agent_id, time, type, service_name, target_key, message, metadata_json, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		agentID, at, AgentEventDeploy, cur.Name, cur.Key, cur.Image, string(metadata), time.Now().UTC())
+	return err
+}
+
+// isDeploy reports whether a container was rolled out again rather than kept:
+// its image ref changed, or it started again without Docker counting a restart
+// (recreated, e.g. `compose up` of a re-pulled tag, or restarted by hand).
+// Crash restarts bump RestartCount — they are symptoms, not changes.
+func isDeploy(prevImage string, prevStarted time.Time, prevRestarts int, cur models.AgentService) bool {
+	if prevStarted.IsZero() || cur.StartedAt.IsZero() {
+		return false // first container sighting, or not a container
+	}
+	if cur.Image != prevImage {
+		return true
+	}
+	restarted := !cur.StartedAt.Truncate(time.Second).Equal(prevStarted.Truncate(time.Second))
+	return restarted && cur.RestartCount <= prevRestarts
+}
+
+// GetDeploys returns deploy events since from, oldest first. An empty key
+// covers every service of the agent.
+func (r *AgentRepository) GetDeploys(agentID, key string, from time.Time) ([]models.AgentEvent, error) {
+	query := `
+SELECT id, agent_id, time, type, service_name, target_key, message, metadata_json, created_at
+FROM agent_events WHERE agent_id = ? AND type = ? AND time >= ?`
+	args := []interface{}{agentID, AgentEventDeploy, from.UTC()}
+	if key != "" {
+		query += " AND target_key = ?"
+		args = append(args, key)
+	}
+	rows, err := DB.Query(query+" ORDER BY time LIMIT 500", args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	events := make([]models.AgentEvent, 0)
+	for rows.Next() {
+		var event models.AgentEvent
+		var metadata string
+		if err := rows.Scan(&event.ID, &event.AgentID, &event.Time, &event.Type, &event.ServiceName, &event.TargetKey, &event.Message, &metadata, &event.CreatedAt); err != nil {
+			return nil, err
+		}
+		if metadata != "" {
+			_ = json.Unmarshal([]byte(metadata), &event.Metadata)
+		}
+		events = append(events, event)
+	}
+	return events, rows.Err()
 }
 
 func (r *AgentRepository) DeleteService(agentID, key string) error {

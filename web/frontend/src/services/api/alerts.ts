@@ -2,8 +2,8 @@ import { request } from './base';
 
 // --- Alert Rule Types ---
 
-export type AlertRuleType = 'resource' | 'service' | 'log' | 'system';
-export type AlertMetric = 'cpu' | 'memory' | 'disk' | 'status_change' | 'http_status' | 'response_time' | 'log_level' | 'api_status_code' | 'otel_metric';
+export type AlertRuleType = 'resource' | 'service' | 'log' | 'system' | 'request';
+export type AlertMetric = 'cpu' | 'memory' | 'disk' | 'status_change' | 'http_status' | 'response_time' | 'log_level' | 'api_status_code' | 'otel_metric' | 'error_rate' | 'latency_p95' | 'latency_p99';
 export type AlertOperator = 'gt' | 'lt' | 'gte' | 'lte' | 'eq';
 export type AlertSeverity = 'critical' | 'warning' | 'info';
 

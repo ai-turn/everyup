@@ -205,6 +205,7 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Put("/agents/:agentId/profile", agentHandler.UpdateProfile)
 	local.Delete("/agents/:agentId/services/:key", agentHandler.DeleteService)
 	local.Get("/agents/:agentId/events", agentHandler.GetEvents)
+	local.Get("/agents/:agentId/deploys", agentHandler.GetDeploys)
 	local.Get("/agents/:agentId/request-stats", agentHandler.GetAgentRequestStats)
 	local.Get("/agents/:agentId/request-status-summary", agentHandler.GetAgentRequestStatusSummary)
 	local.Get("/agents/:agentId/uptime", agentHandler.GetAgentUptime)

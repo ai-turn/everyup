@@ -143,6 +143,72 @@ func (c *DockerClient) containerInspect(ctx context.Context, containerID string)
 	return inspect, nil
 }
 
+// CPUThrottling is a container's cumulative CFS scheduler counters: the
+// periods it ran in, and how many of those it spent stopped at its CPU limit.
+type CPUThrottling struct {
+	ServiceName      string
+	Periods          uint64
+	ThrottledPeriods uint64
+}
+
+type dockerStatsResponse struct {
+	CPUStats struct {
+		ThrottlingData struct {
+			Periods          uint64 `json:"periods"`
+			ThrottledPeriods uint64 `json:"throttled_periods"`
+		} `json:"throttling_data"`
+	} `json:"cpu_stats"`
+}
+
+// CPUThrottlingMap samples throttling counters of running containers that have
+// a CPU limit, keyed by container ID (counters restart with the container).
+// ponytail: one stats call per running container each web sync, like
+// ContainerMetaMap; a container whose stats call fails is skipped.
+func (c *DockerClient) CPUThrottlingMap(ctx context.Context) (map[string]CPUThrottling, error) {
+	containers, err := c.fetchContainers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]CPUThrottling)
+	for _, container := range containers {
+		if container.State != "running" {
+			continue
+		}
+		// one-shot skips the extra sample Docker otherwise waits for (API >= 1.41).
+		endpoint := fmt.Sprintf("http://docker/containers/%s/stats?stream=false&one-shot=true", url.PathEscape(container.ID))
+		var stats dockerStatsResponse
+		if err := c.getJSON(ctx, endpoint, &stats); err != nil {
+			continue
+		}
+		throttling := stats.CPUStats.ThrottlingData
+		if throttling.Periods == 0 {
+			continue // no CPU limit: CFS never throttles it
+		}
+		out[container.ID] = CPUThrottling{
+			ServiceName:      serviceNameFromDocker(container.ID, containerName(container), container.Labels),
+			Periods:          throttling.Periods,
+			ThrottledPeriods: throttling.ThrottledPeriods,
+		}
+	}
+	return out, nil
+}
+
+func (c *DockerClient) getJSON(ctx context.Context, endpoint string, out interface{}) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("docker api returned %d", resp.StatusCode)
+	}
+	return json.NewDecoder(resp.Body).Decode(out)
+}
+
 type DockerClient struct {
 	socketPath string
 	client     *http.Client

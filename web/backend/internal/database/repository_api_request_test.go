@@ -1,6 +1,7 @@
 package database_test
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -572,6 +573,36 @@ func TestApiRequestRepo_RequestStats(t *testing.T) {
 
 	if stats[1].Count != 1 {
 		t.Errorf("bucket B count = %d, want 1", stats[1].Count)
+	}
+}
+
+// P99 must separate from P95 once the bucket is big enough to have a tail.
+func TestApiRequestRepo_RequestStats_P99(t *testing.T) {
+	openTestDB(t)
+	makeTestService(t, "svc-p99")
+
+	repo := database.NewApiRequestRepository()
+	base := time.Now().Truncate(time.Hour)
+	var rows []models.ApiRequest
+	for i := 1; i <= 100; i++ {
+		rows = append(rows, models.ApiRequest{
+			ServiceID: "svc-p99", RequestID: "r" + strconv.Itoa(i), Method: "GET", Path: "/t", PathTemplate: "/t",
+			StatusCode: 200, DurationMs: i, CreatedAt: base.Add(time.Duration(i) * time.Second),
+		})
+	}
+	if _, err := repo.CreateBatch(rows); err != nil {
+		t.Fatalf("CreateBatch: %v", err)
+	}
+
+	stats, err := repo.RequestStats(&models.ApiRequestFilter{ServiceID: "svc-p99"}, 5)
+	if err != nil {
+		t.Fatalf("RequestStats: %v", err)
+	}
+	if len(stats) != 1 {
+		t.Fatalf("buckets = %d, want 1", len(stats))
+	}
+	if stats[0].P95 != 95 || stats[0].P99 != 99 {
+		t.Errorf("p95/p99 = %d/%d, want 95/99", stats[0].P95, stats[0].P99)
 	}
 }
 

@@ -79,6 +79,7 @@ export interface ApiRequestStatBucket {
   errorCount: number;
   p50: number;
   p95: number;
+  p99: number;
   timed: number;
 }
 

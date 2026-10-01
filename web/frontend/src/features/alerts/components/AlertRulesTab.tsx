@@ -25,22 +25,25 @@ const OPERATOR_SYMBOLS: Record<string, string> = {
   eq: '=',
 };
 
-type CategoryKey = 'all' | 'endpoint' | 'log' | 'resource' | 'system';
+type CategoryKey = 'all' | 'endpoint' | 'request' | 'log' | 'resource' | 'system';
 
 function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
   if (rule.isSystem) return 'system';
   if (rule.type === 'service') return 'endpoint';
+  if (rule.type === 'request') return 'request';
   if (rule.type === 'log') return 'log';
   return 'resource';
 }
 
 function targetLabel(rule: AlertRule, agentServices: AgentServiceFlat[], agents: ConnectedAgent[], directServices: ObservedService[], infrastructureResources: InfrastructureResource[]): string {
-  if (rule.type === 'service' || rule.type === 'log') {
+  if (rule.type === 'service' || rule.type === 'log' || rule.type === 'request') {
     if (rule.serviceId) return directServices.find(service => service.id === rule.serviceId)?.name ?? rule.serviceId;
     if (rule.agentId && rule.serviceKey) {
       const svc = agentServices.find(s => s.agentId === rule.agentId && s.key === rule.serviceKey);
       return svc ? `${svc.agentName} / ${svc.name}` : rule.serviceKey;
     }
+    // Request rules can also watch a whole Docker environment (API-created).
+    if (rule.type === 'request' && rule.agentId) return agents.find(a => a.id === rule.agentId)?.name ?? rule.agentId;
     return rule.type === 'log' ? '전체 로그 서비스' : '전체 헬스체크';
   }
   if (rule.agentId) return infrastructureResources.find(resource => resource.id === rule.agentId)?.name ?? agents.find(a => a.id === rule.agentId)?.name ?? rule.agentId;
@@ -49,6 +52,7 @@ function targetLabel(rule: AlertRule, agentServices: AgentServiceFlat[], agents:
 
 const CATEGORY_LABELS: Record<Exclude<CategoryKey, 'all'>, string> = {
   endpoint: '헬스체크',
+  request: 'API 요청',
   log: '로그',
   resource: '인프라',
   system: '시스템',
@@ -63,6 +67,9 @@ const METRIC_LABELS: Record<string, string> = {
   response_time: '응답 시간',
   log_level: '로그 레벨',
   api_status_code: 'API 상태',
+  error_rate: '에러율',
+  latency_p95: 'p95 지연',
+  latency_p99: 'p99 지연',
 };
 
 // 연산자별 서술어. 없는 연산자는 기호 표기로 폴백한다.
@@ -83,7 +90,7 @@ function metricLabel(metric: string): string {
 }
 
 function thresholdValue(rule: AlertRule): string {
-  const unit = rule.metric === 'response_time' ? 'ms' : ENDPOINT_METRICS.has(rule.metric) || rule.metric === 'log_level' || rule.metric === 'api_status_code' ? '' : '%';
+  const unit = rule.metric === 'response_time' || rule.metric === 'latency_p95' || rule.metric === 'latency_p99' ? 'ms' : ENDPOINT_METRICS.has(rule.metric) || rule.metric === 'log_level' || rule.metric === 'api_status_code' ? '' : '%';
   return `${rule.threshold}${unit}`;
 }
 
@@ -119,6 +126,9 @@ function evaluationSummary(rule: AlertRule): string {
   if (rule.type === 'log') {
     return '로그/API 이벤트마다 평가';
   }
+  if (rule.type === 'request') {
+    return `최근 ${formatMinutes(rule.duration)} 구간을 1분마다 평가 · ${formatSeconds(rule.cooldown)} 쿨다운`;
+  }
   if (rule.isSystem) {
     return '시스템에서 자동 평가';
   }
@@ -131,6 +141,9 @@ function compactTrigger(rule: AlertRule): string {
   }
   if (rule.type === 'log') {
     return `${conditionExpr(rule)} · 즉시`;
+  }
+  if (rule.type === 'request') {
+    return `${conditionExpr(rule)} · 최근 ${formatMinutes(rule.duration)}`;
   }
   if (rule.type === 'service') {
     return `${conditionExpr(rule)} · ${rule.duration}회 연속`;
@@ -394,6 +407,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
           options={[
             { value: 'all', label: '전체' },
             { value: 'endpoint', label: '헬스체크' },
+            { value: 'request', label: 'API 요청' },
             { value: 'log', label: '로그' },
             { value: 'resource', label: '인프라' },
             { value: 'system', label: '시스템 규칙' },

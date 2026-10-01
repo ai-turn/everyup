@@ -28,7 +28,7 @@ func alertMetricSignal(metric models.AlertMetric) models.TelemetrySignal {
 	switch metric {
 	case models.AlertMetricLogLevel:
 		return models.TelemetrySignalLogs
-	case models.AlertMetricApiStatus:
+	case models.AlertMetricApiStatus, models.AlertMetricErrorRate, models.AlertMetricLatencyP95, models.AlertMetricLatencyP99:
 		return models.TelemetrySignalTraces
 	case models.AlertMetricOtelMetric:
 		return models.TelemetrySignalMetrics
@@ -47,6 +47,20 @@ func (h *AlertRuleHandler) validateDirectTarget(serviceID *string, metric models
 	}
 	_, err := h.directManager.RequireSignal(*serviceID, signal)
 	return err
+}
+
+// validateRequestRule keeps windowed request metrics and the request rule type
+// together, and scoped: a window over every service's requests at once would
+// let one noisy service hide another.
+func validateRequestRule(ruleType models.AlertRuleType, metric models.AlertMetric, serviceID, agentID *string) string {
+	windowed := metric == models.AlertMetricErrorRate || metric == models.AlertMetricLatencyP95 || metric == models.AlertMetricLatencyP99
+	if windowed != (ruleType == models.AlertRuleTypeRequest) {
+		return "error_rate and latency metrics require the request rule type"
+	}
+	if windowed && !hasAlertTarget(serviceID) && !hasAlertTarget(agentID) {
+		return "request rules need a target service or Docker environment"
+	}
+	return ""
 }
 
 func hasAlertTarget(value *string) bool {
@@ -179,6 +193,9 @@ func (h *AlertRuleHandler) Create(c *fiber.Ctx) error {
 	if hasAlertTarget(req.ServiceID) && (hasAlertTarget(req.AgentID) || hasAlertTarget(req.ServiceKey)) {
 		return agentBadRequest(c, ErrCodeValidation, "select either a direct service or a Docker environment target")
 	}
+	if err := validateRequestRule(req.Type, req.Metric, req.ServiceID, req.AgentID); err != "" {
+		return agentBadRequest(c, ErrCodeValidation, err)
+	}
 	if err := h.validateDirectTarget(req.ServiceID, req.Metric); err != nil {
 		return directAlertTargetError(c, err)
 	}
@@ -247,6 +264,16 @@ func (h *AlertRuleHandler) Update(c *fiber.Ctx) error {
 	metric := existing.Metric
 	if req.Metric != nil {
 		metric = *req.Metric
+	}
+	serviceID, agentID := existing.ServiceID, existing.AgentID
+	if req.ServiceID != nil {
+		serviceID = req.ServiceID
+	}
+	if req.AgentID != nil {
+		agentID = req.AgentID
+	}
+	if err := validateRequestRule(existing.Type, metric, serviceID, agentID); err != "" {
+		return agentBadRequest(c, ErrCodeValidation, err)
 	}
 	if err := h.validateDirectTarget(req.ServiceID, metric); err != nil {
 		return directAlertTargetError(c, err)

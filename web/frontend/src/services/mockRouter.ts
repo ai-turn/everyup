@@ -99,6 +99,24 @@ const mockAlertRules: AlertRule[] = [
     updatedAt: new Date(Date.now() - 20 * 60_000).toISOString(),
   },
   {
+    id: 'api-p99',
+    name: 'API p99 latency',
+    type: 'request',
+    agentId: 'agent_demo_01',
+    serviceKey: 'api',
+    metric: 'latency_p99',
+    operator: 'gt',
+    threshold: 800,
+    duration: 5,
+    severity: 'critical',
+    isEnabled: true,
+    isSystem: false,
+    cooldown: 900,
+    channelIds: ['1'],
+    createdAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+  },
+  {
     id: '1',
     name: 'High CPU Usage',
     type: 'resource',
@@ -574,6 +592,17 @@ const mockAgentEvents: AgentEvent[] = [
   },
 ];
 
+// One rollout just before the mock request-stats rough patch, so the demo shows
+// a regression lining up with a deploy marker.
+const mockDeploys: AgentEvent[] = [
+  {
+    id: 3, agentId: 'agent_demo_01', time: new Date(nowAgent - 3.4 * 3_600_000).toISOString(),
+    type: 'deploy', targetKey: 'api', serviceName: 'api', message: 'registry.local/api:1.4.2',
+    metadata: { image: 'registry.local/api:1.4.2', previousImage: 'registry.local/api:1.4.1' },
+    createdAt: new Date(nowAgent - 3.4 * 3_600_000).toISOString(),
+  },
+];
+
 // Level + message with the digits masked, like the server's pattern grouping.
 // The per-service log endpoints are already scoped, so no service part.
 function mockFingerprint(log: Pick<LogEntry, 'level' | 'message'>) {
@@ -645,9 +674,11 @@ const mockAgentServiceRequests: ApiRequest[] = [
 
 // Like the server: `bucketMins`-wide buckets aligned to multiples of the width.
 function mockBucketStart(endpoint: string, fallbackMins: number) {
-  const mins = Number(new URLSearchParams(endpoint.split('?')[1] ?? '').get('bucketMins')) || fallbackMins;
+  const query = new URLSearchParams(endpoint.split('?')[1] ?? '');
+  const mins = Number(query.get('bucketMins')) || fallbackMins;
   const width = mins * 60_000;
-  return { width, last: Math.floor(nowAgent / width) * width, count: Math.round((6 * 60) / mins) };
+  const to = Date.parse(query.get('to') ?? '') || nowAgent;
+  return { width, last: Math.floor(to / width) * width, count: Math.round((6 * 60) / mins) };
 }
 
 // Buckets over the last 6h: rising volume with a latency spike +
@@ -655,14 +686,16 @@ function mockBucketStart(endpoint: string, fallbackMins: number) {
 function mockRequestStats(endpoint: string) {
   const buckets = [];
   const { width, last, count: n } = mockBucketStart(endpoint, 5);
+  const lastWeek = last < nowAgent - 24 * 3600_000; // week-over-week overlay: calm and a bit faster
   for (let i = n; i >= 0; i -= 1) {
     const time = new Date(last - i * width).toISOString();
-    const spike = i > n * 0.42 && i < n * 0.55; // a rough patch mid-window
+    const spike = !lastWeek && i > n * 0.42 && i < n * 0.55; // a rough patch mid-window
     const count = Math.max(0, Math.round(20 + 30 * Math.sin((i * width) / (40 * 60_000)) + Math.random() * 10 + (spike ? 25 : 0)));
     const errorCount = spike ? Math.round(count * 0.18) : Math.round(count * 0.01 + Math.random());
-    const p50 = Math.round(35 + 10 * Math.sin(i / 5) + (spike ? 120 : 0));
+    const p50 = Math.round((lastWeek ? 28 : 35) + 10 * Math.sin(i / 5) + (spike ? 120 : 0));
     const p95 = Math.round(p50 * 2.3 + (spike ? 300 : 40));
-    buckets.push({ time, count, errorCount, p50, p95, timed: count });
+    const p99 = Math.round(p95 * 1.6 + (spike ? 400 : 30));
+    buckets.push({ time, count, errorCount, p50, p95, p99, timed: count });
   }
   return buckets;
 }
@@ -1524,6 +1557,8 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   }
   // /agents/:agentId/events
   if (/^\/agents\/[^/]+\/events/.test(endpoint)) return mockAgentEvents as T;
+  // /agents/:agentId/deploys
+  if (/^\/agents\/[^/]+\/deploys/.test(endpoint)) return mockDeploys as T;
   // /agents/:agentId/uptime — project-level rollup
   if (/^\/agents\/[^/]+\/uptime/.test(endpoint)) return mockAgentUptime as T;
   // /agents/:agentId/incidents

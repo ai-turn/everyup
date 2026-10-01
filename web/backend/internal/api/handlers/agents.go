@@ -610,6 +610,20 @@ func (h *AgentHandler) GetServiceKeyEvents(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true, "data": events})
 }
 
+// GetDeploys returns deploy events for chart markers, one service (key) or all.
+// GET /agents/:agentId/deploys?from=&key=
+func (h *AgentHandler) GetDeploys(c *fiber.Ctx) error {
+	from := time.Now().Add(-24 * time.Hour)
+	if t, err := time.Parse(time.RFC3339, c.Query("from")); err == nil {
+		from = t
+	}
+	events, err := h.repo.GetDeploys(c.Params("agentId"), c.Query("key"), from)
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": events})
+}
+
 // GetServiceLogs returns logs for a service identified by agentId+key using service_name as the filter.
 func (h *AgentHandler) GetServiceLogs(c *fiber.Ctx) error {
 	agentID := c.Params("agentId")
