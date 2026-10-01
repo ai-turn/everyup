@@ -308,6 +308,30 @@ func (r *AlertRuleRepository) GetEnabledApiRequestRulesByServiceID(serviceID str
 	return r.GetEnabledApiRequestRules(serviceID, "", "")
 }
 
+// GetEnabledRequestRules returns every enabled windowed API request rule
+// (error rate, latency percentiles) for the periodic RequestRuleEvaluator.
+func (r *AlertRuleRepository) GetEnabledRequestRules() ([]models.AlertRule, error) {
+	rows, err := DB.Query(`
+		SELECT `+alertRuleSelectColumns+`
+		FROM alert_rules
+		WHERE is_enabled = 1 AND type = 'request'
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var rules []models.AlertRule
+	for rows.Next() {
+		rule, err := scanAlertRuleFields(rows.Scan)
+		if err != nil {
+			return nil, err
+		}
+		rules = append(rules, rule)
+	}
+	return loadChannelIDsAll(rules), nil
+}
+
 // GetEnabledOtelMetricRules returns global rules plus rules scoped to one
 // direct Observed Service or one Agent-discovered service. Metric name and
 // attribute-series matching remains at the ingest call site.

@@ -211,6 +211,12 @@ export const agentsApi = {
   getAgentServices: (agentId: string) => request<AgentServiceSnapshot[]>(`/agents/${agentId}/services`),
   getAgentEvents: (agentId: string, limit = 100) =>
     request<AgentEvent[]>(`/agents/${agentId}/events?limit=${limit}`),
+  // Container rollouts since `from` (chart markers). Omit key for every service.
+  getAgentDeploys: (agentId: string, params: { from: string; key?: string }) => {
+    const p = new URLSearchParams({ from: params.from });
+    if (params.key) p.set('key', params.key);
+    return request<AgentEvent[]>(`/agents/${agentId}/deploys?${p}`);
+  },
   // Healthcheck page — Agent-based
   getAllAgentServicesFlat: () => request<AgentServiceFlat[]>('/agents/services/all'),
   getAgentServiceHistory: (agentId: string, key: string, range = '24h') =>

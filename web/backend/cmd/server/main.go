@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -151,6 +152,11 @@ func main() {
 	serviceEvaluator := alerter.NewServiceRuleEvaluator(alertMgr)
 	scheduler.SetServiceEvaluator(serviceEvaluator)
 
+	// Windowed API request rules (error rate, p95/p99) run on their own timer
+	requestEvaluator := alerter.NewRequestRuleEvaluator(alertMgr)
+	evalCtx, stopEval := context.WithCancel(context.Background())
+	go requestEvaluator.Run(evalCtx)
+
 	// Send server boot notification
 	go alertMgr.DispatchBootNotification()
 
@@ -174,6 +180,7 @@ func main() {
 	go func() {
 		<-quit
 		log.Println("Shutting down server...")
+		stopEval()
 		alertMgr.Shutdown()
 		scheduler.Stop()
 		collectorMgr.Stop()

@@ -22,8 +22,8 @@ import {
 
 const ruleSchema = z.object({
     name: z.string().min(1),
-    ruleCategory: z.enum(['resource', 'endpoint', 'log', 'metric']),
-    metric: z.enum(['cpu', 'memory', 'disk', 'http_status', 'response_time', 'log_level', 'api_status_code', 'otel_metric']),
+    ruleCategory: z.enum(['resource', 'endpoint', 'request', 'log', 'metric']),
+    metric: z.enum(['cpu', 'memory', 'disk', 'http_status', 'response_time', 'log_level', 'api_status_code', 'otel_metric', 'error_rate', 'latency_p95', 'latency_p99']),
     metricName: z.string().optional(),
     agentId: z.string().optional(),
     serviceKey: z.string().optional(),
@@ -40,6 +40,10 @@ const ruleSchema = z.object({
     }
     if (data.ruleCategory === 'metric' && !data.metricName?.trim()) {
         ctx.addIssue({ path: ['metricName'], code: z.ZodIssueCode.custom, message: 'required' });
+    }
+    // A window over every service at once would let one noisy service hide another.
+    if (data.ruleCategory === 'request' && !data.serviceKey && !data.serviceId) {
+        ctx.addIssue({ path: ['serviceKey'], code: z.ZodIssueCode.custom, message: 'required' });
     }
 });
 
@@ -62,6 +66,9 @@ function getPresetValues(metric: RuleFormValues['metric'], preset: ConditionPres
         if (metric === 'response_time') return { operator: 'lt', threshold: 1000 };
         if (metric === 'log_level') return { operator: 'eq', threshold: 4 };
         if (metric === 'api_status_code') return { operator: 'lt', threshold: 400 };
+        if (metric === 'error_rate') return { operator: 'lt', threshold: 1, duration: 5 };
+        if (metric === 'latency_p95') return { operator: 'lt', threshold: 500, duration: 5 };
+        if (metric === 'latency_p99') return { operator: 'lt', threshold: 1000, duration: 5 };
         return { operator: 'lt', threshold: 70, duration: 1 };
     }
     if (metric === 'http_status') return { operator: 'gte', threshold: 400 };
@@ -69,6 +76,9 @@ function getPresetValues(metric: RuleFormValues['metric'], preset: ConditionPres
     if (metric === 'log_level') return { operator: 'gte', threshold: 3 };
     if (metric === 'api_status_code') return { operator: 'gte', threshold: 500 };
     if (metric === 'otel_metric') return { operator: 'gt', threshold: 0 }; // no universal default — user sets it
+    if (metric === 'error_rate') return { operator: 'gt', threshold: 5, duration: 5 };
+    if (metric === 'latency_p95') return { operator: 'gt', threshold: 1000, duration: 5 };
+    if (metric === 'latency_p99') return { operator: 'gt', threshold: 2000, duration: 5 };
     return { operator: 'gt', threshold: 80, duration: 3 };
 }
 
@@ -87,6 +97,10 @@ function buildDefaultMessage(metric: RuleFormValues['metric'], operator: RuleFor
     if (metric === 'log_level') return `Log {level}: {message}`;
     if (metric === 'api_status_code') return `{method} {path} → {status} ({duration}ms)`;
     if (metric === 'otel_metric') return `{service_name} {metric} = {value} (threshold ${opSym} {threshold})`;
+    if (metric === 'error_rate' || metric === 'latency_p95' || metric === 'latency_p99') {
+        const label = { error_rate: 'error rate', latency_p95: 'p95 latency', latency_p99: 'p99 latency' }[metric];
+        return `{service_name}: ${label} {value} over the last ${duration}min (threshold ${opSym} {threshold})`;
+    }
     const metricLabel = { cpu: 'CPU', memory: 'Memory', disk: 'Disk' }[metric] ?? metric.toUpperCase();
     return `${metricLabel} usage ${opSym} ${threshold}%, sustained for ${duration}min on {host_name}`;
 }
@@ -272,6 +286,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
         if (rule) {
             const metric = rule.metric as RuleFormValues['metric'];
             const ruleCategory: RuleCategory = metric === 'otel_metric' ? 'metric'
+                : rule.type === 'request' ? 'request'
                 : rule.type === 'service' ? 'endpoint' : rule.type === 'log' ? 'log' : 'resource';
             const preset = detectConditionPreset(metric, rule.operator, rule.threshold, rule.duration);
             reset({
@@ -311,7 +326,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
         setValue('serviceKey', '');
         setValue('serviceId', '');
         setValue('metricName', '');
-        const newMetric: RuleFormValues['metric'] = cat === 'resource' ? 'cpu' : cat === 'log' ? 'log_level' : cat === 'metric' ? 'otel_metric' : 'http_status';
+        const newMetric: RuleFormValues['metric'] = cat === 'resource' ? 'cpu' : cat === 'log' ? 'log_level' : cat === 'metric' ? 'otel_metric' : cat === 'request' ? 'error_rate' : 'http_status';
         setValue('metric', newMetric);
         applyPreset(cat === 'metric' ? 'custom' : 'error', newMetric);
     };
@@ -343,11 +358,12 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
             const isEndpoint = data.ruleCategory === 'endpoint';
             const isLog = data.ruleCategory === 'log';
             const isMetric = data.ruleCategory === 'metric';
-            const scoped = isEndpoint || isLog || isMetric;
+            const isRequest = data.ruleCategory === 'request';
+            const scoped = isEndpoint || isLog || isMetric || isRequest;
             const payload = {
                 name: data.name,
                 // metric rules share the connected-agent (service) rule type.
-                type: isLog ? 'log' as const : (isEndpoint || isMetric) ? 'service' as const : 'resource' as const,
+                type: isRequest ? 'request' as const : isLog ? 'log' as const : (isEndpoint || isMetric) ? 'service' as const : 'resource' as const,
                 metric: data.metric,
                 metricName: isMetric ? (data.metricName || '') : '',
                 agentId: data.agentId || null,
@@ -357,8 +373,9 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                 threshold: data.threshold,
                 duration: data.duration,
                 severity: data.severity,
-                // ingest-time evals (log/endpoint/metric) are dedup-driven, cooldown 0.
-                cooldown: scoped ? 0 : data.cooldown,
+                // ingest-time evals (log/endpoint/metric) are dedup-driven, cooldown 0;
+                // windowed request rules re-check every minute and need the cooldown.
+                cooldown: scoped && !isRequest ? 0 : data.cooldown,
                 message: customMessage.trim() || '',
                 channelIds: data.channelIds,
             };
@@ -381,10 +398,11 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
     const isEndpoint = watchedCategory === 'endpoint';
     const isLog = watchedCategory === 'log';
     const isMetric = watchedCategory === 'metric';
+    const isRequest = watchedCategory === 'request';
     const isApiStatus = watchedMetric === 'api_status_code';
     const watchedMetricName = watch('metricName') ?? '';
-    const metricName = { cpu: 'CPU', memory: 'Memory', disk: 'Disk', http_status: 'HTTP Status', response_time: 'Response Time', log_level: 'Log Level', api_status_code: 'API Status', otel_metric: 'Metric' }[watchedMetric] ?? watchedMetric;
-    const thresholdUnit = watchedMetric === 'response_time' ? 'ms' : (watchedMetric === 'http_status' || watchedMetric === 'log_level' || isApiStatus || isMetric) ? '' : '%';
+    const metricName = { cpu: 'CPU', memory: 'Memory', disk: 'Disk', http_status: 'HTTP Status', response_time: 'Response Time', log_level: 'Log Level', api_status_code: 'API Status', otel_metric: 'Metric', error_rate: 'Error Rate', latency_p95: 'p95', latency_p99: 'p99' }[watchedMetric] ?? watchedMetric;
+    const thresholdUnit = watchedMetric === 'response_time' || watchedMetric === 'latency_p95' || watchedMetric === 'latency_p99' ? 'ms' : (watchedMetric === 'http_status' || watchedMetric === 'log_level' || isApiStatus || isMetric) ? '' : '%';
 
     // Metric-name suggestions for the datalist: the selected service's exported
     // OTLP metrics. Free text still allowed when no service is selected.
@@ -398,17 +416,17 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
     const selectedAgentService = agentServices.find(s => s.agentId === watchedAgentId && s.key === watchedServiceKey);
     const selectedAgent = agents.find(a => a.id === watchedAgentId);
     const selectedInfrastructureResource = infrastructureResources.find(resource => resource.id === watchedAgentId);
-    const directSignal = isMetric ? 'metrics' : isLog ? (isApiStatus ? 'traces' : 'logs') : null;
+    const directSignal = isMetric ? 'metrics' : isLog ? (isApiStatus ? 'traces' : 'logs') : isRequest ? 'traces' : null;
     const availableDirectServices = directSignal
         ? directServices.filter(service => service.signals.includes(directSignal))
         : [];
     const selectedDirectService = directServices.find(service => service.id === watchedServiceId);
-    const targetLabel = isEndpoint || isLog
+    const targetLabel = isEndpoint || isLog || isRequest
         ? (selectedDirectService
             ? selectedDirectService.name
             : watchedAgentId && watchedServiceKey
             ? (selectedAgentService ? `${selectedAgentService.agentName} / ${selectedAgentService.name}` : watchedServiceKey)
-            : (isLog ? '전체 로그 서비스' : '전체 헬스체크'))
+            : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : '전체 헬스체크'))
         : isMetric && selectedDirectService
             ? selectedDirectService.name
         : watchedCategory === 'resource' && watchedAgentId
@@ -440,9 +458,10 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                     {/* Step 1: Target */}
                     <FormStep n={1} title="대상">
                         <Field label="카테고리">
-                            <div className="flex gap-2">
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
                                 {([
                                     { value: 'endpoint' as const, label: '헬스체크', icon: 'monitor_heart' },
+                                    { value: 'request'  as const, label: 'API 요청', icon: 'speed' },
                                     { value: 'log'      as const, label: '로그',        icon: 'article' },
                                     { value: 'metric'   as const, label: '메트릭', icon: 'monitoring' },
                                     { value: 'resource' as const, label: '인프라', icon: 'memory' },
@@ -451,14 +470,14 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         key={cat.value}
                                         type="button"
                                         onClick={() => handleCategoryChange(cat.value)}
-                                        className={`flex-1 flex items-center gap-2 px-3 py-3 border-2 rounded-xl transition-all text-left ${
+                                        className={`flex items-center gap-2 px-3 py-3 border-2 rounded-xl transition-all text-left ${
                                             watchedCategory === cat.value
                                                 ? 'border-primary bg-primary/10 text-primary'
                                                 : 'border-ui-border-soft text-text-muted hover:border-slate-200 dark:hover:border-slate-600'
                                         }`}
                                     >
                                         <MaterialIcon size={20} name={cat.icon} />
-                                        <span className="text-sm">{cat.label}</span>
+                                        <span className="text-sm whitespace-nowrap">{cat.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -468,9 +487,10 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                             <Field
                                 htmlFor="rule-target"
                                 label="대상"
-                                hint={!watchedAgentId ? '미선택 시 모든 대상에 적용됩니다' : null}
+                                required={isRequest}
+                                hint={isRequest ? null : !watchedAgentId ? '미선택 시 모든 대상에 적용됩니다' : null}
                             >
-                                {isEndpoint || isLog || isMetric ? (
+                                {isEndpoint || isLog || isMetric || isRequest ? (
                                     <Select
                                         id="rule-target"
                                         value={watchedServiceId ? `direct:::${watchedServiceId}` : watchedAgentId && watchedServiceKey ? `${watchedAgentId}:::${watchedServiceKey}` : ''}
@@ -485,7 +505,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         }}
 
                                     >
-                                        <option value="">{isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'}</option>
+                                        <option value="">{isRequest ? '서비스 선택' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'}</option>
                                         {agentServices.map(svc => (
                                             <option key={`${svc.agentId}:::${svc.key}`} value={`${svc.agentId}:::${svc.key}`}>
                                                 {svc.agentName} / {svc.name}
@@ -533,6 +553,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                     <div className="flex flex-wrap gap-2">
                                         {(isLog
                                             ? ['log_level', 'api_status_code'] as const
+                                            : isRequest
+                                            ? ['error_rate', 'latency_p95', 'latency_p99'] as const
                                             : isEndpoint
                                             ? ['http_status', 'response_time'] as const
                                             : ['cpu', 'memory', 'disk'] as const
@@ -547,7 +569,9 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                                         : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
                                                 }`}
                                             >
-                                                {m === 'log_level' ? '로그 레벨' : m === 'api_status_code' ? 'API 요청' : m.replace('_', ' ').toUpperCase()}
+                                                {m === 'log_level' ? '로그 레벨' : m === 'api_status_code' ? 'API 요청'
+                                                    : m === 'error_rate' ? '에러율' : m === 'latency_p95' ? 'p95 지연' : m === 'latency_p99' ? 'p99 지연'
+                                                    : m.replace('_', ' ').toUpperCase()}
                                             </button>
                                         ))}
                                     </div>
@@ -652,7 +676,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         />
                                     </Field>
                                 ) : !isLog ? (
-                                    <Field htmlFor="rule-duration" label="지속 시간 (분)">
+                                    <Field htmlFor="rule-duration" label={isRequest ? '평가 구간 (분)' : '지속 시간 (분)'}>
                                         <Input
                                             id="rule-duration"
                                             type="number" min={1} max={60}
@@ -754,7 +778,9 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                         <Field
                             htmlFor="rule-message"
                             label="알림 메시지"
-                            hint={'선택 · 자동 생성 메시지 대체' + ' · ' + `사용 가능한 변수: ${(isApiStatus
+                            hint={'선택 · 자동 생성 메시지 대체' + ' · ' + `사용 가능한 변수: ${(isRequest
+                                    ? ['{service_name}', '{value}', '{threshold}', '{duration}']
+                                    : isApiStatus
                                     ? ['{service_name}', '{method}', '{path}', '{status}', '{duration}']
                                     : isLog
                                     ? ['{service_name}', '{level}', '{message}']
@@ -809,8 +835,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         )}
                                         {!isEndpoint && !isLog && (
                                             <div className="pl-4">
-                                                <span className="text-sky-300">FOR </span>
-                                                <span className="text-violet-300">{watchedDuration} min</span>
+                                                <span className="text-sky-300">{isRequest ? 'OVER ' : 'FOR '}</span>
+                                                <span className="text-violet-300">{isRequest ? `last ${watchedDuration} min` : `${watchedDuration} min`}</span>
                                             </div>
                                         )}
                                         {isLog && (

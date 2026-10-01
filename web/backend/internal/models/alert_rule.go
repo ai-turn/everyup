@@ -10,6 +10,9 @@ const (
 	AlertRuleTypeService  AlertRuleType = "service"
 	AlertRuleTypeLog      AlertRuleType = "log"
 	AlertRuleTypeSystem   AlertRuleType = "system"
+	// AlertRuleTypeRequest rules judge a window of API requests (error rate,
+	// latency percentiles) on a timer, not one event at a time.
+	AlertRuleTypeRequest AlertRuleType = "request"
 )
 
 // AlertMetric is the metric being evaluated
@@ -25,6 +28,9 @@ const (
 	AlertMetricLogLevel     AlertMetric = "log_level"
 	AlertMetricApiStatus    AlertMetric = "api_status_code" // captured API request status code
 	AlertMetricOtelMetric   AlertMetric = "otel_metric"     // OTLP metric value; pairs with MetricName
+	AlertMetricErrorRate    AlertMetric = "error_rate"      // % of API requests failing over the last Duration minutes
+	AlertMetricLatencyP95   AlertMetric = "latency_p95"     // API request p95 in ms over the last Duration minutes
+	AlertMetricLatencyP99   AlertMetric = "latency_p99"     // API request p99 in ms over the last Duration minutes
 )
 
 // AlertOperator defines comparison operators

@@ -37,7 +37,8 @@ type ApiRequestStatBucket struct {
 	ErrorCount int       `json:"errorCount"`
 	P50        int       `json:"p50"`
 	P95        int       `json:"p95"`
-	Timed      int       `json:"timed"` // requests contributing to percentiles
+	P99        int       `json:"p99"`
+	Timed     int       `json:"timed"` // requests contributing to percentiles
 }
 
 // ApiRequestStatusSummary aggregates status-code classes over a window plus
