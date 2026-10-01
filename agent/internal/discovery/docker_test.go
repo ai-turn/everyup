@@ -90,6 +90,30 @@ func TestContainerStateByName(t *testing.T) {
 	}
 }
 
+func TestCPUThrottlingMapSkipsUnlimitedAndStopped(t *testing.T) {
+	client := NewDockerClient("tcp://unused", 0)
+	client.client.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		body := `[{"Id":"lim","Names":["/p-api-1"],"State":"running","Labels":{"com.docker.compose.service":"api"}},` +
+			`{"Id":"free","Names":["/db"],"State":"running"},{"Id":"down","Names":["/old"],"State":"exited"}]`
+		switch req.URL.Path {
+		case "/containers/lim/stats":
+			body = `{"cpu_stats":{"throttling_data":{"periods":120,"throttled_periods":30}}}`
+		case "/containers/free/stats":
+			body = `{"cpu_stats":{"throttling_data":{"periods":0,"throttled_periods":0}}}`
+		case "/containers/down/stats":
+			t.Errorf("stats requested for a stopped container")
+		}
+		return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header)}, nil
+	})
+	got, err := client.CPUThrottlingMap(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got["lim"] != (CPUThrottling{ServiceName: "api", Periods: 120, ThrottledPeriods: 30}) {
+		t.Fatalf("got %+v", got)
+	}
+}
+
 func TestServiceIPMapIdentifiesObserverByContainerName(t *testing.T) {
 	client := NewDockerClient("tcp://unused", 0)
 	client.client.Transport = roundTripFunc(func(req *http.Request) (*http.Response, error) {

@@ -41,6 +41,8 @@ type Agent struct {
 	ipIndex         *serviceIPIndex
 	pidIndex        *servicePIDIndex
 	traced          *tracedServices
+	// throttle keeps the last CFS counters; only the web sync goroutine touches it.
+	throttle throttleSampler
 
 	mu          sync.RWMutex
 	saveMu      sync.Mutex
@@ -201,6 +203,7 @@ func (a *Agent) startWebSync(ctx context.Context) {
 				a.flushWebServices(ctx)
 				a.flushWebEvents(ctx)
 				a.flushWebMetrics(ctx)
+				a.flushContainerThrottling(ctx)
 			}
 		}
 	}()
