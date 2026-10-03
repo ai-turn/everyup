@@ -1,7 +1,7 @@
 # OpenTelemetry로 API 헤더·바디 수집
 
 서비스 health·로그·호스트 메트릭·API **상태코드**는 앱 수정이 필요 없고, 선택적
-eBPF 사이드카가 코드 없이 실제 **레이턴시와 트레이스**까지 더합니다(Docker Collector README
+eBPF 사이드카가 코드 없이 실제 **레이턴시와 트레이스**까지 더합니다([자동 eBPF Observer](./ebpf-observer)
 참고). 이 문서는 앱을 건드리는 유일한 단계 — 요청/응답 **헤더·바디**를 앱에
 OpenTelemetry로 수집하는 방법을 다룹니다.
 
@@ -9,7 +9,7 @@ OpenTelemetry로 수집하는 방법을 다룹니다.
 서비스에 귀속시켜 Web으로 포워딩)로 보내거나, Web에 직접
 `/api/v1/otlp/v1/traces`로 보냅니다.
 Docker 자동 탐지가 꺼진 Collector 프로필에서는 앱마다 서비스별 bearer 토큰을
-보내야 합니다. 발급 방법은 [네트워킹 안내](../agent/README.md#networking-notes)를 참고하세요.
+보내야 합니다. 발급 방법은 [네트워킹 안내](https://github.com/ai-turn/everyup/blob/main/agent/README.md#networking-notes)를 참고하세요.
 
 ## 가장 빠른 길 — 번들 자동 설정 (Java, Node.js)
 

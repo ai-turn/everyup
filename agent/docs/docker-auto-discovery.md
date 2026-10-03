@@ -42,4 +42,4 @@ its discovered replicas is not running.
 Access-log lines in the collected stdout/stderr (Nginx / Apache / structured
 JSON) are parsed into API status-code records automatically (method, path,
 status; no latency). For request/response bodies, instrument the app with
-OpenTelemetry — see [OTEL_API_INSTRUMENTATION.md](../../docs/OTEL_API_INSTRUMENTATION.md).
+OpenTelemetry — see [OpenTelemetry instrumentation guide](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation).

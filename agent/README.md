@@ -79,7 +79,7 @@ For real latency without touching your apps, use the automatic eBPF Observer
 included in the monitoring bundle (below).
 For request/response **headers and bodies**, instrument the app with
 OpenTelemetry pointed at the Docker Collector's OTLP gateway (`http://everyup-agent:4318`).
-See [docs/OTEL_API_INSTRUMENTATION.md](../docs/OTEL_API_INSTRUMENTATION.md).
+See [the OpenTelemetry instrumentation guide](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation).
 
 If logs are written only to files inside the container, Docker cannot show them
 and the Docker Collector cannot collect them in compose-only mode. Configure the application

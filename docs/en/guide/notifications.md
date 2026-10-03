@@ -1,7 +1,5 @@
 # Notification Channel Setup Guide
 
-> Korean version: [NOTIFICATION_SETUP.ko.md](./NOTIFICATION_SETUP.ko.md)
-
 EveryUp supports **Telegram**, **Discord**, and **Slack** as notification channels. This guide walks you through obtaining the required credentials and configuring each channel.
 
 ---

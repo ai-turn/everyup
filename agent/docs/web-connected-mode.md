@@ -52,7 +52,7 @@ Docker stdout/stderr logs are forwarded automatically for containers on the same
 Docker host. Lines that parse as access logs (Nginx / Apache / structured JSON)
 are emitted as synthetic OTel SERVER spans, which Web projects into the API tab
 (status code, method, path; no latency). For headers/bodies, instrument the app
-with OpenTelemetry — see [OTEL_API_INSTRUMENTATION.md](../../docs/OTEL_API_INSTRUMENTATION.md).
+with OpenTelemetry — see [OpenTelemetry instrumentation guide](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation).
 
 ## API Contract
 

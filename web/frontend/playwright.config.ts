@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 
-const demoUrl = 'http://127.0.0.1:4173/everyup/';
+const demoUrl = 'http://127.0.0.1:4173/everyup/demo/';
 
 export default defineConfig({
   testDir: './e2e',
