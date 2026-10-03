@@ -211,15 +211,15 @@ docker compose up -d`}
                   </pre>
                 </div>
 
-                {/* GitHub README link */}
+                {/* 문서 사이트 link */}
                 <a
-                  href="https://github.com/ai-turn/everyup#readme"
+                  href="https://ai-turn.github.io/everyup/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 type-body text-text-dim hover:text-primary dark:hover:text-primary transition-colors"
                 >
                   <MaterialIcon size={20} name="open_in_new" />
-                  GitHub README
+                  EveryUp 문서
                 </a>
               </div>
             )}

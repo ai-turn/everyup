@@ -22,7 +22,7 @@ interface Props {
 }
 
 const INJECTABLE = new Set(['java', 'node']);
-const DOC_URL = 'https://github.com/ai-turn/everyup/blob/main/docs/OTEL_API_INSTRUMENTATION.ko.md';
+const DOC_URL = 'https://ai-turn.github.io/everyup/guide/otel-instrumentation';
 
 function composeTargetOf(key: string): { project: string; service: string } | null {
   const separator = key.indexOf(':');

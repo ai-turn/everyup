@@ -2,7 +2,7 @@
 
 Service health, logs, host metrics, and API **status codes** need no app changes,
 and the optional eBPF sidecar adds real **latency and traces** with no code either
-(see the Docker collector README). This document covers the one app-side step: capturing
+(see [Automatic eBPF Observer](./ebpf-observer)). This document covers the one app-side step: capturing
 request/response **headers and bodies**, by instrumenting the app with
 OpenTelemetry.
 
@@ -10,7 +10,7 @@ Instrumented spans go to the Docker collector's OTLP gateway at
 `http://everyup-agent:4318` (which attributes them to the right service and
 forwards to Web), or directly to Web at `/api/v1/otlp/v1/traces`.
 If the collector profile disables Docker discovery, each app must send its
-service-scoped bearer token; see [Networking Notes](../agent/README.md#networking-notes).
+service-scoped bearer token; see [Networking Notes](https://github.com/ai-turn/everyup/blob/main/agent/README.md#networking-notes).
 
 ## Quickest path — the bundled instrumentation (Java, Node.js)
 

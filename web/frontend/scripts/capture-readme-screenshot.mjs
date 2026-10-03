@@ -13,10 +13,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 // UI는 한국어 전용이라 두 파일은 같은 이미지다. 영문 README가 참조하는 -en도
 // 함께 써서, 한쪽만 갱신되어 낡는 일이 없게 한다.
 const OUT = ['everyup-main-ko.png', 'everyup-main-en.png'].map((name) =>
-  path.resolve(here, '../../../docs/images/', name),
+  path.resolve(here, '../../../docs/public/images/', name),
 );
 const PORT = 4319; // playwright(4173)/vite dev(5173)와 겹치지 않게
-const URL = `http://127.0.0.1:${PORT}/everyup/`;
+const URL = `http://127.0.0.1:${PORT}/everyup/demo/`;
 
 const server = spawn(
   'pnpm',

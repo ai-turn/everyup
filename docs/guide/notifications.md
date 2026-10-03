@@ -1,7 +1,5 @@
 # 알림 채널 설정 가이드
 
-> English version: [NOTIFICATION_SETUP.md](./NOTIFICATION_SETUP.md)
-
 EveryUp은 **텔레그램**, **디스코드**, **슬랙**을 알림 채널로 지원합니다. 이 가이드에서는 각 채널에 필요한 인증 정보를 발급받고 설정하는 방법을 안내합니다.
 
 ---

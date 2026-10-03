@@ -4,6 +4,8 @@
   "scripts": {
     "web:dev": "pnpm --dir web/frontend dev",
     "web:build": "pnpm --dir web/frontend build",
-    "web:demo": "pnpm --dir web/frontend build:demo"
+    "web:demo": "pnpm --dir web/frontend build:demo",
+    "docs:dev": "pnpm --dir docs dev",
+    "docs:build": "pnpm --dir docs build"
   }
 }
