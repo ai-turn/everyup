@@ -242,6 +242,72 @@ html:not(.dark) .only-dark {
   }
 }
 
+/* 히어로: 가운데 정렬. "EveryUp"은 브랜드 표시로 작게, 핵심 문장을 가장 크게, 설명은 보통 굵기로.
+   VitePress 기본은 글 영역을 2/3 폭·392px로 묶고 이름과 문장을 같은 크기로 그려 위계가 없었다. */
+.VPHero .main {
+  width: 100%;
+  max-width: none;
+  text-align: center;
+}
+.VPHero .heading {
+  align-items: center;
+}
+.VPHero .name,
+.VPHero .text {
+  max-width: none;
+  margin-inline: auto;
+}
+.VPHero .name {
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+}
+.VPHero .text {
+  margin-top: 12px;
+  font-size: 34px;
+  line-height: 1.25;
+  letter-spacing: -0.6px;
+  color: var(--vp-c-text-1);
+}
+.VPHero .tagline {
+  max-width: 600px;
+  margin-inline: auto;
+  padding-top: 20px;
+  font-size: 17px;
+  line-height: 1.7;
+  font-weight: 400;
+  color: var(--vp-c-text-2);
+}
+.VPHero .actions {
+  justify-content: center;
+}
+@media (min-width: 640px) {
+  .VPHero .name {
+    font-size: 26px;
+  }
+  .VPHero .text {
+    font-size: 46px;
+  }
+  .VPHero .tagline {
+    font-size: 19px;
+  }
+}
+@media (min-width: 960px) {
+  .VPHero .main {
+    width: 100%;
+  }
+  .VPHero .name {
+    font-size: 28px;
+  }
+  .VPHero .text {
+    font-size: 56px;
+  }
+  .VPHero .tagline {
+    max-width: 640px;
+    font-size: 20px;
+  }
+}
+
 /* 히어로 버튼: 터치 대상 44px (기본 40px). 굵기는 제품 Button(font-medium)과 같은 500.
    VitePress 기본 600은 Spoqa에 없어 Bold(700)로 그려지고, 흰 글자가 뭉개져 보였다. */
 .VPHero .VPButton.medium {

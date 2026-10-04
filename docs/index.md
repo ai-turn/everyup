@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: EveryUp
-  text: Docker 서비스 모니터링
-  tagline: 셀프호스팅 대시보드와 가벼운 Docker Collector로 업타임, 로그, 인프라, API를 한곳에서 확인합니다. 대형 모니터링 스택은 필요 없습니다.
+  text: '어떻게 돌아가든,<br>한 화면에서 모니터링'
+  tagline: Docker 컨테이너는 Collector가 자동으로 찾고, 그 밖의 서비스는 OpenTelemetry와 HTTP·TCP 체크로 연결합니다.
   actions:
     - theme: brand
       text: Quick Start
