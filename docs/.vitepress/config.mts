@@ -12,6 +12,9 @@ export default defineConfig({
   srcExclude: ['adr/**', 'agents/**', 'CHANGELOG.md', 'monitoring-capability-release-gate.md'],
   head: [
     ['link', { rel: 'icon', href: '/everyup/images/logo.webp' }],
+    // 링크 미리보기는 절대 URL만 받는다
+    ['meta', { property: 'og:image', content: 'https://ai-turn.github.io/everyup/images/everyup-main-ko.png' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     // 한국어는 어절 단위로 줄바꿈 ("모니터/링" 방지)
     ['style', {}, 'html:lang(ko) { word-break: keep-all; }'],
   ],
