@@ -84,6 +84,6 @@ Collector가 수집합니다.
 | Docker Collector 동기화 (`/agents` 호환 API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
 | Docker 서비스 상세 | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 
-Docker Collector 동기화와 OTLP 수집에는 Web의 **Docker → Docker 연결**에서 Docker 환경마다
+Docker Collector 동기화와 OTLP 수집에는 Web의 **Docker 환경 → Docker 연결**에서 Docker 환경마다
 발급하는 API Key를 사용합니다. 이 키는 Collector가 보관하며, 모니터링 대상 앱에는 필요하지
 않습니다.

@@ -22,16 +22,16 @@ docker logs <container-name> --tail 100
 
 새 컨테이너를 처음 읽을 때는 `EVERYUP_DOCKER_LOGS_TAIL_LINES`(기본 100)만큼만 과거 로그를
 가져옵니다. 커서가 생긴 뒤에는 남은 줄을 제한 없이 모두 읽습니다. 커서는 replica마다 따로
-저장됩니다. 수집은 크기가 제한된 배치로 흘려보내고, Web으로 보내는 로그 요청은 Web의 요청
+저장됩니다. 수집한 로그는 크기가 제한된 배치 단위로 전송하고, Web으로 보내는 로그 요청은 Web의 요청
 크기 제한보다 작게 나눕니다. 로그 본문은 UTF-8이 깨지지 않는 선에서 앞쪽 약 8 KiB만
 보관합니다. 재시작과 보존 동작은
 [local state](https://github.com/ai-turn/everyup/blob/main/agent/docs/local-state.md)를
 참고하세요.
 
-API 상태코드는 같은 로그에서 뽑습니다. access log(Nginx / Apache / 구조화 JSON)로 파싱되는
+API 상태코드는 같은 로그에서 추출합니다. access log(Nginx / Apache / 구조화 JSON)로 파싱되는
 줄은 합성 OTel SERVER span이 되고, Web이 이를 **API** 탭에 표시합니다. access log에는
-latency가 없으므로 duration은 알 수 없습니다. access log를 남기지 않는 앱은 API 행이 없을
-뿐, 로그와 메트릭은 계속 수집됩니다.
+latency가 없으므로 duration은 알 수 없습니다. access log를 남기지 않는 앱은 API 탭에 요청이
+표시되지 않을 뿐, 로그와 메트릭은 계속 수집됩니다.
 
 앱을 건드리지 않고 실제 latency를 보려면 모니터링 번들에 포함된
 [자동 eBPF Observer](../guide/ebpf-observer)를 사용하세요. 요청/응답 **헤더·바디**가
@@ -83,7 +83,7 @@ OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20<generated-token>
 | --- | :-: | --- | --- |
 | `EVERYUP_WEB_SYNC_ENABLED` | 예 | `false` | Web 등록과 동기화를 켭니다 |
 | `EVERYUP_WEB_BASE_URL` | 예 | | Docker 호스트에서 접근 가능한 EveryUp Web 주소 |
-| `EVERYUP_AGENT_API_KEY` | 예 | | Web의 Docker → Docker 연결에서 발급한 API Key (이전 이름: `EVERYUP_WEB_ENROLLMENT_TOKEN`) |
+| `EVERYUP_AGENT_API_KEY` | 예 | | Web의 **Docker 환경 → Docker 연결**에서 발급한 API Key (이전 이름: `EVERYUP_WEB_ENROLLMENT_TOKEN`) |
 | `EVERYUP_WEB_AGENT_ID` | | | Web 쪽 agent id. 등록할 때 자동으로 설정됩니다 |
 | `EVERYUP_WEB_SYNC_INTERVAL_SECONDS` | | `30` | 서비스·이벤트·호스트 메트릭을 Web에 동기화하는 주기(초) |
 | `EVERYUP_WEB_OTLP_ENDPOINT` | | | 텔레메트리 전송에 안내할 OTLP endpoint |

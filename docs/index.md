@@ -4,7 +4,7 @@ layout: home
 hero:
   name: EveryUp
   text: Docker 서비스 모니터링
-  tagline: 셀프호스팅 대시보드와 가벼운 Docker Collector. 큰 관측 스택 없이 업타임, 로그, 인프라, API를 한곳에서.
+  tagline: 셀프호스팅 대시보드와 가벼운 Docker Collector로 업타임, 로그, 인프라, API를 한곳에서 확인합니다. 대형 모니터링 스택은 필요 없습니다.
   image:
     src: /images/logo.webp
     alt: EveryUp
@@ -34,11 +34,11 @@ features:
     link: /guide/introduction#docker-collector
   - icon: '<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="m20.38 8.57-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.27-10.44z"/><path d="M10.59 15.41a2 2 0 0 0 2.83 0l5.66-8.49-8.49 5.66a2 2 0 0 0 0 2.83"/></svg>'
     title: API latency·트레이스
-    details: 자동 eBPF Observer가 앱 수정 없이 실제 latency와 trace를 만듭니다.
+    details: 자동 eBPF Observer가 앱 수정 없이 실제 latency와 트레이스를 수집합니다.
     link: /guide/ebpf-observer
   - icon: '<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M4 7v2c0 .55-.45 1-1 1H2v4h1c.55 0 1 .45 1 1v2c0 1.65 1.35 3 3 3h3v-2H7c-.55 0-1-.45-1-1v-2c0-1.3-.84-2.42-2-2.83v-.34C5.16 11.42 6 10.3 6 9V7c0-.55.45-1 1-1h3V4H7C5.35 4 4 5.35 4 7m17 3c-.55 0-1-.45-1-1V7c0-1.65-1.35-3-3-3h-3v2h3c.55 0 1 .45 1 1v2c0 1.3.84 2.42 2 2.83v.34c-1.16.41-2 1.52-2 2.83v2c0 .55-.45 1-1 1h-3v2h3c1.65 0 3-1.35 3-3v-2c0-.55.45-1 1-1h1v-4z"/></svg>'
     title: API 헤더·바디
-    details: OpenTelemetry 연동으로 요청이 실패한 이유까지 진단합니다. 앱 재시작 한 번.
+    details: OpenTelemetry 연동으로 요청이 실패한 이유까지 진단합니다. 앱은 한 번만 재시작하면 됩니다.
     link: /guide/otel-instrumentation
   - icon: '<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2m6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5z"/></svg>'
     title: 알림
