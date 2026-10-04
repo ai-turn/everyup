@@ -91,9 +91,11 @@
   }
 }
 
-/* 히어로 버튼: 터치 대상 44px (기본 40px) */
+/* 히어로 버튼: 터치 대상 44px (기본 40px). 굵기는 제품 Button(font-medium)과 같은 500.
+   VitePress 기본 600은 Spoqa에 없어 Bold(700)로 그려지고, 흰 글자가 뭉개져 보였다. */
 .VPHero .VPButton.medium {
   line-height: 42px;
+  font-weight: 500;
 }
 
 .screenshot-caption {
@@ -101,6 +103,29 @@
   text-align: center;
   font-size: 14px;
   color: var(--vp-c-text-2);
+}
+/* 캡션 속 링크: .vp-doc 밖(홈 HomeShot)에서는 링크 스타일을 받지 못해 글자와 구분되지 않았다 */
+.screenshot-caption a {
+  color: var(--vp-c-brand-1);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.screenshot-caption a:hover {
+  color: var(--vp-c-brand-2);
+}
+
+/* 코드 복사 뒤 피드백 문구 (VitePress 기본값은 영어 'Copied') */
+html[lang='ko'] {
+  --vp-code-copy-copied-text-content: '복사됨';
+}
+
+/* 상단 바 메뉴는 theme/index.ts가 검색 앞(nav-bar-content-before)에 다시 그린다.
+   키보드 순서가 화면 순서(메뉴 → 검색 → 도구)와 같도록 원래 자리의 메뉴는 숨긴다. */
+.VPNav .VPNavBar .content-body > .menu {
+  display: none;
+}
+.VPNav .VPNavBar .menu-lead {
+  margin-left: 24px;
 }
 
 /* 상단 바: 왼쪽 로고·메뉴, 오른쪽 도구. 문서 페이지도 홈과 같은 흰 바로 그린다.
@@ -133,10 +158,9 @@
     position: static;
     justify-content: flex-start;
   }
-  /* DOM 순서는 검색 → 메뉴라서, 메뉴를 앞으로 당기고 나머지를 오른쪽으로 민다.
-     1280px 미만에서는 언어·테마·GitHub가 … 메뉴로 접히므로 검색은 … 바로 앞에 둔다. */
-  .VPNav .VPNavBar .menu {
-    order: -1;
+  /* 메뉴가 나머지(검색·도구)를 오른쪽으로 민다.
+     1280px 미만에서는 언어·테마·GitHub가 … 메뉴로 접히므로 검색은 … 바로 앞에 놓인다. */
+  .VPNav .VPNavBar .menu-lead {
     margin-left: 40px;
     margin-right: auto;
   }
@@ -146,6 +170,10 @@
   }
   .VPNav .VPNavBar.has-sidebar .divider {
     padding-left: 0;
+  }
+  /* 로고 영역 아래 테두리는 사이드바 폭 기준이었다. 로고 폭으로 줄어든 지금은 짧은 선만 남는다 */
+  .VPNav .VPNavBarTitle.has-sidebar .title {
+    border-bottom-color: transparent;
   }
 }
 
