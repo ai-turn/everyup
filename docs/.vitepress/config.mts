@@ -8,6 +8,8 @@ export default defineConfig({
   base: '/everyup/',
   title: 'EveryUp',
   cleanUrls: true,
+  // 페이지마다 마지막 수정일(git 커밋 시각)을 보여준다. 배포 워크플로가 전체 이력을 받아야 정확하다.
+  lastUpdated: true,
   // docs/에는 사이트에 올리지 않는 내부 문서도 함께 있다.
   srcExclude: ['adr/**', 'agents/**', 'CHANGELOG.md', 'monitoring-capability-release-gate.md'],
   head: [
@@ -58,6 +60,7 @@ export default defineConfig({
             items: [
               { text: '소개', link: '/guide/introduction' },
               { text: '빠른 시작', link: '/guide/quickstart' },
+              { text: '모니터링 설정', link: '/guide/monitoring-setup' },
             ],
           },
           {
@@ -89,6 +92,8 @@ export default defineConfig({
         outline: { label: '이 페이지에서' },
         docFooter: { prev: '이전', next: '다음' },
         darkModeSwitchLabel: '테마',
+        skipToContentLabel: '본문으로 건너뛰기',
+        lastUpdated: { text: '마지막 수정' },
         sidebarMenuLabel: '메뉴',
         returnToTopLabel: '맨 위로',
         langMenuLabel: '언어',
@@ -112,13 +117,14 @@ export default defineConfig({
             items: [
               { text: 'Introduction', link: '/en/guide/introduction' },
               { text: 'Quick Start', link: '/en/guide/quickstart' },
+              { text: 'Monitoring setup', link: '/en/guide/monitoring-setup' },
             ],
           },
           {
             text: 'Feature Guides',
             items: [
               { text: 'Automatic eBPF Observer', link: '/en/guide/ebpf-observer' },
-              { text: 'Headers & bodies', link: '/en/guide/otel-instrumentation' },
+              { text: 'Header & body capture', link: '/en/guide/otel-instrumentation' },
               { text: 'Notification channels', link: '/en/guide/notifications' },
             ],
           },

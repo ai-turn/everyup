@@ -1,4 +1,4 @@
-# OpenTelemetry로 API 헤더·바디 수집
+# 헤더·바디 상세 수집
 
 서비스 health, 로그, 호스트 메트릭, API **상태코드**는 앱을 수정하지 않아도 수집됩니다.
 [자동 eBPF Observer](./ebpf-observer)를 쓰면 코드 없이 실제 **latency와 트레이스**까지 볼 수

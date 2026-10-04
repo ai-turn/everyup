@@ -11,8 +11,8 @@ EveryUp supports **Telegram**, **Discord**, and **Slack** as notification channe
 1. Open Telegram and search for **@BotFather** (look for the blue verified checkmark).
 2. Send `/newbot` to start the bot creation wizard.
 3. Enter a **display name** for your bot (e.g., `EveryUp Alerts`).
-4. Enter a **username** — must be unique and end with `bot` (e.g., `everyup_alerts_bot`).
-5. BotFather will respond with your **Bot Token**. Save it — you'll need it in EveryUp.
+4. Enter a **username**. It must be unique and end with `bot` (e.g., `everyup_alerts_bot`).
+5. BotFather will respond with your **Bot Token**. Save it; you'll need it in EveryUp.
 
 > **Example Token:** `123456789:ABCdefGHIjklMNOpqrSTUvwxYZ`
 
@@ -36,13 +36,13 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 1. Add your bot to the group.
 2. Send any message in the group.
 3. Visit the `getUpdates` URL above.
-4. Find `"chat":{"id": -100123456789}` — group IDs always start with `-100`.
+4. Find `"chat":{"id": -100123456789}`. Group IDs always start with `-100`.
 
 #### Channel
 
 1. Add your bot as an **Administrator** of the channel (with "Post Messages" permission).
 2. Send a message in the channel.
-3. Check `getUpdates` — the channel's Chat ID will appear, starting with `-100`.
+3. Check `getUpdates`. The channel's Chat ID appears there, starting with `-100`.
 
 ---
 
@@ -50,7 +50,7 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 1. Go to **Alerts → Add Channel → Telegram**.
 2. Enter a display name, paste the **Bot Token** and **Chat ID**.
-3. Click **Save** — when creating a new channel, EveryUp sends a test notification automatically to verify the connection.
+3. Click **Save**. For a new channel, EveryUp sends a test notification automatically to verify the connection.
 
 ---
 
@@ -77,7 +77,7 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 > **Example URL:** `https://discord.com/api/webhooks/1234567890/ABCdefGHIjklMNOpqrSTUvwxYZ`
 
-> **Tip:** You can also create a webhook per-channel without server-wide Admin rights — you only need the **Manage Webhooks** permission on that channel.
+> **Tip:** You can also create a webhook per-channel without server-wide Admin rights. You only need the **Manage Webhooks** permission on that channel.
 
 ---
 
@@ -85,7 +85,7 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 1. Go to **Alerts → Add Channel → Discord**.
 2. Enter a display name and paste the **Webhook URL**.
-3. Click **Save** — when creating a new channel, EveryUp sends a test notification automatically.
+3. Click **Save**. For a new channel, EveryUp sends a test notification automatically.
 
 ---
 
@@ -97,7 +97,7 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 | Test notification not received | The webhook may have been deleted. Verify it still exists under Server Settings → Integrations → Webhooks. |
 | `404 Unknown Webhook` | Webhook was deleted. Create a new one and update the URL in EveryUp. |
 | `Webhook URL must use HTTPS` or domain validation error | EveryUp only accepts official Discord HTTPS webhook URLs on allowed Discord domains. |
-| Rate limited | Discord enforces per-webhook rate limits. This is temporary — EveryUp will retry automatically. |
+| Rate limited | Discord enforces per-webhook rate limits. This is temporary, and EveryUp retries automatically. |
 
 ---
 
@@ -129,7 +129,7 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 1. Go to **Alerts → Add Channel → Slack**.
 2. Enter a display name and paste the **Webhook URL**.
-3. Click **Save** — when creating a new channel, EveryUp sends a test notification automatically.
+3. Click **Save**. For a new channel, EveryUp sends a test notification automatically.
 
 ---
 

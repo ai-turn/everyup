@@ -1,9 +1,10 @@
 # Troubleshooting
 
-## The Docker environment does not show as online
+## The Docker environment never reaches 수집 중 (collecting) {#not-collecting}
 
-`EVERYUP_WEB_BASE_URL` must be a Web address reachable from inside the Docker
-Collector container. Even on the same server, `localhost` inside the container
+The installer writes the Web address the Collector connects to as
+`EVERYUP_WEB_BASE_URL` in `/opt/everyup-agent/compose.yaml`. It must be a Web
+address reachable from inside the Docker Collector container. Even on the same server, `localhost` inside the container
 may point to the Collector itself, not Web. Use a Compose service name or a
 host-reachable IP.
 

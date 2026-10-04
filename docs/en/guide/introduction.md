@@ -19,17 +19,17 @@ configuration in English; the running UI looks like the screenshot above.
 
 ## Features
 
-🟢 Built-in — works out of the box, no app code changes · 🔵 Optional — enable when needed
+**Built-in** features work as soon as they are installed, with no app code changes. **Optional** features are turned on when you need them.
 
-|  | Feature | Description |
+| Type | Feature | Description |
 | :-: | --- | --- |
-| 🟢 | 💓 Uptime | Automatic Docker container discovery, container state and health |
-| 🟢 | 🖥️ Infrastructure | Host CPU, memory, disk, and network metrics |
-| 🟢 | 📜 Logs | Container stdout/stderr collection |
-| 🟢 | 🌐 API status | Request status codes (method, path, status) parsed from access logs |
-| 🟢 | 🔔 Notifications | Telegram, Discord, and Slack channels ([setup guide](./notifications)) |
-| 🔵 | ⚡ API latency & traces | [Automatic eBPF Observer](./ebpf-observer) — no app changes |
-| 🔵 | 🔍 API headers & bodies | [OpenTelemetry instrumentation](./otel-instrumentation) — one app restart |
+| Built-in | Uptime | Automatic Docker container discovery, container state and health |
+| Built-in | Infrastructure | Host CPU, memory, disk, and network metrics |
+| Built-in | Logs | Container stdout/stderr collection |
+| Built-in | API status | Request status codes (method, path, status) parsed from access logs |
+| Built-in | Notifications | Telegram, Discord, and Slack channels ([setup guide](./notifications)) |
+| Optional | API latency & traces | [Automatic eBPF Observer](./ebpf-observer). No app changes |
+| Optional | Header & body capture | [OpenTelemetry instrumentation](./otel-instrumentation). One app restart |
 
 ## What Gets Collected
 

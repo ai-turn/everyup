@@ -1,3 +1,8 @@
+---
+outline: [2, 3]
+pageClass: reference-page
+---
+
 # Docker Collector Configuration
 
 The EveryUp Docker Collector is the lightweight component that runs on a Docker
@@ -39,7 +44,7 @@ For real latency without touching your apps, use the
 [automatic eBPF Observer](../guide/ebpf-observer) included in the monitoring bundle.
 For request/response **headers and bodies**, instrument the app with
 OpenTelemetry pointed at the Docker Collector's OTLP gateway (`http://everyup-agent:4318`).
-See [Headers & bodies](../guide/otel-instrumentation).
+See [Header & body capture](../guide/otel-instrumentation).
 
 If logs are written only to files inside the container, Docker cannot show them
 and the Docker Collector cannot collect them in compose-only mode. Configure the application
@@ -81,68 +86,90 @@ all service tokens.
 
 ## Compose Environment Variables
 
-Only the three `yes` rows are required; everything else has a working default.
+Only the three variables marked **required** must be set; everything else has a working default.
 
 ### Web connection (connected mode)
 
-| Variable | Required | Default | Description |
-| --- | :-: | --- | --- |
-| `EVERYUP_WEB_SYNC_ENABLED` | yes | `false` | Enables Web enrollment and sync |
-| `EVERYUP_WEB_BASE_URL` | yes | | EveryUp Web base URL reachable from the Docker host |
-| `EVERYUP_AGENT_API_KEY` | yes | | API key generated in Web from Docker -> Connect Docker (deprecated alias: `EVERYUP_WEB_ENROLLMENT_TOKEN`) |
-| `EVERYUP_WEB_AGENT_ID` | | | Web-side agent id; set automatically on enrollment |
-| `EVERYUP_WEB_SYNC_INTERVAL_SECONDS` | | `30` | How often services, events, and host metrics sync to Web |
-| `EVERYUP_WEB_OTLP_ENDPOINT` | | | OTLP endpoint advertised for telemetry push |
+- **`EVERYUP_WEB_SYNC_ENABLED`** · **required** · default `false`\
+  Enables Web enrollment and sync
+- **`EVERYUP_WEB_BASE_URL`** · **required**\
+  EveryUp Web base URL reachable from the Docker host
+- **`EVERYUP_AGENT_API_KEY`** · **required**\
+  API key generated in Web from Docker -> Connect Docker (deprecated alias: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
+- **`EVERYUP_WEB_AGENT_ID`**\
+  Web-side agent id; set automatically on enrollment
+- **`EVERYUP_WEB_SYNC_INTERVAL_SECONDS`** · default `30`\
+  How often services, events, and host metrics sync to Web
+- **`EVERYUP_WEB_OTLP_ENDPOINT`**\
+  OTLP endpoint advertised for telemetry push
 
 ### General
 
-| Variable | Required | Default | Description |
-| --- | :-: | --- | --- |
-| `TZ` | | `UTC` | Timezone for the Collector's own log lines (e.g. `Asia/Seoul`); synced data always carries zone info regardless |
-| `EVERYUP_AGENT_NAME` | | `everyup-agent` | Docker environment name |
-| `EVERYUP_SERVICE_NAME` | | `local-service` | Default service name for the Collector's own checks |
-| `EVERYUP_DATA_DIR` | | `/data` | Where Collector state (`agent-state.json`, `audit.jsonl`) is stored |
-| `EVERYUP_CHECK_INTERVAL_SECONDS` | | `30` | Health-check interval |
-| `EVERYUP_HTTP_TIMEOUT_SECONDS` | | `5` | HTTP request timeout |
-| `EVERYUP_ALERT_COOLDOWN_SECONDS` | | `300` | Minimum seconds between repeat alerts for the same target |
-| `EVERYUP_HEALTH_URL` | | | Absolute URL to health-check (single-target mode; usually Docker discovery is used instead) |
+- **`TZ`** · default `UTC`\
+  Timezone for the Collector's own log lines (e.g. `Asia/Seoul`); synced data always carries zone info regardless
+- **`EVERYUP_AGENT_NAME`** · default `everyup-agent`\
+  Docker environment name
+- **`EVERYUP_SERVICE_NAME`** · default `local-service`\
+  Default service name for the Collector's own checks
+- **`EVERYUP_DATA_DIR`** · default `/data`\
+  Where Collector state (`agent-state.json`, `audit.jsonl`) is stored
+- **`EVERYUP_CHECK_INTERVAL_SECONDS`** · default `30`\
+  Health-check interval
+- **`EVERYUP_HTTP_TIMEOUT_SECONDS`** · default `5`\
+  HTTP request timeout
+- **`EVERYUP_ALERT_COOLDOWN_SECONDS`** · default `300`\
+  Minimum seconds between repeat alerts for the same target
+- **`EVERYUP_HEALTH_URL`**\
+  Absolute URL to health-check (single-target mode; usually Docker discovery is used instead)
 
 ### Docker discovery and logs
 
-| Variable | Required | Default | Description |
-| --- | :-: | --- | --- |
-| `EVERYUP_DOCKER_DISCOVERY_ENABLED` | | `true` | Discover Docker containers automatically |
-| `EVERYUP_DOCKER_SOCKET_PATH` | | `/var/run/docker.sock` | Docker socket path inside the container |
-| `EVERYUP_DOCKER_LOGS_ENABLED` | | `true` | Forward containers' stdout/stderr logs to Web |
-| `EVERYUP_DOCKER_LOGS_TAIL_LINES` | | `100` | Historical lines read on a container's first collection; subsequent reads drain all unread logs |
-| `EVERYUP_EXCLUDE` | | | Comma-separated container names to exclude from discovery |
+- **`EVERYUP_DOCKER_DISCOVERY_ENABLED`** · default `true`\
+  Discover Docker containers automatically
+- **`EVERYUP_DOCKER_SOCKET_PATH`** · default `/var/run/docker.sock`\
+  Docker socket path inside the container
+- **`EVERYUP_DOCKER_LOGS_ENABLED`** · default `true`\
+  Forward containers' stdout/stderr logs to Web
+- **`EVERYUP_DOCKER_LOGS_TAIL_LINES`** · default `100`\
+  Historical lines read on a container's first collection; subsequent reads drain all unread logs
+- **`EVERYUP_EXCLUDE`**\
+  Comma-separated container names to exclude from discovery
 
 ### Host metrics (CPU / memory / disk / network)
 
-| Variable | Required | Default | Description |
-| --- | :-: | --- | --- |
-| `EVERYUP_HOST_METRICS_ENABLED` | | `true` | Collect host CPU/memory/disk/network from the `/hostfs` mount |
-| `EVERYUP_HOST_METRICS_ROOT` | | `/hostfs` | Mount point of the host filesystem (reads `/proc`, `/proc/net/dev`) |
-| `EVERYUP_HOST_DISK_PATH` | | `/hostfs` | Path used for disk usage stats |
-| `EVERYUP_HOST_CPU_PERCENT` | | `0` | Host CPU% **alert** threshold; `0` disables host-resource alerting (does not affect collection) |
-| `EVERYUP_HOST_MEMORY_PERCENT` | | `0` | Host memory% alert threshold; `0` disables |
-| `EVERYUP_HOST_DISK_PERCENT` | | `0` | Host disk% alert threshold; `0` disables |
+- **`EVERYUP_HOST_METRICS_ENABLED`** · default `true`\
+  Collect host CPU/memory/disk/network from the `/hostfs` mount
+- **`EVERYUP_HOST_METRICS_ROOT`** · default `/hostfs`\
+  Mount point of the host filesystem (reads `/proc`, `/proc/net/dev`)
+- **`EVERYUP_HOST_DISK_PATH`** · default `/hostfs`\
+  Path used for disk usage stats
+- **`EVERYUP_HOST_CPU_PERCENT`** · default `0`\
+  Host CPU% **alert** threshold; `0` disables host-resource alerting (does not affect collection)
+- **`EVERYUP_HOST_MEMORY_PERCENT`** · default `0`\
+  Host memory% alert threshold; `0` disables
+- **`EVERYUP_HOST_DISK_PERCENT`** · default `0`\
+  Host disk% alert threshold; `0` disables
 
 ### OTel Collector and telemetry gateway
 
-| Variable | Required | Default | Description |
-| --- | :-: | --- | --- |
-| `EVERYUP_OTEL_CONFIG_ENABLED` | | `false` | Generate an OTel Collector config on startup |
-| `EVERYUP_OTEL_CONFIG_PATH` | | `/etc/everyup/generated/otel-config.yaml` | Where the generated OTel config is written |
-| `EVERYUP_OTEL_CONF_DIR` | | `/etc/everyup/conf.d` | Directory scanned for OTel config fragments |
-| `EVERYUP_OTEL_FILELOG_PATHS` | | | Comma-separated file paths for the OTel filelog receiver |
-| `EVERYUP_TELEMETRY_GATEWAY_ENABLED` | | `true` | Run the Docker Collector's OTLP gateway that forwards telemetry to Web |
-| `EVERYUP_TELEMETRY_GATEWAY_LISTEN_ADDR` | | `:4318` | Listen address for the Docker Collector's OTLP gateway |
+- **`EVERYUP_OTEL_CONFIG_ENABLED`** · default `false`\
+  Generate an OTel Collector config on startup
+- **`EVERYUP_OTEL_CONFIG_PATH`** · default `/etc/everyup/generated/otel-config.yaml`\
+  Where the generated OTel config is written
+- **`EVERYUP_OTEL_CONF_DIR`** · default `/etc/everyup/conf.d`\
+  Directory scanned for OTel config fragments
+- **`EVERYUP_OTEL_FILELOG_PATHS`**\
+  Comma-separated file paths for the OTel filelog receiver
+- **`EVERYUP_TELEMETRY_GATEWAY_ENABLED`** · default `true`\
+  Run the Docker Collector's OTLP gateway that forwards telemetry to Web
+- **`EVERYUP_TELEMETRY_GATEWAY_LISTEN_ADDR`** · default `:4318`\
+  Listen address for the Docker Collector's OTLP gateway
 
 ### Heartbeat watchdog
 
-| Variable | Required | Default | Description |
-| --- | :-: | --- | --- |
-| `EVERYUP_HEARTBEAT_URL` | | | External heartbeat (dead-man's switch) URL to ping |
-| `EVERYUP_HEARTBEAT_TOKEN` | | | Token sent with the heartbeat ping |
-| `EVERYUP_HEARTBEAT_INTERVAL_SECONDS` | | `60` | Heartbeat ping interval |
+- **`EVERYUP_HEARTBEAT_URL`**\
+  External heartbeat (dead-man's switch) URL to ping
+- **`EVERYUP_HEARTBEAT_TOKEN`**\
+  Token sent with the heartbeat ping
+- **`EVERYUP_HEARTBEAT_INTERVAL_SECONDS`** · default `60`\
+  Heartbeat ping interval
