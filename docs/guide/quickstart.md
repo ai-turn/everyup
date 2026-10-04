@@ -1,8 +1,16 @@
 # 빠른 시작
 
-대시보드 서버에 Web을 띄우고, 모니터링할 서버에 모니터링 번들을 설치하는 가장 작은 구성입니다.
-서버가 한 대라면 둘을 같은 서버에서 실행해도 됩니다. 4단계에서 Docker 환경이 **수집 중**으로
-바뀌면 완료입니다.
+대시보드 서버에 Web을 띄우고, 모니터링할 서버에 모니터링 번들(Docker Collector와 필요한 구성
+요소)을 설치하는 가장 작은 구성입니다. 서버가 한 대라면 둘을 같은 서버에서 실행해도 됩니다.
+4단계에서 Docker 환경이 **수집 중**으로 바뀌면 완료입니다.
+
+## 준비물
+
+- **대시보드 서버**: Docker와 Docker Compose
+- **모니터링할 서버**: Linux, Docker Engine, Docker Compose 2.23.1 이상, `curl`, `sudo` 권한.
+  Compose 버전은 `docker compose version`으로 확인하세요.
+- **네트워크**: 모니터링할 서버에서 대시보드 서버의 `3001` 포트(또는 `EVERYUP_PUBLIC_URL`로
+  지정한 주소)에 접속할 수 있어야 합니다.
 
 ## 1. Web 실행
 
@@ -82,10 +90,6 @@ curl -fsSL 'https://<Web 주소>/api/v1/agents/install.sh' | sudo sh -s -- 'http
 ## 3. 모니터링 번들 설치
 
 화면에 표시된 명령을 복사해 모니터링할 Linux Docker 서버에서 실행합니다.
-
-::: warning Docker Compose 2.23.1 이상이 필요합니다
-`docker compose version`으로 버전을 확인하세요.
-:::
 
 설치기는 Docker와 Compose 버전을 확인한 뒤 `/opt/everyup-agent`에 설정을 만들고, 선택한 수집
 범위에 필요한 구성 요소만 시작합니다. 기존 설정이 있으면 덮어쓰기 전에 백업합니다. 앱의

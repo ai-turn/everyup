@@ -1,8 +1,17 @@
 # Quick Start
 
-This is the smallest setup: Web on a dashboard server and the monitoring bundle on each server you
-monitor. With a single server you can run both side by side. You are done when the Docker
-environment turns **수집 중** (collecting) in step 4.
+This is the smallest setup: Web on a dashboard server and the monitoring bundle (the Docker
+Collector plus the components it needs) on each server you monitor. With a single server you can
+run both side by side. You are done when the Docker environment turns **수집 중** (collecting) in
+step 4.
+
+## Before you start
+
+- **Dashboard server**: Docker and Docker Compose
+- **Monitored server**: Linux, Docker Engine, Docker Compose 2.23.1 or newer, `curl`, and `sudo`.
+  Check the Compose version with `docker compose version`.
+- **Network**: the monitored server must reach port `3001` on the dashboard server (or the address
+  set in `EVERYUP_PUBLIC_URL`).
 
 ## 1. Start Web
 
@@ -84,10 +93,6 @@ delivered directly to the target server during installation.
 ## 3. Install the monitoring bundle
 
 Copy the displayed command and run it on the target Linux Docker server.
-
-::: warning Docker Compose 2.23.1 or newer is required
-Check with `docker compose version`.
-:::
 
 The installer checks Docker and Compose, writes the bundle under `/opt/everyup-agent`, backs up
 any previous configuration, and starts only the components required by the selected scope. Your
