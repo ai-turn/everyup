@@ -11,7 +11,7 @@
 권한 문제입니다. 한 줄 설치기는 Docker 소켓의 group ID를 감지해
 `EVERYUP_DOCKER_GID`를 자동으로 기록합니다. 수동 배포라면 이 값을
 `stat -c '%g' /var/run/docker.sock` 결과로 설정하고 `group_add`에 추가하세요.
-`user: "0:0"`은 짧은 진단 용도로만 사용하세요. 운영 환경에서 소켓 접근 권한을 좁히려면
+`user: "0:0"`은 잠깐 진단할 때만 사용하세요. 운영 환경에서 소켓 접근 권한을 좁히려면
 [Docker socket proxy 가이드](https://github.com/ai-turn/everyup/blob/main/agent/docs/docker-socket-proxy.md)를 사용하세요.
 
 ## 로그가 보이지 않습니다

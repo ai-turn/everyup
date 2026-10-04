@@ -1,17 +1,17 @@
 # 알림 채널 설정 가이드
 
-EveryUp은 **텔레그램**, **디스코드**, **슬랙**을 알림 채널로 지원합니다. 이 가이드에서는 각 채널에 필요한 인증 정보를 발급받고 설정하는 방법을 안내합니다.
+EveryUp은 **Telegram**, **Discord**, **Slack**을 알림 채널로 지원합니다. 이 가이드에서는 각 채널에 필요한 인증 정보를 발급받고 설정하는 방법을 안내합니다.
 
 ---
 
-## 텔레그램 (Telegram)
+## Telegram
 
 ### 1단계 — BotFather로 봇 만들기
 
-1. 텔레그램에서 **@BotFather**를 검색합니다 (파란색 인증 마크 확인).
+1. Telegram에서 **@BotFather**를 검색합니다 (파란색 인증 마크 확인).
 2. `/newbot` 명령어를 전송하여 봇 생성을 시작합니다.
 3. 봇의 **표시 이름**을 입력합니다 (예: `EveryUp Alerts`).
-4. 봇의 **사용자 이름(username)**을 입력합니다 — 반드시 `bot`으로 끝나야 합니다 (예: `everyup_alerts_bot`).
+4. 봇의 **사용자 이름(username)**을 입력합니다. 이름은 반드시 `bot`으로 끝나야 합니다 (예: `everyup_alerts_bot`).
 5. BotFather가 **봇 토큰(Bot Token)**을 응답합니다. 이 값을 복사해 두세요.
 
 > **토큰 예시:** `123456789:ABCdefGHIjklMNOpqrSTUvwxYZ`
@@ -24,7 +24,7 @@ Chat ID는 EveryUp이 메시지를 어디로 보낼지 지정하는 값입니다
 
 #### 개인 채팅 (봇과 1:1)
 
-1. 텔레그램에서 내 봇을 찾아 아무 메시지나 보냅니다 (예: `/start`).
+1. Telegram에서 내 봇을 찾아 아무 메시지나 보냅니다 (예: `/start`).
 2. 브라우저에서 아래 URL에 접속합니다:
    ```
    https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates
@@ -48,9 +48,9 @@ Chat ID는 EveryUp이 메시지를 어디로 보낼지 지정하는 값입니다
 
 ### 3단계 — EveryUp에서 설정하기
 
-1. **알림 → 채널 추가 → 텔레그램**으로 이동합니다.
+1. **알림 → 채널 추가 → Telegram**으로 이동합니다.
 2. 표시 이름을 입력하고 **봇 토큰**과 **Chat ID**를 붙여넣습니다.
-3. **저장**을 클릭하면 새 채널을 만들 때 연결 확인용 테스트 알림이 자동으로 전송됩니다.
+3. **저장**을 누르면 새 채널을 만들 때 연결 확인용 테스트 알림이 자동으로 전송됩니다.
 
 ---
 
@@ -65,15 +65,15 @@ Chat ID는 EveryUp이 메시지를 어디로 보낼지 지정하는 값입니다
 
 ---
 
-## 디스코드 (Discord)
+## Discord
 
 ### 1단계 — 웹훅 만들기
 
-1. 디스코드 서버에서 **서버 설정** → **연동** → **웹훅**으로 이동합니다.
-2. **새 웹훅**을 클릭합니다.
+1. Discord 서버에서 **서버 설정** → **연동** → **웹훅**으로 이동합니다.
+2. **새 웹훅**을 누릅니다.
 3. 이름을 설정하고 (예: `EveryUp Alerts`) **대상 채널**을 선택합니다.
 4. 원하는 경우 아바타 이미지를 업로드합니다.
-5. **웹훅 URL 복사**를 클릭하여 URL을 저장합니다.
+5. **웹훅 URL 복사**를 눌러 URL을 저장합니다.
 
 > **URL 예시:** `https://discord.com/api/webhooks/1234567890/ABCdefGHIjklMNOpqrSTUvwxYZ`
 
@@ -83,9 +83,9 @@ Chat ID는 EveryUp이 메시지를 어디로 보낼지 지정하는 값입니다
 
 ### 2단계 — EveryUp에서 설정하기
 
-1. **알림 → 채널 추가 → 디스코드**로 이동합니다.
+1. **알림 → 채널 추가 → Discord**로 이동합니다.
 2. 표시 이름을 입력하고 **웹훅 URL**을 붙여넣습니다.
-3. **저장**을 클릭하면 새 채널을 만들 때 테스트 알림이 자동으로 전송됩니다.
+3. **저장**을 누르면 새 채널을 만들 때 테스트 알림이 자동으로 전송됩니다.
 
 ---
 
@@ -97,17 +97,17 @@ Chat ID는 EveryUp이 메시지를 어디로 보낼지 지정하는 값입니다
 | 테스트 알림이 수신되지 않음 | 웹훅이 삭제되었을 수 있습니다. 서버 설정 → 연동 → 웹훅에서 존재 여부를 확인하세요. |
 | `404 Unknown Webhook` 오류 | 웹훅이 삭제되었습니다. 새 웹훅을 만들고 EveryUp에서 URL을 업데이트하세요. |
 | `Webhook URL must use HTTPS` 또는 도메인 검증 오류 | EveryUp은 공식 Discord 도메인의 HTTPS 웹훅 URL만 허용합니다. |
-| 전송 속도 제한(Rate limit) | 디스코드는 웹훅별 전송 횟수를 제한합니다. 잠시 후 자동으로 재시도됩니다. |
+| 전송 속도 제한(Rate limit) | Discord는 웹훅별 전송 횟수를 제한합니다. 잠시 후 자동으로 재시도됩니다. |
 
 ---
 
-## 슬랙 (Slack)
+## Slack
 
 ### 1단계 — Slack 앱 만들기
 
-1. [https://api.slack.com/apps](https://api.slack.com/apps) 에 접속하여 **Create New App**을 클릭합니다.
+1. [https://api.slack.com/apps](https://api.slack.com/apps) 에 접속해 **Create New App**을 누릅니다.
 2. **From scratch**를 선택하고 앱 이름(예: `EveryUp Alerts`)을 입력한 뒤 워크스페이스를 선택합니다.
-3. **Create App**을 클릭합니다.
+3. **Create App**을 누릅니다.
 
 ---
 
@@ -115,8 +115,8 @@ Chat ID는 EveryUp이 메시지를 어디로 보낼지 지정하는 값입니다
 
 1. 앱 설정 페이지의 좌측 메뉴에서 **Incoming Webhooks**로 이동합니다.
 2. **Activate Incoming Webhooks**를 **On**으로 전환합니다.
-3. 페이지 하단의 **Add New Webhook to Workspace**를 클릭합니다.
-4. 알림을 받을 **채널**을 선택하고 **허용(Allow)**을 클릭합니다.
+3. 페이지 하단의 **Add New Webhook to Workspace**를 누릅니다.
+4. 알림을 받을 **채널**을 선택하고 **허용(Allow)**을 누릅니다.
 5. 생성된 **Webhook URL**을 복사합니다.
 
 > **URL 예시:** `https://hooks.slack.com/services/T.../B.../xxxx...`
@@ -127,9 +127,9 @@ Chat ID는 EveryUp이 메시지를 어디로 보낼지 지정하는 값입니다
 
 ### 3단계 — EveryUp에서 설정하기
 
-1. **알림 → 채널 추가 → 슬랙**으로 이동합니다.
+1. **알림 → 채널 추가 → Slack**으로 이동합니다.
 2. 표시 이름을 입력하고 **웹훅 URL**을 붙여넣습니다.
-3. **저장**을 클릭하면 새 채널을 만들 때 테스트 알림이 자동으로 전송됩니다.
+3. **저장**을 누르면 새 채널을 만들 때 테스트 알림이 자동으로 전송됩니다.
 
 ---
 

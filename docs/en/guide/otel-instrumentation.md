@@ -106,8 +106,8 @@ request span:
   server-side cap and flags anything above it as truncated.
 
 Captured bodies are **admin-only**: Web redacts the `body` attribute for
-non-admin users, records every admin view in `audit_events`, and deletes
-body-bearing spans after `EVERYUP_RETENTION_BODYCAPTUREDAYS` days (default 7).
+non-admin users, records every admin view in `audit_events`, and strips the
+bodies after `EVERYUP_RETENTION_BODYCAPTUREDAYS` days (default 7); the traces stay.
 
 ### Node.js
 
