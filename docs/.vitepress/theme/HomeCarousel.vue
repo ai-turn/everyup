@@ -134,7 +134,8 @@ function onKey(e: KeyboardEvent) {
       <span class="home-carousel-count" aria-hidden="true">{{ index + 1 }} / {{ slides.length }}</span>
     </div>
 
-    <p v-if="ko" class="home-carousel-demo">직접 조작해 보려면 <a :href="DEMO">라이브 데모</a>를 여세요.</p>
-    <p v-else class="home-carousel-demo">The dashboard UI is Korean only. Try it in the <a :href="DEMO">live demo</a>.</p>
+    <!-- 데모는 같은 origin(/everyup/demo/)이라 target이 없으면 VitePress 라우터가 문서 페이지로 가로채 404가 난다 -->
+    <p v-if="ko" class="home-carousel-demo">직접 조작해 보려면 <a :href="DEMO" target="_blank" rel="noreferrer">라이브 데모</a>를 여세요.</p>
+    <p v-else class="home-carousel-demo">The dashboard UI is Korean only. Try it in the <a :href="DEMO" target="_blank" rel="noreferrer">live demo</a>.</p>
   </section>
 </template>
