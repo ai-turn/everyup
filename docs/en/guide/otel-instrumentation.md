@@ -10,7 +10,7 @@ Instrumented spans go to the Docker collector's OTLP gateway at
 `http://everyup-agent:4318` (which attributes them to the right service and
 forwards to Web), or directly to Web at `/api/v1/otlp/v1/traces`.
 If the collector profile disables Docker discovery, each app must send its
-service-scoped bearer token; see [Networking Notes](https://github.com/ai-turn/everyup/blob/main/agent/README.md#networking-notes).
+service-scoped bearer token; see [Networking Notes](../reference/collector#networking).
 
 ## Quickest path — the bundled instrumentation (Java, Node.js)
 
@@ -34,8 +34,29 @@ sudo everyup-otel verify ./docker-compose.yml
 sudo everyup-otel rollback ./docker-compose.yml
 ```
 
-Bodies are opt-in and automatically supported for Node only. Full walkthrough:
-"App Instrumentation" in the Docker collector README.
+Bodies are opt-in and automatically supported for Node only.
+
+### What the helper does
+
+The one-time Docker Collector installer also installs `/usr/local/bin/everyup-otel`.
+When you run the apply command, the helper:
+
+- validates Linux, Docker, the base Compose file, target runtimes, and the
+  currently running containers before changing anything;
+- creates a shared `everyup-monitoring` network and populates the
+  `everyup-instrumentation` volume from the Docker Collector image;
+- preserves existing `JAVA_TOOL_OPTIONS` or `NODE_OPTIONS` and writes a managed
+  `docker-compose.everyup.yml` next to the original Compose file;
+- recreates only the selected services, then checks health, injection options,
+  the read-only `/everyup` mount, and Collector network connectivity;
+- automatically restores and recreates the previous configuration if restart
+  or verification fails.
+
+The helper keeps rollback metadata in the app Compose directory's `.everyup`
+folder. It attaches the app and Docker Collector to the shared `everyup-monitoring`
+network so `everyup-agent:4318` resolves without publishing an OTLP port.
+Existing `JAVA_TOOL_OPTIONS` / `NODE_OPTIONS` values are retained and the
+EveryUp option is appended once. Supported versions: JVM 8+, Node 18+.
 
 Everything below is for **other languages, manual SDK setups, or understanding
 the span contract** the bundle produces.

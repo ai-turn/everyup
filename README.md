@@ -56,6 +56,7 @@ Collector를 설치합니다. Compose 구성과 Collector 설치는
 | [헤더·바디 상세 수집](https://ai-turn.github.io/everyup/guide/otel-instrumentation) | OpenTelemetry로 요청/응답 헤더·바디 수집 |
 | [알림 채널](https://ai-turn.github.io/everyup/guide/notifications) | Telegram / Discord / Slack 설정 |
 | [백업·복원](https://ai-turn.github.io/everyup/guide/backup-restore) · [트러블슈팅](https://ai-turn.github.io/everyup/guide/troubleshooting) | 운영 |
+| [Web 설정](https://ai-turn.github.io/everyup/reference/web) · [Docker Collector 설정](https://ai-turn.github.io/everyup/reference/collector) | 환경변수·네트워킹 레퍼런스 |
 
 ## 개발
 
@@ -63,7 +64,7 @@ Collector를 설치합니다. Compose 구성과 Collector 설치는
 web/
   backend/                 # Go 1.24 API 서버, SQLite migration, OTLP ingest
   frontend/                # React 19 / Vite 대시보드
-agent/                     # Docker Collector (Go 1.25), 설정 레퍼런스는 agent/README.md
+agent/                     # Docker Collector (Go 1.25)
 docs/                      # 문서 사이트 (VitePress) — ai-turn.github.io/everyup
 ```
 
@@ -76,5 +77,5 @@ cd agent && go test ./...           # Docker Collector 테스트
 pnpm docs:dev                       # 문서 사이트 로컬 실행
 ```
 
-설정 레퍼런스는 [web/README.md](web/README.md)와 [agent/README.md](agent/README.md),
+로컬 실행 방법은 [web/README.md](web/README.md)와 [agent/README.md](agent/README.md),
 상세 수집 E2E fixture는 [e2e/monitoring-target](e2e/monitoring-target/README.ko.md)에 있습니다.

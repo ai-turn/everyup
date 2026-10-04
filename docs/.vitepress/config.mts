@@ -46,6 +46,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: '가이드', link: '/guide/introduction' },
+          { text: '레퍼런스', link: '/reference/web' },
           { text: '데모', link: DEMO },
         ],
         sidebar: [
@@ -72,12 +73,12 @@ export default defineConfig({
             ],
           },
           {
-            text: '레퍼런스 (GitHub, 영문)',
+            text: '레퍼런스',
             items: [
-              { text: 'Web 설정·환경변수', link: `${GH}/blob/main/web/README.md` },
-              { text: 'Docker Collector 설정', link: `${GH}/blob/main/agent/README.md` },
-              { text: 'Docker socket proxy', link: `${GH}/blob/main/agent/docs/docker-socket-proxy.md` },
-              { text: 'Collector 동작 방식', link: `${GH}/tree/main/agent/docs` },
+              { text: 'Web 설정', link: '/reference/web' },
+              { text: 'Docker Collector 설정', link: '/reference/collector' },
+              { text: 'Docker socket proxy (영문)', link: `${GH}/blob/main/agent/docs/docker-socket-proxy.md` },
+              { text: 'Collector 동작 방식 (영문)', link: `${GH}/tree/main/agent/docs` },
             ],
           },
         ],
@@ -99,6 +100,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/en/guide/introduction' },
+          { text: 'Reference', link: '/en/reference/web' },
           { text: 'Demo', link: DEMO },
         ],
         sidebar: [
@@ -125,10 +127,10 @@ export default defineConfig({
             ],
           },
           {
-            text: 'Reference (GitHub)',
+            text: 'Reference',
             items: [
-              { text: 'Web configuration', link: `${GH}/blob/main/web/README.md` },
-              { text: 'Docker Collector configuration', link: `${GH}/blob/main/agent/README.md` },
+              { text: 'Web configuration', link: '/en/reference/web' },
+              { text: 'Docker Collector configuration', link: '/en/reference/collector' },
               { text: 'Docker socket proxy', link: `${GH}/blob/main/agent/docs/docker-socket-proxy.md` },
               { text: 'How the Collector works', link: `${GH}/tree/main/agent/docs` },
             ],
