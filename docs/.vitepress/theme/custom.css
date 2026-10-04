@@ -71,21 +71,26 @@ html:not(.dark) .only-dark {
   margin-inline: auto;
   max-width: 1152px;
 }
+/* 무대: 이미지 트랙 위에 화살표(양옆 세로 가운데)와 점(아래 가운데)을 겹친다 */
+.home-carousel-stage {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background-color: var(--vp-c-bg-soft);
+}
 .home-carousel-track {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  background-color: var(--vp-c-bg-soft);
 }
 .home-carousel-track::-webkit-scrollbar {
   display: none;
 }
 .home-carousel-track:focus-visible {
   outline: 2px solid var(--vp-c-brand-1);
-  outline-offset: 3px;
+  outline-offset: -2px;
 }
 .home-carousel-slide {
   flex: 0 0 100%;
@@ -96,16 +101,82 @@ html:not(.dark) .only-dark {
   width: 100%;
   height: auto;
 }
+.home-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.94);
+  color: var(--vp-c-text-1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+  transform: translateY(-50%);
+  transition: background-color 0.2s;
+}
+.home-carousel-arrow:hover {
+  background-color: #ffffff;
+}
+.home-carousel-arrow.is-prev {
+  left: 16px;
+}
+.home-carousel-arrow.is-next {
+  right: 16px;
+}
+.dark .home-carousel-arrow {
+  background-color: rgba(32, 33, 39, 0.92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.dark .home-carousel-arrow:hover {
+  background-color: rgb(40, 41, 48);
+}
+.home-carousel-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  display: flex;
+  padding: 0 6px;
+  border-radius: 999px;
+  background-color: rgba(28, 28, 32, 0.6);
+  transform: translateX(-50%);
+}
+/* 점은 8px로 보이지만 누르는 영역은 22x32px */
+.home-carousel-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 32px;
+}
+.home-carousel-dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.5);
+  /* 폭(width)은 레이아웃 속성이라 애니메이션하지 않고 색만 전환한다 */
+  transition: background-color 0.2s;
+}
+.home-carousel-dot[aria-current='true']::before {
+  width: 18px;
+  background-color: #ffffff;
+}
+.home-carousel-dot:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -4px;
+  border-radius: 6px;
+}
 .home-carousel-bar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px 24px;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 .home-carousel-caption {
-  flex: 1 1 320px;
   margin: 0;
   font-size: 15px;
   line-height: 1.6;
@@ -116,46 +187,11 @@ html:not(.dark) .only-dark {
   font-weight: 700;
   color: var(--vp-c-text-1);
 }
-.home-carousel-controls {
-  display: flex;
-  align-items: center;
-}
-.home-carousel-arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  color: var(--vp-c-text-1);
-  transition: background-color 0.2s;
-}
-.home-carousel-arrow:hover {
-  background-color: var(--vp-c-default-soft);
-}
-.home-carousel-dots {
-  display: flex;
-}
-/* 점은 8px로 보이지만 누르는 영역은 24x44px */
-.home-carousel-dot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 44px;
-}
-.home-carousel-dot::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  background-color: var(--vp-c-text-3);
-  /* 폭(width)은 레이아웃 속성이라 애니메이션하지 않고 색만 전환한다 */
-  transition: background-color 0.2s;
-}
-.home-carousel-dot[aria-current='true']::before {
-  width: 18px;
-  background-color: var(--vp-c-brand-1);
+.home-carousel-count {
+  flex: none;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--vp-c-text-2);
 }
 .home-carousel-demo {
   margin-top: 4px;
@@ -166,6 +202,33 @@ html:not(.dark) .only-dark {
   .home-carousel-dot::before,
   .home-carousel-arrow {
     transition: none;
+  }
+}
+@media (max-width: 639px) {
+  .home-carousel-arrow {
+    width: 44px;
+    height: 44px;
+  }
+  .home-carousel-arrow.is-prev {
+    left: 8px;
+  }
+  .home-carousel-arrow.is-next {
+    right: 8px;
+  }
+  .home-carousel-dots {
+    bottom: 8px;
+    padding: 0 4px;
+  }
+  .home-carousel-dot {
+    width: 16px;
+    height: 24px;
+  }
+  .home-carousel-dot::before {
+    width: 6px;
+    height: 6px;
+  }
+  .home-carousel-dot[aria-current='true']::before {
+    width: 14px;
   }
 }
 @media (min-width: 640px) {
