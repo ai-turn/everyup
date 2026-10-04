@@ -61,4 +61,4 @@ access log가 없어도 컨테이너 상태, 일반 로그, 호스트 메트릭�
 
 ## 다음 단계
 
-[빠른 시작](./quickstart)에서 Web과 Docker Collector를 설치하세요.
+[Quick Start](./quickstart)에서 Web과 Docker Collector를 설치하세요.
