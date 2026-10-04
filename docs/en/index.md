@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: EveryUp
-  text: Docker service monitoring
-  tagline: A self-hosted dashboard with a lightweight Docker Collector. Uptime, logs, infrastructure, and APIs in one place, without a large observability stack.
+  text: 'However it runs,<br>monitor it on one screen'
+  tagline: The Collector discovers Docker containers on its own; everything else connects through OpenTelemetry or HTTP/TCP checks.
   actions:
     - theme: brand
       text: Quick Start

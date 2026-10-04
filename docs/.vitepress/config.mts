@@ -57,7 +57,7 @@ export default defineConfig({
     root: {
       label: '한국어',
       lang: 'ko',
-      description: 'Docker 서비스를 위한 셀프호스팅 모니터링 대시보드와 가벼운 Docker Collector',
+      description: 'Docker Collector, OpenTelemetry, HTTP·TCP 체크로 업타임·로그·인프라·API를 한 화면에서 보는 셀프호스팅 모니터링',
       themeConfig: {
         nav: [
           { text: '가이드', link: '/guide/introduction' },
@@ -116,7 +116,7 @@ export default defineConfig({
       label: 'English',
       lang: 'en',
       link: '/en/',
-      description: 'A self-hosted monitoring dashboard with a lightweight Docker Collector',
+      description: 'Self-hosted monitoring for uptime, logs, infrastructure, and APIs through a Docker Collector, OpenTelemetry, or HTTP/TCP checks',
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/en/guide/introduction' },
