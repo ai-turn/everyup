@@ -52,98 +52,130 @@ html:not(.dark) .only-dark {
   display: none !important;
 }
 
-/* 홈: 히어로 바로 아래 대시보드 스크린샷, 그 아래 기능별 제품 화면.
-   폭과 여백은 히어로(.VPHero)와 같은 1152px · 24/48/64px */
-.home-shot,
-.home-showcase {
-  margin: 0;
+/* 기능 카드: 아이콘 뒤 회색 타일을 걷어 카드가 캐러셀보다 앞서지 않게 한다 */
+.VPFeature .icon {
+  justify-content: flex-start;
+  margin-bottom: 14px;
+  background-color: transparent;
+  width: auto;
+  height: 28px;
+  color: var(--vp-c-brand-1);
+}
+
+/* 홈: 히어로 바로 아래 제품 화면 캐러셀 (HomeCarousel.vue).
+   폭과 여백은 히어로(.VPHero)·기능 카드와 같은 1152px · 24/48/64px */
+.home-carousel {
   padding: 0 24px 48px;
 }
-.home-shot > *,
-.home-showcase > * {
+.home-carousel > * {
   margin-inline: auto;
   max-width: 1152px;
 }
-.home-shot img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-}
-.home-shot .screenshot-caption {
-  margin-top: 14px;
-}
-
-.home-showcase-title {
-  margin-bottom: 32px;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--vp-c-text-1);
-}
-.home-showcase-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 48px 32px;
-}
-.home-showcase-media {
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
+.home-carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
   background-color: var(--vp-c-bg-soft);
 }
-.home-showcase-media img {
+.home-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+.home-carousel-track:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 3px;
+}
+.home-carousel-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+}
+.home-carousel-slide img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top left;
+  height: auto;
 }
-.home-showcase-item h3 {
-  margin-top: 20px;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--vp-c-text-1);
+.home-carousel-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 12px;
 }
-.home-showcase-item p {
-  margin-top: 6px;
+.home-carousel-caption {
+  flex: 1 1 320px;
+  margin: 0;
   font-size: 15px;
-  line-height: 1.65;
+  line-height: 1.6;
   color: var(--vp-c-text-2);
 }
-.home-showcase-item a {
-  display: inline-block;
-  margin-top: 10px;
+.home-carousel-caption strong {
+  margin-right: 8px;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+}
+.home-carousel-controls {
+  display: flex;
+  align-items: center;
+}
+.home-carousel-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--vp-c-text-1);
+  transition: background-color 0.2s;
+}
+.home-carousel-arrow:hover {
+  background-color: var(--vp-c-default-soft);
+}
+.home-carousel-dots {
+  display: flex;
+}
+/* 점은 8px로 보이지만 누르는 영역은 24x44px */
+.home-carousel-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 44px;
+}
+.home-carousel-dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: var(--vp-c-text-3);
+  /* 폭(width)은 레이아웃 속성이라 애니메이션하지 않고 색만 전환한다 */
+  transition: background-color 0.2s;
+}
+.home-carousel-dot[aria-current='true']::before {
+  width: 18px;
+  background-color: var(--vp-c-brand-1);
+}
+.home-carousel-demo {
+  margin-top: 4px;
   font-size: 14px;
-  font-weight: 500;
-  color: var(--vp-c-brand-1);
+  color: var(--vp-c-text-2);
 }
-.home-showcase-item a:hover {
-  color: var(--vp-c-brand-2);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+@media (prefers-reduced-motion: reduce) {
+  .home-carousel-dot::before,
+  .home-carousel-arrow {
+    transition: none;
+  }
 }
-
 @media (min-width: 640px) {
-  .home-shot,
-  .home-showcase {
+  .home-carousel {
     padding: 0 48px 64px;
   }
 }
-@media (min-width: 768px) {
-  .home-showcase-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 @media (min-width: 960px) {
-  .home-shot {
+  .home-carousel {
     padding: 0 64px 72px;
-  }
-  .home-showcase {
-    padding: 0 64px 96px;
   }
 }
 
@@ -160,13 +192,15 @@ html:not(.dark) .only-dark {
   font-size: 14px;
   color: var(--vp-c-text-2);
 }
-/* 캡션 속 링크: .vp-doc 밖(홈 HomeShot)에서는 링크 스타일을 받지 못해 글자와 구분되지 않았다 */
-.screenshot-caption a {
+/* 캡션 속 링크: .vp-doc 밖(홈 캐러셀)에서는 링크 스타일을 받지 못해 글자와 구분되지 않았다 */
+.screenshot-caption a,
+.home-carousel-demo a {
   color: var(--vp-c-brand-1);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.screenshot-caption a:hover {
+.screenshot-caption a:hover,
+.home-carousel-demo a:hover {
   color: var(--vp-c-brand-2);
 }
 
