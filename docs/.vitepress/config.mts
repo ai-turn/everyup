@@ -69,7 +69,7 @@ export default defineConfig({
             text: '시작하기',
             items: [
               { text: '소개', link: '/guide/introduction' },
-              { text: '빠른 시작', link: '/guide/quickstart' },
+              { text: 'Quick Start', link: '/guide/quickstart' },
               { text: '모니터링 설정', link: '/guide/monitoring-setup' },
             ],
           },

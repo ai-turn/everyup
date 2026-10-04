@@ -19,7 +19,7 @@ docker compose up -d
 ```
 
 `http://localhost:3001`을 열고 첫 관리자 계정을 만드세요. 이 Compose 파일은 Web만
-실행합니다. 모니터링할 Docker 호스트에는 [빠른 시작](../guide/quickstart)의 안내대로
+실행합니다. 모니터링할 Docker 호스트에는 [Quick Start](../guide/quickstart)의 안내대로
 Docker Collector를 설치하세요.
 
 ## 환경변수

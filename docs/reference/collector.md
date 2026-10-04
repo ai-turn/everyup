@@ -14,7 +14,7 @@ EveryUp Web으로 동기화합니다. API 상태코드는 이미 수집한 로�
 수집하고 전달하기만 합니다. 바이너리, 환경변수, 저장 경로, 호환 API에는 내부 이름인
 `agent`가 그대로 남아 있습니다.
 
-설치 방법은 [빠른 시작](../guide/quickstart)을 참고하세요.
+설치 방법은 [Quick Start](../guide/quickstart)를 참고하세요.
 
 ## 로그와 API 요청
 
