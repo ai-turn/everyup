@@ -48,7 +48,7 @@ the connection screens suggest the API address used by the browser and let you
 edit it. Use an absolute HTTP(S) address reachable from the target server;
 `localhost` is not accepted.
 
-## 2. Create a one-time Docker connection command
+## 2. Create a Docker connection command
 
 In the dashboard, open **Docker environments** and click **Connect Docker**.
 Name the environment, then choose its collection scope:
@@ -69,7 +69,7 @@ that expires after ten minutes and can only be used once. The long-lived API key
 is not displayed in the browser; it is delivered directly to the target server
 during installation.
 
-## 3. Install the monitoring bundle on the monitored server
+## 3. Install the monitoring bundle
 
 The installer starts only the components required by the selected collection
 scope. The **All** profile, or a custom profile with API tracing, starts the

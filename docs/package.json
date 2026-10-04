@@ -9,6 +9,7 @@
     "preview": "vitepress preview"
   },
   "devDependencies": {
+    "spoqa-han-sans": "^3.3.0",
     "vitepress": "^1.6.4"
   }
 }

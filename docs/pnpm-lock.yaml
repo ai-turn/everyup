@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      spoqa-han-sans:
+        specifier: ^3.3.0
+        version: 3.3.0
       vitepress:
         specifier: ^1.6.4
         version: 1.6.4(@algolia/client-search@5.59.0)(postcss@8.5.28)(search-insights@2.17.3)
@@ -712,6 +715,9 @@ packages:
   speakingurl@14.0.1:
     resolution: {integrity: sha512-1POYv7uv2gXoyGFpBCmpDVSNV74IfsWlDW216UPjbWufNf+bSU6GdbDsxdcxtfwb4xlI3yxzOTKClUosxARYrQ==}
     engines: {node: '>=0.10.0'}
+
+  spoqa-han-sans@3.3.0:
+    resolution: {integrity: sha512-uEetiueUQdfc8MW+JN0Dj9aN3oONctICzBljqbd+a7XXeQV0+Cg3bKFJVtSyIgjQkpG8F7csAVX86ZUEzTt+Iw==}
 
   stringify-entities@4.0.4:
     resolution: {integrity: sha512-IwfBptatlO+QCJUo19AqvrPNqlVMpW9YEL2LIVY+Rpv2qsjCGxaDLNRgeGsQWJhfItebuJhsGSLjaBbNSQ+ieg==}
@@ -1498,6 +1504,8 @@ snapshots:
   space-separated-tokens@2.0.2: {}
 
   speakingurl@14.0.1: {}
+
+  spoqa-han-sans@3.3.0: {}
 
   stringify-entities@4.0.4:
     dependencies:
