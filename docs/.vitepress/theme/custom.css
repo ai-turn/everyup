@@ -56,3 +56,55 @@
   font-size: 14px;
   color: var(--vp-c-text-2);
 }
+
+/* 상단 바: 가운데 검색, 왼쪽 로고·메뉴, 오른쪽 도구. 문서 페이지도 홈과 같은 흰 바로 그린다.
+   VitePress 기본은 검색이 로고 옆(홈)이나 본문 시작선(문서)에 붙어 페이지마다 위치가 달랐다.
+   .VPNav 접두어는 컴포넌트 scoped 규칙([data-v-…])과 우선순위를 맞추기 위한 것이다. */
+@media (min-width: 960px) {
+  .VPNav .VPNavBar.has-sidebar {
+    background-color: var(--vp-nav-bg-color);
+  }
+  .VPNav .VPNavBar .wrapper,
+  .VPNav .VPNavBar.has-sidebar .wrapper {
+    padding: 0 32px;
+  }
+  .VPNav .VPNavBar .container,
+  .VPNav .VPNavBar.has-sidebar .container {
+    position: relative;
+    max-width: none;
+  }
+  .VPNav .VPNavBar.has-sidebar .title {
+    position: static;
+    width: auto;
+    padding: 0;
+  }
+  .VPNav .VPNavBar.has-sidebar .content {
+    position: static;
+    padding: 0;
+  }
+  .VPNav .VPNavBar .content-body,
+  .VPNav .VPNavBar:not(.home.top) .content-body {
+    position: static;
+    justify-content: flex-start;
+  }
+  .VPNav .VPNavBar .menu {
+    margin-left: 40px;
+    margin-right: auto;
+  }
+  .VPNav .VPNavBar .search {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    flex-grow: 0;
+    padding: 0;
+    transform: translate(-50%, -50%);
+  }
+  .VPNav .VPNavBar .search .DocSearch-Button {
+    justify-content: space-between;
+    /* 좁은 데스크톱에서 왼쪽 메뉴(끝 ≈ 374px)와 겹치지 않도록 줄어든다 */
+    width: clamp(140px, calc(100vw - 820px), 360px);
+  }
+  .VPNav .VPNavBar.has-sidebar .divider {
+    padding-left: 0;
+  }
+}
