@@ -58,7 +58,7 @@ Compose 파일이 이 값을 Web 컨테이너에 전달합니다. EveryUp은 이
 Docker 상태 수집(업타임)을 선택하지 않은 사용자 지정 프로필(예: 메트릭 전용)에서
 앱 데이터를 Collector의 OTLP 게이트웨이(`:4318`)로 보낸다면 서비스별 bearer 토큰이
 필요합니다. 앱마다 토큰을 발급해 `Authorization` 헤더에 설정하세요. 발급 명령과
-설정 예시는 [Collector 네트워킹 안내](https://github.com/ai-turn/everyup/blob/main/agent/README.md#networking-notes)에 있습니다.
+설정 예시는 [Collector 네트워킹 안내](../reference/collector#networking)에 있습니다.
 
 선택을 마치면 10분 동안 한 번만 사용할 수 있는 설치 명령이 표시됩니다. 장기 API Key는
 브라우저에 노출되지 않고 설치 과정에서 대상 서버로 직접 전달됩니다.

@@ -59,6 +59,7 @@ Collector installation, see the
 | [Headers & bodies](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation) | Request/response headers and bodies via OpenTelemetry |
 | [Notification channels](https://ai-turn.github.io/everyup/en/guide/notifications) | Telegram / Discord / Slack setup |
 | [Backup](https://ai-turn.github.io/everyup/en/guide/backup-restore) · [Troubleshooting](https://ai-turn.github.io/everyup/en/guide/troubleshooting) | Operations |
+| [Web configuration](https://ai-turn.github.io/everyup/en/reference/web) · [Docker Collector configuration](https://ai-turn.github.io/everyup/en/reference/collector) | Environment variable and networking reference |
 
 ## Development
 
@@ -66,7 +67,7 @@ Collector installation, see the
 web/
   backend/                 # Go 1.24 API server, SQLite migrations, OTLP ingest
   frontend/                # React 19 / Vite dashboard
-agent/                     # Docker Collector (Go 1.25); configuration reference in agent/README.md
+agent/                     # Docker Collector (Go 1.25)
 docs/                      # Docs site (VitePress) — ai-turn.github.io/everyup
 ```
 
@@ -80,6 +81,6 @@ cd agent && go test ./...           # Docker Collector tests
 pnpm docs:dev                       # run the docs site locally
 ```
 
-Configuration references live in [web/README.md](web/README.md) and
+Running each part locally is covered in [web/README.md](web/README.md) and
 [agent/README.md](agent/README.md); the instrumentation E2E fixture is in
 [e2e/monitoring-target](e2e/monitoring-target/README.md).

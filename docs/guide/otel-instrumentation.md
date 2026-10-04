@@ -9,7 +9,7 @@ OpenTelemetry로 수집하는 방법을 다룹니다.
 서비스에 귀속시켜 Web으로 포워딩)로 보내거나, Web에 직접
 `/api/v1/otlp/v1/traces`로 보냅니다.
 Docker 자동 탐지가 꺼진 Collector 프로필에서는 앱마다 서비스별 bearer 토큰을
-보내야 합니다. 발급 방법은 [네트워킹 안내](https://github.com/ai-turn/everyup/blob/main/agent/README.md#networking-notes)를 참고하세요.
+보내야 합니다. 발급 방법은 [네트워킹 안내](../reference/collector#networking)를 참고하세요.
 
 ## 가장 빠른 길 — 번들 자동 설정 (Java, Node.js)
 
@@ -56,8 +56,26 @@ Docker Engine이 없는 개발 환경에서는 CLI 모의 실행으로 선택 �
 검증합니다. 실제 컨테이너 재시작과 자동 설정 번들의 동작은 배포 전 Linux Docker 환경에서
 `e2e/monitoring-target/scripts/run-e2e.sh --with-auto-rollback`으로 별도 검증해야 합니다.
 
-바디는 옵트인입니다(Node만 자동 지원). 전체 동작은 Docker Collector README의
-"App Instrumentation"을 참고하세요.
+바디는 옵트인입니다(Node만 자동 지원).
+
+### 헬퍼가 하는 일
+
+`everyup-otel` 헬퍼는 Docker Collector를 한 줄 설치기로 설치할 때 `/usr/local/bin/everyup-otel`에
+함께 설치됩니다. 적용 명령을 실행하면 헬퍼는 다음 순서로 동작합니다.
+
+- 바꾸기 전에 Linux, Docker, 기본 Compose 파일, 대상 런타임, 실행 중인 컨테이너를 검증합니다.
+- 공유 네트워크 `everyup-monitoring`을 만들고, Docker Collector 이미지에서
+  `everyup-instrumentation` 볼륨을 채웁니다.
+- 기존 `JAVA_TOOL_OPTIONS`·`NODE_OPTIONS`를 유지한 채 원본 Compose 옆에 관리용
+  `docker-compose.everyup.yml`을 씁니다.
+- 선택한 서비스만 다시 만들고 health, 주입 옵션, 읽기 전용 `/everyup` 마운트, Collector
+  네트워크 연결을 확인합니다.
+- 재시작이나 검증이 실패하면 이전 설정으로 자동 복구하고 다시 만듭니다.
+
+롤백 정보는 앱 Compose 디렉터리의 `.everyup` 폴더에 보관합니다. 헬퍼가 앱과 Docker
+Collector를 `everyup-monitoring` 네트워크에 연결하므로 OTLP 포트를 외부에 열지 않아도
+`everyup-agent:4318`로 접근할 수 있습니다. 기존 `JAVA_TOOL_OPTIONS`·`NODE_OPTIONS` 값은
+유지되고 EveryUp 옵션은 한 번만 덧붙습니다. 지원 버전은 JVM 8+, Node 18+입니다.
 
 아래 내용은 **다른 언어, 수동 SDK 설정, 또는 번들이 만들어 내는 span 계약을 이해**
 하려는 경우를 위한 것입니다.

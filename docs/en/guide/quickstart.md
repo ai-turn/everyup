@@ -61,7 +61,7 @@ Name the environment, then choose its collection scope:
 If a custom profile omits Docker uptime collection (for example, a metrics-only
 profile), apps sending telemetry to the Collector's OTLP gateway (`:4318`)
 need a service-scoped bearer token. Generate a token for each app and set its
-`Authorization` header. See the [Collector networking notes](https://github.com/ai-turn/everyup/blob/main/agent/README.md#networking-notes)
+`Authorization` header. See the [Collector networking notes](../reference/collector#networking)
 for the command and exporter settings.
 
 The connection flow then shows an installation command containing a join code
