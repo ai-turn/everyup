@@ -46,8 +46,54 @@
   filter: brightness(0.88);
 }
 
+/* 기능 카드: 아이콘 뒤 회색 타일을 걷어 카드가 스크린샷보다 앞서지 않게 한다 */
 .VPFeature .icon {
+  justify-content: flex-start;
+  margin-bottom: 14px;
+  background-color: transparent;
+  width: auto;
+  height: 28px;
   color: var(--vp-c-brand-1);
+}
+
+/* 홈: 히어로 바로 아래 대시보드 스크린샷. 폭과 여백은 기능 카드 영역(.VPFeatures)과 같다 */
+.home-shot {
+  margin: 0;
+  padding: 0 24px 48px;
+}
+.home-shot > * {
+  margin-inline: auto;
+  max-width: 1152px;
+}
+.home-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px -16px rgba(15, 23, 42, 0.22);
+}
+.dark .home-shot img {
+  filter: brightness(0.88);
+  box-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+}
+.home-shot .screenshot-caption {
+  margin-top: 14px;
+}
+@media (min-width: 640px) {
+  .home-shot {
+    padding: 0 48px 64px;
+  }
+}
+@media (min-width: 960px) {
+  .home-shot {
+    padding: 0 64px 72px;
+  }
+}
+
+/* 히어로 버튼: 터치 대상 44px (기본 40px) */
+.VPHero .VPButton.medium {
+  line-height: 42px;
 }
 
 .screenshot-caption {
@@ -57,7 +103,7 @@
   color: var(--vp-c-text-2);
 }
 
-/* 상단 바: 가운데 검색, 왼쪽 로고·메뉴, 오른쪽 도구. 문서 페이지도 홈과 같은 흰 바로 그린다.
+/* 상단 바: 왼쪽 로고·메뉴, 오른쪽 도구. 문서 페이지도 홈과 같은 흰 바로 그린다.
    VitePress 기본은 검색이 로고 옆(홈)이나 본문 시작선(문서)에 붙어 페이지마다 위치가 달랐다.
    .VPNav 접두어는 컴포넌트 scoped 규칙([data-v-…])과 우선순위를 맞추기 위한 것이다. */
 @media (min-width: 960px) {
@@ -87,10 +133,25 @@
     position: static;
     justify-content: flex-start;
   }
+  /* DOM 순서는 검색 → 메뉴라서, 메뉴를 앞으로 당기고 나머지를 오른쪽으로 민다.
+     1280px 미만에서는 언어·테마·GitHub가 … 메뉴로 접히므로 검색은 … 바로 앞에 둔다. */
   .VPNav .VPNavBar .menu {
+    order: -1;
     margin-left: 40px;
     margin-right: auto;
   }
+  /* VitePress가 검색 영역을 flex-grow: 1로 늘려 메뉴의 auto 여백을 먹으므로 되돌린다 */
+  .VPNav .VPNavBar .search {
+    flex-grow: 0;
+  }
+  .VPNav .VPNavBar.has-sidebar .divider {
+    padding-left: 0;
+  }
+}
+
+/* 도구가 모두 펼쳐지는 폭부터 검색을 바 가운데에 고정한다.
+   1280px에서 360px 검색창의 왼쪽 끝(≈452px)은 영문 메뉴 끝(≈403px)과도 겹치지 않는다. */
+@media (min-width: 1280px) {
   .VPNav .VPNavBar .search {
     position: absolute;
     top: 50%;
@@ -101,10 +162,11 @@
   }
   .VPNav .VPNavBar .search .DocSearch-Button {
     justify-content: space-between;
-    /* 좁은 데스크톱에서 왼쪽 메뉴(끝 ≈ 374px)와 겹치지 않도록 줄어든다 */
-    width: clamp(140px, calc(100vw - 820px), 360px);
+    width: 360px;
   }
-  .VPNav .VPNavBar.has-sidebar .divider {
-    padding-left: 0;
-  }
+}
+
+/* 레퍼런스의 환경변수 목록: 변수마다 이름 줄과 설명 줄이 있어 항목 사이를 조금 더 띄운다 */
+.reference-page .vp-doc li + li {
+  margin-top: 14px;
 }

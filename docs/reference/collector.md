@@ -1,3 +1,8 @@
+---
+outline: [2, 3]
+pageClass: reference-page
+---
+
 # Docker Collector 설정
 
 EveryUp Docker Collector는 모니터링할 Docker 호스트에서 실행되는 가벼운 구성 요소입니다.
@@ -46,6 +51,7 @@ Collector도 수집할 수 없습니다. 앱이나 리버스 프록시가 로그
 
 Docker Collector는 마운트된 Docker 소켓으로 컨테이너를 발견합니다. 앱과 같은 Compose
 파일에서 실행해도 되고, 같은 Docker 호스트의 별도 Compose 프로젝트에서 실행해도 됩니다.
+권장하는 구성은 `everyup-agent`를 그 서버의 앱 스택과 같은 Compose 파일에 두는 것입니다.
 
 Docker 탐지가 켜져 있으면 OTLP 게이트웨이는 자신이 발견한 실행 중인 컨테이너의 데이터만
 받습니다. SDK가 다른 `service.name`을 보내더라도 각 앱 데이터에는 출발 컨테이너의 서비스
@@ -75,68 +81,90 @@ OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20<generated-token>
 
 ## Compose 환경변수
 
-필수는 `예`로 표시한 세 개뿐이고, 나머지는 기본값으로 동작합니다.
+**필수**로 표시한 세 개만 지정하면 되고, 나머지는 기본값으로 동작합니다.
 
 ### Web 연결 (connected mode)
 
-| 변수 | 필수 | 기본값 | 설명 |
-| --- | :-: | --- | --- |
-| `EVERYUP_WEB_SYNC_ENABLED` | 예 | `false` | Web 등록과 동기화를 켭니다 |
-| `EVERYUP_WEB_BASE_URL` | 예 | | Docker 호스트에서 접근 가능한 EveryUp Web 주소 |
-| `EVERYUP_AGENT_API_KEY` | 예 | | Web의 **Docker 환경 → Docker 연결**에서 발급한 API Key (이전 이름: `EVERYUP_WEB_ENROLLMENT_TOKEN`) |
-| `EVERYUP_WEB_AGENT_ID` | | | Web 쪽 agent id. 등록할 때 자동으로 설정됩니다 |
-| `EVERYUP_WEB_SYNC_INTERVAL_SECONDS` | | `30` | 서비스·이벤트·호스트 메트릭을 Web에 동기화하는 주기(초) |
-| `EVERYUP_WEB_OTLP_ENDPOINT` | | | 텔레메트리 전송에 안내할 OTLP endpoint |
+- **`EVERYUP_WEB_SYNC_ENABLED`** · **필수** · 기본값 `false`\
+  Web 등록과 동기화를 켭니다
+- **`EVERYUP_WEB_BASE_URL`** · **필수**\
+  Docker 호스트에서 접근 가능한 EveryUp Web 주소
+- **`EVERYUP_AGENT_API_KEY`** · **필수**\
+  Web의 **Docker 환경 → Docker 연결**에서 발급한 API Key (이전 이름: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
+- **`EVERYUP_WEB_AGENT_ID`**\
+  Web 쪽 agent id. 등록할 때 자동으로 설정됩니다
+- **`EVERYUP_WEB_SYNC_INTERVAL_SECONDS`** · 기본값 `30`\
+  서비스·이벤트·호스트 메트릭을 Web에 동기화하는 주기(초)
+- **`EVERYUP_WEB_OTLP_ENDPOINT`**\
+  텔레메트리 전송에 안내할 OTLP endpoint
 
 ### 일반
 
-| 변수 | 필수 | 기본값 | 설명 |
-| --- | :-: | --- | --- |
-| `TZ` | | `UTC` | Collector 자체 로그의 시간대(예: `Asia/Seoul`). 동기화되는 데이터에는 항상 시간대 정보가 포함됩니다 |
-| `EVERYUP_AGENT_NAME` | | `everyup-agent` | Docker 환경 이름 |
-| `EVERYUP_SERVICE_NAME` | | `local-service` | Collector 자체 점검에 쓰는 기본 서비스 이름 |
-| `EVERYUP_DATA_DIR` | | `/data` | Collector 상태(`agent-state.json`, `audit.jsonl`) 저장 위치 |
-| `EVERYUP_CHECK_INTERVAL_SECONDS` | | `30` | health check 주기(초) |
-| `EVERYUP_HTTP_TIMEOUT_SECONDS` | | `5` | HTTP 요청 timeout(초) |
-| `EVERYUP_ALERT_COOLDOWN_SECONDS` | | `300` | 같은 대상에 대한 반복 알림 사이의 최소 간격(초) |
-| `EVERYUP_HEALTH_URL` | | | health check할 절대 URL(단일 대상 모드. 보통은 Docker 탐지를 사용합니다) |
+- **`TZ`** · 기본값 `UTC`\
+  Collector 자체 로그의 시간대(예: `Asia/Seoul`). 동기화되는 데이터에는 항상 시간대 정보가 포함됩니다
+- **`EVERYUP_AGENT_NAME`** · 기본값 `everyup-agent`\
+  Docker 환경 이름
+- **`EVERYUP_SERVICE_NAME`** · 기본값 `local-service`\
+  Collector 자체 점검에 쓰는 기본 서비스 이름
+- **`EVERYUP_DATA_DIR`** · 기본값 `/data`\
+  Collector 상태(`agent-state.json`, `audit.jsonl`) 저장 위치
+- **`EVERYUP_CHECK_INTERVAL_SECONDS`** · 기본값 `30`\
+  health check 주기(초)
+- **`EVERYUP_HTTP_TIMEOUT_SECONDS`** · 기본값 `5`\
+  HTTP 요청 timeout(초)
+- **`EVERYUP_ALERT_COOLDOWN_SECONDS`** · 기본값 `300`\
+  같은 대상에 대한 반복 알림 사이의 최소 간격(초)
+- **`EVERYUP_HEALTH_URL`**\
+  health check할 절대 URL(단일 대상 모드. 보통은 Docker 탐지를 사용합니다)
 
 ### Docker 탐지와 로그
 
-| 변수 | 필수 | 기본값 | 설명 |
-| --- | :-: | --- | --- |
-| `EVERYUP_DOCKER_DISCOVERY_ENABLED` | | `true` | Docker 컨테이너 자동 발견 |
-| `EVERYUP_DOCKER_SOCKET_PATH` | | `/var/run/docker.sock` | 컨테이너 안의 Docker 소켓 경로 |
-| `EVERYUP_DOCKER_LOGS_ENABLED` | | `true` | 컨테이너 stdout/stderr 로그를 Web으로 전달 |
-| `EVERYUP_DOCKER_LOGS_TAIL_LINES` | | `100` | 컨테이너를 처음 수집할 때 읽는 과거 로그 줄 수. 이후에는 읽지 않은 로그를 모두 읽습니다 |
-| `EVERYUP_EXCLUDE` | | | 탐지에서 제외할 컨테이너 이름(쉼표로 구분) |
+- **`EVERYUP_DOCKER_DISCOVERY_ENABLED`** · 기본값 `true`\
+  Docker 컨테이너 자동 발견
+- **`EVERYUP_DOCKER_SOCKET_PATH`** · 기본값 `/var/run/docker.sock`\
+  컨테이너 안의 Docker 소켓 경로
+- **`EVERYUP_DOCKER_LOGS_ENABLED`** · 기본값 `true`\
+  컨테이너 stdout/stderr 로그를 Web으로 전달
+- **`EVERYUP_DOCKER_LOGS_TAIL_LINES`** · 기본값 `100`\
+  컨테이너를 처음 수집할 때 읽는 과거 로그 줄 수. 이후에는 읽지 않은 로그를 모두 읽습니다
+- **`EVERYUP_EXCLUDE`**\
+  탐지에서 제외할 컨테이너 이름(쉼표로 구분)
 
 ### 호스트 메트릭 (CPU / 메모리 / 디스크 / 네트워크)
 
-| 변수 | 필수 | 기본값 | 설명 |
-| --- | :-: | --- | --- |
-| `EVERYUP_HOST_METRICS_ENABLED` | | `true` | `/hostfs` 마운트에서 호스트 CPU·메모리·디스크·네트워크 수집 |
-| `EVERYUP_HOST_METRICS_ROOT` | | `/hostfs` | 호스트 파일시스템 마운트 위치(`/proc`, `/proc/net/dev`를 읽음) |
-| `EVERYUP_HOST_DISK_PATH` | | `/hostfs` | 디스크 사용량을 계산할 경로 |
-| `EVERYUP_HOST_CPU_PERCENT` | | `0` | 호스트 CPU% **알림** 임계값. `0`이면 호스트 자원 알림을 끕니다(수집에는 영향 없음) |
-| `EVERYUP_HOST_MEMORY_PERCENT` | | `0` | 호스트 메모리% 알림 임계값. `0`이면 끕니다 |
-| `EVERYUP_HOST_DISK_PERCENT` | | `0` | 호스트 디스크% 알림 임계값. `0`이면 끕니다 |
+- **`EVERYUP_HOST_METRICS_ENABLED`** · 기본값 `true`\
+  `/hostfs` 마운트에서 호스트 CPU·메모리·디스크·네트워크 수집
+- **`EVERYUP_HOST_METRICS_ROOT`** · 기본값 `/hostfs`\
+  호스트 파일시스템 마운트 위치(`/proc`, `/proc/net/dev`를 읽음)
+- **`EVERYUP_HOST_DISK_PATH`** · 기본값 `/hostfs`\
+  디스크 사용량을 계산할 경로
+- **`EVERYUP_HOST_CPU_PERCENT`** · 기본값 `0`\
+  호스트 CPU% **알림** 임계값. `0`이면 호스트 자원 알림을 끕니다(수집에는 영향 없음)
+- **`EVERYUP_HOST_MEMORY_PERCENT`** · 기본값 `0`\
+  호스트 메모리% 알림 임계값. `0`이면 끕니다
+- **`EVERYUP_HOST_DISK_PERCENT`** · 기본값 `0`\
+  호스트 디스크% 알림 임계값. `0`이면 끕니다
 
 ### OTel Collector와 텔레메트리 게이트웨이
 
-| 변수 | 필수 | 기본값 | 설명 |
-| --- | :-: | --- | --- |
-| `EVERYUP_OTEL_CONFIG_ENABLED` | | `false` | 시작할 때 OTel Collector 설정 생성 |
-| `EVERYUP_OTEL_CONFIG_PATH` | | `/etc/everyup/generated/otel-config.yaml` | 생성한 OTel 설정 파일 위치 |
-| `EVERYUP_OTEL_CONF_DIR` | | `/etc/everyup/conf.d` | OTel 설정 조각을 읽을 디렉터리 |
-| `EVERYUP_OTEL_FILELOG_PATHS` | | | OTel filelog receiver가 읽을 파일 경로(쉼표로 구분) |
-| `EVERYUP_TELEMETRY_GATEWAY_ENABLED` | | `true` | 텔레메트리를 Web으로 전달하는 OTLP 게이트웨이 실행 |
-| `EVERYUP_TELEMETRY_GATEWAY_LISTEN_ADDR` | | `:4318` | OTLP 게이트웨이 listen 주소 |
+- **`EVERYUP_OTEL_CONFIG_ENABLED`** · 기본값 `false`\
+  시작할 때 OTel Collector 설정 생성
+- **`EVERYUP_OTEL_CONFIG_PATH`** · 기본값 `/etc/everyup/generated/otel-config.yaml`\
+  생성한 OTel 설정 파일 위치
+- **`EVERYUP_OTEL_CONF_DIR`** · 기본값 `/etc/everyup/conf.d`\
+  OTel 설정 조각을 읽을 디렉터리
+- **`EVERYUP_OTEL_FILELOG_PATHS`**\
+  OTel filelog receiver가 읽을 파일 경로(쉼표로 구분)
+- **`EVERYUP_TELEMETRY_GATEWAY_ENABLED`** · 기본값 `true`\
+  텔레메트리를 Web으로 전달하는 OTLP 게이트웨이 실행
+- **`EVERYUP_TELEMETRY_GATEWAY_LISTEN_ADDR`** · 기본값 `:4318`\
+  OTLP 게이트웨이 listen 주소
 
 ### Heartbeat watchdog
 
-| 변수 | 필수 | 기본값 | 설명 |
-| --- | :-: | --- | --- |
-| `EVERYUP_HEARTBEAT_URL` | | | 주기적으로 ping할 외부 heartbeat(dead-man's switch) URL |
-| `EVERYUP_HEARTBEAT_TOKEN` | | | heartbeat ping에 함께 보내는 토큰 |
-| `EVERYUP_HEARTBEAT_INTERVAL_SECONDS` | | `60` | heartbeat ping 주기(초) |
+- **`EVERYUP_HEARTBEAT_URL`**\
+  주기적으로 ping할 외부 heartbeat(dead-man's switch) URL
+- **`EVERYUP_HEARTBEAT_TOKEN`**\
+  heartbeat ping에 함께 보내는 토큰
+- **`EVERYUP_HEARTBEAT_INTERVAL_SECONDS`** · 기본값 `60`\
+  heartbeat ping 주기(초)

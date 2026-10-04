@@ -23,7 +23,7 @@ EveryUp Docker Collector를 실행하면 됩니다. 별도의 대형 모니터�
 | 기본 | API 상태 | access log에서 읽은 요청 상태코드(method·path·status) |
 | 기본 | 알림 | Telegram·Discord·Slack 채널 ([설정 가이드](./notifications)) |
 | 선택 | API latency·트레이스 | [자동 eBPF Observer](./ebpf-observer). 앱 수정 없음 |
-| 선택 | API 헤더·바디 | [OpenTelemetry 연동](./otel-instrumentation). 앱 재시작 한 번 |
+| 선택 | 헤더·바디 상세 수집 | [OpenTelemetry 연동](./otel-instrumentation). 앱 재시작 한 번 |
 
 ## 수집되는 데이터
 

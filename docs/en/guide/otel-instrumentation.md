@@ -1,8 +1,8 @@
-# OpenTelemetry API Instrumentation
+# Header & body capture
 
 Service health, logs, host metrics, and API **status codes** need no app changes,
-and the optional eBPF sidecar adds real **latency and traces** with no code either
-(see [Automatic eBPF Observer](./ebpf-observer)). This document covers the one app-side step: capturing
+and the [automatic eBPF Observer](./ebpf-observer) adds real **latency and traces** with no code either.
+This document covers the one app-side step: capturing
 request/response **headers and bodies**, by instrumenting the app with
 OpenTelemetry.
 

@@ -22,6 +22,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          # 문서의 마지막 수정일(lastUpdated)을 git 이력에서 읽는다
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v5
         with:

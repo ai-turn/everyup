@@ -1,8 +1,9 @@
 # 트러블슈팅
 
-## Docker 환경이 online으로 뜨지 않습니다
+## Docker 환경이 수집 중으로 바뀌지 않습니다 {#not-collecting}
 
-`EVERYUP_WEB_BASE_URL`은 Docker Collector 컨테이너 안에서 접근 가능한 Web 주소여야 합니다.
+설치기는 Collector가 접속할 Web 주소를 `/opt/everyup-agent/compose.yaml`의 `EVERYUP_WEB_BASE_URL`에
+기록합니다. 이 주소는 Docker Collector 컨테이너 안에서 접근 가능한 Web 주소여야 합니다.
 같은 서버라도 컨테이너 안의 `localhost`는 Web이 아니라 Collector 자신을 가리킬 수
 있습니다. Compose 서비스명이나 호스트에서 접근 가능한 IP를 사용하세요.
 
