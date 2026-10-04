@@ -21,18 +21,33 @@ const track = ref<HTMLElement | null>(null)
 const index = ref(0)
 const current = computed(() => slides.value[index.value] ?? slides.value[0])
 
+// 버튼으로 넘길 때의 목적지. 부드러운 스크롤 도중에 다시 누르면 지나가는 중간 위치가 아니라
+// 이 목적지를 기준으로 한 칸 더 간다 (없으면 빠르게 연달아 누를 때 같은 슬라이드에 멈춘다).
+let pending: number | null = null
+let pendingTimer: ReturnType<typeof setTimeout> | undefined
+
 function go(i: number) {
   const el = track.value
   if (!el) return
   const n = slides.value.length
   const target = ((i % n) + n) % n
+  pending = target
+  index.value = target
+  clearTimeout(pendingTimer)
+  pendingTimer = setTimeout(() => { pending = null }, 1000) // 스크롤이 중간에 끊겨도 풀리게
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   el.scrollTo({ left: target * el.clientWidth, behavior: reduce ? 'auto' : 'smooth' })
 }
 
 function onScroll() {
   const el = track.value
-  if (el) index.value = Math.round(el.scrollLeft / el.clientWidth)
+  if (!el) return
+  const at = Math.round(el.scrollLeft / el.clientWidth)
+  if (pending !== null) {
+    if (at === pending) pending = null
+    return
+  }
+  index.value = at // 터치로 밀어서 넘긴 경우
 }
 
 function onKey(e: KeyboardEvent) {
@@ -53,39 +68,60 @@ function onKey(e: KeyboardEvent) {
     aria-roledescription="carousel"
     :aria-label="ko ? '제품 화면' : 'Product screens'"
   >
-    <div
-      ref="track"
-      class="home-carousel-track"
-      tabindex="0"
-      :aria-label="ko ? '제품 화면 (좌우 화살표 키로 넘기기)' : 'Product screens (use the arrow keys)'"
-      @scroll.passive="onScroll"
-      @keydown="onKey"
-    >
+    <!-- 화살표와 점은 이미지 위에 겹친다: 화살표는 양옆 세로 가운데, 점은 아래 가운데 -->
+    <div class="home-carousel-stage">
       <div
-        v-for="(s, i) in slides"
-        :key="s.image"
-        class="home-carousel-slide"
-        role="group"
-        aria-roledescription="slide"
-        :aria-label="`${i + 1} / ${slides.length}: ${s.title}`"
+        ref="track"
+        class="home-carousel-track"
+        tabindex="0"
+        :aria-label="ko ? '제품 화면 (좌우 화살표 키로 넘기기)' : 'Product screens (use the arrow keys)'"
+        @scroll.passive="onScroll"
+        @keydown="onKey"
       >
-        <img
-          class="only-light"
-          :src="withBase(`/images/home/slide-${s.image}-light.png`)"
-          width="1440"
-          height="900"
-          :alt="s.alt"
-          :loading="i === 0 ? 'eager' : 'lazy'"
-          decoding="async"
-        />
-        <img
-          class="only-dark"
-          :src="withBase(`/images/home/slide-${s.image}-dark.png`)"
-          width="1440"
-          height="900"
-          :alt="s.alt"
-          :loading="i === 0 ? 'eager' : 'lazy'"
-          decoding="async"
+        <div
+          v-for="(s, i) in slides"
+          :key="s.image"
+          class="home-carousel-slide"
+          role="group"
+          aria-roledescription="slide"
+          :aria-label="`${i + 1} / ${slides.length}: ${s.title}`"
+        >
+          <img
+            class="only-light"
+            :src="withBase(`/images/home/slide-${s.image}-light.png`)"
+            width="1440"
+            height="900"
+            :alt="s.alt"
+            :loading="i === 0 ? 'eager' : 'lazy'"
+            decoding="async"
+          />
+          <img
+            class="only-dark"
+            :src="withBase(`/images/home/slide-${s.image}-dark.png`)"
+            width="1440"
+            height="900"
+            :alt="s.alt"
+            :loading="i === 0 ? 'eager' : 'lazy'"
+            decoding="async"
+          />
+        </div>
+      </div>
+
+      <button type="button" class="home-carousel-arrow is-prev" :aria-label="ko ? '이전 화면' : 'Previous screen'" @click="go(index - 1)">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
+      </button>
+      <button type="button" class="home-carousel-arrow is-next" :aria-label="ko ? '다음 화면' : 'Next screen'" @click="go(index + 1)">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
+      </button>
+      <div class="home-carousel-dots">
+        <button
+          v-for="(s, i) in slides"
+          :key="s.image"
+          type="button"
+          class="home-carousel-dot"
+          :aria-label="`${i + 1}: ${s.title}`"
+          :aria-current="i === index ? 'true' : undefined"
+          @click="go(i)"
         />
       </div>
     </div>
@@ -95,25 +131,7 @@ function onKey(e: KeyboardEvent) {
         <strong>{{ current.title }}</strong>
         <span>{{ current.caption }}</span>
       </p>
-      <div class="home-carousel-controls">
-        <button type="button" class="home-carousel-arrow" :aria-label="ko ? '이전 화면' : 'Previous screen'" @click="go(index - 1)">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
-        </button>
-        <div class="home-carousel-dots">
-          <button
-            v-for="(s, i) in slides"
-            :key="s.image"
-            type="button"
-            class="home-carousel-dot"
-            :aria-label="`${i + 1}: ${s.title}`"
-            :aria-current="i === index ? 'true' : undefined"
-            @click="go(i)"
-          />
-        </div>
-        <button type="button" class="home-carousel-arrow" :aria-label="ko ? '다음 화면' : 'Next screen'" @click="go(index + 1)">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
-        </button>
-      </div>
+      <span class="home-carousel-count" aria-hidden="true">{{ index + 1 }} / {{ slides.length }}</span>
     </div>
 
     <p v-if="ko" class="home-carousel-demo">직접 조작해 보려면 <a :href="DEMO">라이브 데모</a>를 여세요.</p>
