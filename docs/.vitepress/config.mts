@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitepress'
 
 const GH = 'https://github.com/ai-turn/everyup'
-// 데모는 같은 Pages 사이트의 /demo/에 따로 배포된다. 절대 URL이라 문서 라우터가 가로채지 않는다.
+// 데모는 같은 Pages 사이트의 /demo/에 따로 배포된다. 같은 origin이라 절대 URL이어도 문서 라우터가 가로챌 수 있다.
+// 메뉴·히어로 버튼은 VitePress가 외부 링크에 target="_blank"를 붙여 라우터를 건너뛴다. 직접 쓰는 <a>에도 target이 필요하다.
 const DEMO = 'https://ai-turn.github.io/everyup/demo/'
 
 export default defineConfig({
