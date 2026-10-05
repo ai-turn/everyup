@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: EveryUp
-  text: '어떻게 돌아가든,<br>한 화면에서 모니터링'
-  tagline: Docker 컨테이너는 Collector가 자동으로 찾고, 그 밖의 서비스는 OpenTelemetry와 HTTP·TCP 체크로 연결합니다.
+  text: '예측 가능한 시스템은<br>철저한 준비에서부터 시작됩니다'
+  tagline: 업타임, 에러 로그, API 응답 속도, 서버 리소스를 한 화면에서 확인하고, 기준을 벗어나면 바로 알림을 받습니다.
   actions:
     - theme: brand
       text: Quick Start
