@@ -178,7 +178,7 @@ export function AlertsDesktopView({
                 {tab.count != null && (
                   <span className={`text-xs px-1.5 py-0.5 rounded-md ${
                     activeTab === tab.key
-                      ? 'bg-primary/10 text-primary'
+                      ? 'bg-primary/10 text-action'
                       : 'bg-ui-hover text-text-muted'
                   }`}>{tab.count}</span>
                 )}

@@ -57,7 +57,7 @@ export function AuditLogSection() {
                   {`Trace ${(event.traceId ?? '').slice(0, 12)} 본문 열람`}
                 </span>
                 {typeof count === 'number' && (
-                  <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+                  <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-action">
                     {`본문 ${count}건`}
                   </span>
                 )}

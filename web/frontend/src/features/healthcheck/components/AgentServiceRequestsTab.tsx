@@ -206,20 +206,20 @@ function ServiceRequestsPanel({
               </p>
               {source.kind === 'direct' ? (
                 <ul className="space-y-1.5 text-sm text-text-muted">
-                  <li className="flex gap-2"><span className="shrink-0 text-primary">1</span><span>애플리케이션에 OpenTelemetry SDK 또는 zero-code 자동 설정을 적용합니다.</span></li>
-                  <li className="flex gap-2"><span className="shrink-0 text-primary">2</span><span>설정 화면에서 발급한 OTLP endpoint와 Authorization 헤더로 traces를 전송합니다.</span></li>
+                  <li className="flex gap-2"><span className="shrink-0 text-action">1</span><span>애플리케이션에 OpenTelemetry SDK 또는 zero-code 자동 설정을 적용합니다.</span></li>
+                  <li className="flex gap-2"><span className="shrink-0 text-action">2</span><span>설정 화면에서 발급한 OTLP endpoint와 Authorization 헤더로 traces를 전송합니다.</span></li>
                 </ul>
               ) : (
                 <ul className="space-y-1.5 text-sm text-text-muted">
                   <li className="flex gap-2">
-                    <span className="shrink-0 text-primary">1</span>
+                    <span className="shrink-0 text-action">1</span>
                     <span>
                       Docker Collector Compose의 <code className="font-mono text-xs bg-ui-hover px-1 py-0.5 rounded">everyup-ebpf</code> 블록
                       주석 해제 — 앱 수정 없이 경로·상태·지연 시간 수집
                     </span>
                   </li>
                   <li className="flex gap-2">
-                    <span className="shrink-0 text-primary">2</span>
+                    <span className="shrink-0 text-action">2</span>
                     <span>
                       헤더까지 필요하면 앱에 OpenTelemetry 연결
                       {source.runtime === 'java' && ' — Java는 JAVA_TOOL_OPTIONS 환경변수만으로 가능'}

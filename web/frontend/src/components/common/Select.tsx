@@ -125,6 +125,7 @@ export function Select({
         disabled={disabled}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
+        role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
@@ -140,7 +141,7 @@ export function Select({
           {options.map((option) => {
             const isSelected = option.value === selectedValue;
             return (
-              <button key={option.value} type="button" role="option" aria-selected={isSelected} disabled={option.disabled} onClick={() => selectValue(option.value)} className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isSelected ? 'bg-primary/10 font-medium text-primary' : 'text-text-secondary hover:bg-ui-hover'}`}>
+              <button key={option.value} type="button" role="option" aria-selected={isSelected} disabled={option.disabled} onClick={() => selectValue(option.value)} className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isSelected ? 'bg-primary/10 font-medium text-action' : 'text-text-secondary hover:bg-ui-hover'}`}>
                 <span className="min-w-0 flex-1 truncate">{option.label}</span>
                 {isSelected && <MaterialIcon size={20} name="check" className="ml-2 shrink-0" />}
               </button>

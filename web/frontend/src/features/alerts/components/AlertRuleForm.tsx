@@ -181,16 +181,16 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                     <FormStep n={3} title="알림 채널" subtitle="발송할 채널 선택">
                         <div className="space-y-2">
                             {channels.length === 0 ? (
-                                <p className="text-sm text-slate-400">등록된 알림 채널이 없습니다</p>
+                                <p className="text-sm text-text-muted">등록된 알림 채널이 없습니다</p>
                             ) : channels.map(ch => (
                                 <button key={ch.id} type="button" onClick={() => handleToggleChannel(ch.id)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-all ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-primary' : 'border-ui-border-soft text-slate-500'}`}>
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-all ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-action' : 'border-ui-border-soft text-slate-500'}`}>
                                     <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
                                     <span className="text-sm flex-1 text-left">{ch.name}</span>
                                 </button>
                             ))}
                             {selectedChannels.length === 0 && channels.length > 0 && (
-                                <p className="text-sm text-slate-400 italic">비우면 전체 채널</p>
+                                <p className="text-sm text-text-muted">비우면 전체 채널</p>
                             )}
                         </div>
                     </FormStep>
@@ -201,9 +201,9 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                     <div className="sticky top-0 space-y-4">
                         <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
-                                <MaterialIcon size={20} name="lock" className="text-slate-400" />
+                                <MaterialIcon size={20} name="lock" className="text-text-dim" />
                                 <div>
-                                    <p className="text-sm font-medium text-text-base uppercase tracking-widest">
+                                    <p className="text-sm font-medium text-text-base">
                                         시스템 규칙
                                     </p>
                                     <p className="text-sm text-text-muted mt-0.5">
@@ -213,11 +213,11 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                             </div>
                             <div className="p-5 space-y-4">
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
-                                    <p className="text-xs font-medium uppercase tracking-widest text-slate-400">규칙 이름</p>
+                                    <p className="text-xs font-medium text-text-muted">규칙 이름</p>
                                     <p className="mt-1 truncate text-sm text-text-base">{rule.name}</p>
                                 </div>
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
-                                    <p className="text-xs font-medium uppercase tracking-widest text-slate-400">알림 채널</p>
+                                    <p className="text-xs font-medium text-text-muted">알림 채널</p>
                                     <p className="mt-1 text-sm text-text-base">
                                         {selectedChannels.length === 0
                                             ? `전체 ${effectiveChannelCount}개`
@@ -225,7 +225,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                     </p>
                                 </div>
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
-                                    <p className="text-xs font-medium uppercase tracking-widest text-slate-400">알림 메시지</p>
+                                    <p className="text-xs font-medium text-text-muted">알림 메시지</p>
                                     <p className="mt-2 text-sm leading-relaxed text-text-secondary">
                                         {message || 'Server has been started'}
                                     </p>
@@ -472,7 +472,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         onClick={() => handleCategoryChange(cat.value)}
                                         className={`flex items-center gap-2 px-3 py-3 border-2 rounded-xl transition-all text-left ${
                                             watchedCategory === cat.value
-                                                ? 'border-primary bg-primary/10 text-primary'
+                                                ? 'border-primary bg-primary/10 text-action'
                                                 : 'border-ui-border-soft text-text-muted hover:border-slate-200 dark:hover:border-slate-600'
                                         }`}
                                     >
@@ -565,7 +565,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                                 onClick={() => handleMetricChange(m)}
                                                 className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${
                                                     watchedMetric === m
-                                                        ? 'border-primary bg-primary/10 text-primary'
+                                                        ? 'border-primary bg-primary/10 text-action'
                                                         : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
                                                 }`}
                                             >
@@ -604,7 +604,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         onClick={() => handleConditionPreset(p.value)}
                                         className={`flex items-center justify-center gap-1.5 p-3 border-2 rounded-xl transition-all text-sm ${
                                             conditionPreset === p.value
-                                                ? 'border-primary bg-primary/10 text-primary'
+                                                ? 'border-primary bg-primary/10 text-action'
                                                 : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
                                         }`}
                                     >
@@ -686,7 +686,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                     </Field>
                                 ) : (
                                     <Field label="평가 방식">
-                                        <p className="text-sm text-slate-400 italic py-2.5">이벤트당 즉시 평가</p>
+                                        <p className="text-sm text-text-muted py-2.5">이벤트당 즉시 평가</p>
                                     </Field>
                                 )}
                             </div>
@@ -696,7 +696,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                             <div className="flex items-center justify-between p-3 bg-ui-hover-soft/50 rounded-xl">
                                 <div>
                                     <p className="text-sm text-text-base">연속 체크 횟수</p>
-                                    <p className="text-sm text-slate-400">알림 발생 전 연속 실패 횟수</p>
+                                    <p className="text-sm text-text-muted">알림 발생 전 연속 실패 횟수</p>
                                 </div>
                                 <Input
                                     type="number" min={1} max={20}
@@ -736,7 +736,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         key={s.value}
                                         type="button"
                                         onClick={() => setValue('severity', s.value)}
-                                        className={`py-2.5 text-sm rounded-xl border-2 transition-all flex items-center justify-center gap-2 uppercase tracking-wide ${
+                                        className={`py-2.5 text-sm rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
                                             watchedSeverity === s.value
                                                 ? s.active
                                                 : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
@@ -755,7 +755,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                         >
                             <div className="space-y-2">
                                 {channels.length === 0 ? (
-                                    <p className="text-sm text-slate-400">등록된 알림 채널이 없습니다</p>
+                                    <p className="text-sm text-text-muted">등록된 알림 채널이 없습니다</p>
                                 ) : channels.map(ch => (
                                     <button
                                         key={ch.id}
@@ -763,13 +763,13 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         onClick={() => handleToggleChannel(ch.id)}
                                         className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-all ${
                                             watchedChannelIds.includes(ch.id)
-                                                ? 'border-primary bg-primary/5 text-primary'
+                                                ? 'border-primary bg-primary/5 text-action'
                                                 : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
                                         }`}
                                     >
                                         <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
                                         <span className="text-sm flex-1 text-left">{ch.name}</span>
-                                        <span className="text-sm uppercase tracking-wider text-slate-400">{ch.type}</span>
+                                        <span className="text-sm uppercase tracking-wider text-text-dim">{ch.type}</span>
                                     </button>
                                 ))}
                             </div>
@@ -811,7 +811,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
                                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                 <div>
-                                    <p className="text-sm font-medium text-text-base uppercase tracking-widest">라이브 미리보기</p>
+                                    <p className="text-sm font-medium text-text-base">라이브 미리보기</p>
                                     <p className="text-sm text-text-muted mt-0.5">입력값 변경 시 자동 갱신</p>
                                 </div>
                             </div>
@@ -819,12 +819,12 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
 
                                 {/* IF block */}
                                 <div>
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">조건</p>
+                                    <p className="text-xs font-medium text-text-muted mb-2">조건</p>
                                     <div className="bg-slate-900 dark:bg-slate-950 rounded-lg px-4 py-3 font-mono text-xs leading-7">
                                         <div>
                                             <span className="text-sky-300">IF </span>
                                             <span className="text-amber-300">{metricName} </span>
-                                            <span className="text-slate-400">{OPERATOR_SYMBOLS[watchedOperator] ?? watchedOperator} </span>
+                                            <span className="text-text-dim">{OPERATOR_SYMBOLS[watchedOperator] ?? watchedOperator} </span>
                                             <span className="text-red-300">{watchedThreshold}{thresholdUnit}</span>
                                         </div>
                                         {isEndpoint && (
@@ -852,7 +852,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         {!isEndpoint && !isLog && (
                                             <div>
                                                 <span className="text-sky-300">COOLDOWN </span>
-                                                <span className="text-slate-400">{watchedCooldown}s</span>
+                                                <span className="text-text-dim">{watchedCooldown}s</span>
                                             </div>
                                         )}
                                     </div>
@@ -860,7 +860,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
 
                                 {/* THEN block */}
                                 <div>
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">메시지</p>
+                                    <p className="text-xs font-medium text-text-muted mb-2">메시지</p>
                                     <div className={`rounded-xl px-3 py-3 ${severityClasses.bg}`}>
                                         <div className="flex items-center gap-2 mb-1.5">
                                             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs uppercase tracking-wide ${severityClasses.badge}`}>
@@ -877,23 +877,23 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
 
                                 {/* Channels */}
                                 <div>
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">
+                                    <p className="text-xs font-medium text-text-muted mb-2">
                                         {watchedChannelIds.length === 0
                                             ? `발송 → 전체 ${channels.length}개 채널`
                                             : `발송 → ${watchedChannelIds.length}개 선택`}
                                     </p>
                                     <div className="space-y-1.5">
                                         {channels.length === 0 ? (
-                                            <p className="text-sm text-slate-400 italic">등록된 알림 채널이 없습니다</p>
+                                            <p className="text-sm text-text-muted">등록된 알림 채널이 없습니다</p>
                                         ) : previewChannels.slice(0, 5).map(ch => (
                                             <div key={ch.id} className="flex items-center gap-2 px-3 py-1.5 bg-ui-hover-soft/50 rounded-lg">
                                                 <ChannelIcon type={ch.type} size={14} className={getChannelStyle(ch.type).text} />
                                                 <span className="text-sm font-medium text-text-secondary flex-1 truncate">{ch.name}</span>
-                                                <span className="text-xs text-slate-400 uppercase">{ch.type}</span>
+                                                <span className="text-xs text-text-dim uppercase">{ch.type}</span>
                                             </div>
                                         ))}
                                         {previewChannels.length > 5 && (
-                                            <p className="text-sm text-slate-400 italic pl-1">{`+${previewChannels.length - 5}개 더`}</p>
+                                            <p className="text-sm text-text-muted pl-1">{`+${previewChannels.length - 5}개 더`}</p>
                                         )}
                                     </div>
                                 </div>

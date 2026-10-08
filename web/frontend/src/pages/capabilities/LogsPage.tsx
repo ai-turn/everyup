@@ -109,7 +109,7 @@ function LogCard({ row, window: span }: { row: LogServiceRow; window: [number, n
   return (
     <Link to={row.to} className="card-interactive group flex flex-col rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
-        title={<h3 className="truncate type-card-title text-text-base group-hover:text-primary">{row.name}</h3>}
+        title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.name}</h3>}
         badge={<ConnectionSourceBadge source={row.connection} />}
         subtitle={row.subtitle}
         status={row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collection} />}

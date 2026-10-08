@@ -1,7 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext';
 import { Link, useLocation } from 'react-router-dom';
-import logo from '../../assets/logo.png';
-import logoDark from '../../assets/logo-dark.png';
+import logo from '../../assets/logo.webp';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { IconButton, MaterialIcon } from '../common';
 import { OPEN_PALETTE_EVENT } from './CommandPalette';
@@ -17,7 +16,7 @@ export function Header() {
     const iconLinkCls = (active: boolean) =>
         `w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
             active
-                ? 'text-primary bg-primary/10'
+                ? 'text-action bg-primary/10'
                 : 'text-text-muted hover:bg-ui-hover hover:text-text-base'
         }`;
 
@@ -27,10 +26,10 @@ export function Header() {
             {/* Left: Logo */}
             <Link to="/" className="flex items-center gap-2 group shrink-0 z-10 transition-transform active:scale-95">
                 <div className="flex items-center justify-center h-12 w-12 overflow-hidden">
-                    <img src={theme === 'dark' ? logoDark : logo} alt="Monitoring Logo" className="h-full w-full object-contain" />
+                    <img src={logo} alt="Monitoring Logo" className="h-full w-full object-contain" />
                 </div>
                 <div className="flex flex-col">
-                    <h1 className="text-lg font-bold text-text-base tracking-tight leading-none group-hover:text-primary transition-colors">EveryUp</h1>
+                    <h1 className="text-lg font-bold text-text-base tracking-tight leading-none group-hover:text-action transition-colors">EveryUp</h1>
                 </div>
             </Link>
 

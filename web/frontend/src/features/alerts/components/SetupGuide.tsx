@@ -46,7 +46,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
             >
                 <MaterialIcon size={20}
                     name="help_outline"
-                    className="text-primary shrink-0"
+                    className="text-action shrink-0"
                 />
                 <span className="text-sm font-medium text-text-secondary flex-1">
                     API Key는 어떻게 발급받나요?
@@ -62,7 +62,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                     <ol className="mt-3 space-y-2">
                         {steps.map((step, i) => (
                             <li key={i} className="flex gap-2 text-sm text-text-secondary">
-                                <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center">
+                                <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 text-action text-xs flex items-center justify-center">
                                     {i + 1}
                                 </span>
                                 <span className="pt-0.5">{step}</span>
@@ -81,7 +81,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                         href="https://ai-turn.github.io/everyup/guide/notifications"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                        className="flex items-center gap-1.5 text-sm font-medium text-action hover:underline"
                     >
                         <MaterialIcon size={20} name="open_in_new" />
                         상세 가이드 보기

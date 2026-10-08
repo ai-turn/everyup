@@ -1,4 +1,4 @@
-import { Button, ConfirmDialog, MaterialIcon } from '../../../components/common';
+import { Button, ConfirmDialog, MaterialIcon, SegmentedControl } from '../../../components/common';
 import { SectionCard } from './SectionCard';
 import { AccountSection } from './AccountSection';
 import { AlertsSection } from './AlertsSection';
@@ -76,22 +76,13 @@ export function SettingsMobileView({
         <div className="space-y-2">
           <p className="text-sm text-text-base">테마</p>
           <p className="text-sm text-text-muted">라이트 또는 다크 모드를 선택합니다</p>
-          <div className="flex gap-1 bg-ui-hover p-1 rounded-lg">
-            {(['light', 'dark'] as const).map((t_) => (
-              <button
-                key={t_}
-                onClick={() => onThemeChange(t_)}
-                className={`flex-1 cursor-pointer flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                  theme === t_
-                    ? 'bg-ui-raised text-primary shadow-sm'
-                    : 'text-text-muted'
-                }`}
-              >
-                <MaterialIcon size={20} name={t_ === 'light' ? 'light_mode' : 'dark_mode'} />
-                {t_ === 'light' ? '라이트' : '다크'}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            size="md"
+            ariaLabel="테마"
+            options={[{ value: 'light', label: '라이트' }, { value: 'dark', label: '다크' }] as const}
+            value={theme}
+            onChange={onThemeChange}
+          />
         </div>
       </SectionCard>
 
@@ -108,24 +99,16 @@ export function SettingsMobileView({
             <div className="space-y-2">
               <p className="text-sm text-text-base">수집 주기</p>
               <p className="text-sm text-text-muted">시스템 메트릭을 수집하는 간격 · 다음 시작 시 적용됩니다</p>
-              <div className="flex gap-1 flex-wrap bg-ui-hover p-1 rounded-lg">
-                {(COLLECT_INTERVAL_OPTIONS.includes(collectInterval)
+              <SegmentedControl
+                size="md"
+                ariaLabel="수집 주기"
+                options={(COLLECT_INTERVAL_OPTIONS.includes(collectInterval)
                   ? COLLECT_INTERVAL_OPTIONS
                   : [...COLLECT_INTERVAL_OPTIONS, collectInterval].sort((a, b) => a - b)
-                ).map((sec) => (
-                  <button
-                    key={sec}
-                    onClick={() => onCollectIntervalChange(sec)}
-                    className={`flex-1 cursor-pointer px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      collectInterval === sec
-                        ? 'bg-ui-raised text-primary shadow-sm'
-                        : 'text-text-muted'
-                    }`}
-                  >
-                    {intervalLabel(sec)}
-                  </button>
-                ))}
-              </div>
+                ).map((sec) => ({ value: String(sec), label: intervalLabel(sec) }))}
+                value={String(collectInterval)}
+                onChange={(v) => onCollectIntervalChange(Number(v))}
+              />
             </div>
 
             <div className="border-t border-ui-border-soft my-3" />
@@ -134,21 +117,13 @@ export function SettingsMobileView({
             <div className="space-y-2">
               <p className="text-sm text-text-base">메트릭 보존 기간</p>
               <p className="text-sm text-text-muted">수집된 시스템 메트릭 데이터 보존 기간</p>
-              <div className="flex gap-1 flex-wrap bg-ui-hover p-1 rounded-lg">
-                {METRICS_RETENTION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => onMetricsRetentionChange(opt)}
-                    className={`flex-1 cursor-pointer px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      metricsRetention === opt
-                        ? 'bg-ui-raised text-primary shadow-sm'
-                        : 'text-text-muted'
-                    }`}
-                  >
-                    {retentionLabel(opt)}
-                  </button>
-                ))}
-              </div>
+              <SegmentedControl
+                size="md"
+                ariaLabel="메트릭 보존 기간"
+                options={METRICS_RETENTION_OPTIONS.map((opt) => ({ value: opt, label: retentionLabel(opt) }))}
+                value={metricsRetention}
+                onChange={onMetricsRetentionChange}
+              />
             </div>
 
             <div className="border-t border-ui-border-soft my-3" />
@@ -157,21 +132,13 @@ export function SettingsMobileView({
             <div className="space-y-2">
               <p className="text-sm text-text-base">로그 보존 기간</p>
               <p className="text-sm text-text-muted">에러 로그 데이터 보존 기간</p>
-              <div className="flex gap-1 flex-wrap bg-ui-hover p-1 rounded-lg">
-                {LOGS_RETENTION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => onLogsRetentionChange(opt)}
-                    className={`flex-1 cursor-pointer px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      logsRetention === opt
-                        ? 'bg-ui-raised text-primary shadow-sm'
-                        : 'text-text-muted'
-                    }`}
-                  >
-                    {retentionLabel(opt)}
-                  </button>
-                ))}
-              </div>
+              <SegmentedControl
+                size="md"
+                ariaLabel="로그 보존 기간"
+                options={LOGS_RETENTION_OPTIONS.map((opt) => ({ value: opt, label: retentionLabel(opt) }))}
+                value={logsRetention}
+                onChange={onLogsRetentionChange}
+              />
             </div>
 
             <p className="mt-3 type-body text-text-muted">

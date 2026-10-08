@@ -211,7 +211,7 @@ export function UptimeMonitorDetailPage() {
   return (
     <div className="space-y-5">
       {/* 데스크톱은 AppHeader breadcrumb의 첫 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to="/uptime" className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-primary lg:hidden">
+      <Link to="/uptime" className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />업타임
       </Link>
       <PageHeader
