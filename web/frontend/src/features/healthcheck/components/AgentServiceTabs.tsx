@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { type GlobalTimeRange } from '../../../components/common';
 import type { AgentServiceFlat } from '../../../services/api';
-import { AgentIdentity } from './AgentIdentity';
 import { AgentUptimeOverview } from './AgentUptimeOverview';
 import { AgentResponseTimeChart } from './AgentResponseTimeChart';
 import { AgentFailureHistory } from './AgentFailureHistory';
@@ -22,10 +21,9 @@ export interface ServiceTabsProps {
   traceId?: string;
 }
 
-export type DetailTab = 'overview' | 'uptime' | 'logs' | 'requests' | 'traces' | 'metrics' | 'infra';
+export type DetailTab = 'uptime' | 'logs' | 'requests' | 'traces' | 'metrics' | 'infra';
 
 const TABS: { key: DetailTab; labelKo: string }[] = [
-  { key: 'overview', labelKo: '개요' },
   { key: 'uptime',   labelKo: '업타임' },
   { key: 'logs',     labelKo: '로그' },
   { key: 'requests', labelKo: 'API 요청' },
@@ -51,8 +49,8 @@ function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange:
           onClick={() => onChange(tab.key)}
           className={`-mb-px shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             selected
-              ? 'border-primary text-action'
-              : 'border-transparent text-text-muted hover:text-text-secondary'
+              ? 'border-primary text-text-base'
+              : 'border-transparent text-text-muted hover:text-text-base'
           }`}
         >
           {tab.labelKo}
@@ -63,14 +61,9 @@ function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange:
   );
 }
 
-function OverviewContent({ service }: Pick<ServiceTabsProps, 'service'>) {
-  return <AgentIdentity service={service} />;
-}
-
-function UptimeContent({ service, agentId, serviceKey, refreshKey, range }: ServiceTabsProps) {
+function UptimeContent({ agentId, serviceKey, refreshKey, range }: ServiceTabsProps) {
   return (
     <>
-      <AgentIdentity service={service} />
       <AgentUptimeOverview agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
       <AgentResponseTimeChart agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
       <AgentFailureHistory agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
@@ -79,7 +72,6 @@ function UptimeContent({ service, agentId, serviceKey, refreshKey, range }: Serv
 }
 
 function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, traceId }: { tab: DetailTab } & ServiceTabsProps) {
-  if (tab === 'overview') return <OverviewContent service={service} />;
   if (tab === 'logs')     return <AgentServiceLogsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} traceId={traceId} />;
   if (tab === 'requests') return <AgentServiceRequestsTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} traceId={traceId} runtime={service.runtime} />;
   if (tab === 'traces')   return <AgentServiceTracesTab agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
@@ -89,9 +81,9 @@ function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, trac
 }
 
 // Tab bar + content for a single agent service. Reused by the full-page service
-// detail and the project master-detail view. Resets to the overview tab when the
+// detail and the project master-detail view. Resets to the uptime tab when the
 // selected service changes (key={serviceKey} at the call site).
-export function AgentServiceTabs({ initialTab = 'overview', tab, onTabChange, ...props }: ServiceTabsProps & {
+export function AgentServiceTabs({ initialTab = 'uptime', tab, onTabChange, ...props }: ServiceTabsProps & {
   initialTab?: DetailTab;
   tab?: DetailTab;
   onTabChange?: (tab: DetailTab) => void;

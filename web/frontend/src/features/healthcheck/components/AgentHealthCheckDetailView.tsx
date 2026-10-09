@@ -1,11 +1,14 @@
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { ko } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import { Button, ButtonLink, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusBadge, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
 import { useSpinAction } from '../../../hooks/useSpinAction';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
 import { alertRulesPath } from '../../alerts/alertTarget';
+import { runtimeLabel } from '../runtimeLabels';
 
 export interface AgentHealthCheckDetailViewProps {
   service: AgentServiceFlat;
@@ -34,6 +37,15 @@ function formatUptime(startedAt?: string): string | null {
   return `${mins}분`;
 }
 
+// How the service is checked. These were body chips on a separate overview tab;
+// target attributes live in the header band (DESIGN.md §4.1).
+function checkFields(service: AgentServiceFlat): DetailMetaField[] {
+  return [
+    { label: 'Protocol', value: service.checkType.toUpperCase() },
+    ...(service.runtime ? [{ label: 'Runtime', value: runtimeLabel(service.runtime) }] : []),
+  ];
+}
+
 // Container provenance line (image · restarts · uptime). Non-container services
 // have no image → renders nothing. A restart count ≥3 is highlighted as a
 // possible crash/restart loop.
@@ -55,6 +67,9 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
   // Shared chart range for all tabs; survives service switches (Tabs remount on key).
   const [range, setRange] = useState<GlobalTimeRange>(props.initialRange ?? '6h');
   const { spinning, trigger: handleRefresh } = useSpinAction(props.onRefresh);
+  const lastChecked = service.observedAt
+    ? formatDistanceToNow(new Date(service.observedAt), { addSuffix: true, locale: ko })
+    : '없음';
   // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 trail에 넣지 않는다 —
   // 실제 담김 관계는 Docker 환경 › 에이전트 › 서비스다.
   useBreadcrumb([
@@ -65,13 +80,28 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
   return (
     <>
       {/* 데스크톱은 AppHeader breadcrumb가 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to={`/agents/${agentId}`} className="mb-3 inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
+      <Link to={`/agents/${agentId}`} className="mb-3 inline-flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />{service.agentName}
       </Link>
       <PageHeader
         title={service.name}
         meta={
-          <DetailMeta status={<StatusBadge healthy={service.healthy} />} fields={containerFields(service)} />
+          <DetailMeta
+            status={
+              <>
+                <StatusBadge healthy={service.healthy} />
+                {service.lastLatency && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span>지연 시간 {service.lastLatency}</span>
+                  </>
+                )}
+                <span aria-hidden="true">·</span>
+                <span>마지막 체크 {lastChecked}</span>
+              </>
+            }
+            fields={[...checkFields(service), ...containerFields(service)]}
+          />
         }
       />
       <DetailActionToolbar

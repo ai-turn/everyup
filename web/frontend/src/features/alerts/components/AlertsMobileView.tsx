@@ -130,18 +130,16 @@ export function AlertsMobileView({
             aria-selected={activeTab === tab.key}
             aria-controls={`alerts-mobile-panel-${tab.key}`}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm transition-colors ${
               activeTab === tab.key
-                ? 'bg-bg-surface text-text-base shadow-sm'
+                ? 'bg-ui-raised text-text-base shadow-sm'
                 : 'text-text-muted'
             }`}
           >
             <MaterialIcon size={20} name={tab.icon} />
             {tab.label}
             {tab.count !== undefined && (
-              <span className="text-xs bg-ui-active text-text-secondary px-1.5 py-0.5 rounded-full">
-                {tab.count}
-              </span>
+              <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
             )}
           </button>
         ))}

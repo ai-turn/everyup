@@ -20,7 +20,7 @@ test.describe('live demo', () => {
     await page.getByRole('button', { name: 'prod-server', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'api', exact: true }).click();
+    await page.getByRole('link', { name: 'api', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'api' })).toBeVisible();
 
     await page.getByRole('tab', { name: '로그', exact: true }).click();
