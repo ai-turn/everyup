@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
+import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusLight } from '../../components/common';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import {
   api,
@@ -48,7 +48,10 @@ function ApiCard({
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{name}</h3>}
         badge={<ConnectionSourceBadge source={connection} />}
-        status={<StatusBadge healthy={active} />}
+        // 수집 상태다 — 정상/장애(StatusBadge)로 그리면 Collector가 잠깐 끊긴 것이 서비스 장애로 읽힌다 (§5.1a).
+        status={connection === 'direct'
+          ? <StatusLight tone={active ? 'healthy' : 'error'} label={active ? '수집 가능' : '중지됨'} />
+          : <CollectionStatusBadge status={active ? 'collecting' : 'delayed'} />}
       />
       <div className="mt-5 grid grid-cols-2 gap-3">
         <div><p className="text-xs text-text-dim">요청</p><p className="text-lg text-text-base">{total.toLocaleString()}</p></div>
@@ -102,11 +105,11 @@ export function ApiPage() {
         <MonitoringConnection capability="api" onConnected={reload} />
       </PageHeader>
       {loading ? (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map(item => <div key={item} className="h-40 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}
         </div>
       ) : error ? (
-        <EmptyState icon="error_outline" title="API 데이터를 불러오지 못했습니다" description={error} />
+        <EmptyState icon="error_outline" title="API 데이터를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       ) : isEmpty ? (
         <EmptyState icon="api" title="표시할 API 대상이 없습니다" description="기존 Docker 환경을 선택하거나 앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
           <MonitoringConnection capability="api" onConnected={reload} />
@@ -117,7 +120,7 @@ export function ApiPage() {
             <h2 className="type-section-title text-text-base">API 대상</h2>
             <span className="text-xs text-text-dim">{directRows.length + agentRows.length}</span>
           </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {directRows.map(({ service, summary }) => (
               <ApiCard key={service.id} name={service.name} connection="direct" active={service.isActive} summary={summary} to={`/api/${service.id}`} />
             ))}

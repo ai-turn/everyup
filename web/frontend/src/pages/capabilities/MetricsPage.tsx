@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader } from '../../components/common';
+import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusLight } from '../../components/common';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import {
   api,
@@ -22,6 +22,10 @@ const METRIC_SKELETONS = ['metric-1', 'metric-2', 'metric-3', 'metric-4', 'metri
 
 const METRIC_NAMES_SHOWN = 3;
 
+function agentOnline(agent: ConnectedAgent) {
+  return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
+}
+
 // Same order as the metric picker in the detail view.
 const sortedNames = (names: string[] = []) => [...names].sort((a, b) => a.localeCompare(b));
 
@@ -31,7 +35,7 @@ function MetricCard({
   subtitle,
   metricNames,
   to,
-  active = true,
+  active,
 }: {
   name: string;
   connection: 'direct' | 'docker';
@@ -39,7 +43,8 @@ function MetricCard({
   /** Sorted by name — the detail opens on the first one. */
   metricNames: string[];
   to: string;
-  active?: boolean;
+  /** direct: 연결이 켜져 있는가 · docker: Collector가 최근에 보고했는가 */
+  active: boolean;
 }) {
   return (
     <Link to={to} className="card-interactive group rounded-xl border border-ui-border bg-bg-surface p-4">
@@ -47,12 +52,10 @@ function MetricCard({
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{name}</h3>}
         badge={<ConnectionSourceBadge source={connection} />}
         subtitle={subtitle}
-        status={
-          <span className="flex items-center gap-1.5 type-caption text-text-muted">
-            <span className={`h-2 w-2 rounded-full ${active ? 'bg-status-healthy' : 'bg-status-error'}`} aria-hidden="true" />
-            {active ? '수집 가능' : '중지됨'}
-          </span>
-        }
+        // API·인프라 목록과 같은 수집 상태 표기 (§5.1a)
+        status={connection === 'direct'
+          ? <StatusLight tone={active ? 'healthy' : 'error'} label={active ? '수집 가능' : '중지됨'} />
+          : <CollectionStatusBadge status={active ? 'collecting' : 'delayed'} />}
       />
       {/* No single "current value": which of a service's metrics would represent it is arbitrary. */}
       {metricNames.length > 0 ? (
@@ -68,7 +71,7 @@ function MetricCard({
           )}
         </div>
       ) : (
-        <div className="mt-6 rounded-lg bg-ui-hover-soft px-3 py-4 text-sm text-text-muted">첫 메트릭 수신을 기다리는 중입니다.</div>
+        <p className="mt-4 type-body text-text-muted">첫 메트릭 수신을 기다리는 중입니다.</p>
       )}
     </Link>
   );
@@ -133,11 +136,11 @@ export function MetricsPage() {
       </PageHeader>
 
       {loading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {METRIC_SKELETONS.map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}
         </div>
       ) : error ? (
-        <EmptyState icon="error_outline" title="메트릭을 불러오지 못했습니다" description={error} />
+        <EmptyState icon="error_outline" title="메트릭을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       ) : isEmpty ? (
         <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="기존 Docker 환경을 선택하거나 앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
           <MonitoringConnection capability="metrics" onConnected={reload} />
@@ -148,7 +151,7 @@ export function MetricsPage() {
             <h2 className="type-section-title text-text-base">메트릭 서비스</h2>
             <span className="text-xs text-text-dim">{directServices.length + dockerCards.length}</span>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {directServices.map(service => (
               <MetricCard
                 key={service.id}
@@ -167,6 +170,7 @@ export function MetricsPage() {
                 subtitle={card.agent.name}
                 metricNames={sortedNames(card.metricNames)}
                 to={`/services/${card.service.agentId}/${encodeURIComponent(card.service.key)}?tab=metrics`}
+                active={agentOnline(card.agent)}
               />
             ))}
           </div>

@@ -973,7 +973,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 | 항목 | 위치 | 조치 |
 |------|------|------|
-| 카드 그리드 `gap-3` | `AgentServiceCapabilityPage`(2) · `ApiPage`(2) · `InfrastructurePage`(2) · `MorePage` | `gap-4` |
+| 카드 그리드 `gap-3` | `AgentServiceCapabilityPage`(2) · `MorePage` | `gap-4` |
 | 페이지 2단 `gap-6` | `AlertRuleForm`(2) · `ChannelForm` | `gap-5` |
 | 제목 → 설명 `mt-1` | `InfrastructureCollectorSetupResult` · `InstrumentationOverrideModal` · `SettingRow` · `DirectTelemetrySetupDialog` · `DirectTelemetrySetupResult` · `DirectApiDetailPage` · `OverviewPage` | `mt-0.5` |
 | 라벨 → 입력 `mb-2` | `FormLayout`의 `Field` 1곳 — 알림 폼 전체에 반영된다 | `mb-1.5` |
@@ -993,7 +993,6 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | 항목 | 위치 | 조치 |
 |------|------|------|
 | 카드 목록 `sm:2 lg:3` | `App.tsx` 스켈레톤 | `md:2 xl:3` |
-| 카드 목록 `sm:2 xl:3` | `MetricsPage`(2) | `md:2 xl:3` |
 | 뷰 분기(`md`)와 셸 전환(`lg`)의 경계 불일치 | `useIsMobile` · `MainLayout` | **결정 필요** — §3.8 |
 
 ### 해결됨 (2026-09-24) — 보편 디자인 시스템 대조 (버튼)
