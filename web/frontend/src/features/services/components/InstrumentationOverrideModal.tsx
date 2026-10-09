@@ -186,7 +186,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                   <MaterialIcon size={20} name="verified_user" className="mt-0.5 shrink-0 text-status-healthy" />
                   <div>
                     <p className="type-label text-text-base">원본 Compose는 수정하지 않습니다</p>
-                    <p className="mt-1 type-body text-text-muted">
+                    <p className="mt-0.5 type-body text-text-muted">
                       CLI가 별도 override를 만들고 선택한 서비스만 재시작합니다. 주입 옵션, 공유 볼륨, 네트워크와 컨테이너 상태를 확인하며 실패하면 직전 설정으로 자동 복구합니다.
                     </p>
                   </div>

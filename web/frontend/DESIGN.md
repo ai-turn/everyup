@@ -973,8 +973,6 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 | 항목 | 위치 | 조치 |
 |------|------|------|
-| 제목 → 설명 `mt-1` | `InfrastructureCollectorSetupResult` · `InstrumentationOverrideModal` · `SettingRow` · `DirectTelemetrySetupDialog` · `DirectTelemetrySetupResult` · `DirectApiDetailPage` · `OverviewPage` | `mt-0.5` |
-| 라벨 → 입력 `mb-2` | `FormLayout`의 `Field` 1곳 — 알림 폼 전체에 반영된다 | `mb-1.5` |
 | 카드 패딩 `p-5` | `SectionCard` · `LoginPage` · `DirectApiDetailPage` · `ProjectsPage` | `p-4` |
 | 카드 패딩 `p-3` | `AlertsMobileView`(5) | `p-4` |
 | 모달인데 패널 패딩 | `InstrumentationOverrideModal`(`px-5 py-4`) | 모달 규칙 |
