@@ -115,8 +115,8 @@ function LogCard({ row, window: span }: { row: LogServiceRow; window: [number, n
         status={row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collection} />}
       />
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <LevelCount label="ERROR" value={summary?.error ?? 0} tone="text-status-error" known={known} />
-        <LevelCount label="WARN" value={summary?.warn ?? 0} tone="text-status-warn" known={known} />
+        <LevelCount label="ERROR" value={summary?.error ?? 0} tone={LEVEL_TEXT.error} known={known} />
+        <LevelCount label="WARN" value={summary?.warn ?? 0} tone={LEVEL_TEXT.warn} known={known} />
       </div>
       <div className="mt-3">
         <LogSparkline buckets={summary?.buckets ?? []} window={span} />
@@ -216,23 +216,23 @@ export function LogsPage() {
         <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
       {loading ? (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map(item => <div key={item} className="h-48 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}
         </div>
       ) : error ? (
-        <EmptyState icon="error_outline" title="로그를 불러오지 못했습니다" description={error} />
+        <EmptyState icon="error_outline" title="로그를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       ) : rows.length === 0 ? (
         <EmptyState icon="article" title="아직 로그 서비스가 없습니다" description="기존 Docker 환경을 선택하거나 앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
           <MonitoringConnection capability="logs" onConnected={reload} />
         </EmptyState>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-5">
           <section>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="type-section-title text-text-base">로그 서비스</h2>
               <span className="text-xs text-text-dim">{`최근 24시간 · ${rows.length}`}</span>
             </div>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {rows.map(row => <LogCard key={row.key} row={row} window={span} />)}
             </div>
           </section>
