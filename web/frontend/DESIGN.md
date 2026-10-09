@@ -475,7 +475,7 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 ### 4.3 `components/layout/`
 
-`MainLayout`(셸) · `Sidebar`(lg+) · `Header`(모바일) · `BottomNavMobile` · `Footer` · `SidePanel`(컨텍스트 기반 우측 슬라이드) · `CommandPalette`(⌘K/Ctrl+K) · `DemoBanner`
+`MainLayout`(셸) · `Sidebar`(lg+) · `Header`(모바일) · `BottomNavMobile` · `Footer` · `CommandPalette`(⌘K/Ctrl+K) · `DemoBanner`
 
 ### 4.4 기타
 
@@ -610,9 +610,9 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 |------|------|------|
 | **ConfirmDialog** | 파괴적 확인 | `components/common/ConfirmDialog` |
 | **모달** | 짧은 단일 작업 (API Key, 서비스 추가) | `features/services/*Modal` |
-| **사이드 패널** | 긴 폼·상세 (알림 규칙, 트레이스) | `FormSidePanel` / `SidePanel` / `TracePanel` |
+| **사이드 패널** | 긴 폼·상세 (알림 규칙, 트레이스) | `FormSidePanel` / `TracePanel` |
 
-**공통 규약** — z-index `z-50`(SidePanel만 `z-40`), 배경 클릭 닫기.
+**공통 규약** — z-index `z-50`, 배경 클릭 닫기.
 
 **푸터 규칙 (2026-09-23)** — 모달·다이얼로그·사이드 패널·폼 페이지가 전부 같다.
 
@@ -692,7 +692,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 ## 10. 알려진 부채
 
-2026-07-26 전수 스캔(`src/**/*.tsx` 76개). 규약 대비 이탈 목록. 2026-09-23 재집계: `dark:` 변형 82건/22파일(대부분 primitive 축 — 아래 B), `slate-*` 하드코딩 117건/18파일.
+2026-07-26 전수 스캔(`src/**/*.tsx` 76개). 규약 대비 이탈 목록. 2026-09-23 재집계: `dark:` 변형 82건/22파일(대부분 primitive 축 — 아래 B), `slate-*` 하드코딩 117건/18파일. 2026-10-09 재집계(127파일): `dark:` 69건/19파일, `slate-*` 77건/17파일, `*-dark` 접미 토큰 직접 사용 19건 — 남은 덩어리는 `AlertRuleForm`·`ChannelForm`·`TracePanel`이다.
 
 ### A. 토큰 규약 이탈
 
@@ -719,8 +719,6 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 새 이탈을 발견하면 색을 치환하기 전에 **역할에 이름이 없는지, 컴포넌트가 중복인지**부터 의심할 것.
 
 **기계적 일괄 치환이 안 되는 이유** — 라이트/다크 클래스가 문자열 안에서 인접해 있지 않고(`bg-white … dark:bg-ui-active-dark`), 값이 토큰과 정확히 같지도 않다. 예를 들어 `bg-white dark:bg-ui-active-dark`는 라이트 `#fff`·다크 `#374151`인데 이런 토큰 쌍은 없다. 토큰과 값이 정확히 일치하는 쌍(6파일)은 2026-07-26에 이미 치환했고, 남은 것은 **사이트별로 의도를 확인해야** 한다.
-
-`ChartElements.tsx:77`은 **공용 컴포넌트인데도** `dark:` 이탈 상태라 우선순위가 높다.
 
 ### B. 상태색 primitive — 대부분 정상
 
@@ -780,7 +778,19 @@ Carbon·Primer·Polaris·Material 3의 공통 원칙과 대조해 어긋난 것�
 - 이어서(같은 날): 상태 전환(`일시정지`·`연결 중지`)을 툴바에서 meta 줄의 상태 옆으로 — 툴바는 `수정 | 삭제` 짝만
 - 이어서(같은 날): 툴바 버튼 모양 통일 — `destructive`에 테두리, 상세 툴바의 `ghost`(`일시정지`·`연결 중지`) → `secondary`, `일시정지`에 아이콘 복원, 모바일에서 `collapseLabel`로 아이콘만
 - 보고서 후속: 파란 틴트 링크칩 6·텍스트 링크 버튼 4 → ghost sm, 계정 초기화 → `destructive`, 업타임 일시정지 목록·상세 → ghost 무아이콘, 남은 X 6·테마 토글 2 → `IconButton`(모바일 `Toggle theme` 영어 라벨 해소), 일회성 스타일 5(검정 테스트 전송·rounded-xl 복사/재발급·px/py 다시 시도·34px 재설치) → `Button`/`CopyButton`, `ApiKeyModal`의 `confirm()` → `ConfirmDialog`
-- 남은 결정: 툴바 높이 혼재(조회 제어 sm 32), 토글 켜짐 표현 5종, 장애 배너 `로그 확인`의 danger, 설정 세그먼트 9곳
+- 남은 결정: 툴바 높이 혼재(조회 제어 sm 32), 토글 켜짐 표현 5종, 장애 배너 `로그 확인`의 danger
+
+### 해결됨 (2026-10-08~09) — 개요 critique · 전체 audit
+
+- ~~부분 로드 실패 시 개요가 "모두 정상"~~ → 상태 불명 표시 + 실패 영역 이름, 실패 소스 `—`, 조회 실패로는 온보딩을 띄우지 않음
+- ~~`text-primary`를 텍스트에 사용 65곳(다크 3.4:1)~~ → `text-action`(§1.4). 로그인 브랜드 워드마크만 예외
+- ~~설정 세그먼트 9곳 수제~~ → `SegmentedControl`(`aria-pressed`, 다크 AA)
+- ~~`Select` 트리거가 현재 값을 읽지 않음~~ → `role="combobox"`. e2e는 `getByRole('combobox', { name })`로 찾는다
+- ~~`Toggle` 꺼짐 트랙 1.2:1, 36×20 타깃~~ → `text-dim` 트랙, `::before`로 44px
+- ~~알림 규칙·채널 테이블의 작업 열이 노트북 폭에서 가려짐~~ → 오른쪽 sticky
+- ~~다크 사용자 첫 로딩 깜빡임~~ → `public/theme-init.js`(CSP가 인라인 스크립트를 막는다), 테마는 명시적 선택만 저장
+- ~~사이드바 수제 배지~~ → 색 있는 숫자 텍스트(§5.1b)
+- ~~호출되지 않던 `SidePanel`·`SidePanelContext`~~ → 삭제
 
 ### 해결됨 (2026-09-23) — 숫자는 Spoqa, mono는 코드·로그만
 

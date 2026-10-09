@@ -6,24 +6,20 @@ import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
 import { DemoBanner } from './DemoBanner';
 import { BottomNavMobile } from './BottomNav.mobile';
-import { SidePanel } from './SidePanel';
-import { useSidePanel } from '../../contexts/SidePanelContext';
 import { BreadcrumbProvider } from '../../contexts/BreadcrumbContext';
 
 export function MainLayout() {
-  const { isOpen: isPanelOpen } = useSidePanel();
-
   // AppHeader와 Outlet이 같은 트리에 있으므로 Provider도 여기서 닫는다 — 상세 페이지가
   // useBreadcrumb으로 올린 trail을 헤더가 읽는다.
   return (
     <BreadcrumbProvider>
     <div className="flex flex-col h-dvh overflow-hidden bg-bg-main">
-      {/* Skip to main content (accessibility) */}
+      {/* 본문 바로가기 (accessibility) */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-100 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus: focus:text-sm focus:shadow-lg"
       >
-        Skip to main content
+        본문 바로가기
       </a>
 
       <DemoBanner />
@@ -48,8 +44,8 @@ export function MainLayout() {
 
           <div className="flex flex-1 overflow-hidden relative">
             {/* full-bleed content on the bg-main canvas (white cards pop), 24px/20px padding */}
-            <main id="main-content" className="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-bg-main transition-all duration-500 ease-in-out">
-              <div className="flex-1 overflow-y-auto scroll-smooth [scrollbar-gutter:stable]">
+            <main id="main-content" className="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-bg-main">
+              <div className="flex-1 overflow-y-auto motion-safe:scroll-smooth [scrollbar-gutter:stable]">
                 <div className="flex flex-col min-h-full pb-safe-bottom lg:pb-0">
                   <div className="p-4 sm:px-6 sm:py-5 space-y-5 flex-1 w-full max-w-320 mx-auto">
                     <Outlet />
@@ -58,14 +54,6 @@ export function MainLayout() {
                 </div>
               </div>
             </main>
-
-            {/* SidePanel space (legacy — will be replaced by full pages in later phase) */}
-            <div
-              className={`hidden lg:block transition-all duration-500 ease-in-out flex-shrink-0 ${isPanelOpen ? 'lg:w-[500px] xl:w-[600px]' : 'w-0'
-                }`}
-            />
-
-            <SidePanel />
           </div>
         </div>
       </div>

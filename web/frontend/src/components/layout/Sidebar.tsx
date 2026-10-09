@@ -27,7 +27,12 @@ function NavItem({ to, icon, label, active, badge }: NavItemProps) {
     >
       <MaterialIcon size={20} name={icon} className="shrink-0" />
       <span className="truncate">{label}</span>
-      {badge != null && badge > 0 && <span className="ml-auto shrink-0 rounded bg-status-error/10 px-1.5 py-px text-xs text-status-error">{badge}</span>}
+      {/* 배지 박스는 표 컬럼 전용(DESIGN §5.1b) — 여기서는 색 있는 숫자로 충분하다. 링크 이름은 "개요 장애 1건". */}
+      {badge != null && badge > 0 && (
+        <span className="ml-auto shrink-0 text-xs font-medium tabular-nums text-status-error">
+          <span className="sr-only">장애 </span>{badge}<span className="sr-only">건</span>
+        </span>
+      )}
     </Link>
   );
 }
@@ -58,7 +63,7 @@ export function Sidebar() {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-ui-border bg-bg-surface lg:flex">
       <Link to="/" className="group flex h-16 shrink-0 items-center gap-2 px-4">
-        <img src={logo} alt="EveryUp" className="h-9 w-9 object-contain" />
+        <img src={logo} alt="" className="h-9 w-9 object-contain" />
         <span className="text-lg font-bold tracking-tight text-text-base transition-colors group-hover:text-action">EveryUp</span>
       </Link>
 
@@ -75,7 +80,7 @@ export function Sidebar() {
       >
         <MaterialIcon size={20} name="search" className="shrink-0" />
         <span className="flex-1 text-left text-xs">검색</span>
-        <kbd className="font-sans rounded border border-ui-border px-1 py-0.5 text-xs font-medium">{navigator.platform.toLowerCase().includes('mac') ? '⌘' : 'Ctrl K'}</kbd>
+        <kbd className="font-sans rounded border border-ui-border px-1 py-0.5 text-xs font-medium">{navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl K'}</kbd>
       </button>
 
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3" aria-label="주 메뉴">

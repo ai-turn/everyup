@@ -171,8 +171,19 @@ export function OverviewPage() {
 
   const totalTargets = agents.length + monitors.length + observedServices.length + infrastructure.length;
 
-  if (loading && totalTargets === 0) {
-    return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">{[0, 1, 2, 3].map((item) => <div key={item} className="h-36 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>;
+  // 첫 로드에만 스켈레톤을 보인다 — 대상이 0개인 상태에서 30초마다 다시 깜빡이지 않게.
+  // 모양은 실제 배치(확인 필요 + 범위 카드, 그 아래 이력)를 따른다.
+  if (!updatedAt) {
+    return (
+      <div className="space-y-5" aria-busy="true">
+        <PageHeader title="모니터링 개요" subtitle="수집 상태와 현재 이상을 먼저 확인하세요." />
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+          <div className="h-56 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
+          <div className="h-56 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
+        </div>
+        <div className="h-48 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
+      </div>
+    );
   }
 
   return (
@@ -349,7 +360,7 @@ export function OverviewPage() {
                       <span className="shrink-0 text-right">
                         <span className="block type-caption text-text-muted">{formatIncidentTime(episode.startedAt)} 시작</span>
                         <span className={`mt-0.5 block type-caption ${episode.active ? 'text-status-error' : 'text-text-dim'}`}>
-                          {formatDuration(episode.durationSec)}{episode.active ? ' 경과' : ''}
+                          {formatDuration(episode.durationSec)}{episode.active ? ' 경과' : ' 지속'}
                         </span>
                       </span>
                       <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
