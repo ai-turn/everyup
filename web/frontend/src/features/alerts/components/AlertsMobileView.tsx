@@ -100,19 +100,19 @@ export function AlertsMobileView({
       {/* Stats Summary */}
       {stats && (
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-bg-surface border border-ui-border rounded-xl p-3">
+          <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
             <p className="text-sm text-text-muted truncate">
               성공률
             </p>
             <p className="text-xl text-text-base">{stats.successRate.toFixed(0)}%</p>
           </div>
-          <div className="bg-bg-surface border border-ui-border rounded-xl p-3">
+          <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
             <p className="text-sm text-status-healthy truncate">
               발송
             </p>
             <p className="text-xl text-status-healthy">{stats.totalSent}</p>
           </div>
-          <div className="bg-bg-surface border border-ui-border rounded-xl p-3">
+          <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
             <p className="text-sm text-status-error truncate">
               실패
             </p>
@@ -272,7 +272,7 @@ export function AlertsMobileView({
               return (
                 <div
                   key={item.id}
-                  className="bg-bg-surface border border-ui-border rounded-xl p-3"
+                  className="bg-bg-surface border border-ui-border rounded-xl p-4"
                 >
                   <div className="flex items-start gap-3">
                     <MaterialIcon size={20} name={statusConf.icon} className={`mt-0.5 shrink-0 ${statusConf.color}`} />
@@ -305,7 +305,7 @@ export function AlertsMobileView({
 
 function InlineError({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-bg-surface p-3" role="alert">
+    <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3" role="alert">
       <MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" />
       <div className="min-w-0 flex-1"><p className="text-sm font-medium text-text-base">불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{message}</p></div>
       <Button size="sm" variant="secondary" onClick={onRetry}>다시 시도</Button>

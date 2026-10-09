@@ -87,7 +87,7 @@ function ProjectCard({ project, agents, monitors, directServices, infrastructure
   const empty = agents.length === 0 && monitors.length === 0 && directServices.length === 0 && infrastructureResources.length === 0;
 
   return (
-    <article className="rounded-xl border border-ui-border bg-bg-surface p-5">
+    <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
         title={<h2 className="truncate type-card-title text-text-base"><Link to={`/projects/${project.id}`} className="hover:text-action">{project.name}</Link></h2>}
         status={<div className="flex gap-1"><IconButton icon="edit" label="Project 수정" size="sm" onClick={onEdit} /><IconButton icon="delete_outline" label="Project 삭제" size="sm" tone="danger" onClick={onDelete} /></div>}

@@ -189,7 +189,7 @@ export function DirectApiDetailPage() {
         }
       />
 
-      <section className="mb-6 rounded-xl border border-ui-border bg-bg-surface p-5">
+      <section className="mb-6 rounded-xl border border-ui-border bg-bg-surface p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="type-card-title text-text-base">API 제외 경로</h2>
