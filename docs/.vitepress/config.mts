@@ -15,7 +15,11 @@ export default defineConfig({
   // docs/에는 사이트에 올리지 않는 내부 문서도 함께 있다.
   srcExclude: ['adr/**', 'agents/**', 'CHANGELOG.md', 'monitoring-capability-release-gate.md'],
   // 기본 github-light/dark는 빨강·초록·주석이 4.5:1 미만이다. *-default 팔레트는 두 테마 모두 AA를 넘는다.
-  markdown: { theme: { light: 'github-light-default', dark: 'github-dark-default' } },
+  markdown: {
+    theme: { light: 'github-light-default', dark: 'github-dark-default' },
+    // 본문 스크린샷은 대부분 화면 아래쪽에 있다. width/height는 마크다운 속성({width=… height=…})으로 준다.
+    image: { lazyLoading: true },
+  },
   sitemap: { hostname: SITE },
   // 링크 미리보기와 검색엔진용: 페이지별 og 태그, ko/en 짝 페이지(hreflang). 두 언어의 페이지 구성은 1:1이다.
   transformHead({ pageData, title, description }) {
@@ -44,7 +48,6 @@ export default defineConfig({
 
   themeConfig: {
     logo: '/images/logo.webp',
-    socialLinks: [{ icon: 'github', link: GH }],
     search: {
       provider: 'local',
       options: {
@@ -127,7 +130,10 @@ export default defineConfig({
         darkModeSwitchTitle: '다크 테마로 전환',
         lightModeSwitchTitle: '라이트 테마로 전환',
         skipToContentLabel: '본문으로 건너뛰기',
-        lastUpdated: { text: '마지막 수정' },
+        // 기본 형식은 '26. 10. 4. 오후 8:09'처럼 연도가 두 자리라 모호하다
+        lastUpdated: { text: '마지막 수정', formatOptions: { dateStyle: 'long' } },
+        // 아이콘 링크의 이름. 기본값은 영어 'github'
+        socialLinks: [{ icon: 'github', link: GH, ariaLabel: 'GitHub 저장소' }],
         sidebarMenuLabel: '메뉴',
         returnToTopLabel: '맨 위로',
         langMenuLabel: '언어',
@@ -181,6 +187,8 @@ export default defineConfig({
           },
         ],
         editLink: { pattern: `${GH}/edit/main/docs/:path`, text: 'Edit this page on GitHub' },
+        lastUpdated: { formatOptions: { dateStyle: 'long' } },
+        socialLinks: [{ icon: 'github', link: GH, ariaLabel: 'GitHub repository' }],
       },
     },
   },

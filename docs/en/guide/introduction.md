@@ -10,7 +10,8 @@ stack to set up.
 | **Web** | Dashboard, users, alert rules, notification channels, history | Your dashboard server |
 | **Docker Collector** | Docker discovery, container state, logs, host metrics | Each Docker host you monitor |
 
-![EveryUp dashboard](/images/everyup-main-en.png)
+![The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 2 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
+![The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 2 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
 
 ::: info
 The dashboard interface is Korean only. These docs cover setup and

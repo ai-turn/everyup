@@ -135,7 +135,8 @@ and the [Docker Collector configuration](../reference/collector).
 (awaiting install) to **수집 중** (collecting). When uptime collection is enabled, the containers
 on that server also appear as services.
 
-![The Docker environments screen. The prod-server card shows 수집 중 (collecting), the staging-api card shows 설치 대기 (awaiting install), and the Docker 연결 button sits at the top right.](/images/quickstart-docker-env-ko.png)
+![The Docker environments screen. The prod-server card shows 수집 중 (collecting), the staging-api card shows 설치 대기 (awaiting install), and the Docker 연결 button sits at the top right.](/images/quickstart-docker-env-light.webp){.only-light width=1440 height=480}
+![The Docker environments screen. The prod-server card shows 수집 중 (collecting), the staging-api card shows 설치 대기 (awaiting install), and the Docker 연결 button sits at the top right.](/images/quickstart-docker-env-dark.webp){.only-dark width=1440 height=480}
 
 <p class="screenshot-caption"><strong>수집 중</strong> means connected; <strong>설치 대기</strong> means the Collector has not connected yet. The dashboard UI is Korean only.</p>
 

@@ -29,6 +29,29 @@ Web runs with working defaults and needs no env vars for a basic setup. The ones
 below matter for production, networking, and automation. Precedence is env var >
 `config.json` > default.
 
+### How to set them {#how-to-set}
+
+The [Quick Start](../guide/quickstart) Compose file passes only `EVERYUP_PUBLIC_URL` into the
+container. Add any other variable under `environment:` in `docker-compose.yml`, then recreate the
+container with `docker compose up -d`.
+
+```yaml
+services:
+  everyup:
+    environment:
+      EVERYUP_PUBLIC_URL: ${EVERYUP_PUBLIC_URL:-}
+      EVERYUP_ENCRYPTION_KEY: ${EVERYUP_ENCRYPTION_KEY}
+      EVERYUP_RETENTION_LOGS: 7d
+```
+
+Keep secrets in `.env` in the same directory and reference them with `${…}` so they stay out of
+the Compose file.
+
+```bash
+# .env
+EVERYUP_ENCRYPTION_KEY=<output of openssl rand -hex 32>
+```
+
 ### Server
 
 - **`EVERYUP_PUBLIC_URL`**\
