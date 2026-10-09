@@ -27,9 +27,21 @@
   --vp-c-brand-2: #3268b3;
   --vp-c-brand-3: #3b76c9;
   --vp-c-brand-soft: rgba(59, 118, 201, 0.14);
+
+  /* 인라인 코드가 링크와 같은 파랑이면 누를 수 있어 보인다. 링크 안의 코드만 파랑(--vp-code-link-color). */
+  --vp-code-color: var(--vp-c-text-1);
+  /* 코드 블록 언어 라벨: 기본 text-3은 2.9:1 */
+  --vp-code-lang-color: var(--vp-c-text-2);
+  /* 흰 바탕이어야 github-light-default 토큰이 전부 4.5:1을 넘는다(주석 #6e7781 = 4.55). 경계는 아래 보더가 맡는다. */
+  --vp-code-block-bg: #ffffff;
+}
+
+.vp-doc div[class*='language-'] {
+  border: 1px solid var(--vp-c-divider);
 }
 
 .dark {
+  --vp-code-block-bg: var(--vp-c-bg-alt);
   --vp-c-brand-1: #7aa2f7;
   --vp-c-brand-2: #7aa2f7;
   --vp-c-brand-3: #3f6fdb;
@@ -140,7 +152,8 @@ html:not(.dark) .only-dark {
   display: flex;
   padding: 0 6px;
   border-radius: 999px;
-  background-color: rgba(28, 28, 32, 0.6);
+  /* 흰 슬라이드 위에서도 비활성 점이 3:1을 넘도록(WCAG 1.4.11) 알약은 0.75, 점은 0.7 */
+  background-color: rgba(28, 28, 32, 0.75);
   transform: translateX(-50%);
 }
 /* 점은 8px로 보이지만 누르는 영역은 22x32px */
@@ -156,7 +169,7 @@ html:not(.dark) .only-dark {
   width: 8px;
   height: 8px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.7);
   /* 폭(width)은 레이아웃 속성이라 애니메이션하지 않고 색만 전환한다 */
   transition: background-color 0.2s;
 }
@@ -219,16 +232,12 @@ html:not(.dark) .only-dark {
     bottom: 8px;
     padding: 0 4px;
   }
-  .home-carousel-dot {
-    width: 16px;
-    height: 24px;
-  }
-  .home-carousel-dot::before {
-    width: 6px;
-    height: 6px;
-  }
-  .home-carousel-dot[aria-current='true']::before {
-    width: 14px;
+  /* 점의 누르는 영역은 모바일에서도 22x32px 그대로 둔다(16x24px는 2.5.8의 24px 미만이었다) */
+}
+/* 터치 기기는 밀어서 넘기고 점으로 위치를 본다. 화살표는 스크린샷 가장자리만 가린다. */
+@media (hover: none) and (pointer: coarse) {
+  .home-carousel-arrow {
+    display: none;
   }
 }
 @media (min-width: 640px) {
@@ -305,6 +314,15 @@ html:not(.dark) .only-dark {
   .VPHero .tagline {
     max-width: 640px;
     font-size: 20px;
+  }
+}
+/* 모바일: 히어로가 첫 화면을 다 차지하지 않게 문장을 줄이고, GitHub(세 번째 버튼)은 메뉴의 아이콘이 대신한다 */
+@media (max-width: 639px) {
+  .VPHero .text {
+    font-size: 28px;
+  }
+  .VPHero .actions .action:nth-child(3) {
+    display: none;
   }
 }
 

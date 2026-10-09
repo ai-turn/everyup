@@ -3,7 +3,8 @@ import { computed, ref } from 'vue'
 import { useData, withBase } from 'vitepress'
 
 // 홈 히어로 아래의 제품 화면 캐러셀. 슬라이드는 홈 frontmatter의 carousel 항목이고,
-// 이미지는 /images/home/slide-<image>-light.png 와 -dark.png 짝 (데모 빌드 1440x900 캡처).
+// 이미지는 /images/home/slide-<image>-light.webp 와 -dark.webp 짝 (데모 빌드 1440x900 캡처)이고,
+// 좁은 화면용 -720.webp 사본이 함께 있다.
 // 자동 넘김은 넣지 않는다 (읽는 중에 화면이 바뀌면 안 된다).
 interface Slide {
   title: string
@@ -20,6 +21,9 @@ const ko = computed(() => lang.value === 'ko')
 const track = ref<HTMLElement | null>(null)
 const index = ref(0)
 const current = computed(() => slides.value[index.value] ?? slides.value[0])
+
+const shot = (image: string, theme: 'light' | 'dark', suffix = '') => withBase(`/images/home/slide-${image}-${theme}${suffix}.webp`)
+const shotSet = (image: string, theme: 'light' | 'dark') => `${shot(image, theme, '-720')} 720w, ${shot(image, theme)} 1440w`
 
 // 버튼으로 넘길 때의 목적지. 부드러운 스크롤 도중에 다시 누르면 지나가는 중간 위치가 아니라
 // 이 목적지를 기준으로 한 칸 더 간다 (없으면 빠르게 연달아 누를 때 같은 슬라이드에 멈춘다).
@@ -73,6 +77,7 @@ function onKey(e: KeyboardEvent) {
       <div
         ref="track"
         class="home-carousel-track"
+        role="region"
         tabindex="0"
         :aria-label="ko ? '제품 화면 (좌우 화살표 키로 넘기기)' : 'Product screens (use the arrow keys)'"
         @scroll.passive="onScroll"
@@ -86,22 +91,29 @@ function onKey(e: KeyboardEvent) {
           aria-roledescription="slide"
           :aria-label="`${i + 1} / ${slides.length}: ${s.title}`"
         >
+          <!-- 전부 lazy: 첫 장은 화면 안이라 바로 받고, display:none인 반대 테마 사본은 받지 않는다 -->
           <img
             class="only-light"
-            :src="withBase(`/images/home/slide-${s.image}-light.png`)"
+            :src="shot(s.image, 'light')"
+            :srcset="shotSet(s.image, 'light')"
+            sizes="(max-width: 1152px) 100vw, 1152px"
             width="1440"
             height="900"
             :alt="s.alt"
-            :loading="i === 0 ? 'eager' : 'lazy'"
+            loading="lazy"
+            :fetchpriority="i === 0 ? 'high' : undefined"
             decoding="async"
           />
           <img
             class="only-dark"
-            :src="withBase(`/images/home/slide-${s.image}-dark.png`)"
+            :src="shot(s.image, 'dark')"
+            :srcset="shotSet(s.image, 'dark')"
+            sizes="(max-width: 1152px) 100vw, 1152px"
             width="1440"
             height="900"
             :alt="s.alt"
-            :loading="i === 0 ? 'eager' : 'lazy'"
+            loading="lazy"
+            :fetchpriority="i === 0 ? 'high' : undefined"
             decoding="async"
           />
         </div>

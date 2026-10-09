@@ -18,7 +18,7 @@ curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compos
 docker compose up -d
 ```
 
-`http://localhost:3001`을 열고 첫 관리자 계정을 만드세요. 이 Compose 파일은 Web만
+브라우저에서 `http://<대시보드 서버 IP>:3001`(같은 서버라면 `http://localhost:3001`)을 열고 첫 관리자 계정을 만드세요. 이 Compose 파일은 Web만
 실행합니다. 모니터링할 Docker 호스트에는 [Quick Start](../guide/quickstart)의 안내대로
 Docker Collector를 설치하세요.
 

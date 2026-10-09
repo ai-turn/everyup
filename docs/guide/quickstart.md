@@ -12,13 +12,31 @@
 - **네트워크**: 모니터링할 서버에서 대시보드 서버의 `3001` 포트(또는 `EVERYUP_PUBLIC_URL`로
   지정한 주소)에 접속할 수 있어야 합니다.
 
-## 1. Web 실행
+## 1. Web 실행 (대시보드 서버)
 
-대시보드 서버에서 Compose 파일을 받아 실행합니다.
+**대시보드 서버에서** Compose 파일을 받습니다.
 
 ```bash
 mkdir everyup && cd everyup
 curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
+```
+
+### 외부 접속 주소 정하기 (선택) {#public-url}
+
+사용자나 모니터링할 서버가 다른 주소(예: `https://monitor.example.com`)로 Web에 접속한다면,
+**실행하기 전에** 같은 디렉터리의 `.env`에 지정하세요.
+
+```bash
+echo 'EVERYUP_PUBLIC_URL=https://monitor.example.com' > .env
+```
+
+EveryUp은 이 주소를 Docker 설치 명령, 직접 OTLP 연결, 인프라 Collector 설정에 넣습니다. 그래서
+모니터링할 서버에서 접근할 수 있는 절대 HTTP(S) 주소여야 하며, **`localhost`는 쓸 수 없습니다**.
+지정하지 않으면 연결 화면이 브라우저가 접속한 주소를 제안하고, 그 화면에서 고칠 수도 있습니다.
+
+### 실행
+
+```bash
 docker compose up -d
 ```
 
@@ -51,18 +69,11 @@ volumes:
 :::
 
 브라우저에서 `http://<대시보드 서버 IP>:3001`을 열고 첫 관리자 계정을 만듭니다.
+열리지 않으면 [대시보드가 열리지 않습니다](./troubleshooting#web-not-reachable)를 확인하세요.
 
-::: warning 외부 접속 주소가 따로 있다면
-사용자나 모니터링할 서버가 다른 주소(예: `https://monitor.example.com`)로 Web에 접속한다면,
-`docker compose up -d` 전에 셸이나 `.env`에 `EVERYUP_PUBLIC_URL`을 지정하세요. EveryUp은 이
-주소를 Docker 설치 명령, 직접 OTLP 연결, 인프라 Collector 설정에 넣습니다. 그래서 대상 서버에서
-접근할 수 있는 절대 HTTP(S) 주소여야 하며, **`localhost`는 쓸 수 없습니다**.
-지정하지 않으면 연결 화면이 브라우저가 접속한 주소를 제안하고, 그 화면에서 고칠 수도 있습니다.
-:::
+## 2. Docker 연결 명령 만들기 (브라우저)
 
-## 2. Docker 연결 명령 만들기
-
-대시보드의 **Docker 환경** 화면에서 오른쪽 위의 **Docker 연결**을 누릅니다. 환경 이름을 정하고
+**브라우저에서** 대시보드의 **Docker 환경** 화면에서 오른쪽 위의 **Docker 연결**을 누릅니다. 환경 이름을 정하고
 수집 범위를 고르세요.
 
 - **전체**: 업타임, 로그, 인프라, API 요청, 메트릭을 한 번에 설정합니다.
@@ -87,13 +98,23 @@ curl -fsSL 'https://<Web 주소>/api/v1/agents/install.sh' | sudo sh -s -- 'http
 장기 API Key는 브라우저에 표시되지 않고, 설치 과정에서 대상 서버로 직접 전달됩니다.
 :::
 
-## 3. 모니터링 번들 설치
+## 3. 모니터링 번들 설치 (모니터링할 서버)
 
-화면에 표시된 명령을 복사해 모니터링할 Linux Docker 서버에서 실행합니다.
+화면에 표시된 명령을 복사해 **모니터링할 Linux Docker 서버에서** 실행합니다.
 
 설치기는 Docker와 Compose 버전을 확인한 뒤 `/opt/everyup-agent`에 설정을 만들고, 선택한 수집
-범위에 필요한 구성 요소만 시작합니다. 기존 설정이 있으면 덮어쓰기 전에 백업합니다. 앱의
-Compose 파일, 이미지, 포트, 컨테이너는 바꾸지 않습니다.
+범위에 필요한 구성 요소만 시작합니다. 기존 설정이 있으면 `compose.yaml.bak.<날짜시각>`으로
+백업한 뒤 덮어씁니다. 앱의 Compose 파일, 이미지, 포트, 컨테이너는 바꾸지 않습니다.
+
+설치가 끝나면 마지막에 다음과 같이 출력됩니다.
+
+```text
+EveryUp Docker collector installation complete.
+Configuration: /opt/everyup-agent/compose.yaml
+Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-agent/compose.yaml ps
+```
+
+중간에 멈췄다면 마지막 오류 줄로 [트러블슈팅](./troubleshooting)에서 해당 항목을 찾으세요.
 
 - **전체** 프로필이나 API 요청 수집을 포함한 사용자 지정 프로필은 Docker Collector와 권한이
   분리된 [eBPF Observer](./ebpf-observer)(OBI)를 함께 실행합니다. eBPF Observer는 앱을 고치지 않고
@@ -104,9 +125,9 @@ Compose 파일, 이미지, 포트, 컨테이너는 바꾸지 않습니다.
 [`agent/docker-compose.yml`](https://github.com/ai-turn/everyup/blob/main/agent/docker-compose.yml)과
 [Docker Collector 설정](../reference/collector)을 참고하세요.
 
-## 4. 연결 확인
+## 4. 연결 확인 (브라우저)
 
-약 30초 안에 **Docker 환경** 화면에서 해당 환경이 **설치 대기**에서 **수집 중**으로 바뀝니다.
+**브라우저에서** 약 30초 안에 **Docker 환경** 화면에서 해당 환경이 **설치 대기**에서 **수집 중**으로 바뀝니다.
 업타임 수집을 선택했다면 그 서버의 컨테이너도 서비스로 나타납니다.
 
 ![Docker 환경 화면. prod-server 카드는 수집 중, staging-api 카드는 설치 대기 상태이고, 오른쪽 위에 Docker 연결 버튼이 있다.](/images/quickstart-docker-env-ko.png)
@@ -123,3 +144,4 @@ API 요청 수집을 선택했다면 eBPF Observer가 컨테이너 프로세스�
 - [자동 eBPF Observer](./ebpf-observer): API latency와 트레이스
 - [헤더·바디 상세 수집](./otel-instrumentation): 요청이 실패한 이유까지 진단
 - [알림 채널](./notifications): Telegram, Discord, Slack으로 장애 알림 받기
+- [업그레이드·제거](./upgrade-uninstall): 새 버전 적용, 설치 되돌리기
