@@ -13,6 +13,7 @@ import {
 import { isCollectorFresh } from '../../utils/operationalStatus';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
+import { useSpinAction } from '../../hooks/useSpinAction';
 
 interface AttentionItem {
   id: string;
@@ -40,14 +41,12 @@ export function OverviewPage() {
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
   const [observedServices, setObservedServices] = useState<ObservedService[]>([]);
   const [infrastructure, setInfrastructure] = useState<InfrastructureResource[]>([]);
-  const [loading, setLoading] = useState(true);
   const [failedSources, setFailedSources] = useState<string[]>([]);
   const [timeline, setTimeline] = useState<TimelineIncident[]>([]);
   const [showAllAttention, setShowAllAttention] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true);
     const [agentsResult, servicesResult, monitorsResult, observedResult, infrastructureResult, timelineResult] = await Promise.allSettled([
       api.getAgents(),
       api.getAllAgentServicesFlat(),
@@ -65,7 +64,6 @@ export function OverviewPage() {
     if (timelineResult.status === 'fulfilled') setTimeline(timelineResult.value ?? []); else failed.push('timeline');
     setFailedSources(failed);
     setUpdatedAt(new Date());
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -73,6 +71,8 @@ export function OverviewPage() {
     return () => window.clearTimeout(initialLoad);
   }, [load]);
   useAutoRefresh(() => void load(), 30_000);
+  // 직접 누른 새로고침만 아이콘을 돌린다 — 30초 자동 갱신마다 버튼을 비활성으로 깜빡이지 않게 (상세 화면과 같은 방식).
+  const { spinning, trigger: handleRefresh } = useSpinAction(load);
 
   const staleAgents = agents.filter((agent) => !isCollectorFresh(agent.lastSeenAt));
   const unhealthyServices = services.filter((service) => !service.healthy);
@@ -197,8 +197,8 @@ export function OverviewPage() {
             <span className="type-caption text-text-muted">
               {updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 갱신 · 30초마다 자동 갱신
             </span>
-            <Button variant="ghost" size="sm" disabled={loading} onClick={() => void load()}>
-              <MaterialIcon size={20} name="refresh" />새로고침
+            <Button variant="ghost" onClick={handleRefresh}>
+              <MaterialIcon size={20} name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
             </Button>
           </div>
         )}
@@ -213,7 +213,7 @@ export function OverviewPage() {
           <div className="flex items-start gap-3">
             <MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" />
             <div>
-              <p className="text-sm font-medium text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p>
+              <p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p>
               <p className="mt-0.5 type-body text-text-muted">
                 불러오지 못한 영역: {failedSources.map((source) => SOURCE_LABELS[source] ?? source).join(', ')}. 이 영역은 정상 여부를 판단할 수 없습니다.
               </p>
@@ -245,20 +245,20 @@ export function OverviewPage() {
               <div className="flex items-center justify-between gap-3 border-b border-ui-border px-4 py-3.5">
                 <div>
                   <h2 className="type-card-title text-text-base">현재 확인 필요</h2>
-                  <p className="mt-0.5 text-sm text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p>
+                  <p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p>
                 </div>
                 <span className="text-sm tabular-nums text-text-muted" aria-label={`확인 필요 ${attention.length}건`}>{attention.length}</span>
               </div>
               {attention.length === 0 && statusUnknown ? (
                 <div className="flex min-h-44 flex-col items-center justify-center p-5 text-center">
                   <MaterialIcon size={32} name="sync_problem" className="text-status-warn" />
-                  <p className="mt-3 text-sm font-medium text-text-base">일부 상태를 확인하지 못했습니다</p>
+                  <p className="mt-3 type-label text-text-base">일부 상태를 확인하지 못했습니다</p>
                   <p className="mt-1 type-body text-text-muted">불러온 영역에서는 이상이 없지만, 전체가 정상인지는 아직 알 수 없습니다.</p>
                 </div>
               ) : attention.length === 0 ? (
                 <div className="flex min-h-44 flex-col items-center justify-center p-5 text-center">
                   <MaterialIcon size={32} name="check_circle" className="text-status-healthy" />
-                  <p className="mt-3 text-sm font-medium text-text-base">현재 확인이 필요한 이상이 없습니다</p>
+                  <p className="mt-3 type-label text-text-base">현재 확인이 필요한 이상이 없습니다</p>
                   <p className="mt-1 type-body text-text-muted">수집 연결과 서비스 상태 모두 정상입니다.</p>
                 </div>
               ) : (
@@ -271,7 +271,7 @@ export function OverviewPage() {
                       <Link to={item.to} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
                         <MaterialIcon size={20} name={item.icon} className={`shrink-0 ${item.tone === 'error' ? 'text-status-error' : 'text-status-warn'}`} />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium text-text-base">{item.title}</span>
+                          <span className="block truncate type-label text-text-base">{item.title}</span>
                           <span className="mt-0.5 line-clamp-2 type-body text-text-muted">{episode?.message || item.detail}</span>
                         </span>
                         {episode ? (
@@ -295,7 +295,7 @@ export function OverviewPage() {
 
             <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
               <h2 className="type-card-title text-text-base">모니터링 범위</h2>
-              <p className="mt-0.5 text-sm text-text-muted">연결 방식별로 수집 범위를 확인하세요.</p>
+              <p className="mt-0.5 type-body text-text-muted">연결 방식별로 수집 범위를 확인하세요.</p>
               <ul className="-mx-2 mt-3">
                 {([
                   ['Docker 환경', agents.length, '/environments', 'agents'],
@@ -333,13 +333,13 @@ export function OverviewPage() {
                 <h2 className="type-card-title text-text-base">최근 장애 이력</h2>
                 {/* 직접 연결 서비스는 이력 테이블이 없어 도출할 에피소드가 없다.
                     범위를 밝히지 않으면 "전부 조용하다"로 오독된다. */}
-                <p className="mt-0.5 text-sm text-text-muted">업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.</p>
+                <p className="mt-0.5 type-body text-text-muted">업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.</p>
               </div>
               <span className="text-sm tabular-nums text-text-muted" aria-label={`최근 장애 ${timeline.length}건`}>{timeline.length}</span>
             </div>
             {timeline.length === 0 ? (
               <div className="flex min-h-32 flex-col items-center justify-center p-5 text-center">
-                <p className="text-sm font-medium text-text-base">최근 7일간 기록된 장애가 없습니다</p>
+                <p className="type-label text-text-base">최근 7일간 기록된 장애가 없습니다</p>
                 <p className="mt-1 type-body text-text-muted">업타임 모니터와 Docker 서비스 모두 중단 없이 동작했습니다.</p>
               </div>
             ) : (
@@ -352,7 +352,7 @@ export function OverviewPage() {
                         aria-hidden="true"
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-text-base">{episode.targetName}</span>
+                        <span className="block truncate type-label text-text-base">{episode.targetName}</span>
                         <span className="mt-0.5 block type-body text-text-muted">
                           {episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상')}
                         </span>
