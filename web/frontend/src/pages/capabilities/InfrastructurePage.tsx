@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusBadge } from '../../components/common';
+import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusLight } from '../../components/common';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { api, type InfrastructureResource } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
-function resourceOnline(resource: InfrastructureResource) {
-  return resource.isActive && Boolean(resource.lastSeenAt) && Date.now() - new Date(resource.lastSeenAt!).getTime() < 2 * 60 * 1000;
+// 수집 상태다 — 정상/장애로 그리면 수신이 잠깐 끊긴 호스트가 장애로 읽힌다 (DESIGN.md §5.1a).
+function resourceCollectionStatus(resource: InfrastructureResource) {
+  if (!resource.isActive) return <StatusLight tone="error" label="중지됨" />;
+  if (!resource.lastSeenAt) return <CollectionStatusBadge status="waiting" />;
+  const fresh = Date.now() - new Date(resource.lastSeenAt).getTime() < 2 * 60 * 1000;
+  return <CollectionStatusBadge status={fresh ? 'collecting' : 'delayed'} />;
 }
 
 function ResourceCard({ resource }: { resource: InfrastructureResource }) {
@@ -24,7 +28,7 @@ function ResourceCard({ resource }: { resource: InfrastructureResource }) {
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{resource.name}</h3>}
         badge={<ConnectionSourceBadge source={direct ? 'direct' : 'docker'} />}
-        status={<StatusBadge healthy={resourceOnline(resource)} />}
+        status={resourceCollectionStatus(resource)}
       />
       {values.some(([, value]) => value != null) ? (
         <div className="mt-5 grid grid-cols-3 gap-3">
@@ -36,7 +40,7 @@ function ResourceCard({ resource }: { resource: InfrastructureResource }) {
           ))}
         </div>
       ) : (
-        <p className="mt-5 text-sm text-text-dim">아직 수집된 호스트 메트릭이 없습니다</p>
+        <p className="mt-5 type-body text-text-muted">아직 수집된 호스트 메트릭이 없습니다</p>
       )}
     </Link>
   );
@@ -64,9 +68,9 @@ export function InfrastructurePage() {
         <MonitoringConnection capability="infrastructure" onConnected={reload} />
       </PageHeader>
       {loading ? (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>
       ) : error ? (
-        <EmptyState icon="error_outline" title="인프라를 불러오지 못했습니다" description={error} />
+        <EmptyState icon="error_outline" title="인프라를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       ) : resources.length === 0 ? (
         <EmptyState icon="memory" title="표시할 인프라가 없습니다" description="기존 Docker 환경을 선택하거나 표준 OpenTelemetry Collector를 연결하면 여기에 표시됩니다.">
           <MonitoringConnection capability="infrastructure" onConnected={reload} />
@@ -77,7 +81,7 @@ export function InfrastructurePage() {
             <h2 className="type-section-title text-text-base">인프라 대상</h2>
             <span className="text-xs text-text-dim">{resources.length}</span>
           </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {resources.map(resource => <ResourceCard key={resource.id} resource={resource} />)}
           </div>
         </section>
