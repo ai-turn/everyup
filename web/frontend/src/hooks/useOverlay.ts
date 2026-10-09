@@ -21,7 +21,7 @@ export const SCRIM_PANEL = 'bg-slate-900/40 backdrop-blur-sm';
 export const SCRIM_MODAL_DIALOG = 'backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm';
 
 // 오버레이(모달·사이드패널·팔레트)의 ESC 닫기.
-// 이전엔 SidePanel/FormSidePanel/TracePanel/CommandPalette가 각자 같은 effect를 복사해 두고
+// 이전엔 FormSidePanel/TracePanel/CommandPalette가 각자 같은 effect를 복사해 두고
 // ApiKeyModal·InstrumentationOverrideModal은 아예 빠져 있었다.
 //
 // ponytail: 스크롤 잠금은 넣지 않았다. 이 앱은 body가 아니라 MainLayout 내부 컨테이너가

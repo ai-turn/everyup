@@ -31,8 +31,8 @@ export function Pagination({
   page,
   totalPages,
   onChange,
-  previousLabel = 'Previous',
-  nextLabel = 'Next',
+  previousLabel = '이전',
+  nextLabel = '다음',
 }: PaginationProps) {
   return (
     <div className="flex items-center gap-1">
