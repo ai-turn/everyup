@@ -13,7 +13,7 @@ test('connection URLs resolve relative API paths and respect the configured exte
 test('existing collector gains metrics without creating a new Docker environment', async ({ page }) => {
   await page.goto('./metrics');
   await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
-  await page.getByRole('button', { name: '기존 모니터링 대상' }).click();
+  await page.getByRole('combobox', { name: '기존 모니터링 대상' }).click();
   await page.getByRole('option', { name: 'staging-api · Docker 환경 전체' }).click();
   await page.getByRole('button', { name: '기존 대상 연결 확인' }).click();
   const chooser = page.getByRole('dialog');
@@ -27,7 +27,7 @@ test('existing collector gains metrics without creating a new Docker environment
   await installer.getByRole('button', { name: '나중에 확인' }).click();
   await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
   await page.getByRole('button', { name: '기존 대상 연결 확인' }).click();
-  await page.getByRole('dialog').getByRole('button', { name: '사용할 Docker 환경' }).click();
+  await page.getByRole('dialog').getByRole('combobox', { name: '사용할 Docker 환경' }).click();
   await expect(page.getByRole('option')).toHaveCount(2);
   await page.getByRole('option', { name: 'staging-api' }).click();
   await expect(page.getByText('이미 선택된 기능입니다. 데이터 수신 기록을 확인하세요.')).toBeVisible();
@@ -46,7 +46,7 @@ test('direct setup uses an external endpoint and waits for actual data', async (
   await expect(receipts).toContainText('로그');
   await expect(receipts).toContainText('수신 대기');
   await dialog.getByRole('button', { name: '처음 설정', exact: true }).click();
-  await dialog.getByRole('button', { name: '앱 언어' }).click();
+  await dialog.getByRole('combobox', { name: '앱 언어' }).click();
   await page.getByRole('option', { name: 'Go', exact: true }).click();
   await expect(dialog.getByRole('link', { name: 'Go SDK 설정 예제' })).toBeVisible();
   await dialog.getByLabel('EveryUp 외부 연결 주소').fill('http://localhost:3001');
@@ -56,7 +56,7 @@ test('direct setup uses an external endpoint and waits for actual data', async (
 test('existing Docker service opens the selected monitoring tab', async ({ page }) => {
   await page.goto('./logs');
   await page.getByRole('button', { name: '로그 연결', exact: true }).click();
-  await page.getByRole('button', { name: '기존 모니터링 대상' }).click();
+  await page.getByRole('combobox', { name: '기존 모니터링 대상' }).click();
   await page.getByRole('option', { name: 'prod-server / api', exact: true }).click();
   await page.getByRole('button', { name: '기존 대상 연결 확인' }).click();
   await page.getByRole('button', { name: '로그 보기', exact: true }).click();
