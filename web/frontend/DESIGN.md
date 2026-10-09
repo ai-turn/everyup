@@ -979,7 +979,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | 라벨 → 입력 `mb-2` | `FormLayout`의 `Field` 1곳 — 알림 폼 전체에 반영된다 | `mb-1.5` |
 | 카드 패딩 `p-5` | `SectionCard` · `LoginPage` · `DirectApiDetailPage` · `ProjectsPage` | `p-4` |
 | 카드 패딩 `p-3` | `AlertsMobileView`(5) | `p-4` |
-| 인라인 아이콘 + 텍스트 `gap-1` | `ChannelHealthMeta`(4) · `Footer` · `ServiceGridPage` | `gap-1.5` |
+| 인라인 아이콘 + 텍스트 `gap-1` | `ChannelHealthMeta`(4) · `Footer` | `gap-1.5` |
 | 메뉴 행 `gap-2.5` | `Sidebar` `NavItem` · `CommandPalette`(2) | `gap-2` |
 | 배너 선행 요소 `gap-2`·`2.5`·`3.5` | `SettingsMobileView` · `TracePanel` · `InstrumentationOverrideModal` · `MonitoringSetupPanel` · `ServiceIncidentBanner`(`3.5`) | `gap-3` |
 | 나머지 `gap-2.5` | `AlertsDesktopView` · `ChannelForm` · `UptimeMonitorDetailPage` | §3.7 관계로 판단 |
@@ -995,7 +995,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | 표 헤더 `uppercase tracking-wider` | `AlertRulesTab` · `AlertsDesktopView` · `NotificationHistoryTab` · `AgentServiceTracesTab` | 제거 |
 | 표 헤더 채움 | `NotificationHistoryTab`(`/40` 반투명) · `AgentServiceTracesTab`(채움 없음, `py-2`) | `bg-ui-hover-soft`, `py-3` |
 | 표 본문 셀 `py-3` | `AlertsDesktopView` · `NotificationHistoryTab` | `py-2.5` |
-| 카드 목록 `sm:2 lg:3` | `ServiceGridPage`(2) · `App.tsx` 스켈레톤 | `md:2 xl:3` |
+| 카드 목록 `sm:2 lg:3` | `App.tsx` 스켈레톤 | `md:2 xl:3` |
 | 카드 목록 `sm:2 xl:3` | `MetricsPage`(2) | `md:2 xl:3` |
 | 뷰 분기(`md`)와 셸 전환(`lg`)의 경계 불일치 | `useIsMobile` · `MainLayout` | **결정 필요** — §3.8 |
 

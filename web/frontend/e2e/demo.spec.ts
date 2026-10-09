@@ -17,7 +17,7 @@ test.describe('live demo', () => {
     await page.goto('./');
 
     await page.getByRole('link', { name: 'Docker 환경', exact: true }).click();
-    await page.getByRole('button', { name: 'prod-server', exact: true }).click();
+    await page.getByRole('link', { name: 'prod-server', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
 
     await page.getByRole('link', { name: 'api', exact: true }).click();
