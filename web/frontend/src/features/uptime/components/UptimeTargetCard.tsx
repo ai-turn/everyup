@@ -6,7 +6,7 @@ interface UptimeTargetCardProps {
   to: string;
   title: string;
   badge?: ReactNode;
-  subtitle: string;
+  subtitle?: string;
   status: ReactNode;
   endpoint: string;
   meta?: ReactNode;

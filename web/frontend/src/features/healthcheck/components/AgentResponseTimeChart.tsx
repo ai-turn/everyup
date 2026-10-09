@@ -53,7 +53,6 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
 
   return (
     <ResponseTimeCard
-      className="mb-8"
       slots={slots}
       failedChecks={buckets.reduce((sum, bucket) => sum + bucket.failed, 0)}
       caption="ms"

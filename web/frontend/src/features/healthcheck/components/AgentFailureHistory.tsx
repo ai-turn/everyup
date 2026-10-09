@@ -29,7 +29,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
 
   if (loading) {
     return (
-      <div className="mb-8 p-6 rounded-xl border border-ui-border bg-bg-surface animate-pulse">
+      <div className="p-6 rounded-xl border border-ui-border bg-bg-surface animate-pulse">
         <div className="h-5 bg-ui-active rounded w-40 mb-4" />
         {[1, 2].map((i) => (
           <div key={i} className="h-14 bg-ui-hover rounded-lg mb-3" />
@@ -39,7 +39,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
   }
 
   return (
-    <div className="mb-8 p-6 rounded-xl border border-ui-border bg-bg-surface">
+    <div className="p-6 rounded-xl border border-ui-border bg-bg-surface">
       <div className="flex items-center gap-3 mb-5">
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-status-error/10 shrink-0">
           <MaterialIcon size={20} name="history" className="text-status-error" />
