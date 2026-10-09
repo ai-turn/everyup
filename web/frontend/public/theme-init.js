@@ -5,4 +5,4 @@ try {
   if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.documentElement.classList.add('dark');
   }
-} catch (e) { /* storage 차단 시 라이트로 시작 */ }
+} catch { /* storage 차단 시 라이트로 시작 */ }
