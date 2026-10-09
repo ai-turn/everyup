@@ -1,10 +1,10 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailActionToolbar, DetailMeta, PageHeader } from '../../components/common';
+import { Button, DetailActionToolbar, DetailMeta, EmptyState, PageHeader, ResourceCardHeader } from '../../components/common';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
@@ -12,8 +12,7 @@ import { useSpinAction } from '../../hooks/useSpinAction';
 import {
   api,
   type AgentServiceFlat, type ConnectedAgent, type AgentIncident,
-  type AgentEvent, type ServiceUptimeDay, type ApiRequestStatBucket,
-  type OtelServiceMetric,
+  type AgentEvent, type OtelServiceMetric,
 } from '../../services/api';
 import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
 import { AddServiceModal } from '../../features/services/components/AddServiceModal';
@@ -22,37 +21,12 @@ import { MonitoringSetupPanel } from '../../features/services/components/Monitor
 import { AgentServiceRequestTrends } from '../../features/healthcheck/components/AgentServiceRequestTrends';
 import { AgentCheckHistoryBar } from '../../features/healthcheck/components/AgentCheckHistoryBar';
 import { getErrorMessage } from '../../utils/errors';
-import { activatable } from '../../utils/a11y';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 
 function agentOnline(agent: ConnectedAgent): boolean {
   return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
 }
 
-
-// One KPI stat card for the project dashboard header row.
-function KpiCard({ label, value, unit, sub, tone }: {
-  label: string;
-  value: string;
-  unit?: string;
-  sub?: string;
-  tone?: 'danger' | 'warn';
-}) {
-  const valueColor =
-    tone === 'danger' ? 'text-status-error'
-    : tone === 'warn' ? 'text-status-warn'
-    : 'text-text-base';
-  return (
-    <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
-      <div className="text-xs text-text-muted">{label}</div>
-      <div className={`text-xl mt-1 ${valueColor}`}>
-        {value}
-        {unit && <span className="text-xs text-text-dim ml-0.5">{unit}</span>}
-      </div>
-      {sub && <div className="text-xs text-text-dim mt-0.5">{sub}</div>}
-    </div>
-  );
-}
 
 // Formats a representative metric value; OTel bytes ("By") as KB/MB/GB, else a
 // rounded number with its unit appended.
@@ -77,30 +51,23 @@ function metricLabel(name: string): string {
 // straight from the flat snapshot (no extra fetch). The representative metric,
 // when present, is the service's most telling exported OTel metric. Click →
 // full service detail.
-function ServiceCard({ service, metric, onOpen }: {
+function ServiceCard({ service, metric, to }: {
   service: AgentServiceFlat;
   metric?: OtelServiceMetric;
-  onOpen: () => void;
+  to: string;
 }) {
 
   return (
-    <div
-      {...activatable(onOpen)}
+    <Link
+      to={to}
       aria-label={service.name}
-      className="card-interactive group bg-bg-surface border border-ui-border rounded-xl p-4 cursor-pointer flex flex-col gap-3"
+      className="card-interactive group bg-bg-surface border border-ui-border rounded-xl p-4 flex flex-col gap-3"
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="min-w-0">
-            <h3 className="type-card-title text-text-base truncate">{service.name}</h3>
-            <span className="text-xs text-text-dim truncate block">{service.runtime ?? service.checkType}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <StatusBadge healthy={service.healthy} />
-          <MaterialIcon size={20} name="chevron_right" className="text-text-dim group-hover:text-action transition-colors" />
-        </div>
-      </div>
+      <ResourceCardHeader
+        title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{service.name}</h3>}
+        subtitle={service.runtime ?? service.checkType}
+        status={<StatusBadge healthy={service.healthy} />}
+      />
 
       <div className="grid grid-cols-3 gap-3 text-sm">
         <div className="min-w-0">
@@ -128,7 +95,7 @@ function ServiceCard({ service, metric, onOpen }: {
       {!service.healthy && service.lastError && (
         <p className="text-xs text-status-error truncate -mt-1">{service.lastError}</p>
       )}
-    </div>
+    </Link>
   );
 }
 
@@ -153,8 +120,6 @@ export function ProjectDetailPage() {
 
   // Dashboard aggregates — non-critical, each fails independent of the main load.
   const [incidents, setIncidents] = useState<AgentIncident[]>([]);
-  const [uptimeDays, setUptimeDays] = useState<ServiceUptimeDay[]>([]);
-  const [reqBuckets, setReqBuckets] = useState<ApiRequestStatBucket[]>([]);
   const [events, setEvents] = useState<AgentEvent[]>([]);
   // Representative OTel metric per service name (project cards); non-critical.
   const [metrics, setMetrics] = useState<Record<string, OtelServiceMetric>>({});
@@ -166,11 +131,6 @@ export function ProjectDetailPage() {
     api.getAgentServiceMetrics(agentId)
       .then((rows) => setMetrics(Object.fromEntries((rows ?? []).map((m) => [m.serviceName, m]))))
       .catch(() => {});
-    api.getAgentUptime(agentId, 30).then((d) => setUptimeDays(d ?? [])).catch(() => {});
-    api.getAgentRequestStats(agentId, {
-      from: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-      bucketMins: 60,
-    }).then((d) => setReqBuckets(d ?? [])).catch(() => {});
     api.getAgentEvents(agentId, 8).then((d) => setEvents(d ?? [])).catch(() => {});
     try {
       const [agents, all] = await Promise.all([api.getAgents(), api.getAllAgentServicesFlat()]);
@@ -216,28 +176,19 @@ export function ProjectDetailPage() {
   const healthy = services.filter((s) => s.healthy).length;
   const allHealthy = healthy === services.length;
 
-  // Dashboard KPI derivations (ver2 redesign)
   const activeIncidents = incidents.filter((i) => i.active);
   const banner = activeIncidents[0];
-  const uptimeTotals = uptimeDays.reduce(
-    (acc, d) => ({ healthy: acc.healthy + d.healthyChecks, total: acc.total + d.totalChecks }),
-    { healthy: 0, total: 0 },
-  );
-  const uptime30 = uptimeTotals.total > 0 ? (uptimeTotals.healthy / uptimeTotals.total) * 100 : null;
-  const req24h = reqBuckets.reduce((s, b) => s + b.count, 0);
-  const latestTimed = [...reqBuckets].reverse().find((b) => b.timed > 0);
-  const p95 = latestTimed ? Math.round(latestTimed.p95) : null;
 
   return (
     <div className="space-y-5">
       {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4) */}
-      <button
-        onClick={() => navigate('/environments')}
-        className="lg:hidden flex items-center gap-1 text-sm text-text-muted hover:text-text-base transition-colors"
+      <Link
+        to="/environments"
+        className="lg:hidden flex items-center gap-1.5 text-sm text-text-muted hover:text-text-base transition-colors"
       >
         <MaterialIcon size={20} name="arrow_back" />
         Docker 환경 목록
-      </button>
+      </Link>
 
       {loadError && (
         <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -294,8 +245,8 @@ export function ProjectDetailPage() {
 
       {/* Active incident banner */}
       {banner && (
-        <button
-          onClick={() => navigate(`/services/${agentId}/${encodeURIComponent(banner.key)}`)}
+        <Link
+          to={`/services/${agentId}/${encodeURIComponent(banner.key)}`}
           className="w-full flex items-center gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3 text-left hover:bg-ui-hover-soft transition-colors"
         >
           <span className="h-2.5 w-2.5 rounded-full bg-status-error animate-pulse shrink-0" />
@@ -310,48 +261,20 @@ export function ProjectDetailPage() {
             서비스 열기
             <MaterialIcon size={20} name="chevron_right" />
           </span>
-        </button>
+        </Link>
       )}
-
-      {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard
-          label="업타임 · 30일"
-          value={uptime30 !== null ? uptime30.toFixed(2) : '—'}
-          unit={uptime30 !== null ? '%' : undefined}
-        />
-        <KpiCard
-          label="활성 장애"
-          value={String(activeIncidents.length)}
-          tone={activeIncidents.length > 0 ? 'danger' : undefined}
-          sub={activeIncidents.length > 0 ? activeIncidents.map((i) => i.serviceName).join(', ') : undefined}
-        />
-        <KpiCard
-          label="요청 · 24시간"
-          value={req24h > 0 ? Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(req24h) : '—'}
-        />
-        <KpiCard
-          label="p95 · 최근"
-          value={p95 !== null ? String(p95) : '—'}
-          unit={p95 !== null ? 'ms' : undefined}
-          tone={p95 !== null && p95 > 500 ? 'warn' : undefined}
-        />
-      </div>
 
       {/* Service health grid */}
       {services.length === 0 && !loadError ? (
-        <div className="py-16 text-center">
-          <MaterialIcon size={36} name="inventory_2" className="text-text-dim mb-2" />
-          <p className="text-sm text-text-dim">수집된 서비스가 없습니다</p>
-        </div>
+        <EmptyState icon="inventory_2" title="수집된 서비스가 없습니다" />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {services.map((s) => (
             <ServiceCard
               key={s.key}
               service={s}
               metric={metrics[s.name]}
-              onOpen={() => navigate(`/services/${agentId}/${encodeURIComponent(s.key)}`)}
+              to={`/services/${agentId}/${encodeURIComponent(s.key)}`}
             />
           ))}
         </div>
@@ -378,11 +301,10 @@ export function ProjectDetailPage() {
               ) : (
                 <div className="space-y-2">
                   {incidents.slice(0, 5).map((inc, i) => (
-                    <button
-                      type="button"
+                    <Link
                       key={`${inc.key}-${inc.startedAt}-${i}`}
-                      onClick={() => navigate(`/services/${agentId}/${encodeURIComponent(inc.key)}`)}
-                      className="w-full flex items-start gap-2.5 rounded-lg border border-ui-border px-3 py-2 text-left transition-colors hover:border-slate-300 dark:hover:border-ui-active-dark"
+                      to={`/services/${agentId}/${encodeURIComponent(inc.key)}`}
+                      className="w-full flex items-start gap-3 rounded-lg border border-ui-border px-3 py-2 text-left transition-colors hover:bg-ui-hover-soft"
                     >
                       <span className={`h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 ${inc.active ? 'bg-status-error' : 'bg-status-healthy'}`} />
                       <span className="min-w-0 flex-1">
@@ -394,7 +316,7 @@ export function ProjectDetailPage() {
                       <span className={`text-xs shrink-0 ${inc.active ? 'text-status-error' : 'text-status-healthy'}`}>
                         {inc.active ? '진행중' : '해소'}
                       </span>
-                    </button>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -408,7 +330,7 @@ export function ProjectDetailPage() {
               ) : (
                 <div className="space-y-0.5">
                   {events.map((e) => (
-                    <div key={e.id} className="flex items-baseline gap-2.5 py-1.5 border-b border-ui-border-soft/50 last:border-0">
+                    <div key={e.id} className="flex items-baseline gap-2 py-1.5 border-b border-ui-border-soft/50 last:border-0">
                       <span className="text-xs text-text-dim w-10 shrink-0">
                         {new Date(e.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
