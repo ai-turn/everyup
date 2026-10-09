@@ -9,7 +9,8 @@ EveryUp Docker Collector를 실행하면 됩니다. 별도의 대형 모니터�
 | **Web** | 대시보드, 사용자, 알림 규칙·채널, 히스토리 | 대시보드 서버 |
 | **Docker Collector** | Docker 컨테이너 자동 발견, 컨테이너 상태, 로그, 호스트 메트릭 | 모니터링할 각 Docker 호스트 |
 
-![EveryUp 대시보드](/images/everyup-main-ko.png)
+![EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 2개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
+![EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 2개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
 
 ## 핵심 기능
 

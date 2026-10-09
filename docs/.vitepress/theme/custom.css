@@ -43,7 +43,8 @@
 .dark {
   --vp-code-block-bg: var(--vp-c-bg-alt);
   --vp-c-brand-1: #7aa2f7;
-  --vp-c-brand-2: #7aa2f7;
+  /* 링크 hover. brand-1과 같으면 다크에서 hover가 티 나지 않는다 — 한 단계 밝게 */
+  --vp-c-brand-2: #a4c0fb;
   --vp-c-brand-3: #3f6fdb;
   --vp-c-brand-soft: rgba(63, 111, 219, 0.16);
   --vp-button-brand-hover-bg: #355fc0;
@@ -54,7 +55,8 @@
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;
 }
-.dark .vp-doc img {
+/* 다크판이 따로 있는 스크린샷(.only-dark)은 그대로, 라이트판만 있는 이미지만 살짝 어둡게 */
+.dark .vp-doc img:not(.only-dark) {
   filter: brightness(0.88);
 }
 
@@ -302,9 +304,6 @@ html:not(.dark) .only-dark {
   }
 }
 @media (min-width: 960px) {
-  .VPHero .main {
-    width: 100%;
-  }
   .VPHero .name {
     font-size: 28px;
   }
@@ -349,11 +348,6 @@ html:not(.dark) .only-dark {
 .screenshot-caption a:hover,
 .home-carousel-demo a:hover {
   color: var(--vp-c-brand-2);
-}
-
-/* 코드 복사 뒤 피드백 문구 (VitePress 기본값은 영어 'Copied') */
-html[lang='ko'] {
-  --vp-code-copy-copied-text-content: '복사됨';
 }
 
 /* 상단 바 메뉴는 theme/index.ts가 검색 앞(nav-bar-content-before)에 다시 그린다.
@@ -421,7 +415,6 @@ html[lang='ko'] {
     position: absolute;
     top: 50%;
     left: 50%;
-    flex-grow: 0;
     padding: 0;
     transform: translate(-50%, -50%);
   }

@@ -27,6 +27,28 @@ Docker Collector를 설치하세요.
 기본 구성은 환경변수 없이 동작합니다. 아래 변수는 운영 배포, 네트워크, 자동화에 필요할 때
 지정합니다. 우선순위는 환경변수 > `config.json` > 기본값입니다.
 
+### 설정하는 방법 {#how-to-set}
+
+[Quick Start](../guide/quickstart)의 Compose 파일은 `EVERYUP_PUBLIC_URL`만 컨테이너에 넘깁니다.
+다른 변수는 `docker-compose.yml`의 `environment:`에 추가한 뒤 `docker compose up -d`로 컨테이너를
+다시 만드세요.
+
+```yaml
+services:
+  everyup:
+    environment:
+      EVERYUP_PUBLIC_URL: ${EVERYUP_PUBLIC_URL:-}
+      EVERYUP_ENCRYPTION_KEY: ${EVERYUP_ENCRYPTION_KEY}
+      EVERYUP_RETENTION_LOGS: 7d
+```
+
+비밀값은 같은 디렉터리의 `.env`에 두고 `${…}`로 참조하면 Compose 파일에 남지 않습니다.
+
+```bash
+# .env
+EVERYUP_ENCRYPTION_KEY=<openssl rand -hex 32 출력값>
+```
+
 ### 서버
 
 - **`EVERYUP_PUBLIC_URL`**\
