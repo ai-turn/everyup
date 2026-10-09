@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { IconButton, MaterialIcon } from '../common';
-import { api, type AgentServiceFlat } from '../../services/api';
+import { api, type AgentServiceFlat, type UptimeMonitor } from '../../services/api';
 import { env } from '../../config/env';
 import logo from '../../assets/logo.webp';
 import { DemoScenarioSwitcher } from './DemoScenarioSwitcher';
@@ -43,20 +43,24 @@ export function Sidebar() {
 
   const location = useLocation();
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
+  const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
 
-  const loadServices = useCallback(async () => {
-    try {
-      setServices(await api.getAllAgentServicesFlat() ?? []);
-    } catch {
-      // Navigation remains available even when its alert badge cannot load.
-    }
+  const loadStatus = useCallback(async () => {
+    // Navigation remains available even when its alert badge cannot load.
+    const [servicesResult, monitorsResult] = await Promise.allSettled([api.getAllAgentServicesFlat(), api.getUptimeMonitors()]);
+    if (servicesResult.status === 'fulfilled') setServices(servicesResult.value ?? []);
+    if (monitorsResult.status === 'fulfilled') setMonitors(monitorsResult.value ?? []);
   }, []);
 
   useEffect(() => {
-    const initialLoad = window.setTimeout(() => void loadServices(), 0);
+    const initialLoad = window.setTimeout(() => void loadStatus(), 0);
     return () => window.clearTimeout(initialLoad);
-  }, [loadServices]);
-  useAutoRefresh(() => void loadServices(), 30_000);
+  }, [loadStatus]);
+  useAutoRefresh(() => void loadStatus(), 30_000);
+
+  // 개요의 "(N) 장애"(탭 제목)와 같은 기준 — Docker 서비스만 세면 업타임 모니터 장애가 빠져 두 숫자가 갈렸다.
+  const failureCount = services.filter((service) => !service.healthy).length
+    + monitors.filter((monitor) => monitor.status === 'unhealthy').length;
 
   const path = location.pathname;
 
@@ -84,7 +88,7 @@ export function Sidebar() {
       </button>
 
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3" aria-label="주 메뉴">
-        <NavItem to="/#attention" icon="dashboard" label="개요" active={path === '/'} badge={services.filter((service) => !service.healthy).length} />
+        <NavItem to="/#attention" icon="dashboard" label="개요" active={path === '/'} badge={failureCount} />
         <NavItem to="/projects" icon="folder_open" label="Projects" active={path.startsWith('/projects')} />
         <NavItem to="/environments" icon="dns" label="Docker 환경" active={path.startsWith('/environments') || path.startsWith('/agents/') || path.startsWith('/services/')} />
         <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">메뉴</p>
