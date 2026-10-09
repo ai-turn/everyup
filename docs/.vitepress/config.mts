@@ -4,6 +4,7 @@ const GH = 'https://github.com/ai-turn/everyup'
 // 데모는 같은 Pages 사이트의 /demo/에 따로 배포된다. 같은 origin이라 절대 URL이어도 문서 라우터가 가로챌 수 있다.
 // 메뉴·히어로 버튼은 VitePress가 외부 링크에 target="_blank"를 붙여 라우터를 건너뛴다. 직접 쓰는 <a>에도 target이 필요하다.
 const DEMO = 'https://ai-turn.github.io/everyup/demo/'
+const SITE = 'https://ai-turn.github.io/everyup/'
 
 export default defineConfig({
   base: '/everyup/',
@@ -13,6 +14,25 @@ export default defineConfig({
   lastUpdated: true,
   // docs/에는 사이트에 올리지 않는 내부 문서도 함께 있다.
   srcExclude: ['adr/**', 'agents/**', 'CHANGELOG.md', 'monitoring-capability-release-gate.md'],
+  // 기본 github-light/dark는 빨강·초록·주석이 4.5:1 미만이다. *-default 팔레트는 두 테마 모두 AA를 넘는다.
+  markdown: { theme: { light: 'github-light-default', dark: 'github-dark-default' } },
+  sitemap: { hostname: SITE },
+  // 링크 미리보기와 검색엔진용: 페이지별 og 태그, ko/en 짝 페이지(hreflang). 두 언어의 페이지 구성은 1:1이다.
+  transformHead({ pageData, title, description }) {
+    const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')
+    const isEn = path.startsWith('en/')
+    const ko = path.replace(/^en\//, '')
+    return [
+      ['link', { rel: 'canonical', href: SITE + path }],
+      ['meta', { property: 'og:title', content: title }],
+      ['meta', { property: 'og:description', content: description }],
+      ['meta', { property: 'og:url', content: SITE + path }],
+      ['meta', { property: 'og:locale', content: isEn ? 'en_US' : 'ko_KR' }],
+      ['link', { rel: 'alternate', hreflang: 'ko', href: SITE + ko }],
+      ['link', { rel: 'alternate', hreflang: 'en', href: SITE + 'en/' + ko }],
+      ['link', { rel: 'alternate', hreflang: 'x-default', href: SITE + ko }],
+    ]
+  },
   head: [
     ['link', { rel: 'icon', href: '/everyup/images/logo.webp' }],
     // 링크 미리보기는 절대 URL만 받는다
@@ -85,6 +105,7 @@ export default defineConfig({
           {
             text: '운영',
             items: [
+              { text: '업그레이드·제거', link: '/guide/upgrade-uninstall' },
               { text: '백업·복원', link: '/guide/backup-restore' },
               { text: '트러블슈팅', link: '/guide/troubleshooting' },
             ],
@@ -144,6 +165,7 @@ export default defineConfig({
           {
             text: 'Operations',
             items: [
+              { text: 'Upgrade and uninstall', link: '/en/guide/upgrade-uninstall' },
               { text: 'Backup and restore', link: '/en/guide/backup-restore' },
               { text: 'Troubleshooting', link: '/en/guide/troubleshooting' },
             ],

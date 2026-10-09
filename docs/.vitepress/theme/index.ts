@@ -1,5 +1,6 @@
 import { h } from 'vue'
-import DefaultTheme from 'vitepress/theme'
+// 폰트는 custom.css의 Spoqa만 쓴다. 기본 테마의 Inter는 받기만 하고 화면에 쓰이지 않았다.
+import DefaultTheme from 'vitepress/theme-without-fonts'
 // 공개 API가 아니라 내부 컴포넌트다(vitepress가 ./dist/*를 export). 버전을 올릴 때 경로를 확인할 것.
 import VPNavBarMenu from 'vitepress/dist/client/theme-default/components/VPNavBarMenu.vue'
 import HomeCarousel from './HomeCarousel.vue'

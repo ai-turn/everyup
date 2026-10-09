@@ -19,7 +19,7 @@ curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compos
 docker compose up -d
 ```
 
-Open `http://localhost:3001` and create the first admin account. This Compose
+Open `http://<dashboard server IP>:3001` (or `http://localhost:3001` on the same machine) in a browser and create the first admin account. This Compose
 file runs Web only; install the Docker Collector on each Docker host you want to
 monitor as described in the [Quick Start](../guide/quickstart).
 

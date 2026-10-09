@@ -13,13 +13,32 @@ step 4.
 - **Network**: the monitored server must reach port `3001` on the dashboard server (or the address
   set in `EVERYUP_PUBLIC_URL`).
 
-## 1. Start Web
+## 1. Start Web (dashboard server)
 
-On the dashboard server, download the Compose file and start it:
+**On the dashboard server**, download the Compose file:
 
 ```bash
 mkdir everyup && cd everyup
 curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
+```
+
+### Set the public address (optional) {#public-url}
+
+If users or monitored servers reach Web through another address (for example
+`https://monitor.example.com`), set it in `.env` in the same directory **before starting**:
+
+```bash
+echo 'EVERYUP_PUBLIC_URL=https://monitor.example.com' > .env
+```
+
+EveryUp puts this address into Docker installation commands, direct OTLP setup, and
+infrastructure Collector configuration, so it must be an absolute HTTP(S) address reachable from
+the monitored server. **`localhost` is not accepted.** When omitted, the connection screens
+suggest the address the browser used and let you edit it.
+
+### Start
+
+```bash
 docker compose up -d
 ```
 
@@ -52,19 +71,11 @@ volumes:
 :::
 
 Open `http://<dashboard server IP>:3001` in a browser and create the first admin account.
+If it does not open, see [The dashboard does not open](./troubleshooting#web-not-reachable).
 
-::: warning If Web has a separate public address
-If users or monitored servers reach Web through another address (for example
-`https://monitor.example.com`), set `EVERYUP_PUBLIC_URL` in your shell or `.env` before
-`docker compose up -d`. EveryUp puts this address into Docker installation commands, direct OTLP
-setup, and infrastructure Collector configuration, so it must be an absolute HTTP(S) address
-reachable from the target server. **`localhost` is not accepted.**
-When omitted, the connection screens suggest the address the browser used and let you edit it.
-:::
+## 2. Create a Docker connection command (browser)
 
-## 2. Create a Docker connection command
-
-In the dashboard, open **Docker 환경** (Docker environments) and click **Docker 연결** (Connect
+**In the browser**, in the dashboard, open **Docker 환경** (Docker environments) and click **Docker 연결** (Connect
 Docker) at the top right. Name the environment, then choose its collection scope:
 
 - **All** configures uptime, logs, infrastructure, API tracing, and metrics.
@@ -90,13 +101,24 @@ and copy the refreshed command. The long-lived API key is never displayed in the
 delivered directly to the target server during installation.
 :::
 
-## 3. Install the monitoring bundle
+## 3. Install the monitoring bundle (monitored server)
 
-Copy the displayed command and run it on the target Linux Docker server.
+Copy the displayed command and run it **on the monitored Linux Docker server**.
 
 The installer checks Docker and Compose, writes the bundle under `/opt/everyup-agent`, backs up
-any previous configuration, and starts only the components required by the selected scope. Your
-application Compose file, images, ports, and containers are left unchanged.
+any previous configuration as `compose.yaml.bak.<timestamp>`, and starts only the components
+required by the selected scope. Your application Compose file, images, ports, and containers are
+left unchanged.
+
+When it finishes, the last lines read:
+
+```text
+EveryUp Docker collector installation complete.
+Configuration: /opt/everyup-agent/compose.yaml
+Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-agent/compose.yaml ps
+```
+
+If it stops earlier, look up the last error line in [Troubleshooting](./troubleshooting).
 
 - The **All** profile, or a custom profile with API tracing, starts the Docker Collector together
   with an isolated [eBPF Observer](./ebpf-observer) (OBI), which records API latency and traces
@@ -107,9 +129,9 @@ To set it up by hand instead, see
 [`agent/docker-compose.yml`](https://github.com/ai-turn/everyup/blob/main/agent/docker-compose.yml)
 and the [Docker Collector configuration](../reference/collector).
 
-## 4. Check the connection
+## 4. Check the connection (browser)
 
-Within about 30 seconds, the environment on the **Docker 환경** screen changes from **설치 대기**
+**In the browser**, within about 30 seconds, the environment on the **Docker 환경** screen changes from **설치 대기**
 (awaiting install) to **수집 중** (collecting). When uptime collection is enabled, the containers
 on that server also appear as services.
 
@@ -127,3 +149,4 @@ there is no port list to maintain. If the environment stays at **설치 대기**
 - [Automatic eBPF Observer](./ebpf-observer): API latency and traces
 - [Header & body capture](./otel-instrumentation): see why a request failed
 - [Notification channels](./notifications): get alerts in Telegram, Discord, or Slack
+- [Upgrade and uninstall](./upgrade-uninstall): apply new versions, undo an installation
