@@ -54,7 +54,7 @@ function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: 
             }`}>
               {item.complete ? <MaterialIcon size={20} name="check" /> : index + 1}
             </span>
-            <span className={`truncate text-xs font-medium ${item.active ? 'text-primary' : item.complete ? 'text-text-secondary' : 'text-text-dim'}`}>
+            <span className={`truncate text-xs font-medium ${item.active ? 'text-action' : item.complete ? 'text-text-secondary' : 'text-text-dim'}`}>
               {item.label}
             </span>
             {index < steps.length - 1 && <span className="hidden h-px flex-1 bg-ui-border sm:block" />}
@@ -227,7 +227,7 @@ function AgentInstallCommand({
   return (
     <details open={expanded} className="group rounded-xl border border-ui-border bg-bg-surface">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm text-text-base">
-        <MaterialIcon size={20} name="terminal" className="text-primary" />
+        <MaterialIcon size={20} name="terminal" className="text-action" />
         Docker Collector 설치 명령
         <span className="ml-auto text-xs font-normal text-text-dim">
           {connected ? '재설치할 때 사용' : 'Linux Docker 서버에서 실행'}
@@ -275,7 +275,7 @@ function AgentInstallCommand({
             ['sensors', '자동 발견', 'Docker Collector와 eBPF Observer를 함께 시작'],
           ].map(([icon, title, description]) => (
             <div key={title} className="rounded-lg bg-ui-hover-soft p-2.5">
-              <MaterialIcon size={20} name={icon} className="text-primary" />
+              <MaterialIcon size={20} name={icon} className="text-action" />
               <p className="mt-1 font-medium text-text-secondary">{title}</p>
               <p className="mt-0.5 type-body text-text-muted">{description}</p>
             </div>

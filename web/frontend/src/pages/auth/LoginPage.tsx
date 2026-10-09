@@ -68,7 +68,7 @@ export function LoginPage() {
   if (needsSetup === null && !error) {
     return (
       <div className="min-h-screen bg-bg-main flex items-center justify-center">
-        <MaterialIcon size={36} name="progress_activity" className="text-primary animate-spin" />
+        <MaterialIcon size={36} name="progress_activity" className="text-action animate-spin" />
       </div>
     )
   }
@@ -98,18 +98,18 @@ export function LoginPage() {
           <div className="relative">
             <div className="bg-bg-surface border border-ui-border rounded-xl shadow-sm p-6 space-y-4">
               {error && (
-                <div className="flex items-start gap-2 text-red-500 dark:text-red-400 type-body bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2.5">
+                <div role="alert" className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft border border-ui-border rounded-lg px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={20} name="error_outline" className="leading-none" />
+                    <MaterialIcon size={20} name="error_outline" className="leading-none text-status-error" />
                   </span>
                   <span>{error}</span>
                 </div>
               )}
 
               {isSetup && (
-                <div className="flex items-start gap-2 text-sky-600 dark:text-sky-400 type-body bg-sky-500/10 border border-sky-500/20 rounded-lg px-3 py-2.5">
+                <div className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft border border-ui-border rounded-lg px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={20} name="info" className="leading-none" />
+                    <MaterialIcon size={20} name="info" className="leading-none text-action" />
                   </span>
                   <span>처음 실행되었습니다. 관리자 계정을 설정하세요.</span>
                 </div>
@@ -216,7 +216,7 @@ docker compose up -d`}
                   href="https://ai-turn.github.io/everyup/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 type-body text-text-dim hover:text-primary dark:hover:text-primary transition-colors"
+                  className="flex items-center gap-1.5 type-body text-text-dim hover:text-action transition-colors"
                 >
                   <MaterialIcon size={20} name="open_in_new" />
                   EveryUp 문서

@@ -452,7 +452,7 @@ function ServiceLogsPanel(props: Props) {
           title="수집 설정"
           className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
             showSettings
-              ? 'bg-primary/10 text-primary'
+              ? 'bg-primary/10 text-action'
               : 'bg-ui-hover text-text-muted hover:bg-ui-active'
           }`}
         >

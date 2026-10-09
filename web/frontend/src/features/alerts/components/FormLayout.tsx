@@ -15,7 +15,7 @@ export function FormStep({ n, title, subtitle, children }: {
     return (
         <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
-                <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs shrink-0">
+                <span className="w-7 h-7 rounded-lg bg-primary/10 text-action flex items-center justify-center text-xs shrink-0">
                     {n}
                 </span>
                 <div>

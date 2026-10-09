@@ -51,7 +51,7 @@ function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange:
           onClick={() => onChange(tab.key)}
           className={`-mb-px shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             selected
-              ? 'border-primary text-primary'
+              ? 'border-primary text-action'
               : 'border-transparent text-text-muted hover:text-text-secondary'
           }`}
         >

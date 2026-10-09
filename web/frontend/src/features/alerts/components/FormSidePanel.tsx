@@ -35,7 +35,7 @@ export function FormSidePanel({ open, icon, title, onClose, footer, children }: 
                 className="fixed inset-y-0 right-0 w-full sm:w-[560px] lg:w-[820px] xl:w-[980px] bg-bg-surface border-l border-ui-border shadow-lg flex flex-col animate-slide-in-right"
             >
                 <div className="flex-none flex items-center gap-3 px-5 h-16 border-b border-ui-border">
-                    <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary shrink-0">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-action shrink-0">
                         <MaterialIcon size={20} name={icon} />
                     </div>
                     <h3 className="flex-1 min-w-0 truncate type-card-title text-text-base">{title}</h3>

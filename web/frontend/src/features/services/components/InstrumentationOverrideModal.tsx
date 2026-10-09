@@ -156,7 +156,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
     >
       <div ref={panelRef} className="flex h-full max-h-full w-full max-w-2xl flex-col bg-bg-surface shadow-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
         <div className="flex items-center gap-3 border-b border-ui-border px-5 py-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-action">
             <MaterialIcon size={20} name="integration_instructions" />
           </div>
           <div className="min-w-0 flex-1">
@@ -202,7 +202,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                     return (
                       <label
                         key={target.composeService}
-                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${checked ? 'border-primary/20 bg-primary/10 text-primary' : 'border-ui-border text-text-secondary hover:bg-ui-hover'}`}
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${checked ? 'border-primary/20 bg-primary/10 text-action' : 'border-ui-border text-text-secondary hover:bg-ui-hover'}`}
                       >
                         <input type="checkbox" aria-label={`${target.name} 상세 수집`} checked={checked} onChange={event => {
                           setSelectedKeys(current => event.target.checked ? [...current, key] : current.filter(item => item !== key));
@@ -318,7 +318,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 )}
                 <p className="type-body text-text-muted">
                   Authorization, Cookie 등 민감 헤더는 서버에서 자동 마스킹됩니다.{' '}
-                  <a href={DOC_URL} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                  <a href={DOC_URL} target="_blank" rel="noreferrer" className="text-action hover:underline">
                     상세 수집 문서
                   </a>
                 </p>

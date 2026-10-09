@@ -27,7 +27,7 @@ const variantStyles: Record<Variant, { iconBg: string; iconText: string; default
   },
   primary: {
     iconBg: 'bg-primary/10',
-    iconText: 'text-primary',
+    iconText: 'text-action',
     defaultIcon: 'help',
   },
 };

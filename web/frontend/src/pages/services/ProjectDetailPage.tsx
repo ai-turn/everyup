@@ -97,7 +97,7 @@ function ServiceCard({ service, metric, onOpen }: {
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <StatusBadge healthy={service.healthy} />
-          <MaterialIcon size={20} name="chevron_right" className="text-text-dim group-hover:text-primary transition-colors" />
+          <MaterialIcon size={20} name="chevron_right" className="text-text-dim group-hover:text-action transition-colors" />
         </div>
       </div>
 
@@ -306,7 +306,7 @@ export function ProjectDetailPage() {
             {formatDuration(banner.durationSec)} {'경과'}
             {activeIncidents.length > 1 && ` · +${activeIncidents.length - 1}`}
           </span>
-          <span className="ml-auto text-xs font-medium text-primary shrink-0 flex items-center">
+          <span className="ml-auto text-xs font-medium text-action shrink-0 flex items-center">
             서비스 열기
             <MaterialIcon size={20} name="chevron_right" />
           </span>

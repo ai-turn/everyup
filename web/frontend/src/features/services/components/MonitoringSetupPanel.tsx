@@ -107,7 +107,7 @@ function SetupStep({
     },
     waiting: {
       icon: String(number),
-      circle: 'bg-primary/10 text-primary',
+      circle: 'bg-primary/10 text-action',
       badge: 'bg-status-idle/10 text-status-idle',
     },
     issue: {
@@ -224,7 +224,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
         <div>
           <div className="flex items-center gap-2">
             <h2 className="type-label text-text-base">모니터링 설정 가이드</h2>
-            <span className={`rounded-full px-2 py-0.5 text-xs ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-primary'}`}>
+            <span className={`rounded-full px-2 py-0.5 text-xs ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
               필수 {requiredReady}/{requiredTotal}
             </span>
           </div>

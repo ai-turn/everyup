@@ -351,7 +351,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     return (
                                         <label
                                             key={type}
-                                            className={`flex flex-col items-center gap-2.5 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                                            className={`flex flex-col items-center gap-2.5 p-4 border-2 rounded-xl cursor-pointer transition-all has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary ${
                                                 active
                                                     ? m.colorBg
                                                     : 'border-ui-border-soft hover:border-slate-200 dark:hover:border-slate-600'
@@ -360,7 +360,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                             <input {...register('type')} type="radio" value={type} className="sr-only" />
                                             <m.Icon size={26} className={active ? m.color : 'text-text-dim'} />
                                             <span className={`text-sm ${active ? m.color : 'text-text-muted'}`}>{m.label}</span>
-                                            <span className="text-sm font-medium uppercase tracking-wider text-slate-400">{m.sub}</span>
+                                            <span className="text-sm font-medium uppercase tracking-wider text-text-dim">{m.sub}</span>
                                         </label>
                                     );
                                 })}
@@ -444,7 +444,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
                                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                 <div>
-                                    <p className="text-sm font-medium text-text-base uppercase tracking-widest">채널 미리보기</p>
+                                    <p className="text-sm font-medium text-text-base">채널 미리보기</p>
                                     <p className="text-sm text-text-muted mt-0.5">실제 전송 메시지 형식</p>
                                 </div>
                             </div>
@@ -456,7 +456,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-sm text-text-base truncate">
-                                            {watchedName || <span className="text-slate-400 font-normal italic">채널 이름 미입력</span>}
+                                            {watchedName || <span className="text-text-muted font-normal">채널 이름 미입력</span>}
                                         </p>
                                         <p className={`text-sm ${meta.color}`}>{meta.label}</p>
                                     </div>
@@ -467,25 +467,25 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     {watchedType === 'telegram' ? (
                                         <>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-slate-400 uppercase text-xs tracking-wide">Bot Token</span>
+                                                <span className="text-text-dim uppercase text-xs tracking-wide">Bot Token</span>
                                                 <span className="font-mono text-text-muted">
-                                                    {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim italic">미입력</span>}
+                                                    {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim">미입력</span>}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-slate-400 uppercase text-xs tracking-wide">Chat ID</span>
+                                                <span className="text-text-dim uppercase text-xs tracking-wide">Chat ID</span>
                                                 <span className="font-mono text-text-muted">
-                                                    {watchedChatId || <span className="text-text-dim italic">미입력</span>}
+                                                    {watchedChatId || <span className="text-text-dim">미입력</span>}
                                                 </span>
                                             </div>
                                         </>
                                     ) : (
                                         <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg gap-3">
-                                            <span className="text-slate-400 uppercase text-xs tracking-wide shrink-0">Webhook</span>
+                                            <span className="text-text-dim uppercase text-xs tracking-wide shrink-0">Webhook</span>
                                             <span className="font-mono text-text-muted truncate text-right">
                                                 {watchedWebhook
                                                     ? watchedWebhook.replace(/^https?:\/\//, '').slice(0, 32) + (watchedWebhook.length > 40 ? '…' : '')
-                                                    : <span className="text-text-dim italic">미입력</span>}
+                                                    : <span className="text-text-dim">미입력</span>}
                                             </span>
                                         </div>
                                     )}
@@ -493,7 +493,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                                 {/* Actual message preview */}
                                 <div>
-                                    <p className="text-sm font-medium text-slate-400 uppercase tracking-widest mb-2">테스트 메시지 미리보기</p>
+                                    <p className="text-sm font-medium text-text-muted mb-2">테스트 메시지 미리보기</p>
                                     <PreviewComponent name={watchedName} />
                                 </div>
                             </div>
@@ -502,9 +502,9 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                         {/* Test send card */}
                         <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
-                                <MaterialIcon size={20} name="send" className="text-slate-400" />
+                                <MaterialIcon size={20} name="send" className="text-text-dim" />
                                 <div>
-                                    <p className="text-sm font-medium text-text-base uppercase tracking-widest">테스트 전송</p>
+                                    <p className="text-sm font-medium text-text-base">테스트 전송</p>
                                     <p className="text-sm text-text-muted mt-0.5">실제 채널로 테스트 메시지 발송</p>
                                 </div>
                             </div>

@@ -301,7 +301,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
         className="fixed inset-y-0 right-0 w-full sm:w-[560px] lg:w-[720px] bg-bg-surface border-l border-ui-border shadow-lg flex flex-col animate-slide-in-right"
       >
         <div className="flex-none flex items-center gap-3 px-5 h-16 border-b border-ui-border">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary shrink-0">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-action shrink-0">
             <MaterialIcon size={20} name="timeline" />
           </div>
           <h3 className="type-card-title text-text-base shrink-0">트레이스</h3>
@@ -387,7 +387,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
 function PanelSectionHeader({ icon, title, count }: { icon: string; title: string; count: number }) {
   return (
     <div className="flex items-center gap-2 mb-2">
-      <MaterialIcon size={20} name={icon} className="text-primary" />
+      <MaterialIcon size={20} name={icon} className="text-action" />
       <h4 className="type-label text-text-base">{title}</h4>
       <span className="text-xs font-medium text-text-secondary bg-ui-active px-2 py-0.5 rounded-md">
         {count}
@@ -550,7 +550,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
             className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm dark:border-ui-border-dark dark:bg-ui-hover-dark"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+              <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-xs text-action">
                 {item.label}
               </span>
               {item.serviceName && (

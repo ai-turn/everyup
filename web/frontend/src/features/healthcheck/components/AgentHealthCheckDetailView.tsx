@@ -65,7 +65,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
   return (
     <>
       {/* 데스크톱은 AppHeader breadcrumb가 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to={`/agents/${agentId}`} className="mb-3 inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-primary lg:hidden">
+      <Link to={`/agents/${agentId}`} className="mb-3 inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />{service.agentName}
       </Link>
       <PageHeader

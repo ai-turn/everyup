@@ -341,7 +341,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
     >
       {formLoading ? (
         <div className="flex min-h-40 items-center justify-center">
-          <MaterialIcon size={32} name="sync" className="text-primary animate-spin" />
+          <MaterialIcon size={32} name="sync" className="text-action animate-spin" />
         </div>
       ) : (
         <AlertRuleForm
@@ -358,7 +358,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
   if (isLoading) {
     return (
       <div className="p-8 text-center text-slate-500">
-        <MaterialIcon size={32} name="sync" className="text-primary animate-spin mx-auto mb-2 block" />
+        <MaterialIcon size={32} name="sync" className="text-action animate-spin mx-auto mb-2 block" />
         로딩 중...
       </div>
     );

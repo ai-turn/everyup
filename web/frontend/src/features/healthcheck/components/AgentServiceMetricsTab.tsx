@@ -174,7 +174,7 @@ function MetricChart({ source, meta, range, refreshKey, rules, expanded = false,
   return (
     <ChartCard
       title={expanded ? name : (
-        <button type="button" onClick={onExpand} title="크게 보기" className="block max-w-full truncate text-left underline-offset-4 hover:text-primary hover:underline">
+        <button type="button" onClick={onExpand} title="크게 보기" className="block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline">
           {name}
         </button>
       )}

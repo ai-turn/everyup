@@ -4,8 +4,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton, MaterialIcon } from '../common';
 import { api, type AgentServiceFlat } from '../../services/api';
 import { env } from '../../config/env';
-import logo from '../../assets/logo.png';
-import logoDark from '../../assets/logo-dark.png';
+import logo from '../../assets/logo.webp';
 import { DemoScenarioSwitcher } from './DemoScenarioSwitcher';
 
 interface NavItemProps {
@@ -22,7 +21,7 @@ function NavItem({ to, icon, label, active, badge }: NavItemProps) {
       to={to}
       aria-current={active ? 'page' : undefined}
       className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
-        active ? 'bg-primary/10 text-primary' : 'text-text-muted hover:bg-ui-hover hover:text-text-base'
+        active ? 'bg-primary/10 text-action' : 'text-text-muted hover:bg-ui-hover hover:text-text-base'
       }`}
     >
       <MaterialIcon size={20} name={icon} className="shrink-0" />
@@ -59,13 +58,13 @@ export function Sidebar() {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-ui-border bg-bg-surface lg:flex">
       <Link to="/" className="group flex h-16 shrink-0 items-center gap-2 px-4">
-        <img src={theme === 'dark' ? logoDark : logo} alt="EveryUp" className="h-9 w-9 object-contain" />
-        <span className="text-lg font-bold tracking-tight text-text-base transition-colors group-hover:text-primary">EveryUp</span>
+        <img src={logo} alt="EveryUp" className="h-9 w-9 object-contain" />
+        <span className="text-lg font-bold tracking-tight text-text-base transition-colors group-hover:text-action">EveryUp</span>
       </Link>
 
       {env.isDemoMode && (
         <div data-demo-chrome className="mx-3 mb-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">Live Demo</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-action">Live Demo</p>
           <div className="mt-2"><DemoScenarioSwitcher tone="light" /></div>
         </div>
       )}

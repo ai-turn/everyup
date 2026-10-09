@@ -1,4 +1,4 @@
-import { Button, ConfirmDialog, MaterialIcon, PageHeader } from '../../../components/common';
+import { Button, ConfirmDialog, MaterialIcon, PageHeader, SegmentedControl } from '../../../components/common';
 import { useAuth } from '../../../contexts/AuthContext';
 import { SectionCard } from './SectionCard';
 import { SettingRow } from './SettingRow';
@@ -11,14 +11,6 @@ import { env } from '../../../config/env';
 const METRICS_RETENTION_OPTIONS = ['7d', '30d', '90d', '1y'];
 const LOGS_RETENTION_OPTIONS = ['1d', '3d', '7d', '30d'];
 const COLLECT_INTERVAL_OPTIONS = [15, 30, 60, 300];
-
-// 트랙 패딩을 포함해 40px로 맞춘 설정 선택 버튼.
-const segmentedButtonClass = (active: boolean) =>
-  `cursor-pointer h-9 px-3 rounded-md type-label transition-all ${
-    active
-      ? 'bg-ui-raised text-primary shadow-sm'
-      : 'text-text-muted hover:text-text-secondary'
-  }`;
 
 interface SettingsDesktopViewProps {
   theme: 'light' | 'dark';
@@ -88,18 +80,13 @@ export function SettingsDesktopView({
           <section id="sec-ui" className="scroll-mt-4">
             <SectionCard title="인터페이스" subtitle="테마, 시간대 설정">
               <SettingRow label="테마" description="라이트 또는 다크 모드를 선택합니다">
-                <div className="flex gap-1 bg-ui-hover p-0.5 rounded-lg">
-                  {(['light', 'dark'] as const).map((t_) => (
-                    <button
-                      key={t_}
-                      onClick={() => onThemeChange(t_)}
-                      className={`flex items-center gap-1.5 ${segmentedButtonClass(theme === t_)}`}
-                    >
-                      <MaterialIcon size={20} name={t_ === 'light' ? 'light_mode' : 'dark_mode'} />
-                      {t_ === 'light' ? '라이트' : '다크'}
-                    </button>
-                  ))}
-                </div>
+                <SegmentedControl
+                  size="md"
+                  ariaLabel="테마"
+                  options={[{ value: 'light', label: '라이트' }, { value: 'dark', label: '다크' }] as const}
+                  value={theme}
+                  onChange={onThemeChange}
+                />
               </SettingRow>
             </SectionCard>
           </section>
@@ -114,45 +101,33 @@ export function SettingsDesktopView({
               ) : (
                 <>
                   <SettingRow label="수집 주기" description="시스템 메트릭을 수집하는 간격 · 다음 시작 시 적용됩니다">
-                    <div className="flex gap-1 flex-wrap justify-end bg-ui-hover p-0.5 rounded-lg">
-                      {collectOptions.map((sec) => (
-                        <button
-                          key={sec}
-                          onClick={() => onCollectIntervalChange(sec)}
-                          className={`${segmentedButtonClass(collectInterval === sec)}`}
-                        >
-                          {intervalLabel(sec)}
-                        </button>
-                      ))}
-                    </div>
+                    <SegmentedControl
+                      size="md"
+                      ariaLabel="수집 주기"
+                      options={collectOptions.map((sec) => ({ value: String(sec), label: intervalLabel(sec) }))}
+                      value={String(collectInterval)}
+                      onChange={(v) => onCollectIntervalChange(Number(v))}
+                    />
                   </SettingRow>
 
                   <SettingRow label="메트릭 보존 기간" description="수집된 시스템 메트릭 데이터 보존 기간">
-                    <div className="flex gap-1 flex-wrap justify-end bg-ui-hover p-0.5 rounded-lg">
-                      {METRICS_RETENTION_OPTIONS.map((opt) => (
-                        <button
-                          key={opt}
-                          onClick={() => onMetricsRetentionChange(opt)}
-                          className={`${segmentedButtonClass(metricsRetention === opt)}`}
-                        >
-                          {retentionLabel(opt)}
-                        </button>
-                      ))}
-                    </div>
+                    <SegmentedControl
+                      size="md"
+                      ariaLabel="메트릭 보존 기간"
+                      options={METRICS_RETENTION_OPTIONS.map((opt) => ({ value: opt, label: retentionLabel(opt) }))}
+                      value={metricsRetention}
+                      onChange={onMetricsRetentionChange}
+                    />
                   </SettingRow>
 
                   <SettingRow label="로그 보존 기간" description="에러 로그 데이터 보존 기간">
-                    <div className="flex gap-1 flex-wrap justify-end bg-ui-hover p-0.5 rounded-lg">
-                      {LOGS_RETENTION_OPTIONS.map((opt) => (
-                        <button
-                          key={opt}
-                          onClick={() => onLogsRetentionChange(opt)}
-                          className={`${segmentedButtonClass(logsRetention === opt)}`}
-                        >
-                          {retentionLabel(opt)}
-                        </button>
-                      ))}
-                    </div>
+                    <SegmentedControl
+                      size="md"
+                      ariaLabel="로그 보존 기간"
+                      options={LOGS_RETENTION_OPTIONS.map((opt) => ({ value: opt, label: retentionLabel(opt) }))}
+                      value={logsRetention}
+                      onChange={onLogsRetentionChange}
+                    />
                   </SettingRow>
 
                   <p className="pt-3 type-body text-text-muted">

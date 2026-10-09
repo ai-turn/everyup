@@ -1,3 +1,4 @@
+import { SegmentedControl } from '../../../components/common';
 import { SectionCard } from './SectionCard';
 import { SettingRow } from './SettingRow';
 
@@ -22,21 +23,13 @@ export function AlertsSection({ value, loading, onChange }: {
           label="연속 실패 횟수"
           description="알림을 발송하기 전 필요한 연속 실패 횟수"
         >
-          <div className="flex gap-1 bg-ui-hover p-0.5 rounded-lg">
-            {options.map((n) => (
-              <button
-                key={n}
-                onClick={() => onChange(n)}
-                className={`cursor-pointer h-9 px-3 rounded-md type-label transition-all ${
-                  value === n
-                    ? 'bg-ui-raised text-primary shadow-sm'
-                    : 'text-text-muted hover:text-text-secondary'
-                }`}
-              >
-                {n}회
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            size="md"
+            ariaLabel="연속 실패 횟수"
+            options={options.map((n) => ({ value: String(n), label: `${n}회` }))}
+            value={String(value)}
+            onChange={(v) => onChange(Number(v))}
+          />
         </SettingRow>
       )}
     </SectionCard>
