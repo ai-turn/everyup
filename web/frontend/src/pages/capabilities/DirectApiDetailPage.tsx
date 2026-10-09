@@ -189,11 +189,11 @@ export function DirectApiDetailPage() {
         }
       />
 
-      <section className="mb-6 rounded-xl border border-ui-border bg-bg-surface p-5">
+      <section className="mb-6 rounded-xl border border-ui-border bg-bg-surface p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="type-card-title text-text-base">API 제외 경로</h2>
-            <p className="mt-1 text-sm text-text-muted">수집 전에 제외할 경로를 한 줄에 하나씩 입력합니다. 정확한 경로 또는 끝에 *를 붙인 prefix를 지원합니다.</p>
+            <p className="mt-0.5 text-sm text-text-muted">수집 전에 제외할 경로를 한 줄에 하나씩 입력합니다. 정확한 경로 또는 끝에 *를 붙인 prefix를 지원합니다.</p>
           </div>
           <Button size="sm" onClick={() => void saveExclusions()} disabled={excludePaths === savedExcludePaths} loading={savingExclusions}>
             제외 경로 저장

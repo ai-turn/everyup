@@ -11,7 +11,7 @@ interface Props {
 
 export function AgentServiceInfraTab({ agentId, refreshKey, range }: Props) {
   return (
-    <div>
+    <div className="space-y-5">
       <InfraGauges hostId={agentId} refreshKey={refreshKey} />
       <InfraTrends hostId={agentId} refreshKey={refreshKey} range={range} />
     </div>

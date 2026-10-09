@@ -52,7 +52,7 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
         : children;
     return (
         <div>
-            <div className="flex items-center gap-1 mb-2">
+            <div className="flex items-center gap-1 mb-1.5">
                 <LabelTag
                     {...(htmlFor ? { htmlFor } : {})}
                     className="text-sm font-medium text-text-muted"

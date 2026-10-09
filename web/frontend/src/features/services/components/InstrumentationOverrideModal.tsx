@@ -155,7 +155,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
       onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
       <div ref={panelRef} className="flex h-full max-h-full w-full max-w-2xl flex-col bg-bg-surface shadow-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
-        <div className="flex items-center gap-3 border-b border-ui-border px-5 py-4">
+        <div className="flex items-center gap-3 border-b border-ui-border px-6 py-4">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-action">
             <MaterialIcon size={20} name="integration_instructions" />
           </div>
@@ -168,7 +168,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+        <div className="flex-1 space-y-5 overflow-y-auto p-6">
           {loading ? (
             <div className="h-40 animate-pulse rounded-xl bg-ui-hover" />
           ) : candidates.length === 0 ? (
@@ -182,11 +182,11 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
           ) : (
             <>
               <div className="rounded-xl border border-ui-border bg-ui-hover-soft p-4">
-                <div className="flex items-start gap-2.5">
+                <div className="flex items-start gap-3">
                   <MaterialIcon size={20} name="verified_user" className="mt-0.5 shrink-0 text-status-healthy" />
                   <div>
                     <p className="type-label text-text-base">원본 Compose는 수정하지 않습니다</p>
-                    <p className="mt-1 type-body text-text-muted">
+                    <p className="mt-0.5 type-body text-text-muted">
                       CLI가 별도 override를 만들고 선택한 서비스만 재시작합니다. 주입 옵션, 공유 볼륨, 네트워크와 컨테이너 상태를 확인하며 실패하면 직전 설정으로 자동 복구합니다.
                     </p>
                   </div>

@@ -138,8 +138,10 @@ export function DirectInfrastructureDetailPage() {
         }
       />
 
-      <InfraGauges hostId={resource.id} refreshKey={refreshKey} />
-      <InfraTrends hostId={resource.id} refreshKey={refreshKey} range={range} />
+      <div className="space-y-5">
+        <InfraGauges hostId={resource.id} refreshKey={refreshKey} />
+        <InfraTrends hostId={resource.id} refreshKey={refreshKey} range={range} />
+      </div>
 
       <ConfirmDialog
         isOpen={Boolean(selectedConfirm)}

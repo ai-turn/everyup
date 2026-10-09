@@ -295,7 +295,7 @@ export function OverviewPage() {
 
             <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
               <h2 className="type-card-title text-text-base">모니터링 범위</h2>
-              <p className="mt-1 text-sm text-text-muted">연결 방식별로 수집 범위를 확인하세요.</p>
+              <p className="mt-0.5 text-sm text-text-muted">연결 방식별로 수집 범위를 확인하세요.</p>
               <ul className="-mx-2 mt-3">
                 {([
                   ['Docker 환경', agents.length, '/environments', 'agents'],

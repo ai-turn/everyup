@@ -893,7 +893,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 ## 10. 알려진 부채
 
-**`pnpm lint`가 일부를 센다** — [`scripts/check-design-rules.mjs`](scripts/check-design-rules.mjs). §9의 기계적으로 셀 수 있는 금지 패턴은 0건이어야 하고, `*-dark` 직접 사용·`slate-*`·`bg-white`·`gap-2.5`는 현재 건수가 상한이다(늘면 CI 실패, 줄면 상한을 같이 내린다). 새 금지 규칙을 §9에 추가할 때 셀 수 있으면 거기에도 추가한다.
+**`pnpm lint`가 일부를 센다** — [`scripts/check-design-rules.mjs`](scripts/check-design-rules.mjs). §9의 기계적으로 셀 수 있는 금지 패턴과 스케일 밖 간격 `gap-2.5`·`gap-3.5`(§3.7, 2026-10-10 0건 달성)는 0건이어야 하고, `*-dark` 직접 사용·`slate-*`·`bg-white`는 현재 건수가 상한이다(늘면 CI 실패, 줄면 상한을 같이 내린다). 새 금지 규칙을 §9에 추가할 때 셀 수 있으면 거기에도 추가한다.
 
 2026-07-26 전수 스캔(`src/**/*.tsx` 76개). 규약 대비 이탈 목록. 2026-09-23 재집계: `dark:` 변형 82건/22파일(대부분 primitive 축 — 아래 B), `slate-*` 하드코딩 117건/18파일. 2026-10-09 재집계(127파일): `dark:` 69건/19파일, `slate-*` 77건/17파일, `*-dark` 접미 토큰 직접 사용 19건 — 남은 덩어리는 `AlertRuleForm`·`ChannelForm`·`TracePanel`이다.
 
@@ -967,24 +967,12 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 `Sidebar`의 `NavItem`, `CommandPalette`의 `page-*` 항목, 새 `navSections.ts`가 각자 경로→라벨을 갖고 있고 이미 어긋나 있다(`환경설정` vs `환경 설정`, CommandPalette에는 `Docker 환경`이 없음). 하나로 합치려면 사이드바의 그룹 헤더·알림 badge를 함께 옮겨야 해서 단순 치환이 안 된다. `navSections.ts`는 사이드바 표기를 정본으로 삼았다.
 
-### F. 간격 스케일 이탈 (2026-10-09)
+### ~~F. 간격 스케일 이탈 (2026-10-09)~~ → 해소 (2026-10-10)
 
-§3.7 신설 시점의 이탈이다. 바뀌는 폭이 2~4px라 일괄 치환하지 않고, 해당 파일을 다른 일로 열 때 함께 고친다.
+§3.7 신설 시점에 기록한 이탈은 화면별 점검(PR #38~#44)과 유형별 정리로 모두 고쳤다. `gap-2.5`·`gap-3.5`는 0건이 되어 `pnpm lint` 금지 규칙으로 옮겼다. 기록된 조치와 다르게 처리한 두 곳:
 
-| 항목 | 위치 | 조치 |
-|------|------|------|
-| 카드 그리드 `gap-3` | `MorePage` | `gap-4` |
-| 페이지 2단 `gap-6` | `AlertRuleForm`(2) · `ChannelForm` | `gap-5` |
-| 제목 → 설명 `mt-1` | `InfrastructureCollectorSetupResult` · `InstrumentationOverrideModal` · `SettingRow` · `DirectTelemetrySetupDialog` · `DirectTelemetrySetupResult` · `DirectApiDetailPage` · `OverviewPage` | `mt-0.5` |
-| 라벨 → 입력 `mb-2` | `FormLayout`의 `Field` 1곳 — 알림 폼 전체에 반영된다 | `mb-1.5` |
-| 카드 패딩 `p-5` | `SectionCard` · `LoginPage` · `DirectApiDetailPage` · `ProjectsPage` | `p-4` |
-| 카드 패딩 `p-3` | `AlertsMobileView`(5) | `p-4` |
-| 인라인 아이콘 + 텍스트 `gap-1` | `ChannelHealthMeta`(4) · `Footer` | `gap-1.5` |
-| 메뉴 행 `gap-2.5` | `Sidebar` `NavItem` · `CommandPalette`(2) | `gap-2` |
-| 배너 선행 요소 `gap-2`·`2.5`·`3.5` | `SettingsMobileView` · `TracePanel` · `InstrumentationOverrideModal` · `MonitoringSetupPanel` · `ServiceIncidentBanner`(`3.5`) | `gap-3` |
-| 나머지 `gap-2.5` | `ChannelForm` · `UptimeMonitorDetailPage` | §3.7 관계로 판단 |
-| 모달인데 패널 패딩 | `InstrumentationOverrideModal`(`px-5 py-4`) | 모달 규칙 |
-| 탭 안 섹션 사이 `mb-8`(32px) | `InfraGauges`(2) · `InfraTrends`(2) — 업타임 탭은 해소(2026-10-10) | 탭 패널이 `space-y-5`를 갖고 자식의 `mb-*`를 뺀다 — §3.3 본문 래퍼와 같은 방식 |
+- 로그인 "계정 찾기" 패널 `p-5` → **`p-6`** — 바로 옆 로그인 카드가 `p-6`이라 짝을 맞췄다(§3.1의 여유 단계)
+- 모바일 알림의 다시 시도 상자 `p-3` → **`px-4 py-3`** — 카드가 아니라 배너라 §3.7 배너 패딩을 따랐다
 
 ### G. 반응형·표·탭 이탈 (2026-10-09)
 
@@ -992,7 +980,6 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 | 항목 | 위치 | 조치 |
 |------|------|------|
-| 카드 목록 `sm:2 lg:3` | `App.tsx` 스켈레톤 | `md:2 xl:3` |
 | 뷰 분기(`md`)와 셸 전환(`lg`)의 경계 불일치 | `useIsMobile` · `MainLayout` | **결정 필요** — §3.8 |
 
 ### 해결됨 (2026-09-24) — 보편 디자인 시스템 대조 (버튼)

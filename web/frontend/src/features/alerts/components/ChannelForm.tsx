@@ -336,7 +336,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
     return (
         <form id="channel-form" onSubmit={handleSubmit(onSubmit)}>
-            <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+            <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
 
                 {/* ── Left: form steps ─────────────────────────────────── */}
                 <div className="space-y-4 min-w-0">
@@ -351,7 +351,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     return (
                                         <label
                                             key={type}
-                                            className={`flex flex-col items-center gap-2.5 p-4 border-2 rounded-xl cursor-pointer transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary ${
+                                            className={`flex flex-col items-center gap-2 p-4 border-2 rounded-xl cursor-pointer transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary ${
                                                 active
                                                     ? m.colorBg
                                                     : 'border-ui-border-soft hover:border-slate-200 dark:hover:border-slate-600'

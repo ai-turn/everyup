@@ -328,7 +328,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           )}
 
           {error && (
-            <div className="flex items-start gap-2 px-3 py-2 bg-ui-hover-soft rounded-lg border border-ui-border">
+            <div className="flex items-start gap-3 px-3 py-2 bg-ui-hover-soft rounded-lg border border-ui-border">
               <MaterialIcon size={20} name="error" className="text-status-error shrink-0 mt-0.5" />
               <p className="text-sm text-text-secondary">{error}</p>
             </div>

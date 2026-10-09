@@ -158,7 +158,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
 
     return (
         <form id="alert-rule-form" onSubmit={handleSubmit}>
-            <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+            <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
                 <div className="space-y-4 min-w-0">
                     <FormStep n={1} title="시스템 규칙" subtitle="시스템이 관리하는 규칙입니다. 메시지와 알림 채널만 수정할 수 있습니다.">
                         <div className="p-4 bg-ui-hover-soft/50 rounded-xl">
@@ -450,7 +450,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                 toast.error('필수 항목을 확인해주세요');
             })}
         >
-            <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+            <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
 
                 {/* ── Left: form steps ─────────────────────────────────── */}
                 <div className="space-y-4 min-w-0">

@@ -143,7 +143,7 @@ export function CommandPalette() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
-        <div className="flex items-center gap-2.5 px-4 border-b border-ui-border">
+        <div className="flex items-center gap-2 px-4 border-b border-ui-border">
           <MaterialIcon size={20} name="search" className="text-text-dim shrink-0" />
           <input
             ref={inputRef}
@@ -174,7 +174,7 @@ export function CommandPalette() {
                 aria-selected={i === index}
                 onClick={() => go(item)}
                 onMouseMove={() => setIndex(i)}
-                className={`w-full flex items-center gap-2.5 px-4 py-2 text-left transition-colors ${
+                className={`w-full flex items-center gap-2 px-4 py-2 text-left transition-colors ${
                   i === index
                     ? 'bg-primary/10 text-action'
                     : 'text-text-secondary'

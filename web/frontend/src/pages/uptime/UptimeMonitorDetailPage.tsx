@@ -79,7 +79,7 @@ function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
                     <td className="px-2 py-2.5 tabular-nums text-text-muted">{metric.statusCode ?? '—'}</td>
                     <td className="px-2 py-2.5">
                       {ok ? (
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
                           <span className="hidden h-1.5 w-40 rounded-full bg-ui-hover sm:block">
                             <span className="block h-1.5 rounded-full bg-primary" style={{ width: `${(metric.responseTime / longest) * 100}%` }} />
                           </span>

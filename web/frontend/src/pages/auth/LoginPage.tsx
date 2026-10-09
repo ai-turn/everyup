@@ -162,7 +162,7 @@ export function LoginPage() {
 
             {/* Recovery panel — outside card div, bottom-aligned with card border */}
             {!isSetup && showForgot && (
-              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border rounded-xl shadow-sm p-5 space-y-4">
+              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border rounded-xl shadow-sm p-6 space-y-4">
                 <p className="type-label text-text-secondary">
                   계정 정보를 잊으셨나요?
                 </p>

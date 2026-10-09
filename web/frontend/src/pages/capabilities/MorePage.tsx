@@ -13,7 +13,7 @@ export function MorePage() {
   return (
     <div>
       <PageHeader title="더보기" subtitle="추가 모니터링 기능과 설정으로 이동합니다." />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {LINKS.map((link) => <Link key={link.to} to={link.to} className="card-interactive flex items-center gap-3 rounded-xl border border-ui-border bg-bg-surface p-4">
           <MaterialIcon size={20} name={link.icon} className="text-action" />
           <div className="min-w-0"><h2 className="type-card-title text-text-base">{link.title}</h2><p className="text-sm text-text-muted">{link.description}</p></div>

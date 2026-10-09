@@ -60,7 +60,7 @@ export function InfrastructureCollectorSetupResult({
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-status-healthy/10 text-status-healthy"><MaterialIcon name="check" /></span>
         <div>
           <h3 className="type-card-title text-text-base">{title}</h3>
-          <p className="mt-1 text-sm text-text-muted">Collector API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
+          <p className="mt-0.5 text-sm text-text-muted">Collector API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
         </div>
       </div>
       <ConnectionAddressField address={address} />

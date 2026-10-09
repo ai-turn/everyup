@@ -33,7 +33,7 @@ export function ChannelHealthMeta({ health, compact = false }: Props) {
 
   return (
     <div className={`flex items-center flex-wrap ${gap} ${text} text-text-muted`}>
-      <span className="inline-flex items-center gap-1" title="마지막 발송">
+      <span className="inline-flex items-center gap-1.5" title="마지막 발송">
         <MaterialIcon size={20} name="schedule" />
         {lastSentAt
           ? formatDistanceToNow(lastSentAt, { addSuffix: true, locale: ko })
@@ -41,18 +41,18 @@ export function ChannelHealthMeta({ health, compact = false }: Props) {
       </span>
 
       {total > 0 ? (
-        <span className={`inline-flex items-center gap-1 ${rateColor}`} title="7일 성공률">
+        <span className={`inline-flex items-center gap-1.5 ${rateColor}`} title="7일 성공률">
           <MaterialIcon size={20} name="check_circle" />
           {successRate}% <span className="font-normal text-text-dim">({sent}/{total})</span>
         </span>
       ) : (
-        <span className="inline-flex items-center gap-1" title="최근 7일 활동 없음">
+        <span className="inline-flex items-center gap-1.5" title="최근 7일 활동 없음">
           <MaterialIcon size={20} name="check_circle" className="text-text-dim" />
           활동 없음
         </span>
       )}
 
-      <span className="inline-flex items-center gap-1" title="연결된 활성 규칙">
+      <span className="inline-flex items-center gap-1.5" title="연결된 활성 규칙">
         <MaterialIcon size={20} name="rule" />
         {`규칙 ${ruleCount}개`}
       </span>
