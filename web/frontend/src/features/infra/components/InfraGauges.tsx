@@ -20,7 +20,7 @@ export function InfraGauges({ hostId, refreshKey = 0 }: InfraGaugesProps) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
           <Skeleton key={i} className="h-32 w-full rounded-xl" />
         ))}
@@ -29,7 +29,7 @@ export function InfraGauges({ hostId, refreshKey = 0 }: InfraGaugesProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
       {(gauges || []).map((gauge) => (
         <VitalGaugeCard key={gauge.label} gauge={gauge} />
       ))}

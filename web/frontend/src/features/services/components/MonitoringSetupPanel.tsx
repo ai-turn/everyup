@@ -124,7 +124,7 @@ function SetupStep({
 
   return (
     <div className="flex min-w-0 flex-col rounded-xl border border-ui-border-soft bg-ui-hover-soft p-3">
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-start gap-3">
         <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs ${appearance.circle}`}>
           {state === 'ready' || state === 'issue' ? (
             <MaterialIcon size={20} name={appearance.icon} />

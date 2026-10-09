@@ -64,13 +64,13 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
       </div>
 
       {loading ? (
-        <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-80 w-full rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {(charts || []).map((chart) => (
             <TrendCard
               key={chart.title}

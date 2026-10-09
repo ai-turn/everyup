@@ -182,7 +182,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
           ) : (
             <>
               <div className="rounded-xl border border-ui-border bg-ui-hover-soft p-4">
-                <div className="flex items-start gap-2.5">
+                <div className="flex items-start gap-3">
                   <MaterialIcon size={20} name="verified_user" className="mt-0.5 shrink-0 text-status-healthy" />
                   <div>
                     <p className="type-label text-text-base">원본 Compose는 수정하지 않습니다</p>

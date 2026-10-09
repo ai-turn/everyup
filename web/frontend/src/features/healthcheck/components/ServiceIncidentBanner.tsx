@@ -25,7 +25,7 @@ export function ServiceIncidentBanner({ service, onInvestigate }: ServiceInciden
     : null;
 
   return (
-    <div className="flex items-center gap-3.5 mb-5 rounded-xl border border-ui-border bg-bg-surface px-4 py-3.5">
+    <div className="flex items-center gap-3 mb-5 rounded-xl border border-ui-border bg-bg-surface px-4 py-3.5">
       <span className="h-2.5 w-2.5 rounded-full bg-status-error animate-pulse shrink-0" />
       <div className="min-w-0 flex-1">
         <p className="type-label text-status-error">
