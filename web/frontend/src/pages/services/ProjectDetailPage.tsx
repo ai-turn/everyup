@@ -7,6 +7,7 @@ import { MaterialIcon } from '../../components/common/MaterialIcon';
 import { Button, DetailActionToolbar, DetailMeta, PageHeader } from '../../components/common';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import {
   api,
@@ -184,9 +185,8 @@ export function ProjectDetailPage() {
 
   useEffect(() => {
     load();
-    const id = setInterval(load, 30_000);
-    return () => clearInterval(id);
   }, [load]);
+  useAutoRefresh(load, 30_000);
 
   const { spinning, trigger: handleRefresh } = useSpinAction(load);
 

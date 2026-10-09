@@ -334,12 +334,6 @@ body {
   animation: zoom-in-95 0.2s ease-out both;
 }
 
-/* Marquee: 모바일 DemoBanner 텍스트 스크롤 */
-@keyframes marquee {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
 /* Custom Scrollbar: 사이드패널 등 스크롤 영역 */
 @layer utilities {
   .custom-scrollbar {

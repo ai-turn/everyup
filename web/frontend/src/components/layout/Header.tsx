@@ -14,7 +14,7 @@ export function Header() {
     const isSettingsActive = location.pathname.startsWith('/settings');
 
     const iconLinkCls = (active: boolean) =>
-        `w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
+        `w-11 h-11 flex items-center justify-center rounded-lg transition-colors ${
             active
                 ? 'text-action bg-primary/10'
                 : 'text-text-muted hover:bg-ui-hover hover:text-text-base'
@@ -39,7 +39,7 @@ export function Header() {
                     type="button"
                     onClick={() => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT))}
                     aria-label="Search"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base"
                 >
                     <MaterialIcon size={20} name="search" />
                 </button>

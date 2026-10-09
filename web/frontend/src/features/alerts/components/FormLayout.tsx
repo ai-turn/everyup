@@ -5,7 +5,7 @@
 //
 // alerts 밖에서 쓰는 곳이 생기면 그때 components/common으로 올린다.
 
-import type { ReactNode } from 'react';
+import { cloneElement, isValidElement, type ReactNode } from 'react';
 import { Button, MaterialIcon } from '../../../components/common';
 
 /** 번호가 붙은 폼 단계 카드. 헤더 스트립 + 본문. */
@@ -40,6 +40,16 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
     children: ReactNode; htmlFor?: string;
 }) {
     const LabelTag = htmlFor ? 'label' : 'span';
+    const errorId = htmlFor && error ? `${htmlFor}-error` : undefined;
+    const hintId = htmlFor && hint && !error ? `${htmlFor}-hint` : undefined;
+    // 에러·힌트·필수 여부를 입력에 연결한다 — 자식이 htmlFor와 같은 id의 단일 컨트롤일 때만.
+    const control = htmlFor && isValidElement<Record<string, unknown>>(children) && children.props.id === htmlFor
+        ? cloneElement(children, {
+            'aria-describedby': errorId ?? hintId,
+            'aria-invalid': error ? true : undefined,
+            'aria-required': required || undefined,
+        })
+        : children;
     return (
         <div>
             <div className="flex items-center gap-1 mb-2">
@@ -49,11 +59,11 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
                 >
                     {label}
                 </LabelTag>
-                {required && <span className="text-status-error text-xs">*</span>}
+                {required && <span className="text-status-error text-xs" aria-hidden="true">*</span>}
             </div>
-            {children}
-            {error && <p className="mt-1 type-body text-status-error">{error}</p>}
-            {hint && !error && <p className="text-sm text-text-dim mt-1.5">{hint}</p>}
+            {control}
+            {error && <p id={errorId} className="mt-1 type-body text-status-error">{error}</p>}
+            {hint && !error && <p id={hintId} className="text-sm text-text-dim mt-1.5">{hint}</p>}
         </div>
     );
 }

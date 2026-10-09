@@ -443,7 +443,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1180px] table-fixed text-sm">
             <thead>
-              <tr className="bg-slate-50 dark:bg-bg-surface-dark/50 border-b border-ui-border">
+              <tr className="bg-ui-hover-soft border-b border-ui-border">
                 <SortableTH className="w-[260px]" label="규칙" active={sortKey === 'name'} dir={sortDir} onClick={() => onSort('name')} />
                 <SortableTH className="w-[110px]" label="심각도" active={sortKey === 'severity'} dir={sortDir} onClick={() => onSort('severity')} />
                 <SortableTH className="w-[200px]" label="대상" active={sortKey === 'target'} dir={sortDir} onClick={() => onSort('target')} />
@@ -456,7 +456,8 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                 <th className="w-[120px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">
                   최근 발동
                 </th>
-                <th className="w-[120px] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">
+                {/* 1180px 테이블이 노트북 폭에서 가로 스크롤될 때도 작업 열은 보이게 오른쪽에 고정한다. */}
+                <th className="sticky right-0 w-[120px] border-l border-ui-border-soft bg-ui-hover-soft px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">
                   작업
                 </th>
               </tr>
@@ -475,7 +476,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                   return (
                     <tr
                       key={rule.id}
-                      className={`border-t border-slate-100 transition-colors hover:bg-slate-50 dark:border-ui-border-dark/50 dark:hover:bg-ui-hover-dark/40 ${!rule.isEnabled ? 'bg-ui-hover-soft/60' : ''}`}
+                      className={`group border-t border-ui-border-soft transition-colors hover:bg-ui-hover-soft ${!rule.isEnabled ? 'bg-ui-hover-soft/60' : ''}`}
                     >
                       <td className="px-4 py-2.5 align-middle">
                         <div className="flex min-w-0 items-center gap-2">
@@ -516,13 +517,14 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                           ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko })
                           : <span className="text-text-dim">—</span>}
                       </td>
-                      <td className="px-4 py-2 text-right align-middle whitespace-nowrap">
+                      <td className="sticky right-0 border-l border-ui-border-soft bg-bg-surface px-4 py-2 text-right align-middle whitespace-nowrap transition-colors group-hover:bg-ui-hover-soft">
                         <div className="inline-flex items-center justify-end gap-1">
                           <Toggle
                             checked={rule.isEnabled}
                             onChange={() => handleToggle(rule.id)}
                             disabled={togglingIds.has(rule.id)}
                             title={rule.isEnabled ? '비활성화' : '활성화'}
+                            ariaLabel={rule.name}
                           />
                           <IconButton icon="edit" label="수정" size="sm" onClick={() => handleEdit(rule)} />
                           <IconButton

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { IconButton, MaterialIcon } from '../common';
 import { api, type AgentServiceFlat } from '../../services/api';
 import { env } from '../../config/env';
@@ -38,20 +39,19 @@ export function Sidebar() {
   const location = useLocation();
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
 
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const data = await api.getAllAgentServicesFlat();
-        if (alive) setServices(data ?? []);
-      } catch {
-        // Navigation remains available even when its alert badge cannot load.
-      }
-    };
-    load();
-    const id = setInterval(load, 30_000);
-    return () => { alive = false; clearInterval(id); };
+  const loadServices = useCallback(async () => {
+    try {
+      setServices(await api.getAllAgentServicesFlat() ?? []);
+    } catch {
+      // Navigation remains available even when its alert badge cannot load.
+    }
   }, []);
+
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => void loadServices(), 0);
+    return () => window.clearTimeout(initialLoad);
+  }, [loadServices]);
+  useAutoRefresh(() => void loadServices(), 30_000);
 
   const path = location.pathname;
 

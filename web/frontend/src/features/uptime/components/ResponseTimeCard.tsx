@@ -129,7 +129,7 @@ export function ResponseTimeCard({ slots, failedChecks, caption, window, thresho
             </div>
 
             <div
-              className="relative min-w-0 flex-1 outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="relative min-w-0 flex-1"
               role="group"
               tabIndex={0}
               aria-label="체크별 결과와 응답 시간 — 방향키로 체크를 옮깁니다"

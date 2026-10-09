@@ -351,7 +351,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     return (
                                         <label
                                             key={type}
-                                            className={`flex flex-col items-center gap-2.5 p-4 border-2 rounded-xl cursor-pointer transition-all has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary ${
+                                            className={`flex flex-col items-center gap-2.5 p-4 border-2 rounded-xl cursor-pointer transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary ${
                                                 active
                                                     ? m.colorBg
                                                     : 'border-ui-border-soft hover:border-slate-200 dark:hover:border-slate-600'
@@ -359,7 +359,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         >
                                             <input {...register('type')} type="radio" value={type} className="sr-only" />
                                             <m.Icon size={26} className={active ? m.color : 'text-text-dim'} />
-                                            <span className={`text-sm ${active ? m.color : 'text-text-muted'}`}>{m.label}</span>
+                                            <span className={`text-sm ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
                                             <span className="text-sm font-medium uppercase tracking-wider text-text-dim">{m.sub}</span>
                                         </label>
                                     );
@@ -442,7 +442,6 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                         {/* Channel preview card */}
                         <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
-                                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                 <div>
                                     <p className="text-sm font-medium text-text-base">채널 미리보기</p>
                                     <p className="text-sm text-text-muted mt-0.5">실제 전송 메시지 형식</p>

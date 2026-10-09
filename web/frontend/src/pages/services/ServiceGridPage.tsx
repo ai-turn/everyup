@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -144,9 +145,8 @@ export function ServiceGridPage() {
 
   useEffect(() => {
     load();
-    const id = setInterval(load, 30_000);
-    return () => clearInterval(id);
   }, [load]);
+  useAutoRefresh(load, 30_000);
 
   const handleDelete = (agentId: string) => {
     const agent = agents.find(a => a.id === agentId);

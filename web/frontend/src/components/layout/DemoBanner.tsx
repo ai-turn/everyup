@@ -24,15 +24,10 @@ export function DemoBanner() {
             Live Demo
           </span>
           {isMobile ? (
-            <div className="overflow-hidden min-w-0">
-              <p className="text-sm text-slate-300 whitespace-nowrap inline-block [animation:marquee_15s_linear_infinite] motion-reduce:whitespace-normal motion-reduce:[animation:none]">
-                {bannerText}
-                <span aria-hidden="true" className="motion-reduce:hidden">
-                  <span className="mx-8" />
-                  {bannerText}
-                </span>
-              </p>
-            </div>
+            // 흐르는 텍스트는 멈출 수 없어(WCAG 2.2.2) 모바일은 한국어 문장만 줄바꿈해 보여준다.
+            <p className="min-w-0 text-sm text-slate-300 break-keep">
+              모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.
+            </p>
           ) : (
             <p className="text-sm text-slate-300 truncate">
               {bannerText}
