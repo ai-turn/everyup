@@ -9,7 +9,7 @@ test.describe('live demo', () => {
     // 개요의 KPI 행은 제거됐다 — 아래 두 카드가 같은 말을 더 정확히 하고 있었다.
     // 장애 신호는 이제 개수가 아니라 대상 이름으로 확인한다.
     await expect(page.getByRole('heading', { name: '현재 확인 필요' })).toBeVisible();
-    await expect(page.getByText('장애가 발생했습니다')).toBeVisible();
+    await expect(page.locator('#attention').getByRole('link', { name: /payment-worker/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: '모니터링 범위' })).toBeVisible();
   });
 
@@ -66,7 +66,7 @@ test.describe('live demo', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('./');
 
-    await expect(page.getByRole('button', { name: '데모 시나리오' })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: '데모 시나리오' })).toBeVisible();
     await expect(page.getByRole('link', { name: '개요', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Projects', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: '알림', exact: true })).toBeVisible();
@@ -76,7 +76,7 @@ test.describe('live demo', () => {
 
   test('empty scenario explains how to start monitoring', async ({ page }) => {
     await page.goto('./');
-    await page.getByRole('button', { name: '데모 시나리오' }).click();
+    await page.getByRole('combobox', { name: '데모 시나리오' }).click();
     await expect(page.getByRole('listbox')).toBeVisible();
     await page.getByRole('option', { name: '첫 시작' }).click();
 
@@ -86,7 +86,7 @@ test.describe('live demo', () => {
 
   test('normal scenario shows that no action is needed', async ({ page }) => {
     await page.goto('./');
-    await page.getByRole('button', { name: '데모 시나리오' }).click();
+    await page.getByRole('combobox', { name: '데모 시나리오' }).click();
     await page.getByRole('option', { name: '정상 운영' }).click();
 
     await expect(page.getByText('현재 확인이 필요한 이상이 없습니다')).toBeVisible();
@@ -112,7 +112,7 @@ test.describe('live demo', () => {
 
   test('partial failure preserves successful overview regions', async ({ page }) => {
     await page.goto('./');
-    await page.getByRole('button', { name: '데모 시나리오' }).click();
+    await page.getByRole('combobox', { name: '데모 시나리오' }).click();
     await page.getByRole('option', { name: '부분 수집 실패' }).click();
 
     await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
