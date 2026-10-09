@@ -447,17 +447,17 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                 <SortableTH className="w-[260px]" label="규칙" active={sortKey === 'name'} dir={sortDir} onClick={() => onSort('name')} />
                 <SortableTH className="w-[110px]" label="심각도" active={sortKey === 'severity'} dir={sortDir} onClick={() => onSort('severity')} />
                 <SortableTH className="w-[200px]" label="대상" active={sortKey === 'target'} dir={sortDir} onClick={() => onSort('target')} />
-                <th className="w-[250px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="w-[250px] px-4 py-3 text-left text-xs font-medium text-text-muted">
                   발생 조건
                 </th>
-                <th className="w-[120px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-text-muted">
                   채널
                 </th>
-                <th className="w-[120px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-text-muted">
                   최근 발동
                 </th>
                 {/* 1180px 테이블이 노트북 폭에서 가로 스크롤될 때도 작업 열은 보이게 오른쪽에 고정한다. */}
-                <th className="sticky right-0 w-[120px] border-l border-ui-border-soft bg-ui-hover-soft px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">
+                <th className="sticky right-0 w-[120px] border-l border-ui-border-soft bg-ui-hover-soft px-4 py-3 text-right text-xs font-medium text-text-muted">
                   작업
                 </th>
               </tr>
@@ -566,12 +566,12 @@ function SortableTH({ label, active, dir, onClick, className = '' }: { label: st
   return (
     <th
       aria-sort={active ? (dir === 'desc' ? 'descending' : 'ascending') : 'none'}
-      className={`select-none px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted ${className}`}
+      className={`select-none px-4 py-3 text-left text-xs font-medium text-text-muted ${className}`}
     >
       <button
         type="button"
         onClick={onClick}
-        className={`inline-flex cursor-pointer items-center gap-1 uppercase tracking-wider ${active ? 'text-text-base' : ''}`}
+        className={`inline-flex cursor-pointer items-center gap-1 ${active ? 'text-text-base' : ''}`}
       >
         {label}
         <span className={active ? 'opacity-100' : 'opacity-30'}>{active && dir === 'desc' ? '↓' : '↑'}</span>

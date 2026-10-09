@@ -27,7 +27,7 @@ const RULES = [
   { name: '§1.1 *-dark 토큰 직접 사용', re: /\b(?:text|bg|border|ring|fill|stroke|outline|divide|placeholder)-[a-z-]+-dark\b/g, max: 18 },
   { name: '§10.A slate-* 하드코딩', re: /-slate-\d{2,3}\b/g, max: 78 },
   { name: '§10.A bg-white', re: /\bbg-white\b/g, max: 5 },
-  { name: '§3.7 gap-2.5', re: /\bgap-2\.5\b/g, max: 8 },
+  { name: '§3.7 gap-2.5', re: /\bgap-2\.5\b/g, max: 7 },
 ];
 
 const files = readdirSync(src, { recursive: true }).filter((f) => /\.tsx?$/.test(f));

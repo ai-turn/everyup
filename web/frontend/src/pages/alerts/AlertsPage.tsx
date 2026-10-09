@@ -239,7 +239,7 @@ export function AlertsPage() {
 
   const loadWarning = (channelsError || rulesError || historyError) ? (
     <section className="mb-5 flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
-      <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="text-sm font-medium text-text-base">일부 알림 정보를 불러오지 못했습니다</p><p className="mt-0.5 text-xs text-text-muted">성공한 정보는 계속 표시합니다. 탭별 오류 영역에서 다시 시도할 수 있습니다.</p></div></div>
+      <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="text-sm font-medium text-text-base">일부 알림 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">성공한 정보는 계속 표시합니다. 탭별 오류 영역에서 다시 시도할 수 있습니다.</p></div></div>
       <Button size="sm" variant="secondary" onClick={() => { void loadChannels(); void loadRules(); void loadHistory(); }}>모두 다시 시도</Button>
     </section>
   ) : null;

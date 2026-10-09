@@ -121,7 +121,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
     return rows;
   }, [history]);
 
-  const thClass = 'px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider';
+  const thClass = 'px-4 py-3 text-left text-xs font-medium text-text-muted';
 
   return (
     <div className="space-y-3">
@@ -194,7 +194,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
       <div className="bg-bg-surface rounded-xl border border-ui-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[960px] table-fixed">
-            <thead className="bg-ui-hover-soft/40">
+            <thead className="bg-ui-hover-soft">
               <tr className="border-b border-ui-border">
                 <th className={`${thClass} w-[110px]`}>상태</th>
                 <th className={`${thClass} w-[120px]`}>알림 타입</th>
@@ -224,7 +224,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
                   if (row.kind === 'group') {
                     return (
                       <tr key={`g-${row.key}`}>
-                        <td colSpan={6} className="px-4 py-1.5 border-t border-ui-border-soft/50 bg-ui-hover-soft/30 text-xs text-text-muted">
+                        <td colSpan={6} className="px-4 py-1.5 border-t border-ui-border-soft bg-ui-hover-soft text-xs text-text-muted">
                           {row.label}
                         </td>
                       </tr>
@@ -238,18 +238,18 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
                     <tr
                       key={item.id}
                       // 실패는 상태 칸의 점·문구가 말한다 — 행 전체를 붉게 칠하지 않는다(DESIGN §9.3).
-                      className="border-t border-ui-border-soft/50 transition-colors hover:bg-ui-hover-soft/40"
+                      className="border-t border-ui-border-soft transition-colors hover:bg-ui-hover-soft"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         <span className={`inline-flex items-center gap-1.5 text-sm capitalize ${statusMeta.text}`}>
                           <span className={`h-1.5 w-1.5 rounded-full ${statusMeta.dot}`} />
                           {item.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-text-secondary">
+                      <td className="px-4 py-2.5 text-sm text-text-secondary">
                         {typeLabel(item.alertType)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         <div className="flex min-w-0 items-center gap-2">
                           <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${channelStyle.bg}`}>
                             <ChannelIcon type={item.channelType} size={13} className={channelStyle.text} />
@@ -257,21 +257,21 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
                           <span className="truncate text-sm text-text-secondary">{item.channelName}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         <p className="truncate text-sm text-text-base">{item.message}</p>
                         {item.errorMessage && (
-                          <p className="mt-0.5 truncate text-xs text-red-600 dark:text-red-400">
+                          <p className="mt-0.5 truncate text-xs text-status-error">
                             {item.errorMessage}
                             {item.retryCount > 0 && ` · ${`${item.retryCount}회 재시도`}`}
                           </p>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         {item.severity && (
                           <SeverityBadge severity={item.severity} />
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right text-sm text-text-muted whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-right text-sm text-text-muted whitespace-nowrap">
                         {formatDistanceToNow(created, { addSuffix: true, locale: ko })}
                         <span className="text-text-dim"> · {format(created, 'HH:mm')}</span>
                       </td>
