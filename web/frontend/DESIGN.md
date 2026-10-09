@@ -973,7 +973,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 | 항목 | 위치 | 조치 |
 |------|------|------|
-| 카드 그리드 `gap-3` | `AgentServiceCapabilityPage`(2) · `MorePage` | `gap-4` |
+| 카드 그리드 `gap-3` | `MorePage` | `gap-4` |
 | 페이지 2단 `gap-6` | `AlertRuleForm`(2) · `ChannelForm` | `gap-5` |
 | 제목 → 설명 `mt-1` | `InfrastructureCollectorSetupResult` · `InstrumentationOverrideModal` · `SettingRow` · `DirectTelemetrySetupDialog` · `DirectTelemetrySetupResult` · `DirectApiDetailPage` · `OverviewPage` | `mt-0.5` |
 | 라벨 → 입력 `mb-2` | `FormLayout`의 `Field` 1곳 — 알림 폼 전체에 반영된다 | `mb-1.5` |
@@ -984,7 +984,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | 배너 선행 요소 `gap-2`·`2.5`·`3.5` | `SettingsMobileView` · `TracePanel` · `InstrumentationOverrideModal` · `MonitoringSetupPanel` · `ServiceIncidentBanner`(`3.5`) | `gap-3` |
 | 나머지 `gap-2.5` | `ChannelForm` · `UptimeMonitorDetailPage` | §3.7 관계로 판단 |
 | 모달인데 패널 패딩 | `InstrumentationOverrideModal`(`px-5 py-4`) | 모달 규칙 |
-| 탭 안 섹션 사이 `mb-8`(32px) | `AgentUptimeOverview` · `AgentResponseTimeChart` · `AgentFailureHistory`(2) · `InfraGauges`(2) · `InfraTrends`(2) | 탭 패널이 `space-y-5`를 갖고 자식의 `mb-*`를 뺀다 — §3.3 본문 래퍼와 같은 방식 |
+| 탭 안 섹션 사이 `mb-8`(32px) | `InfraGauges`(2) · `InfraTrends`(2) — 업타임 탭은 해소(2026-10-10) | 탭 패널이 `space-y-5`를 갖고 자식의 `mb-*`를 뺀다 — §3.3 본문 래퍼와 같은 방식 |
 
 ### G. 반응형·표·탭 이탈 (2026-10-09)
 

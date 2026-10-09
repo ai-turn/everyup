@@ -38,7 +38,6 @@ export function AgentUptimeOverview({ agentId, serviceKey, refreshKey }: AgentUp
 
   return (
     <UptimeOverview
-      className="mb-8"
       loading={loading}
       stats={[
         { label: '24시간 업타임', value: uptime24h === null ? '—' : `${uptime24h.toFixed(2)}%` },

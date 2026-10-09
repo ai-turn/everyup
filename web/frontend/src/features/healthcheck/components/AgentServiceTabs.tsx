@@ -62,12 +62,13 @@ function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange:
 }
 
 function UptimeContent({ agentId, serviceKey, refreshKey, range }: ServiceTabsProps) {
+  // 섹션 간격은 여기서 준다 — 자식마다 mb-8을 달면 §3.7 스케일 밖(32px)이 되고 제각각이 된다.
   return (
-    <>
+    <div className="space-y-5">
       <AgentUptimeOverview agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
       <AgentResponseTimeChart agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
       <AgentFailureHistory agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
-    </>
+    </div>
   );
 }
 

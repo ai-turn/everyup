@@ -12,7 +12,7 @@ import { getErrorMessage } from '../../utils/errors';
 
 function ServiceListSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {[0, 1, 2].map((item) => (
         <div key={item} className="h-36 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
       ))}
@@ -103,7 +103,7 @@ export function AgentServiceCapabilityPage() {
       } />
 
       {loading ? <ServiceListSkeleton /> : error ? (
-        <EmptyState icon="error_outline" title="대상을 불러오지 못했습니다" description={error} />
+        <EmptyState icon="error_outline" title="대상을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} />
       ) : empty ? (
         <EmptyState icon="monitor_heart" title={normalizedQuery ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={normalizedQuery ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={normalizedQuery ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
       ) : (
@@ -112,14 +112,13 @@ export function AgentServiceCapabilityPage() {
             <h2 className="type-section-title text-text-base">모니터링 대상</h2>
             <span className="text-xs text-text-dim">{filteredMonitors.length + filteredAgentServices.length}</span>
           </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredMonitors.map((monitor) => (
               <UptimeTargetCard
                 key={monitor.id}
                 to={`/uptime/${monitor.id}`}
                 title={monitor.name}
                 badge={<ConnectionSourceBadge source="direct" directLabel="직접 추가" />}
-                subtitle="HTTP/TCP 모니터"
                 status={<UptimeMonitorStatusBadge monitor={monitor} />}
                 actions={
                   <Button size="sm" variant="ghost" aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>{monitor.isActive ? '일시정지' : '재개'}</Button>
@@ -131,7 +130,7 @@ export function AgentServiceCapabilityPage() {
             {filteredAgentServices.map((service) => (
               <UptimeTargetCard
                 key={`${service.agentId}:${service.key}`}
-                to={`/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=health`}
+                to={`/services/${service.agentId}/${encodeURIComponent(service.key)}`}
                 title={service.name}
                 badge={<ConnectionSourceBadge source="docker" />}
                 subtitle={service.agentName}
