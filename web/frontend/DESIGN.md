@@ -1,9 +1,137 @@
+---
+version: alpha
+name: EveryUp
+description: 개발자용 모니터링 대시보드. 중립 slate 표면에 primary 파랑 하나, 색은 데이터와 액션에만 싣는다.
+colors:
+  primary: "#3b76c9"
+  primary-hover: "#3268b3"
+  action: "#1e5fb3"
+  bg-main: "#fbfcfe"
+  bg-surface: "#ffffff"
+  ui-border: "#e2e8f0"
+  ui-border-soft: "#f1f5f9"
+  ui-hover: "#f1f5f9"
+  ui-hover-soft: "#f8fafc"
+  ui-active: "#e2e8f0"
+  ui-raised: "#ffffff"
+  text-base: "#0f172a"
+  text-secondary: "#334155"
+  text-muted: "#475569"
+  text-dim: "#64748b"
+  status-healthy: "#047857"
+  status-warn: "#92400e"
+  status-error: "#b91c1c"
+  status-idle: "#475569"
+  chart-border: "#e2e8f0"
+  primary-dark: "#3F6FDB"
+  primary-hover-dark: "#355fc0"
+  action-dark: "#7aa2f7"
+  bg-main-dark: "#0d1117"
+  bg-surface-dark: "#161b22"
+  ui-border-dark: "#30363d"
+  ui-border-soft-dark: "#30363d"
+  ui-hover-dark: "#1f2937"
+  ui-hover-soft-dark: "#1f2937"
+  ui-active-dark: "#374151"
+  ui-raised-dark: "#374151"
+  text-base-dark: "#ffffff"
+  text-secondary-dark: "#cbd5e1"
+  text-muted-dark: "#94a3b8"
+  text-dim-dark: "#8795a9"
+  status-healthy-dark: "#5eead4"
+  status-warn-dark: "#fbbf24"
+  status-error-dark: "#f87171"
+  status-idle-dark: "#94a3b8"
+  chart-border-dark: "#2e3c4a"
+  series-emerald: "#059669"
+  series-amber: "#d97706"
+  series-violet: "#7c3aed"
+  series-red: "#dc2626"
+  series-teal: "#0d9488"
+  level-error: "#dc2626"
+  level-warn: "#d97706"
+  level-info: "#0284c7"
+  level-debug: "#7c3aed"
+  level-trace: "#64748b"
+typography:
+  page-title:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 24px
+    fontWeight: 700
+    lineHeight: 32px
+  section-title:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 20px
+    fontWeight: 500
+    lineHeight: 28px
+  card-title:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 16px
+    fontWeight: 500
+    lineHeight: 24px
+  body:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 14px
+    fontWeight: 400
+    lineHeight: 21px
+  label:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 14px
+    fontWeight: 500
+    lineHeight: 20px
+  caption:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 12px
+    fontWeight: 400
+    lineHeight: 16px
+  code:
+    fontFamily: "JetBrains Mono Variable"
+    fontSize: 12px
+    fontWeight: 400
+    lineHeight: 16px
+rounded:
+  sm: 4px
+  md: 6px
+  lg: 8px
+  xl: 12px
+  full: 9999px
+spacing:
+  line: 2px
+  dense: 4px
+  pair: 6px
+  group: 8px
+  block: 12px
+  card-gap: 16px
+  section: 20px
+  card-padding: 16px
+  card-padding-roomy: 24px
+  panel-padding: 20px
+  modal-padding: 24px
+---
+
 # EveryUp 프론트엔드 디자인 시스템
 
 React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT**다.
 값의 실제 정의는 [`src/index.css`](src/index.css)(토큰)와 각 컴포넌트 파일에 있고, 이 문서는 **무엇을 언제 쓰는가**를 정한다.
 
+맨 위 frontmatter는 토큰의 **기계 판독용 사본**이다([DESIGN.md 형식](https://github.com/google-labs-code/design.md)). 값을 바꿀 때 `index.css`와 함께 고친다 — 둘이 어긋나도 자동으로 잡히지 않는다. impeccable `detect`(`web/frontend`에서 실행해야 이 파일을 찾는다)가 이 값을 허용 목록으로 읽는데, **잡는 범위가 좁다** — `text-[Npx]` 임의 크기, CSS 선언·`style={{}}`의 색·radius·폰트만 본다. `bg-[#hex]`·`rounded-[10px]` 같은 Tailwind 임의값과 `slate-*` primitive·`dark:` 이중 작성(§10.A)은 보지 않는다 — 그쪽은 `pnpm lint`가 센다(§10).
+
 관련 문서: [`../../CLAUDE.md`](../../CLAUDE.md)(엔지니어링 규약 — 디자인 내용은 없다) · [`src/components/charts/chartTheme.ts`](src/components/charts/chartTheme.ts)(차트 스펙 코드)
+
+---
+
+## 0. 개요
+
+개발자가 쓰는 모니터링 대시보드다. 화면이 답할 첫 질문은 **"지금 이상이 있는가"**이고, 나머지 설계는 그 답을 빨리 찾게 하는 쪽으로 정했다. 아래 원칙은 새 규칙이 아니라 이 문서 전체에 흩어진 결정의 요약이다.
+
+- **컨테이너는 중립, 색은 데이터와 액션에만** (§5.3). 장애를 눈에 띄게 하려면 색을 더 쓰지 않고 덜 쓴다 — 전부 같은 형태에 점 색만 다르면 붉은 하나가 튄다(§5.1). AI 생성 디자인처럼 보인다는 피드백을 받은 장식(좌측 컬러 보더, 파스텔 틴트 박스, 3중 배지)은 §9에 금지로 남겼다.
+- **데이터를 정직하게 그린다** (§4.2). 수집 공백은 공백으로, 0건은 "이상 없음"이 아니라 "모름"으로, 타임아웃은 응답 시간이 아닌 것으로 보여 준다.
+- **접근성은 계산이 아니라 실측이다.** 대비는 토큰 하나가 아니라 실제 배경과의 조합으로 재고(§1.3), 상태색은 색각이상 시뮬레이션까지 확인했다(§1.4).
+- **한 역할에 컴포넌트 하나.** 버튼은 `Button`, 상태는 `StatusLight`, 차트 틀은 `ChartCard`가 유일한 진입점이다. 같은 일을 화면마다 손으로 만들면 반드시 어긋났다(§10 해결 이력).
+- **조밀하되 누르기 쉽게.** 운영 화면이라 정보 밀도를 우선하지만, 터치 화면에서는 컨트롤 높이 44px를 지킨다(§4.1).
+- **용어는 개발자의 말로** (§9.15). 업계가 영어로 부르는 말은 영어 그대로 쓴다.
+
+참고한 제품: Grafana(차트), Datadog Synthetics(업타임), Sentry Issues·Grafana Logs Drilldown(로그), Adobe Spectrum(상태 표현), Carbon·Primer·Polaris(버튼·폼).
 
 ---
 
@@ -263,6 +391,51 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 카드마다 `hover:-translate-y-*`·`hover:shadow-md`·`transition-all`을 직접 조합하지 않는다 — 메뉴별로 hover가 제각각이 된 원인이었다. 클릭 가능한 **행**(테이블·로그)은 카드가 아니므로 `hover:bg-ui-hover-soft` 채움만 쓴다.
 
+### 3.7 간격 (2026-10-09)
+
+**관계가 가까울수록 좁게 둔다.** 간격은 값이 아니라 두 요소의 관계로 고른다. 코드 전수 샘플링에서 다수가 이미 이 순서를 따르고 있었고, 아래 표는 그 다수를 규칙으로 올린 것이다. `gap-*`·`space-y-*`·`mt-*`가 같은 표를 따른다.
+
+| 단계 | 값 | 관계 | 예 |
+|------|-----|------|-----|
+| `0.5` | 2px | 한 정보의 두 줄 | 캡션 위 수치, 제목 아래 설명(`mt-0.5`), 사이드바 내비 항목 사이 |
+| `1.5` | 6px | 한 요소를 이루는 짝 | 점 + 라벨(`StatusLight`), 인라인 아이콘 + 텍스트, 라벨 → 입력(세로), 브레드크럼, 칩 목록 |
+| `2` | 8px | 같은 그룹의 독립 요소 | 버튼 사이, 제목 + 단위·배지, 메뉴 행의 아이콘 + 라벨, 목록 행 사이 |
+| `3` | 12px | 블록 안의 구획 | 선행 아이콘·타일 + 텍스트 블록, `justify-between` 행의 최소 간격, 툴바 컨트롤 사이, 카드 안 서브블록 사이 |
+| `4` | 16px | 카드 사이 | 카드 그리드, 폼 필드 2열, 탭 안 툴바 → 목록 |
+| `5` | 20px | 섹션 사이 | 본문 래퍼(§3.3), 모달·패널 본문의 섹션, 페이지 2단 레이아웃 |
+
+- **`gap-1`(4px)은 조밀한 액션끼리만**이다 — 표 행·카드 헤더에 나란히 놓인 `IconButton sm`·`Button sm`. `gap-2.5`는 쓰지 않는다.
+- **인라인 아이콘과 메뉴 행을 가르는 기준**: 아이콘이 글자 한 줄에 붙어 다니면(메타 줄, 링크, 버튼 라벨) 짝이라 `1.5`다. 행 전체가 누르는 대상인 목록 항목(사이드바·명령 팔레트·드롭다운 메뉴)은 아이콘이 행을 이끄는 독립 요소라 `2`다. 둘이 `1`·`1.5`·`2`·`2.5` 네 값으로 갈려 있었다.
+- **선행 요소가 텍스트 블록을 이끌면 크기와 무관하게 `3`**이다 — 배너·안내 상자, `items-start`로 제목·설명을 이끄는 아이콘·타일·**상태 점**. 배너의 아이콘 + 문장이 `2`·`2.5`·`3`으로 갈려 있었다. 상태 점이 **한 줄 라벨**에 붙으면 블록이 아니라 짝이라 `1.5`다(`StatusLight`).
+- **프리미티브 내부 값은 컴포넌트가 소유한다.** `Button sm`의 `gap-1`, `SegmentedControl` 트랙의 `gap-0.5`는 이 표의 대상이 아니다. 표는 화면·카드를 조립하는 호출부에 적용한다.
+- 헤더 아래 24px(§4.1 액션 앵커)와 설정 행의 라벨 ↔ 컨트롤(`sm:gap-6`)은 이 표 밖의 기존 규칙이다.
+
+**패딩**
+
+| 대상 | 값 |
+|------|-----|
+| 카드 | `p-4`(기본) / `p-6`(차트 카드처럼 여유가 필요한 곳) — §3.1 |
+| 한 줄 배너·띠 | `px-4 py-3` |
+| 모달 | 헤더·푸터 `px-6 py-4`, 본문 `p-6` |
+| 사이드 패널 | 헤더·본문 `px-5 py-4` |
+
+모달과 사이드 패널의 패딩이 다른 것은 의도다. 패널은 화면 가장자리에 붙은 좁은 기둥이라 한 단계 좁다. 이탈은 §10.F.
+
+### 3.8 반응형 (2026-10-09)
+
+Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — 본문 최대 폭이 1280px(§3.3)라 그 위로는 바뀌는 것이 없다.
+
+| 경계 | 바뀌는 것 |
+|------|-----------|
+| `sm` 640 | 터치 높이 44 → 40px(`Button md`·입력·`IconButton md`·`SegmentedControl md`, §4.1) · 툴바 버튼 라벨 표시(`collapseLabel`) · 목록 검색창 전체 폭 → 320px · `DetailMeta` 속성 2열 · 본문 래퍼 패딩 `p-4` → `px-6 py-5` |
+| `md` 768 | **뷰 분기** — `useIsMobile()`(767px 이하)이 알림·설정을 모바일 전용 뷰(`*MobileView`)로 가른다 · `PageHeader` 액션이 설명과 같은 행 · 대상 카드 목록 2열 |
+| `lg` 1024 | **셸 전환** — `Sidebar` + `AppHeader` ↔ `Header` + `BottomNavMobile`(§3.4) · 차트 패널 2열 · 모바일 `← 목록으로` 숨김 |
+| `xl` 1280 | 대상 카드 목록 3열 · KPI 게이지 4열 |
+
+**대상 카드 목록은 `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`이다.** `lg`에서 사이드바(240px)가 생기면 본문이 약 720px로 줄어, 3열이면 카드 한 장이 230px까지 좁아진다 — `lg:grid-cols-3`을 쓰지 않는 이유다. `xl`의 3열은 카드당 약 315px다. 차트 패널은 `lg:grid-cols-2`(§4.2 메트릭 탐색·인프라 추세), KPI 행은 장수에 맞춘다(3장 `sm:grid-cols-3`, 게이지 4장 `grid-cols-2 xl:grid-cols-4`).
+
+**`md`~`lg` 구간(768~1023px)은 데스크톱 뷰 + 모바일 셸이다.** 뷰 분기(`md`)와 셸 전환(`lg`)의 경계가 달라서, 태블릿 가로 폭에서는 알림·설정이 데스크톱 표를 보여 주면서 내비는 하단바다. 의도로 기록된 결정이 아니므로, 이 구간을 손볼 때 경계를 하나로 맞출지 먼저 정한다(§10.G).
+
 ---
 
 ## 4. 컴포넌트 카탈로그
@@ -481,6 +654,34 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 `components/error/`(ErrorBoundary·ErrorFallback) · `components/feedback/NetworkStatusBanner` · `components/skeleton/Skeleton` · `components/icons/`(ChannelIcons·SidebarIcons)
 
+### 4.5 표 (2026-10-09)
+
+공용 컴포넌트는 없고 마크업 규약만 있다. 두 종류다.
+
+**데이터 표** — 카드 하나를 통째로 쓰는 목록(알림 규칙·채널·발송 이력, 트레이스). 카드 셸(`overflow-hidden rounded-xl border border-ui-border bg-bg-surface`)에 패딩 없이 붙인다. 그래야 첫 열의 `px-4`가 다른 카드의 `p-4`와 같은 기준선이 된다.
+
+| 부분 | 클래스 |
+|------|--------|
+| 헤더 행 | `bg-ui-hover-soft border-b border-ui-border` |
+| 헤더 셀 | `px-4 py-3 text-left text-xs font-medium text-text-muted` |
+| 본문 셀 | `px-4 py-2.5`, 행 구분은 `border-ui-border-soft` 한 줄(`divide-y` 또는 행 `border-t`) |
+| 숫자·시간 열 | 헤더와 셀 모두 `text-right`, 셀은 `tabular-nums` |
+| 클릭 가능한 행 | `hover:bg-ui-hover-soft`(§3.6 — 배지 대비가 이 값에 기대고 있다, §5.1b) + `tabIndex`·키 핸들러(§8) |
+| 넓은 표 | `overflow-x-auto` 안에 `min-w-[…] table-fixed`. 작업 열은 `sticky right-0 border-l border-ui-border-soft`에 행과 같은 배경 |
+
+본문 글자는 `text-sm`, 로그·트레이스처럼 기계 문자열이 주인 표는 `text-xs`(§2.2).
+
+**카드 안 보조 표** — 패딩 있는 카드 안의 짧은 기록(업타임 체크 기록). 헤더 채움 없이 `type-caption text-text-muted`, 래퍼 `-mx-2` + 셀 `px-2`로 글자를 카드 좌측 기준선에 맞춘다(§4.1 "카드의 좌측 기준선은 하나다").
+
+**헤더에 `uppercase`·`tracking-wider`를 걸지 않는다.** 헤더가 대부분 한글(`채널`·`상태`)이라 대문자 변환은 일어나지 않고 자간만 벌어진다 — §6 `Field` 라벨 규칙과 같은 이유다. 영어 헤더(`Span`)도 옆 헤더와 같은 모양으로 둔다.
+
+### 4.6 탭 (2026-10-09)
+
+**패널을 바꾸면 탭, 같은 데이터의 보기·필터를 바꾸면 `SegmentedControl`이다.** 탭은 `role="tablist"`/`role="tab"` + `aria-selected`, `SegmentedControl`은 `aria-pressed`다. 탭은 위치가 아니므로 브레드크럼에 넣지 않는다(§3.4).
+
+- **밑줄 탭**(기본) — 서비스 상세, 알림 데스크톱. 목록에 `border-b border-ui-border`, 탭은 `-mb-px border-b-2 px-4 py-2.5 text-sm font-medium`. 선택은 `border-primary text-text-base`, 비선택은 `border-transparent text-text-muted hover:text-text-base`. **라벨을 `action`으로 칠하지 않는다** — 밑줄이 이미 선택을 말한다(§4.1 `secondary` 라벨을 칠하지 않는 것과 같은 이유).
+- **세그먼트 모양 탭** — 모바일에서 화면 폭을 탭 수로 나눠 쓰는 자리(알림 모바일). 표면은 `SegmentedControl`과 같다: 트랙 `bg-ui-hover`, 선택 칸 `bg-ui-raised`. `bg-bg-surface`로 칠하면 다크에서 선택 칸이 트랙보다 어두워져 방향이 뒤집힌다(§1.2).
+
 ---
 
 ## 5. 상태 표현 문법
@@ -692,6 +893,8 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 ## 10. 알려진 부채
 
+**`pnpm lint`가 일부를 센다** — [`scripts/check-design-rules.mjs`](scripts/check-design-rules.mjs). §9의 기계적으로 셀 수 있는 금지 패턴은 0건이어야 하고, `*-dark` 직접 사용·`slate-*`·`bg-white`·`gap-2.5`는 현재 건수가 상한이다(늘면 CI 실패, 줄면 상한을 같이 내린다). 새 금지 규칙을 §9에 추가할 때 셀 수 있으면 거기에도 추가한다.
+
 2026-07-26 전수 스캔(`src/**/*.tsx` 76개). 규약 대비 이탈 목록. 2026-09-23 재집계: `dark:` 변형 82건/22파일(대부분 primitive 축 — 아래 B), `slate-*` 하드코딩 117건/18파일. 2026-10-09 재집계(127파일): `dark:` 69건/19파일, `slate-*` 77건/17파일, `*-dark` 접미 토큰 직접 사용 19건 — 남은 덩어리는 `AlertRuleForm`·`ChannelForm`·`TracePanel`이다.
 
 ### A. 토큰 규약 이탈
@@ -763,6 +966,38 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 ### 경로 → 라벨 목록이 세 벌 (2026-09-20)
 
 `Sidebar`의 `NavItem`, `CommandPalette`의 `page-*` 항목, 새 `navSections.ts`가 각자 경로→라벨을 갖고 있고 이미 어긋나 있다(`환경설정` vs `환경 설정`, CommandPalette에는 `Docker 환경`이 없음). 하나로 합치려면 사이드바의 그룹 헤더·알림 badge를 함께 옮겨야 해서 단순 치환이 안 된다. `navSections.ts`는 사이드바 표기를 정본으로 삼았다.
+
+### F. 간격 스케일 이탈 (2026-10-09)
+
+§3.7 신설 시점의 이탈이다. 바뀌는 폭이 2~4px라 일괄 치환하지 않고, 해당 파일을 다른 일로 열 때 함께 고친다.
+
+| 항목 | 위치 | 조치 |
+|------|------|------|
+| 카드 그리드 `gap-3` | `AgentServiceCapabilityPage`(2) · `ApiPage`(2) · `InfrastructurePage`(2) · `LogsPage`(2) · `MorePage` | `gap-4` |
+| 페이지 2단 `gap-6` | `AlertRuleForm`(2) · `ChannelForm` | `gap-5` |
+| 제목 → 설명 `mt-1` | `InfrastructureCollectorSetupResult` · `InstrumentationOverrideModal` · `SettingRow` · `DirectTelemetrySetupDialog` · `DirectTelemetrySetupResult` · `DirectApiDetailPage` · `OverviewPage` | `mt-0.5` |
+| 라벨 → 입력 `mb-2` | `FormLayout`의 `Field` 1곳 — 알림 폼 전체에 반영된다 | `mb-1.5` |
+| 카드 패딩 `p-5` | `SectionCard` · `LoginPage` · `DirectApiDetailPage` · `ProjectsPage` | `p-4` |
+| 카드 패딩 `p-3` | `AlertsMobileView`(5) | `p-4` |
+| 인라인 아이콘 + 텍스트 `gap-1` | `ChannelHealthMeta`(4) · `Footer` · `ServiceGridPage` | `gap-1.5` |
+| 메뉴 행 `gap-2.5` | `Sidebar` `NavItem` · `CommandPalette`(2) | `gap-2` |
+| 배너 선행 요소 `gap-2`·`2.5`·`3.5` | `SettingsMobileView` · `TracePanel` · `InstrumentationOverrideModal` · `MonitoringSetupPanel` · `ServiceIncidentBanner`(`3.5`) | `gap-3` |
+| 나머지 `gap-2.5` | `AlertsDesktopView` · `ChannelForm` · `UptimeMonitorDetailPage` | §3.7 관계로 판단 |
+| 모달인데 패널 패딩 | `InstrumentationOverrideModal`(`px-5 py-4`) | 모달 규칙 |
+| 탭 안 섹션 사이 `mb-8`(32px) | `AgentUptimeOverview` · `AgentResponseTimeChart` · `AgentFailureHistory`(2) · `InfraGauges`(2) · `InfraTrends`(2) | 탭 패널이 `space-y-5`를 갖고 자식의 `mb-*`를 뺀다 — §3.3 본문 래퍼와 같은 방식 |
+
+### G. 반응형·표·탭 이탈 (2026-10-09)
+
+§3.8·§4.5·§4.6 신설 시점의 이탈이다.
+
+| 항목 | 위치 | 조치 |
+|------|------|------|
+| 표 헤더 `uppercase tracking-wider` | `AlertRulesTab` · `AlertsDesktopView` · `NotificationHistoryTab` · `AgentServiceTracesTab` | 제거 |
+| 표 헤더 채움 | `NotificationHistoryTab`(`/40` 반투명) · `AgentServiceTracesTab`(채움 없음, `py-2`) | `bg-ui-hover-soft`, `py-3` |
+| 표 본문 셀 `py-3` | `AlertsDesktopView` · `NotificationHistoryTab` | `py-2.5` |
+| 카드 목록 `sm:2 lg:3` | `ServiceGridPage`(2) · `App.tsx` 스켈레톤 | `md:2 xl:3` |
+| 카드 목록 `sm:2 xl:3` | `MetricsPage`(2) | `md:2 xl:3` |
+| 뷰 분기(`md`)와 셸 전환(`lg`)의 경계 불일치 | `useIsMobile` · `MainLayout` | **결정 필요** — §3.8 |
 
 ### 해결됨 (2026-09-24) — 보편 디자인 시스템 대조 (버튼)
 

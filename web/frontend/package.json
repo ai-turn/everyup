@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "build": "vite build",
     "build:demo": "vite build --mode demo",
-    "lint": "eslint .",
+    "lint": "eslint . && node scripts/check-design-rules.mjs",
     "pretest:e2e": "pnpm build:demo",
     "test:e2e": "playwright test",
     "preview": "vite preview",
