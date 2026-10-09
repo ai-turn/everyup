@@ -24,7 +24,8 @@ function pageItems(current: number, totalPages: number): (number | null)[] {
   return items;
 }
 
-const STEP = 'flex h-7 w-7 items-center justify-center rounded-md border border-ui-border text-sm text-text-muted hover:bg-ui-hover disabled:opacity-40 disabled:cursor-not-allowed';
+// 모바일은 44px 터치 타깃, sm 이상은 촘촘하게.
+const STEP = 'flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-md border border-ui-border text-sm text-text-muted hover:bg-ui-hover disabled:opacity-40 disabled:cursor-not-allowed';
 
 export function Pagination({
   page,
@@ -46,7 +47,7 @@ export function Pagination({
             key={p}
             onClick={() => onChange(p)}
             aria-current={p === page ? 'page' : undefined}
-            className={`flex h-7 min-w-7 items-center justify-center rounded-md px-1 text-xs font-medium ${
+            className={`flex h-11 min-w-11 sm:h-8 sm:min-w-8 items-center justify-center rounded-md px-1 text-xs font-medium ${
               p === page
                 ? 'bg-primary text-white'
                 : 'border border-ui-border text-text-muted hover:bg-ui-hover'

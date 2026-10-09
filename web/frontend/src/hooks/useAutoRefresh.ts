@@ -21,12 +21,17 @@ export function useAutoRefresh(
   useEffect(() => {
     if (!enabled) return;
 
+    // 숨겨진 탭에서는 갱신하지 않고, 다시 보이면 기다리지 않고 한 번 갱신한다.
     const tick = () => {
-      savedCallback.current();
+      if (!document.hidden) savedCallback.current();
     };
 
     const timer = setInterval(tick, interval);
-    return () => clearInterval(timer);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', tick);
+    };
   }, [interval, enabled]);
 
   // Manual refresh function

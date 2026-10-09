@@ -234,15 +234,11 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
                   const statusMeta = STATUS_META[item.status] ?? STATUS_META.pending;
                   const channelStyle = getChannelStyle(item.channelType);
                   const created = new Date(item.createdAt);
-                  const failed = item.status === 'failed';
                   return (
                     <tr
                       key={item.id}
-                      className={`border-t border-ui-border-soft/50 transition-colors ${
-                        failed
-                          ? 'bg-red-50/60 dark:bg-red-900/10 hover:bg-red-50 dark:hover:bg-red-900/15'
-                          : 'hover:bg-ui-hover-soft/40'
-                      }`}
+                      // 실패는 상태 칸의 점·문구가 말한다 — 행 전체를 붉게 칠하지 않는다(DESIGN §9.3).
+                      className="border-t border-ui-border-soft/50 transition-colors hover:bg-ui-hover-soft/40"
                     >
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1.5 text-sm capitalize ${statusMeta.text}`}>

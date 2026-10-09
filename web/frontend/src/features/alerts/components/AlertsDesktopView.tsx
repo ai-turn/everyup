@@ -287,14 +287,14 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
   return (
     <div className="overflow-x-auto rounded-xl border border-ui-border bg-bg-surface">
       <table className="w-full min-w-[960px] table-fixed">
-        <thead className="bg-ui-hover-soft/40">
+        <thead className="bg-ui-hover-soft">
           <tr className="border-b border-ui-border">
             <th className="w-[280px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">채널</th>
             <th className="w-[90px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">상태</th>
             <th className="w-[150px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">7일 발송 / 실패</th>
             <th className="w-[110px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">연결 규칙</th>
             <th className="w-[160px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">최근 발송</th>
-            <th className="w-[180px] px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">작업</th>
+            <th className="sticky right-0 w-[180px] border-l border-ui-border-soft bg-ui-hover-soft px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">작업</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-ui-border-soft">
@@ -309,7 +309,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
             return (
               <tr
                 key={channel.id}
-                className={`transition-colors hover:bg-ui-hover-soft/40 ${!channel.isEnabled ? 'opacity-70' : ''}`}
+                className={`group transition-colors hover:bg-ui-hover-soft ${!channel.isEnabled ? 'opacity-70' : ''}`}
               >
                 <td className="px-4 py-3">
                   <div className="flex min-w-0 items-center gap-3">
@@ -330,7 +330,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
                     onChange={() => onToggle(channel.id)}
                     disabled={togglingIds.has(channel.id)}
                     title={channel.isEnabled ? '비활성화' : '활성화'}
-                    ariaLabel={`${channel.name} ${channel.isEnabled ? '비활성화' : '활성화'}`}
+                    ariaLabel={channel.name}
                   />
                 </td>
                 <td className="px-4 py-3 text-sm font-medium tabular-nums">
@@ -353,7 +353,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
                     ? formatDistanceToNow(lastSent, { addSuffix: true, locale: ko })
                     : <span className="text-text-dim">— 테스트로 확인</span>}
                 </td>
-                <td className="px-4 py-3">
+                <td className="sticky right-0 border-l border-ui-border-soft bg-bg-surface px-4 py-3 transition-colors group-hover:bg-ui-hover-soft">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} className="whitespace-nowrap">
                       <MaterialIcon size={20} name="send" />

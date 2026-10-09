@@ -12,6 +12,7 @@ import {
 } from '../../services/api';
 import { isCollectorFresh } from '../../utils/operationalStatus';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 
 interface AttentionItem {
   id: string;
@@ -43,6 +44,7 @@ export function OverviewPage() {
   const [failedSources, setFailedSources] = useState<string[]>([]);
   const [timeline, setTimeline] = useState<TimelineIncident[]>([]);
   const [showAllAttention, setShowAllAttention] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -62,17 +64,15 @@ export function OverviewPage() {
     if (infrastructureResult.status === 'fulfilled') setInfrastructure(infrastructureResult.value ?? []); else failed.push('infrastructure');
     if (timelineResult.status === 'fulfilled') setTimeline(timelineResult.value ?? []); else failed.push('timeline');
     setFailedSources(failed);
+    setUpdatedAt(new Date());
     setLoading(false);
   }, []);
 
   useEffect(() => {
     const initialLoad = window.setTimeout(() => void load(), 0);
-    const intervalId = window.setInterval(() => void load(), 30_000);
-    return () => {
-      window.clearTimeout(initialLoad);
-      window.clearInterval(intervalId);
-    };
+    return () => window.clearTimeout(initialLoad);
   }, [load]);
+  useAutoRefresh(() => void load(), 30_000);
 
   const staleAgents = agents.filter((agent) => !isCollectorFresh(agent.lastSeenAt));
   const unhealthyServices = services.filter((service) => !service.healthy);
@@ -160,6 +160,15 @@ export function OverviewPage() {
   // 확인 필요 행에 "언제부터"를 붙이기 위해 진행 중인 에피소드를 대상 경로로 찾는다.
   const activeEpisodes = new Map(timeline.filter((episode) => episode.active).map((episode) => [episode.targetPath, episode]));
 
+  // 백그라운드 탭에서도 장애가 보이도록 탭 제목에 장애 수를 붙인다.
+  const errorCount = attention.filter((item) => item.tone === 'error').length;
+  useEffect(() => {
+    if (errorCount === 0) return;
+    const previous = document.title;
+    document.title = `(${errorCount}) 장애 · ${previous}`;
+    return () => { document.title = previous; };
+  }, [errorCount]);
+
   const totalTargets = agents.length + monitors.length + observedServices.length + infrastructure.length;
 
   if (loading && totalTargets === 0) {
@@ -169,7 +178,24 @@ export function OverviewPage() {
   return (
     <div className="space-y-5">
       {/* 연결 추가는 각 화면(Docker 환경·업타임·로그)의 일이다. 개요의 머리는 장애에 내준다. */}
-      <PageHeader title="모니터링 개요" subtitle="수집 상태와 현재 이상을 먼저 확인하세요." />
+      <PageHeader
+        title="모니터링 개요"
+        subtitle="수집 상태와 현재 이상을 먼저 확인하세요."
+        meta={updatedAt && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="type-caption text-text-muted">
+              {updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 갱신 · 30초마다 자동 갱신
+            </span>
+            <Button variant="ghost" size="sm" disabled={loading} onClick={() => void load()}>
+              <MaterialIcon size={20} name="refresh" />새로고침
+            </Button>
+          </div>
+        )}
+      />
+      {/* 확인 필요 수가 바뀔 때만 읽힌다(텍스트가 같으면 다시 알리지 않는다). */}
+      <p className="sr-only" aria-live="polite">
+        {updatedAt && `확인 필요 ${attention.length}건${statusUnknown ? ', 일부 상태 확인 불가' : ''}`}
+      </p>
 
       {failedSources.length > 0 && (
         <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
@@ -210,7 +236,7 @@ export function OverviewPage() {
                   <h2 className="type-card-title text-text-base">현재 확인 필요</h2>
                   <p className="mt-0.5 text-sm text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p>
                 </div>
-                <span className="text-sm tabular-nums text-text-muted">{attention.length}</span>
+                <span className="text-sm tabular-nums text-text-muted" aria-label={`확인 필요 ${attention.length}건`}>{attention.length}</span>
               </div>
               {attention.length === 0 && statusUnknown ? (
                 <div className="flex min-h-44 flex-col items-center justify-center p-5 text-center">
@@ -259,26 +285,32 @@ export function OverviewPage() {
             <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
               <h2 className="type-card-title text-text-base">모니터링 범위</h2>
               <p className="mt-1 text-sm text-text-muted">연결 방식별로 수집 범위를 확인하세요.</p>
-              <dl className="mt-4 space-y-3">
+              <ul className="-mx-2 mt-3">
                 {([
                   ['Docker 환경', agents.length, '/environments', 'agents'],
                   ['업타임 모니터', monitors.length, '/uptime', 'monitors'],
                   ['직접 연결 서비스', observedServices.length, '/logs', 'observed'],
                   ['인프라 리소스', infrastructure.length, '/infrastructure', 'infrastructure'],
                 ] as const).map(([label, count, to, source]) => (
-                  <div key={label} className="flex items-center justify-between gap-3">
-                    <dt className="text-sm text-text-secondary">{label}</dt>
-                    <dd>
-                      {failedSources.includes(source)
-                        ? <span className="text-sm text-text-muted" aria-label="확인 불가" title="불러오지 못했습니다">—</span>
-                        : <Link to={to} className="text-sm tabular-nums text-action hover:underline">{count}</Link>}
-                    </dd>
-                  </div>
+                  <li key={label}>
+                    {failedSources.includes(source) ? (
+                      <div className="flex min-h-10 items-center justify-between gap-3 px-2">
+                        <span className="text-sm text-text-secondary">{label}</span>
+                        <span className="text-sm text-text-muted" aria-label="확인 불가" title="불러오지 못했습니다">—</span>
+                      </div>
+                    ) : (
+                      // 숫자만 링크였던 8px 타깃 대신 행 전체를 링크로 — 이름도 "Docker 환경 2"로 읽힌다.
+                      <Link to={to} className="flex min-h-10 items-center justify-between gap-3 rounded-md px-2 transition-colors hover:bg-ui-hover-soft">
+                        <span className="text-sm text-text-secondary">{label}</span>
+                        <span className="text-sm tabular-nums text-action">{count}</span>
+                      </Link>
+                    )}
+                  </li>
                 ))}
-              </dl>
-              <Link to="/projects" className="mt-5 inline-flex items-center gap-1 text-xs font-medium text-action hover:underline">
+              </ul>
+              <ButtonLink variant="ghost" size="sm" to="/projects" className="mt-3">
                 Project로 대상 정리하기 <MaterialIcon size={20} name="arrow_forward" />
-              </Link>
+              </ButtonLink>
             </article>
           </section>
 
@@ -292,7 +324,7 @@ export function OverviewPage() {
                     범위를 밝히지 않으면 "전부 조용하다"로 오독된다. */}
                 <p className="mt-0.5 text-sm text-text-muted">업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.</p>
               </div>
-              <span className="text-sm tabular-nums text-text-muted">{timeline.length}</span>
+              <span className="text-sm tabular-nums text-text-muted" aria-label={`최근 장애 ${timeline.length}건`}>{timeline.length}</span>
             </div>
             {timeline.length === 0 ? (
               <div className="flex min-h-32 flex-col items-center justify-center p-5 text-center">

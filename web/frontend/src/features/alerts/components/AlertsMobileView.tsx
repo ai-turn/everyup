@@ -186,7 +186,7 @@ export function AlertsMobileView({
                       </div>
                       <p className={`text-sm ${meta.text}`}>{channel.type}</p>
                     </div>
-                    <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={`${channel.name} ${channel.isEnabled ? '비활성화' : '활성화'}`} />
+                    <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} />
                   </div>
                   <div className="mb-3 pb-3 border-b border-ui-border-soft/50">
                     <ChannelHealthMeta health={channelHealth[channel.id]} compact />
@@ -243,7 +243,7 @@ export function AlertsMobileView({
                         {severityLabel(rule.severity)} · {rule.metric} {rule.operator} {rule.threshold}
                       </p>
                     </div>
-                    <Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={`${rule.name} ${rule.isEnabled ? '비활성화' : '활성화'}`} />
+                    <Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} />
                   </div>
                   <p className="mt-2 text-xs text-text-muted">{rule.isEnabled ? '활성화됨' : '비활성화됨'}</p>
                 </div>

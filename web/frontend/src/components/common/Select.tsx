@@ -40,6 +40,9 @@ export function Select({
   required,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
+  'aria-required': ariaRequired,
   ...nativeProps
 }: SelectProps) {
   const options = useMemo(() => optionsFromChildren(children), [children]);
@@ -125,6 +128,9 @@ export function Select({
         disabled={disabled}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid}
+        aria-required={ariaRequired}
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}

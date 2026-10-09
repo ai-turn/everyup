@@ -179,7 +179,7 @@ function AgentForm({
                     checked={checked}
                     onChange={(enabled) => toggleCapability(option.capability, enabled)}
                     disabled={disabled}
-                    ariaLabel={`${option.label} 수집 ${checked ? '사용' : '사용 안 함'}`}
+                    ariaLabel={`${option.label} 수집`}
                     title={disabled ? '로그 또는 API 요청 수집에 필요합니다' : undefined}
                   />
                   <div className="min-w-0">
