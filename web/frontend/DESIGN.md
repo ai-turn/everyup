@@ -992,8 +992,6 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 | 항목 | 위치 | 조치 |
 |------|------|------|
-| 표 헤더 `uppercase tracking-wider` | `AgentServiceTracesTab` | 제거 |
-| 표 헤더 채움 | `AgentServiceTracesTab`(채움 없음, `py-2`) | `bg-ui-hover-soft`, `py-3` |
 | 카드 목록 `sm:2 lg:3` | `App.tsx` 스켈레톤 | `md:2 xl:3` |
 | 카드 목록 `sm:2 xl:3` | `MetricsPage`(2) | `md:2 xl:3` |
 | 뷰 분기(`md`)와 셸 전환(`lg`)의 경계 불일치 | `useIsMobile` · `MainLayout` | **결정 필요** — §3.8 |
