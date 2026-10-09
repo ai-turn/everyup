@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { MaterialIcon, SegmentedControl, type GlobalTimeRange } from '../../../components/common';
+import { Button, MaterialIcon, SegmentedControl, type GlobalTimeRange } from '../../../components/common';
 import { api, type TraceSummary } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
-import { activatable } from '../../../utils/a11y';
 import { TracePanel } from '../../traces/components/TracePanel';
+import { LEVEL_CHIP } from '../logLevelStyle';
 
 interface SharedProps {
   refreshKey: number;
@@ -32,12 +31,14 @@ const SORTS = [
   { value: 'slowest' as const, label: '느린순' },
 ];
 
+// 600단계는 자기 /10 틴트 위에서 2.84~3.70으로 AA 미달이었다(DESIGN.md §1.4와 같은 측정).
+// 상태 토큰과 같은 단계로 올린다 — amber-700은 행 hover 위에서 4.47이라 800.
 function spanKindBadge(kind: string): string {
   switch (kind) {
-    case 'SERVER':   return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
-    case 'CLIENT':   return 'bg-sky-500/10 text-sky-600 dark:text-sky-400';
+    case 'SERVER':   return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+    case 'CLIENT':   return 'bg-sky-500/10 text-sky-700 dark:text-sky-400';
     case 'PRODUCER':
-    case 'CONSUMER': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+    case 'CONSUMER': return 'bg-amber-500/10 text-amber-800 dark:text-amber-400';
     default:         return 'bg-slate-500/10 text-text-muted';
   }
 }
@@ -57,6 +58,8 @@ function formatTime(iso: string): string {
 function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { source: TraceSource }) {
   const [traces, setTraces] = useState<TraceSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  // 실패를 빈 목록으로 그리면 "SDK가 보내면 표시됩니다"가 떠서 수집 설정 문제로 읽힌다.
+  const [error, setError] = useState<string | null>(null);
   const [sort, setSort] = useState<'recent' | 'slowest'>('recent');
   const [errorsOnly, setErrorsOnly] = useState(false);
   const [activeTraceId, setActiveTraceId] = useState<string | null>(null);
@@ -78,8 +81,9 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
       setTraces(sourceKind === 'agent'
         ? await api.getAgentServiceTraces(agentId, serviceKey, params)
         : await api.getObservedServiceTraces(observedServiceId, params));
+      setError(null);
     } catch (err) {
-      toast.error(getErrorMessage(err));
+      setError(getErrorMessage(err));
       setTraces([]);
     } finally {
       setLoading(false);
@@ -92,11 +96,13 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <SegmentedControl options={SORTS} value={sort} onChange={setSort} ariaLabel="트레이스 정렬" />
+        {/* 켜짐 = 로그 탭 레벨 필터 칩과 같은 표현. 흰 글자 + red-500 채움은 3.76으로 AA 미달이었다. */}
         <button
           type="button"
+          aria-pressed={errorsOnly}
           onClick={() => setErrorsOnly(v => !v)}
           className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-            errorsOnly ? 'bg-red-500 text-white' : 'bg-ui-hover text-text-muted hover:bg-ui-active'
+            errorsOnly ? LEVEL_CHIP.error : 'bg-ui-hover text-text-muted hover:bg-ui-active'
           }`}
         >
           <MaterialIcon size={20} name="error_outline" />
@@ -106,6 +112,17 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
 
       {loading ? (
         <div className="h-64 animate-pulse rounded-xl bg-ui-hover" />
+      ) : error ? (
+        <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <MaterialIcon size={20} name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
+            <div>
+              <p className="type-label text-text-base">트레이스를 불러오지 못했습니다</p>
+              <p className="mt-0.5 type-body text-text-muted">{error}</p>
+            </div>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => void fetch()}>다시 시도</Button>
+        </section>
       ) : traces.length === 0 ? (
         <div className="rounded-xl border border-ui-border bg-bg-surface p-8 text-center">
           <p className="text-sm text-text-muted">
@@ -116,37 +133,43 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
         <div className="overflow-hidden rounded-xl border border-ui-border">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-ui-border bg-bg-surface text-left text-xs font-medium uppercase tracking-wider text-text-muted">
-                <th className="px-4 py-2 font-medium">트레이스</th>
-                <th className="px-4 py-2 font-medium">종류</th>
-                <th className="px-4 py-2 text-right font-medium">소요</th>
-                <th className="px-4 py-2 text-right font-medium">Span</th>
-                <th className="px-4 py-2 text-right font-medium">시작</th>
+              <tr className="border-b border-ui-border bg-ui-hover-soft text-left text-xs font-medium text-text-muted">
+                <th className="px-4 py-3 font-medium">트레이스</th>
+                <th className="px-4 py-3 font-medium">종류</th>
+                <th className="px-4 py-3 text-right font-medium">소요</th>
+                <th className="px-4 py-3 text-right font-medium">Span</th>
+                <th className="px-4 py-3 text-right font-medium">시작</th>
               </tr>
             </thead>
             <tbody>
               {traces.map(trace => (
+                // 선택 가능한 행은 tabIndex + 키 핸들러만 — role="button"은 표 시맨틱을 덮어쓴다 (DESIGN.md §8)
                 <tr
                   key={trace.traceId}
-                  {...activatable(() => setActiveTraceId(trace.traceId))}
-                  className="cursor-pointer border-b border-ui-border-soft/50 bg-bg-surface transition-colors last:border-0 hover:bg-ui-hover-soft"
+                  tabIndex={0}
+                  onClick={() => setActiveTraceId(trace.traceId)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActiveTraceId(trace.traceId);
+                    }
+                  }}
+                  className="cursor-pointer border-b border-ui-border-soft bg-bg-surface transition-colors last:border-0 hover:bg-ui-hover-soft"
                 >
                   <td className="px-4 py-2.5">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="truncate text-text-base">{trace.name}</span>
                       {trace.errorCount > 0 && (
-                        <span className="shrink-0 rounded-full bg-status-error/10 px-2 py-0.5 text-xs text-status-error">
-                          오류 {trace.errorCount}
-                        </span>
+                        <span className="shrink-0 text-xs text-status-error">오류 {trace.errorCount}</span>
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-2.5">
                     <span className={`badge ${spanKindBadge(trace.kind)}`}>{trace.kind}</span>
                   </td>
-                  <td className="px-4 py-2.5 text-right text-xs text-text-secondary">{formatDuration(trace.durationMs)}</td>
-                  <td className="px-4 py-2.5 text-right text-xs text-text-muted">{trace.spanCount}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right text-xs text-text-dim">{formatTime(trace.startTime)}</td>
+                  <td className="px-4 py-2.5 text-right text-xs tabular-nums text-text-secondary">{formatDuration(trace.durationMs)}</td>
+                  <td className="px-4 py-2.5 text-right text-xs tabular-nums text-text-muted">{trace.spanCount}</td>
+                  <td className="whitespace-nowrap px-4 py-2.5 text-right text-xs tabular-nums text-text-dim">{formatTime(trace.startTime)}</td>
                 </tr>
               ))}
             </tbody>
