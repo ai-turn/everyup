@@ -83,7 +83,6 @@ export function AlertsDesktopView({
     setActiveTab('history');
   };
 
-  const enabledRules = rules.filter(r => r.isEnabled).length;
   const totalSent = stats?.totalSent ?? 0;
   const totalFailed = stats?.totalFailed ?? 0;
   const successRate = stats ? Math.round(stats.successRate) : null;
@@ -113,16 +112,17 @@ export function AlertsDesktopView({
         )}
       </PageHeader>
 
-      {/* KPI stat bar — one card, divider-separated cells */}
-      <div className="mb-5 grid grid-cols-5 divide-x divide-ui-border-soft rounded-xl border border-ui-border bg-bg-surface py-3.5">
+      {/* 7-day delivery summary — one card, divider-separated cells. Active rule/channel
+          counts were dropped: the channel table's toggles and the rules tab already say them. */}
+      <div className="mb-5 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border bg-bg-surface py-3.5">
         <div className="flex flex-col gap-0.5 px-5">
           <span className="text-xs text-text-muted">발송 (7일)</span>
           <span className="text-xl tabular-nums text-text-base">{totalSent}</span>
         </div>
         <div className="flex flex-col gap-0.5 px-5">
           <span className="text-xs text-text-muted">실패 (7일)</span>
-          <span className="flex items-baseline gap-2.5">
-            <span className={`text-xl tabular-nums ${totalFailed > 0 ? 'text-red-600 dark:text-red-400' : 'text-text-base'}`}>
+          <span className="flex items-baseline gap-2">
+            <span className={`text-xl tabular-nums ${totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>
               {totalFailed}
             </span>
             {totalFailed > 0 && (
@@ -146,16 +146,6 @@ export function AlertsDesktopView({
             )}
           </span>
         </div>
-        <div className="flex flex-col gap-0.5 px-5">
-          <span className="text-xs text-text-muted">활성 규칙</span>
-          <span className="text-xl tabular-nums text-text-base">{enabledRules}/{rules.length}</span>
-        </div>
-        <div className="flex flex-col gap-0.5 px-5">
-          <span className="text-xs text-text-muted">활성 채널</span>
-          <span className="text-xl tabular-nums text-text-base">
-            {channels.filter(c => c.isEnabled).length}/{channels.length}
-          </span>
-        </div>
       </div>
 
       {/* Tabs */}
@@ -173,14 +163,10 @@ export function AlertsDesktopView({
                   : 'text-text-muted border-transparent hover:text-text-base'
               }`}
             >
-              <span className="inline-flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5">
                 {tab.label}
                 {tab.count != null && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded-md ${
-                    activeTab === tab.key
-                      ? 'bg-primary/10 text-action'
-                      : 'bg-ui-hover text-text-muted'
-                  }`}>{tab.count}</span>
+                  <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
                 )}
               </span>
             </button>
@@ -289,12 +275,12 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
       <table className="w-full min-w-[960px] table-fixed">
         <thead className="bg-ui-hover-soft">
           <tr className="border-b border-ui-border">
-            <th className="w-[280px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">채널</th>
-            <th className="w-[90px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">상태</th>
-            <th className="w-[150px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">7일 발송 / 실패</th>
-            <th className="w-[110px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">연결 규칙</th>
-            <th className="w-[160px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted">최근 발송</th>
-            <th className="sticky right-0 w-[180px] border-l border-ui-border-soft bg-ui-hover-soft px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">작업</th>
+            <th className="w-[280px] px-4 py-3 text-left text-xs font-medium text-text-muted">채널</th>
+            <th className="w-[90px] px-4 py-3 text-left text-xs font-medium text-text-muted">상태</th>
+            <th className="w-[150px] px-4 py-3 text-left text-xs font-medium text-text-muted">7일 발송 / 실패</th>
+            <th className="w-[110px] px-4 py-3 text-left text-xs font-medium text-text-muted">연결 규칙</th>
+            <th className="w-[160px] px-4 py-3 text-left text-xs font-medium text-text-muted">최근 발송</th>
+            <th className="sticky right-0 w-[180px] border-l border-ui-border-soft bg-ui-hover-soft px-4 py-3 text-right text-xs font-medium text-text-muted">작업</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-ui-border-soft">
@@ -311,7 +297,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
                 key={channel.id}
                 className={`group transition-colors hover:bg-ui-hover-soft ${!channel.isEnabled ? 'opacity-70' : ''}`}
               >
-                <td className="px-4 py-3">
+                <td className="px-4 py-2.5">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${style.bg}`}>
                       <ChannelIcon type={channel.type} size={18} className={style.text} />
@@ -324,7 +310,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-2.5">
                   <Toggle
                     checked={channel.isEnabled}
                     onChange={() => onToggle(channel.id)}
@@ -333,27 +319,27 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
                     ariaLabel={channel.name}
                   />
                 </td>
-                <td className="px-4 py-3 text-sm font-medium tabular-nums">
+                <td className="px-4 py-2.5 text-sm tabular-nums">
                   {total > 0 ? (
                     <span className="text-text-base">
                       {sent}
                       {failed > 0 && (
-                        <span className="text-red-600 dark:text-red-400"> · {`실패 ${failed}`}</span>
+                        <span className="text-status-error"> · {`실패 ${failed}`}</span>
                       )}
                     </span>
                   ) : (
-                    <span className="font-normal text-text-dim">이력 없음</span>
+                    <span className="text-text-dim">이력 없음</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-sm font-medium text-text-secondary">
+                <td className="px-4 py-2.5 text-sm text-text-secondary">
                   {`규칙 ${health?.ruleCount ?? 0}개`}
                 </td>
-                <td className="px-4 py-3 text-sm text-text-muted">
+                <td className="px-4 py-2.5 text-sm text-text-muted">
                   {lastSent
                     ? formatDistanceToNow(lastSent, { addSuffix: true, locale: ko })
                     : <span className="text-text-dim">— 테스트로 확인</span>}
                 </td>
-                <td className="sticky right-0 border-l border-ui-border-soft bg-bg-surface px-4 py-3 transition-colors group-hover:bg-ui-hover-soft">
+                <td className="sticky right-0 border-l border-ui-border-soft bg-bg-surface px-4 py-2.5 transition-colors group-hover:bg-ui-hover-soft">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} className="whitespace-nowrap">
                       <MaterialIcon size={20} name="send" />
