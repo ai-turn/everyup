@@ -144,7 +144,7 @@ export default defineConfig({
       label: 'English',
       lang: 'en',
       link: '/en/',
-      description: 'Self-hosted monitoring for uptime, logs, infrastructure, and APIs through a Docker Collector, OpenTelemetry, or HTTP/TCP checks',
+      description: 'Self-hosted monitoring that shows uptime, logs, API response times, and server resources on one screen and alerts you when something goes wrong',
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/en/guide/introduction' },

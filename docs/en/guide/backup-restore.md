@@ -31,4 +31,4 @@ docker cp ./everyup-data-backup/. everyup:/app/data/
 docker start everyup
 ```
 
-After restore, sign in and verify at least one saved integration or notification channel that depends on encrypted values. When restoring a deployment that uses `EVERYUP_ENCRYPTION_KEY`, start it with the same key value that protected the backup.
+After restore, sign in and use the **테스트** (Test) button in the notification channel list to confirm alerts are delivered. If the encryption key does not match, the Bot Tokens and Webhook URLs stored in channels cannot be read. When restoring a deployment that uses `EVERYUP_ENCRYPTION_KEY`, start it with the same key value that protected the backup.

@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: EveryUp
-  text: 'However it runs,<br>monitor it on one screen'
-  tagline: The Collector discovers Docker containers on its own; everything else connects through OpenTelemetry or HTTP/TCP checks.
+  text: 'Predictable systems<br>start with thorough preparation'
+  tagline: See uptime, error logs, API response times, and server resources on one screen, and get alerted as soon as anything crosses a threshold.
   actions:
     - theme: brand
       text: Quick Start
@@ -24,7 +24,7 @@ carousel:
   - title: Uptime
     caption: The state of Docker containers and HTTP/TCP targets, so you can spot the one that is down.
     image: uptime
-    alt: The uptime screen. Summary of 3 healthy, 1 down, 1 paused, and cards for 5 monitored targets.
+    alt: The uptime screen. Summary of 3 healthy, 1 down, 1 paused or pending, and cards for 5 monitored targets.
   - title: Logs
     caption: Error and warning trends per service, plus the errors that keep repeating.
     image: logs

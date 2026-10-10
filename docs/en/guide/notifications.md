@@ -149,5 +149,5 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 - Send a test notification with **테스트 전송** (Send test) before adding a channel, or with the **테스트** (Test) button in the channel list afterwards.
 - Channels can be **toggled on/off** independently without deleting them.
-- Multiple channels can be assigned to a single **Alert Rule** for simultaneous delivery.
-- Alert Rules define the conditions (CPU threshold, error rate, etc.) and which channels receive the notification.
+- Multiple channels can be assigned to a single **알림 규칙** (alert rule) for simultaneous delivery.
+- Alert rules define the conditions (CPU threshold, error rate, etc.) and which channels receive the notification.
