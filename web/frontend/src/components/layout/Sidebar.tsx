@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
@@ -7,6 +7,7 @@ import { api, type AgentServiceFlat, type UptimeMonitor } from '../../services/a
 import { env } from '../../config/env';
 import logo from '../../assets/logo.webp';
 import { DemoScenarioSwitcher } from './DemoScenarioSwitcher';
+import { NAV_SECTIONS, sectionFor } from './navSections';
 
 interface NavItemProps {
   to: string;
@@ -62,7 +63,8 @@ export function Sidebar() {
   const failureCount = services.filter((service) => !service.healthy).length
     + monitors.filter((monitor) => monitor.status === 'unhealthy').length;
 
-  const path = location.pathname;
+  // 활성 항목 = 첫 크럼과 같은 섹션(담김 관계, DESIGN.md §3.4) — 서비스 상세는 Docker 환경이다.
+  const current = sectionFor(location.pathname);
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-ui-border bg-bg-surface lg:flex">
@@ -88,18 +90,21 @@ export function Sidebar() {
       </button>
 
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3" aria-label="주 메뉴">
-        <NavItem to="/#attention" icon="dashboard" label="개요" active={path === '/'} badge={failureCount} />
-        <NavItem to="/projects" icon="folder_open" label="Projects" active={path.startsWith('/projects')} />
-        <NavItem to="/environments" icon="dns" label="Docker 환경" active={path.startsWith('/environments') || path.startsWith('/agents/') || path.startsWith('/services/')} />
-        <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">메뉴</p>
-        <NavItem to="/uptime" icon="monitor_heart" label="업타임" active={path.startsWith('/uptime')} />
-        <NavItem to="/logs" icon="article" label="로그" active={path.startsWith('/logs')} />
-        <NavItem to="/infrastructure" icon="memory" label="인프라" active={path.startsWith('/infrastructure')} />
-        <NavItem to="/api" icon="api" label="API 요청" active={path.startsWith('/api')} />
-        <NavItem to="/metrics" icon="monitoring" label="메트릭" active={path.startsWith('/metrics')} />
-        <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">관리</p>
-        <NavItem to="/alerts" icon="notifications" label="알림" active={path.startsWith('/alerts')} />
-        <NavItem to="/settings" icon="settings" label="환경 설정" active={path.startsWith('/settings')} />
+        {NAV_SECTIONS.map((section, i) => (
+          <Fragment key={section.to}>
+            {section.group && section.group !== NAV_SECTIONS[i - 1]?.group && (
+              <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">{section.group}</p>
+            )}
+            <NavItem
+              // 개요는 장애 목록으로 바로 내린다 — 배지가 가리키는 곳이다.
+              to={section.to === '/' ? '/#attention' : section.to}
+              icon={section.icon}
+              label={section.label}
+              active={current?.to === section.to}
+              badge={section.to === '/' ? failureCount : undefined}
+            />
+          </Fragment>
+        ))}
       </nav>
 
       <div className="flex shrink-0 flex-col gap-2 p-3">
