@@ -22,6 +22,9 @@ test.describe('live demo', () => {
 
     await page.getByRole('link', { name: 'api', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'api' })).toBeVisible();
+    // 상세 경로도 담긴 섹션에 속한다(navSections.ts) — 사이드바 활성 항목과 첫 크럼이 같은 섹션이다.
+    await expect(page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: 'Docker 환경', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('navigation', { name: '현재 위치' }).getByRole('link', { name: 'Docker 환경', exact: true })).toBeVisible();
 
     await page.getByRole('tab', { name: '로그', exact: true }).click();
     await expect(page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms')).toBeVisible();
