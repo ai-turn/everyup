@@ -36,7 +36,7 @@ configuration in English; the running UI looks like the screenshot above.
 
 ### Docker Collector
 
-The following data is collected without app changes in the All profile. The
+The following data is collected without app changes in the **전체** (All) profile. The
 installer mounts the Docker socket and `/hostfs` read-only only when the
 selected collection scope needs them.
 
