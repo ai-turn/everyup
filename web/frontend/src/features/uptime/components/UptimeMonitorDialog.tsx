@@ -82,7 +82,7 @@ export function UptimeMonitorDialog({
             <h2 id="uptime-monitor-dialog-title" className="type-card-title text-text-base">
               {monitor ? '업타임 수정' : '업타임 추가'}
             </h2>
-            <p className="mt-1 text-sm text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
+            <p className="mt-0.5 text-sm text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
         </div>

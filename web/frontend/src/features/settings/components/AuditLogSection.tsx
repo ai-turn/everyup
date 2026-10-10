@@ -43,7 +43,7 @@ export function AuditLogSection() {
   return (
     <SectionCard title="바디 열람 감사 로그" subtitle="관리자가 캡처된 요청/응답 본문을 열람한 기록">
       {events.length === 0 ? (
-        <p className="text-sm text-text-muted">열람 기록이 없습니다</p>
+        <p className="type-body text-text-muted">열람 기록이 없습니다</p>
       ) : (
         <>
         <p className="mb-2 text-xs text-text-dim">{`최근 ${events.length}건`}</p>
@@ -57,9 +57,7 @@ export function AuditLogSection() {
                   {`Trace ${(event.traceId ?? '').slice(0, 12)} 본문 열람`}
                 </span>
                 {typeof count === 'number' && (
-                  <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-action">
-                    {`본문 ${count}건`}
-                  </span>
+                  <span className="text-xs text-text-muted">{`본문 ${count}건`}</span>
                 )}
                 <span className="text-xs text-text-dim">
                   {new Date(event.createdAt).toLocaleString()}

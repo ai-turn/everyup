@@ -57,7 +57,7 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
           <h2 className="type-section-title tracking-tight text-text-base">
             인프라 추세
           </h2>
-          <p className="mt-1 text-sm text-text-muted">
+          <p className="mt-0.5 text-sm text-text-muted">
             {rangeLabel[range]}
           </p>
         </div>
