@@ -82,7 +82,7 @@ The helper keeps rollback metadata in the app Compose directory's `.everyup`
 folder. It attaches the app and Docker Collector to the shared `everyup-monitoring`
 network so `everyup-agent:4318` resolves without publishing an OTLP port.
 Existing `JAVA_TOOL_OPTIONS` / `NODE_OPTIONS` values are retained and the
-EveryUp option is appended once. Supported versions: JVM 8+, Node 18+.
+EveryUp option is appended once. Supported versions: JVM 8+, Node 18.19+ or 20.6+.
 
 Everything below is for **other languages, manual SDK setups, or understanding
 the span contract** the bundle produces.

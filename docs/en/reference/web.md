@@ -72,9 +72,11 @@ EVERYUP_ENCRYPTION_KEY=<output of openssl rand -hex 32>
 - **`EVERYUP_ENCRYPTION_KEY`** · default auto-generated\
   64-char hex (32 bytes) AES key for secrets (Docker Collector API keys, notification channels). **Set this in production**; otherwise a key is generated into the data directory and a database restore alone cannot decrypt secrets ([Backup and restore](../guide/backup-restore))
 - **`EVERYUP_ADMIN_USERNAME`**\
-  Create the first admin on startup without the setup UI (headless provisioning)
+  Create an admin account with this name on startup without the setup UI (headless provisioning).
+  If the account already exists, its password is reset to `EVERYUP_ADMIN_PASSWORD` on every startup
 - **`EVERYUP_ADMIN_PASSWORD`**\
-  Required with `EVERYUP_ADMIN_USERNAME`; minimum 8 characters
+  Required with `EVERYUP_ADMIN_USERNAME`. In `production` mode (the default), Web refuses to start
+  if it is shorter than 8 characters or is `admin`, `password`, or `changeme`
 
 ### Retention
 
@@ -119,9 +121,9 @@ Default prefix: `/api/v1`.
 | Area | Examples |
 | --- | --- |
 | Health and auth | `GET /health`, `POST /auth/login`, `GET /auth/me` |
-| Monitoring | `GET /services`, `GET /hosts`, `GET /dashboard/summary` |
+| Monitoring | `GET /services`, `GET /hosts`, `GET /dashboard/timeline` |
 | Logs and traces | `GET /logs`, `POST /otlp/v1/logs`, `POST /otlp/v1/traces` |
-| Alerting | `GET /notifications/channels`, `GET /alert-rules` |
+| Alerting | `GET /notifications`, `GET /alert-rules` |
 | Docker Collector sync (`/agents` compatibility API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
 | Docker service detail | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 

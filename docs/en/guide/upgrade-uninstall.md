@@ -1,7 +1,11 @@
 # Upgrade and uninstall
 
-Web and the monitoring bundle both use `latest` images. Upgrading means pulling the new images
-and recreating the containers; collected data and settings are kept.
+Web and the Docker Collector use `latest` images. Upgrading means pulling the new images and
+recreating the containers; collected data and settings are kept.
+
+The bundle's eBPF Observer (`everyup-ebpf`) is pinned to a tested version, so `pull` does not change
+it. After upgrading Web, generate the install command again from that Web and run it to move to
+the version the new Web was tested with.
 
 ## Upgrade Web {#upgrade-web}
 

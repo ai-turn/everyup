@@ -58,11 +58,12 @@ Docker 탐지가 켜져 있으면 OTLP 게이트웨이는 자신이 발견한 �
 이름을 붙입니다. eBPF 표시가 붙은 트레이스는 `everyup-ebpf` 컨테이너만 보낼 수 있습니다.
 
 Docker 탐지가 없는 프로필(예: 메트릭 전용)에서는 모든 OTLP 요청에 서비스별 bearer 토큰이
-필요합니다. Docker 호스트에서 앱마다 토큰을 발급하세요.
+필요합니다. Docker 호스트에서 앱마다 토큰을 발급하세요. 마지막 인자에는 그 앱의 서비스 이름(예:
+`checkout`)을 넣습니다.
 
 ```bash
 sudo docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-agent/compose.yaml \
-  exec -T everyup-agent everyup-agent gateway-token checkout
+  exec -T everyup-agent everyup-agent gateway-token <서비스 이름>
 ```
 
 해당 앱의 OTLP exporter가 `http://everyup-agent:4318`로
