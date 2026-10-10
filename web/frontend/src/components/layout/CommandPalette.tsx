@@ -76,6 +76,7 @@ export function CommandPalette() {
   }, [open]);
 
   const items: PaletteItem[] = useMemo(() => [
+    { id: 'page-environments', icon: 'dns', label: 'Docker 환경', to: '/environments' },
     { id: 'page-uptime', icon: 'monitor_heart', label: '업타임', to: '/uptime' },
     { id: 'page-logs', icon: 'article', label: '로그', to: '/logs' },
     { id: 'page-infrastructure', icon: 'memory', label: '인프라', to: '/infrastructure' },
@@ -84,7 +85,7 @@ export function CommandPalette() {
     { id: 'page-home', icon: 'dashboard', label: '개요', meta: '홈', to: '/' },
     { id: 'page-projects', icon: 'folder_open', label: 'Projects', to: '/projects' },
     { id: 'page-alerts', icon: 'notifications', label: '알림', to: '/alerts' },
-    { id: 'page-settings', icon: 'settings', label: '환경설정', to: '/settings' },
+    { id: 'page-settings', icon: 'settings', label: '환경 설정', to: '/settings' },
     ...agents.map((a) => ({
       id: `agent-${a.id}`, icon: 'folder_open', label: a.name, meta: 'Docker 환경', to: `/agents/${a.id}`,
     })),
