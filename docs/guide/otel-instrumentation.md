@@ -73,7 +73,7 @@ Web은 **설정 적용 검증 완료**와 **실행 시작 이후 새 트레이�
 롤백 정보는 앱 Compose 디렉터리의 `.everyup` 폴더에 보관합니다. 헬퍼가 앱과 Docker
 Collector를 `everyup-monitoring` 네트워크에 연결하므로 OTLP 포트를 외부에 열지 않아도
 `everyup-agent:4318`로 접근할 수 있습니다. 기존 `JAVA_TOOL_OPTIONS`·`NODE_OPTIONS` 값은
-유지되고 EveryUp 옵션은 한 번만 덧붙습니다. 지원 버전은 JVM 8+, Node 18+입니다.
+유지되고 EveryUp 옵션은 한 번만 덧붙습니다. 지원 버전은 JVM 8+, Node 18.19+ 또는 20.6+입니다.
 
 아래 내용은 다른 언어를 쓰거나, SDK를 직접 설정하거나, 번들이 만드는 span의 형식을
 알고 싶을 때 참고하세요.

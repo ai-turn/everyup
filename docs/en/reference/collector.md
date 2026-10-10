@@ -62,11 +62,12 @@ of its source container, even if the SDK supplies a different `service.name`;
 only the `everyup-ebpf` container can send eBPF-marked traces.
 
 A profile without Docker discovery (such as metrics-only) requires a service-scoped
-bearer token on every OTLP request. Generate one per application on the Docker host:
+bearer token on every OTLP request. Generate one per application on the Docker host, passing that
+application's service name (for example `checkout`) as the last argument:
 
 ```bash
 sudo docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-agent/compose.yaml \
-  exec -T everyup-agent everyup-agent gateway-token checkout
+  exec -T everyup-agent everyup-agent gateway-token <service-name>
 ```
 
 Configure that application's OTLP exporter to send

@@ -69,9 +69,11 @@ EVERYUP_ENCRYPTION_KEY=<openssl rand -hex 32 출력값>
 - **`EVERYUP_ENCRYPTION_KEY`** · 기본값 자동 생성\
   secret(Docker Collector API Key, 알림 채널)을 암호화하는 64자 hex(32바이트) AES 키. **운영 환경에서는 지정하세요.** 지정하지 않으면 키를 생성해 데이터 디렉터리에 저장하므로, DB만 복원하면 secret을 풀 수 없습니다 ([백업·복원](../guide/backup-restore))
 - **`EVERYUP_ADMIN_USERNAME`**\
-  시작할 때 설정 화면 없이 첫 관리자를 생성합니다(headless 프로비저닝)
+  시작할 때 설정 화면 없이 이 이름으로 관리자 계정을 만듭니다(headless 프로비저닝). 이미 있는 계정이면
+  시작할 때마다 비밀번호를 `EVERYUP_ADMIN_PASSWORD` 값으로 다시 설정합니다
 - **`EVERYUP_ADMIN_PASSWORD`**\
-  `EVERYUP_ADMIN_USERNAME`과 함께 필요합니다. 8자 이상
+  `EVERYUP_ADMIN_USERNAME`과 함께 필요합니다. `production` 모드(기본값)에서는 8자 미만이거나
+  `admin`·`password`·`changeme`이면 Web이 시작되지 않습니다
 
 ### 보존 기간
 
@@ -116,9 +118,9 @@ Collector가 수집합니다.
 | 영역 | 예시 |
 | --- | --- |
 | Health·인증 | `GET /health`, `POST /auth/login`, `GET /auth/me` |
-| 모니터링 | `GET /services`, `GET /hosts`, `GET /dashboard/summary` |
+| 모니터링 | `GET /services`, `GET /hosts`, `GET /dashboard/timeline` |
 | 로그·트레이스 | `GET /logs`, `POST /otlp/v1/logs`, `POST /otlp/v1/traces` |
-| 알림 | `GET /notifications/channels`, `GET /alert-rules` |
+| 알림 | `GET /notifications`, `GET /alert-rules` |
 | Docker Collector 동기화 (`/agents` 호환 API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
 | Docker 서비스 상세 | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 
