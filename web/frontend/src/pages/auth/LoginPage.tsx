@@ -87,7 +87,7 @@ export function LoginPage() {
           <h1 className="type-section-title text-text-base">
             {isSetup ? '초기 설정' : '로그인'}
           </h1>
-          <p className="type-body text-text-muted mt-1">
+          <p className="type-body text-text-muted mt-0.5">
             {isSetup ? '관리자 계정을 생성하세요' : '관리자 계정으로 로그인하세요'}
           </p>
         </div>

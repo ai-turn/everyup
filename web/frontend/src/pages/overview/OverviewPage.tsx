@@ -253,13 +253,13 @@ export function OverviewPage() {
                 <div className="flex min-h-44 flex-col items-center justify-center p-5 text-center">
                   <MaterialIcon size={32} name="sync_problem" className="text-status-warn" />
                   <p className="mt-3 type-label text-text-base">일부 상태를 확인하지 못했습니다</p>
-                  <p className="mt-1 type-body text-text-muted">불러온 영역에서는 이상이 없지만, 전체가 정상인지는 아직 알 수 없습니다.</p>
+                  <p className="mt-2 type-body text-text-muted">불러온 영역에서는 이상이 없지만, 전체가 정상인지는 아직 알 수 없습니다.</p>
                 </div>
               ) : attention.length === 0 ? (
                 <div className="flex min-h-44 flex-col items-center justify-center p-5 text-center">
                   <MaterialIcon size={32} name="check_circle" className="text-status-healthy" />
                   <p className="mt-3 type-label text-text-base">현재 확인이 필요한 이상이 없습니다</p>
-                  <p className="mt-1 type-body text-text-muted">수집 연결과 서비스 상태 모두 정상입니다.</p>
+                  <p className="mt-2 type-body text-text-muted">수집 연결과 서비스 상태 모두 정상입니다.</p>
                 </div>
               ) : (
                 <>
@@ -340,7 +340,7 @@ export function OverviewPage() {
             {timeline.length === 0 ? (
               <div className="flex min-h-32 flex-col items-center justify-center p-5 text-center">
                 <p className="type-label text-text-base">최근 7일간 기록된 장애가 없습니다</p>
-                <p className="mt-1 type-body text-text-muted">업타임 모니터와 Docker 서비스 모두 중단 없이 동작했습니다.</p>
+                <p className="mt-2 type-body text-text-muted">업타임 모니터와 Docker 서비스 모두 중단 없이 동작했습니다.</p>
               </div>
             ) : (
               <ul className="divide-y divide-ui-border-soft">
