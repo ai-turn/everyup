@@ -14,7 +14,7 @@ export function BottomNavMobile() {
 
   function isActive(href: string) {
     if (href === '/') return location.pathname === '/';
-    if (href === '/more') return ['/environments', '/uptime', '/logs', '/infrastructure', '/api', '/metrics', '/settings'].some((prefix) => location.pathname.startsWith(prefix));
+    if (href === '/more') return ['/more', '/environments', '/uptime', '/logs', '/infrastructure', '/api', '/metrics', '/settings'].some((prefix) => location.pathname.startsWith(prefix));
     return location.pathname.startsWith(href);
   }
 
