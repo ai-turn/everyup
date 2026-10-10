@@ -78,9 +78,9 @@ If it does not open, see [The dashboard does not open](./troubleshooting#web-not
 **In the browser**, in the dashboard, open **Docker 환경** (Docker environments) and click **Docker 연결** (Connect
 Docker) at the top right. Name the environment, then choose its collection scope:
 
-- **All** configures uptime, logs, infrastructure, API tracing, and metrics.
-- **Basic** collects Docker service state and logs only.
-- **Custom** installs only the components and permissions required for the capabilities you select.
+- **전체** (All) configures uptime, logs, infrastructure, API tracing, and metrics.
+- **기본** (Basic) collects Docker service state and logs only.
+- **사용자 지정** (Custom) installs only the components and permissions required for the capabilities you select.
 
 ::: details Custom profiles without uptime collection
 If a custom profile omits Docker uptime collection (for example, a metrics-only profile), apps
@@ -120,10 +120,10 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 
 If it stops earlier, look up the last error line in [Troubleshooting](./troubleshooting).
 
-- The **All** profile, or a custom profile with API tracing, starts the Docker Collector together
+- The **전체** profile, or a custom profile with API tracing, starts the Docker Collector together
   with an isolated [eBPF Observer](./ebpf-observer) (OBI), which records API latency and traces
   without changing your application.
-- The **Basic** profile collects Docker service state and logs without the eBPF Observer.
+- The **기본** profile collects Docker service state and logs without the eBPF Observer.
 
 To set it up by hand instead, see
 [`agent/docker-compose.yml`](https://github.com/ai-turn/everyup/blob/main/agent/docker-compose.yml)

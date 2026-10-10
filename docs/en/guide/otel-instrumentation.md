@@ -18,9 +18,15 @@ For Java and Node.js you don't write any code. Docker collector installation als
 the `everyup-otel` helper and provides a ready-made OpenTelemetry bundle (Java
 agent jar + Node.js bootstrap).
 
-1. In the web UI, open a project and choose **Detailed API monitoring**.
-2. Enter the application Compose path and run the displayed one-line command on
-   that server.
+1. In Web, open the environment from **Docker 환경** (Docker environments) and choose
+   **상세 수집 설정** (detailed collection settings).
+2. Tick the Compose project and the Java or Node.js services to change. Nothing is selected at first.
+3. Enter the application Compose path and whether to capture bodies, then click
+   **변경 사항 확인** (Review changes).
+4. Check which services restart and which settings are added, then run the
+   **서버 변경 미리보기** (server change preview) command.
+5. When the real Compose validation passes, run the **안전 적용 명령** (safe apply command) and
+   check **상세 수집 적용 결과** (apply results) in Web.
 
 The helper leaves the original Compose file unchanged and writes
 `docker-compose.everyup.yml` beside it. It recreates only the selected services,
@@ -63,7 +69,7 @@ the span contract** the bundle produces.
 
 ## What EveryUp reads from a span
 
-To appear in a service's **API** tab, emit a **SERVER**-kind span per request with:
+To appear in a service's **API 요청** (API requests) tab, emit a **SERVER**-kind span per request with:
 
 | Attribute | Type | Purpose |
 | --- | --- | --- |

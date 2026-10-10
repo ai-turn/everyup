@@ -56,7 +56,7 @@ sudo docker compose --env-file .env -f compose.yaml up -d
 
 앱의 Compose 파일, 이미지, 컨테이너는 설치할 때 바꾸지 않았으므로 따로 되돌릴 것이 없습니다.
 
-대시보드에서도 정리하려면 **Docker 환경** 화면에서 해당 환경을 **비활성화**하세요. Collector
+대시보드에서도 정리하려면 **Docker 환경** 화면에서 해당 환경을 열고 **비활성화**를 누르세요. Collector
 연결이 차단되고, 이미 수집한 데이터는 보존됩니다.
 
 ## Web 제거 {#uninstall-web}

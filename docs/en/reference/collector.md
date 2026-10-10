@@ -36,7 +36,7 @@ for restart and retention behavior.
 
 API status codes are extracted from those same logs: lines that parse as access
 logs (Nginx / Apache / structured JSON) are emitted as synthetic OTel SERVER
-spans, which Web projects into the **API** tab. There is no latency in access
+spans, which Web projects into the **API 요청** (API requests) tab. There is no latency in access
 logs, so duration is unknown; an app that emits no access logs simply shows no
 API rows while logs and metrics keep flowing.
 
@@ -95,7 +95,8 @@ Only the three variables marked **required** must be set; everything else has a 
 - **`EVERYUP_WEB_BASE_URL`** · **required**\
   EveryUp Web base URL reachable from the Docker host
 - **`EVERYUP_AGENT_API_KEY`** · **required**\
-  API key generated in Web from Docker -> Connect Docker (deprecated alias: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
+  The Docker environment's API key. In Web, open the environment and click **API Key** to view or
+  reissue it (deprecated alias: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
 - **`EVERYUP_WEB_AGENT_ID`**\
   Web-side agent id; set automatically on enrollment
 - **`EVERYUP_WEB_SYNC_INTERVAL_SECONDS`** · default `30`\

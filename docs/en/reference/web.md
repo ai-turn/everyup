@@ -108,7 +108,7 @@ come from the Docker Collector.
 - **`EVERYUP_SYSTEM_ENABLED`** · default `true`\
   Collect host metrics
 - **`EVERYUP_SYSTEM_COLLECTINTERVAL`** · default `5`\
-  Collection interval (seconds); also editable on the settings page
+  Collection interval (seconds); also editable on the **환경 설정** (Settings) screen
 - **`EVERYUP_SYSTEM_STOREINTERVAL`** · default `60`\
   Storage interval (seconds)
 
@@ -125,6 +125,7 @@ Default prefix: `/api/v1`.
 | Docker Collector sync (`/agents` compatibility API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
 | Docker service detail | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 
-Docker Collector sync and OTLP ingest use the per-environment API key generated
-from **Docker -> Connect Docker** in Web. The Collector owns that key; monitored
-applications do not need it.
+Docker Collector sync and OTLP ingest use a per-environment API key. It is issued when you
+create the environment with **Docker 연결** (Connect Docker), and the installer delivers it to the
+target server directly. For a manual install, open the environment and click **API Key** to view
+it. The Collector owns that key; monitored applications do not need it.

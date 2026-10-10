@@ -113,7 +113,7 @@ short-lived diagnostic fallback. To narrow socket access in production, use the
 
 ## Logs are not showing up {#no-logs}
 
-**Symptom**: the service appears, but its logs tab is empty.
+**Symptom**: the service appears, but its **로그** (Logs) tab is empty.
 
 **Check** (on the monitored server):
 
