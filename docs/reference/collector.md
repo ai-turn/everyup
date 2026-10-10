@@ -34,8 +34,8 @@ docker logs <container-name> --tail 100
 참고하세요.
 
 API 상태코드는 같은 로그에서 추출합니다. access log(Nginx / Apache / 구조화 JSON)로 파싱되는
-줄은 합성 OTel SERVER span이 되고, Web이 이를 **API** 탭에 표시합니다. access log에는
-latency가 없으므로 duration은 알 수 없습니다. access log를 남기지 않는 앱은 API 탭에 요청이
+줄은 합성 OTel SERVER span이 되고, Web이 이를 **API 요청** 탭에 표시합니다. access log에는
+latency가 없으므로 duration은 알 수 없습니다. access log를 남기지 않는 앱은 API 요청 탭에 요청이
 표시되지 않을 뿐, 로그와 메트릭은 계속 수집됩니다.
 
 앱을 건드리지 않고 실제 latency를 보려면 모니터링 번들에 포함된
@@ -90,7 +90,7 @@ OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20<generated-token>
 - **`EVERYUP_WEB_BASE_URL`** · **필수**\
   Docker 호스트에서 접근 가능한 EveryUp Web 주소
 - **`EVERYUP_AGENT_API_KEY`** · **필수**\
-  Web의 **Docker 환경 → Docker 연결**에서 발급한 API Key (이전 이름: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
+  Docker 환경의 API Key. Web에서 해당 Docker 환경을 열고 **API Key**를 누르면 확인하거나 재발급할 수 있습니다 (이전 이름: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
 - **`EVERYUP_WEB_AGENT_ID`**\
   Web 쪽 agent id. 등록할 때 자동으로 설정됩니다
 - **`EVERYUP_WEB_SYNC_INTERVAL_SECONDS`** · 기본값 `30`\

@@ -80,7 +80,7 @@ Collector를 `everyup-monitoring` 네트워크에 연결하므로 OTLP 포트를
 
 ## EveryUp이 span에서 읽는 것
 
-서비스의 **API** 탭에 요청이 표시되려면, 요청마다 **SERVER** 종류의 span에 아래 attribute를
+서비스의 **API 요청** 탭에 요청이 표시되려면, 요청마다 **SERVER** 종류의 span에 아래 attribute를
 담아 보내야 합니다.
 
 | Attribute | 타입 | 용도 |

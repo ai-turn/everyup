@@ -48,9 +48,9 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 ### Step 3 — Configure in EveryUp
 
-1. Go to **Alerts → Add Channel → Telegram**.
-2. Enter a display name, paste the **Bot Token** and **Chat ID**.
-3. Click **Save**. For a new channel, EveryUp sends a test notification automatically to verify the connection.
+1. On the **알림** (Alerts) screen, open the **알림 채널** (Channels) tab, click **추가** (Add), and choose **Telegram** as the type.
+2. Enter a **표시 이름** (display name), then paste the **Bot Token** and the Chat ID into **채팅 ID** (Chat ID).
+3. Click **테스트 전송** (Send test) to confirm the message arrives, then click **추가** (Add). Sending a test does not save the channel.
 
 ---
 
@@ -61,7 +61,7 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 | `getUpdates` returns empty `[]` | The bot hasn't received any messages yet. Send it a message and try again. |
 | Bot doesn't respond in a group | Enable group access: in BotFather, send `/mybots` → select your bot → Bot Settings → Group Privacy → Turn off. |
 | `401 Unauthorized` | Bot Token is invalid or revoked. Generate a new one via `/token` in BotFather. |
-| Test notification not delivered | Double-check the Chat ID. For groups/channels, make sure the bot has been added and has send permission. Use the **Test** button on the channel card to retry after updating the settings. |
+| Test notification not delivered | Double-check the Chat ID. For groups/channels, make sure the bot has been added and has send permission. After updating the settings, use the **테스트** (Test) button in the channel list to retry. |
 
 ---
 
@@ -83,9 +83,9 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 ### Step 2 — Configure in EveryUp
 
-1. Go to **Alerts → Add Channel → Discord**.
-2. Enter a display name and paste the **Webhook URL**.
-3. Click **Save**. For a new channel, EveryUp sends a test notification automatically.
+1. On the **알림** (Alerts) screen, open the **알림 채널** (Channels) tab, click **추가** (Add), and choose **Discord** as the type.
+2. Enter a **표시 이름** (display name) and paste the **Webhook URL**.
+3. Click **테스트 전송** (Send test) to confirm the message arrives, then click **추가** (Add).
 
 ---
 
@@ -127,9 +127,9 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 ### Step 3 — Configure in EveryUp
 
-1. Go to **Alerts → Add Channel → Slack**.
-2. Enter a display name and paste the **Webhook URL**.
-3. Click **Save**. For a new channel, EveryUp sends a test notification automatically.
+1. On the **알림** (Alerts) screen, open the **알림 채널** (Channels) tab, click **추가** (Add), and choose **Slack** as the type.
+2. Enter a **표시 이름** (display name) and paste the **Webhook URL**.
+3. Click **테스트 전송** (Send test) to confirm the message arrives, then click **추가** (Add).
 
 ---
 
@@ -147,7 +147,7 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 ## General Notes
 
-- EveryUp sends a **test notification** automatically when a new channel is created. Use the **Test** button on any existing channel card to send it again after edits.
+- Send a test notification with **테스트 전송** (Send test) before adding a channel, or with the **테스트** (Test) button in the channel list afterwards.
 - Channels can be **toggled on/off** independently without deleting them.
 - Multiple channels can be assigned to a single **Alert Rule** for simultaneous delivery.
 - Alert Rules define the conditions (CPU threshold, error rate, etc.) and which channels receive the notification.

@@ -5,7 +5,8 @@ screens to diagnose collection or widen what you collect.
 
 ## Monitoring setup guide
 
-The Docker environment's **Monitoring setup guide** checks Collector connection, baseline
+Open an environment from the **Docker 환경** (Docker environments) screen to find its
+**모니터링 설정 가이드** (monitoring setup guide). It checks Collector connection, baseline
 collection, and automatic API tracing in order. When Java or Node.js services are discovered, the
 same guide continues into the optional detailed header/body instrumentation flow.
 
@@ -32,8 +33,9 @@ latest installation command.
 
 ## Adding capabilities to an existing environment
 
-The **Connect** button on the Logs, API, Metrics, and Infrastructure pages lets you reuse a
-registered target or connect a new one. Adding a capability to an existing Docker environment
+The connect buttons on the **로그** (Logs), **API 요청** (API requests), **메트릭** (Metrics), and **인프라**
+(Infrastructure) pages, such as **로그 연결** (Connect logs), let you reuse a registered target or
+connect a new one. Adding a capability to an existing Docker environment
 preserves its ID, key, Project assignment, and collection history. EveryUp issues a new apply
 command; run it on the target server to enable the capability across that Docker environment.
 
@@ -53,7 +55,7 @@ application or Collector, generate data, and confirm receipt.
 
 ## Detailed header and body capture
 
-Select the Java or Node.js services you want to change and choose **Review changes** to confirm the
+Select the Java or Node.js services you want to change and choose **변경 사항 확인** (Review changes) to confirm the
 restart scope. Run `everyup-otel plan` on the server to validate the actual Compose project before
 applying it. Web tracks the apply, verification, and recovery result for each run. See
 [Header & body capture](./otel-instrumentation) for details.

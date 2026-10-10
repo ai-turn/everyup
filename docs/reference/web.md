@@ -105,7 +105,7 @@ Collector가 수집합니다.
 - **`EVERYUP_SYSTEM_ENABLED`** · 기본값 `true`\
   수집 여부
 - **`EVERYUP_SYSTEM_COLLECTINTERVAL`** · 기본값 `5`\
-  수집 주기(초). 환경설정 화면에서도 바꿀 수 있습니다
+  수집 주기(초). **환경 설정** 화면에서도 바꿀 수 있습니다
 - **`EVERYUP_SYSTEM_STOREINTERVAL`** · 기본값 `60`\
   저장 주기(초)
 
@@ -122,6 +122,7 @@ Collector가 수집합니다.
 | Docker Collector 동기화 (`/agents` 호환 API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
 | Docker 서비스 상세 | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 
-Docker Collector 동기화와 OTLP 수집에는 Web의 **Docker 환경 → Docker 연결**에서 Docker 환경마다
-발급하는 API Key를 사용합니다. 이 키는 Collector가 보관하며, 모니터링 대상 앱에는 필요하지
-않습니다.
+Docker Collector 동기화와 OTLP 수집에는 Docker 환경마다 발급되는 API Key를 사용합니다. 키는
+**Docker 연결**로 환경을 만들 때 발급되고, 설치기가 대상 서버에 직접 전달합니다. 수동으로 설치할 때는
+해당 Docker 환경을 열고 **API Key**를 눌러 확인하세요. 이 키는 Collector가 보관하며, 모니터링 대상
+앱에는 필요하지 않습니다.
