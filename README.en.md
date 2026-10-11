@@ -5,7 +5,7 @@
 <h1 align="center">EveryUp</h1>
 
 <p align="center">
-  A self-hosted monitoring dashboard with a lightweight Docker Collector.
+  Self-hosted monitoring that shows uptime, logs, API response times, and server resources on one screen and alerts you when something goes wrong.
 </p>
 
 <p align="center">
@@ -29,9 +29,11 @@
 
 > **Note:** the dashboard interface is Korean only.
 
-EveryUp is a self-hosted tool for monitoring your Docker services in one place.
-Run **Web** once on a dashboard server, then connect each **Docker environment**
-with the lightweight EveryUp Docker Collector.
+EveryUp is a self-hosted tool for monitoring service health, logs, API responses, and server
+resources in one place. Run **Web** once on a dashboard server, then connect each **Docker
+environment** with the lightweight EveryUp Docker Collector. Targets outside Docker are checked
+over HTTP or TCP with [uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors) or
+[connected directly through OpenTelemetry](https://ai-turn.github.io/everyup/en/guide/monitoring-setup#direct-otel).
 
 | Part | What it does | Where it runs |
 | --- | --- | --- |
@@ -41,12 +43,14 @@ with the lightweight EveryUp Docker Collector.
 ## Quick Start
 
 ```bash
-docker run -d --name everyup -p 3001:3001 -v everyup-data:/app/data --restart unless-stopped aiturn/everyup:latest
+mkdir everyup && cd everyup
+curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
+docker compose up -d
 ```
 
-Open `http://WEB_SERVER_IP:3001`, create the first admin account, then install
-the Collector from **Connect Docker** in the dashboard. For the Compose setup and
-Collector installation, see the
+Open `http://<dashboard server IP>:3001`, create the first admin account, then install the
+Collector with **Docker 연결** (Connect Docker) on the **Docker 환경** (Docker environments)
+screen. For setting the public address and installing the Collector, see the
 [Quick Start docs](https://ai-turn.github.io/everyup/en/guide/quickstart).
 
 ## Documentation
@@ -55,11 +59,12 @@ Collector installation, see the
 | --- | --- |
 | [Introduction](https://ai-turn.github.io/everyup/en/guide/introduction) | Features and what gets collected |
 | [Quick Start](https://ai-turn.github.io/everyup/en/guide/quickstart) | Start Web, connect Docker, install the monitoring bundle |
-| [Automatic eBPF Observer](https://ai-turn.github.io/everyup/en/guide/ebpf-observer) | API latency and traces with no app changes |
-| [Headers & bodies](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation) | Request/response headers and bodies via OpenTelemetry |
+| [Monitoring setup](https://ai-turn.github.io/everyup/en/guide/monitoring-setup) | Diagnose collection, add capabilities, connect OpenTelemetry directly, Projects |
 | [Uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors) | Check URLs and TCP ports outside Docker |
+| [Automatic eBPF Observer](https://ai-turn.github.io/everyup/en/guide/ebpf-observer) | API latency and traces with no app changes |
+| [Header & body capture](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation) | Request/response headers and bodies via OpenTelemetry |
 | [Notifications](https://ai-turn.github.io/everyup/en/guide/notifications) | Telegram / Discord / Slack channels and alert rules |
-| [Backup](https://ai-turn.github.io/everyup/en/guide/backup-restore) · [Troubleshooting](https://ai-turn.github.io/everyup/en/guide/troubleshooting) | Operations |
+| [Upgrade and uninstall](https://ai-turn.github.io/everyup/en/guide/upgrade-uninstall) · [Backup and restore](https://ai-turn.github.io/everyup/en/guide/backup-restore) · [Troubleshooting](https://ai-turn.github.io/everyup/en/guide/troubleshooting) | Operations |
 | [Web configuration](https://ai-turn.github.io/everyup/en/reference/web) · [Docker Collector configuration](https://ai-turn.github.io/everyup/en/reference/collector) | Environment variable and networking reference |
 
 ## Development
@@ -76,11 +81,16 @@ Prerequisites for source development: Docker, pnpm, Go 1.24 for Web, and Go
 1.25 for the Docker Collector.
 
 ```bash
-cd web/backend && go test ./...     # backend tests
-cd web/frontend && pnpm build       # frontend build
-cd agent && go test ./...           # Docker Collector tests
-pnpm docs:dev                       # run the docs site locally
+cd web/backend && go test ./...                               # backend tests
+cd web/frontend && pnpm lint && pnpm typecheck && pnpm build  # frontend, in CI order
+cd agent && go test ./...                                     # Docker Collector tests
+pnpm docs:dev                                                 # run the docs site locally
 ```
+
+`pnpm build` does not type-check, so run `typecheck` separately. If you changed the UI, run
+`pnpm test:e2e` in `web/frontend` before merging: the demo e2e runs only in the Pages deploy, not
+in PR CI. If screens look different, regenerate the docs and README screenshots with
+`pnpm screenshot`.
 
 Running each part locally is covered in [web/README.md](web/README.md) and
 [agent/README.md](agent/README.md); the instrumentation E2E fixture is in
