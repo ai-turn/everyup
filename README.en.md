@@ -57,7 +57,8 @@ Collector installation, see the
 | [Quick Start](https://ai-turn.github.io/everyup/en/guide/quickstart) | Start Web, connect Docker, install the monitoring bundle |
 | [Automatic eBPF Observer](https://ai-turn.github.io/everyup/en/guide/ebpf-observer) | API latency and traces with no app changes |
 | [Headers & bodies](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation) | Request/response headers and bodies via OpenTelemetry |
-| [Notification channels](https://ai-turn.github.io/everyup/en/guide/notifications) | Telegram / Discord / Slack setup |
+| [Uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors) | Check URLs and TCP ports outside Docker |
+| [Notifications](https://ai-turn.github.io/everyup/en/guide/notifications) | Telegram / Discord / Slack channels and alert rules |
 | [Backup](https://ai-turn.github.io/everyup/en/guide/backup-restore) · [Troubleshooting](https://ai-turn.github.io/everyup/en/guide/troubleshooting) | Operations |
 | [Web configuration](https://ai-turn.github.io/everyup/en/reference/web) · [Docker Collector configuration](https://ai-turn.github.io/everyup/en/reference/collector) | Environment variable and networking reference |
 

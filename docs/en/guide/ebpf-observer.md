@@ -1,4 +1,4 @@
-# Automatic eBPF Observer: API latency and traces
+# Automatic eBPF Observer
 
 The default Docker Collector reads method, path, and status from access logs. To see real
 latency and traces, the bundled Compose file starts `everyup-ebpf` automatically.
@@ -9,17 +9,15 @@ This does not change your app code, Dockerfile, or app containers. On a native
 Linux host, eBPF observes host processes to build traces and the Docker Collector
 attributes each span to the matching Docker service. Docker Desktop has the
 PID-translation limitation, so use [app-side OpenTelemetry](./otel-instrumentation)
-when automatic service attribution is unavailable. Requires Linux kernel 5.8+ with BTF. The Observer needs elevated eBPF permissions; remove the `everyup-ebpf` service if
-that is not acceptable. Logs, health, events, and host metrics keep working.
+when automatic service attribution is unavailable. The kernel and permission requirements are
+under [Notes](#notes).
 
 ## How it works
 
 The Compose bundle starts an `everyup-ebpf` service using
 [OpenTelemetry eBPF Instrumentation (OBI)](https://opentelemetry.io/docs/zero-code/obi/).
-It selects processes inside Docker/OCI containers automatically, with no app
-port configuration, app changes, or service restarts. It captures real SERVER
-spans (method, path, status, **latency**) across supported runtimes, including
-Go and HTTPS traffic.
+It captures real SERVER spans (method, path, status, **latency**) on the supported
+runtimes, including Go and HTTPS.
 
 OBI sends spans to the Docker Collector's OTLP gateway, tagged
 `everyup.source=ebpf`. The Collector maps each span to a service by the
@@ -28,7 +26,7 @@ cannot match — host processes, the Observer itself, or stale PIDs — are drop
 so they never appear as phantom services. Services covered by real spans stop
 receiving synthetic access-log spans automatically (no double counting).
 
-## Notes
+## Notes {#notes}
 
 - Requires a Linux kernel 5.8+ with BTF (`/sys/kernel/btf/vmlinux` exists).
   Docker Desktop's VM qualifies.

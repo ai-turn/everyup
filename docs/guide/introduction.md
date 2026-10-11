@@ -1,8 +1,10 @@
 # EveryUp 소개
 
-EveryUp은 Docker로 실행 중인 서비스를 한곳에서 모니터링하는 셀프호스팅 도구입니다.
+EveryUp은 서비스 상태와 로그, API 응답, 서버 자원을 한곳에서 모니터링하는 셀프호스팅 도구입니다.
 대시보드 서버에 **Web**을 한 번 띄우고, 모니터링할 **Docker 환경**마다 가벼운
-EveryUp Docker Collector를 실행하면 됩니다. 별도의 대형 모니터링 스택을 구축할 필요가 없습니다.
+EveryUp Docker Collector를 실행하면 됩니다. Docker 밖의 대상은 [업타임 모니터](./uptime-monitors)로
+HTTP·TCP 응답을 확인하거나 [OpenTelemetry로 직접 연결](./monitoring-setup#direct-otel)합니다.
+별도의 대형 모니터링 스택을 구축할 필요가 없습니다.
 
 | 구성 | 역할 | 실행 위치 |
 | --- | --- | --- |
@@ -19,10 +21,11 @@ EveryUp Docker Collector를 실행하면 됩니다. 별도의 대형 모니터�
 | 구분 | 기능 | 설명 |
 | :-: | --- | --- |
 | 기본 | 업타임 | Docker 컨테이너 자동 발견, 실행 상태와 health |
+| 기본 | 업타임 모니터 | Docker 밖의 URL·TCP 포트 응답 확인 ([설정 가이드](./uptime-monitors)) |
 | 기본 | 인프라 | 호스트 CPU·메모리·디스크·네트워크 메트릭 |
 | 기본 | 로그 | 컨테이너 stdout/stderr 수집 |
 | 기본 | API 상태 | access log에서 읽은 요청 상태코드(method·path·status) |
-| 기본 | 알림 | Telegram·Discord·Slack 채널 ([설정 가이드](./notifications)) |
+| 기본 | 알림 | Telegram·Discord·Slack 채널과 알림 규칙 ([설정 가이드](./notifications)) |
 | 선택 | API latency·트레이스 | [자동 eBPF Observer](./ebpf-observer). 앱 수정 없음 |
 | 선택 | 헤더·바디 상세 수집 | [OpenTelemetry 연동](./otel-instrumentation). 앱 재시작 한 번 |
 

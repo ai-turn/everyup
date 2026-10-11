@@ -1,4 +1,4 @@
-# 자동 eBPF Observer: API latency와 트레이스
+# 자동 eBPF Observer
 
 기본 Docker Collector는 access log에서 method, path, status를 읽습니다. 실제 latency와
 트레이스까지 볼 수 있도록 번들 Compose가 `everyup-ebpf`를 자동으로 실행합니다.
@@ -9,16 +9,13 @@ Docker/OCI 컨테이너에서 실행 중인 프로세스를 자동 발견하므�
 eBPF가 호스트 프로세스를 관찰해 트레이스를 만들고, Docker Collector가 각 span을 해당 Docker
 서비스에 연결합니다. Docker Desktop에서는 PID 변환 제약으로 서비스 자동 연결이
 되지 않을 수 있으므로, 이 경우 [앱 측 OpenTelemetry 연동](./otel-instrumentation)을 사용하세요.
-Linux kernel 5.8+ 및 BTF가 필요합니다. eBPF Observer는 높은 권한이 필요하므로 허용할 수 없는
-환경에서는 `everyup-ebpf` 서비스를 제거할 수 있습니다. 이 경우에도 로그, 상태, 이벤트,
-호스트 메트릭은 계속 동작합니다.
+필요한 kernel과 권한은 [참고](#notes)에 있습니다.
 
 ## 동작 방식
 
 번들 Compose는 [OpenTelemetry eBPF Instrumentation(OBI)](https://opentelemetry.io/docs/zero-code/obi/)을
-쓰는 `everyup-ebpf` 서비스를 시작합니다. Docker/OCI 컨테이너 안의 프로세스를 자동으로 고르므로
-앱 포트 설정, 앱 수정, 서비스 재시작이 필요 없습니다. Go와 HTTPS 트래픽을 포함해 지원하는
-런타임 전반에서 실제 SERVER span(method, path, status, **latency**)을 수집합니다.
+쓰는 `everyup-ebpf` 서비스를 시작합니다. Go와 HTTPS를 포함한 지원 런타임에서 실제 SERVER
+span(method, path, status, **latency**)을 수집합니다.
 
 OBI는 `everyup.source=ebpf` 태그를 붙여 span을 Docker Collector의 OTLP 게이트웨이로 보냅니다.
 Collector는 계측된 프로세스의 PID를 Docker로 확인해 span을 서비스에 연결하고 이름을 바꿉니다.
@@ -26,7 +23,7 @@ Collector는 계측된 프로세스의 PID를 Docker로 확인해 span을 서비
 목록에 생기지 않게 합니다. 실제 span이 들어오는 서비스는 access log로 만든 합성 span을 더 이상
 받지 않으므로 중복 집계되지 않습니다.
 
-## 참고
+## 참고 {#notes}
 
 - `/sys/kernel/btf/vmlinux`가 있는 Linux kernel 5.8+가 필요합니다. Docker Desktop VM도
   조건을 만족합니다.

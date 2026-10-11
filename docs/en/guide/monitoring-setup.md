@@ -8,7 +8,7 @@ screens to diagnose collection or widen what you collect.
 Open an environment from the **Docker 환경** (Docker environments) screen to find its
 **모니터링 설정 가이드** (monitoring setup guide). It checks Collector connection, baseline
 collection, and automatic API tracing in order. When Java or Node.js services are discovered, the
-same guide continues into the optional detailed header/body instrumentation flow.
+same guide leads straight into the optional header and body capture setup.
 
 ## Reading collection status
 
@@ -42,16 +42,23 @@ command; run it on the target server to enable the capability across that Docker
 Each connection screen lets you pick an existing target or start a Docker installation. Choosing
 a configured target shows its receipt history before opening the corresponding data page.
 
-## Connecting OpenTelemetry directly
+## Connecting OpenTelemetry directly {#direct-otel}
 
-Logs, API, and Metrics can connect applications directly through OpenTelemetry; Infrastructure
-instead offers a standard OpenTelemetry Collector setup. Direct setup adapts its guidance to
-existing OTel usage and Java, Node.js, or Go, covering configuration, restart, data generation, and
-receipt confirmation.
+Apps running outside Docker send logs, API requests, and metrics directly through OpenTelemetry;
+server resources go through a standard OpenTelemetry Collector. The direct setup screen adapts to
+existing OTel usage and to Java, Node.js, or Go, and walks through applying the settings,
+restarting, and confirming that data arrives.
 
 Adding a capability to a service connected directly through OpenTelemetry keeps the existing ID and
-API Key and adds only the required signal permission. Follow the on-screen guidance to update the
-application or Collector, generate data, and confirm receipt.
+API Key and adds only the required data permission. Follow the on-screen guidance to update the
+application or Collector, then send a request and check that data arrives.
+
+## Grouping targets into a Project
+
+To view Docker environments, uptime monitors, directly connected services, and infrastructure
+Collectors you run together as one unit, create a Project with **추가** (Add) on the **Projects**
+screen and **배정** (Assign) targets to it. The Project screen lists its targets with problems
+first. Deleting a Project leaves the assigned targets in place.
 
 ## Detailed header and body capture
 
