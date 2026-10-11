@@ -1,6 +1,6 @@
 # Quick Start
 
-This is the smallest setup: Web on a dashboard server and the monitoring bundle (the Docker
+This is the minimal setup: Web on a dashboard server and the monitoring bundle (the Docker
 Collector plus the components it needs) on each server you monitor. With a single server you can
 run both side by side. You are done when the Docker environment turns **수집 중** (collecting) in
 step 4.
@@ -149,5 +149,6 @@ there is no port list to maintain. If the environment stays at **설치 대기**
 - [Monitoring setup](./monitoring-setup): diagnose collection, add capabilities, connect OpenTelemetry directly
 - [Automatic eBPF Observer](./ebpf-observer): API latency and traces
 - [Header & body capture](./otel-instrumentation): see why a request failed
-- [Notification channels](./notifications): get alerts in Telegram, Discord, or Slack
+- [Uptime monitors](./uptime-monitors): check URLs and TCP ports outside Docker
+- [Notifications](./notifications): set up channels and alert rules to get alerts in Telegram, Discord, or Slack
 - [Upgrade and uninstall](./upgrade-uninstall): apply new versions, undo an installation

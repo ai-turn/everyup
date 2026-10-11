@@ -54,7 +54,8 @@ Collector를 설치합니다. Compose 구성과 Collector 설치는
 | [빠른 시작](https://ai-turn.github.io/everyup/guide/quickstart) | Web 실행, Docker 연결, 모니터링 번들 설치 |
 | [자동 eBPF Observer](https://ai-turn.github.io/everyup/guide/ebpf-observer) | 앱 수정 없이 API latency·trace 수집 |
 | [헤더·바디 상세 수집](https://ai-turn.github.io/everyup/guide/otel-instrumentation) | OpenTelemetry로 요청/응답 헤더·바디 수집 |
-| [알림 채널](https://ai-turn.github.io/everyup/guide/notifications) | Telegram / Discord / Slack 설정 |
+| [업타임 모니터](https://ai-turn.github.io/everyup/guide/uptime-monitors) | Docker 밖의 URL·TCP 포트 확인 |
+| [알림](https://ai-turn.github.io/everyup/guide/notifications) | Telegram / Discord / Slack 채널과 알림 규칙 |
 | [백업·복원](https://ai-turn.github.io/everyup/guide/backup-restore) · [트러블슈팅](https://ai-turn.github.io/everyup/guide/troubleshooting) | 운영 |
 | [Web 설정](https://ai-turn.github.io/everyup/reference/web) · [Docker Collector 설정](https://ai-turn.github.io/everyup/reference/collector) | 환경변수·네트워킹 레퍼런스 |
 

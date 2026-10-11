@@ -1,4 +1,4 @@
-# Backup and Restore
+# Backup and restore
 
 EveryUp keeps the default Docker deployment state under `/app/data`.
 

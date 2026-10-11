@@ -1,7 +1,7 @@
 # Quick Start
 
 대시보드 서버에 Web을 띄우고, 모니터링할 서버에 모니터링 번들(Docker Collector와 필요한 구성
-요소)을 설치하는 가장 작은 구성입니다. 서버가 한 대라면 둘을 같은 서버에서 실행해도 됩니다.
+요소)을 설치하는 최소 구성입니다. 서버가 한 대라면 둘을 같은 서버에서 실행해도 됩니다.
 4단계에서 Docker 환경이 **수집 중**으로 바뀌면 완료입니다.
 
 ## 준비물
@@ -144,5 +144,6 @@ API 요청 수집을 선택했다면 eBPF Observer가 컨테이너 프로세스�
 - [모니터링 설정](./monitoring-setup): 수집 상태 진단, 기존 환경에 기능 추가, OpenTelemetry 직접 연결
 - [자동 eBPF Observer](./ebpf-observer): API latency와 트레이스
 - [헤더·바디 상세 수집](./otel-instrumentation): 요청이 실패한 이유까지 진단
-- [알림 채널](./notifications): Telegram, Discord, Slack으로 장애 알림 받기
+- [업타임 모니터](./uptime-monitors): Docker 밖의 URL·TCP 포트 확인
+- [알림](./notifications): 채널과 알림 규칙을 설정해 Telegram, Discord, Slack으로 장애 알림 받기
 - [업그레이드·제거](./upgrade-uninstall): 새 버전 적용, 설치 되돌리기

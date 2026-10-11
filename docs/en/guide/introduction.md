@@ -1,9 +1,11 @@
 # Introduction
 
-EveryUp is a self-hosted tool for monitoring your Docker services in one place.
-Run **Web** once on a dashboard server, then connect each **Docker environment**
-with the lightweight EveryUp Docker Collector. There is no large observability
-stack to set up.
+EveryUp is a self-hosted tool for monitoring service health, logs, API responses, and server
+resources in one place. Run **Web** once on a dashboard server, then connect each **Docker
+environment** with the lightweight EveryUp Docker Collector. Targets outside Docker are checked
+over HTTP or TCP with [uptime monitors](./uptime-monitors) or
+[connected directly through OpenTelemetry](./monitoring-setup#direct-otel). There is no large
+observability stack to set up.
 
 | Part | What it does | Where it runs |
 | --- | --- | --- |
@@ -25,10 +27,11 @@ configuration in English; the running UI looks like the screenshot above.
 | Type | Feature | Description |
 | :-: | --- | --- |
 | Built-in | Uptime | Automatic Docker container discovery, container state and health |
+| Built-in | Uptime monitors | HTTP and TCP checks for URLs and ports outside Docker ([setup guide](./uptime-monitors)) |
 | Built-in | Infrastructure | Host CPU, memory, disk, and network metrics |
 | Built-in | Logs | Container stdout/stderr collection |
 | Built-in | API status | Request status codes (method, path, status) parsed from access logs |
-| Built-in | Notifications | Telegram, Discord, and Slack channels ([setup guide](./notifications)) |
+| Built-in | Notifications | Telegram, Discord, and Slack channels with alert rules ([setup guide](./notifications)) |
 | Optional | API latency & traces | [Automatic eBPF Observer](./ebpf-observer). No app changes |
 | Optional | Header & body capture | [OpenTelemetry instrumentation](./otel-instrumentation). One app restart |
 

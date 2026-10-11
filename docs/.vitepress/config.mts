@@ -100,9 +100,10 @@ export default defineConfig({
           {
             text: '기능 가이드',
             items: [
+              { text: '업타임 모니터', link: '/guide/uptime-monitors' },
               { text: '자동 eBPF Observer', link: '/guide/ebpf-observer' },
               { text: '헤더·바디 상세 수집', link: '/guide/otel-instrumentation' },
-              { text: '알림 채널', link: '/guide/notifications' },
+              { text: '알림', link: '/guide/notifications' },
             ],
           },
           {
@@ -163,9 +164,10 @@ export default defineConfig({
           {
             text: 'Feature Guides',
             items: [
+              { text: 'Uptime monitors', link: '/en/guide/uptime-monitors' },
               { text: 'Automatic eBPF Observer', link: '/en/guide/ebpf-observer' },
               { text: 'Header & body capture', link: '/en/guide/otel-instrumentation' },
-              { text: 'Notification channels', link: '/en/guide/notifications' },
+              { text: 'Notifications', link: '/en/guide/notifications' },
             ],
           },
           {

@@ -1,12 +1,11 @@
-# Notification Channel Setup Guide
+# Notifications
 
-EveryUp supports **Telegram**, **Discord**, and **Slack** as notification channels. This guide walks you through obtaining the required credentials and configuring each channel.
-
----
+Alerts need two things: a **channel** to receive them (Telegram, Discord, or Slack) and an
+[alert rule](#rules) that decides when to send them. A channel on its own sends nothing.
 
 ## Telegram
 
-### Step 1 — Create a Bot via BotFather
+### 1. Create a bot with BotFather
 
 1. Open Telegram and search for **@BotFather** (look for the blue verified checkmark).
 2. Send `/newbot` to start the bot creation wizard.
@@ -16,9 +15,7 @@ EveryUp supports **Telegram**, **Discord**, and **Slack** as notification channe
 
 > **Example Token:** `123456789:ABCdefGHIjklMNOpqrSTUvwxYZ`
 
----
-
-### Step 2 — Get the Chat ID
+### 2. Get the Chat ID
 
 The Chat ID tells EveryUp where to deliver messages. It works for private chats, groups, and channels.
 
@@ -44,30 +41,24 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 2. Send a message in the channel.
 3. Check `getUpdates`. The channel's Chat ID appears there, starting with `-100`.
 
----
-
-### Step 3 — Configure in EveryUp
+### 3. Add the channel in EveryUp
 
 1. On the **알림** (Alerts) screen, open the **알림 채널** (Channels) tab, click **추가** (Add), and choose **Telegram** as the type.
 2. Enter a **표시 이름** (display name), then paste the **Bot Token** and the Chat ID into **채팅 ID** (Chat ID).
 3. Click **테스트 전송** (Send test) to confirm the message arrives, then click **추가** (Add). Sending a test does not save the channel.
-
----
 
 ### Troubleshooting
 
 | Symptom | Cause & Fix |
 |---------|-------------|
 | `getUpdates` returns empty `[]` | The bot hasn't received any messages yet. Send it a message and try again. |
-| Bot doesn't respond in a group | Enable group access: in BotFather, send `/mybots` → select your bot → Bot Settings → Group Privacy → Turn off. |
+| Bot doesn't respond in a group | Enable group access: in BotFather, send `/mybots`, select your bot, then Bot Settings → Group Privacy → Turn off. |
 | `401 Unauthorized` | Bot Token is invalid or revoked. Generate a new one via `/token` in BotFather. |
 | Test notification not delivered | Double-check the Chat ID. For groups/channels, make sure the bot has been added and has send permission. After updating the settings, use the **테스트** (Test) button in the channel list to retry. |
 
----
-
 ## Discord
 
-### Step 1 — Create a Webhook
+### 1. Create a webhook
 
 1. In your Discord server, go to **Server Settings** → **Integrations** → **Webhooks**.
 2. Click **New Webhook**.
@@ -77,17 +68,13 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 > **Example URL:** `https://discord.com/api/webhooks/1234567890/ABCdefGHIjklMNOpqrSTUvwxYZ`
 
-> **Tip:** You can also create a webhook per-channel without server-wide Admin rights. You only need the **Manage Webhooks** permission on that channel.
+> **Tip:** You don't need server-wide admin rights; the **Manage Webhooks** permission on a channel is enough to create a webhook there.
 
----
-
-### Step 2 — Configure in EveryUp
+### 2. Add the channel in EveryUp
 
 1. On the **알림** (Alerts) screen, open the **알림 채널** (Channels) tab, click **추가** (Add), and choose **Discord** as the type.
 2. Enter a **표시 이름** (display name) and paste the **Webhook URL**.
 3. Click **테스트 전송** (Send test) to confirm the message arrives, then click **추가** (Add).
-
----
 
 ### Troubleshooting
 
@@ -96,22 +83,18 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 | `Invalid Webhook Token` error | The URL is incomplete or malformed. Paste the full URL starting with `https://discord.com/api/webhooks/`. |
 | Test notification not received | The webhook may have been deleted. Verify it still exists under Server Settings → Integrations → Webhooks. |
 | `404 Unknown Webhook` | Webhook was deleted. Create a new one and update the URL in EveryUp. |
-| `Webhook URL must use HTTPS` or domain validation error | EveryUp only accepts official Discord HTTPS webhook URLs on allowed Discord domains. |
+| `Webhook URL must use HTTPS` or domain validation error | EveryUp only accepts official Discord HTTPS Webhook URLs on allowed Discord domains. |
 | Rate limited | Discord enforces per-webhook rate limits. This is temporary, and EveryUp retries automatically. |
-
----
 
 ## Slack
 
-### Step 1 — Create a Slack App
+### 1. Create a Slack app
 
 1. Go to [https://api.slack.com/apps](https://api.slack.com/apps) and click **Create New App**.
 2. Choose **From scratch**, give it a name (e.g., `EveryUp Alerts`), and select your workspace.
 3. Click **Create App**.
 
----
-
-### Step 2 — Enable Incoming Webhooks
+### 2. Turn on Incoming Webhooks
 
 1. In your app's settings, navigate to **Incoming Webhooks** in the left sidebar.
 2. Toggle **Activate Incoming Webhooks** to **On**.
@@ -121,17 +104,13 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 
 > **Example URL:** `https://hooks.slack.com/services/T.../B.../xxxx...`
 
-> **Tip:** You can create multiple webhooks under the same Slack app, each posting to a different channel. No additional permissions are needed beyond the initial app installation.
+> **Tip:** One Slack app can have several webhooks, each posting to a different channel. No permissions are needed beyond the initial app installation.
 
----
-
-### Step 3 — Configure in EveryUp
+### 3. Add the channel in EveryUp
 
 1. On the **알림** (Alerts) screen, open the **알림 채널** (Channels) tab, click **추가** (Add), and choose **Slack** as the type.
 2. Enter a **표시 이름** (display name) and paste the **Webhook URL**.
 3. Click **테스트 전송** (Send test) to confirm the message arrives, then click **추가** (Add).
-
----
 
 ### Troubleshooting
 
@@ -140,14 +119,35 @@ The Chat ID tells EveryUp where to deliver messages. It works for private chats,
 | `404` or `invalid_payload` error | The Webhook URL is invalid or the app was uninstalled. Re-create the webhook from your Slack app settings. |
 | Test notification not received | Make sure the bot hasn't been removed from the channel. Check the channel's **Integrations** tab. |
 | `channel_not_found` | The target channel was deleted or renamed. Add a new webhook pointing to the correct channel. |
-| `Webhook URL must use HTTPS` or domain validation error | EveryUp only accepts official Slack HTTPS webhook URLs on `hooks.slack.com`. |
+| `Webhook URL must use HTTPS` or domain validation error | EveryUp only accepts official Slack HTTPS Webhook URLs on `hooks.slack.com`. |
 | Messages delayed | Slack may occasionally queue messages during high traffic. EveryUp will retry automatically with exponential backoff. |
 
----
-
-## General Notes
+## Managing channels
 
 - Send a test notification with **테스트 전송** (Send test) before adding a channel, or with the **테스트** (Test) button in the channel list afterwards.
-- Channels can be **toggled on/off** independently without deleting them.
-- Multiple channels can be assigned to a single **알림 규칙** (alert rule) for simultaneous delivery.
-- Alert rules define the conditions (CPU threshold, error rate, etc.) and which channels receive the notification.
+- To pause a channel without deleting it, turn it off with its toggle in the channel list.
+
+## Alert rules {#rules}
+
+Every alert, including service outages, is sent only when an enabled rule's condition is met. On the
+**알림** (Alerts) screen, open the **알림 규칙** (Alert rules) tab, click **추가** (Add), and fill in
+three steps:
+
+1. **대상** (Target): pick a **카테고리** (category) and a **지표** (metric), and name the rule in
+   **규칙 이름** (rule name). Leaving **대상** empty applies the rule to every target in the category.
+   The **API 요청** (API requests) category requires a service.
+2. **조건** (Condition): pick a **프리셋** (preset), or set an operator and threshold under
+   **직접 설정** (custom).
+3. **알림** (Notify): set the **심각도** (severity) and choose the **알림 채널** (channels). Several
+   channels all receive the alert; choosing none sends it to every enabled channel.
+
+| Category | Metrics | Example |
+| --- | --- | --- |
+| **헬스체크** (Health check) | HTTP STATUS, RESPONSE TIME | A Docker service or [uptime monitor](./uptime-monitors) stops responding |
+| **API 요청** (API requests) | 에러율 (error rate), p95 지연, p99 지연 (p95/p99 latency) | A service's error rate crosses a threshold |
+| **로그** (Logs) | 로그 레벨 (log level), API 요청 (API status) | An ERROR log arrives |
+| **메트릭** (Metrics) | The name of an OpenTelemetry metric your app sends | `jvm.memory.used` crosses a threshold |
+| **인프라** (Infrastructure) | CPU, MEMORY, DISK | Disk usage goes above 90% |
+
+Three infrastructure rules (High CPU Usage, High Memory Usage, Disk Almost Full) exist from the
+start but are turned off. Turn them on with their toggles in the rule list if you want them.
