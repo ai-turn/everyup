@@ -9,6 +9,7 @@
     "preview": "vitepress preview"
   },
   "devDependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "spoqa-han-sans": "^3.3.0",
     "vitepress": "^1.6.4"
   }

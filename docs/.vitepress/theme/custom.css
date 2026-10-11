@@ -21,6 +21,21 @@
 
 :root {
   --vp-font-family-base: 'Spoqa Han Sans Neo', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* 제품 font-mono와 같은 스택. Spoqa가 둘째인 이유: JetBrains Mono에는 한글이 없어,
+     빠지면 `<Web 주소>`·명령 주석의 한글이 Windows에서 굴림체로 그려졌다. */
+  --vp-font-family-mono: 'JetBrains Mono Variable', 'Spoqa Han Sans Neo', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* 회색은 VitePress 기본(따뜻한 회색) 대신 제품의 slate 토큰. bg-alt = 사이드바, bg-soft = 카드·캐러셀 바탕 */
+  --vp-c-bg: #ffffff; /* bg-surface */
+  --vp-c-bg-alt: #f8fafc; /* ui-hover-soft */
+  --vp-c-bg-soft: #f1f5f9; /* ui-hover */
+  --vp-c-text-1: #0f172a; /* text-base */
+  --vp-c-text-2: #475569; /* text-muted */
+  --vp-c-text-3: #64748b; /* text-dim */
+  --vp-c-divider: #e2e8f0; /* ui-border */
+  --vp-c-gutter: #f1f5f9; /* ui-border-soft */
+  --vp-c-warning-1: #92400e; /* status-warn */
+  --vp-c-danger-1: #b91c1c; /* status-error */
 
   /* brand-1 = 텍스트·링크(action), brand-3 = 채움(primary), brand-2 = 채움 hover */
   --vp-c-brand-1: #1e5fb3;
@@ -41,6 +56,17 @@
 }
 
 .dark {
+  /* 제품 다크 토큰. 다크 스크린샷 바탕(#0d1117)과 페이지 바탕이 같아져 경계가 생기지 않는다 */
+  --vp-c-bg: #0d1117; /* bg-main-dark */
+  --vp-c-bg-alt: #161b22; /* bg-surface-dark */
+  --vp-c-bg-soft: #1f2937; /* ui-hover-dark */
+  --vp-c-bg-elv: #161b22; /* 메뉴·드롭다운 */
+  --vp-c-text-1: #ffffff; /* text-base-dark */
+  --vp-c-text-2: #94a3b8; /* text-muted-dark */
+  --vp-c-text-3: #8795a9; /* text-dim-dark */
+  --vp-c-divider: #30363d; /* ui-border-dark */
+  --vp-c-warning-1: #fbbf24; /* status-warn-dark */
+  --vp-c-danger-1: #f87171; /* status-error-dark */
   --vp-code-block-bg: var(--vp-c-bg-alt);
   --vp-c-brand-1: #7aa2f7;
   /* 링크 hover. brand-1과 같으면 다크에서 hover가 티 나지 않는다 — 한 단계 밝게 */
@@ -90,7 +116,7 @@ html:not(.dark) .only-dark {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider);
-  border-radius: 14px;
+  border-radius: 12px; /* 제품 rounded-xl이 상한 */
   background-color: var(--vp-c-bg-soft);
 }
 .home-carousel-track {
@@ -326,10 +352,12 @@ html:not(.dark) .only-dark {
 }
 
 /* 히어로 버튼: 터치 대상 44px (기본 40px). 굵기는 제품 Button(font-medium)과 같은 500.
-   VitePress 기본 600은 Spoqa에 없어 Bold(700)로 그려지고, 흰 글자가 뭉개져 보였다. */
+   VitePress 기본 600은 Spoqa에 없어 Bold(700)로 그려지고, 흰 글자가 뭉개져 보였다.
+   모서리도 제품 Button(rounded-lg)과 같은 8px. 기본은 알약 모양(20px)이다. */
 .VPHero .VPButton.medium {
   line-height: 42px;
   font-weight: 500;
+  border-radius: 8px;
 }
 
 .screenshot-caption {
