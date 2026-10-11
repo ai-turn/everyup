@@ -87,7 +87,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <p className="text-xs text-text-muted uppercase tracking-wider">Docker Collector 설정</p>
+                <p className="text-xs text-text-muted">Docker Collector 설정</p>
                 <pre className="px-3 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-950 text-xs font-mono text-slate-100 overflow-x-auto">{`EVERYUP_AGENT_API_KEY=${apiKey}`}</pre>
               </div>
             </>

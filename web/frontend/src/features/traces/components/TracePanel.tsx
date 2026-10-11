@@ -468,7 +468,7 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
   if (headers.length === 0) return null;
   return (
     <div>
-      <p className="mb-1 text-xs font-medium uppercase tracking-wider text-text-dim">{label}</p>
+      <p className="mb-1 text-xs font-medium text-text-dim">{label}</p>
       <dl className="space-y-0.5">
         {headers.map((h) => (
           <div key={h.name} className="flex gap-2 font-mono text-xs">

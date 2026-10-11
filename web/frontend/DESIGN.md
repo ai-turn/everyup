@@ -288,6 +288,8 @@ primary #3b76c9 → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 크기 토큰은 `text-xs`(12), `text-sm`(14), `text-base`(16), `text-lg`(18), `text-xl`(20), `text-2xl`(24), `text-3xl`(30)이다. `text-[Npx]`로 임의 크기를 추가하지 않는다. 역할 유틸리티 위에 다른 크기·굵기·행간을 중복 지정하지 않는다.
 
+**한국어 줄바꿈은 어절 단위다.** `body`에 `word-break: keep-all` + `overflow-wrap: anywhere`가 걸려 있다(2026-10-11) — 개별 요소에 `break-keep`을 다시 걸지 않는다. 한글 라벨에는 `uppercase`·`tracking-wide(r)`를 쓰지 않는다 — 대문자가 없어 `uppercase`는 무효이고 자간만 벌어진다. 영문 토큰(`API Key`, 채널 타입)에는 써도 된다.
+
 **12px는 배지·시간·차트 눈금·조밀한 데이터용이다.** 설명문·경고문·설정 도움말은 `type-body`를 사용한다. 같은 14px라도 제목은 500, 본문은 400으로 구분할 수 있다. 설명을 작게 줄여 제목과 구분하지 않는다. 로그 테이블·코드 블록은 12px를 유지할 수 있다.
 
 ### 2.3 제목과 강조

@@ -230,6 +230,10 @@ body {
   color: var(--app-text);
   font-family: var(--font-sans);
   font-weight: 400;
+  /* 한국어는 기본값이면 음절 사이에서 줄이 바뀐다("관리합니|다"). keep-all로 어절 단위로 끊고,
+     공백 없는 긴 토큰(URL·ID)은 anywhere로 넘치지 않게 한다. 코드 블록은 각자 break-all을 건다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
