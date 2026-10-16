@@ -2,11 +2,13 @@ name: Verify
 
 on:
   pull_request:
-  push:
-    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
 
 concurrency:
-  group: verify-${{ github.ref }}
+  group: verify-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -38,8 +40,6 @@ jobs:
           go build ./...
 
   frontend:
-    # Main-branch frontend changes are verified by deploy-pages before deployment.
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -57,10 +57,12 @@ jobs:
           pnpm --dir web/frontend lint
           pnpm --dir web/frontend typecheck
           pnpm --dir web/frontend build
+      - name: Install Playwright Chromium
+        run: pnpm --dir web/frontend exec playwright install --with-deps chromium
+      - name: Build and test demo
+        run: pnpm --dir web/frontend test:e2e
 
   docs:
-    # Main-branch docs changes are built by deploy-pages; the build fails on dead links.
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

@@ -60,8 +60,9 @@ pnpm typecheck   # `pnpm build` does not type-check
 pnpm build
 ```
 
-If you changed the UI, also run `pnpm test:e2e` before merging: the demo e2e runs only in the Pages
-deploy, not in PR CI. If screens look different, regenerate the docs and README screenshots with
+If you changed the UI, also run `pnpm test:e2e` before merging. The demo e2e runs in PR CI, before
+Docker image publication, and in the Pages deploy. If screens look different, regenerate the
+docs and README screenshots with
 `pnpm screenshot`.
 
 ## Main Views
