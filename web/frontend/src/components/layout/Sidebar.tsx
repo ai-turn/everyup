@@ -93,7 +93,7 @@ export function Sidebar() {
         {NAV_SECTIONS.map((section, i) => (
           <Fragment key={section.to}>
             {section.group && section.group !== NAV_SECTIONS[i - 1]?.group && (
-              <p className="px-3 pt-4 pb-1 text-xs font-medium uppercase tracking-wider text-text-dim">{section.group}</p>
+              <p className="px-3 pt-4 pb-1 text-xs font-medium text-text-dim">{section.group}</p>
             )}
             <NavItem
               // 개요는 장애 목록으로 바로 내린다 — 배지가 가리키는 곳이다.
