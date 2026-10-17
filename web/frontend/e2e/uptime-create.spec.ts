@@ -80,3 +80,51 @@ test('[06] cancelling an HTTP draft performs no write and reopens cleanly', asyn
   await expect(dialog).toHaveCount(0);
   expect(state.requests.filter((request) => request.method === 'POST')).toHaveLength(0);
 });
+
+test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves TCP after failure', async ({ page }) => {
+  const state = await uptimeFixture(page);
+  await page.goto('./uptime');
+  await page.getByRole('button', { name: '추가', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  const type = dialog.getByRole('combobox');
+  await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('TCP Probe');
+  await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill('db.example.com');
+  await type.press('ArrowDown');
+  const host = dialog.getByRole('textbox', { name: '호스트', exact: true });
+  const port = dialog.getByRole('spinbutton', { name: '포트', exact: true });
+  await expect(host).toHaveValue('db.example.com');
+  await expect(port).toHaveValue('443');
+  for (const value of ['', '0', '65536', '1.5']) {
+    await port.fill(value);
+    expect(await dialog.locator('form').evaluate((form: HTMLFormElement) => form.checkValidity())).toBe(false);
+  }
+  for (const value of ['1', '65535']) {
+    await port.fill(value);
+    expect(await dialog.locator('form').evaluate((form: HTMLFormElement) => form.checkValidity())).toBe(true);
+  }
+  await port.fill('5432');
+  await host.fill('   ');
+  expect(await dialog.locator('form').evaluate((form: HTMLFormElement) => form.checkValidity())).toBe(false);
+  await host.fill('db.example.com');
+  await type.press('ArrowUp');
+  await expect(port).toHaveCount(0);
+  expect(await dialog.locator('form').evaluate((form: HTMLFormElement) => form.checkValidity())).toBe(false);
+  await type.press('ArrowDown');
+  await expect(port).toHaveValue('5432');
+  await dialog.getByRole('spinbutton', { name: '주기 (초)' }).fill('5');
+  await dialog.getByRole('spinbutton', { name: '타임아웃 (ms)' }).fill('1');
+  state.failures.set('POST /services', 500);
+  const save = dialog.getByRole('button', { name: '추가', exact: true });
+  await save.click();
+  await expect(save).toBeEnabled();
+  await expect(port).toHaveValue('5432');
+  await expect(host).toHaveValue('db.example.com');
+  state.failures.clear();
+  await save.click();
+  await expect(dialog).toHaveCount(0);
+  const card = page.locator('article').filter({ has: page.getByRole('link', { name: 'TCP Probe', exact: true }) });
+  await expect(card.getByText('db.example.com:5432', { exact: true })).toBeVisible();
+  const writes = state.requests.filter((request) => request.method === 'POST');
+  expect(writes).toHaveLength(2);
+  expect(writes[1].body).toEqual({ name: 'TCP Probe', type: 'tcp', host: 'db.example.com', port: 5432, interval: 5, timeout: 1 });
+});

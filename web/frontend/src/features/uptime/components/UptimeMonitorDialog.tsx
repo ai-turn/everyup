@@ -100,7 +100,7 @@ export function UptimeMonitorDialog({
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-text-secondary">{draft.type === 'http' ? 'URL' : '호스트'}</span>
-            <Input required mono type={draft.type === 'http' ? 'url' : 'text'} pattern={draft.type === 'http' ? '[Hh][Tt][Tt][Pp][Ss]?://.+' : undefined} title={draft.type === 'http' ? 'http:// 또는 https://로 시작하는 주소를 입력하세요.' : undefined} value={draft.target} onChange={(event) => update('target', event.target.value)} placeholder={draft.type === 'http' ? 'https://api.example.com/health' : 'db.example.com'} />
+            <Input required mono type={draft.type === 'http' ? 'url' : 'text'} pattern={draft.type === 'http' ? '[Hh][Tt][Tt][Pp][Ss]?://.+' : '.*\\S.*'} title={draft.type === 'http' ? 'http:// 또는 https://로 시작하는 주소를 입력하세요.' : undefined} value={draft.target} onChange={(event) => update('target', event.target.value)} placeholder={draft.type === 'http' ? 'https://api.example.com/health' : 'db.example.com'} />
           </label>
           {draft.type === 'tcp' && (
             <label className="block space-y-1.5">
