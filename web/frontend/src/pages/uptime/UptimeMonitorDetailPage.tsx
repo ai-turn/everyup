@@ -102,9 +102,9 @@ function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
 
 // 일시정지/재개 — 상태에 따라 아이콘·라벨이 바뀐다. 페이지 함수에 삼항을 더하면
 // 복잡도 한도를 넘어서 따로 뺐다.
-function ActiveToggleButton({ active, disabled, onClick }: { active: boolean; disabled: boolean; onClick: () => void }) {
+function ActiveToggleButton({ active, disabled, loading, onClick }: { active: boolean; disabled: boolean; loading: boolean; onClick: () => void }) {
   return (
-    <Button variant="ghost" disabled={disabled} onClick={onClick}>
+    <Button variant="ghost" disabled={disabled} loading={loading} onClick={onClick}>
       <MaterialIcon name={active ? 'pause' : 'play_arrow'} />
       {active ? '일시정지' : '재개'}
     </Button>
@@ -136,7 +136,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   };
 
   const toggleActive = async () => {
-    if (!monitor) return;
+    if (!monitor || processing || refreshing || errors.monitor) return;
     setProcessing(true);
     try {
       await api.updateUptimeMonitor(monitor.id, {
@@ -202,7 +202,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
               <>
                 {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 자리 (§4.1) */}
                 <UptimeMonitorStatusBadge monitor={monitor} />
-                <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} onClick={() => void toggleActive()} />
+                <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
               </>
             }
             fields={[
@@ -214,7 +214,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
         }
       />
       <DetailActionToolbar
-        controls={<Button collapseLabel variant="secondary" loading={refreshing} onClick={() => void load()}><MaterialIcon name="refresh" />새로고침</Button>}
+        controls={<Button collapseLabel variant="secondary" loading={refreshing} disabled={processing} onClick={() => void load()}><MaterialIcon name="refresh" />새로고침</Button>}
         actions={
           <>
             <Button collapseLabel variant="secondary" disabled={actionsDisabled} onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
@@ -226,7 +226,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
       {failedSources.length > 0 && (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border bg-bg-surface px-4 py-3 text-sm text-text-secondary">
           <p>{failedSources.join(' · ')} 조회에 실패했습니다. 이전에 불러온 데이터가 있으면 유지합니다.</p>
-          <Button size="sm" variant="secondary" loading={refreshing} onClick={() => void load()}>다시 시도</Button>
+          <Button size="sm" variant="secondary" loading={refreshing} disabled={processing} onClick={() => void load()}>다시 시도</Button>
         </div>
       )}
 
