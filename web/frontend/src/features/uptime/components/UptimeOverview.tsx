@@ -17,10 +17,11 @@ interface UptimeOverviewProps {
   stats: UptimeOverviewStat[];
   days: UptimeOverviewDay[];
   loading?: boolean;
+  error?: string;
   className?: string;
 }
 
-export function UptimeOverview({ stats, days, loading = false, className = '' }: UptimeOverviewProps) {
+export function UptimeOverview({ stats, days, loading = false, error, className = '' }: UptimeOverviewProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const slots = useMemo(() => {
     const today = new Date();
@@ -69,9 +70,9 @@ export function UptimeOverview({ stats, days, loading = false, className = '' }:
 
       <div className="mt-6 mb-2 flex justify-between gap-3 type-caption text-text-muted">
         <span>지난 90일</span>
-        {!loading && <span>일부 실패 {partialDays}일 · 전체 실패 {downDays}일</span>}
+        {!loading && !error && <span>일부 실패 {partialDays}일 · 전체 실패 {downDays}일</span>}
       </div>
-      {loading ? (
+      {error ? <p className="py-3 text-sm text-text-muted">90일 이력을 불러오지 못했습니다. {error}</p> : loading ? (
         <div className="h-7 animate-pulse rounded bg-ui-hover" />
       ) : (
         <div
