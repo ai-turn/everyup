@@ -154,11 +154,11 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   };
 
   const deleteMonitor = async () => {
-    if (!monitor) return;
+    if (!monitor || processing || refreshing || errors.monitor) return;
     setProcessing(true);
     try {
       await api.deleteUptimeMonitor(monitor.id);
-      navigate('/uptime');
+      navigate(returnTo);
     } catch (actionError) {
       toast.error(getErrorMessage(actionError));
     } finally {
@@ -250,7 +250,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
         onClose={() => setDeleting(false)}
         onConfirm={() => void deleteMonitor()}
         title="업타임을 삭제할까요?"
-        message="삭제하면 수집된 상태와 체크 기록도 함께 삭제됩니다."
+        message={<><strong className="break-all font-medium text-text-base">{monitor.name}</strong>을 삭제하면 수집된 상태와 체크 기록도 함께 삭제됩니다.</>}
         confirmLabel="삭제"
         isProcessing={processing}
       />
