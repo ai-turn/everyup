@@ -61,10 +61,10 @@ export function AgentServiceCapabilityPage() {
   const filteredAgentServices = useMemo(() => agentServices.filter((service) => !normalizedQuery
     || service.name.toLowerCase().includes(normalizedQuery)
     || service.agentName.toLowerCase().includes(normalizedQuery)
-    || service.endpoint.toLowerCase().includes(normalizedQuery)), [agentServices, normalizedQuery]);
+    || (service.endpoint || service.key).toLowerCase().includes(normalizedQuery)), [agentServices, normalizedQuery]);
   const filteredMonitors = useMemo(() => monitors.filter((monitor) => !normalizedQuery
     || monitor.name.toLowerCase().includes(normalizedQuery)
-    || monitor.url.toLowerCase().includes(normalizedQuery)), [monitors, normalizedQuery]);
+    || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery)), [monitors, normalizedQuery]);
 
   const saveMonitor = async (input: UptimeMonitorInput) => {
     await api.createUptimeMonitor(input);
@@ -87,6 +87,7 @@ export function AgentServiceCapabilityPage() {
 
   const empty = filteredAgentServices.length === 0 && filteredMonitors.length === 0;
   const hasTargets = agentServices.length + monitors.length > 0;
+  const searchingTargets = Boolean(normalizedQuery) && hasTargets;
   const hasErrors = Boolean(errors.services || errors.monitors);
   const hasPreviousData = Boolean((errors.services && agentServices.length > 0) || (errors.monitors && monitors.length > 0));
 
@@ -134,7 +135,7 @@ export function AgentServiceCapabilityPage() {
 
       {loading && !hasTargets ? <ServiceListSkeleton /> : empty ? (
         !hasErrors && (
-          <EmptyState icon="monitor_heart" title={normalizedQuery ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={normalizedQuery ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={normalizedQuery ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
+          <EmptyState icon="monitor_heart" title={searchingTargets ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={searchingTargets ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={searchingTargets ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
         )
       ) : (
         <section aria-label="업타임 대상" aria-busy={loading || undefined}>
