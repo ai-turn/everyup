@@ -232,9 +232,9 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
 
       <UptimeOverview
         stats={[
-          { label: '30일 업타임', value: summary ? `${summary.uptime.toFixed(2)}%` : '—' },
+          { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '—' },
           { label: '90일 업타임', value: history && history.days.length > 0 ? `${history.percentage.toFixed(2)}%` : '—' },
-          { label: '30일 실패', value: summary ? `${summary.failedChecks.toLocaleString()}회` : '—' },
+          { label: '30일 실패', value: summary && summary.totalChecks > 0 ? `${summary.failedChecks.toLocaleString()}회` : '—' },
           { label: '마지막 확인', value: lastCheck },
         ]}
         days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}

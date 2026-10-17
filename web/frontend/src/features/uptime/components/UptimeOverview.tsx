@@ -26,16 +26,13 @@ export function UptimeOverview({ stats, days, loading = false, error, className 
   const slots = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const byDate = new Map(days.map((day) => [day.date, day]));
     // Every slot knows its date, so a day with no record can still say so.
     const result: { date: string; day: UptimeOverviewDay | null }[] = Array.from({ length: HISTORY_DAYS }, (_, index) => {
       const date = new Date(today);
       date.setDate(today.getDate() - (HISTORY_DAYS - 1 - index));
-      return { date: date.toLocaleDateString('sv-SE'), day: null };
-    });
-    days.forEach((day) => {
-      const diff = Math.floor((today.getTime() - new Date(`${day.date}T00:00:00`).getTime()) / 86_400_000);
-      const index = HISTORY_DAYS - 1 - diff;
-      if (index >= 0 && index < HISTORY_DAYS) result[index] = { date: day.date, day };
+      const key = date.toLocaleDateString('sv-SE');
+      return { date: key, day: byDate.get(key) ?? null };
     });
     return result;
   }, [days]);
@@ -54,6 +51,7 @@ export function UptimeOverview({ stats, days, loading = false, error, className 
   // Same cut-offs as the bar colours below.
   const partialDays = slots.filter(({ day }) => day !== null && day.uptime < 99.5 && day.uptime >= 50).length;
   const downDays = slots.filter(({ day }) => day !== null && day.uptime < 50).length;
+  const recordedDays = slots.filter(({ day }) => day !== null).length;
 
   // Datadog-style header: the numbers read first, large, with no title above them.
   return (
@@ -68,9 +66,9 @@ export function UptimeOverview({ stats, days, loading = false, error, className 
         ))}
       </dl>
 
-      <div className="mt-6 mb-2 flex justify-between gap-3 type-caption text-text-muted">
+      <div className="mt-6 mb-2 flex flex-wrap justify-between gap-3 type-caption text-text-muted">
         <span>지난 90일</span>
-        {!loading && !error && <span>일부 실패 {partialDays}일 · 전체 실패 {downDays}일</span>}
+        {!loading && !error && <><span>기록 {recordedDays}/90일</span><span>일부 실패 {partialDays}일 · 전체 실패 {downDays}일</span></>}
       </div>
       {error ? <p className="py-3 text-sm text-text-muted">90일 이력을 불러오지 못했습니다. {error}</p> : loading ? (
         <div className="h-7 animate-pulse rounded bg-ui-hover" />
@@ -105,10 +103,10 @@ export function UptimeOverview({ stats, days, loading = false, error, className 
         </div>
       )}
 
-      <div className="mt-2 flex justify-between gap-3 text-xs text-text-dim" aria-live="polite">
+      <div className="mt-2 flex flex-wrap justify-between gap-3 text-xs text-text-dim" aria-live="polite">
         <span className="shrink-0">90일 전</span>
         {hovered && (
-          <span className="truncate text-text-secondary">
+          <span className="order-last basis-full break-words text-center text-text-secondary sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">
             <span className="font-medium">{hovered.date}</span>
             {' — '}
             {hovered.day === null ? '기록 없음' : <>{hovered.day.uptime.toFixed(1)}% {'업타임'}</>}
