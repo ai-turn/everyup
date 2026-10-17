@@ -82,6 +82,7 @@ export function OverviewPage() {
 
   // 상태 소스가 하나라도 실패하면 "이상 없음"을 단정할 수 없다. 이력(timeline)만 실패한 경우는 현재 상태 판단과 무관하다.
   const statusUnknown = failedSources.some((source) => source !== 'timeline');
+  const timelineFailed = failedSources.includes('timeline');
 
   const attention = useMemo<AttentionItem[]>(() => {
     const items: AttentionItem[] = [
@@ -335,13 +336,30 @@ export function OverviewPage() {
                     범위를 밝히지 않으면 "전부 조용하다"로 오독된다. */}
                 <p className="mt-0.5 type-body text-text-muted">업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.</p>
               </div>
-              <span className="text-sm tabular-nums text-text-muted" aria-label={`최근 장애 ${timeline.length}건`}>{timeline.length}</span>
+              <span className="text-sm tabular-nums text-text-muted" aria-label={timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}>
+                {timelineFailed ? '—' : timeline.length}
+              </span>
             </div>
-            {timeline.length === 0 ? (
-              <div className="flex min-h-32 flex-col items-center justify-center p-5 text-center">
-                <p className="type-label text-text-base">최근 7일간 기록된 장애가 없습니다</p>
-                <p className="mt-2 type-body text-text-muted">업타임 모니터와 Docker 서비스 모두 중단 없이 동작했습니다.</p>
+            {timelineFailed && (
+              <div role="status" className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <MaterialIcon name="sync_problem" size={20} className="mt-0.5 shrink-0 text-status-warn" />
+                  <div>
+                    <p className="type-label text-text-base">장애 이력을 불러오지 못했습니다</p>
+                    <p className="mt-0.5 type-body text-text-muted">
+                      {timeline.length > 0 ? '이전에 불러온 기록입니다. 최신 기록은 확인할 수 없습니다.' : '최근 7일간의 장애 기록을 확인할 수 없습니다.'}
+                    </p>
+                  </div>
+                </div>
+                <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
               </div>
+            )}
+            {timeline.length === 0 ? (
+              !timelineFailed && (
+                <div className="flex min-h-32 flex-col items-center justify-center p-5 text-center">
+                  <p className="type-label text-text-base">최근 7일간 기록된 장애가 없습니다</p>
+                </div>
+              )
             ) : (
               <ul className="divide-y divide-ui-border-soft">
                 {timeline.map((episode) => (

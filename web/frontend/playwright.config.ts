@@ -13,9 +13,20 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
-  webServer: {
+  webServer: [{
     command: 'pnpm exec vite preview --mode demo --host 127.0.0.1 --port 4173',
     url: demoUrl,
     reuseExistingServer: !process.env.CI,
-  },
+  }, {
+    // Exercise real HTTP failure/recovery without changing the demo fixtures.
+    command: 'pnpm exec vite --host 127.0.0.1 --port 4174 --strictPort',
+    url: 'http://127.0.0.1:4174/',
+    env: {
+      VITE_USE_MOCK: 'false',
+      VITE_DEMO_MODE: 'true',
+      VITE_API_BASE_URL: '/api/v1',
+      VITE_BASE_PATH: '/',
+    },
+    reuseExistingServer: !process.env.CI,
+  }],
 });
