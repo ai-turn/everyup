@@ -9,13 +9,13 @@ type MonitorDraft = {
   name: string;
   type: UptimeMonitorType;
   target: string;
-  port: number;
-  interval: number;
-  timeout: number;
+  port: string;
+  interval: string;
+  timeout: string;
 };
 
 const EMPTY_DRAFT: MonitorDraft = {
-  name: '', type: 'http', target: '', port: 443, interval: 30, timeout: 5000,
+  name: '', type: 'http', target: '', port: '443', interval: '30', timeout: '5000',
 };
 
 export function UptimeMonitorDialog({
@@ -33,9 +33,9 @@ export function UptimeMonitorDialog({
     name: monitor.name,
     type: monitor.type,
     target: monitor.url,
-    port: monitor.port ?? 443,
-    interval: monitor.interval,
-    timeout: monitor.timeout,
+    port: String(monitor.port ?? 443),
+    interval: String(monitor.interval),
+    timeout: String(monitor.timeout),
   } : EMPTY_DRAFT);
   const [saving, setSaving] = useState(false);
 
@@ -52,11 +52,11 @@ export function UptimeMonitorDialog({
     setSaving(true);
     try {
       await onSave({
-        name: draft.name,
+        name: draft.name.trim(),
         type: draft.type,
-        ...(draft.type === 'http' ? { url: draft.target } : { host: draft.target, port: draft.port }),
-        interval: draft.interval,
-        timeout: draft.timeout,
+        ...(draft.type === 'http' ? { url: draft.target.trim() } : { host: draft.target.trim(), port: Number(draft.port) }),
+        interval: Number(draft.interval),
+        timeout: Number(draft.timeout),
       });
       onClose();
     } catch (error) {
@@ -86,10 +86,10 @@ export function UptimeMonitorDialog({
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
         </div>
-        <div className="space-y-4 p-6">
+        <fieldset disabled={saving} className="space-y-4 p-6">
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-text-secondary">이름</span>
-            <Input required value={draft.name} onChange={(event) => update('name', event.target.value)} placeholder="예: 공개 API" />
+            <Input required pattern={'.*\\S.*'} title="공백 이외의 이름을 입력하세요." value={draft.name} onChange={(event) => update('name', event.target.value)} placeholder="예: 공개 API" />
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-text-secondary">체크 방식</span>
@@ -100,25 +100,25 @@ export function UptimeMonitorDialog({
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-text-secondary">{draft.type === 'http' ? 'URL' : '호스트'}</span>
-            <Input required mono value={draft.target} onChange={(event) => update('target', event.target.value)} placeholder={draft.type === 'http' ? 'https://api.example.com/health' : 'db.example.com'} />
+            <Input required mono type={draft.type === 'http' ? 'url' : 'text'} pattern={draft.type === 'http' ? '[Hh][Tt][Tt][Pp][Ss]?://.+' : undefined} title={draft.type === 'http' ? 'http:// 또는 https://로 시작하는 주소를 입력하세요.' : undefined} value={draft.target} onChange={(event) => update('target', event.target.value)} placeholder={draft.type === 'http' ? 'https://api.example.com/health' : 'db.example.com'} />
           </label>
           {draft.type === 'tcp' && (
             <label className="block space-y-1.5">
               <span className="text-sm font-medium text-text-secondary">포트</span>
-              <Input required type="number" min={1} max={65535} value={draft.port} onChange={(event) => update('port', Number(event.target.value))} />
+              <Input required type="number" min={1} max={65535} value={draft.port} onChange={(event) => update('port', event.target.value)} />
             </label>
           )}
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1.5">
               <span className="text-sm font-medium text-text-secondary">주기 (초)</span>
-              <Input required type="number" min={5} value={draft.interval} onChange={(event) => update('interval', Number(event.target.value))} />
+              <Input required type="number" min={5} value={draft.interval} onChange={(event) => update('interval', event.target.value)} />
             </label>
             <label className="block space-y-1.5">
               <span className="text-sm font-medium text-text-secondary">타임아웃 (ms)</span>
-              <Input required type="number" min={1} value={draft.timeout} onChange={(event) => update('timeout', Number(event.target.value))} />
+              <Input required type="number" min={1} value={draft.timeout} onChange={(event) => update('timeout', event.target.value)} />
             </label>
           </div>
-        </div>
+        </fieldset>
         <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button>
           <Button type="submit" loading={saving}>
