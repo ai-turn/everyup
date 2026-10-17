@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
 import {
@@ -45,26 +45,42 @@ export function OverviewPage() {
   const [timeline, setTimeline] = useState<TimelineIncident[]>([]);
   const [showAllAttention, setShowAllAttention] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  const pendingLoad = useRef<Promise<void> | null>(null);
 
-  const load = useCallback(async () => {
-    const [agentsResult, servicesResult, monitorsResult, observedResult, infrastructureResult, timelineResult] = await Promise.allSettled([
-      api.getAgents(),
-      api.getAllAgentServicesFlat(),
-      api.getUptimeMonitors(),
-      api.getObservedServices(),
-      api.getInfrastructureResources(),
-      api.getIncidentTimeline(7, 6),
-    ]);
-    const failed: string[] = [];
-    if (agentsResult.status === 'fulfilled') setAgents(agentsResult.value ?? []); else failed.push('agents');
-    if (servicesResult.status === 'fulfilled') setServices(servicesResult.value ?? []); else failed.push('services');
-    if (monitorsResult.status === 'fulfilled') setMonitors(monitorsResult.value ?? []); else failed.push('monitors');
-    if (observedResult.status === 'fulfilled') setObservedServices(observedResult.value ?? []); else failed.push('observed');
-    if (infrastructureResult.status === 'fulfilled') setInfrastructure(infrastructureResult.value ?? []); else failed.push('infrastructure');
-    if (timelineResult.status === 'fulfilled') setTimeline(timelineResult.value ?? []); else failed.push('timeline');
-    setFailedSources(failed);
-    setUpdatedAt(new Date());
+  const load = useCallback(() => {
+    // 두 재시도 버튼과 수동·자동 갱신이 겹쳐도 같은 조회가 끝나기를 기다린다.
+    if (pendingLoad.current) return pendingLoad.current;
+    pendingLoad.current = (async () => {
+      const [agentsResult, servicesResult, monitorsResult, observedResult, infrastructureResult, timelineResult] = await Promise.allSettled([
+        api.getAgents(),
+        api.getAllAgentServicesFlat(),
+        api.getUptimeMonitors(),
+        api.getObservedServices(),
+        api.getInfrastructureResources(),
+        api.getIncidentTimeline(7, 6),
+      ]);
+      const failed: string[] = [];
+      if (agentsResult.status === 'fulfilled') setAgents(agentsResult.value ?? []); else failed.push('agents');
+      if (servicesResult.status === 'fulfilled') setServices(servicesResult.value ?? []); else failed.push('services');
+      if (monitorsResult.status === 'fulfilled') setMonitors(monitorsResult.value ?? []); else failed.push('monitors');
+      if (observedResult.status === 'fulfilled') setObservedServices(observedResult.value ?? []); else failed.push('observed');
+      if (infrastructureResult.status === 'fulfilled') setInfrastructure(infrastructureResult.value ?? []); else failed.push('infrastructure');
+      if (timelineResult.status === 'fulfilled') setTimeline(timelineResult.value ?? []); else failed.push('timeline');
+      setFailedSources(failed);
+      setUpdatedAt(new Date());
+    })().finally(() => { pendingLoad.current = null; });
+    return pendingLoad.current;
   }, []);
+
+  const retry = async () => {
+    setRetrying(true);
+    try {
+      await load();
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   useEffect(() => {
     const initialLoad = window.setTimeout(() => void load(), 0);
@@ -220,7 +236,7 @@ export function OverviewPage() {
               </p>
             </div>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
+          <Button variant="secondary" size="sm" className="min-w-28" loading={retrying} onClick={() => void retry()}>다시 시도</Button>
         </section>
       )}
 
@@ -351,7 +367,7 @@ export function OverviewPage() {
                     </p>
                   </div>
                 </div>
-                <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
+                <Button variant="secondary" size="sm" className="min-w-28" loading={retrying} onClick={() => void retry()}>다시 시도</Button>
               </div>
             )}
             {timeline.length === 0 ? (

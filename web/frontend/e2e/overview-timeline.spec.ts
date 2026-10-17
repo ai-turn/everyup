@@ -14,10 +14,17 @@ const incident: TimelineIncident = {
   message: 'HTTP 503 from origin',
 };
 
-async function mockOverviewApi(page: Page, state: { failed: boolean; incidents: TimelineIncident[] }) {
+interface OverviewApiState {
+  failed: boolean;
+  incidents: TimelineIncident[];
+  beforeTimelineResponse?: () => Promise<void>;
+}
+
+async function mockOverviewApi(page: Page, state: OverviewApiState) {
   await page.route('**/api/v1/**', async (route) => {
     const pathname = new URL(route.request().url()).pathname;
     if (pathname === '/api/v1/incidents/timeline') {
+      await state.beforeTimelineResponse?.();
       await route.fulfill(state.failed ? {
         status: 503,
         json: { success: false, error: { code: 'INTERNAL_ERROR', message: 'Timeline unavailable' } },
@@ -53,6 +60,56 @@ test('timeline fetch failure stays unknown and recovers on retry', async ({ page
   await expect(timeline.getByRole('status')).toHaveCount(0);
   await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toHaveCount(0);
 });
+
+for (const retryFails of [true, false]) {
+  test(`retry shares pending feedback and unlocks after ${retryFails ? 'failure' : 'success'}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const state: OverviewApiState = { failed: true, incidents: [incident] };
+    await mockOverviewApi(page, state);
+    await page.goto('./');
+    const retries = page.getByRole('button', { name: '다시 시도', exact: true });
+    await expect(retries).toHaveCount(2);
+    const initialWidths = await retries.evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().width));
+    let releaseResponse = () => {};
+    const pendingResponse = new Promise<void>((resolve) => { releaseResponse = resolve; });
+    let requests = 0;
+    state.beforeTimelineResponse = async () => { requests++; await pendingResponse; };
+
+    try {
+      await retries.first().click();
+      await expect.poll(() => requests).toBe(1);
+      for (const retry of await retries.all()) {
+        await expect(retry).toBeDisabled();
+        await expect(retry).toHaveAttribute('aria-busy', 'true');
+        await expect(retry).toHaveText('다시 시도');
+        const bounds = await retry.boundingBox();
+        await page.mouse.click(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
+      }
+      const pendingWidths = await retries.evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().width));
+      expect(pendingWidths).toEqual(initialWidths);
+      await page.getByRole('button', { name: '새로고침', exact: true }).click();
+      await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+      expect(requests).toBe(1);
+      await expect(page.getByRole('heading', { name: '모니터링 범위' })).toBeVisible();
+      state.failed = retryFails;
+      releaseResponse();
+
+      if (retryFails) {
+        for (const retry of await retries.all()) {
+          await expect(retry).toBeEnabled();
+          await expect(retry).not.toHaveAttribute('aria-busy');
+        }
+        state.failed = false;
+        await retries.last().click();
+      }
+      await expect(page.getByRole('region', { name: '최근 장애 이력' }).getByRole('link', { name: /Storefront/ })).toBeVisible();
+      await expect(retries).toHaveCount(0);
+      expect(requests).toBe(retryFails ? 2 : 1);
+    } finally {
+      releaseResponse();
+    }
+  });
+}
 
 test('successful empty timeline reports recorded history without promising uptime', async ({ page }) => {
   await mockOverviewApi(page, { failed: false, incidents: [] });
