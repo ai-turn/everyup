@@ -3,6 +3,7 @@ import type { GlobalTimeRange } from '../../../components/common';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import { ResponseTimeCard, type ResponseSlot } from '../../uptime/components/ResponseTimeCard';
 import { api, type ServiceHistoryPoint } from '../../../services/api';
+import { UptimeFetchNotice } from './UptimeFetchNotice';
 
 interface AgentResponseTimeChartProps {
   agentId: string;
@@ -20,20 +21,27 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
   const [loadedAt, setLoadedAt] = useState(0);
   // First load only — a refresh keeps the previous chart instead of flashing the skeleton.
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    let active = true;
     const load = async () => {
       try {
-        setPoints(await api.getAgentServiceHistory(agentId, serviceKey, range));
-      } catch {
-        setPoints([]);
-      } finally {
+        const data = await api.getAgentServiceHistory(agentId, serviceKey, range);
+        if (!active) return;
+        setPoints(data);
+        setError(false);
         setLoadedAt(Date.now());
-        setLoading(false);
+      } catch {
+        if (active) setError(true);
+      } finally {
+        if (active) setLoading(false);
       }
     };
     void load();
-  }, [agentId, serviceKey, range, refreshKey]);
+    return () => { active = false; };
+  }, [agentId, serviceKey, range, refreshKey, attempt]);
 
   const thresholds = useAlertThresholds({ kind: 'agent', agentId, serviceKey }, 'response_time');
 
@@ -52,13 +60,16 @@ export function AgentResponseTimeChart({ agentId, serviceKey, refreshKey, range 
   }));
 
   return (
-    <ResponseTimeCard
+    <div className="space-y-3">
+    {error && <UptimeFetchNotice source="체크 이력" onRetry={() => setAttempt((value) => value + 1)} />}
+    {(!error || loadedAt > 0) && <ResponseTimeCard
       slots={slots}
       failedChecks={buckets.reduce((sum, bucket) => sum + bucket.failed, 0)}
       caption="ms"
       window={[windowStart, loadedAt]}
       thresholds={thresholds}
       loading={loading}
-    />
+    />}
+    </div>
   );
 }

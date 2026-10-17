@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusBadge, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
-import { useSpinAction } from '../../../hooks/useSpinAction';
+import { Button, ButtonLink, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
+import { DockerUptimeStatus } from '../../uptime/components/DockerUptimeStatus';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
 import { alertRulesPath } from '../../alerts/alertTarget';
@@ -16,6 +16,7 @@ export interface AgentHealthCheckDetailViewProps {
   serviceKey: string;
   refreshKey: number;
   onRefresh: () => void;
+  refreshing?: boolean;
   tab: DetailTab;
   traceId?: string;
   /** Opening range when a link names one (`?range=`); the picker owns it after that. */
@@ -66,7 +67,6 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
   const { service, agentId, serviceKey } = props;
   // Shared chart range for all tabs; survives service switches (Tabs remount on key).
   const [range, setRange] = useState<GlobalTimeRange>(props.initialRange ?? '6h');
-  const { spinning, trigger: handleRefresh } = useSpinAction(props.onRefresh);
   const lastChecked = service.observedAt
     ? formatDistanceToNow(new Date(service.observedAt), { addSuffix: true, locale: ko })
     : '없음';
@@ -89,7 +89,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
           <DetailMeta
             status={
               <>
-                <StatusBadge healthy={service.healthy} />
+                <DockerUptimeStatus service={service} />
                 {service.lastLatency && (
                   <>
                     <span aria-hidden="true">·</span>
@@ -108,8 +108,8 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
         controls={
           <>
             <TimeRangePicker value={range} onChange={setRange} />
-            <Button collapseLabel variant="secondary" onClick={handleRefresh}>
-              <MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
+            <Button collapseLabel variant="secondary" loading={props.refreshing} onClick={props.onRefresh}>
+              <MaterialIcon name="refresh" />새로고침
             </Button>
           </>
         }
@@ -120,7 +120,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
         }
       />
       <AgentServiceTabs
-        key={serviceKey}
+        key={`${agentId}/${serviceKey}`}
         service={service}
         agentId={agentId}
         serviceKey={serviceKey}

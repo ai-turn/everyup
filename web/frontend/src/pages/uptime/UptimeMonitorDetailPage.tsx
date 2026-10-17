@@ -1,6 +1,6 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
-import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight } from '../../components/common';
 import { formatTimeLabel } from '../../components/charts';
@@ -9,13 +9,12 @@ import { ResponseTimeCard } from '../../features/uptime/components/ResponseTimeC
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeOverview } from '../../features/uptime/components/UptimeOverview';
 import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
+import { useUptimeMonitorDetail } from '../../features/uptime/useUptimeMonitorDetail';
 import {
-  api, type UptimeMonitor, type UptimeMonitorHistory, type UptimeMonitorInput,
-  type UptimeMonitorMetric, type UptimeMonitorSummary,
+  api, type UptimeMonitorInput, type UptimeMonitorMetric,
 } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
-
-const HISTORY_DAYS = 90;
+import { listReturnTo } from '../../utils/listReturnTo';
 
 function ResponseTimeChart({ monitorId, metrics }: { monitorId: string; metrics: UptimeMonitorMetric[] }) {
   const thresholds = useAlertThresholds({ kind: 'direct', serviceId: monitorId }, 'response_time');
@@ -59,13 +58,13 @@ function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
         <div className="py-8 text-center text-sm text-text-dim">아직 체크 기록이 없습니다</div>
       ) : (
         <div className="-mx-2 overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-2xl table-fixed text-sm">
             <thead>
               <tr className="text-left type-caption text-text-muted">
-                <th className="px-2 py-2 font-normal">결과</th>
-                <th className="px-2 py-2 font-normal">시각</th>
-                <th className="px-2 py-2 font-normal">HTTP</th>
-                <th className="px-2 py-2 font-normal">응답 시간</th>
+                <th className="w-20 px-2 py-2 font-normal">결과</th>
+                <th className="w-44 px-2 py-2 font-normal">시각</th>
+                <th className="w-16 px-2 py-2 font-normal">HTTP</th>
+                <th className="w-28 px-2 py-2 font-normal sm:w-64">응답 시간</th>
                 <th className="px-2 py-2 font-normal">메시지</th>
               </tr>
             </thead>
@@ -103,9 +102,9 @@ function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
 
 // 일시정지/재개 — 상태에 따라 아이콘·라벨이 바뀐다. 페이지 함수에 삼항을 더하면
 // 복잡도 한도를 넘어서 따로 뺐다.
-function ActiveToggleButton({ active, disabled, onClick }: { active: boolean; disabled: boolean; onClick: () => void }) {
+function ActiveToggleButton({ active, disabled, loading, onClick }: { active: boolean; disabled: boolean; loading: boolean; onClick: () => void }) {
   return (
-    <Button variant="ghost" disabled={disabled} onClick={onClick}>
+    <Button variant="ghost" disabled={disabled} loading={loading} onClick={onClick}>
       <MaterialIcon name={active ? 'pause' : 'play_arrow'} />
       {active ? '일시정지' : '재개'}
     </Button>
@@ -114,52 +113,30 @@ function ActiveToggleButton({ active, disabled, onClick }: { active: boolean; di
 
 export function UptimeMonitorDetailPage() {
   const { monitorId } = useParams<{ monitorId: string }>();
-  const navigate = useNavigate();
+  return <UptimeMonitorDetail key={monitorId} monitorId={monitorId ?? ''} />;
+}
 
-  const [monitor, setMonitor] = useState<UptimeMonitor | null>(null);
-  const [metrics, setMetrics] = useState<UptimeMonitorMetric[]>([]);
-  const [summary, setSummary] = useState<UptimeMonitorSummary | null>(null);
-  const [history, setHistory] = useState<UptimeMonitorHistory | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = listReturnTo(location.state, '/uptime');
+
+  const { monitor, metrics, summary, history, loading, refreshing, errors, notFound, load } = useUptimeMonitorDetail(monitorId);
   useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  // `loading` covers the first load only — a refresh keeps the page on screen
-  // instead of swapping it for the spinner.
-  const load = useCallback(async () => {
-    if (!monitorId) return;
-    setError(null);
-    try {
-      const [monitorData, metricData, summaryData, historyData] = await Promise.all([
-        api.getUptimeMonitor(monitorId),
-        api.getUptimeMonitorMetrics(monitorId, 100),
-        api.getUptimeMonitorSummary(monitorId, '30d'),
-        api.getUptimeMonitorHistory(monitorId, HISTORY_DAYS),
-      ]);
-      setMonitor(monitorData);
-      setMetrics(metricData ?? []);
-      setSummary(summaryData);
-      setHistory(historyData);
-    } catch (loadError) {
-      setError(getErrorMessage(loadError));
-    } finally {
-      setLoading(false);
-    }
-  }, [monitorId]);
-
   useEffect(() => { void load(); }, [load]);
 
   const updateMonitor = async (input: UptimeMonitorInput) => {
     if (!monitor) return;
-    await api.updateUptimeMonitor(monitor.id, { ...input, isActive: monitor.isActive });
+    await api.updateUptimeMonitor(monitor.id, { ...input, method: monitor.method, expectedStatus: monitor.expectedStatus, isActive: monitor.isActive });
     await load();
   };
 
   const toggleActive = async () => {
-    if (!monitor) return;
+    if (!monitor || processing || refreshing || errors.monitor) return;
     setProcessing(true);
     try {
       await api.updateUptimeMonitor(monitor.id, {
@@ -177,11 +154,11 @@ export function UptimeMonitorDetailPage() {
   };
 
   const deleteMonitor = async () => {
-    if (!monitor) return;
+    if (!monitor || processing || refreshing || errors.monitor) return;
     setProcessing(true);
     try {
       await api.deleteUptimeMonitor(monitor.id);
-      navigate('/uptime');
+      navigate(returnTo);
     } catch (actionError) {
       toast.error(getErrorMessage(actionError));
     } finally {
@@ -193,12 +170,13 @@ export function UptimeMonitorDetailPage() {
     return <div className="flex h-64 items-center justify-center gap-3 text-text-muted"><MaterialIcon size={24} name="sync" className="animate-spin" />불러오는 중</div>;
   }
 
-  if (error || !monitor) {
+  if (!monitor) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4 text-center">
         <MaterialIcon size={32} name="error_outline" className="text-status-error" />
-        <div><p className="font-medium text-text-base">업타임 모니터를 찾을 수 없습니다</p>{error && <p className="mt-1 text-sm text-text-muted">{error}</p>}</div>
-        <ButtonLink variant="secondary" to="/uptime">업타임으로 돌아가기</ButtonLink>
+        <div><p className="font-medium text-text-base">{notFound ? '업타임 모니터를 찾을 수 없습니다' : '업타임 모니터를 불러오지 못했습니다'}</p>{errors.monitor && <p className="mt-1 text-sm text-text-muted">{errors.monitor}</p>}</div>
+        <Button variant="secondary" loading={refreshing} onClick={() => void load()}>다시 시도</Button>
+        <ButtonLink variant="secondary" to={returnTo}>업타임으로 돌아가기</ButtonLink>
       </div>
     );
   }
@@ -207,11 +185,13 @@ export function UptimeMonitorDetailPage() {
   const lastCheck = monitor.lastCheckAt
     ? new Date(monitor.lastCheckAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     : '—';
+  const failedSources = [errors.monitor && '모니터', errors.metrics && '체크 기록', errors.summary && '30일 요약', errors.history && '90일 이력'].filter(Boolean);
+  const actionsDisabled = processing || refreshing || Boolean(errors.monitor);
 
   return (
     <div className="space-y-5">
       {/* 데스크톱은 AppHeader breadcrumb의 첫 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to="/uptime" className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
+      <Link to={returnTo} className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />업타임
       </Link>
       <PageHeader
@@ -222,7 +202,7 @@ export function UptimeMonitorDetailPage() {
               <>
                 {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 자리 (§4.1) */}
                 <UptimeMonitorStatusBadge monitor={monitor} />
-                <ActiveToggleButton active={monitor.isActive} disabled={processing} onClick={() => void toggleActive()} />
+                <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
               </>
             }
             fields={[
@@ -234,26 +214,35 @@ export function UptimeMonitorDetailPage() {
         }
       />
       <DetailActionToolbar
-        controls={<Button collapseLabel variant="secondary" onClick={() => void load()}><MaterialIcon name="refresh" />새로고침</Button>}
+        controls={<Button collapseLabel variant="secondary" loading={refreshing} disabled={processing} onClick={() => void load()}><MaterialIcon name="refresh" />새로고침</Button>}
         actions={
           <>
-            <Button collapseLabel variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button collapseLabel variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+            <Button collapseLabel variant="secondary" disabled={actionsDisabled} onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
+            <Button collapseLabel variant="destructive" disabled={actionsDisabled} onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
           </>
         }
       />
 
+      {failedSources.length > 0 && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border bg-bg-surface px-4 py-3 text-sm text-text-secondary">
+          <p>{failedSources.join(' · ')} 조회에 실패했습니다. 이전에 불러온 데이터가 있으면 유지합니다.</p>
+          <Button size="sm" variant="secondary" loading={refreshing} disabled={processing} onClick={() => void load()}>다시 시도</Button>
+        </div>
+      )}
+
       <UptimeOverview
         stats={[
-          { label: '30일 업타임', value: summary ? `${summary.uptime.toFixed(2)}%` : '—' },
+          { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '—' },
           { label: '90일 업타임', value: history && history.days.length > 0 ? `${history.percentage.toFixed(2)}%` : '—' },
-          { label: '30일 실패', value: summary ? `${summary.failedChecks.toLocaleString()}회` : '—' },
+          { label: '30일 실패', value: summary && summary.totalChecks > 0 ? `${summary.failedChecks.toLocaleString()}회` : '—' },
           { label: '마지막 확인', value: lastCheck },
         ]}
         days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
+        error={!history ? errors.history : undefined}
       />
-      <ResponseTimeChart monitorId={monitor.id} metrics={metrics} />
-      <CheckLog metrics={metrics} />
+      {metrics ? <><ResponseTimeChart monitorId={monitor.id} metrics={metrics} /><CheckLog metrics={metrics} /></> : (
+        <section className="rounded-xl border border-ui-border bg-bg-surface p-6 text-sm text-text-muted">응답 시간과 체크 기록을 불러오지 못했습니다.</section>
+      )}
 
       {editing && <UptimeMonitorDialog monitor={monitor} onClose={() => setEditing(false)} onSave={updateMonitor} />}
       <ConfirmDialog
@@ -261,7 +250,7 @@ export function UptimeMonitorDetailPage() {
         onClose={() => setDeleting(false)}
         onConfirm={() => void deleteMonitor()}
         title="업타임을 삭제할까요?"
-        message="삭제하면 수집된 상태와 체크 기록도 함께 삭제됩니다."
+        message={<><strong className="break-all font-medium text-text-base">{monitor.name}</strong>을 삭제하면 수집된 상태와 체크 기록도 함께 삭제됩니다.</>}
         confirmLabel="삭제"
         isProcessing={processing}
       />

@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { MaterialIcon } from '../../../components/common';
 import { api, type AgentEvent } from '../../../services/api';
+import { UptimeFetchNotice } from './UptimeFetchNotice';
 
 interface AgentFailureHistoryProps {
   agentId: string;
@@ -15,17 +16,21 @@ const ALERT_TYPES = new Set(['alert_sent', 'recovery_sent']);
 export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFailureHistoryProps) {
 
 
-  const [events, setEvents] = useState<AgentEvent[]>([]);
+  const [events, setEvents] = useState<AgentEvent[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
 
 
   useEffect(() => {
+    let active = true;
     api.getAgentServiceKeyEvents(agentId, serviceKey, 50)
-      .then((data) => setEvents(data.filter((e) => ALERT_TYPES.has(e.type))))
-      .catch(() => setEvents([]))
-      .finally(() => setLoading(false));
-  }, [agentId, serviceKey, refreshKey]);
+      .then((data) => { if (active) { setEvents(data.filter((e) => ALERT_TYPES.has(e.type))); setError(false); } })
+      .catch(() => { if (active) setError(true); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [agentId, serviceKey, refreshKey, attempt]);
 
   if (loading) {
     return (
@@ -46,7 +51,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
         </div>
         <div>
           <h2 className="type-section-title text-text-base tracking-tight">
-            최근 장애 기록
+            최근 알림 기록
           </h2>
           <p className="text-text-muted text-sm">
             Docker 서비스 알림 이벤트
@@ -54,16 +59,17 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
         </div>
       </div>
 
-      {events.length === 0 ? (
+      {error && <UptimeFetchNotice source="알림 기록" onRetry={() => setAttempt((value) => value + 1)} />}
+      {events?.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 gap-3">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-status-healthy/10">
-            <MaterialIcon size={24} name="check_circle" className="text-status-healthy" />
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-ui-hover">
+            <MaterialIcon size={24} name="history" className="text-text-muted" />
           </div>
-          <p className="text-text-muted text-sm">장애 기록이 없습니다</p>
+          <p className="text-text-muted text-sm">알림 기록이 없습니다</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {events.map((event) => {
+          {(events ?? []).map((event) => {
             const isAlert = event.type === 'alert_sent';
             return (
               <div

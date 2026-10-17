@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 import {
   Button, ConnectionSourceBadge, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput,
-  StatusBadge, StatusLight, SummaryCard,
+  StatusLight, SummaryCard,
 } from '../../components/common';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
 import { UptimeTargetCard } from '../../features/uptime/components/UptimeTargetCard';
 import { api, type AgentServiceFlat, type UptimeMonitor, type UptimeMonitorInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { dockerUptimeState } from '../../utils/operationalStatus';
+import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
 
 function ServiceListSkeleton() {
   return (
@@ -29,10 +32,18 @@ export function AgentServiceCapabilityPage() {
 
   const [agentServices, setAgentServices] = useState<AgentServiceFlat[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
-  const [query, setQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('q') ?? '';
+  const setQuery = (value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set('q', value); else next.delete('q');
+    setSearchParams(next, { replace: true });
+  };
+  const returnTo = `/uptime${searchParams.size ? `?${searchParams}` : ''}`;
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<LoadErrors>({});
   const [adding, setAdding] = useState(false);
+  const [changingMonitor, setChangingMonitor] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,10 +72,10 @@ export function AgentServiceCapabilityPage() {
   const filteredAgentServices = useMemo(() => agentServices.filter((service) => !normalizedQuery
     || service.name.toLowerCase().includes(normalizedQuery)
     || service.agentName.toLowerCase().includes(normalizedQuery)
-    || service.endpoint.toLowerCase().includes(normalizedQuery)), [agentServices, normalizedQuery]);
+    || (service.endpoint || service.key).toLowerCase().includes(normalizedQuery)), [agentServices, normalizedQuery]);
   const filteredMonitors = useMemo(() => monitors.filter((monitor) => !normalizedQuery
     || monitor.name.toLowerCase().includes(normalizedQuery)
-    || monitor.url.toLowerCase().includes(normalizedQuery)), [monitors, normalizedQuery]);
+    || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery)), [monitors, normalizedQuery]);
 
   const saveMonitor = async (input: UptimeMonitorInput) => {
     await api.createUptimeMonitor(input);
@@ -72,6 +83,8 @@ export function AgentServiceCapabilityPage() {
   };
 
   const setActive = async (monitor: UptimeMonitor) => {
+    if (changingMonitor) return;
+    setChangingMonitor(monitor.id);
     try {
       await api.updateUptimeMonitor(monitor.id, {
         name: monitor.name, type: monitor.type, url: monitor.type === 'http' ? monitor.url : undefined,
@@ -82,20 +95,25 @@ export function AgentServiceCapabilityPage() {
       await load();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setChangingMonitor(null);
     }
   };
 
   const empty = filteredAgentServices.length === 0 && filteredMonitors.length === 0;
   const hasTargets = agentServices.length + monitors.length > 0;
+  const searchingTargets = Boolean(normalizedQuery) && hasTargets;
   const hasErrors = Boolean(errors.services || errors.monitors);
   const hasPreviousData = Boolean((errors.services && agentServices.length > 0) || (errors.monitors && monitors.length > 0));
 
-  const paused = monitors.filter((monitor) => !monitor.isActive).length;
-  const waiting = monitors.filter((monitor) => monitor.isActive && monitor.status === 'unknown').length;
+  const dockerStates = agentServices.map(dockerUptimeState);
+  const paused = monitors.filter((monitor) => !monitor.isActive).length + dockerStates.filter((state) => state === 'paused').length;
+  const waiting = monitors.filter((monitor) => monitor.isActive && monitor.status === 'unknown').length + dockerStates.filter((state) => state === 'waiting').length;
+  const stale = dockerStates.filter((state) => state === 'stale').length;
   const down = monitors.filter((monitor) => monitor.isActive && monitor.status === 'unhealthy').length
-    + agentServices.filter((service) => !service.healthy).length;
+    + dockerStates.filter((state) => state === 'down').length;
   const up = monitors.filter((monitor) => monitor.isActive && monitor.status === 'healthy').length
-    + agentServices.filter((service) => service.healthy).length;
+    + dockerStates.filter((state) => state === 'up').length;
 
   return (
     <div>
@@ -107,7 +125,7 @@ export function AgentServiceCapabilityPage() {
         <section aria-label="업타임 상태 요약" className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <SummaryCard label="정상" value={up} detail={`전체 ${monitors.length + agentServices.length}개 대상 중`} tone="healthy" />
           <SummaryCard label="장애" value={down} detail={down === 0 ? '장애 신호 없음' : '지금 확인이 필요합니다'} tone={down === 0 ? 'idle' : 'error'} />
-          <SummaryCard label="일시정지·확인 대기" value={paused + waiting} detail={`일시정지 ${paused}개 · 확인 대기 ${waiting}개`} tone="idle" />
+          <SummaryCard label="일시정지·확인 대기" value={paused + waiting + stale} detail={`일시정지 ${paused}개 · 확인 대기 ${waiting}개${stale ? ` · 수집 지연 ${stale}개` : ''}`} tone="idle" />
         </section>
       )}
 
@@ -134,7 +152,7 @@ export function AgentServiceCapabilityPage() {
 
       {loading && !hasTargets ? <ServiceListSkeleton /> : empty ? (
         !hasErrors && (
-          <EmptyState icon="monitor_heart" title={normalizedQuery ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={normalizedQuery ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={normalizedQuery ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
+          <EmptyState icon="monitor_heart" title={searchingTargets ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={searchingTargets ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={searchingTargets ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
         )
       ) : (
         <section aria-label="업타임 대상" aria-busy={loading || undefined}>
@@ -147,11 +165,12 @@ export function AgentServiceCapabilityPage() {
               <UptimeTargetCard
                 key={monitor.id}
                 to={`/uptime/${monitor.id}`}
+                returnTo={returnTo}
                 title={monitor.name}
                 badge={<ConnectionSourceBadge source="direct" directLabel="직접 추가" />}
                 status={errors.monitors ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
                 actions={
-                  <Button size="sm" variant="ghost" disabled={loading || Boolean(errors.monitors)} aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>{monitor.isActive ? '일시정지' : '재개'}</Button>
+                  <Button size="sm" variant="ghost" className="min-w-28" loading={changingMonitor === monitor.id} disabled={loading || Boolean(errors.monitors) || changingMonitor !== null} aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>{monitor.isActive ? '일시정지' : '재개'}</Button>
                 }
                 endpoint={monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url}
                 meta={<p className="text-xs text-text-muted">{monitor.type.toUpperCase()} · {monitor.interval}초</p>}
@@ -161,10 +180,11 @@ export function AgentServiceCapabilityPage() {
               <UptimeTargetCard
                 key={`${service.agentId}:${service.key}`}
                 to={`/services/${service.agentId}/${encodeURIComponent(service.key)}`}
+                returnTo={returnTo}
                 title={service.name}
                 badge={<ConnectionSourceBadge source="docker" />}
                 subtitle={service.agentName}
-                status={errors.services ? <StatusLight tone="warn" label="확인 불가" /> : <StatusBadge healthy={service.healthy} />}
+                status={errors.services ? <StatusLight tone="warn" label="확인 불가" /> : <DockerUptimeStatus service={service} />}
                 endpoint={service.endpoint || service.key}
               />
             ))}

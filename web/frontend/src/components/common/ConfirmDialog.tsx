@@ -1,7 +1,8 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useRef } from 'react';
 import { MaterialIcon } from './MaterialIcon';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import { Button } from './Button';
+import { useModalDialog } from '../../hooks/useModalDialog';
 
 type Variant = 'danger' | 'primary';
 
@@ -50,13 +51,7 @@ export function ConfirmDialog({
   const cancelRef = useRef<HTMLButtonElement>(null);
   const styles = variantStyles[variant];
 
-  // Native <dialog> gives focus trapping, Escape handling, and focus restore.
-  useEffect(() => {
-    if (isOpen && !dialogRef.current?.open) {
-      dialogRef.current?.showModal();
-      cancelRef.current?.focus();
-    }
-  }, [isOpen]);
+  useModalDialog(isOpen, dialogRef, cancelRef);
 
   if (!isOpen) return null;
 
@@ -72,7 +67,7 @@ export function ConfirmDialog({
         // ::backdrop clicks are delivered with the dialog itself as target.
         if (e.target === e.currentTarget && !isProcessing) onClose();
       }}
-      className={`m-auto bg-bg-surface border border-ui-border rounded-xl w-full max-w-md shadow-lg overflow-hidden animate-zoom-in ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] bg-bg-surface border border-ui-border rounded-xl w-full max-w-md shadow-lg overflow-y-auto animate-zoom-in ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="px-6 py-4 border-b border-ui-border flex items-center gap-3">
         <div className={`flex items-center justify-center w-10 h-10 rounded-full ${styles.iconBg}`}>
