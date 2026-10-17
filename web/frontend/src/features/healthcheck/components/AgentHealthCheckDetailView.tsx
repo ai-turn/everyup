@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
-import { isCollectorFresh } from '../../../utils/operationalStatus';
+import { Button, ButtonLink, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
+import { DockerUptimeStatus } from '../../uptime/components/DockerUptimeStatus';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
 import { alertRulesPath } from '../../alerts/alertTarget';
@@ -70,10 +70,6 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
   const lastChecked = service.observedAt
     ? formatDistanceToNow(new Date(service.observedAt), { addSuffix: true, locale: ko })
     : '없음';
-  const status = service.silenced ? { tone: 'idle' as const, label: '일시정지' }
-    : !service.seen ? { tone: 'idle' as const, label: '확인 대기' }
-      : !isCollectorFresh(service.observedAt) ? { tone: 'warn' as const, label: '수집 지연' }
-        : { tone: service.healthy ? 'healthy' as const : 'error' as const, label: service.healthy ? '정상' : '장애' };
   // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 trail에 넣지 않는다 —
   // 실제 담김 관계는 Docker 환경 › 에이전트 › 서비스다.
   useBreadcrumb([
@@ -93,7 +89,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
           <DetailMeta
             status={
               <>
-                <StatusLight {...status} />
+                <DockerUptimeStatus service={service} />
                 {service.lastLatency && (
                   <>
                     <span aria-hidden="true">·</span>
