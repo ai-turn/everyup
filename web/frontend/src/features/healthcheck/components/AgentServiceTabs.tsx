@@ -66,7 +66,7 @@ function UptimeContent({ agentId, serviceKey, refreshKey, range }: ServiceTabsPr
   return (
     <div className="space-y-5">
       <AgentUptimeOverview agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
-      <AgentResponseTimeChart agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
+      <AgentResponseTimeChart key={range} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
       <AgentFailureHistory agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
     </div>
   );
