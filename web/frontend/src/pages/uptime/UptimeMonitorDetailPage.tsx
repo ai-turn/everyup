@@ -157,7 +157,7 @@ export function UptimeMonitorDetailPage() {
 
   const updateMonitor = async (input: UptimeMonitorInput) => {
     if (!monitor) return;
-    await api.updateUptimeMonitor(monitor.id, { ...input, isActive: monitor.isActive });
+    await api.updateUptimeMonitor(monitor.id, { ...input, method: monitor.method, expectedStatus: monitor.expectedStatus, isActive: monitor.isActive });
     await load();
   };
 
