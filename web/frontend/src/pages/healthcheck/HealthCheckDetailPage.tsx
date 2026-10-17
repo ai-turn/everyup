@@ -1,13 +1,22 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { Button, ButtonLink, MaterialIcon, parseTimeRange } from '../../components/common';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { api, type AgentServiceFlat } from '../../services/api';
 import { AgentHealthCheckDetailView } from '../../features/healthcheck/components/AgentHealthCheckDetailView';
 import type { DetailTab } from '../../features/healthcheck/components/AgentServiceTabs';
 
+function serviceKeyFromPath(pathname: string): string | null {
+  // Read the raw segment once: router params normalize encoded slashes, which
+  // would change an opaque key containing the literal text "%2F".
+  const rawKey = pathname.replace(/\/$/, '').split('/').pop() ?? '';
+  try { return decodeURIComponent(rawKey); } catch { return null; }
+}
+
 export function HealthCheckDetailPage() {
-  const { agentId, key } = useParams<{ agentId: string; key: string }>();
+  const { agentId } = useParams<{ agentId: string }>();
+  const { pathname } = useLocation();
+  const serviceKey = serviceKeyFromPath(pathname);
   const [searchParams, setSearchParams] = useSearchParams();
 
 
@@ -21,11 +30,12 @@ export function HealthCheckDetailPage() {
     : 'uptime';
 
   const fetchService = useCallback(async () => {
-    if (!agentId || !key) return;
+    if (!agentId) return;
     setLoadError(null);
     try {
+      if (serviceKey === null) { setService(null); return; }
       const all = await api.getAllAgentServicesFlat();
-      const found = all.find((s) => s.agentId === agentId && s.key === decodeURIComponent(key));
+      const found = all.find((s) => s.agentId === agentId && s.key === serviceKey);
       setService(found ?? null);
     } catch (error) {
       setService(null);
@@ -33,7 +43,7 @@ export function HealthCheckDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [agentId, key]);
+  }, [agentId, serviceKey]);
 
   useEffect(() => { fetchService(); }, [fetchService]);
 
@@ -81,7 +91,7 @@ export function HealthCheckDetailPage() {
     <AgentHealthCheckDetailView
       service={service}
       agentId={agentId!}
-      serviceKey={decodeURIComponent(key!)}
+      serviceKey={serviceKey!}
       refreshKey={refreshKey}
       onRefresh={refresh}
       tab={tab}

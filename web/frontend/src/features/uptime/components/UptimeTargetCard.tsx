@@ -4,6 +4,7 @@ import { ResourceCardHeader } from '../../../components/common';
 
 interface UptimeTargetCardProps {
   to: string;
+  returnTo?: string;
   title: string;
   badge?: ReactNode;
   subtitle?: string;
@@ -14,7 +15,7 @@ interface UptimeTargetCardProps {
 }
 
 export function UptimeTargetCard({
-  to, title, badge, subtitle, status, endpoint, meta, actions,
+  to, returnTo, title, badge, subtitle, status, endpoint, meta, actions,
 }: UptimeTargetCardProps) {
   return (
     // ponytail: stretched link — 카드 전체가 링크지만 상태 토글은 <a> 밖에 둔다
@@ -22,7 +23,7 @@ export function UptimeTargetCard({
       <ResourceCardHeader
         title={
           <h3 className="truncate type-card-title text-text-base">
-            <Link to={to} className="after:absolute after:inset-0 after:rounded-xl">{title}</Link>
+            <Link to={to} state={returnTo ? { returnTo } : undefined} className="after:absolute after:inset-0 after:rounded-xl">{title}</Link>
           </h3>
         }
         badge={badge}

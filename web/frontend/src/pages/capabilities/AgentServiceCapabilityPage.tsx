@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 import {
   Button, ConnectionSourceBadge, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput,
   StatusBadge, StatusLight, SummaryCard,
@@ -29,7 +30,14 @@ export function AgentServiceCapabilityPage() {
 
   const [agentServices, setAgentServices] = useState<AgentServiceFlat[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
-  const [query, setQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('q') ?? '';
+  const setQuery = (value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set('q', value); else next.delete('q');
+    setSearchParams(next, { replace: true });
+  };
+  const returnTo = `/uptime${searchParams.size ? `?${searchParams}` : ''}`;
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<LoadErrors>({});
   const [adding, setAdding] = useState(false);
@@ -148,6 +156,7 @@ export function AgentServiceCapabilityPage() {
               <UptimeTargetCard
                 key={monitor.id}
                 to={`/uptime/${monitor.id}`}
+                returnTo={returnTo}
                 title={monitor.name}
                 badge={<ConnectionSourceBadge source="direct" directLabel="직접 추가" />}
                 status={errors.monitors ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
@@ -162,6 +171,7 @@ export function AgentServiceCapabilityPage() {
               <UptimeTargetCard
                 key={`${service.agentId}:${service.key}`}
                 to={`/services/${service.agentId}/${encodeURIComponent(service.key)}`}
+                returnTo={returnTo}
                 title={service.name}
                 badge={<ConnectionSourceBadge source="docker" />}
                 subtitle={service.agentName}

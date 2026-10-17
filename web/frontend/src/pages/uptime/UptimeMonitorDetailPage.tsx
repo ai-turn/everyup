@@ -1,6 +1,6 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight } from '../../components/common';
 import { formatTimeLabel } from '../../components/charts';
@@ -14,6 +14,7 @@ import {
   type UptimeMonitorMetric, type UptimeMonitorSummary,
 } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { listReturnTo } from '../../utils/listReturnTo';
 
 const HISTORY_DAYS = 90;
 
@@ -115,6 +116,8 @@ function ActiveToggleButton({ active, disabled, onClick }: { active: boolean; di
 export function UptimeMonitorDetailPage() {
   const { monitorId } = useParams<{ monitorId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = listReturnTo(location.state, '/uptime');
 
   const [monitor, setMonitor] = useState<UptimeMonitor | null>(null);
   const [metrics, setMetrics] = useState<UptimeMonitorMetric[]>([]);
@@ -211,7 +214,7 @@ export function UptimeMonitorDetailPage() {
   return (
     <div className="space-y-5">
       {/* 데스크톱은 AppHeader breadcrumb의 첫 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to="/uptime" className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
+      <Link to={returnTo} className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />업타임
       </Link>
       <PageHeader

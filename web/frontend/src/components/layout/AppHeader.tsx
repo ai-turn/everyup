@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { MaterialIcon } from '../common';
 import { useBreadcrumbTrail, type Crumb } from '../../contexts/BreadcrumbContext';
 import { sectionFor } from './navSections';
+import { listReturnTo } from '../../utils/listReturnTo';
 
 // 데스크톱 전용 위치 표시 헤더. 높이 h-16은 Sidebar 로고 블록과 같은 값이라
 // 사이드바 경계 너머로 크롬 상단이 한 줄로 이어진다.
@@ -9,14 +10,14 @@ import { sectionFor } from './navSections';
 // 뒤로가기 버튼을 따로 두지 않는다 (DESIGN.md §3.4) — 첫 크럼이 목록 링크라
 // 별도 "목록으로"와 목적지가 같다.
 export function AppHeader() {
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
   const declared = useBreadcrumbTrail();
 
   // 섹션 크럼은 경로에서 자동으로 나온다. 상세 페이지는 `useBreadcrumb`으로
   // 그 **뒤쪽만** 선언하면 된다 — 목록 페이지는 아무것도 하지 않아도 된다.
   const section = sectionFor(pathname);
   const crumbs: Crumb[] = [
-    ...(section ? [{ label: section.label, to: section.to }] : []),
+    ...(section ? [{ label: section.label, to: listReturnTo(state, section.to) }] : []),
     ...(declared ?? []),
   ];
 
