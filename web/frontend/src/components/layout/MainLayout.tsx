@@ -45,7 +45,8 @@ export function MainLayout() {
           <div className="flex flex-1 overflow-hidden relative">
             {/* full-bleed content on the bg-main canvas (white cards pop), 24px/20px padding */}
             <main id="main-content" className="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-bg-main">
-              <div className="flex-1 overflow-y-auto motion-safe:scroll-smooth [scrollbar-gutter:stable]">
+              {/* 하단 내비·safe area는 pb-safe-bottom과 맞추고, 역방향 탐색의 상단 포커스 링도 보호한다. */}
+              <div className="flex-1 overflow-y-auto scroll-pt-1 scroll-pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:scroll-p-0 motion-safe:scroll-smooth [scrollbar-gutter:stable]">
                 <div className="flex flex-col min-h-full pb-safe-bottom lg:pb-0">
                   <div className="p-4 sm:px-6 sm:py-5 space-y-5 flex-1 w-full max-w-320 mx-auto">
                     <Outlet />
