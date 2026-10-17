@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Button, Input, MaterialIcon, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
+import { useModalDialog } from '../../../hooks/useModalDialog';
 import type { UptimeMonitor, UptimeMonitorInput, UptimeMonitorType } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 
@@ -39,9 +40,7 @@ export function UptimeMonitorDialog({
   } : EMPTY_DRAFT);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    dialogRef.current?.showModal();
-  }, []);
+  useModalDialog(true, dialogRef);
 
   const update = <K extends keyof MonitorDraft>(key: K, value: MonitorDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -93,7 +92,7 @@ export function UptimeMonitorDialog({
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-text-secondary">체크 방식</span>
-            <Select value={draft.type} onChange={(event) => update('type', event.target.value as UptimeMonitorType)} disabled={Boolean(monitor)}>
+            <Select aria-label="체크 방식" value={draft.type} onChange={(event) => update('type', event.target.value as UptimeMonitorType)} disabled={Boolean(monitor)}>
               <option value="http">HTTP</option>
               <option value="tcp">TCP</option>
             </Select>

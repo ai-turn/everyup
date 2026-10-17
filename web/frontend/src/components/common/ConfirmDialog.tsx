@@ -1,7 +1,8 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useRef } from 'react';
 import { MaterialIcon } from './MaterialIcon';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import { Button } from './Button';
+import { useModalDialog } from '../../hooks/useModalDialog';
 
 type Variant = 'danger' | 'primary';
 
@@ -50,13 +51,7 @@ export function ConfirmDialog({
   const cancelRef = useRef<HTMLButtonElement>(null);
   const styles = variantStyles[variant];
 
-  // Native <dialog> gives focus trapping, Escape handling, and focus restore.
-  useEffect(() => {
-    if (isOpen && !dialogRef.current?.open) {
-      dialogRef.current?.showModal();
-      cancelRef.current?.focus();
-    }
-  }, [isOpen]);
+  useModalDialog(isOpen, dialogRef, cancelRef);
 
   if (!isOpen) return null;
 
