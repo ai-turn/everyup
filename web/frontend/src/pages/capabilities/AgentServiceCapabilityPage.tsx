@@ -41,6 +41,7 @@ export function AgentServiceCapabilityPage() {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<LoadErrors>({});
   const [adding, setAdding] = useState(false);
+  const [changingMonitor, setChangingMonitor] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -80,6 +81,8 @@ export function AgentServiceCapabilityPage() {
   };
 
   const setActive = async (monitor: UptimeMonitor) => {
+    if (changingMonitor) return;
+    setChangingMonitor(monitor.id);
     try {
       await api.updateUptimeMonitor(monitor.id, {
         name: monitor.name, type: monitor.type, url: monitor.type === 'http' ? monitor.url : undefined,
@@ -90,6 +93,8 @@ export function AgentServiceCapabilityPage() {
       await load();
     } catch (error) {
       toast.error(getErrorMessage(error));
+    } finally {
+      setChangingMonitor(null);
     }
   };
 
@@ -161,7 +166,7 @@ export function AgentServiceCapabilityPage() {
                 badge={<ConnectionSourceBadge source="direct" directLabel="직접 추가" />}
                 status={errors.monitors ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
                 actions={
-                  <Button size="sm" variant="ghost" disabled={loading || Boolean(errors.monitors)} aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>{monitor.isActive ? '일시정지' : '재개'}</Button>
+                  <Button size="sm" variant="ghost" className="min-w-28" loading={changingMonitor === monitor.id} disabled={loading || Boolean(errors.monitors) || changingMonitor !== null} aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>{monitor.isActive ? '일시정지' : '재개'}</Button>
                 }
                 endpoint={monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url}
                 meta={<p className="text-xs text-text-muted">{monitor.type.toUpperCase()} · {monitor.interval}초</p>}
