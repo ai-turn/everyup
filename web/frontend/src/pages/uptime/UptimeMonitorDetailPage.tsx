@@ -58,13 +58,13 @@ function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
         <div className="py-8 text-center text-sm text-text-dim">아직 체크 기록이 없습니다</div>
       ) : (
         <div className="-mx-2 overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-2xl table-fixed text-sm">
             <thead>
               <tr className="text-left type-caption text-text-muted">
-                <th className="px-2 py-2 font-normal">결과</th>
-                <th className="px-2 py-2 font-normal">시각</th>
-                <th className="px-2 py-2 font-normal">HTTP</th>
-                <th className="px-2 py-2 font-normal">응답 시간</th>
+                <th className="w-20 px-2 py-2 font-normal">결과</th>
+                <th className="w-44 px-2 py-2 font-normal">시각</th>
+                <th className="w-16 px-2 py-2 font-normal">HTTP</th>
+                <th className="w-28 px-2 py-2 font-normal sm:w-64">응답 시간</th>
                 <th className="px-2 py-2 font-normal">메시지</th>
               </tr>
             </thead>
