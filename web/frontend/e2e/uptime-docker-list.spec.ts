@@ -23,3 +23,22 @@ test('[01 audit] Docker list and detail agree for paused, unseen and delayed sna
   const text = await summary.innerText();
   expect(text).toContain('일시정지 1개'); expect(text).toContain('확인 대기 1개'); expect(text).toContain('수집 지연 1개');
 });
+
+test('Uptime lists response checks only and filters them by source (ADR-0006)', async ({ page }) => {
+  const state = await uptimeFixture(page);
+  state.services = [dockerService(), dockerService({ key: 'worker', name: 'Liveness worker', checkType: 'docker', endpoint: '' })];
+  await page.goto('./uptime');
+  const rows = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row');
+
+  await expect(page.getByRole('link', { name: 'Docker API', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Liveness worker', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: '업타임 상태 요약' })).toContainText('전체 3개 대상');
+  await expect(rows.filter({ hasText: 'Docker API' })).toContainText('Production Docker에서 검사');
+  await expect(rows.filter({ hasText: 'Public API' })).toContainText('EveryUp에서 검사');
+
+  await page.getByRole('combobox', { name: '검사 출처' }).click();
+  await page.getByRole('option', { name: 'Docker 환경' }).click();
+  await expect(page).toHaveURL(/source=docker/);
+  await expect(page.getByRole('link', { name: 'Docker API', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Public API', exact: true })).toHaveCount(0);
+});

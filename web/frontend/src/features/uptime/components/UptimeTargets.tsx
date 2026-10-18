@@ -25,7 +25,8 @@ interface Target {
   name: string;
   to: string;
   source: 'direct' | 'docker';
-  environment?: string;
+  /** 검사를 실행하는 곳 — 직접 등록한 모니터는 EveryUp, Docker 검사는 그 환경(ADR-0006) */
+  location: string;
   endpoint: string;
   protocol: string;
   lastCheck?: string;
@@ -41,7 +42,7 @@ export function UptimeTargets(props: Props) {
   const { view, errors, returnTo } = props;
   const targets: Target[] = [
     ...props.monitors.map((monitor): Target => ({
-      key: `direct:${monitor.id}`, name: monitor.name, to: `/uptime/${monitor.id}`, source: 'direct',
+      key: `direct:${monitor.id}`, name: monitor.name, to: `/uptime/${monitor.id}`, source: 'direct', location: 'EveryUp',
       endpoint: monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url,
       protocol: monitor.type.toUpperCase(), lastCheck: monitor.lastCheckAt, interval: monitor.interval, monitor,
       priority: errors.monitors ? 1 : !monitor.isActive ? stateOrder.paused : monitor.status === 'unhealthy' ? stateOrder.down : monitor.status === 'healthy' ? stateOrder.up : stateOrder.waiting,
@@ -49,7 +50,7 @@ export function UptimeTargets(props: Props) {
     })),
     ...props.services.map((service): Target => ({
       key: `docker:${service.agentId}:${service.key}`, name: service.name,
-      to: `/services/${service.agentId}/${encodeURIComponent(service.key)}`, source: 'docker', environment: service.agentName,
+      to: `/services/${service.agentId}/${encodeURIComponent(service.key)}`, source: 'docker', location: service.agentName,
       endpoint: service.endpoint || service.key, protocol: service.checkType.toUpperCase(), lastCheck: service.observedAt,
       priority: errors.services ? 1 : stateOrder[dockerUptimeState(service)],
       status: errors.services ? <StatusLight tone="warn" label="확인 불가" /> : <DockerUptimeStatus service={service} />,
@@ -76,7 +77,7 @@ export function UptimeTargets(props: Props) {
     return <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {targets.map((target) => <UptimeTargetCard key={target.key} to={target.to} returnTo={returnTo}
         title={target.name} badge={<ConnectionSourceBadge source={target.source} directLabel="직접 추가" />}
-        subtitle={target.environment} status={target.status} endpoint={target.endpoint}
+        subtitle={`${target.location}에서 검사`} status={target.status} endpoint={target.endpoint}
         meta={<p className="type-caption text-text-muted">{target.protocol}{target.interval ? ` · ${target.interval}초` : ''}<span className="mt-1 block">마지막 확인 {target.lastCheck ? formatIncidentTime(target.lastCheck) : '아직 없음'}</span></p>}
         actions={action(target)} />)}
     </div>;
@@ -97,7 +98,7 @@ export function UptimeTargets(props: Props) {
         <td className="px-3 py-4 sm:px-4">{target.status}</td>
         <td className="min-w-0 px-3 py-4 sm:px-4">
           <Link data-row-link to={target.to} state={{ returnTo }} className="block truncate font-medium text-action" title={target.name}>{target.name}</Link>
-          <p className="mt-1 truncate type-caption text-text-muted">{target.environment || '직접 추가'}<span className="lg:hidden"> · {target.protocol}</span></p>
+          <p className="mt-1 truncate type-caption text-text-muted"><span className="lg:hidden">{target.protocol} · </span>{target.location}에서 검사</p>
           <p className="mt-2 truncate font-mono text-xs text-text-dim md:hidden" title={target.endpoint}>{target.endpoint}</p>
           <p className="mt-1 type-caption text-text-muted xl:hidden">{target.lastCheck ? `${formatIncidentTime(target.lastCheck)} 확인` : '확인 기록 없음'}</p>
         </td>
