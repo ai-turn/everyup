@@ -14,7 +14,8 @@ Docker Collector 데이터와 OTLP 데이터를 받고, 설정한 알림 규칙�
 
 ```bash
 mkdir everyup && cd everyup
-curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
+curl -O \
+https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
 docker compose up -d
 ```
 
@@ -76,6 +77,9 @@ EVERYUP_ENCRYPTION_KEY=<openssl rand -hex 32 출력값>
   `admin`·`password`·`changeme`이면 Web이 시작되지 않습니다
 
 ### 보존 기간
+
+값의 형식은 변수 이름에 따라 다릅니다. 이름이 `DAYS`로 끝나는 변수는 일 수를 정수로 받고(`14`),
+나머지 세 변수는 `7d`, `12h`, `30m`처럼 단위를 붙여 받습니다. 단위를 생략하면 일로 해석합니다.
 
 - **`EVERYUP_RETENTION_METRICS`** · 기본값 `7d`\
   health check 메트릭

@@ -19,6 +19,18 @@ export default defineConfig({
     theme: { light: 'github-light-default', dark: 'github-dark-default' },
     // 본문 스크린샷은 대부분 화면 아래쪽에 있다. width/height는 마크다운 속성({width=… height=…})으로 준다.
     image: { lazyLoading: true },
+    // 코드 복사 버튼의 title과 제목 앵커의 aria-label은 VitePress가 영어로 고정해 렌더한다. 한국어 페이지만 바꾼다.
+    // ponytail: 렌더 결과의 문자열 치환이라 VitePress가 문구를 바꾸면 영어로 돌아간다(깨지지는 않음). 업그레이드 때 확인할 것.
+    config(md) {
+      const render = md.render.bind(md)
+      md.render = (src, env) => {
+        const html = render(src, env)
+        if (env?.relativePath?.startsWith('en/')) return html
+        return html
+          .replaceAll('title="Copy Code"', 'title="코드 복사"')
+          .replace(/aria-label="Permalink to &quot;(.*?)&quot;"/g, 'aria-label="&quot;$1&quot; 섹션 링크"')
+      }
+    },
   },
   sitemap: { hostname: SITE },
   // 링크 미리보기와 검색엔진용: 페이지별 og 태그, ko/en 짝 페이지(hreflang). 두 언어의 페이지 구성은 1:1이다.
@@ -139,6 +151,8 @@ export default defineConfig({
         returnToTopLabel: '맨 위로',
         langMenuLabel: '언어',
         notFound: { title: '페이지를 찾을 수 없습니다', quote: '', linkText: '홈으로' },
+        // 사이드바가 없는 페이지(홈)에만 보인다
+        footer: { message: `<a href="${GH}/blob/main/LICENSE">MIT 라이선스</a>로 배포합니다.`, copyright: 'Copyright © 2026 catcode' },
       },
     },
     en: {
@@ -191,6 +205,7 @@ export default defineConfig({
         editLink: { pattern: `${GH}/edit/main/docs/:path`, text: 'Edit this page on GitHub' },
         lastUpdated: { formatOptions: { dateStyle: 'long' } },
         socialLinks: [{ icon: 'github', link: GH, ariaLabel: 'GitHub repository' }],
+        footer: { message: `Released under the <a href="${GH}/blob/main/LICENSE">MIT License</a>.`, copyright: 'Copyright © 2026 catcode' },
       },
     },
   },

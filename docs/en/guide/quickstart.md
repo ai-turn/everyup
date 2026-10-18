@@ -19,7 +19,8 @@ step 4.
 
 ```bash
 mkdir everyup && cd everyup
-curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
+curl -O \
+https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
 ```
 
 ### Set the public address (optional) {#public-url}
@@ -78,9 +79,15 @@ If it does not open, see [The dashboard does not open](./troubleshooting#web-not
 **In the browser**, in the dashboard, open **Docker 환경** (Docker environments) and click **Docker 연결** (Connect
 Docker) at the top right. Name the environment, then choose its collection scope:
 
-- **전체** (All) configures uptime, logs, infrastructure, API tracing, and metrics.
-- **기본** (Basic) collects Docker service state and logs only.
-- **사용자 지정** (Custom) installs only the components and permissions required for the capabilities you select.
+| Scope | Collects | Installs |
+|---|---|---|
+| **전체** (All) | Uptime, logs, infrastructure, API tracing, metrics | Docker Collector, eBPF Observer |
+| **기본** (Basic) | Docker service state, logs | Docker Collector |
+| **사용자 지정** (Custom) | Only what you select (and only the permissions it needs) | Docker Collector, plus the eBPF Observer if you select API tracing |
+
+The [eBPF Observer](./ebpf-observer) records API latency and traces without changing your
+application. It runs with permissions separate from the Docker Collector and discovers container
+processes automatically, so there is no port list to maintain.
 
 ::: details Custom profiles without uptime collection
 If a custom profile omits Docker uptime collection (for example, a metrics-only profile), apps
@@ -92,7 +99,8 @@ Generate a token for each app and set its `Authorization` header. See the
 The connection flow then shows an installation command shaped like this:
 
 ```bash
-curl -fsSL 'https://<Web address>/api/v1/agents/install.sh' | sudo sh -s -- 'https://<Web address>' '<join code>'
+curl -fsSL 'https://<Web address>/api/v1/agents/install.sh' |
+  sudo sh -s -- 'https://<Web address>' '<join code>'
 ```
 
 ::: warning The join code works once, for ten minutes
@@ -108,7 +116,8 @@ Copy the displayed command and run it **on the monitored Linux Docker server**.
 The installer checks Docker and Compose, writes the bundle under `/opt/everyup-agent`, backs up
 any previous configuration as `compose.yaml.bak.<timestamp>`, and starts only the components
 required by the selected scope. Your application Compose file, images, ports, and containers are
-left unchanged.
+left unchanged. The `everyup-agent` in the path and container name is the Docker Collector's
+internal name.
 
 When it finishes, the last lines read:
 
@@ -120,11 +129,6 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 
 If it stops earlier, look up the last error line in [Troubleshooting](./troubleshooting).
 
-- The **전체** profile, or a custom profile with API tracing, starts the Docker Collector together
-  with an isolated [eBPF Observer](./ebpf-observer) (OBI), which records API latency and traces
-  without changing your application.
-- The **기본** profile collects Docker service state and logs without the eBPF Observer.
-
 To set it up by hand instead, see
 [`agent/docker-compose.yml`](https://github.com/ai-turn/everyup/blob/main/agent/docker-compose.yml)
 and the [Docker Collector configuration](../reference/collector).
@@ -135,20 +139,22 @@ and the [Docker Collector configuration](../reference/collector).
 (awaiting install) to **수집 중** (collecting). When uptime collection is enabled, the containers
 on that server also appear as services.
 
-![The Docker environments screen. The prod-server card shows 수집 중 (collecting), the staging-api card shows 설치 대기 (awaiting install), and the Docker 연결 button sits at the top right.](/images/quickstart-docker-env-light.webp){.only-light width=1440 height=480}
-![The Docker environments screen. The prod-server card shows 수집 중 (collecting), the staging-api card shows 설치 대기 (awaiting install), and the Docker 연결 button sits at the top right.](/images/quickstart-docker-env-dark.webp){.only-dark width=1440 height=480}
+![The Docker environments list. prod-server shows 수집 중 (collecting) and staging-api shows 설치 대기 (awaiting install).](/images/quickstart-docker-env-light.webp){.only-light width=751 height=202}
+![The Docker environments list. prod-server shows 수집 중 (collecting) and staging-api shows 설치 대기 (awaiting install).](/images/quickstart-docker-env-dark.webp){.only-dark width=751 height=202}
 
 <p class="screenshot-caption"><strong>수집 중</strong> means connected; <strong>설치 대기</strong> means the Collector has not connected yet. The dashboard UI is Korean only.</p>
 
-When API tracing is enabled, the eBPF Observer discovers container processes automatically, so
-there is no port list to maintain. If the environment stays at **설치 대기**, see
-[Troubleshooting](./troubleshooting#not-collecting).
+If the environment stays at **설치 대기**, see [Troubleshooting](./troubleshooting#not-collecting).
 
 ## Next steps
+
+Once collection has started, set up [Notifications](./notifications). Connect a Telegram, Discord,
+or Slack channel and create alert rules to hear about failures as soon as they happen.
+
+Other guides:
 
 - [Monitoring setup](./monitoring-setup): diagnose collection, add capabilities, connect OpenTelemetry directly
 - [Automatic eBPF Observer](./ebpf-observer): API latency and traces
 - [Header & body capture](./otel-instrumentation): see why a request failed
 - [Uptime monitors](./uptime-monitors): check URLs and TCP ports outside Docker
-- [Notifications](./notifications): set up channels and alert rules to get alerts in Telegram, Discord, or Slack
 - [Upgrade and uninstall](./upgrade-uninstall): apply new versions, undo an installation
