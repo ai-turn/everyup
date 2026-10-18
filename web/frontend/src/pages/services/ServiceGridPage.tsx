@@ -8,7 +8,8 @@ import { MaterialIcon } from '../../components/common/MaterialIcon';
 import { PageHeader } from '../../components/common/PageHeader';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
 import { SearchInput } from '../../components/common/SearchInput';
-import { ListToolbar, ResourceCardHeader, StatusLight } from '../../components/common';
+import { ListToolbar, ListViewToggle, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { useListView } from '../../hooks/useListView';
 import { api, type AgentOverview, type AgentServiceFlat, type ConnectedAgent } from '../../services/api';
 import { PendingServiceCard } from '../../features/services/components/PendingServiceCard';
 import { AddServiceModal } from '../../features/services/components/AddServiceModal';
@@ -27,11 +28,12 @@ interface ProjectCardProps {
   agentName: string;
   services: AgentServiceFlat[];
   overview?: AgentOverview;
+  returnTo: string;
 }
 
 // One project (= one agent = one docker-compose host) rendered as a single card.
 // Clicking drills into the project detail page that lists its internal services.
-function ProjectCard({ agentId, agent, agentName, services, overview }: ProjectCardProps) {
+function ProjectCard({ agentId, agent, agentName, services, overview, returnTo }: ProjectCardProps) {
   const online = agent ? agentOnline(agent) : true;
   const total = services.length;
   const healthy = services.filter(s => s.healthy).length;
@@ -41,6 +43,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview }: ProjectC
   return (
     <Link
       to={`/agents/${agentId}`}
+      state={{ returnTo }}
       aria-label={agentName}
       className="card-interactive bg-bg-surface border border-ui-border rounded-xl p-4 flex flex-col gap-3"
     >
@@ -97,6 +100,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview }: ProjectC
 }
 
 export function ServiceGridPage() {
+  const { view, setView, returnTo } = useListView();
 
   const navigate = useNavigate();
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
@@ -104,13 +108,18 @@ export function ServiceGridPage() {
   const [overview, setOverview] = useState<Record<string, AgentOverview>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
   // 개요의 `Docker 연결`은 ?connect=docker로 와서 연결 모달을 바로 연다. 새로고침 때 다시
   // 열리지 않게 파라미터는 읽자마자 지운다.
   const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q') ?? '';
+  const setSearch = (value: string) => setSearchParams(current => {
+    const next = new URLSearchParams(current);
+    if (value) next.set('q', value); else next.delete('q');
+    return next;
+  }, { replace: true });
   const [showAddModal, setShowAddModal] = useState(() => searchParams.get('connect') === 'docker');
   useEffect(() => {
-    if (searchParams.has('connect')) setSearchParams({}, { replace: true });
+    if (searchParams.has('connect')) setSearchParams(current => { const next = new URLSearchParams(current); next.delete('connect'); return next; }, { replace: true });
   }, [searchParams, setSearchParams]);
   const [installModalAgent, setInstallModalAgent] = useState<{ id: string; name: string } | null>(null);
   const [instrumentationAgentId, setInstrumentationAgentId] = useState<string | null>(null);
@@ -195,6 +204,10 @@ export function ServiceGridPage() {
   });
 
   const visiblePending = pendingAgents.filter((a) => !search || a.name.toLowerCase().includes(search.toLowerCase()));
+  const environmentRows = [
+    ...groups.map(group => ({ ...group, pending: false, rollup: overview[group.agentId] })),
+    ...visiblePending.map(agent => ({ agentId: agent.id, agent, agentName: agent.name, services: [] as AgentServiceFlat[], pending: true, rollup: overview[agent.id] })),
+  ];
 
   return (
     <div>
@@ -216,7 +229,7 @@ export function ServiceGridPage() {
           placeholder="서비스 또는 Docker 환경 이름으로 검색"
           aria-label="서비스 또는 Docker 환경 검색"
         />
-      } />
+      }><ListViewToggle view={view} onChange={setView} /></ListToolbar>
 
       <div className="space-y-5">
 
@@ -244,7 +257,15 @@ export function ServiceGridPage() {
       ) : groups.length === 0 && visiblePending.length === 0 ? (
         <EmptyState icon="sensors" title="검색 결과가 없습니다" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        view === 'grid' ? <ResourceTable rows={environmentRows} rowKey={row => row.agentId} ariaLabel="Docker 환경 그리드" columns={[
+          { key: 'name', label: 'Docker 환경', render: row => <>{row.pending ? <span className="block truncate font-medium">{row.agentName}</span> : <Link to={`/agents/${row.agentId}`} state={{ returnTo }} className="block truncate font-medium text-action">{row.agentName}</Link>}<div className="mt-2 md:hidden">{row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} />}</div><p className="mt-2 type-caption text-text-muted lg:hidden">서비스 {row.services.length}개{row.rollup?.uptimePct != null ? ` · 30일 업타임 ${row.rollup.uptimePct.toFixed(2)}%` : ''}</p></> },
+          { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} /> },
+          { key: 'services', label: '서비스', className: 'hidden w-24 lg:table-cell', align: 'right', render: row => row.services.length },
+          { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => row.rollup?.uptimePct == null ? '—' : `${row.rollup.uptimePct.toFixed(2)}%` },
+          { key: 'requests', label: '요청 24h', className: 'hidden w-28 xl:table-cell', align: 'right', render: row => row.rollup?.requests24h ? row.rollup.requests24h.toLocaleString() : '—' },
+          { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => row.rollup?.p95Ms == null ? '—' : `${row.rollup.p95Ms}ms` },
+          { key: 'actions', label: '작업', className: 'w-32', render: row => row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-2"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
+        ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {groups.map((g) => (
             <ProjectCard
               key={g.agentId}
@@ -253,6 +274,7 @@ export function ServiceGridPage() {
               agentName={g.agentName}
               services={g.services}
               overview={overview[g.agentId]}
+              returnTo={returnTo}
             />
           ))}
           {visiblePending.map((agent) => (

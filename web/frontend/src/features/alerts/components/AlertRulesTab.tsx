@@ -12,6 +12,7 @@ import { SeverityBadge } from './SeverityBadge';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
+import { useListView } from '../../../hooks/useListView';
 
 const SEVERITY_ORDER: Record<string, number> = { critical: 0, warning: 1, info: 2 };
 
@@ -160,6 +161,7 @@ interface AlertRulesTabProps {
 }
 
 export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
+  const { view } = useListView();
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [channels, setChannels] = useState<NotificationChannel[]>([]);
   const [agentServices, setAgentServices] = useState<AgentServiceFlat[]>([]);
@@ -439,9 +441,19 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
       </ListToolbar>
 
       {/* Table */}
+      {view === 'card' ? <div className="space-y-3">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="규칙 정렬">{([{ key: 'name', label: '이름' }, { key: 'severity', label: '심각도' }, { key: 'target', label: '대상' }] as const).map(({ key, label }) => <Button key={key} variant={sortKey === key ? 'secondary' : 'ghost'} size="sm" aria-pressed={sortKey === key} onClick={() => onSort(key)}>{label}{sortKey === key ? sortDir === 'asc' ? ' ↑' : ' ↓' : ''}</Button>)}</div>
+        {filteredRules.length === 0 ? <p className="rounded-xl border border-ui-border p-5 text-sm text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
+            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
+            <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}</p><p className="mt-2 break-words text-sm text-text-muted" title={evaluationSummary(rule)}>{compactTrigger(rule)}</p>
+            <div className="mt-3"><ChannelAvatars rule={rule} channels={channels} /></div><p className="mt-3 type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p>
+            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => handleToggle(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
+          </article>)}</div>}
+      </div> : (
       <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] table-fixed text-sm">
+          <table aria-label="알림 규칙 그리드" className="w-full min-w-[1180px] table-fixed text-sm">
             <thead>
               <tr className="bg-ui-hover-soft border-b border-ui-border">
                 <SortableTH className="w-[260px]" label="규칙" active={sortKey === 'name'} dir={sortDir} onClick={() => onSort('name')} />
@@ -547,6 +559,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
           </table>
         </div>
       </div>
+      )}
 
       <ConfirmDialog
         isOpen={!!deleteTargetId}

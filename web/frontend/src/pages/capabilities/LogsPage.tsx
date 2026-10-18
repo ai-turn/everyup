@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusLight, type CollectionStatus } from '../../components/common';
+import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable, StatusLight, type CollectionStatus } from '../../components/common';
+import { useListView } from '../../hooks/useListView';
 import { fillBuckets, formatTimeTick } from '../../components/charts';
 import { LEVEL_BASE, LEVEL_FILL, LEVEL_TEXT } from '../../features/healthcheck/logLevelStyle';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
@@ -101,13 +102,13 @@ function LatestLine({ summary, known }: { summary?: LogServiceSummary; known: bo
   return <span className="text-text-muted">{`${known ? '오류·경고 없음 · ' : ''}마지막 수신 ${ago(lastReceived)}`}</span>;
 }
 
-function LogCard({ row, window: span }: { row: LogServiceRow; window: [number, number] }) {
+function LogCard({ row, window: span, returnTo }: { row: LogServiceRow; window: [number, number]; returnTo: string }) {
   const summary = row.summary;
   const collection = collectionOf(summary, span[0]);
   const known = collection === 'collecting';
 
   return (
-    <Link to={row.to} className="card-interactive group flex flex-col rounded-xl border border-ui-border bg-bg-surface p-4">
+    <Link to={row.to} state={{ returnTo }} className="card-interactive group flex flex-col rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.name}</h3>}
         badge={<ConnectionSourceBadge source={row.connection} />}
@@ -154,6 +155,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
 }
 
 export function LogsPage() {
+  const { view, setView, returnTo } = useListView();
   const [rows, setRows] = useState<LogServiceRow[]>([]);
   const [patterns, setPatterns] = useState<{ pattern: LogPattern; row: LogServiceRow }[]>([]);
   const [span, setSpan] = useState<[number, number]>([0, 0]);
@@ -215,6 +217,7 @@ export function LogsPage() {
       <PageHeader title="로그" subtitle="서비스별 최근 오류·경고 건수를 보고, 서비스를 열어 로그를 검색합니다.">
         <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
+      <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map(item => <div key={item} className="h-48 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}
@@ -232,9 +235,14 @@ export function LogsPage() {
               <h2 className="type-section-title text-text-base">로그 서비스</h2>
               <span className="text-xs text-text-dim">{`최근 24시간 · ${rows.length}`}</span>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {rows.map(row => <LogCard key={row.key} row={row} window={span} />)}
-            </div>
+            {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{rows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
+              <ResourceTable rows={rows} rowKey={row => row.key} ariaLabel="로그 서비스 그리드" columns={[
+                { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 truncate type-caption text-text-muted">{row.subtitle || '직접 연결'}</p><div className="mt-2 md:hidden">{row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} />}</div><div className="mt-2 flex min-w-0 items-baseline gap-2 text-xs xl:hidden"><LatestLine summary={row.summary} known={collectionOf(row.summary, span[0]) === 'collecting'} /></div></> },
+                { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} /> },
+                ...(['error', 'warn'] as const).map(level => ({ key: level, label: level.toUpperCase(), className: 'w-20', align: 'right' as const, render: (row: LogServiceRow) => collectionOf(row.summary, span[0]) === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <span className="text-text-muted" title="최근 24시간 수신한 로그 없음">—</span> })),
+                { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },
+                { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 text-xs"><LatestLine summary={row.summary} known={collectionOf(row.summary, span[0]) === 'collecting'} /></div> },
+              ]} />}
           </section>
           {/* 오류가 없으면 섹션째 숨긴다 — 위 카드가 이미 0건이라고 말한다. */}
           {patterns.length > 0 && (

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusLight } from '../../components/common';
+import { ConnectionSourceBadge, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable } from '../../components/common';
+import { useListView } from '../../hooks/useListView';
+import { TelemetryCollectionStatus } from '../../features/telemetry/components/TelemetryCollectionStatus';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import {
   api,
@@ -36,6 +38,7 @@ function MetricCard({
   metricNames,
   to,
   active,
+  returnTo,
 }: {
   name: string;
   connection: 'direct' | 'docker';
@@ -45,17 +48,16 @@ function MetricCard({
   to: string;
   /** direct: 연결이 켜져 있는가 · docker: Collector가 최근에 보고했는가 */
   active: boolean;
+  returnTo: string;
 }) {
   return (
-    <Link to={to} className="card-interactive group rounded-xl border border-ui-border bg-bg-surface p-4">
+    <Link to={to} state={{ returnTo }} className="card-interactive group rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{name}</h3>}
         badge={<ConnectionSourceBadge source={connection} />}
         subtitle={subtitle}
         // API·인프라 목록과 같은 수집 상태 표기 (§5.1a)
-        status={connection === 'direct'
-          ? <StatusLight tone={active ? 'healthy' : 'error'} label={active ? '수집 가능' : '중지됨'} />
-          : <CollectionStatusBadge status={active ? 'collecting' : 'delayed'} />}
+        status={<TelemetryCollectionStatus connection={connection} active={active} />}
       />
       {/* No single "current value": which of a service's metrics would represent it is arbitrary. */}
       {metricNames.length > 0 ? (
@@ -78,6 +80,7 @@ function MetricCard({
 }
 
 export function MetricsPage() {
+  const { view, setView, returnTo } = useListView();
   const [dockerCards, setDockerCards] = useState<DockerMetricCard[]>([]);
   const [directServices, setDirectServices] = useState<ObservedService[]>([]);
   const [directMetrics, setDirectMetrics] = useState<OtelServiceMetric[]>([]);
@@ -128,12 +131,17 @@ export function MetricsPage() {
   }, [directMetrics]);
 
   const isEmpty = directServices.length === 0 && dockerCards.length === 0;
+  const rows = [
+    ...directServices.map(service => ({ id: `direct:${service.id}`, name: service.name, connection: 'direct' as const, subtitle: undefined, metricNames: sortedNames(directNamesByService.get(service.id)), to: `/metrics/${service.id}`, active: service.isActive })),
+    ...dockerCards.map(card => ({ id: `docker:${card.agent.id}:${card.service.key}`, name: card.service.name, connection: 'docker' as const, subtitle: card.agent.name, metricNames: sortedNames(card.metricNames), to: `/services/${card.service.agentId}/${encodeURIComponent(card.service.key)}?tab=metrics`, active: agentOnline(card.agent) })),
+  ];
 
   return (
     <div>
       <PageHeader title="메트릭" subtitle="서비스의 성능 수치와 시간에 따른 변화를 확인합니다.">
         <MonitoringConnection capability="metrics" onConnected={reload} />
       </PageHeader>
+      <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
 
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -151,29 +159,13 @@ export function MetricsPage() {
             <h2 className="type-section-title text-text-base">메트릭 서비스</h2>
             <span className="text-xs text-text-dim">{directServices.length + dockerCards.length}</span>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {directServices.map(service => (
-              <MetricCard
-                key={service.id}
-                name={service.name}
-                connection="direct"
-                metricNames={sortedNames(directNamesByService.get(service.id))}
-                to={`/metrics/${service.id}`}
-                active={service.isActive}
-              />
-            ))}
-            {dockerCards.map(card => (
-              <MetricCard
-                key={`${card.agent.id}:${card.service.name}`}
-                name={card.service.name}
-                connection="docker"
-                subtitle={card.agent.name}
-                metricNames={sortedNames(card.metricNames)}
-                to={`/services/${card.service.agentId}/${encodeURIComponent(card.service.key)}?tab=metrics`}
-                active={agentOnline(card.agent)}
-              />
-            ))}
-          </div>
+          {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{rows.map(row => <MetricCard key={row.id} {...row} returnTo={returnTo} />)}</div> :
+            <ResourceTable rows={rows} rowKey={row => row.id} ariaLabel="메트릭 서비스 그리드" columns={[
+              { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 truncate type-caption text-text-muted">{row.subtitle || '직접 연결'}</p><div className="mt-2 md:hidden"><TelemetryCollectionStatus {...row} /></div><p className="mt-2 truncate font-mono text-xs text-text-muted lg:hidden">{row.metricNames.length ? row.metricNames.slice(0, METRIC_NAMES_SHOWN).join(' · ') : '첫 메트릭 수신 대기'}</p></> },
+              { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => <TelemetryCollectionStatus {...row} /> },
+              { key: 'count', label: '메트릭', className: 'w-20 sm:w-24', align: 'right', render: row => row.metricNames.length },
+              { key: 'metrics', label: '메트릭 이름', className: 'hidden lg:table-cell', render: row => row.metricNames.length ? <><ul className="space-y-1">{row.metricNames.slice(0, METRIC_NAMES_SHOWN).map(name => <li key={name} className="truncate font-mono text-xs text-text-secondary">{name}</li>)}</ul>{row.metricNames.length > METRIC_NAMES_SHOWN && <p className="mt-1 type-caption text-text-muted">외 {row.metricNames.length - METRIC_NAMES_SHOWN}개</p>}</> : <span className="type-caption text-text-muted">첫 메트릭 수신 대기</span> },
+            ]} />}
         </section>
       )}
 

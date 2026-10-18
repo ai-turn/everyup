@@ -459,6 +459,8 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`CollectionStatusBadge`** | `collecting` \| `partial` \| `delayed` \| `waiting` \| `not-configured` | 수집 신선도·설정 상태. 서비스 상태와 별도 축 (§5.1) |
 | **`Toggle`** | `checked` `onChange` `disabled` `title` | w-9 h-5, `role="switch"` |
 | **`SegmentedControl<T>`** | `options` `value` `onChange` `size` `ariaLabel` | 2~4지 배타 선택 |
+| **`ListViewToggle`** | `view` `onChange` | 대상 목록의 그리드·카드 전환. `SegmentedControl md` 래퍼 (§4.5) |
+| **`ResourceTable<T>`** | `rows` `columns` `rowKey` `ariaLabel` `renderDetails?` | 대상 비교 표. 숫자 우측 정렬·반응형 열·행 아래 구성 관리 (§4.5) |
 | **`TimeRangePicker`** | `value: GlobalTimeRange` `onChange` | `1h`\|`6h`\|`24h`. SegmentedControl 래퍼 |
 | **`ConfirmDialog`** | `isOpen` `title` `message` `variant` `icon` … | `window.confirm()` 금지 — 항상 이것 |
 | **`EmptyState`** | `icon` `title` `description?` `action?` `children?` | 빈 목록의 정본. 라벨+핸들러면 `action`, 자체 상태를 가진 트리거(연결 다이얼로그 등)는 children |
@@ -661,7 +663,7 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 ### 4.5 표 (2026-10-09)
 
-공용 컴포넌트는 없고 마크업 규약만 있다. 두 종류다.
+대상 비교 목록은 공용 `ResourceTable`을 쓴다. 정렬·페이지·고정 작업 열이 있는 알림 데스크톱 표와 로그·트레이스 표는 아래 마크업 규약을 따른다. 두 종류다.
 
 **데이터 표** — 카드 하나를 통째로 쓰는 목록(알림 규칙·채널·발송 이력, 트레이스). 카드 셸(`overflow-hidden rounded-xl border border-ui-border bg-bg-surface`)에 패딩 없이 붙인다. 그래야 첫 열의 `px-4`가 다른 카드의 `p-4`와 같은 기준선이 된다.
 
@@ -676,7 +678,11 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 본문 글자는 `text-sm`, 로그·트레이스처럼 기계 문자열이 주인 표는 `text-xs`(§2.2).
 
-**업타임 목록 (2026-10-18)** — 기본은 `UptimeTargets`의 그리드(비교 표), `ListToolbar`의 `SegmentedControl md`로 카드도 선택한다. 두 보기는 같은 검색 결과와 상태 우선 순서를 공유하고 `view=card`를 URL에 보존한다. 상태 요약은 큰 카드 대신 작은 수치 행이다. 모바일 그리드는 상태·대상·상태 변경을 유지하며 주소(`md` 미만)와 최근 확인(`xl` 미만)을 대상 열에 모은다. 넓은 표를 그대로 가로 스크롤시키지 않는다. 카드 선택 시에는 기존 대상 카드의 반응형 열 수를 따른다.
+**목록 보기 (2026-10-18)** — 업타임·Projects·Docker 환경·로그·인프라·API 요청·메트릭·알림의 기본은 그리드(비교 표)다. 환경 상세의 서비스 목록과 Project 상세의 구성 목록도 같다. 목록 툴바 오른쪽의 `ListViewToggle`로 카드를 선택하며, `useListView`가 `view=card`를 URL에 보존한다. 기본값과 알 수 없는 값은 그리드다. 보기만 바꿀 때 검색·탭·대상 필터를 지우지 않고, 두 보기는 같은 데이터·순서·작업을 사용한다. 개요 상태판·상세 차트·설정 폼에는 적용하지 않는다.
+
+`ResourceTable`의 셀은 `px-3 sm:px-4`, 본문은 `py-4`다. 모바일에서는 보조 열을 숨기고 필요한 수치·수집 상태를 대상 이름 아래로 모아 페이지의 가로 넘침을 막는다. Project의 배정·해제·수정은 행의 `구성 관리`로 펼치며, 설치 대기 Docker 환경의 명령·키·비활성화는 `설치·작업`에서 연다. 카드 선택 시에는 기존 대상 카드의 반응형 열 수를 따른다.
+
+**업타임 목록** — `UptimeTargets`의 두 보기는 같은 검색 결과와 상태 우선 순서를 공유한다. 상태 요약은 큰 카드 대신 작은 수치 행이다. 모바일 그리드는 상태·대상·상태 변경을 유지하며 주소(`md` 미만)와 최근 확인(`xl` 미만)을 대상 열에 모은다.
 
 **카드 안 보조 표** — 패딩 있는 카드 안의 짧은 기록(업타임 체크 기록). 헤더 채움 없이 `type-caption text-text-muted`, 래퍼 `-mx-2` + 셀 `px-2`로 글자를 카드 좌측 기준선에 맞춘다(§4.1 "카드의 좌측 기준선은 하나다").
 

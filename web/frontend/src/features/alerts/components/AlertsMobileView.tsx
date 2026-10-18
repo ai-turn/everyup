@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button, IconButton, MaterialIcon, PageHeader, Toggle } from '../../../components/common';
+import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, ResourceTable, StatusLight, Toggle } from '../../../components/common';
+import { useListView } from '../../../hooks/useListView';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { getChannelStyle } from '../utils/channelMeta';
 import { ChannelHealthMeta } from './ChannelHealthMeta';
@@ -71,6 +72,7 @@ export function AlertsMobileView({
   errors,
   onRetry,
 }: AlertsMobileViewProps) {
+  const { view, setView } = useListView();
 
   const visibleRules = alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules;
   const targetDescription = alertTarget?.kind === 'direct'
@@ -96,6 +98,7 @@ export function AlertsMobileView({
           </Button>
         )}
       </PageHeader>
+      <div className="flex"><ListViewToggle view={view} onChange={setView} /></div>
 
       {/* Stats Summary */}
       {stats && (
@@ -162,7 +165,10 @@ export function AlertsMobileView({
               <Button variant="ghost" className="mt-3" onClick={onAddChannel}>추가</Button>
             </div>
           ) : (
-            channels.map(channel => {
+            view === 'grid' ? <ResourceTable rows={channels} rowKey={row => row.id} ariaLabel="알림 채널 그리드" columns={[
+              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3"><ChannelHealthMeta health={channelHealth[channel.id]} compact /></div><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
+              { key: 'enabled', label: '상태', className: 'w-16', render: channel => <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /> },
+            ]} /> : channels.map(channel => {
               const meta = getChannelStyle(channel.type);
               return (
                 <div
@@ -222,7 +228,10 @@ export function AlertsMobileView({
               <Button variant="ghost" className="mt-3" onClick={onAddRule}>추가</Button>
             </div>
           ) : (
-            visibleRules.map(rule => {
+            view === 'grid' ? <ResourceTable rows={visibleRules} rowKey={row => row.id} ariaLabel="알림 규칙 그리드" columns={[
+              { key: 'name', label: '규칙', render: rule => <><p className="truncate font-medium">{rule.name}</p><p className="mt-2 break-words type-caption text-text-muted">{severityLabel(rule.severity)} · {rule.metric} {rule.operator} {rule.threshold}</p><p className="mt-1 type-caption text-text-muted">{rule.isEnabled ? '활성화됨' : '비활성화됨'}</p></> },
+              { key: 'enabled', label: '상태', className: 'w-16', render: rule => <Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /> },
+            ]} /> : visibleRules.map(rule => {
               const sev = severityColors[rule.severity] ?? severityColors.info;
               return (
                 <div
@@ -267,7 +276,10 @@ export function AlertsMobileView({
               </p>
             </div>
           ) : (
-            history.map(item => {
+            view === 'grid' ? <ResourceTable rows={history} rowKey={row => row.id} ariaLabel="알림 로그 그리드" columns={[
+              { key: 'message', label: '메시지', render: item => <><p className="break-words text-sm">{item.message}</p><p className="mt-2 type-caption text-text-muted">{item.channelName} · {item.channelType}</p><p className="mt-1 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}</p></> },
+              { key: 'status', label: '상태', className: 'w-24', render: item => <StatusLight tone={item.status === 'sent' ? 'healthy' : item.status === 'failed' ? 'error' : 'warn'} label={item.status} /> },
+            ]} /> : history.map(item => {
               const statusConf = historyStatusConfig[item.status] ?? historyStatusConfig.pending;
               return (
                 <div

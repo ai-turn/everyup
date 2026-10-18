@@ -3,13 +3,14 @@ import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import {
   Button, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput,
-  SegmentedControl, StatusLight,
+  ListViewToggle, StatusLight,
 } from '../../components/common';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeTargets } from '../../features/uptime/components/UptimeTargets';
 import { api, type AgentServiceFlat, type UptimeMonitor, type UptimeMonitorInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { dockerUptimeState } from '../../utils/operationalStatus';
+import { useListView } from '../../hooks/useListView';
 
 const UptimeListPrototype = import.meta.env.DEV ? lazy(() => import('./UptimeList.prototype').then((module) => ({ default: module.UptimeListPrototype }))) : null;
 
@@ -34,12 +35,7 @@ export function AgentServiceCapabilityPage() {
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
-  const view = searchParams.get('view') === 'card' ? 'card' : 'grid';
-  const setView = (value: 'grid' | 'card') => {
-    const next = new URLSearchParams(searchParams);
-    if (value === 'card') next.set('view', value); else next.delete('view');
-    setSearchParams(next, { replace: true });
-  };
+  const { view, setView } = useListView();
   const setQuery = (value: string) => {
     const next = new URLSearchParams(searchParams);
     if (value) next.set('q', value); else next.delete('q');
@@ -146,8 +142,7 @@ export function AgentServiceCapabilityPage() {
       <ListToolbar search={
         <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
       }>
-        <div className="sm:ml-auto"><SegmentedControl ariaLabel="대상 보기 방식" size="md" value={view} onChange={setView}
-          options={[{ value: 'grid', label: '그리드' }, { value: 'card', label: '카드' }]} /></div>
+        <ListViewToggle view={view} onChange={setView} />
       </ListToolbar>
 
       {hasErrors && (

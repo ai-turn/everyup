@@ -4,9 +4,10 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailActionToolbar, DetailMeta, EmptyState, PageHeader, ResourceCardHeader } from '../../components/common';
+import { Button, DetailActionToolbar, DetailMeta, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable } from '../../components/common';
+import { useListView } from '../../hooks/useListView';
+import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
-import { StatusBadge } from '../../components/common/StatusBadge';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import {
@@ -51,22 +52,24 @@ function metricLabel(name: string): string {
 // straight from the flat snapshot (no extra fetch). The representative metric,
 // when present, is the service's most telling exported OTel metric. Click →
 // full service detail.
-function ServiceCard({ service, metric, to }: {
+function ServiceCard({ service, metric, to, returnTo }: {
   service: AgentServiceFlat;
   metric?: OtelServiceMetric;
   to: string;
+  returnTo: string;
 }) {
 
   return (
     <Link
       to={to}
+      state={{ returnTo }}
       aria-label={service.name}
       className="card-interactive group bg-bg-surface border border-ui-border rounded-xl p-4 flex flex-col gap-3"
     >
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{service.name}</h3>}
         subtitle={service.runtime ?? service.checkType}
-        status={<StatusBadge healthy={service.healthy} />}
+        status={<DockerUptimeStatus service={service} />}
       />
 
       <div className="grid grid-cols-3 gap-3 text-sm">
@@ -102,6 +105,7 @@ function ServiceCard({ service, metric, to }: {
 // Project overview: aggregate header + service health grid. Individual service
 // detail lives at /services/:agentId/:key (linked from the sidebar tree too).
 export function ProjectDetailPage() {
+  const { view, setView, returnTo } = useListView();
   const { agentId } = useParams<{ agentId: string }>();
   const navigate = useNavigate();
 
@@ -265,16 +269,25 @@ export function ProjectDetailPage() {
       )}
 
       {/* Service health grid */}
+      <div className="flex"><ListViewToggle view={view} onChange={setView} /></div>
       {services.length === 0 && !loadError ? (
         <EmptyState icon="inventory_2" title="수집된 서비스가 없습니다" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        view === 'grid' ? <ResourceTable rows={services} rowKey={row => row.key} ariaLabel="Docker 서비스 그리드" columns={[
+          { key: 'state', label: '상태', className: 'w-24 sm:w-28', render: row => <DockerUptimeStatus service={row} /> },
+          { key: 'name', label: '서비스', render: row => <><Link to={`/services/${agentId}/${encodeURIComponent(row.key)}`} state={{ returnTo }} className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.runtime || row.checkType}</p><p className="mt-2 truncate font-mono text-xs text-text-muted md:hidden">{row.endpoint}</p><p className="mt-1 type-caption text-text-muted md:hidden">응답 {row.lastLatency ?? '—'} · 상태 {row.lastStatus ?? '—'}</p></> },
+          { key: 'endpoint', label: '체크 주소', className: 'hidden lg:table-cell', render: row => <p className="truncate font-mono text-xs text-text-muted" title={row.endpoint}>{row.endpoint}</p> },
+          { key: 'latency', label: '응답 시간', className: 'hidden w-28 md:table-cell', align: 'right', render: row => row.lastLatency ?? '—' },
+          { key: 'status', label: '상태 코드', className: 'hidden w-24 md:table-cell', align: 'right', render: row => row.lastStatus ?? '—' },
+          { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <><p className="truncate font-mono text-xs text-text-muted" title={metrics[row.name].metricName}>{metricLabel(metrics[row.name].metricName)}</p><p className="mt-1">{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></> : '—' },
+        ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {services.map((s) => (
             <ServiceCard
               key={s.key}
               service={s}
               metric={metrics[s.name]}
               to={`/services/${agentId}/${encodeURIComponent(s.key)}`}
+              returnTo={returnTo}
             />
           ))}
         </div>

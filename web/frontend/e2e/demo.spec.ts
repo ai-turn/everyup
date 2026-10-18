@@ -58,7 +58,7 @@ test.describe('live demo', () => {
   test('project overview includes Docker service outages and resolves legacy environment URLs', async ({ page }) => {
     await page.goto('./projects/project_mock_production');
     await expect(page.getByRole('heading', { level: 1, name: 'Production' })).toBeVisible();
-    await expect(page.getByText('Docker 서비스 장애', { exact: true })).toBeVisible();
+    await expect(page.getByText('Docker 서비스 장애', { exact: true }).filter({ visible: true })).toBeVisible();
 
     await page.goto('./projects/agent_demo_01');
     await expect(page).toHaveURL(/\/agents\/agent_demo_01$/);

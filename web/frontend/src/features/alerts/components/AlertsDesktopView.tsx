@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Button, IconButton, MaterialIcon, PageHeader, EmptyState, Toggle } from '../../../components/common';
+import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, EmptyState, Toggle } from '../../../components/common';
+import { useListView } from '../../../hooks/useListView';
+import { ChannelHealthMeta } from './ChannelHealthMeta';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { AlertRulesTab } from './AlertRulesTab';
 import { ChannelForm } from './ChannelForm';
@@ -56,6 +58,7 @@ export function AlertsDesktopView({
   onTestChannel,
   onAddRule,
 }: AlertsDesktopViewProps) {
+  const { view, setView } = useListView();
 
   // Channel form — right slide-over panel (same pattern as the rules tab)
   const [channelFormOpen, setChannelFormOpen] = useState(false);
@@ -111,6 +114,7 @@ export function AlertsDesktopView({
           </Button>
         )}
       </PageHeader>
+      <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
 
       {/* 7-day delivery summary — one card, divider-separated cells. Active rule/channel
           counts were dropped: the channel table's toggles and the rules tab already say them. */}
@@ -231,6 +235,7 @@ interface ChannelsGridProps {
 }
 
 function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd, onEdit, onDelete, onToggle, onTest }: ChannelsGridProps) {
+  const { view } = useListView();
 
   if (isLoading) {
     return (
@@ -270,9 +275,15 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
     );
   }
 
+  if (view === 'card') return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{channels.map(channel => <article key={channel.id} aria-label={channel.name} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
+    <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{channel.name}</h2><p className="mt-1 type-caption text-text-muted">{getChannelSubtitle(channel.type)}</p></div><Toggle checked={channel.isEnabled} onChange={() => onToggle(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /></div>
+    <div className="mt-4"><ChannelHealthMeta health={channelHealth[channel.id]} compact /></div>
+    <div className="mt-4 flex items-center justify-end gap-2"><Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled}><MaterialIcon name="send" size={20} />테스트</Button><IconButton icon="edit" label="수정" onClick={() => onEdit(channel)} /><IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => onDelete(channel.id)} /></div>
+  </article>)}</div>;
+
   return (
     <div className="overflow-x-auto rounded-xl border border-ui-border bg-bg-surface">
-      <table className="w-full min-w-[960px] table-fixed">
+      <table aria-label="알림 채널 그리드" className="w-full min-w-[960px] table-fixed">
         <thead className="bg-ui-hover-soft">
           <tr className="border-b border-ui-border">
             <th className="w-[280px] px-4 py-3 text-left text-xs font-medium text-text-muted">채널</th>

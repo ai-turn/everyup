@@ -2,7 +2,8 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
+import { Button, ConfirmDialog, DetailActionToolbar, EmptyState, ListViewToggle, MaterialIcon, PageHeader, ResourceTable } from '../../components/common';
+import { useListView } from '../../hooks/useListView';
 import {
   api,
   type AgentServiceFlat,
@@ -35,10 +36,10 @@ type Member = { key: string; to: string; icon: string; name: string; detail: str
 // key에 유형을 붙인다 — Docker 호스트의 인프라 리소스는 환경과 같은 id를 쓴다.
 const STATE_ORDER: Record<MemberState, number> = { error: 0, warn: 1, idle: 2, healthy: 3 };
 
-function MemberLink({ to, icon, name, detail, state }: Omit<Member, 'key'>) {
+function MemberLink({ to, icon, name, detail, state, returnTo }: Omit<Member, 'key'> & { returnTo: string }) {
   const stateClass = { healthy: 'text-status-healthy', warn: 'text-status-warn', error: 'text-status-error', idle: 'text-status-idle' }[state];
   return (
-    <Link to={to} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
+    <Link to={to} state={{ returnTo }} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
       <MaterialIcon size={20} name={icon} className={`shrink-0 ${stateClass}`} />
       <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-0.5 block truncate text-xs text-text-muted">{detail}</span></span>
       <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
@@ -47,6 +48,7 @@ function MemberLink({ to, icon, name, detail, state }: Omit<Member, 'key'>) {
 }
 
 export function ProjectOverviewPage() {
+  const { view, setView, returnTo } = useListView();
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<ProjectData>({ project: null, agents: [], services: [], monitors: [], observedServices: [], infrastructure: [] });
@@ -160,11 +162,13 @@ export function ProjectOverviewPage() {
       {failedSources.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{failedSources.join(', ')} 정보를 제외한 결과입니다.</p></div></div><Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button></section>}
 
       {totalTargets === 0 ? <section className="rounded-xl border border-ui-border bg-bg-surface"><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="Project 관리 화면에서 환경과 모니터링 대상을 배정하세요." action={{ label: 'Project 관리', to: '/projects' }} /></section> : (
-        <section className="rounded-xl border border-ui-border bg-bg-surface">
-          <div className="border-b border-ui-border px-4 py-3.5"><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div>
-          <div className="divide-y divide-ui-border-soft">
-            {members.map(({ key, ...member }) => <MemberLink key={key} {...member} />)}
-          </div>
+        <section>
+          <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
+          {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, ...member }) => <div key={key} className="overflow-hidden rounded-xl border border-ui-border bg-bg-surface"><MemberLink {...member} returnTo={returnTo} /></div>)}</div> :
+            <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="Project 구성 그리드" columns={[
+              { key: 'name', label: '대상', render: row => <><Link to={row.to} state={{ returnTo }} className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 break-words type-caption text-text-muted md:hidden">{row.detail}</p></> },
+              { key: 'detail', label: '현황', className: 'hidden md:table-cell', render: row => <span className="text-text-muted">{row.detail}</span> },
+            ]} />}
         </section>
       )}
 

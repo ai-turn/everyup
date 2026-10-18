@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MaterialIcon, Pagination, SegmentedControl, SearchInput, ListToolbar, Select, IconButton } from '../../../components/common';
+import { MaterialIcon, Pagination, SegmentedControl, SearchInput, ListToolbar, Select, IconButton, StatusLight } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { api, NotificationChannel, NotificationHistory, NotificationStats } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
 import { SeverityBadge } from './SeverityBadge';
 import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useListView } from '../../../hooks/useListView';
 
 const HISTORY_TYPE_LABELS: Record<string, string> = {
   resource: '리소스',
@@ -44,7 +45,25 @@ interface NotificationHistoryTabProps {
   initialStatus?: StatusFilter;
 }
 
+type HistoryRow = { kind: 'group'; label: string; key: string } | { kind: 'item'; item: NotificationHistory };
+
+function HistoryCards({ rows, loading }: { rows: HistoryRow[]; loading: boolean }) {
+  if (loading) return <p className="p-6 text-sm text-text-muted">로딩 중...</p>;
+  if (rows.length === 0) return <p className="p-6 text-sm text-text-muted">알림 히스토리가 없습니다</p>;
+  return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{rows.map(row => row.kind === 'group' ? <h2 key={`g-${row.key}`} className="col-span-full type-label text-text-muted">{row.label}</h2> : <HistoryCard key={row.item.id} item={row.item} />)}</div>;
+}
+
+function HistoryCard({ item }: { item: NotificationHistory }) {
+  return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
+    <div className="flex flex-wrap items-center justify-between gap-2"><StatusLight tone={item.status === 'sent' ? 'healthy' : item.status === 'failed' ? 'error' : 'warn'} label={item.status} />{item.severity && <SeverityBadge severity={item.severity} />}</div>
+    <p className="mt-3 break-words text-sm text-text-base">{item.message}</p><p className="mt-2 break-words type-caption text-text-muted">{item.channelName} · {item.channelType} · {typeLabel(item.alertType)}</p>
+    {item.errorMessage && <p className="mt-3 break-words type-caption text-status-error">{item.errorMessage}{item.retryCount > 0 && ` · ${item.retryCount}회 재시도`}</p>}
+    <p className="mt-3 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })} · {format(new Date(item.createdAt), 'M월 d일 HH:mm')}</p>
+  </article>;
+}
+
 export function NotificationHistoryTab({ channels, initialStatus }: NotificationHistoryTabProps) {
+  const { view } = useListView();
 
   const [history, setHistory] = useState<NotificationHistory[]>([]);
   const [stats, setStats] = useState<NotificationStats | null>(null);
@@ -107,7 +126,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
 
   // Rows interleaved with date-group headers
   const groupedRows = useMemo(() => {
-    const rows: ({ kind: 'group'; label: string; key: string } | { kind: 'item'; item: NotificationHistory })[] = [];
+    const rows: HistoryRow[] = [];
     let prevDay = '';
     for (const item of history) {
       const d = new Date(item.createdAt);
@@ -191,9 +210,10 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
       </ListToolbar>
 
       {/* History Table */}
-      <div className="bg-bg-surface rounded-xl border border-ui-border overflow-hidden">
+      <div className={view === 'card' ? 'space-y-3' : 'bg-bg-surface rounded-xl border border-ui-border overflow-hidden'}>
+        {view === 'card' ? <HistoryCards rows={groupedRows} loading={loading} /> : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[960px] table-fixed">
+          <table aria-label="알림 로그 그리드" className="w-full min-w-[960px] table-fixed">
             <thead className="bg-ui-hover-soft">
               <tr className="border-b border-ui-border">
                 <th className={`${thClass} w-[110px]`}>상태</th>
@@ -282,6 +302,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
             </tbody>
           </table>
         </div>
+        )}
 
         {/* Pagination */}
         {!loading && total > 0 && (
