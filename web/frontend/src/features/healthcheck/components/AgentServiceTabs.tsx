@@ -9,7 +9,6 @@ import { AgentServiceRequestsTab } from './AgentServiceRequestsTab';
 import { AgentServiceTracesTab } from './AgentServiceTracesTab';
 import { AgentServiceMetricsTab } from './AgentServiceMetricsTab';
 import { AgentServiceInfraTab } from './AgentServiceInfraTab';
-import { ServiceIncidentBanner } from './ServiceIncidentBanner';
 
 export interface ServiceTabsProps {
   service: AgentServiceFlat;
@@ -81,9 +80,8 @@ function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, trac
   return <UptimeContent service={service} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />;
 }
 
-// Tab bar + content for a single agent service. Reused by the full-page service
-// detail and the project master-detail view. Resets to the uptime tab when the
-// selected service changes (key={serviceKey} at the call site).
+// Tab bar + content for a single agent service. Resets to the uptime tab when
+// the selected service changes (key={serviceKey} at the call site).
 export function AgentServiceTabs({ initialTab = 'uptime', tab, onTabChange, ...props }: ServiceTabsProps & {
   initialTab?: DetailTab;
   tab?: DetailTab;
@@ -97,7 +95,6 @@ export function AgentServiceTabs({ initialTab = 'uptime', tab, onTabChange, ...p
   };
   return (
     <>
-      <ServiceIncidentBanner service={props.service} onInvestigate={() => changeTab('logs')} />
       <TabBar active={activeTab} onChange={changeTab} serviceKey={props.serviceKey} />
       <div role="tabpanel" id={`service-panel-${props.serviceKey}-${activeTab}`} aria-labelledby={`service-tab-${props.serviceKey}-${activeTab}`}>
         <TabContent tab={activeTab} {...props} />

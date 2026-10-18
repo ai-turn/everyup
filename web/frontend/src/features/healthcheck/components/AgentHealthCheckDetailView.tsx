@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, DetailMeta, MaterialIcon, PageHeader, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
 import { DockerUptimeStatus } from '../../uptime/components/DockerUptimeStatus';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
@@ -55,7 +55,7 @@ function containerFields(service: AgentServiceFlat): DetailMetaField[] {
   const uptime = formatUptime(service.startedAt);
   const restarts = service.restartCount ?? 0;
   return [
-    { label: 'Image', value: <span className="truncate font-mono">{service.image}</span> },
+    { label: 'Image', value: <span className="wrap-anywhere font-mono">{service.image}</span> },
     ...(uptime ? [{ label: 'Uptime', value: uptime }] : []),
     ...(restarts > 0
       ? [{ label: 'Restarts', value: <span className={restarts >= 3 ? 'text-status-warn' : ''}>{restarts}회</span> }]
@@ -103,20 +103,21 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
             fields={[...checkFields(service), ...containerFields(service)]}
           />
         }
-      />
-      <DetailActionToolbar
-        controls={
-          <>
+        aside={
+          <div role="group" aria-label="서비스 조회 및 알림" className="flex flex-wrap items-center gap-2 xl:justify-end">
             <TimeRangePicker value={range} onChange={setRange} />
-            <Button collapseLabel variant="secondary" loading={props.refreshing} onClick={props.onRefresh}>
-              <MaterialIcon name="refresh" />새로고침
-            </Button>
-          </>
-        }
-        actions={
-          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'agent', agentId, serviceKey })}>
-            <MaterialIcon name="notifications" />알림 규칙
-          </ButtonLink>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button collapseLabel variant="secondary" loading={props.refreshing} onClick={props.onRefresh}>
+                <MaterialIcon name="refresh" />새로고침
+              </Button>
+              <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'agent', agentId, serviceKey })}>
+                <MaterialIcon name="notifications" />알림 규칙
+              </ButtonLink>
+              <Button variant="secondary" disabled={service.healthy} onClick={() => props.onTabChange('logs')}>
+                에러 확인<MaterialIcon name="arrow_forward" />
+              </Button>
+            </div>
+          </div>
         }
       />
       <AgentServiceTabs
