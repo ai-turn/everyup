@@ -420,15 +420,13 @@ html:not(.dark) .only-dark {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.topology .topology-sub code,
 .topology .topology-hop code {
   padding: 0;
   background: none;
   font-family: var(--vp-font-family-mono);
   font-size: 12px;
   color: var(--vp-c-text-1);
-}
-.topology-hop span {
-  color: var(--vp-c-text-2);
 }
 .topology-sub {
   font-size: 13px;

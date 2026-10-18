@@ -23,50 +23,46 @@ const link = (path: string) => withBase((ko.value ? '' : '/en') + path)
 const t = computed(() =>
   ko.value
     ? {
-        host: '모니터링할 서버',
-        hostNote: 'Docker 호스트마다',
+        host: '모니터링 대상 Docker 호스트',
+        hostNote: '× N',
         existing: '기존',
         app: '앱 컨테이너',
-        appDesc: '수정하지 않음',
-        collectorDesc: '컨테이너 상태 · 로그 · 호스트 메트릭',
+        appDesc: '코드·이미지 변경 없음',
+        collectorDesc: '컨테이너 상태 · stdout/stderr 로그 · 호스트 메트릭',
         optional: '선택',
-        ebpfDesc: 'API latency · 트레이스',
-        readOnly: '읽기 전용',
-        traces: '트레이스',
-        outbound: '나가는 연결만',
+        ebpfDesc: '계측 코드 없이 요청 latency · 트레이스',
+        outbound: '아웃바운드 전용',
         dash: '대시보드 서버',
-        webDesc: '대시보드 · 이력 저장 · 알림 규칙',
+        webDesc: 'UI · REST API · SQLite · 알림 규칙 평가',
         uptime: '업타임 모니터',
-        uptimeDesc: '외부 URL·TCP 응답 확인',
-        otel: 'OTLP 직접 수신',
-        otelDesc: 'Docker 밖의 앱',
-        alert: '장애 알림',
+        uptimeDesc: '외부 HTTP·TCP 엔드포인트 헬스 체크',
+        otel: 'OTLP 엔드포인트',
+        otelDesc: 'Docker 밖 서비스용',
+        alert: '알림 발송',
         channels: '알림 채널',
         caption:
-          '모니터링할 서버의 Docker Collector가 대시보드 서버의 Web으로 데이터를 보내고, Web은 알림 규칙에 따라 채널로 알림을 보냅니다. 모니터링할 서버에는 들어오는 포트를 열지 않습니다.',
+          '각 Docker 호스트의 Collector가 Web으로 데이터를 push하고, Web은 알림 규칙을 평가해 채널로 알림을 보냅니다. 모니터링 대상 호스트에는 인바운드 포트를 열 필요가 없습니다.',
       }
     : {
-        host: 'Monitored server',
-        hostNote: 'one per Docker host',
+        host: 'Monitored Docker host',
+        hostNote: '× N',
         existing: 'existing',
         app: 'App containers',
-        appDesc: 'left unchanged',
-        collectorDesc: 'Container state · logs · host metrics',
+        appDesc: 'No code or image changes',
+        collectorDesc: 'Container state · stdout/stderr logs · host metrics',
         optional: 'optional',
-        ebpfDesc: 'API latency · traces',
-        readOnly: 'read-only',
-        traces: 'traces',
+        ebpfDesc: 'Request latency · traces, no instrumentation',
         outbound: 'outbound only',
         dash: 'Dashboard server',
-        webDesc: 'Dashboard · history · alert rules',
+        webDesc: 'UI · REST API · SQLite · alert rule evaluation',
         uptime: 'Uptime monitors',
-        uptimeDesc: 'Checks external URLs and TCP ports',
-        otel: 'Direct OTLP intake',
-        otelDesc: 'Apps outside Docker',
-        alert: 'Alerts',
+        uptimeDesc: 'Health checks on external HTTP/TCP endpoints',
+        otel: 'OTLP endpoint',
+        otelDesc: 'for services outside Docker',
+        alert: 'notifications',
         channels: 'Alert channels',
         caption:
-          'The Docker Collector on each monitored server sends data to Web on the dashboard server, and Web sends alerts to your channels according to your alert rules. No inbound ports are opened on monitored servers.',
+          'The Collector on each Docker host pushes data to Web, and Web evaluates your alert rules and notifies your channels. Monitored hosts need no inbound ports.',
       },
 )
 </script>
@@ -84,7 +80,7 @@ const t = computed(() =>
         </div>
         <div class="topology-hop">
           <svg class="topology-hop-arrow" viewBox="0 0 12 24" aria-hidden="true"><path d="M6 0v20M1 15l5 5 5-5" /></svg>
-          <code>docker.sock</code><span>{{ t.readOnly }}</span>
+          <code>docker.sock:ro</code>
         </div>
         <div class="topology-chip">
           <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.docker" :key="d" :d="d" /></svg>
@@ -93,7 +89,7 @@ const t = computed(() =>
         </div>
         <div class="topology-hop">
           <svg class="topology-hop-arrow" viewBox="0 0 12 24" aria-hidden="true"><path d="M6 24V4M1 9l5-5 5 5" /></svg>
-          <code>OTLP :4318</code><span>{{ t.traces }}</span>
+          <code>OTLP/HTTP :4318</code>
         </div>
         <div class="topology-chip is-optional">
           <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.search" :key="d" :d="d" /></svg>
@@ -105,7 +101,7 @@ const t = computed(() =>
 
       <div class="topology-edge is-primary">
         <svg class="topology-arrow" viewBox="0 0 56 12" aria-hidden="true"><path d="M0 6h52M46 1l6 5-6 5" /></svg>
-        <p><code>HTTPS :3001</code><strong>{{ t.outbound }}</strong></p>
+        <p><code>HTTP(S) :3001</code><strong>{{ t.outbound }}</strong></p>
       </div>
 
       <div class="topology-zone">
@@ -116,7 +112,7 @@ const t = computed(() =>
           <span class="topology-sub">{{ t.webDesc }}</span>
           <ul>
             <li><a :href="link('/guide/uptime-monitors')">{{ t.uptime }}</a><span class="topology-sub">{{ t.uptimeDesc }}</span></li>
-            <li><a :href="link('/guide/monitoring-setup') + '#direct-otel'">{{ t.otel }}</a><span class="topology-sub">{{ t.otelDesc }}</span></li>
+            <li><a :href="link('/guide/monitoring-setup') + '#direct-otel'">{{ t.otel }}</a><span class="topology-sub"><code>/api/v1/otlp</code> {{ t.otelDesc }}</span></li>
           </ul>
         </div>
       </div>
