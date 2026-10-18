@@ -64,6 +64,8 @@
   --color-ui-hover-dark: #1f2937;
   --color-ui-hover-soft: #f8fafc;   /* 옅은 내부 채움 (≈ slate-50) */
   --color-ui-hover-soft-dark: #1f2937;
+  --color-ui-table-header: #f1f5f9;
+  --color-ui-table-header-dark: #0d1117;
   --color-ui-active: #e2e8f0;       /* 눌린 표면 — 스켈레톤·칩·hover (≈ slate-200) */
   --color-ui-active-dark: #374151;  /* (≈ slate-700) */
 
@@ -125,6 +127,17 @@
   font-size: var(--text-2xl);
   line-height: 2rem;
   font-weight: var(--font-weight-bold);
+}
+
+@utility table-row-link {
+  &:has(a[data-row-link]) {
+    cursor: pointer;
+  }
+  /* Button의 pointer-events:none이 비활성 영역의 클릭을 행에 넘기지 않게 한다. */
+  & button:disabled {
+    pointer-events: auto;
+    cursor: default;
+  }
 }
 
 @utility type-section-title {
@@ -203,6 +216,7 @@
   --color-ui-border-soft: var(--color-ui-border-soft-dark);
   --color-ui-hover: var(--color-ui-hover-dark);
   --color-ui-hover-soft: var(--color-ui-hover-soft-dark);
+  --color-ui-table-header: var(--color-ui-table-header-dark);
   --color-ui-active: var(--color-ui-active-dark);
   --color-ui-raised: var(--color-ui-raised-dark);
 

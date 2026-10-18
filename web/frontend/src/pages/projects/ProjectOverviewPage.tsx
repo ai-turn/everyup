@@ -166,7 +166,7 @@ export function ProjectOverviewPage() {
           <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
           {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, ...member }) => <div key={key} className="overflow-hidden rounded-xl border border-ui-border bg-bg-surface"><MemberLink {...member} returnTo={returnTo} /></div>)}</div> :
             <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="Project 구성 그리드" columns={[
-              { key: 'name', label: '대상', render: row => <><Link to={row.to} state={{ returnTo }} className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 break-words type-caption text-text-muted md:hidden">{row.detail}</p></> },
+              { key: 'name', label: '대상', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 break-words type-caption text-text-muted md:hidden">{row.detail}</p></> },
               { key: 'detail', label: '현황', className: 'hidden md:table-cell', render: row => <span className="text-text-muted">{row.detail}</span> },
             ]} />}
         </section>

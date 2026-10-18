@@ -214,7 +214,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
         {view === 'card' ? <HistoryCards rows={groupedRows} loading={loading} /> : (
         <div className="overflow-x-auto">
           <table aria-label="알림 로그 그리드" className="w-full min-w-[960px] table-fixed">
-            <thead className="bg-ui-hover-soft">
+            <thead className="bg-ui-table-header">
               <tr className="border-b border-ui-border">
                 <th className={`${thClass} w-[110px]`}>상태</th>
                 <th className={`${thClass} w-[120px]`}>알림 타입</th>

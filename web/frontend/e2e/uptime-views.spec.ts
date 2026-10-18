@@ -32,6 +32,7 @@ test('grid is the default and switching views preserves search, reload and detai
   await search.fill('no-match');
   await expect(page.getByText('검색 결과가 없습니다', { exact: true })).toBeVisible();
   await toggle.getByRole('button', { name: '카드', exact: true }).click();
+  await expect(toggle.getByRole('button', { name: '카드', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('검색 결과가 없습니다', { exact: true })).toBeVisible();
   await search.clear();
   await expect(targets.getByRole('article')).toHaveCount(3);

@@ -284,14 +284,14 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
   return (
     <div className="overflow-x-auto rounded-xl border border-ui-border bg-bg-surface">
       <table aria-label="알림 채널 그리드" className="w-full min-w-[960px] table-fixed">
-        <thead className="bg-ui-hover-soft">
+        <thead className="bg-ui-table-header">
           <tr className="border-b border-ui-border">
             <th className="w-[280px] px-4 py-3 text-left text-xs font-medium text-text-muted">채널</th>
             <th className="w-[90px] px-4 py-3 text-left text-xs font-medium text-text-muted">상태</th>
             <th className="w-[150px] px-4 py-3 text-left text-xs font-medium text-text-muted">7일 발송 / 실패</th>
             <th className="w-[110px] px-4 py-3 text-left text-xs font-medium text-text-muted">연결 규칙</th>
             <th className="w-[160px] px-4 py-3 text-left text-xs font-medium text-text-muted">최근 발송</th>
-            <th className="sticky right-0 w-[180px] border-l border-ui-border-soft bg-ui-hover-soft px-4 py-3 text-right text-xs font-medium text-text-muted">작업</th>
+            <th className="sticky right-0 w-[180px] border-l border-ui-border-soft bg-ui-table-header px-4 py-3 text-right text-xs font-medium text-text-muted">작업</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-ui-border-soft">
