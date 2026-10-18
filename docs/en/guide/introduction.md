@@ -7,6 +7,8 @@ over HTTP or TCP with [uptime monitors](./uptime-monitors) or
 [connected directly through OpenTelemetry](./monitoring-setup#direct-otel). There is no large
 observability stack to set up.
 
+<Topology />
+
 | Part | What it does | Where it runs |
 | --- | --- | --- |
 | **Web** | Dashboard, users, alert rules, notification channels, history | Your dashboard server |

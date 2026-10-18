@@ -6,6 +6,8 @@ EveryUp Docker Collector를 실행하면 됩니다. Docker 밖의 대상은 [업
 HTTP·TCP 응답을 확인하거나 [OpenTelemetry로 직접 연결](./monitoring-setup#direct-otel)합니다.
 별도의 대형 모니터링 스택을 구축할 필요가 없습니다.
 
+<Topology />
+
 | 구성 | 역할 | 실행 위치 |
 | --- | --- | --- |
 | **Web** | 대시보드, 사용자, 알림 규칙·채널, 히스토리 | 대시보드 서버 |

@@ -261,22 +261,12 @@ html:not(.dark) .only-dark {
     transition: none;
   }
 }
+/* 휴대폰 폭에서는 1440px 데스크톱 화면을 읽을 수 없다. 구성도(Topology.vue)와 히어로의 라이브 데모 버튼이 대신한다.
+   display:none이라 lazy 이미지도 받지 않는다. */
 @media (max-width: 639px) {
-  .home-carousel-arrow {
-    width: 44px;
-    height: 44px;
+  .home-carousel {
+    display: none;
   }
-  .home-carousel-arrow.is-prev {
-    left: 8px;
-  }
-  .home-carousel-arrow.is-next {
-    right: 8px;
-  }
-  .home-carousel-dots {
-    bottom: 8px;
-    padding: 0 4px;
-  }
-  /* 점의 누르는 영역은 모바일에서도 22x32px 그대로 둔다(16x24px는 2.5.8의 24px 미만이었다) */
 }
 /* 터치 기기는 밀어서 넘기고 점으로 위치를 본다. 화살표는 스크린샷 가장자리만 가린다. */
 @media (hover: none) and (pointer: coarse) {
@@ -292,6 +282,185 @@ html:not(.dark) .only-dark {
 @media (min-width: 960px) {
   .home-carousel {
     padding: 0 64px 72px;
+  }
+}
+
+/* 구성도 (Topology.vue). 홈에서는 히어로와 캐러셀 사이, 소개 페이지에서는 구성 표 위.
+   문서 본문(.vp-doc)의 목록·문단·링크 스타일을 덮어써야 해서 선택자를 .topology 아래로 둔다. */
+.home-topology {
+  padding: 0 24px 40px;
+}
+.home-topology > * {
+  margin-inline: auto;
+  max-width: 1152px;
+}
+@media (min-width: 640px) {
+  .home-topology {
+    padding: 0 48px 48px;
+  }
+}
+@media (min-width: 960px) {
+  .home-topology {
+    padding: 0 64px 56px;
+  }
+}
+.topology {
+  container-type: inline-size;
+  margin: 0 auto;
+}
+.home-topology figcaption {
+  text-align: center;
+}
+.vp-doc .topology {
+  margin: 24px 0 32px;
+}
+.topology-flow {
+  display: flex;
+  flex-direction: column;
+}
+.topology-node {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  padding: 14px 16px 6px;
+  background-color: var(--vp-c-bg-alt);
+}
+/* 데이터가 모이는 곳. 색은 테두리 한 줄만 */
+.topology-node.is-hub {
+  border-color: var(--vp-c-brand-1);
+}
+.topology .topology-place {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--vp-c-text-2);
+}
+.topology-place span {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--vp-c-text-3);
+}
+.topology .topology-node ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.topology .topology-node li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--vp-c-divider);
+}
+.topology .topology-node li:first-child {
+  border-top: 0;
+}
+/* 업타임 모니터·직접 연결은 주 흐름이 아닌 보조 경로 */
+.topology .topology-node li.is-secondary {
+  border-top-style: dashed;
+}
+.topology-node li > strong,
+.topology-node li > a {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+}
+.topology-node li > strong {
+  color: var(--vp-c-text-1);
+}
+.topology-node li.is-secondary > a {
+  font-size: 14px;
+  font-weight: 500;
+}
+.topology a {
+  color: var(--vp-c-brand-1);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.topology a:hover {
+  color: var(--vp-c-brand-2);
+}
+.topology-node li > span {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--vp-c-text-2);
+}
+/* 노드 사이 화살표. 세로로 쌓일 때는 아래를 향한다 */
+.topology-edge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 0 6px 28px;
+  color: var(--vp-c-text-3);
+}
+.topology-edge.is-primary {
+  color: var(--vp-c-brand-1);
+}
+.topology-arrow {
+  flex: none;
+  width: 40px;
+  height: 12px;
+  margin: 14px -14px;
+  transform: rotate(90deg);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.topology .topology-edge p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--vp-c-text-2);
+}
+.topology-edge code {
+  font-size: 12px;
+}
+/* 이 구성의 핵심: 모니터링할 서버는 밖으로만 연결한다 */
+.topology-edge p > span {
+  display: block;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+}
+.topology figcaption {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--vp-c-text-2);
+}
+@container (min-width: 640px) {
+  .topology-flow {
+    flex-direction: row;
+    align-items: center;
+  }
+  .topology-node {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .topology-node:last-child {
+    flex-grow: 0.55;
+  }
+  .topology-edge {
+    flex: none;
+    flex-direction: column;
+    gap: 6px;
+    width: 84px;
+    padding: 0 8px;
+    text-align: center;
+  }
+  .topology-arrow {
+    width: 56px;
+    margin: 0;
+    transform: none;
+  }
+}
+/* 홈처럼 넓을 때는 연결 설명이 한 줄씩 들어가게 */
+@container (min-width: 960px) {
+  .topology-edge {
+    width: 136px;
   }
 }
 
