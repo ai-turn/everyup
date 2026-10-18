@@ -458,7 +458,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`StatusBadge`** | `healthy: boolean` | 정상/장애 `StatusLight` 래퍼 (§5.1) |
 | **`CollectionStatusBadge`** | `collecting` \| `partial` \| `delayed` \| `waiting` \| `not-configured` | 수집 신선도·설정 상태. 서비스 상태와 별도 축 (§5.1) |
 | **`Toggle`** | `checked` `onChange` `disabled` `title` | w-9 h-5, `role="switch"` |
-| **`SegmentedControl<T>`** | `options` `value` `onChange` `size` `ariaLabel` | 2~4지 배타 선택 |
+| **`SegmentedControl<T>`** | `options` `value` `onChange` `size` `ariaLabel` | 2~4지 배타 선택. 선택지에 `icon`을 주면 label을 접근성 이름·툴팁으로 유지 |
 | **`ListViewToggle`** | `view` `onChange` | 대상 목록의 그리드·카드 전환. `SegmentedControl md` 래퍼 (§4.5) |
 | **`ResourceTable<T>`** | `rows` `columns` `rowKey` `ariaLabel` `renderDetails?` | 대상 비교 표. 숫자 우측 정렬·반응형 열·행 아래 구성 관리 (§4.5) |
 | **`TimeRangePicker`** | `value: GlobalTimeRange` `onChange` | `1h`\|`6h`\|`24h`. SegmentedControl 래퍼 |
@@ -498,6 +498,8 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 **`md`는 `sm`(640px) 미만에서 44px다.** Apple 44pt·Material 48dp의 터치 영역 권장을 따른다. 입력(`FIELD_HEIGHT`)·`SearchInput`·`IconButton md`·`SegmentedControl md`가 같은 규칙이라 모바일에서도 나란히 놓인 밑변이 맞는다. `lg`(44px 고정)는 로그인 1곳에서만 쓰이다가 이 규칙에 흡수돼 제거했다.
 
 `SegmentedControl`은 트랙을 포함해 `sm` 32px, `md` 40px(터치 44)다. 기본 검색·폼 입력·버튼은 모두 같은 높이로 맞춘다.
+
+아이콘 전용 `md`는 모바일에서 **버튼 자체를 44×44px**로 둔다(트랙 포함 48px). `sm` 이상은 36×36px(트랙 포함 40px)다. 아이콘은 20px이고, `label`을 `aria-label`과 `title`로 제공한다. `aria-pressed` 선택 표현과 전역 포커스 링은 텍스트형과 같다.
 
 **상태**
 - **진행 중** — `loading` prop. 라벨은 그대로 두고 스피너가 앞에 붙는다(호출부의 아이콘은 숨김), `aria-busy`, 클릭 불가. `저장 중…`처럼 라벨을 바꾸지 않는다 — 버튼 폭이 흔들리고 화면마다 문구가 갈렸다.
@@ -683,6 +685,8 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 `ResourceTable`의 셀은 `px-3 sm:px-4`, 본문은 `py-4`다. 모바일에서는 보조 열을 숨기고 필요한 수치·수집 상태를 대상 이름 아래로 모아 페이지의 가로 넘침을 막는다. Project의 배정·해제·수정은 행의 `구성 관리`로 펼치며, 설치 대기 Docker 환경의 명령·키·비활성화는 `설치·작업`에서 연다. 카드 선택 시에는 기존 대상 카드의 반응형 열 수를 따른다.
 
 **업타임 목록** — `UptimeTargets`의 두 보기는 같은 검색 결과와 상태 우선 순서를 공유한다. 상태 요약은 큰 카드 대신 작은 수치 행이다. 모바일 그리드는 상태·대상·상태 변경을 유지하며 주소(`md` 미만)와 최근 확인(`xl` 미만)을 대상 열에 모은다.
+
+목록 보기 전환은 텍스트 대신 `view_list`(그리드의 행·열 비교)와 `grid_view`(카드 배열) 아이콘을 쓴다. 순서는 그리드 → 카드이며, 접근성 이름과 툴팁은 `그리드`·`카드`다.
 
 **카드 안 보조 표** — 패딩 있는 카드 안의 짧은 기록(업타임 체크 기록). 헤더 채움 없이 `type-caption text-text-muted`, 래퍼 `-mx-2` + 셀 `px-2`로 글자를 카드 좌측 기준선에 맞춘다(§4.1 "카드의 좌측 기준선은 하나다").
 

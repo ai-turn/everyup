@@ -1,6 +1,7 @@
 // Generated from @mui/icons-material v7 (Apache-2.0) by a one-off extraction
 // script — inner SVG markup per icon name, rendered inside a 24x24 viewBox.
 export const iconMarkup: Record<string, string> = {
+  view_list: '<path d="M3 5v14h18V5zm4 2v2H5V7zm-2 6v-2h2v2zm0 2h2v2H5zm14 2H9v-2h10zm0-4H9v-2h10zm0-4H9V7h10z"></path>',
   account_tree: '<path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3zM7 9H4V5h3zm10 6h3v4h-3zm0-10h3v4h-3z"></path>',
   add: '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"></path>',
   add_circle: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m5 11h-4v4h-2v-4H7v-2h4V7h2v4h4z"></path>',
