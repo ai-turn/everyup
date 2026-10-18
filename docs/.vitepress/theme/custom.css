@@ -323,64 +323,169 @@ html:not(.dark) .only-dark {
 .vp-doc .topology {
   margin: 24px 0 32px;
 }
+/* 배치 구성도(deployment) 문법: 서버 = 점선 영역(zone), 그 안에 설치되는 것 = 칩(chip).
+   칩 종류는 테두리로 구분한다. 기존 앱은 옅은 실선, 선택 설치는 점선, 초점(Web)은 brand.
+   brand(초점)는 Web 칩과 바깥으로 나가는 연결, 두 곳에만 쓴다. */
 .topology-flow {
   display: flex;
   flex-direction: column;
 }
-.topology-node {
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  padding: 14px 16px 6px;
+.topology-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px dashed var(--vp-c-text-3);
+  border-radius: 10px;
+  padding: 12px;
   background-color: var(--vp-c-bg-alt);
 }
-/* 데이터가 모이는 곳. 색은 테두리 한 줄만 */
-.topology-node.is-hub {
-  border-color: var(--vp-c-brand-1);
-}
 .topology .topology-place {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   font-size: 13px;
   font-weight: 500;
   line-height: 20px;
   color: var(--vp-c-text-2);
 }
-.topology-place span {
-  margin-left: 6px;
-  font-weight: 400;
-  color: var(--vp-c-text-3);
+/* 칩: 왼쪽 아이콘 열 + 오른쪽 글 열 */
+.topology-chip {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 2px;
+  border: 1px solid var(--vp-c-text-3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  background-color: var(--vp-c-bg);
 }
-.topology .topology-node ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.topology .topology-node li {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 0;
-  padding: 8px 0;
-  border-top: 1px solid var(--vp-c-divider);
-}
-.topology .topology-node li:first-child {
-  border-top: 0;
-}
-/* 업타임 모니터·직접 연결은 주 흐름이 아닌 보조 경로 */
-.topology .topology-node li.is-secondary {
-  border-top-style: dashed;
-}
-.topology-node li > strong,
-.topology-node li > a {
+.topology-chip > strong,
+.topology-chip > a {
   font-size: 15px;
   font-weight: 600;
   line-height: 22px;
 }
-.topology-node li > strong {
+.topology-chip > strong {
   color: var(--vp-c-text-1);
 }
-.topology-node li.is-secondary > a {
+.topology-chip > :not(.topology-icon) {
+  grid-column: 2;
+}
+.topology-icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.topology-chip > .topology-icon {
+  grid-column: 1;
+  grid-row: 1 / span 4;
+  margin-top: 1px;
+  color: var(--vp-c-text-2);
+}
+.topology-chip.is-focal > .topology-icon {
+  color: var(--vp-c-brand-1);
+}
+/* VitePress 기본 스타일이 svg를 block으로 두어, 영역 이름 앞에서는 inline으로 되돌린다 */
+.topology-place .topology-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: -3px;
+}
+/* 같은 서버 안의 칩 사이 연결: 화살표 + 프로토콜·포트 */
+.topology-hop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--vp-c-text-3);
+}
+.topology-hop-arrow {
+  flex: none;
+  width: 12px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.topology-hop span {
+  color: var(--vp-c-text-2);
+}
+.topology .topology-sub code,
+.topology .topology-hop code {
+  padding: 0;
+  background: none;
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  color: var(--vp-c-text-1);
+}
+.topology-sub {
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--vp-c-text-2);
+}
+/* 원래 있던 앱: EveryUp이 설치하거나 바꾸지 않는다 */
+.topology-chip.is-existing {
+  border-color: var(--vp-c-divider);
+  background-color: transparent;
+}
+.topology-chip.is-existing > strong {
+  color: var(--vp-c-text-2);
+}
+.topology-chip.is-optional {
+  border-style: dashed;
+}
+.topology-chip.is-focal {
+  border-color: var(--vp-c-brand-1);
+  background-color: var(--vp-c-brand-soft);
+}
+/* 칩 종류 표시. 알약이 아니라 각진 태그 */
+.topology-tag {
+  justify-self: start;
+  margin-bottom: 2px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--vp-c-text-2);
+}
+/* Web 안의 다른 수집 경로: 업타임 모니터·OTLP 엔드포인트 */
+.topology .topology-subhead {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--vp-c-divider);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--vp-c-text-2);
+}
+.topology .topology-chip ul {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.topology .topology-chip li {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+.topology .topology-chip li + li {
+  margin-top: 6px;
+}
+.topology-chip li > a {
   font-size: 14px;
   font-weight: 500;
+  line-height: 20px;
 }
 .topology a {
   color: var(--vp-c-brand-1);
@@ -391,12 +496,7 @@ html:not(.dark) .only-dark {
 .topology a:hover {
   color: var(--vp-c-brand-2);
 }
-.topology-node li > span {
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--vp-c-text-2);
-}
-/* 노드 사이 화살표. 세로로 쌓일 때는 아래를 향한다 */
+/* 영역 사이 연결. 세로로 쌓일 때는 아래를 향한다 */
 .topology-edge {
   display: flex;
   align-items: center;
@@ -425,11 +525,25 @@ html:not(.dark) .only-dark {
   line-height: 20px;
   color: var(--vp-c-text-2);
 }
-.topology-edge code {
+/* 프로토콜·포트는 기술 정보라 mono. 본문 인라인 코드의 바탕은 걷어 낸다 */
+.topology .topology-edge code {
+  display: block;
+  padding: 0;
+  background: none;
+  font-family: var(--vp-font-family-mono);
   font-size: 12px;
+  white-space: nowrap;
+  color: var(--vp-c-text-1);
+}
+/* 이름 목록은 이름 단위로만 줄을 바꾸고, 구분점은 줄 끝에 남긴다 */
+.topology-names span {
+  white-space: nowrap;
+}
+.topology-names span:not(:last-child)::after {
+  content: ' ·';
 }
 /* 이 구성의 핵심: 모니터링할 서버는 밖으로만 연결한다 */
-.topology-edge p > span {
+.topology-edge p > strong {
   display: block;
   font-weight: 600;
   color: var(--vp-c-brand-1);
@@ -440,24 +554,25 @@ html:not(.dark) .only-dark {
   line-height: 22px;
   color: var(--vp-c-text-2);
 }
-@container (min-width: 640px) {
+/* 가로 배치는 홈처럼 넓을 때만. 문서 본문(약 690px)에서는 세로로 쌓아 칩 글이 덜 꺾이게 한다 */
+@container (min-width: 860px) {
   .topology-flow {
     flex-direction: row;
     align-items: center;
   }
-  .topology-node {
+  .topology-zone {
     flex: 1 1 0;
     min-width: 0;
   }
-  .topology-node:last-child {
-    flex-grow: 0.55;
+  .topology-zone:last-child {
+    flex-grow: 0.6;
   }
   .topology-edge {
     flex: none;
     flex-direction: column;
     gap: 6px;
-    width: 84px;
-    padding: 0 8px;
+    width: 88px;
+    padding: 0 4px;
     text-align: center;
   }
   .topology-arrow {
@@ -469,7 +584,7 @@ html:not(.dark) .only-dark {
 /* 홈처럼 넓을 때는 연결 설명이 한 줄씩 들어가게 */
 @container (min-width: 960px) {
   .topology-edge {
-    width: 136px;
+    width: 128px;
   }
 }
 

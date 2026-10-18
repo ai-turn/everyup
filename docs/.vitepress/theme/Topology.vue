@@ -2,9 +2,20 @@
 import { computed } from 'vue'
 import { useData, withBase } from 'vitepress'
 
-// 무엇이 어느 서버에서 돌고 연결이 어느 방향으로 생기는지 보여 주는 구성도. 홈(히어로 아래)과 소개 페이지에서 쓴다.
-// 이미지가 아니라 텍스트라서 스크린 리더가 그대로 읽고, 폭이 좁으면(컨테이너 640px 미만) 세로로 쌓인다.
+// 무엇이 어느 서버에 설치되고 연결이 어느 방향으로 생기는지 보여 주는 배치 구성도. 홈(히어로 아래)과 소개 페이지에서 쓴다.
+// 이미지가 아니라 텍스트라서 스크린 리더가 그대로 읽고, 폭이 좁으면(컨테이너 860px 미만, 문서 본문 포함) 세로로 쌓인다.
+// 문법은 diagram-design skill의 deployment 유형을 따른다: 서버 = 점선 영역, 설치되는 것 = 칩, 연결 = 프로토콜·포트.
 // 근거: 설치기 Compose(agent_installer.go)는 호스트 포트를 열지 않는다. eBPF Observer는 API 요청 수집을 고를 때만 설치된다.
+// 아이콘: Tabler Icons(MIT) 24px · 1.5 stroke. bell을 뺀 나머지는 diagram-design의 primitive-icons.md에서 가져왔다.
+const icons = {
+  server: ['M3 7a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3', 'M3 15a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3l0 -2', 'M7 8l0 .01', 'M7 16l0 .01'],
+  container: ['M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5', 'M12 12l8 -4.5', 'M12 12l0 9', 'M12 12l-8 -4.5', 'M16 5.25l-8 4.5'],
+  docker: ['M22 12.54c-1.804 -.345 -2.701 -1.08 -3.523 -2.94c-.487 .696 -1.102 1.568 -.92 2.4c.028 .238 -.32 1 -.557 1h-14c0 5.208 3.164 7 6.196 7c4.124 .022 7.828 -1.376 9.854 -5c1.146 -.101 2.296 -1.505 2.95 -2.46', 'M5 10h3v3h-3l0 -3', 'M8 10h3v3h-3l0 -3', 'M11 10h3v3h-3l0 -3', 'M8 7h3v3h-3l0 -3', 'M11 7h3v3h-3l0 -3', 'M11 4h3v3h-3l0 -3', 'M4.571 18c1.5 0 2.047 -.074 2.958 -.78', 'M10 16l0 .01'],
+  search: ['M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0', 'M21 21l-6 -6'],
+  monitoring: ['M4 19l16 0', 'M4 15l4 -6l4 2l4 -5l4 4'],
+  bell: ['M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6', 'M9 17v1a3 3 0 0 0 6 0v-1'],
+}
+
 const { lang } = useData()
 const ko = computed(() => lang.value === 'ko')
 const link = (path: string) => withBase((ko.value ? '' : '/en') + path)
@@ -13,43 +24,51 @@ const t = computed(() =>
   ko.value
     ? {
         host: '모니터링할 서버',
-        hostNote: 'Docker 호스트마다',
+        existing: '기존',
         app: '앱 컨테이너',
-        appDesc: '수정하지 않음',
-        collectorDesc: '컨테이너 상태 · 로그 · 호스트 메트릭',
-        ebpfDesc: 'API latency · 트레이스 (선택)',
-        send: 'HTTPS로 전송',
-        sendNote: '나가는 연결만',
+        appDesc: '코드·이미지 변경 없음',
+        collectorDesc: '컨테이너 상태 · stdout/stderr 로그 · 호스트 메트릭',
+        optional: '선택 설치',
+        install: '설치',
+        sockDesc: '상태·로그 읽기',
+        otlpDesc: '트레이스 전송',
+        alt: 'Collector 없이 수집',
+        ebpfDesc: '계측 코드 없이 요청 latency · 트레이스',
+        outbound: '인바운드 포트 불필요',
         dash: '대시보드 서버',
-        webDesc: '대시보드 · 이력 저장 · 알림 규칙',
+        webDesc: 'UI · REST API · SQLite · 알림 규칙 평가',
         uptime: '업타임 모니터',
-        uptimeDesc: 'Web이 외부 URL·TCP 응답을 확인',
-        otel: 'OpenTelemetry 직접 연결',
-        otelDesc: 'Docker 밖의 앱이 Web으로 전송',
-        alert: '장애 알림',
+        uptimeDesc: '외부 HTTP·TCP 엔드포인트 헬스 체크',
+        otel: 'OTLP 엔드포인트',
+        otelDesc: 'Docker 밖 서비스용',
+        alert: '알림 발송',
         channels: '알림 채널',
         caption:
-          '모니터링할 서버의 Docker Collector가 대시보드 서버의 Web으로 데이터를 보내고, Web은 알림 규칙에 따라 채널로 알림을 보냅니다. 모니터링할 서버에는 들어오는 포트를 열지 않습니다.',
+          '모니터링할 서버마다 설치한 Collector가 Web으로 데이터를 push하고, Web은 알림 규칙을 평가해 채널로 알림을 보냅니다. 모니터링할 서버에는 인바운드 포트를 열 필요가 없습니다.',
       }
     : {
         host: 'Monitored server',
-        hostNote: 'one per Docker host',
+        existing: 'existing',
         app: 'App containers',
-        appDesc: 'left unchanged',
-        collectorDesc: 'Container state · logs · host metrics',
-        ebpfDesc: 'API latency · traces (optional)',
-        send: 'Sends over HTTPS',
-        sendNote: 'outbound only',
+        appDesc: 'No code or image changes',
+        collectorDesc: 'Container state · stdout/stderr logs · host metrics',
+        optional: 'optional',
+        install: 'install',
+        sockDesc: 'reads state & logs',
+        otlpDesc: 'sends traces',
+        alt: 'Without the Collector',
+        ebpfDesc: 'Request latency · traces, no instrumentation',
+        outbound: 'no inbound ports',
         dash: 'Dashboard server',
-        webDesc: 'Dashboard · history · alert rules',
+        webDesc: 'UI · REST API · SQLite · alert rule evaluation',
         uptime: 'Uptime monitors',
-        uptimeDesc: 'Web checks external URLs and TCP ports',
-        otel: 'Direct OpenTelemetry',
-        otelDesc: 'Apps outside Docker send to Web',
-        alert: 'Alerts',
+        uptimeDesc: 'Health checks on external HTTP/TCP endpoints',
+        otel: 'OTLP endpoint',
+        otelDesc: 'for services outside Docker',
+        alert: 'notifications',
         channels: 'Alert channels',
         caption:
-          'The Docker Collector on each monitored server sends data to Web on the dashboard server, and Web sends alerts to your channels according to your alert rules. No inbound ports are opened on monitored servers.',
+          'The Collector on each monitored server pushes data to Web, and Web evaluates your alert rules and notifies your channels. Monitored servers need no inbound ports.',
       },
 )
 </script>
@@ -57,41 +76,67 @@ const t = computed(() =>
 <template>
   <figure class="topology">
     <div class="topology-flow">
-      <div class="topology-node">
-        <p class="topology-place">{{ t.host }} <span>{{ t.hostNote }}</span></p>
-        <ul>
-          <li><strong>{{ t.app }}</strong><span>{{ t.appDesc }}</span></li>
-          <li><a :href="link('/reference/collector')">Docker Collector</a><span>{{ t.collectorDesc }}</span></li>
-          <li><a :href="link('/guide/ebpf-observer')">eBPF Observer</a><span>{{ t.ebpfDesc }}</span></li>
-        </ul>
+      <div class="topology-zone">
+        <p class="topology-place"><svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.server" :key="d" :d="d" /></svg>{{ t.host }}</p>
+        <div class="topology-chip is-existing">
+          <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.container" :key="d" :d="d" /></svg>
+          <span class="topology-tag">{{ t.existing }}</span>
+          <strong>{{ t.app }}</strong>
+          <span class="topology-sub">{{ t.appDesc }}</span>
+        </div>
+        <div class="topology-hop">
+          <svg class="topology-hop-arrow" viewBox="0 0 12 24" aria-hidden="true"><path d="M6 0v20M1 15l5 5 5-5" /></svg>
+          <code>docker.sock:ro</code><span>{{ t.sockDesc }}</span>
+        </div>
+        <div class="topology-chip">
+          <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.docker" :key="d" :d="d" /></svg>
+          <span class="topology-tag">{{ t.install }}</span>
+          <a :href="link('/reference/collector')">Docker Collector</a>
+          <span class="topology-sub">{{ t.collectorDesc }}</span>
+        </div>
+        <div class="topology-hop">
+          <svg class="topology-hop-arrow" viewBox="0 0 12 24" aria-hidden="true"><path d="M6 24V4M1 9l5-5 5 5" /></svg>
+          <code>OTLP/HTTP :4318</code><span>{{ t.otlpDesc }}</span>
+        </div>
+        <div class="topology-chip is-optional">
+          <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.search" :key="d" :d="d" /></svg>
+          <span class="topology-tag">{{ t.optional }}</span>
+          <a :href="link('/guide/ebpf-observer')">eBPF Observer</a>
+          <span class="topology-sub">{{ t.ebpfDesc }}</span>
+        </div>
       </div>
 
       <div class="topology-edge is-primary">
         <svg class="topology-arrow" viewBox="0 0 56 12" aria-hidden="true"><path d="M0 6h52M46 1l6 5-6 5" /></svg>
-        <p>{{ t.send }} <code>:3001</code><span>{{ t.sendNote }}</span></p>
+        <p><code>HTTP(S) :3001</code><strong>{{ t.outbound }}</strong></p>
       </div>
 
-      <div class="topology-node is-hub">
-        <p class="topology-place">{{ t.dash }}</p>
-        <ul>
-          <li><strong>Web</strong><span>{{ t.webDesc }}</span></li>
-          <li class="is-secondary"><a :href="link('/guide/uptime-monitors')">{{ t.uptime }}</a><span>{{ t.uptimeDesc }}</span></li>
-          <li class="is-secondary"><a :href="link('/guide/monitoring-setup') + '#direct-otel'">{{ t.otel }}</a><span>{{ t.otelDesc }}</span></li>
-        </ul>
+      <div class="topology-zone">
+        <p class="topology-place"><svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.server" :key="d" :d="d" /></svg>{{ t.dash }}</p>
+        <div class="topology-chip is-focal">
+          <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.monitoring" :key="d" :d="d" /></svg>
+          <span class="topology-tag">{{ t.install }}</span>
+          <strong>EveryUp Web</strong>
+          <span class="topology-sub">{{ t.webDesc }}</span>
+          <p class="topology-subhead">{{ t.alt }}</p>
+          <ul>
+            <li><a :href="link('/guide/uptime-monitors')">{{ t.uptime }}</a><span class="topology-sub">{{ t.uptimeDesc }}</span></li>
+            <li><a :href="link('/guide/monitoring-setup') + '#direct-otel'">{{ t.otel }}</a><span class="topology-sub"><code>/api/v1/otlp</code> {{ t.otelDesc }}</span></li>
+          </ul>
+        </div>
       </div>
 
       <div class="topology-edge">
         <svg class="topology-arrow" viewBox="0 0 56 12" aria-hidden="true"><path d="M0 6h52M46 1l6 5-6 5" /></svg>
-        <p>{{ t.alert }}</p>
+        <p><code>HTTPS</code>{{ t.alert }}</p>
       </div>
 
-      <div class="topology-node">
+      <div class="topology-zone">
         <p class="topology-place"><a :href="link('/guide/notifications')">{{ t.channels }}</a></p>
-        <ul>
-          <li><strong>Telegram</strong></li>
-          <li><strong>Discord</strong></li>
-          <li><strong>Slack</strong></li>
-        </ul>
+        <div class="topology-chip is-existing">
+          <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.bell" :key="d" :d="d" /></svg>
+          <strong class="topology-names"><span>Telegram</span> <span>Discord</span> <span>Slack</span></strong>
+        </div>
       </div>
     </div>
     <figcaption>{{ t.caption }}</figcaption>
