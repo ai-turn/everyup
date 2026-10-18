@@ -35,21 +35,19 @@ async function mockUptimeApi(page: Page, state: UptimeState) {
   });
 }
 
-test('active waiting checks and paused monitors stay distinct in the summary and cards', async ({ page }) => {
+test('active waiting checks and paused monitors stay distinct in the summary and targets', async ({ page }) => {
   await mockUptimeApi(page, {
     monitors: [monitor('healthy-monitor', 'healthy'), monitor('failed-monitor', 'unhealthy'), monitor('waiting-monitor', 'unknown'), monitor('paused-monitor', 'unknown', false)],
     services: [service('healthy-docker'), service('failed-docker', false)], failed: [],
   });
   await page.goto('./uptime');
   const summary = page.getByRole('region', { name: '업타임 상태 요약' });
-  await expect(summary.getByText('일시정지 1개 · 확인 대기 1개', { exact: true })).toBeVisible();
+  await expect(summary).toContainText('일시정지 1개 · 확인 대기 1개');
   await expect(summary).not.toContainText('체크가 돌지 않는 대상입니다');
   for (const [name, label] of [['healthy-monitor', '정상'], ['failed-monitor', '장애'], ['waiting-monitor', '확인 대기'], ['paused-monitor', '일시정지']]) {
-    await expect(page.getByRole('article').filter({ has: page.getByRole('link', { name, exact: true }) }).getByText(label, { exact: true })).toBeVisible();
+    await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name, exact: true }) }).getByText(label, { exact: true })).toBeVisible();
   }
-  for (const label of ['정상', '장애']) {
-    await expect(summary.getByRole('article').filter({ has: page.getByText(label, { exact: true }) }).getByText('2', { exact: true })).toBeVisible();
-  }
+  await expect(summary.locator('dd')).toHaveText(['2', '2', '2']);
 });
 
 for (const source of ['services', 'monitors'] as const) {
@@ -104,15 +102,15 @@ for (const source of ['services', 'monitors'] as const) {
     await expect(page.getByRole('link', { name: 'healthy-docker', exact: true })).toBeVisible();
     state.failed = [source];
     await page.getByRole('button', { name: 'healthy-monitor 일시정지', exact: true }).click();
-    const staleCard = page.getByRole('article').filter({ has: page.getByRole('link', { name: source === 'services' ? 'healthy-docker' : 'healthy-monitor', exact: true }) });
+    const staleCard = page.getByRole('row').filter({ has: page.getByRole('link', { name: source === 'services' ? 'healthy-docker' : 'healthy-monitor', exact: true }) });
     await expect(staleCard.getByText('확인 불가', { exact: true })).toBeVisible();
     await expect(staleCard.getByText('정상', { exact: true })).toHaveCount(0);
     await expect(page.getByRole('status')).toContainText('이전에 불러온');
     if (source === 'services') {
-      await expect(page.getByRole('article').filter({ has: page.getByRole('link', { name: 'healthy-monitor', exact: true }) }).getByText('일시정지', { exact: true })).toBeVisible();
+      await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name: 'healthy-monitor', exact: true }) }).getByText('일시정지', { exact: true })).toBeVisible();
     } else {
       await expect(staleCard.getByRole('button')).toBeDisabled();
-      await expect(page.getByRole('article').filter({ has: page.getByRole('link', { name: 'healthy-docker', exact: true }) }).getByText('정상', { exact: true })).toBeVisible();
+      await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name: 'healthy-docker', exact: true }) }).getByText('정상', { exact: true })).toBeVisible();
     }
     state.failed = [];
     await page.getByRole('button', { name: '다시 시도', exact: true }).click();
