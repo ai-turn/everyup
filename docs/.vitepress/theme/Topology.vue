@@ -28,9 +28,13 @@ const t = computed(() =>
         app: '앱 컨테이너',
         appDesc: '코드·이미지 변경 없음',
         collectorDesc: '컨테이너 상태 · stdout/stderr 로그 · 호스트 메트릭',
-        optional: '선택',
+        optional: '선택 설치',
+        install: '설치',
+        sockDesc: '상태·로그 읽기',
+        otlpDesc: '트레이스 전송',
+        alt: 'Collector 없이 수집',
         ebpfDesc: '계측 코드 없이 요청 latency · 트레이스',
-        outbound: '아웃바운드 전용',
+        outbound: '인바운드 포트 불필요',
         dash: '대시보드 서버',
         webDesc: 'UI · REST API · SQLite · 알림 규칙 평가',
         uptime: '업타임 모니터',
@@ -49,8 +53,12 @@ const t = computed(() =>
         appDesc: 'No code or image changes',
         collectorDesc: 'Container state · stdout/stderr logs · host metrics',
         optional: 'optional',
+        install: 'install',
+        sockDesc: 'reads state & logs',
+        otlpDesc: 'sends traces',
+        alt: 'Without the Collector',
         ebpfDesc: 'Request latency · traces, no instrumentation',
-        outbound: 'outbound only',
+        outbound: 'no inbound ports',
         dash: 'Dashboard server',
         webDesc: 'UI · REST API · SQLite · alert rule evaluation',
         uptime: 'Uptime monitors',
@@ -78,16 +86,17 @@ const t = computed(() =>
         </div>
         <div class="topology-hop">
           <svg class="topology-hop-arrow" viewBox="0 0 12 24" aria-hidden="true"><path d="M6 0v20M1 15l5 5 5-5" /></svg>
-          <code>docker.sock:ro</code>
+          <code>docker.sock:ro</code><span>{{ t.sockDesc }}</span>
         </div>
         <div class="topology-chip">
           <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.docker" :key="d" :d="d" /></svg>
+          <span class="topology-tag">{{ t.install }}</span>
           <a :href="link('/reference/collector')">Docker Collector</a>
           <span class="topology-sub">{{ t.collectorDesc }}</span>
         </div>
         <div class="topology-hop">
           <svg class="topology-hop-arrow" viewBox="0 0 12 24" aria-hidden="true"><path d="M6 24V4M1 9l5-5 5 5" /></svg>
-          <code>OTLP/HTTP :4318</code>
+          <code>OTLP/HTTP :4318</code><span>{{ t.otlpDesc }}</span>
         </div>
         <div class="topology-chip is-optional">
           <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.search" :key="d" :d="d" /></svg>
@@ -106,8 +115,10 @@ const t = computed(() =>
         <p class="topology-place"><svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.server" :key="d" :d="d" /></svg>{{ t.dash }}</p>
         <div class="topology-chip is-focal">
           <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.monitoring" :key="d" :d="d" /></svg>
-          <strong>Web</strong>
+          <span class="topology-tag">{{ t.install }}</span>
+          <strong>EveryUp Web</strong>
           <span class="topology-sub">{{ t.webDesc }}</span>
+          <p class="topology-subhead">{{ t.alt }}</p>
           <ul>
             <li><a :href="link('/guide/uptime-monitors')">{{ t.uptime }}</a><span class="topology-sub">{{ t.uptimeDesc }}</span></li>
             <li><a :href="link('/guide/monitoring-setup') + '#direct-otel'">{{ t.otel }}</a><span class="topology-sub"><code>/api/v1/otlp</code> {{ t.otelDesc }}</span></li>

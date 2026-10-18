@@ -415,6 +415,9 @@ html:not(.dark) .only-dark {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.topology-hop span {
+  color: var(--vp-c-text-2);
+}
 .topology .topology-sub code,
 .topology .topology-hop code {
   padding: 0;
@@ -455,9 +458,18 @@ html:not(.dark) .only-dark {
   line-height: 16px;
   color: var(--vp-c-text-2);
 }
-/* Web 안의 기능: 업타임 모니터·OTLP 직접 수신 */
+/* Web 안의 다른 수집 경로: 업타임 모니터·OTLP 엔드포인트 */
+.topology .topology-subhead {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--vp-c-divider);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--vp-c-text-2);
+}
 .topology .topology-chip ul {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -465,8 +477,7 @@ html:not(.dark) .only-dark {
   display: flex;
   flex-direction: column;
   margin: 0;
-  padding: 6px 0 0;
-  border-top: 1px solid var(--vp-c-divider);
+  padding: 0;
 }
 .topology .topology-chip li + li {
   margin-top: 6px;
