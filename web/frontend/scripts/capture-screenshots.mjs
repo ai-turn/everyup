@@ -8,7 +8,7 @@
 // 만드는 파일 (docs/public/images/):
 // - everyup-main-ko.png — README 히어로이자 docs og:image. 라이트, 내용 높이에 맞춤
 // - home/slide-<name>-<light|dark>.webp (+ -720) — docs 홈 캐러셀, 1440×900
-// - quickstart-docker-env-<light|dark>.webp — Quick Start, Docker 환경 목록 1200×400 @2x
+// - quickstart-docker-env-<light|dark>.webp — Quick Start, Docker 환경 목록 표 @2x
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -133,12 +133,18 @@ async function captureSlides(browser, converter, scheme) {
 }
 
 async function captureQuickstart(browser, converter, scheme) {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, colorScheme: scheme });
+  // 1024px에서는 목록 표가 문서 본문 폭(약 690px)과 비슷해져, 줄이지 않아도 상태 배지가 읽힌다.
+  const page = await browser.newPage({ viewport: { width: 1024, height: 768 }, deviceScaleFactor: 2, colorScheme: scheme });
   await open(page, '/environments');
   await page.waitForTimeout(800);
-  const box = await page.locator('#main-content .max-w-320').first().boundingBox();
-  const png = await page.screenshot({ clip: { x: box.x, y: box.y, width: 1200, height: 400 } });
-  await writeWebp(converter, png, `quickstart-docker-env-${scheme}.webp`, 1440, 0.88);
+  const r = await page.locator('#main-content table').first().evaluate((el) => {
+    const { x, y, width, height } = el.getBoundingClientRect();
+    return { x, y, width, height };
+  });
+  const pad = 16;
+  const box = { x: r.x - pad, y: r.y - pad, width: Math.round(r.width) + pad * 2, height: Math.round(r.height) + pad * 2 };
+  const png = await page.screenshot({ clip: box });
+  await writeWebp(converter, png, `quickstart-docker-env-${scheme}.webp`, box.width * 2, 0.88);
   await page.close();
 }
 

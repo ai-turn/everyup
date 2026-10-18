@@ -54,6 +54,22 @@
 .vp-doc div[class*='language-'] {
   border: 1px solid var(--vp-c-divider);
 }
+/* 모바일에서 코드 블록은 화면 끝까지 붙는다. 좌우 보더는 화면 가장자리에 선으로만 남는다(목록 안은 왼쪽이 들여써져 그대로). */
+@media (max-width: 639px) {
+  .vp-doc div[class*='language-']:not(li div) {
+    border-left: 0;
+    border-right: 0;
+  }
+}
+/* 복사 버튼은 hover해야 보인다. 터치 기기에서는 늘 보이게 하고, 같은 자리의 언어 라벨은 숨긴다. */
+@media (hover: none) {
+  .vp-doc [class*='language-'] > button.copy {
+    opacity: 1;
+  }
+  .vp-doc [class*='language-'] > span.lang {
+    opacity: 0;
+  }
+}
 
 .dark {
   /* 제품 다크 토큰. 다크 스크린샷 바탕(#0d1117)과 페이지 바탕이 같아져 경계가 생기지 않는다 */

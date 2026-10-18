@@ -15,7 +15,8 @@ Run the dashboard without cloning the repository:
 
 ```bash
 mkdir everyup && cd everyup
-curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
+curl -O \
+https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml
 docker compose up -d
 ```
 
@@ -79,6 +80,10 @@ EVERYUP_ENCRYPTION_KEY=<output of openssl rand -hex 32>
   if it is shorter than 8 characters or is `admin`, `password`, or `changeme`
 
 ### Retention
+
+The value format depends on the variable name. Variables ending in `DAYS` take a whole number of
+days (`14`); the other three take a unit suffix such as `7d`, `12h`, or `30m`. Without a unit, the
+value is read as days.
 
 - **`EVERYUP_RETENTION_METRICS`** · default `7d`\
   Health-check metrics
