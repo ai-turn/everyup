@@ -23,8 +23,7 @@ const link = (path: string) => withBase((ko.value ? '' : '/en') + path)
 const t = computed(() =>
   ko.value
     ? {
-        host: '모니터링 대상 Docker 호스트',
-        hostNote: '× N',
+        host: '모니터링할 서버',
         existing: '기존',
         app: '앱 컨테이너',
         appDesc: '코드·이미지 변경 없음',
@@ -41,11 +40,10 @@ const t = computed(() =>
         alert: '알림 발송',
         channels: '알림 채널',
         caption:
-          '각 Docker 호스트의 Collector가 Web으로 데이터를 push하고, Web은 알림 규칙을 평가해 채널로 알림을 보냅니다. 모니터링 대상 호스트에는 인바운드 포트를 열 필요가 없습니다.',
+          '모니터링할 서버마다 설치한 Collector가 Web으로 데이터를 push하고, Web은 알림 규칙을 평가해 채널로 알림을 보냅니다. 모니터링할 서버에는 인바운드 포트를 열 필요가 없습니다.',
       }
     : {
-        host: 'Monitored Docker host',
-        hostNote: '× N',
+        host: 'Monitored server',
         existing: 'existing',
         app: 'App containers',
         appDesc: 'No code or image changes',
@@ -62,7 +60,7 @@ const t = computed(() =>
         alert: 'notifications',
         channels: 'Alert channels',
         caption:
-          'The Collector on each Docker host pushes data to Web, and Web evaluates your alert rules and notifies your channels. Monitored hosts need no inbound ports.',
+          'The Collector on each monitored server pushes data to Web, and Web evaluates your alert rules and notifies your channels. Monitored servers need no inbound ports.',
       },
 )
 </script>
@@ -71,7 +69,7 @@ const t = computed(() =>
   <figure class="topology">
     <div class="topology-flow">
       <div class="topology-zone">
-        <p class="topology-place"><svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.server" :key="d" :d="d" /></svg>{{ t.host }} <span>{{ t.hostNote }}</span></p>
+        <p class="topology-place"><svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.server" :key="d" :d="d" /></svg>{{ t.host }}</p>
         <div class="topology-chip is-existing">
           <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.container" :key="d" :d="d" /></svg>
           <span class="topology-tag">{{ t.existing }}</span>

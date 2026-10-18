@@ -346,11 +346,6 @@ html:not(.dark) .only-dark {
   line-height: 20px;
   color: var(--vp-c-text-2);
 }
-.topology-place span {
-  margin-left: 6px;
-  font-weight: 400;
-  color: var(--vp-c-text-3);
-}
 /* 칩: 왼쪽 아이콘 열 + 오른쪽 글 열 */
 .topology-chip {
   display: grid;
