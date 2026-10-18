@@ -1,4 +1,4 @@
-// THROWAWAY — A: incident worklist, B: inventory matrix, C: temporal investigation.
+// THROWAWAY — A: environment/service state board, B: inventory matrix, C: temporal investigation.
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, ButtonLink, MaterialIcon, StatusLight } from '../../components/common';
@@ -34,38 +34,93 @@ function DataNotice({ failedSources }: { failedSources: string[] }) {
   return failedSources.length > 0 ? <p role="status" className="border-b border-ui-border py-3 text-sm text-status-warn">일부 데이터를 불러오지 못했습니다. 아래 정보는 확인된 범위이며, 실패한 소스의 이전 데이터가 포함될 수 있습니다.</p> : null;
 }
 
-function ScopeLinks({ data }: { data: Props }) {
-  const rows = [['Docker 환경', data.agents.length, '/environments', 'agents'], ['업타임 모니터', data.monitors.length, '/uptime', 'monitors'], ['직접 연결 서비스', data.observed.length, '/logs', 'observed'], ['인프라 리소스', data.infrastructure.length, '/infrastructure', 'infrastructure']] as const;
-  return <ul className="divide-y divide-ui-border-soft">{rows.map(([label, value, to, source]) => <li key={source}><Link to={to} className="flex min-h-12 items-center justify-between gap-3 py-3 text-sm hover:text-action"><span>{label}</span><span className="tabular-nums text-text-muted">{data.failedSources.includes(source) ? '확인 불가' : value}<MaterialIcon name="chevron_right" size={16} className="ml-2 inline" /></span></Link></li>)}</ul>;
+type BoardState = 'up' | 'down' | 'paused' | 'waiting' | 'stale' | 'unknown';
+interface BoardTarget { id: string; name: string; to: string; state: BoardState; protocol: string }
+const boardStates = {
+  up: { tone: 'healthy', label: '정상' }, down: { tone: 'error', label: '장애' },
+  paused: { tone: 'idle', label: '일시정지' }, waiting: { tone: 'idle', label: '확인 대기' },
+  stale: { tone: 'warn', label: '수집 지연' }, unknown: { tone: 'warn', label: '확인 불가' },
+} as const;
+
+function TargetTiles({ targets }: { targets: BoardTarget[] }) {
+  return <ul className="grid gap-2 sm:grid-cols-2">{targets.map((target) => <li key={target.id} className="min-w-0">
+    <Link to={target.to} className="flex h-full min-h-20 items-center justify-between gap-3 rounded-lg border border-ui-border-soft p-3 transition-colors hover:border-ui-border hover:bg-ui-hover-soft">
+      <span className="min-w-0"><span className="block truncate type-card-title text-text-base" title={target.name}>{target.name}</span><span className="mt-1 block type-caption text-text-muted">{target.protocol}</span></span>
+      <StatusLight {...boardStates[target.state]} />
+    </Link>
+  </li>)}</ul>;
 }
 
-function OverviewWorklist(data: Props) {
-  const [filter, setFilter] = useState('all');
-  const issues = data.attention.filter((item) => filter === 'all' || item.tone === filter);
-  const active = new Map(data.timeline.filter((item) => item.active).map((item) => [item.targetPath, item]));
-  const errors = data.attention.filter((item) => item.tone === 'error').length;
-  return <div className="space-y-5 pb-36">
-    <Intro title="지금 조사할 대상" question="어디에서 어떤 신호가 발생했고, 언제부터 이어지고 있나요?" {...data} />
+function GroupSummary({ targets }: { targets: BoardTarget[] }) {
+  const counts = new Map<BoardState, number>();
+  targets.forEach((target) => counts.set(target.state, (counts.get(target.state) ?? 0) + 1));
+  return <div className="flex flex-wrap gap-x-4 gap-y-2">{(['down', 'unknown', 'stale', 'waiting', 'up', 'paused'] as const).filter((state) => counts.has(state)).map((state) => <StatusLight key={state} tone={boardStates[state].tone} label={`${boardStates[state].label} ${counts.get(state)}`} />)}</div>;
+}
+
+function DirectMonitorPanel({ targets, failed }: { targets: BoardTarget[]; failed: boolean }) {
+  return <section aria-label="직접 추가한 업타임 모니터" className="rounded-xl border border-ui-border bg-bg-surface p-4 sm:p-5">
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="type-section-title">직접 추가한 모니터</h2><p className="mt-1 type-caption text-text-muted">외부 HTTP·TCP 응답 체크 · {failed ? '최신 상태 확인 불가' : `${targets.length}개`}</p></div><GroupSummary targets={targets} /></div>
+    {targets.length > 0 ? <TargetTiles targets={targets} /> : <p className="text-sm text-text-muted">{failed ? '모니터 상태를 불러오지 못했습니다.' : '직접 추가한 업타임 모니터가 없습니다.'}</p>}
+  </section>;
+}
+
+function DataConnections({ data }: { data: Props }) {
+  const failed = new Set(data.failedSources);
+  return (
+    <section aria-label="데이터 수집 연결">
+      <div className="mb-3"><h2 className="type-section-title">데이터 수집 연결</h2><p className="mt-1 text-sm text-text-muted">로그·메트릭과 인프라 수집 상태입니다. 위의 가용성 체크와 구분합니다.</p></div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <article className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4 sm:p-5"><h3 className="type-card-title">직접 연결 서비스 <span className="ml-1 font-normal text-text-muted">{failed.has('observed') ? '확인 불가' : data.observed.length}</span></h3><ul className="mt-3 divide-y divide-ui-border-soft">{data.observed.map((service) => <li key={service.id}><Link to={`/logs/${service.id}`} className="flex min-h-16 items-center justify-between gap-3 py-3 hover:text-action"><span className="min-w-0"><span className="block truncate type-label">{service.name}</span><span className="mt-1 block type-caption text-text-muted">{service.signals.join(' · ') || 'Telemetry'}</span></span><StatusLight tone={failed.has('observed') || (service.isActive && !service.lastSeenAt) ? 'warn' : 'idle'} label={failed.has('observed') ? '확인 불가' : !service.isActive ? '일시정지' : service.lastSeenAt ? '수신 기록 있음' : '수신 대기'} /></Link></li>)}</ul>{data.observed.length === 0 && <p className="mt-3 text-sm text-text-muted">{failed.has('observed') ? '연결 목록 확인 불가' : '연결한 서비스 없음'}</p>}</article>
+        <article className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4 sm:p-5"><h3 className="type-card-title">인프라 리소스 <span className="ml-1 font-normal text-text-muted">{failed.has('infrastructure') ? '확인 불가' : data.infrastructure.length}</span></h3><ul className="mt-3 divide-y divide-ui-border-soft">{data.infrastructure.map((resource) => <li key={resource.id}><Link to={`/infrastructure/${resource.id}`} className="flex min-h-16 items-center justify-between gap-3 py-3 hover:text-action"><span className="min-w-0"><span className="block truncate type-label">{resource.name}</span><span className="mt-1 block type-caption text-text-muted">{resource.lastSeenAt ? `${formatIncidentTime(resource.lastSeenAt)} 수신` : '수신 기록 없음'}</span></span><StatusLight tone={failed.has('infrastructure') || (resource.isActive && !isCollectorFresh(resource.lastSeenAt)) ? 'warn' : resource.isActive ? 'healthy' : 'idle'} label={failed.has('infrastructure') ? '확인 불가' : !resource.isActive ? '일시정지' : isCollectorFresh(resource.lastSeenAt) ? '수신 중' : '수집 확인'} /></Link></li>)}</ul>{data.infrastructure.length === 0 && <p className="mt-3 text-sm text-text-muted">{failed.has('infrastructure') ? '연결 목록 확인 불가' : '연결한 리소스 없음'}</p>}</article>
+      </div>
+    </section>
+  );
+}
+
+function OverviewStateBoard(data: Props) {
+  const failed = new Set(data.failedSources);
+  const servicesByAgent = new Map<string, AgentServiceFlat[]>();
+  data.services.forEach((service) => servicesByAgent.set(service.agentId, [...(servicesByAgent.get(service.agentId) ?? []), service]));
+  const agentMap = new Map(data.agents.map((agent) => [agent.id, agent]));
+  const environmentIds = [...new Set([...agentMap.keys(), ...servicesByAgent.keys()])];
+  const dockerTargets = (services: AgentServiceFlat[]): BoardTarget[] => services.map((service) => ({
+    id: `${service.agentId}/${service.key}`, name: service.name, to: `/services/${service.agentId}/${encodeURIComponent(service.key)}`,
+    state: failed.has('services') ? 'unknown' : dockerUptimeState(service), protocol: service.checkType.toUpperCase(),
+  }));
+  const directTargets: BoardTarget[] = data.monitors.map((monitor) => ({
+    id: monitor.id, name: monitor.name, to: `/uptime/${monitor.id}`, protocol: monitor.type.toUpperCase(),
+    state: failed.has('monitors') ? 'unknown' : !monitor.isActive ? 'paused' : monitor.status === 'healthy' ? 'up' : monitor.status === 'unhealthy' ? 'down' : 'waiting',
+  }));
+  const allTargets = [...dockerTargets(data.services), ...directTargets];
+  const empty = environmentIds.length + data.monitors.length + data.observed.length + data.infrastructure.length === 0;
+  return <div className="space-y-6 pb-36">
+    <Intro title="서비스·환경 현황" question="어느 환경에서 어떤 서비스가 동작하고 있는지 한눈에 확인하세요." {...data} />
     <DataNotice failedSources={data.failedSources} />
-    <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-b border-ui-border pb-4 text-sm">
-      <p><strong className="mr-2 text-3xl font-bold tabular-nums text-text-base">{errors}</strong>장애 신호 대상</p><p><strong className="mr-2 text-2xl font-medium tabular-nums text-text-base">{data.attention.length - errors}</strong>수집 확인 대상</p>
-      <p className="text-text-muted">같은 환경의 신호도 각각 표시됩니다.</p>
-    </div>
-    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_264px]">
-      <section aria-label="조사할 대상" className="min-w-0 overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ui-border p-4"><h2 className="type-card-title">확인할 신호</h2><div className="flex flex-wrap gap-1" role="group" aria-label="신호 종류">{[['all', '전체'], ['error', '장애 신호'], ['warn', '수집 확인']].map(([value, label]) => <Button key={value} size="sm" variant={filter === value ? 'secondary' : 'ghost'} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</Button>)}</div></div>
-        {issues.length === 0 ? <div className="p-6 text-sm text-text-muted">{data.failedSources.some((source) => source !== 'timeline') ? '조회되지 않은 상태가 있습니다. 전체 정상 여부는 아직 확인할 수 없습니다.' : '선택한 분류에서 확인할 신호가 없습니다.'}</div> : <ul className="divide-y divide-ui-border-soft">{issues.map((item) => {
-          const episode = active.get(item.to.split('?')[0]);
-          const related = data.timeline.filter((event) => event.targetPath === item.to.split('?')[0]);
-          const environment = data.services.find((service) => `/services/${service.agentId}/${encodeURIComponent(service.key)}` === item.to.split('?')[0])?.agentName;
-          return <li key={item.id}><Link to={item.to} className="grid gap-3 p-4 transition-colors hover:bg-ui-hover-soft sm:grid-cols-[minmax(0,1fr)_132px]">
-            <div className="min-w-0"><div className="mb-2 flex flex-wrap items-center gap-3"><StatusLight tone={item.tone} label={item.tone === 'error' ? '장애 신호' : '수집 확인'} /><span className="type-caption text-text-muted">{item.to.startsWith('/uptime') ? '직접 체크' : item.to.startsWith('/services') ? `Docker 서비스 · ${environment ?? '환경 미확인'}` : '수집 연결'}</span></div><p className="break-words type-card-title text-text-base">{item.title}</p><p className="mt-1 break-words text-sm text-text-muted">{episode?.message || item.detail}</p>{related.length > 0 && <p className="mt-2 type-caption text-text-muted">최근 조회 이력에 {related.length}회 등장 · 이력과 함께 조사</p>}</div>
-            <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end"><p className="text-sm text-text-secondary">{episode ? <><span className="block">{formatIncidentTime(episode.startedAt)} 시작</span><span className="mt-1 block font-medium">{formatDuration(episode.durationSec)} 경과</span></> : item.timeLabel || (item.observedAt ? `${formatIncidentTime(item.observedAt)} 확인` : '시작 시각 없음')}</p><span className="type-caption text-action">대상 조사 <MaterialIcon name="arrow_forward" size={16} className="inline" /></span></div>
-          </Link></li>;
-        })}</ul>}
-      </section>
-      <aside className="min-w-0 space-y-6"><section><h2 className="type-card-title">확인 중인 범위</h2><ScopeLinks data={data} /></section><section className="border-t border-ui-border pt-4"><h2 className="type-card-title">최근 복구</h2><p className="mt-1 type-caption text-text-muted">최근 7일 중 조회된 이력</p><ul className="mt-3 space-y-4">{data.timeline.filter((item) => !item.active).slice(0, 3).map((item) => <li key={`${item.targetPath}${item.startedAt}`}><Link to={item.targetPath} className="block text-sm text-action">{item.targetName}</Link><p className="mt-1 type-caption text-text-muted">{formatIncidentTime(item.endedAt ?? item.startedAt)} · {formatDuration(item.durationSec)} 지속</p></li>)}</ul>{!data.timeline.some((item) => !item.active) && <p className="mt-3 text-sm text-text-muted">{data.failedSources.includes('timeline') ? '이력 확인 불가' : '조회된 복구 기록 없음'}</p>}</section></aside>
-    </div>
+    <section aria-label="서비스 체크 현황" className="flex flex-wrap items-center justify-between gap-3 border-b border-ui-border pb-4">
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2"><h2 className="type-section-title text-text-base">업타임 체크 <span className="ml-1 tabular-nums">{failed.has('services') || failed.has('monitors') ? '조회된 ' : ''}{allTargets.length}</span></h2><GroupSummary targets={allTargets} /></div>
+      <ButtonLink variant="ghost" size="sm" to="/uptime">전체 목록 <MaterialIcon name="arrow_forward" size={16} /></ButtonLink>
+    </section>
+    {empty && !data.failedSources.some((source) => source !== 'timeline') && <section className="rounded-xl border border-ui-border bg-bg-surface p-6"><h2 className="type-section-title">아직 연결한 대상이 없습니다</h2><p className="mt-2 text-sm text-text-muted">Docker 환경을 연결하거나 업타임 모니터를 추가하면 서비스 상태가 이곳에 표시됩니다.</p><div className="mt-4 flex flex-wrap gap-2"><ButtonLink variant="secondary" to="/environments">Docker 연결</ButtonLink><ButtonLink variant="ghost" to="/uptime">업타임 추가</ButtonLink></div></section>}
+    <section aria-label="Docker 환경별 서비스 상태">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 className="type-section-title">Docker 환경 <span className="ml-1 text-sm font-normal text-text-muted">{failed.has('agents') ? '목록 확인 불가' : `${environmentIds.length}개 표시`}</span></h2><p className="type-caption text-text-muted">Collector 수신과 서비스 체크를 각각 표시합니다</p></div>
+      <div className="grid items-start gap-4 xl:grid-cols-2">{environmentIds.map((id) => {
+        const agent = agentMap.get(id);
+        const services = servicesByAgent.get(id) ?? [];
+        const targets = dockerTargets(services);
+        const fresh = isCollectorFresh(agent?.lastSeenAt);
+        return <article key={id} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4 sm:p-5" aria-label={agent?.name ?? services[0]?.agentName ?? '환경 미확인'}>
+          <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0"><h3 className="truncate type-section-title"><Link to={`/agents/${id}`} className="text-text-base hover:text-action">{agent?.name ?? services[0]?.agentName ?? '환경 미확인'}</Link></h3><p className="mt-1 type-caption text-text-muted">서비스 체크 {failed.has('services') ? '확인 불가' : `${targets.length}개`}</p></div>
+            <div className="text-right"><StatusLight tone={!failed.has('agents') && fresh ? 'healthy' : 'warn'} label={failed.has('agents') || !agent ? 'Collector 확인 불가' : fresh ? 'Collector 수신 중' : 'Collector 수집 지연'} /><p className="mt-1 type-caption text-text-muted">{agent?.lastSeenAt ? `${formatIncidentTime(agent.lastSeenAt)} 수신` : '수신 기록 없음'}</p></div>
+          </header>
+          {targets.length > 0 ? <><div className="mb-3"><GroupSummary targets={targets} /></div><TargetTiles targets={targets} /></> : <p className="rounded-lg bg-ui-hover-soft p-4 text-sm text-text-muted">{failed.has('services') ? '서비스 상태를 불러오지 못했습니다.' : '이 환경에 등록된 서비스 체크가 없습니다.'}</p>}
+        </article>;
+      })}</div>
+      {environmentIds.length === 0 && <p className="rounded-xl border border-ui-border p-4 text-sm text-text-muted">{failed.has('agents') || failed.has('services') ? '환경과 서비스 상태를 확인할 수 없습니다.' : '연결한 Docker 환경이 없습니다.'}</p>}
+    </section>
+    <DirectMonitorPanel targets={directTargets} failed={failed.has('monitors')} />
+    <DataConnections data={data} />
+    <details className="rounded-xl border border-ui-border bg-bg-surface p-4"><summary className="cursor-pointer type-label">최근 장애·복구 기록 {failed.has('timeline') ? '확인 불가' : `${data.timeline.length}개`}</summary><p className="mt-3 type-caption text-text-muted">최근 7일 중 조회된 최신 6개까지의 기록입니다.</p><ul className="mt-2 divide-y divide-ui-border-soft">{data.timeline.map((event) => <li key={`${event.targetPath}/${event.startedAt}`}><Link to={event.targetPath} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"><span className="text-action">{event.targetName}</span><span className="text-text-muted">{event.active ? '진행 중' : '복구'} · {formatIncidentTime(event.startedAt)} · {formatDuration(event.durationSec)}</span></Link></li>)}</ul>{data.timeline.length === 0 && <p className="mt-3 text-sm text-text-muted">{failed.has('timeline') ? '기록을 불러오지 못했습니다.' : '조회된 장애 기록이 없습니다.'}</p>}</details>
   </div>;
 }
 
@@ -122,5 +177,5 @@ function OverviewChronology(data: Props) {
 export function OverviewPrototype(data: Props) {
   if (data.variant === 'B') return <OverviewMatrix {...data} />;
   if (data.variant === 'C') return <OverviewChronology {...data} />;
-  return <OverviewWorklist {...data} />;
+  return <OverviewStateBoard {...data} />;
 }

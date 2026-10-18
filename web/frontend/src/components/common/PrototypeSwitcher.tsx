@@ -5,8 +5,8 @@ import { Button, ButtonLink, MaterialIcon } from './index';
 
 const variants = ['current', 'A', 'B', 'C'] as const;
 const names = {
-  overview: ['현재 화면', '조사할 대상 먼저', '모니터링 범위 비교', '장애의 시간 흐름'],
-  uptime: ['현재 화면', '대상 비교 표', '목록과 상세 함께', '환경별 묶음'],
+  overview: ['기존 개요', '환경별 서비스 상태판', '모니터링 범위 비교', '장애의 시간 흐름'],
+  uptime: ['그리드·카드 보기', '선택한 목록 · 그리드·카드', '목록과 상세 함께', '환경별 묶음'],
 };
 
 export function PrototypeSwitcher() {
