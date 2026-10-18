@@ -7,6 +7,7 @@ import { dockerUptimeState } from '../../../utils/operationalStatus';
 import { DockerUptimeStatus } from './DockerUptimeStatus';
 import { UptimeMonitorStatusBadge } from './UptimeMonitorStatusBadge';
 import { UptimeTargetCard } from './UptimeTargetCard';
+import { tableRowLinkHandlers } from '../../../utils/tableRowLink';
 
 interface Props {
   view: 'grid' | 'card';
@@ -84,7 +85,7 @@ export function UptimeTargets(props: Props) {
   return <div className="overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
     <table aria-label="업타임 그리드" className="w-full table-fixed text-left text-sm">
       <caption className="sr-only">장애와 확인이 필요한 대상을 먼저 표시합니다. 작은 화면에서는 대상 열에 주소와 최근 확인을 함께 표시합니다.</caption>
-      <thead className="border-b border-ui-border bg-ui-hover-soft text-xs text-text-muted"><tr>
+      <thead className="border-b border-ui-border bg-ui-table-header text-xs text-text-muted"><tr>
         <th scope="col" className="w-24 px-3 py-3 font-medium sm:w-28 sm:px-4">상태</th>
         <th scope="col" className="px-3 py-3 font-medium sm:px-4 md:w-48 xl:w-56">대상</th>
         <th scope="col" className="hidden px-4 py-3 font-medium md:table-cell">체크 주소</th>
@@ -92,10 +93,10 @@ export function UptimeTargets(props: Props) {
         <th scope="col" className="hidden w-24 px-4 py-3 font-medium lg:table-cell">방식</th>
         <th scope="col" className="w-14 px-1 py-3 font-medium sm:w-28 sm:px-3"><span className="sr-only">모니터 상태 변경</span></th>
       </tr></thead>
-      <tbody className="divide-y divide-ui-border-soft">{targets.map((target) => <tr key={target.key} className="align-top transition-colors hover:bg-ui-hover-soft">
+      <tbody className="divide-y divide-ui-border-soft">{targets.map((target) => <tr key={target.key} {...tableRowLinkHandlers} className="table-row-link align-top transition-colors hover:bg-ui-hover-soft">
         <td className="px-3 py-4 sm:px-4">{target.status}</td>
         <td className="min-w-0 px-3 py-4 sm:px-4">
-          <Link to={target.to} state={{ returnTo }} className="block truncate font-medium text-action" title={target.name}>{target.name}</Link>
+          <Link data-row-link to={target.to} state={{ returnTo }} className="block truncate font-medium text-action" title={target.name}>{target.name}</Link>
           <p className="mt-1 truncate type-caption text-text-muted">{target.environment || '직접 추가'}<span className="lg:hidden"> · {target.protocol}</span></p>
           <p className="mt-2 truncate font-mono text-xs text-text-dim md:hidden" title={target.endpoint}>{target.endpoint}</p>
           <p className="mt-1 type-caption text-text-muted xl:hidden">{target.lastCheck ? `${formatIncidentTime(target.lastCheck)} 확인` : '확인 기록 없음'}</p>

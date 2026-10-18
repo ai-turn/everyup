@@ -12,6 +12,7 @@ colors:
   ui-border-soft: "#f1f5f9"
   ui-hover: "#f1f5f9"
   ui-hover-soft: "#f8fafc"
+  ui-table-header: "#f1f5f9"
   ui-active: "#e2e8f0"
   ui-raised: "#ffffff"
   text-base: "#0f172a"
@@ -32,6 +33,7 @@ colors:
   ui-border-soft-dark: "#30363d"
   ui-hover-dark: "#1f2937"
   ui-hover-soft-dark: "#1f2937"
+  ui-table-header-dark: "#0d1117"
   ui-active-dark: "#374151"
   ui-raised-dark: "#374151"
   text-base-dark: "#ffffff"
@@ -162,6 +164,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | 내부 구분선 | `border-ui-border-soft` | `#f1f5f9` | `#30363d` |
 | hover 채움 | `bg-ui-hover` | `#f1f5f9` | `#1f2937` |
 | 옅은 내부 채움 | `bg-ui-hover-soft` | `#f8fafc` | `#1f2937` |
+| 표 헤더 | `bg-ui-table-header` | `#f1f5f9` | `#0d1117` |
 | 눌린 표면 | `bg-ui-active` | `#e2e8f0` | `#374151` |
 | **떠오른 표면** | `bg-ui-raised` | `#ffffff` | `#374151` |
 
@@ -671,14 +674,16 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 | 부분 | 클래스 |
 |------|--------|
-| 헤더 행 | `bg-ui-hover-soft border-b border-ui-border` |
+| 헤더 행 | `bg-ui-table-header border-b border-ui-border` — 행 hover와 별도 배경 |
 | 헤더 셀 | `px-4 py-3 text-left text-xs font-medium text-text-muted` |
 | 본문 셀 | `px-4 py-2.5`, 행 구분은 `border-ui-border-soft` 한 줄(`divide-y` 또는 행 `border-t`) |
 | 숫자·시간 열 | 헤더와 셀 모두 `text-right`, 셀은 `tabular-nums` |
-| 클릭 가능한 행 | `hover:bg-ui-hover-soft`(§3.6 — 배지 대비가 이 값에 기대고 있다, §5.1b) + `tabIndex`·키 핸들러(§8) |
+| 상세로 이동하는 행 | `hover:bg-ui-hover-soft`(§3.6 — 배지 대비 유지), `data-row-link` 제목 링크와 `tableRowLinkHandlers`. 행 빈 공간도 같은 링크로 이동 |
 | 넓은 표 | `overflow-x-auto` 안에 `min-w-[…] table-fixed`. 작업 열은 `sticky right-0 border-l border-ui-border-soft`에 행과 같은 배경 |
 
 본문 글자는 `text-sm`, 로그·트레이스처럼 기계 문자열이 주인 표는 `text-xs`(§2.2).
+
+헤더는 hover 상태와 다른 배경을 사용한다. 행 hover는 배지·본문 대비를 유지하도록 기존 `ui-hover-soft`로 둔다. 상세 행의 기본 클릭은 제목의 실제 링크로 전달해 Router state와 복귀 경로를 보존하고, Ctrl/Meta/중간 클릭은 같은 URL을 새 탭에서 연다. 키보드는 같은 제목 링크를 사용하며, 행을 별도 버튼으로 바꾸거나 중복 Tab 지점을 추가하지 않는다. 행 안의 링크·버튼·토글·입력·summary와 텍스트 선택은 행 이동을 실행하지 않는다. `table-row-link`는 비활성 버튼도 클릭 대상으로 유지해 `pointer-events:none` 때문에 클릭이 행에 전달되는 것을 막는다. 상세 목적지가 없는 행은 이동 가능한 커서를 표시하지 않는다.
 
 **목록 보기 (2026-10-18)** — 업타임·Projects·Docker 환경·로그·인프라·API 요청·메트릭·알림의 기본은 그리드(비교 표)다. 환경 상세의 서비스 목록과 Project 상세의 구성 목록도 같다. 목록 툴바 오른쪽의 `ListViewToggle`로 카드를 선택하며, `useListView`가 `view=card`를 URL에 보존한다. 기본값과 알 수 없는 값은 그리드다. 보기만 바꿀 때 검색·탭·대상 필터를 지우지 않고, 두 보기는 같은 데이터·순서·작업을 사용한다. 개요 상태판·상세 차트·설정 폼에는 적용하지 않는다.
 

@@ -455,7 +455,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
         <div className="overflow-x-auto">
           <table aria-label="알림 규칙 그리드" className="w-full min-w-[1180px] table-fixed text-sm">
             <thead>
-              <tr className="bg-ui-hover-soft border-b border-ui-border">
+              <tr className="bg-ui-table-header border-b border-ui-border">
                 <SortableTH className="w-[260px]" label="규칙" active={sortKey === 'name'} dir={sortDir} onClick={() => onSort('name')} />
                 <SortableTH className="w-[110px]" label="심각도" active={sortKey === 'severity'} dir={sortDir} onClick={() => onSort('severity')} />
                 <SortableTH className="w-[200px]" label="대상" active={sortKey === 'target'} dir={sortDir} onClick={() => onSort('target')} />
@@ -469,7 +469,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                   최근 발동
                 </th>
                 {/* 1180px 테이블이 노트북 폭에서 가로 스크롤될 때도 작업 열은 보이게 오른쪽에 고정한다. */}
-                <th className="sticky right-0 w-[120px] border-l border-ui-border-soft bg-ui-hover-soft px-4 py-3 text-right text-xs font-medium text-text-muted">
+                <th className="sticky right-0 w-[120px] border-l border-ui-border-soft bg-ui-table-header px-4 py-3 text-right text-xs font-medium text-text-muted">
                   작업
                 </th>
               </tr>
