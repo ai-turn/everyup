@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import {
   Button, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput,
-  ListViewToggle, StatusLight,
+  ListViewToggle, Select, StatusLight,
 } from '../../components/common';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeTargets } from '../../features/uptime/components/UptimeTargets';
@@ -35,12 +35,15 @@ export function AgentServiceCapabilityPage() {
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
+  const sourceParam = searchParams.get('source');
+  const source = sourceParam === 'direct' || sourceParam === 'docker' ? sourceParam : 'all';
   const { view, setView } = useListView();
-  const setQuery = (value: string) => {
+  const setParam = (key: string, value: string) => {
     const next = new URLSearchParams(searchParams);
-    if (value) next.set('q', value); else next.delete('q');
+    if (value) next.set(key, value); else next.delete(key);
     setSearchParams(next, { replace: true });
   };
+  const setQuery = (value: string) => setParam('q', value);
   const returnTo = `/uptime${searchParams.size ? `?${searchParams}` : ''}`;
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<LoadErrors>({});
@@ -70,14 +73,16 @@ export function AgentServiceCapabilityPage() {
     return () => window.clearTimeout(initialLoad);
   }, [load]);
 
+  // 업타임은 응답 검사만 담는다(ADR-0006). 컨테이너 실행 여부만 보는 검사는 Docker 환경에서만 보인다.
+  const responseServices = useMemo(() => agentServices.filter((service) => service.checkType !== 'docker'), [agentServices]);
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredAgentServices = useMemo(() => agentServices.filter((service) => !normalizedQuery
+  const filteredAgentServices = useMemo(() => source === 'direct' ? [] : responseServices.filter((service) => !normalizedQuery
     || service.name.toLowerCase().includes(normalizedQuery)
     || service.agentName.toLowerCase().includes(normalizedQuery)
-    || (service.endpoint || service.key).toLowerCase().includes(normalizedQuery)), [agentServices, normalizedQuery]);
-  const filteredMonitors = useMemo(() => monitors.filter((monitor) => !normalizedQuery
+    || (service.endpoint || service.key).toLowerCase().includes(normalizedQuery)), [responseServices, source, normalizedQuery]);
+  const filteredMonitors = useMemo(() => source === 'docker' ? [] : monitors.filter((monitor) => !normalizedQuery
     || monitor.name.toLowerCase().includes(normalizedQuery)
-    || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery)), [monitors, normalizedQuery]);
+    || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery)), [monitors, source, normalizedQuery]);
 
   const saveMonitor = async (input: UptimeMonitorInput) => {
     await api.createUptimeMonitor(input);
@@ -103,12 +108,12 @@ export function AgentServiceCapabilityPage() {
   };
 
   const empty = filteredAgentServices.length === 0 && filteredMonitors.length === 0;
-  const hasTargets = agentServices.length + monitors.length > 0;
-  const searchingTargets = Boolean(normalizedQuery) && hasTargets;
+  const hasTargets = responseServices.length + monitors.length > 0;
+  const searchingTargets = (Boolean(normalizedQuery) || source !== 'all') && hasTargets;
   const hasErrors = Boolean(errors.services || errors.monitors);
-  const hasPreviousData = Boolean((errors.services && agentServices.length > 0) || (errors.monitors && monitors.length > 0));
+  const hasPreviousData = Boolean((errors.services && responseServices.length > 0) || (errors.monitors && monitors.length > 0));
 
-  const dockerStates = agentServices.map(dockerUptimeState);
+  const dockerStates = responseServices.map(dockerUptimeState);
   const paused = monitors.filter((monitor) => !monitor.isActive).length + dockerStates.filter((state) => state === 'paused').length;
   const waiting = monitors.filter((monitor) => monitor.isActive && monitor.status === 'unknown').length + dockerStates.filter((state) => state === 'waiting').length;
   const stale = dockerStates.filter((state) => state === 'stale').length;
@@ -119,7 +124,7 @@ export function AgentServiceCapabilityPage() {
 
   const prototypeVariant = import.meta.env.DEV ? searchParams.get('variant') : null;
   if (UptimeListPrototype && prototypeVariant && ['B', 'C'].includes(prototypeVariant) && !loading) {
-    return <Suspense fallback={<p className="p-6 text-text-muted">설계안을 불러오는 중</p>}><UptimeListPrototype variant={prototypeVariant} services={agentServices} monitors={monitors} errors={errors} query={query} onQueryChange={setQuery} /></Suspense>;
+    return <Suspense fallback={<p className="p-6 text-text-muted">설계안을 불러오는 중</p>}><UptimeListPrototype variant={prototypeVariant} services={responseServices} monitors={monitors} errors={errors} query={query} onQueryChange={setQuery} /></Suspense>;
   }
 
   return (
@@ -135,13 +140,18 @@ export function AgentServiceCapabilityPage() {
             <div className="flex items-center gap-2"><dt><StatusLight label="장애" tone={down ? 'error' : 'idle'} /></dt><dd className="text-xl font-medium tabular-nums">{down}</dd></div>
             <div className="flex items-center gap-2"><dt><StatusLight label="정지·대기·지연" tone="idle" /></dt><dd className="text-xl font-medium tabular-nums">{paused + waiting + stale}</dd></div>
           </dl>
-          <p className="mt-2 type-caption text-text-muted">전체 {monitors.length + agentServices.length}개 대상 · 일시정지 {paused}개 · 확인 대기 {waiting}개{stale ? ` · 수집 지연 ${stale}개` : ''}</p>
+          <p className="mt-2 type-caption text-text-muted">전체 {monitors.length + responseServices.length}개 대상 · 일시정지 {paused}개 · 확인 대기 {waiting}개{stale ? ` · 수집 지연 ${stale}개` : ''}</p>
         </section>
       )}
 
       <ListToolbar search={
         <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
       }>
+        <Select aria-label="검사 출처" value={source} onChange={(event) => setParam('source', event.target.value === 'all' ? '' : event.target.value)} wrapperClassName="w-36">
+          <option value="all">전체 출처</option>
+          <option value="direct">직접 등록</option>
+          <option value="docker">Docker 환경</option>
+        </Select>
         <ListViewToggle view={view} onChange={setView} />
       </ListToolbar>
 
@@ -164,7 +174,7 @@ export function AgentServiceCapabilityPage() {
 
       {loading && !hasTargets ? <ServiceListSkeleton /> : empty ? (
         !hasErrors && (
-          <EmptyState icon="monitor_heart" title={searchingTargets ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={searchingTargets ? '검색어를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={searchingTargets ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
+          <EmptyState icon="monitor_heart" title={searchingTargets ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={searchingTargets ? '검색어나 출처를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={searchingTargets ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
         )
       ) : (
         <section aria-label="업타임 대상" aria-busy={loading || undefined}>

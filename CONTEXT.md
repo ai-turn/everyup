@@ -24,6 +24,14 @@ _Avoid_: Capability-specific Agent, Independent Collector
 A configured availability check, such as HTTP or TCP, with its own target and schedule. It may run without a Docker Environment.
 _Avoid_: Service, Project
 
+**Response Check**:
+A check that asks a target to answer, such as an HTTP request or TCP connection. Independent Uptime Monitors and Docker Collector HTTP checks are both Response Checks and appear on Uptime.
+_Avoid_: Liveness Check
+
+**Liveness Check**:
+A Docker Collector check that is healthy while the container is running, without asking the workload to answer. It appears only in its Docker Environment.
+_Avoid_: Uptime, Response Check
+
 **Observed Service**:
 A workload discovered by a Collector or created for a direct telemetry connection, such as a Docker container or instrumented application. Its health, logs, API data, and metrics can be explored independently.
 _Avoid_: Project
