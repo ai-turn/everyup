@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
 import {
   api,
@@ -14,6 +14,8 @@ import { isCollectorFresh } from '../../utils/operationalStatus';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
+
+const OverviewPrototype = import.meta.env.DEV ? lazy(() => import('./Overview.prototype').then((module) => ({ default: module.OverviewPrototype }))) : null;
 
 interface AttentionItem {
   id: string;
@@ -36,6 +38,8 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 export function OverviewPage() {
+  const [prototypeParams] = useSearchParams();
+  const prototypeVariant = import.meta.env.DEV ? prototypeParams.get('variant') : null;
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
@@ -203,8 +207,12 @@ export function OverviewPage() {
     );
   }
 
+  if (OverviewPrototype && prototypeVariant && ['A', 'B', 'C'].includes(prototypeVariant)) {
+    return <Suspense fallback={<p className="p-6 text-text-muted">설계안을 불러오는 중</p>}><OverviewPrototype variant={prototypeVariant} attention={attention} timeline={timeline} agents={agents} services={services} monitors={monitors} observed={observedServices} infrastructure={infrastructure} failedSources={failedSources} updatedAt={updatedAt} onRefresh={handleRefresh} /></Suspense>;
+  }
+
   return (
-    <div className="space-y-5">
+    <div className={`space-y-5 ${prototypeVariant ? 'pb-36' : ''}`}>
       {/* 연결 추가는 각 화면(Docker 환경·업타임·로그)의 일이다. 개요의 머리는 장애에 내준다. */}
       <PageHeader
         title="모니터링 개요"

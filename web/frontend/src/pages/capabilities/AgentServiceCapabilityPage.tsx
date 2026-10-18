@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -12,6 +12,8 @@ import { api, type AgentServiceFlat, type UptimeMonitor, type UptimeMonitorInput
 import { getErrorMessage } from '../../utils/errors';
 import { dockerUptimeState } from '../../utils/operationalStatus';
 import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
+
+const UptimeListPrototype = import.meta.env.DEV ? lazy(() => import('./UptimeList.prototype').then((module) => ({ default: module.UptimeListPrototype }))) : null;
 
 function ServiceListSkeleton() {
   return (
@@ -115,8 +117,13 @@ export function AgentServiceCapabilityPage() {
   const up = monitors.filter((monitor) => monitor.isActive && monitor.status === 'healthy').length
     + dockerStates.filter((state) => state === 'up').length;
 
+  const prototypeVariant = import.meta.env.DEV ? searchParams.get('variant') : null;
+  if (UptimeListPrototype && prototypeVariant && ['A', 'B', 'C'].includes(prototypeVariant) && !loading) {
+    return <Suspense fallback={<p className="p-6 text-text-muted">설계안을 불러오는 중</p>}><UptimeListPrototype variant={prototypeVariant} services={agentServices} monitors={monitors} errors={errors} query={query} onQueryChange={setQuery} /></Suspense>;
+  }
+
   return (
-    <div>
+    <div className={prototypeVariant ? 'pb-36' : ''}>
       <PageHeader title="업타임" subtitle="서비스가 정상적으로 응답하는지 확인하고, 장애가 발생한 대상을 빠르게 찾습니다.">
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>

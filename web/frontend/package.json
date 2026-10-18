@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.27.0",
   "scripts": {
     "dev": "vite",
+    "dev:ui-prototype": "vite --mode demo --host 127.0.0.1 --port 5186 --strictPort --base /",
     "typecheck": "tsc --noEmit",
     "build": "vite build",
     "build:demo": "vite build --mode demo",

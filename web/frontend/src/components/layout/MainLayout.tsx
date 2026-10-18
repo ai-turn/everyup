@@ -7,6 +7,7 @@ import { Footer } from './Footer';
 import { DemoBanner } from './DemoBanner';
 import { BottomNavMobile } from './BottomNav.mobile';
 import { BreadcrumbProvider } from '../../contexts/BreadcrumbContext';
+import { PrototypeSwitcher } from '../common/PrototypeSwitcher';
 
 export function MainLayout() {
   // AppHeader와 Outlet이 같은 트리에 있으므로 Provider도 여기서 닫는다 — 상세 페이지가
@@ -61,6 +62,7 @@ export function MainLayout() {
 
       {/* Bottom Navigation: 모바일 전용 (lg 미만) */}
       <BottomNavMobile />
+      {import.meta.env.DEV && <PrototypeSwitcher />}
     </div>
     </BreadcrumbProvider>
   );
