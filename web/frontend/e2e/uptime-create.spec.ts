@@ -122,6 +122,9 @@ test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves T
   state.failures.clear();
   await save.click();
   await expect(dialog).toHaveCount(0);
+  const gridRow = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row').filter({ has: page.getByRole('link', { name: 'TCP Probe', exact: true }) });
+  await expect(gridRow.getByText('db.example.com:5432', { exact: true }).filter({ visible: true })).toBeVisible();
+  await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();
   const card = page.locator('article').filter({ has: page.getByRole('link', { name: 'TCP Probe', exact: true }) });
   await expect(card.getByText('db.example.com:5432', { exact: true })).toBeVisible();
   const writes = state.requests.filter((request) => request.method === 'POST');
