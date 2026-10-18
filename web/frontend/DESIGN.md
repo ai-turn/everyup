@@ -556,7 +556,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 
 배치 판단 참고: [PatternFly Page header](https://www.patternfly.org/component-groups/content-containers/page-header/)의 제목 우측 액션, [Carbon Data table](https://carbondesignsystem.com/components/data-table/usage/)의 검색·필터 툴바. 이 프로젝트에서는 기존 페이지 CTA 앵커를 유지하고 목록 조회 제어를 별도 줄로 통일한다.
 
-**서비스 상세 헤더 예외 (2026-10-18, 사용자 요청)** — `AgentHealthCheckDetailView`는 `PageHeader.aside`에 기간 → 새로고침 → 알림 규칙 → 에러 확인 바로가기를 둔다. `xl` 이상은 제목·메타데이터의 우측 상단, 그 미만은 메타데이터 다음으로 흐른다. 대상 정보·조회 조작·장애 대응이 한 헤더 띠에 속하며 별도 툴바·전체 폭 장애 배너를 반복하지 않는다. 라벨 있는 `에러 확인` secondary 버튼을 항상 표시하고 기존 로그 탭으로 이동한다. 에러가 없으면 native disabled로 비활성화한다. 새로고침·알림 규칙·에러 확인은 한 행으로 묶고, 공간이 부족하면 기간 선택만 앞줄로 흐른다. 별도 박스·원인·마지막 응답·장애 요약은 표시하지 않는다. 모바일에서도 바로가기 라벨을 유지한다. 다른 상세의 `DetailActionToolbar` 배치는 유지한다. `AgentServiceTabs`는 탭과 데이터 본문만 담당한다.
+**서비스 상세 헤더 예외 (2026-10-18, 사용자 요청)** — `AgentHealthCheckDetailView`는 `PageHeader.aside`에 기간 → 새로고침 → 알림 규칙 → 에러 확인 바로가기를 둔다. `xl` 이상은 제목·메타데이터의 우측 상단, 그 미만은 메타데이터 다음으로 흐른다. 대상 정보·조회 조작·장애 대응이 한 헤더 띠에 속하며 별도 툴바·전체 폭 장애 배너를 반복하지 않는다. 라벨 있는 `에러 확인` secondary 버튼을 항상 표시하고 기존 로그 탭으로 이동한다. 에러가 없으면 native disabled로 비활성화한다. 새로고침·알림 규칙·에러 확인은 기본적으로 한 행으로 묶고, 공간이 부족하면 기간 선택만 앞줄로 흐른다. 200% 글자 확대처럼 액션 그룹 자체도 한 행에 들어가지 않으면 버튼을 숨기거나 가로로 넘기지 않고 줄바꿈을 허용한다. 별도 박스·원인·마지막 응답·장애 요약은 표시하지 않는다. 모바일에서도 바로가기 라벨을 유지한다. 다른 상세의 `DetailActionToolbar` 배치는 유지한다. `AgentServiceTabs`는 탭과 데이터 본문만 담당한다.
 
 ### 4.2 `components/charts/` — 차트 스펙
 

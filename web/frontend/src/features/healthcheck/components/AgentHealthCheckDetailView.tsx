@@ -106,7 +106,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
         aside={
           <div role="group" aria-label="서비스 조회 및 알림" className="flex flex-wrap items-center gap-2 xl:justify-end">
             <TimeRangePicker value={range} onChange={setRange} />
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button collapseLabel variant="secondary" loading={props.refreshing} onClick={props.onRefresh}>
                 <MaterialIcon name="refresh" />새로고침
               </Button>
