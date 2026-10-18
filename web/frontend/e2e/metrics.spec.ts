@@ -15,7 +15,7 @@ test('metric values are scaled to a readable unit before ticks are picked', () =
 });
 
 test('metric list shows one card per service and the detail shows every metric at once', async ({ page }) => {
-  await page.goto('./metrics');
+  await page.goto('./metrics?view=card');
   // The API returns one row per (service, metric); the demo api service exports two.
   await expect(page.getByRole('heading', { level: 3, name: 'api', exact: true })).toHaveCount(1);
   await expect(page.getByText('메트릭 2개')).toBeVisible();

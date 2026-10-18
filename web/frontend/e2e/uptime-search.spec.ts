@@ -17,7 +17,6 @@ test('[02] names and Docker environments match without case or outer whitespace 
   ] as const) {
     await search.fill(query);
     await expect(targets.getByRole('link')).toHaveText([...names]);
-    await expect(targets.getByRole('article')).toHaveCount(names.length);
     await expect(targets.getByText(String(names.length), { exact: true })).toBeVisible();
   }
 });
@@ -57,7 +56,7 @@ test('[03] missing search results recover after clearing and do not conceal sour
   await search.fill('absent-target');
   await expect(page.getByText('검색 결과가 없습니다', { exact: true })).toBeVisible();
   await search.clear();
-  await expect(page.getByRole('region', { name: '업타임 대상' }).getByRole('article')).toHaveCount(3);
+  await expect(page.getByRole('region', { name: '업타임 대상' }).getByRole('link')).toHaveCount(3);
   state.failures.set('GET /agents/services/all', 500);
   await page.reload();
   await expect(page.getByRole('status')).toContainText('Docker 서비스');
@@ -67,7 +66,7 @@ test('[03] missing search results recover after clearing and do not conceal sour
   await page.getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(page.getByText('검색 결과가 없습니다', { exact: true })).toBeVisible();
   await search.clear();
-  await expect(page.getByRole('region', { name: '업타임 대상' }).getByRole('article')).toHaveCount(3);
+  await expect(page.getByRole('region', { name: '업타임 대상' }).getByRole('link')).toHaveCount(3);
 });
 
 test('[03] an empty registry keeps its setup explanation even when a query is entered', async ({ page }) => {

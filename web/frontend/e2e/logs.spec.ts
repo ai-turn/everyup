@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('logs page', () => {
   test('cards lead with the noisiest service and a recurring error opens its own logs', async ({ page }) => {
-    await page.goto('./logs');
+    await page.goto('./logs?view=card');
 
     // Sorted by error count, so the failing worker comes first.
     const cards = page.locator('section', { has: page.getByRole('heading', { name: '로그 서비스' }) }).getByRole('link');

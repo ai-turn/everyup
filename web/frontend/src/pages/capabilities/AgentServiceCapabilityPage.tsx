@@ -1,17 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Button, ConnectionSourceBadge, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput,
-  StatusLight, SummaryCard,
+  Button, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput,
+  ListViewToggle, StatusLight,
 } from '../../components/common';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
-import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
-import { UptimeTargetCard } from '../../features/uptime/components/UptimeTargetCard';
+import { UptimeTargets } from '../../features/uptime/components/UptimeTargets';
 import { api, type AgentServiceFlat, type UptimeMonitor, type UptimeMonitorInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { dockerUptimeState } from '../../utils/operationalStatus';
-import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
+import { useListView } from '../../hooks/useListView';
+
+const UptimeListPrototype = import.meta.env.DEV ? lazy(() => import('./UptimeList.prototype').then((module) => ({ default: module.UptimeListPrototype }))) : null;
 
 function ServiceListSkeleton() {
   return (
@@ -34,6 +35,7 @@ export function AgentServiceCapabilityPage() {
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
+  const { view, setView } = useListView();
   const setQuery = (value: string) => {
     const next = new URLSearchParams(searchParams);
     if (value) next.set('q', value); else next.delete('q');
@@ -115,23 +117,33 @@ export function AgentServiceCapabilityPage() {
   const up = monitors.filter((monitor) => monitor.isActive && monitor.status === 'healthy').length
     + dockerStates.filter((state) => state === 'up').length;
 
+  const prototypeVariant = import.meta.env.DEV ? searchParams.get('variant') : null;
+  if (UptimeListPrototype && prototypeVariant && ['B', 'C'].includes(prototypeVariant) && !loading) {
+    return <Suspense fallback={<p className="p-6 text-text-muted">설계안을 불러오는 중</p>}><UptimeListPrototype variant={prototypeVariant} services={agentServices} monitors={monitors} errors={errors} query={query} onQueryChange={setQuery} /></Suspense>;
+  }
+
   return (
-    <div>
+    <div className={prototypeVariant ? 'pb-36' : ''}>
       <PageHeader title="업타임" subtitle="서비스가 정상적으로 응답하는지 확인하고, 장애가 발생한 대상을 빠르게 찾습니다.">
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>
 
       {!loading && !hasErrors && hasTargets && (
-        <section aria-label="업타임 상태 요약" className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <SummaryCard label="정상" value={up} detail={`전체 ${monitors.length + agentServices.length}개 대상 중`} tone="healthy" />
-          <SummaryCard label="장애" value={down} detail={down === 0 ? '장애 신호 없음' : '지금 확인이 필요합니다'} tone={down === 0 ? 'idle' : 'error'} />
-          <SummaryCard label="일시정지·확인 대기" value={paused + waiting + stale} detail={`일시정지 ${paused}개 · 확인 대기 ${waiting}개${stale ? ` · 수집 지연 ${stale}개` : ''}`} tone="idle" />
+        <section aria-label="업타임 상태 요약" className="mb-5 border-b border-ui-border pb-4">
+          <dl className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="flex items-center gap-2"><dt><StatusLight label="정상" tone="healthy" /></dt><dd className="text-xl font-medium tabular-nums">{up}</dd></div>
+            <div className="flex items-center gap-2"><dt><StatusLight label="장애" tone={down ? 'error' : 'idle'} /></dt><dd className="text-xl font-medium tabular-nums">{down}</dd></div>
+            <div className="flex items-center gap-2"><dt><StatusLight label="정지·대기·지연" tone="idle" /></dt><dd className="text-xl font-medium tabular-nums">{paused + waiting + stale}</dd></div>
+          </dl>
+          <p className="mt-2 type-caption text-text-muted">전체 {monitors.length + agentServices.length}개 대상 · 일시정지 {paused}개 · 확인 대기 {waiting}개{stale ? ` · 수집 지연 ${stale}개` : ''}</p>
         </section>
       )}
 
       <ListToolbar search={
         <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
-      } />
+      }>
+        <ListViewToggle view={view} onChange={setView} />
+      </ListToolbar>
 
       {hasErrors && (
         <section role="status" className="mb-6 flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -160,35 +172,8 @@ export function AgentServiceCapabilityPage() {
             <h2 className="type-section-title text-text-base">모니터링 대상</h2>
             <span className="text-xs text-text-dim">{filteredMonitors.length + filteredAgentServices.length}</span>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredMonitors.map((monitor) => (
-              <UptimeTargetCard
-                key={monitor.id}
-                to={`/uptime/${monitor.id}`}
-                returnTo={returnTo}
-                title={monitor.name}
-                badge={<ConnectionSourceBadge source="direct" directLabel="직접 추가" />}
-                status={errors.monitors ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
-                actions={
-                  <Button size="sm" variant="ghost" className="min-w-28" loading={changingMonitor === monitor.id} disabled={loading || Boolean(errors.monitors) || changingMonitor !== null} aria-label={`${monitor.name} ${monitor.isActive ? '일시정지' : '재개'}`} onClick={() => void setActive(monitor)}>{monitor.isActive ? '일시정지' : '재개'}</Button>
-                }
-                endpoint={monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url}
-                meta={<p className="text-xs text-text-muted">{monitor.type.toUpperCase()} · {monitor.interval}초</p>}
-              />
-            ))}
-            {filteredAgentServices.map((service) => (
-              <UptimeTargetCard
-                key={`${service.agentId}:${service.key}`}
-                to={`/services/${service.agentId}/${encodeURIComponent(service.key)}`}
-                returnTo={returnTo}
-                title={service.name}
-                badge={<ConnectionSourceBadge source="docker" />}
-                subtitle={service.agentName}
-                status={errors.services ? <StatusLight tone="warn" label="확인 불가" /> : <DockerUptimeStatus service={service} />}
-                endpoint={service.endpoint || service.key}
-              />
-            ))}
-          </div>
+          <UptimeTargets view={view} services={filteredAgentServices} monitors={filteredMonitors} errors={errors}
+            returnTo={returnTo} loading={loading} changingMonitor={changingMonitor} onSetActive={(monitor) => void setActive(monitor)} />
         </section>
       )}
 

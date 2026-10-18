@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, PageHeader, ResourceCardHeader, StatusLight } from '../../components/common';
+import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { useListView } from '../../hooks/useListView';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { api, type InfrastructureResource } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
@@ -13,7 +14,7 @@ function resourceCollectionStatus(resource: InfrastructureResource) {
   return <CollectionStatusBadge status={fresh ? 'collecting' : 'delayed'} />;
 }
 
-function ResourceCard({ resource }: { resource: InfrastructureResource }) {
+function ResourceCard({ resource, returnTo }: { resource: InfrastructureResource; returnTo: string }) {
   const direct = resource.adapter === 'otel-collector';
   const values = [
     ['CPU', resource.cpuUsage],
@@ -23,6 +24,7 @@ function ResourceCard({ resource }: { resource: InfrastructureResource }) {
   return (
     <Link
       to={direct ? `/infrastructure/${resource.id}` : `/agents/${resource.id}`}
+      state={{ returnTo }}
       className="card-interactive group rounded-xl border border-ui-border bg-bg-surface p-4"
     >
       <ResourceCardHeader
@@ -47,6 +49,7 @@ function ResourceCard({ resource }: { resource: InfrastructureResource }) {
 }
 
 export function InfrastructurePage() {
+  const { view, setView, returnTo } = useListView();
   const [resources, setResources] = useState<InfrastructureResource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +70,7 @@ export function InfrastructurePage() {
       <PageHeader title="인프라" subtitle="서버의 CPU, 메모리, 디스크 상태를 확인하고 자원 이상을 찾습니다.">
         <MonitoringConnection capability="infrastructure" onConnected={reload} />
       </PageHeader>
+      <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>
       ) : error ? (
@@ -81,9 +85,12 @@ export function InfrastructurePage() {
             <h2 className="type-section-title text-text-base">인프라 대상</h2>
             <span className="text-xs text-text-dim">{resources.length}</span>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {resources.map(resource => <ResourceCard key={resource.id} resource={resource} />)}
-          </div>
+          {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{resources.map(resource => <ResourceCard key={resource.id} resource={resource} returnTo={returnTo} />)}</div> :
+            <ResourceTable rows={resources} rowKey={row => row.id} ariaLabel="인프라 대상 그리드" columns={[
+              { key: 'name', label: '대상', render: row => <><Link to={row.adapter === 'otel-collector' ? `/infrastructure/${row.id}` : `/agents/${row.id}`} state={{ returnTo }} className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.adapter === 'otel-collector' ? '직접 연결' : 'Docker'}</p><div className="mt-2 md:hidden">{resourceCollectionStatus(row)}<p className="mt-2 type-caption text-text-muted">CPU {row.cpuUsage == null ? '—' : `${row.cpuUsage.toFixed(1)}%`} · 메모리 {row.memoryUsage == null ? '—' : `${row.memoryUsage.toFixed(1)}%`} · 디스크 {row.diskUsage == null ? '—' : `${row.diskUsage.toFixed(1)}%`}</p></div></> },
+              { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: resourceCollectionStatus },
+              ...(['cpuUsage', 'memoryUsage', 'diskUsage'] as const).map((key, index) => ({ key, label: ['CPU', '메모리', '디스크'][index], className: 'hidden w-24 md:table-cell', align: 'right' as const, render: (row: InfrastructureResource) => row[key] == null ? '—' : `${row[key].toFixed(1)}%` })),
+            ]} />}
         </section>
       )}
     </div>

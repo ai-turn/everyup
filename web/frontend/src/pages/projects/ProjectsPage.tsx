@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, EmptyState, IconButton, Input, MaterialIcon, PageHeader, ResourceCardHeader, Select } from '../../components/common';
+import { Button, ConfirmDialog, EmptyState, IconButton, Input, ListViewToggle, MaterialIcon, PageHeader, ResourceCardHeader, ResourceTable, Select } from '../../components/common';
+import { useListView } from '../../hooks/useListView';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import {
   api,
@@ -59,8 +60,9 @@ function AssignedRow({ label, detail, onRemove, removeLabel }: { label: string; 
   return <div className="flex items-center justify-between gap-2 rounded-md border border-ui-border bg-ui-hover-soft px-3 py-2"><span className="min-w-0 truncate text-sm text-text-secondary">{label}{detail && <span className="ml-1 text-xs text-text-dim">{detail}</span>}</span><IconButton icon="close" label={removeLabel} tone="quiet" size="sm" onClick={onRemove} /></div>;
 }
 
-function ProjectCard({ project, agents, monitors, directServices, infrastructureResources, unassignedAgents, unassignedMonitors, unassignedDirect, unassignedInfrastructure, onEdit, onDelete, onAssignAgent, onUnassignAgent, onAssignMonitor, onUnassignMonitor, onAssignDirect, onUnassignDirect, onAssignInfrastructure, onUnassignInfrastructure }: {
+function ProjectCard({ project, returnTo, agents, monitors, directServices, infrastructureResources, unassignedAgents, unassignedMonitors, unassignedDirect, unassignedInfrastructure, onEdit, onDelete, onAssignAgent, onUnassignAgent, onAssignMonitor, onUnassignMonitor, onAssignDirect, onUnassignDirect, onAssignInfrastructure, onUnassignInfrastructure }: {
   project: Project;
+  returnTo: string;
   agents: ConnectedAgent[];
   monitors: UptimeMonitor[];
   directServices: ObservedService[];
@@ -89,7 +91,7 @@ function ProjectCard({ project, agents, monitors, directServices, infrastructure
   return (
     <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
-        title={<h2 className="truncate type-card-title text-text-base"><Link to={`/projects/${project.id}`} className="hover:text-action">{project.name}</Link></h2>}
+        title={<h2 className="truncate type-card-title text-text-base"><Link to={`/projects/${project.id}`} state={{ returnTo }} className="hover:text-action">{project.name}</Link></h2>}
         status={<div className="flex gap-1"><IconButton icon="edit" label="Project 수정" size="sm" onClick={onEdit} /><IconButton icon="delete_outline" label="Project 삭제" size="sm" tone="danger" onClick={onDelete} /></div>}
       />
       <p className="mt-3 type-body text-text-muted">{project.description || '설명이 없습니다'}</p>
@@ -116,6 +118,8 @@ function ProjectCard({ project, agents, monitors, directServices, infrastructure
 }
 
 export function ProjectsPage() {
+  const { view, setView, returnTo } = useListView();
+  const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
@@ -161,9 +165,18 @@ export function ProjectsPage() {
   const unassignedDirect = directServices.filter(service => !service.projectId);
   const unassignedInfrastructure = infrastructureResources.filter(resource => !resource.projectId);
 
+  const renderProject = (project: Project) => <ProjectCard key={project.id} project={project} returnTo={returnTo} agents={agents.filter(agent => agent.projectId === project.id)} monitors={monitors.filter(monitor => monitor.projectId === project.id)} directServices={directServices.filter(service => service.projectId === project.id)} infrastructureResources={infrastructureResources.filter(resource => resource.projectId === project.id)} unassignedAgents={unassignedAgents} unassignedMonitors={unassignedMonitors} unassignedDirect={unassignedDirect} unassignedInfrastructure={unassignedInfrastructure} onEdit={() => setEditing(project)} onDelete={() => setDeleting(project)} onAssignAgent={id => void mutate(() => api.assignAgent(project.id, id))} onUnassignAgent={id => void mutate(() => api.unassignAgent(project.id, id))} onAssignMonitor={id => void mutate(() => api.assignMonitor(project.id, id))} onUnassignMonitor={id => void mutate(() => api.unassignMonitor(project.id, id))} onAssignDirect={id => void mutate(() => updateDirectProject(id, project.id))} onUnassignDirect={id => void mutate(() => updateDirectProject(id))} onAssignInfrastructure={id => void mutate(() => updateInfrastructureProject(id, project.id))} onUnassignInfrastructure={id => void mutate(() => updateInfrastructureProject(id))} />;
+
   return <div>
     <PageHeader title="Projects" subtitle="같이 운영하는 Docker 환경, 업타임 모니터, 애플리케이션과 서버를 한곳에 묶어 상태를 확인합니다."><Button onClick={() => setEditing(null)}><MaterialIcon name="add" />추가</Button></PageHeader>
-    {loading ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1].map(item => <div key={item} className="h-72 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div> : error ? <EmptyState icon="error_outline" title="Project를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} /> : projects.length === 0 ? <EmptyState icon="folder_open" title="아직 Project가 없습니다" description="필요할 때 모니터링 대상을 묶어 보세요." action={{ label: '추가', onClick: () => setEditing(null) }} /> : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{projects.map(project => <ProjectCard key={project.id} project={project} agents={agents.filter(agent => agent.projectId === project.id)} monitors={monitors.filter(monitor => monitor.projectId === project.id)} directServices={directServices.filter(service => service.projectId === project.id)} infrastructureResources={infrastructureResources.filter(resource => resource.projectId === project.id)} unassignedAgents={unassignedAgents} unassignedMonitors={unassignedMonitors} unassignedDirect={unassignedDirect} unassignedInfrastructure={unassignedInfrastructure} onEdit={() => setEditing(project)} onDelete={() => setDeleting(project)} onAssignAgent={id => void mutate(() => api.assignAgent(project.id, id))} onUnassignAgent={id => void mutate(() => api.unassignAgent(project.id, id))} onAssignMonitor={id => void mutate(() => api.assignMonitor(project.id, id))} onUnassignMonitor={id => void mutate(() => api.unassignMonitor(project.id, id))} onAssignDirect={id => void mutate(() => updateDirectProject(id, project.id))} onUnassignDirect={id => void mutate(() => updateDirectProject(id))} onAssignInfrastructure={id => void mutate(() => updateInfrastructureProject(id, project.id))} onUnassignInfrastructure={id => void mutate(() => updateInfrastructureProject(id))} />)}</div>}
+    <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
+    {loading ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1].map(item => <div key={item} className="h-72 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div> : error ? <EmptyState icon="error_outline" title="Project를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} /> : projects.length === 0 ? <EmptyState icon="folder_open" title="아직 Project가 없습니다" description="필요할 때 모니터링 대상을 묶어 보세요." action={{ label: '추가', onClick: () => setEditing(null) }} /> : view === 'grid' ? <ResourceTable rows={projects} rowKey={project => project.id} ariaLabel="Projects 그리드"
+      renderDetails={project => expandedProject === project.id ? renderProject(project) : null}
+      columns={[
+        { key: 'name', label: 'Project', render: project => <><Link to={`/projects/${project.id}`} state={{ returnTo }} className="block truncate font-medium text-action">{project.name}</Link><p className="mt-1 line-clamp-2 break-words type-caption text-text-muted">{project.description || '설명 없음'}</p><p className="mt-2 type-caption text-text-muted md:hidden">Docker {agents.filter(row => row.projectId === project.id).length} · 업타임 {monitors.filter(row => row.projectId === project.id).length} · 서비스 {directServices.filter(row => row.projectId === project.id).length} · Collector {infrastructureResources.filter(row => row.projectId === project.id).length}</p></> },
+        ...([{ key: 'agents', label: 'Docker 환경', rows: agents }, { key: 'monitors', label: '업타임', rows: monitors }, { key: 'services', label: '직접 서비스', rows: directServices }, { key: 'infra', label: 'Collector', rows: infrastructureResources }]).map(({ key, label, rows }) => ({ key, label, className: 'hidden w-28 md:table-cell', align: 'right' as const, render: (project: Project) => rows.filter(row => row.projectId === project.id).length })),
+        { key: 'actions', label: '작업', className: 'w-32', render: project => <Button variant="secondary" size="sm" className="min-h-11" aria-label={`${project.name} 구성 관리`} aria-expanded={expandedProject === project.id} onClick={() => setExpandedProject(expandedProject === project.id ? null : project.id)}>구성 관리</Button> },
+      ]} /> : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{projects.map(renderProject)}</div>}
     {editing !== undefined && <ProjectDialog project={editing} onClose={() => setEditing(undefined)} onSave={saveProject} />}
     <ConfirmDialog isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} onConfirm={() => void deleteProject()} title="Project를 삭제할까요?" message="배정된 Docker 환경, 업타임 모니터, 직접 서비스와 Collector는 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
   </div>;
