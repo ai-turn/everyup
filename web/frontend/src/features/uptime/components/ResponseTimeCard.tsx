@@ -34,6 +34,8 @@ const X_LABELS = 20;
 const BARS = CHART_HEIGHT - LANE - LANE_GAP - X_LABELS;
 // The bar covers this share of its slot; the whole slot is the hover target.
 const BAR_SHARE = 0.62;
+// A time label centred on a tick near either edge is squeezed onto two lines or spills out of the chart.
+const TICK_EDGE = 7;
 
 const LANE_CLASS: Record<SlotState, string> = {
   up: 'bg-status-healthy/45',
@@ -168,7 +170,8 @@ export function ResponseTimeCard({ slots, failedChecks, caption, window, thresho
                 </div>
               ))}
 
-              {timeTicks(from, to).map((t) => (
+              {/* ponytail: 라벨(~32px) 절반이 들어갈 자리를 폭의 7%로 잡는다 — 차트 폭이 ~230px 아래면 다시 잘린다. */}
+              {timeTicks(from, to).filter((t) => pct(t) >= TICK_EDGE && pct(t) <= 100 - TICK_EDGE).map((t) => (
                 <span key={t} className="absolute bottom-0 -translate-x-1/2 type-caption font-medium text-text-muted" style={{ left: `${pct(t)}%` }}>
                   {formatTimeTick(t)}
                 </span>

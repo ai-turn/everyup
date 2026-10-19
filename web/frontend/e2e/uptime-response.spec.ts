@@ -42,6 +42,16 @@ test('[14] successful latency, failed timeout, gaps, summaries and check rows ag
   expect(await scroller.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
 });
 
+test('[14] time tick labels stay inside the chart at its edges', async ({ page }) => {
+  const state = await uptimeFixture(page);
+  // One check spans ±30 min, so the right edge lands 2 s past a 10-minute tick (the CI failure).
+  state.metrics = [{ ...state.metrics[1], checkedAt: '2026-10-19T12:40:02.000Z' }];
+  await page.goto('./uptime/http-monitor');
+  const plot = page.getByRole('group', { name: /체크별/ });
+  await expect(plot).toBeVisible();
+  expect(await plot.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+});
+
 for (const mode of ['empty', 'single', 'tcp'] as const) {
   test(`[14] ${mode} checks have accurate empty/success/failure representation`, async ({ page }) => {
     const state = await uptimeFixture(page);
