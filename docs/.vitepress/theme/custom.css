@@ -297,7 +297,7 @@ html:not(.dark) .only-dark {
 /* 구성도 (Topology.vue). 홈에서는 히어로와 캐러셀 사이, 소개 페이지에서는 구성 표 위.
    문서 본문(.vp-doc)의 목록·문단·링크 스타일을 덮어써야 해서 선택자를 .topology 아래로 둔다. */
 .home-topology {
-  padding: 0 24px 40px;
+  padding: 40px 24px 0;
 }
 .home-topology > * {
   margin-inline: auto;
@@ -305,12 +305,12 @@ html:not(.dark) .only-dark {
 }
 @media (min-width: 640px) {
   .home-topology {
-    padding: 0 48px 48px;
+    padding: 48px 48px 0;
   }
 }
 @media (min-width: 960px) {
   .home-topology {
-    padding: 0 64px 56px;
+    padding: 56px 64px 0;
   }
 }
 .topology {

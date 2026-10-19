@@ -16,8 +16,9 @@ export default {
       // 상단 바: 기본 DOM 순서는 검색 → 메뉴라서, 메뉴를 왼쪽에 보여 주면 키보드 순서가 화면과 어긋난다.
       // 메뉴를 검색 앞에 다시 그리고 원래 메뉴는 custom.css에서 숨긴다.
       'nav-bar-content-before': () => h(VPNavBarMenu, { class: 'menu-lead' }),
-      // 홈: 히어로 바로 아래에 구성도, 그 아래 제품 화면 캐러셀 (기본 레이아웃에는 이 자리가 없다)
-      'home-hero-after': () => [h('div', { class: 'home-topology' }, [h(Topology)]), h(HomeCarousel)],
+      // 홈: 히어로 바로 아래에 제품 화면 캐러셀, 기능 카드 아래에 구성도 (기본 레이아웃에는 이 자리가 없다)
+      'home-hero-after': () => h(HomeCarousel),
+      'home-features-after': () => h('div', { class: 'home-topology' }, [h(Topology)]),
     }),
   // 소개 페이지 마크다운에서 <Topology />로 쓴다
   enhanceApp({ app }) {
