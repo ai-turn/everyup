@@ -68,14 +68,3 @@ features:
     link: /en/guide/notifications
     linkText: Read the guide
 ---
-
-## How it works
-
-1. **Run Web**: Start Web once on your dashboard server.
-2. **Connect your targets**: Pick the method that fits each target.
-   - Docker hosts: Run the Collector, and it discovers containers automatically.
-   - Websites and servers outside Docker: Check HTTP and TCP responses with [uptime monitors](/en/guide/uptime-monitors).
-   - Sending from your app: [Connect OpenTelemetry directly](/en/guide/monitoring-setup#direct-otel).
-3. **Watch and get alerted**: See status on one screen, and get alerted when a threshold is crossed.
-
-[Get started with Quick Start →](/en/guide/quickstart)

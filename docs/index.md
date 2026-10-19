@@ -68,14 +68,3 @@ features:
     link: /guide/notifications
     linkText: 가이드 보기
 ---
-
-## 어떻게 동작하나요
-
-1. **Web 실행**: 대시보드 서버에 Web을 한 번 띄웁니다.
-2. **대상 연결**: 모니터링할 대상에 맞는 방법을 고릅니다.
-   - Docker 호스트: Collector를 실행하면 컨테이너를 자동으로 발견합니다.
-   - Docker 밖의 웹사이트·서버: [업타임 모니터](/guide/uptime-monitors)로 HTTP·TCP 응답을 확인합니다.
-   - 앱에서 직접 보내기: [OpenTelemetry로 직접 연결](/guide/monitoring-setup#direct-otel)합니다.
-3. **확인과 알림**: 한 화면에서 상태를 보고, 기준을 벗어나면 알림을 받습니다.
-
-[Quick Start로 시작하기 →](/guide/quickstart)
