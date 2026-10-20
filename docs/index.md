@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: EveryUp
-  text: '서버부터 API까지,<br>모니터링을 한 곳에서'
-  tagline: 업타임, 에러 로그, API 응답 속도, 서버 리소스를 한 화면에서 확인하고, 기준을 벗어나면 바로 알림을 받습니다. 대부분의 기능이 앱 코드 수정 없이 동작하는 셀프호스팅 오픈소스입니다.
+  name: EveryUp · 셀프호스팅 모니터링
+  text: 예측 가능한 서비스
+  tagline: '로그가 쌓일수록 서비스가 평소에 어떻게 움직이는지 보입니다.<br>평소와 다른 움직임이 생기면 가장 먼저 알게 됩니다.'
   actions:
     - theme: brand
       text: Quick Start

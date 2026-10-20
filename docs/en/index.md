@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: EveryUp
-  text: 'From servers to APIs,<br>monitoring in one place'
-  tagline: See uptime, error logs, API response times, and server resources on one screen, and get alerted as soon as anything crosses a threshold. Self-hosted and open source, with most features working without app code changes.
+  name: EveryUp · Self-hosted monitoring
+  text: A predictable service
+  tagline: 'As logs pile up, you see how your service normally behaves.<br>When something starts behaving differently, you''re the first to know.'
   actions:
     - theme: brand
       text: Quick Start
