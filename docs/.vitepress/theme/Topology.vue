@@ -132,11 +132,12 @@ const t = computed(() =>
       </div>
 
       <div class="topology-zone">
-        <p class="topology-place"><a :href="link('/guide/notifications')">{{ t.channels }}</a></p>
-        <div class="topology-chip is-existing">
-          <svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.bell" :key="d" :d="d" /></svg>
-          <strong class="topology-names"><span>Telegram</span> <span>Discord</span> <span>Slack</span></strong>
-        </div>
+        <p class="topology-place"><svg class="topology-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="d in icons.bell" :key="d" :d="d" /></svg><a :href="link('/guide/notifications')">{{ t.channels }}</a></p>
+        <ul class="topology-channels">
+          <li>Telegram</li>
+          <li>Discord</li>
+          <li>Slack</li>
+        </ul>
       </div>
     </div>
     <figcaption>{{ t.caption }}</figcaption>
