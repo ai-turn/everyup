@@ -2,7 +2,7 @@
 
 대시보드 서버에 Web을 띄우고, 모니터링할 서버에 모니터링 번들(Docker Collector와 필요한 구성
 요소)을 설치하는 최소 구성입니다. 서버가 한 대라면 둘을 같은 서버에서 실행해도 됩니다.
-4단계에서 Docker 환경이 **수집 중**으로 바뀌면 완료입니다.
+4단계에서 Docker 환경이 **수집 중**으로 바뀌고, 선택한 데이터의 수신 기록을 확인하면 완료입니다.
 
 ## 준비물
 
@@ -74,14 +74,17 @@ volumes:
 
 ## 2. Docker 연결 명령 만들기 (브라우저)
 
-**브라우저에서** 대시보드의 **Docker 환경** 화면에서 오른쪽 위의 **Docker 연결**을 누릅니다. 환경 이름을 정하고
-수집 범위를 고르세요.
+**브라우저에서** 대시보드의 **Docker 환경** 화면을 여세요. 오른쪽 위의 **Docker 연결**을 누른 뒤
+환경 이름과 수집 범위를 정하세요.
 
-| 수집 범위 | 수집하는 데이터 | 설치되는 구성 요소 |
+| 수집 범위 | 수집·수신 기능 | 설치되는 구성 요소 |
 |---|---|---|
-| **전체** | 업타임, 로그, 인프라, API 요청, 메트릭 | Docker Collector, eBPF Observer |
+| **전체** | 컨테이너 상태·로그·인프라·API 요청 수집, OTLP 메트릭 수신 | Docker Collector, eBPF Observer |
 | **기본** | Docker 서비스 상태, 로그 | Docker Collector |
 | **사용자 지정** | 고른 기능만 (권한도 그만큼만) | Docker Collector. API 요청을 고르면 eBPF Observer도 |
+
+앱 메트릭은 수신 기능을 켠 뒤 앱이나 OpenTelemetry Collector에서 전송하도록 설정해야 합니다.
+로그나 API 요청을 선택하면 Docker 탐색에 필요한 업타임 수집도 함께 켜집니다.
 
 [eBPF Observer](./ebpf-observer)는 앱을 고치지 않고 API 요청의 latency와 트레이스를 수집하는
 구성 요소입니다. Docker Collector와 권한이 분리되어 실행되고, 컨테이너 프로세스를 자동으로
@@ -131,7 +134,8 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 
 ## 4. 연결 확인 (브라우저)
 
-**브라우저에서** 약 30초 안에 **Docker 환경** 화면에서 해당 환경이 **설치 대기**에서 **수집 중**으로 바뀝니다.
+설치가 끝나면 **브라우저에서 Docker 환경** 화면을 확인하세요. 약 30초 안에 해당 환경이
+**설치 대기**에서 **수집 중**으로 바뀝니다.
 업타임 수집을 선택했다면 그 서버의 컨테이너도 서비스로 나타납니다.
 
 ![Docker 환경 목록. prod-server는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-light.webp){.only-light width=751 height=202}
@@ -141,10 +145,14 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 
 시간이 지나도 **설치 대기**에 머문다면 [트러블슈팅](./troubleshooting#not-collecting)을 확인하세요.
 
+**수집 중**은 Collector 연결 상태입니다. 해당 환경을 열고 **모니터링 설정 가이드**에서 설정 적용
+여부와 **데이터 수신 확인**도 보세요. 앱에 요청을 보내 로그·트레이스를 발생시키고, 앱 메트릭은
+전송 설정을 적용한 뒤 수집 주기가 지났을 때 수신 기록을 확인하세요.
+
 ## 다음 단계
 
-수집이 시작되었다면 [알림](./notifications)을 설정하세요. Telegram, Discord, Slack 채널을 연결하고
-알림 규칙을 만들면 장애가 났을 때 바로 알림을 받습니다.
+수집이 시작되었다면 [알림](./notifications)을 설정하세요. Telegram·Discord·Slack 채널을 연결하고
+알림 규칙을 활성화하면 규칙의 조건을 만족할 때 알림을 받습니다.
 
 그 밖의 가이드:
 

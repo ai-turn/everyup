@@ -5,7 +5,7 @@
 <h1 align="center">EveryUp</h1>
 
 <p align="center">
-  Self-hosted monitoring that shows uptime, logs, API response times, and server resources on one screen and alerts you when something goes wrong.
+  Self-hosted monitoring for uptime, logs, API response times, and server resources, with alerts based on the rules you configure.
 </p>
 
 <p align="center">
@@ -29,11 +29,14 @@
 
 > **Note:** the dashboard interface is Korean only.
 
-EveryUp is a self-hosted tool for monitoring service health, logs, API responses, and server
-resources in one place. Run **Web** once on a dashboard server, then connect each **Docker
-environment** with the lightweight EveryUp Docker Collector. Targets outside Docker are checked
-over HTTP or TCP with [uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors) or
-[connected directly through OpenTelemetry](https://ai-turn.github.io/everyup/en/guide/monitoring-setup#direct-otel).
+Start with failing targets and delayed collection, then investigate recurring errors and API request
+trends. Run **Web** on a dashboard server and install a Docker Collector in each **Docker environment**.
+Choose which container state, logs, and host resources to collect, and use the eBPF Observer for API
+response times and traces. Application metrics require a separate export configuration.
+
+Check public URLs and TCP ports with [uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors).
+Apps and servers outside Docker can [connect directly through OpenTelemetry](https://ai-turn.github.io/everyup/en/guide/monitoring-setup#direct-otel).
+To receive alerts, configure notification channels and enabled rules.
 
 | Part | What it does | Where it runs |
 | --- | --- | --- |
@@ -60,8 +63,8 @@ screen. For setting the public address and installing the Collector, see the
 | [Introduction](https://ai-turn.github.io/everyup/en/guide/introduction) | Features and what gets collected |
 | [Quick Start](https://ai-turn.github.io/everyup/en/guide/quickstart) | Start Web, connect Docker, install the monitoring bundle |
 | [Monitoring setup](https://ai-turn.github.io/everyup/en/guide/monitoring-setup) | Diagnose collection, add capabilities, connect OpenTelemetry directly, Projects |
-| [Uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors) | Check URLs and TCP ports outside Docker |
-| [Automatic eBPF Observer](https://ai-turn.github.io/everyup/en/guide/ebpf-observer) | API latency and traces with no app changes |
+| [Uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors) | Check responses from public URLs and TCP ports |
+| [Automatic eBPF Observer](https://ai-turn.github.io/everyup/en/guide/ebpf-observer) | API response times and traces without app changes, with host requirements |
 | [Header & body capture](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation) | Request/response headers and bodies via OpenTelemetry |
 | [Notifications](https://ai-turn.github.io/everyup/en/guide/notifications) | Telegram / Discord / Slack channels and alert rules |
 | [Upgrade and uninstall](https://ai-turn.github.io/everyup/en/guide/upgrade-uninstall) · [Backup and restore](https://ai-turn.github.io/everyup/en/guide/backup-restore) · [Troubleshooting](https://ai-turn.github.io/everyup/en/guide/troubleshooting) | Operations |

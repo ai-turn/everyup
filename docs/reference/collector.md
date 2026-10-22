@@ -5,10 +5,9 @@ pageClass: reference-page
 
 # Docker Collector 설정
 
-EveryUp Docker Collector는 모니터링할 Docker 호스트에서 실행되는 가벼운 구성 요소입니다.
-Docker 컨테이너를 자동으로 발견하고, stdout/stderr 로그를 읽고, 호스트 메트릭을 수집해
-EveryUp Web으로 동기화합니다. API 상태코드는 이미 수집한 로그에서 access log 줄을 파싱해
-만들기 때문에 프록시나 앱 수정이 필요 없습니다.
+EveryUp Docker Collector는 모니터링할 Docker 호스트에서 실행하는 수집기입니다.
+선택한 수집 범위에 따라 컨테이너 상태, stdout/stderr 로그, 호스트 메트릭을 수집해 Web으로 보냅니다.
+앱이나 프록시가 access log를 stdout/stderr로 남기면 요청 메서드·경로·상태 코드도 추출합니다.
 
 알림 규칙, 알림 채널, 대시보드 동작은 Web에서 설정합니다. Docker Collector는 데이터를
 수집하고 전달하기만 합니다. 바이너리, 환경변수, 저장 경로, 호환 API에는 내부 이름인
@@ -33,12 +32,13 @@ docker logs <container-name> --tail 100
 [local state](https://github.com/ai-turn/everyup/blob/main/agent/docs/local-state.md)를
 참고하세요.
 
-API 상태코드는 같은 로그에서 추출합니다. access log(Nginx / Apache / 구조화 JSON)로 파싱되는
-줄은 합성 OTel SERVER span이 되고, Web이 이를 **API 요청** 탭에 표시합니다. access log에는
-latency가 없으므로 duration은 알 수 없습니다. access log를 남기지 않는 앱은 API 요청 탭에 요청이
-표시되지 않을 뿐, 로그와 메트릭은 계속 수집됩니다.
+API 상태 코드는 같은 로그에서 추출합니다. access log(Nginx / Apache / 구조화 JSON)로 파싱되는
+줄은 합성 OTel SERVER span이 되고, Web이 이를 **API 요청** 탭에 표시합니다.
+현재 파서는 메서드·경로·상태 코드만 추출하므로, 로그에 응답 시간이 있어도 이 수집 경로에서는
+API 응답 시간으로 반영하지 않습니다. access log가 없으면 이 경로의 API 요청은 표시되지 않지만,
+일반 로그와 설정한 메트릭 수집은 계속됩니다. eBPF·앱 계측으로 보내는 요청은 별도로 표시됩니다.
 
-앱을 건드리지 않고 실제 latency를 보려면 모니터링 번들에 포함된
+앱 코드 변경 없이 실제 응답 시간을 보려면 모니터링 번들에 포함된
 [자동 eBPF Observer](../guide/ebpf-observer)를 사용하세요. 요청/응답 **헤더·바디**가
 필요하면 앱을 OpenTelemetry로 계측해 Docker Collector의 OTLP 게이트웨이
 (`http://everyup-agent:4318`)로 보내세요. 자세한 내용은
@@ -51,7 +51,7 @@ Collector도 수집할 수 없습니다. 앱이나 리버스 프록시가 로그
 
 Docker Collector는 마운트된 Docker 소켓으로 컨테이너를 발견합니다. 앱과 같은 Compose
 파일에서 실행해도 되고, 같은 Docker 호스트의 별도 Compose 프로젝트에서 실행해도 됩니다.
-권장하는 구성은 `everyup-agent`를 그 서버의 앱 스택과 같은 Compose 파일에 두는 것입니다.
+Quick Start 설치기는 앱과 별도의 Compose 프로젝트에 Collector를 설치합니다.
 
 Docker 탐지가 켜져 있으면 OTLP 게이트웨이는 자신이 발견한 실행 중인 컨테이너의 데이터만
 받습니다. SDK가 다른 `service.name`을 보내더라도 각 앱 데이터에는 출발 컨테이너의 서비스

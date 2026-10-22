@@ -3,7 +3,7 @@
 This is the minimal setup: Web on a dashboard server and the monitoring bundle (the Docker
 Collector plus the components it needs) on each server you monitor. With a single server you can
 run both side by side. You are done when the Docker environment turns **수집 중** (collecting) in
-step 4.
+step 4 and you confirm receipt of the selected data.
 
 ## Before you start
 
@@ -76,14 +76,17 @@ If it does not open, see [The dashboard does not open](./troubleshooting#web-not
 
 ## 2. Create a Docker connection command (browser)
 
-**In the browser**, in the dashboard, open **Docker 환경** (Docker environments) and click **Docker 연결** (Connect
-Docker) at the top right. Name the environment, then choose its collection scope:
+**In the browser**, open **Docker 환경** (Docker environments) in the dashboard. Click **Docker 연결**
+(Connect Docker) at the top right, then name the environment and choose its collection scope:
 
-| Scope | Collects | Installs |
+| Scope | Collection and reception | Installs |
 |---|---|---|
-| **전체** (All) | Uptime, logs, infrastructure, API tracing, metrics | Docker Collector, eBPF Observer |
+| **전체** (All) | Container state, logs, infrastructure, API tracing, and OTLP metric reception | Docker Collector, eBPF Observer |
 | **기본** (Basic) | Docker service state, logs | Docker Collector |
 | **사용자 지정** (Custom) | Only what you select (and only the permissions it needs) | Docker Collector, plus the eBPF Observer if you select API tracing |
+
+To see app metrics, enable reception and configure the app or an OpenTelemetry Collector to export
+them. Selecting logs or API tracing also enables the uptime capability required for Docker discovery.
 
 The [eBPF Observer](./ebpf-observer) records API latency and traces without changing your
 application. It runs with permissions separate from the Docker Collector and discovers container
@@ -135,8 +138,8 @@ and the [Docker Collector configuration](../reference/collector).
 
 ## 4. Check the connection (browser)
 
-**In the browser**, within about 30 seconds, the environment on the **Docker 환경** screen changes from **설치 대기**
-(awaiting install) to **수집 중** (collecting). When uptime collection is enabled, the containers
+After installation, open **Docker 환경** in the browser. Within about 30 seconds, the environment
+changes from **설치 대기** (awaiting install) to **수집 중** (collecting). When uptime collection is enabled, the containers
 on that server also appear as services.
 
 ![The Docker environments list. prod-server shows 수집 중 (collecting) and staging-api shows 설치 대기 (awaiting install).](/images/quickstart-docker-env-light.webp){.only-light width=751 height=202}
@@ -146,10 +149,15 @@ on that server also appear as services.
 
 If the environment stays at **설치 대기**, see [Troubleshooting](./troubleshooting#not-collecting).
 
+**수집 중** describes Collector contact. Open the environment's **모니터링 설정 가이드** (monitoring setup
+guide) and check configuration application and **데이터 수신 확인** (data receipt) too. Generate app
+requests to produce logs and traces. For app metrics, apply export settings and wait for a collection
+interval before checking receipt.
+
 ## Next steps
 
 Once collection has started, set up [Notifications](./notifications). Connect a Telegram, Discord,
-or Slack channel and create alert rules to hear about failures as soon as they happen.
+or Slack channel and enable alert rules to receive notifications when their conditions are met.
 
 Other guides:
 

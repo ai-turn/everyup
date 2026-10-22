@@ -33,18 +33,18 @@ const t = computed(() =>
         sockDesc: '상태·로그 읽기',
         otlpDesc: '트레이스 전송',
         alt: 'Collector 없이 수집',
-        ebpfDesc: '계측 코드 없이 요청 latency · 트레이스',
+        ebpfDesc: '앱 코드 변경 없이 API 응답 시간 · 트레이스',
         outbound: '인바운드 포트 불필요',
         dash: '대시보드 서버',
         webDesc: 'UI · REST API · SQLite · 알림 규칙 평가',
         uptime: '업타임 모니터',
-        uptimeDesc: '외부 HTTP·TCP 엔드포인트 헬스 체크',
+        uptimeDesc: '공개 HTTP·TCP 엔드포인트 응답 검사',
         otel: 'OTLP 엔드포인트',
         otelDesc: 'Docker 밖 서비스용',
         alert: '알림 발송',
         channels: '알림 채널',
         caption:
-          '모니터링할 서버마다 설치한 Collector가 Web으로 데이터를 push하고, Web은 알림 규칙을 평가해 채널로 알림을 보냅니다. 모니터링할 서버에는 인바운드 포트를 열 필요가 없습니다.',
+          '모니터링할 서버마다 설치한 Collector가 선택한 데이터를 Web으로 전송합니다. Web은 활성 규칙의 조건을 만족하면 연결한 채널로 알림을 보냅니다. 모니터링할 서버에는 인바운드 포트를 열 필요가 없습니다.',
       }
     : {
         host: 'Monitored server',
@@ -57,18 +57,18 @@ const t = computed(() =>
         sockDesc: 'reads state & logs',
         otlpDesc: 'sends traces',
         alt: 'Without the Collector',
-        ebpfDesc: 'Request latency · traces, no instrumentation',
+        ebpfDesc: 'API response times · traces, no app code changes',
         outbound: 'no inbound ports',
         dash: 'Dashboard server',
         webDesc: 'UI · REST API · SQLite · alert rule evaluation',
         uptime: 'Uptime monitors',
-        uptimeDesc: 'Health checks on external HTTP/TCP endpoints',
+        uptimeDesc: 'Response checks on public HTTP/TCP endpoints',
         otel: 'OTLP endpoint',
         otelDesc: 'for services outside Docker',
         alert: 'notifications',
         channels: 'Alert channels',
         caption:
-          'The Collector on each monitored server pushes data to Web, and Web evaluates your alert rules and notifies your channels. Monitored servers need no inbound ports.',
+          'The Collector on each monitored server sends the selected data to Web. Web notifies your connected channels when enabled rule conditions are met. Monitored servers need no inbound ports.',
       },
 )
 </script>

@@ -50,8 +50,8 @@ ls -l /var/run/docker.sock
 **해결**:
 
 - 설치 명령은 `sudo sh`로 실행해야 합니다. Web이 보여 준 명령을 그대로 복사했는지 확인하세요.
-- `docker info`가 실패한다면 Docker 데몬이 꺼져 있는 것입니다. `sudo systemctl start docker`로
-  시작하세요.
+- `sudo docker info`가 실패하면 오류 메시지에서 Docker 소켓 접근 권한과 데몬 연결 상태를 확인하세요.
+  데몬이 중지되어 있다면 `sudo systemctl start docker`로 시작하세요.
 
 ## 연결 코드 오류로 설치가 실패합니다 {#join-code}
 
@@ -118,6 +118,6 @@ sudo docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-agent/com
 docker logs <앱 컨테이너> --tail 20
 ```
 
-**해결**: 여기서도 아무것도 나오지 않는다면 앱이 컨테이너 안의 파일에만 로그를 쓰는 것입니다.
-Docker 로그로 보이지 않는 로그는 Docker Collector도 수집할 수 없습니다. 앱이나 프록시 로그를
-stdout/stderr로 출력하세요.
+**해결**: 앱에 요청을 보낸 뒤 `docker logs`를 다시 확인하세요. 계속 비어 있다면 앱과 프록시의
+로그 출력 설정을 확인하세요. 컨테이너 내부 파일에만 기록한다면 stdout/stderr로 출력하도록 설정하세요.
+Docker 로그에 없는 내용은 이 수집 경로로 가져올 수 없습니다.

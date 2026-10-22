@@ -5,7 +5,7 @@
 <h1 align="center">EveryUp</h1>
 
 <p align="center">
-  업타임·로그·API 응답 속도·서버 리소스를 한 화면에서 보고, 이상이 생기면 바로 알림을 받는 셀프호스팅 모니터링.
+  업타임·로그·API 응답 시간·서버 자원을 함께 확인하고, 설정한 규칙에 따라 알림을 받는 셀프호스팅 모니터링.
 </p>
 
 <p align="center">
@@ -27,11 +27,14 @@
   <img src="docs/public/images/everyup-main-ko.png" alt="EveryUp 대시보드" width="100%">
 </p>
 
-EveryUp은 서비스 상태와 로그, API 응답, 서버 자원을 한곳에서 모니터링하는 셀프호스팅 도구입니다.
-대시보드 서버에 **Web**을 한 번 띄우고, 모니터링할 **Docker 환경**마다 가벼운
-EveryUp Docker Collector를 실행하면 됩니다. Docker 밖의 대상은
-[업타임 모니터](https://ai-turn.github.io/everyup/guide/uptime-monitors)로 HTTP·TCP 응답을 확인하거나
-[OpenTelemetry로 직접 연결](https://ai-turn.github.io/everyup/guide/monitoring-setup#direct-otel)합니다.
+장애가 난 대상과 수집이 지연된 대상을 먼저 확인하고, 반복 오류와 API 요청 추이를 따라 문제를 조사하세요.
+대시보드 서버에서 **Web**을 실행하고, 모니터링할 **Docker 환경**마다 Docker Collector를 설치합니다.
+선택한 범위의 컨테이너 상태·로그·호스트 자원을 수집하고, eBPF Observer로 API 응답 시간과 트레이스를
+수집할 수 있습니다. 앱 메트릭은 별도로 전송하도록 설정해야 합니다.
+
+공개 URL·TCP 포트는 [업타임 모니터](https://ai-turn.github.io/everyup/guide/uptime-monitors)로 확인하세요.
+Docker 밖의 앱과 서버는 [OpenTelemetry로 직접 연결](https://ai-turn.github.io/everyup/guide/monitoring-setup#direct-otel)할 수 있습니다.
+알림을 받으려면 채널과 활성 규칙을 설정하세요.
 
 | 구성 | 역할 | 실행 위치 |
 | --- | --- | --- |
@@ -57,8 +60,8 @@ docker compose up -d
 | [소개](https://ai-turn.github.io/everyup/guide/introduction) | 핵심 기능과 수집되는 데이터 |
 | [Quick Start](https://ai-turn.github.io/everyup/guide/quickstart) | Web 실행, Docker 연결, 모니터링 번들 설치 |
 | [모니터링 설정](https://ai-turn.github.io/everyup/guide/monitoring-setup) | 수집 상태 진단, 기능 추가, OpenTelemetry 직접 연결, Project |
-| [업타임 모니터](https://ai-turn.github.io/everyup/guide/uptime-monitors) | Docker 밖의 URL·TCP 포트 확인 |
-| [자동 eBPF Observer](https://ai-turn.github.io/everyup/guide/ebpf-observer) | 앱 수정 없이 API latency·트레이스 수집 |
+| [업타임 모니터](https://ai-turn.github.io/everyup/guide/uptime-monitors) | 공개 URL·TCP 포트 응답 확인 |
+| [자동 eBPF Observer](https://ai-turn.github.io/everyup/guide/ebpf-observer) | 앱 수정 없이 API 응답 시간·트레이스 수집, 지원 조건 확인 |
 | [헤더·바디 상세 수집](https://ai-turn.github.io/everyup/guide/otel-instrumentation) | OpenTelemetry로 요청/응답 헤더·바디 수집 |
 | [알림](https://ai-turn.github.io/everyup/guide/notifications) | Telegram / Discord / Slack 채널과 알림 규칙 |
 | [업그레이드·제거](https://ai-turn.github.io/everyup/guide/upgrade-uninstall) · [백업·복원](https://ai-turn.github.io/everyup/guide/backup-restore) · [트러블슈팅](https://ai-turn.github.io/everyup/guide/troubleshooting) | 운영 |
