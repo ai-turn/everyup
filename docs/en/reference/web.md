@@ -109,8 +109,8 @@ value is read as days.
 
 ### Web host metrics
 
-These settings cover the host Web itself runs on. Metrics from other servers
-come from the Docker Collector.
+These settings cover the host Web itself runs on. Collect other servers' resources through a Docker
+Collector or a [directly connected standard OpenTelemetry Collector](../guide/monitoring-setup#direct-otel).
 
 - **`EVERYUP_SYSTEM_ENABLED`** · default `true`\
   Collect host metrics
@@ -132,7 +132,11 @@ Default prefix: `/api/v1`.
 | Docker Collector sync (`/agents` compatibility API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
 | Docker service detail | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 
-Docker Collector sync and OTLP ingest use a per-environment API key. It is issued when you
+Docker Collector sync and OTLP export use a per-environment API key. It is issued when you
 create the environment with **Docker 연결** (Connect Docker), and the installer delivers it to the
 target server directly. For a manual install, open the environment and click **API Key** to view
-it. The Collector owns that key; monitored applications do not need it.
+it. Keep this key in the Collector rather than configuring it in monitored apps.
+
+[Directly connected apps](../guide/monitoring-setup#direct-otel) use their service's API Key.
+Apps sending through a Collector gateway without Docker discovery use a
+[service-scoped bearer token](./collector#networking).

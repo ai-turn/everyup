@@ -93,7 +93,7 @@ export default defineConfig({
     root: {
       label: '한국어',
       lang: 'ko',
-      description: '업타임·로그·API 응답 속도·서버 리소스를 한 화면에서 보고, 이상이 생기면 바로 알림을 받는 셀프호스팅 모니터링',
+      description: '업타임·로그·API 응답 시간·서버 자원을 함께 확인하고, 설정한 규칙에 따라 알림을 받는 셀프호스팅 모니터링',
       themeConfig: {
         nav: [
           { text: '가이드', link: '/guide/introduction' },
@@ -159,7 +159,7 @@ export default defineConfig({
       label: 'English',
       lang: 'en',
       link: '/en/',
-      description: 'Self-hosted monitoring that shows uptime, logs, API response times, and server resources on one screen and alerts you when something goes wrong',
+      description: 'Self-hosted monitoring for uptime, logs, API response times, and server resources, with alerts based on the rules you configure',
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/en/guide/introduction' },

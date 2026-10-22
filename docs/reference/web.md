@@ -10,7 +10,7 @@ Docker Collector 데이터와 OTLP 데이터를 받고, 설정한 알림 규칙�
 
 ## 설치
 
-저장소를 clone하지 않고 Compose 파일만 받아 실행할 수 있습니다.
+저장소를 복제하지 않고 Compose 파일만 받아 실행할 수 있습니다.
 
 ```bash
 mkdir everyup && cd everyup
@@ -105,8 +105,8 @@ EVERYUP_ENCRYPTION_KEY=<openssl rand -hex 32 출력값>
 
 ### Web 호스트 메트릭
 
-Web이 실행 중인 호스트 자체의 메트릭 수집 설정입니다. 다른 서버의 메트릭은 Docker
-Collector가 수집합니다.
+Web이 실행 중인 호스트 자체의 메트릭 수집 설정입니다. 다른 서버의 자원은 Docker Collector나
+[직접 연결한 표준 OpenTelemetry Collector](../guide/monitoring-setup#direct-otel)로 수집합니다.
 
 - **`EVERYUP_SYSTEM_ENABLED`** · 기본값 `true`\
   수집 여부
@@ -128,7 +128,10 @@ Collector가 수집합니다.
 | Docker Collector 동기화 (`/agents` 호환 API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
 | Docker 서비스 상세 | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 
-Docker Collector 동기화와 OTLP 수집에는 Docker 환경마다 발급되는 API Key를 사용합니다. 키는
+Docker Collector의 동기화와 OTLP 전송에는 Docker 환경마다 발급되는 API Key를 사용합니다. 키는
 **Docker 연결**로 환경을 만들 때 발급되고, 설치기가 대상 서버에 직접 전달합니다. 수동으로 설치할 때는
 해당 Docker 환경을 열고 **API Key**를 눌러 확인하세요. 이 키는 Collector가 보관하며, 모니터링 대상
-앱에는 필요하지 않습니다.
+앱에 이 Collector 키를 설정하지 마세요.
+
+[직접 연결한 앱](../guide/monitoring-setup#direct-otel)은 해당 서비스의 API Key를 사용합니다.
+Docker 탐색 없이 Collector 게이트웨이로 보내는 앱은 [서비스별 bearer 토큰](./collector#networking)을 사용합니다.

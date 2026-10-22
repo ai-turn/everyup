@@ -50,7 +50,8 @@ ls -l /var/run/docker.sock
 **Fix**:
 
 - Run the install command with `sudo sh`. Make sure you copied the command exactly as Web showed it.
-- If `docker info` fails, the Docker daemon is not running. Start it with `sudo systemctl start docker`.
+- If `sudo docker info` fails, check the error for socket permissions and daemon connectivity.
+  If the daemon is stopped, start it with `sudo systemctl start docker`.
 
 ## Installation fails with a connection code error {#join-code}
 
@@ -121,6 +122,6 @@ short-lived diagnostic fallback. To narrow socket access in production, use the
 docker logs <app container> --tail 20
 ```
 
-**Fix**: if this prints nothing either, the app writes logs only to a file inside the container.
-Logs Docker cannot see are invisible to the Docker Collector too. Write app or proxy logs to
-stdout/stderr.
+**Fix**: send a request to the app and check `docker logs` again. If it is still empty, check the
+app and proxy log-output settings. If they only write to files inside the container, configure
+stdout/stderr output. This collection path cannot read content absent from Docker logs.

@@ -1,21 +1,30 @@
 # 헤더·바디 상세 수집
 
-서비스 health, 로그, 호스트 메트릭, API **상태코드**는 앱을 수정하지 않아도 수집됩니다.
-[자동 eBPF Observer](./ebpf-observer)를 쓰면 코드 없이 실제 **latency와 트레이스**까지 볼 수
-있습니다. 이 문서에서는 요청/응답 **헤더·바디**를 OpenTelemetry로 수집하는 방법을 다룹니다.
-EveryUp에서 앱을 직접 건드려야 하는 단계는 이것 하나뿐입니다.
+요청·응답 **헤더·바디**를 OpenTelemetry(OTel)로 수집해 실패 원인을 조사할 수 있습니다.
+응답 시간과 트레이스만 필요하다면 먼저 [자동 eBPF Observer](./ebpf-observer)를 확인하세요.
+헤더·바디 수집에는 언어별 계측 설정이 필요합니다.
 
-앱의 span은 Docker Collector의 OTLP 게이트웨이(`http://everyup-agent:4318`)로 보내거나
-Web의 `/api/v1/otlp/v1/traces`로 직접 보냅니다. 게이트웨이로 보내면 Collector가 span을
-알맞은 서비스에 연결해 Web으로 전달합니다.
+span은 요청 처리 과정의 한 작업을 기록한 데이터입니다. 앱의 span은 OTLP 프로토콜로
+Docker Collector의 게이트웨이(`http://everyup-agent:4318`)에 보내거나 Web의
+`/api/v1/otlp/v1/traces`로 직접 보냅니다. 게이트웨이로 보내면 Collector가 span을
+알맞은 서비스에 연결해 Web으로 전달합니다. 직접 연결은 [모니터링 설정](./monitoring-setup#direct-otel)을 참고하세요.
 Docker 탐지가 꺼진 Collector 프로필에서는 앱마다 서비스별 bearer 토큰을
 보내야 합니다. 발급 방법은 [네트워킹 안내](../reference/collector#networking)를 참고하세요.
 
 ## 번들 자동 설정 (Java, Node.js)
 
-Java와 Node.js 서비스는 코드를 한 줄도 쓰지 않고 설정할 수 있습니다. Docker Collector를
-설치할 때 `everyup-otel` CLI와 OpenTelemetry 번들(Java agent jar, Node.js 부트스트랩)이
-함께 준비됩니다.
+Docker Collector를 설치할 때 `everyup-otel` CLI와 OpenTelemetry 번들(Java agent jar,
+Node.js 부트스트랩)이 함께 준비됩니다. 자동 적용 대상은 Compose로 실행 중인 Java·Node.js 서비스입니다.
+
+| 언어 | 헤더 수집 | 바디 수집 |
+| --- | --- | --- |
+| Java | 번들로 설정 | 필터 코드 추가 필요 |
+| Node.js | 번들로 설정 | 기본 꺼짐. **요청·응답 바디도 수집**을 선택하면 활성화 |
+
+지원 버전은 JVM 8+, Node.js 18.19+ 또는 20.6+입니다. 설정을 적용하면 선택한 서비스를 재시작합니다.
+Java 바디 수집이나 다른 언어의 수동 설정은 아래의 헤더·바디 예시를 참고하세요.
+
+### 적용하기
 
 1. Web에서 **Docker 환경**을 열고 **상세 수집 설정**을 선택합니다.
 2. Compose 프로젝트와 적용할 Java·Node.js 서비스를 체크박스로 선택합니다. 처음에는 아무것도 선택되어 있지 않습니다.
@@ -23,22 +32,33 @@ Java와 Node.js 서비스는 코드를 한 줄도 쓰지 않고 설정할 수 �
 4. 재시작 대상과 추가되는 설정을 확인하고 **서버 변경 미리보기** 명령을 실행합니다.
 5. 실제 Compose 검증이 통과하면 **안전 적용 명령**을 실행하고 Web의 **상세 수집 적용 결과**를 확인합니다.
 
-`everyup-otel plan ./docker-compose.yml --project=shop api=node`는 선택한 서비스의
-실행 상태, Compose 프로젝트, 생성할 설정을 검증하고 재시작 범위를 출력합니다.
-이 명령은 앱 설정, 컨테이너, 볼륨, 네트워크를 바꾸지 않습니다. 선택하지 않은 서비스의 기존
-설정은 다음에 적용할 때도 유지됩니다. 여러 CLI가 같은 Compose를 동시에 변경하지 못하도록
-잠금을 겁니다.
+미리보기 명령은 앱을 변경하지 않고 Compose와 재시작 범위를 검증합니다. 적용 명령은 원본 Compose
+옆에 별도 override를 만들고 선택한 서비스만 재시작합니다. 검증에 실패하면 직전 설정으로 자동 복구합니다.
 
-CLI는 원본 Compose를 수정하지 않고 옆에 `docker-compose.everyup.yml`을 생성합니다.
-선택한 서비스만 다시 만들고, 기존 `JAVA_TOOL_OPTIONS`/`NODE_OPTIONS`, 번들 볼륨,
-Docker Collector 연결 네트워크와 컨테이너 health를 검증합니다. 검증에 실패하면 직전 설정으로
-자동 복구합니다. 다음 명령으로 직접 확인하고 복구할 수도 있습니다.
+### 수신 확인과 복구
+
+앱에 요청을 보낸 뒤 **상세 수집 적용 결과**를 확인하세요.
+Web은 **설정 적용 검증 완료**와 **실행 시작 이후 새 트레이스 수신**을 따로 표시합니다.
+새 트레이스에는 eBPF 같은 다른 경로로 들어온 것도 섞여 있으므로, 수신만으로 헤더·바디 수집이
+성공했다고 판단하지 않습니다. 트레이스에서 헤더를 확인하고, 바디 수집을 켰다면 관리자 권한으로
+캡처된 바디도 확인하세요. 트래픽이 없어 트레이스가 들어오지 않더라도 자동 복구는 하지 않습니다.
+
+애플리케이션 Compose가 있는 서버에서 상태를 확인하거나 직전 설정으로 되돌릴 수 있습니다.
+아래 `status`·`verify` 명령은 로컬 상태를 확인합니다.
 
 ```bash
 sudo everyup-otel status ./docker-compose.yml
 sudo everyup-otel verify ./docker-compose.yml
 sudo everyup-otel rollback ./docker-compose.yml
 ```
+
+::: details 실행 기록과 명령의 동작
+`everyup-otel plan ./docker-compose.yml --project=shop api=node`는 실행 상태, Compose 프로젝트와
+생성할 설정을 검증합니다. 앱 설정·컨테이너·볼륨·네트워크는 바꾸지 않습니다.
+여러 CLI가 같은 Compose를 동시에 변경하지 못하도록 잠금을 겁니다.
+
+적용할 때는 `docker-compose.everyup.yml`을 생성하고 기존 `JAVA_TOOL_OPTIONS`/`NODE_OPTIONS`,
+번들 볼륨, Collector 네트워크와 컨테이너 health를 검증합니다. 선택하지 않은 서비스의 기존 설정은 유지됩니다.
 
 Web에서 만든 적용 명령에는 `--report=<Docker 환경 ID>/<실행 ID>`가 들어 있어 실행 결과가
 Web으로 전송됩니다. 실행 계획은 발급 후 1시간 안에 시작해야 하며, 이미 완료된 계획으로는
@@ -47,17 +67,12 @@ Web 주소와 API Key를 사용하므로, 키가 브라우저에 표시되는 �
 않습니다. Web이 실행 시작을 승인하지 않으면 앱을 변경하지 않습니다. 결과 전송에 실패하면
 CLI 출력을 확인하세요.
 
-Web은 **설정 적용 검증 완료**와 **실행 시작 이후 새 트레이스 수신**을 따로 표시합니다.
-새 트레이스에는 eBPF 같은 다른 경로로 들어온 것도 섞여 있으므로, 새 트레이스가 들어왔다는
-사실만으로 헤더·바디 수집이 성공했다고 판단하지 않습니다. 트래픽이 없어 트레이스가 들어오지
-않더라도 자동 복구는 하지 않습니다. 자동·수동 롤백의 성공 여부도 실행 기록에 남으며, 최근
-실행 기록은 화면을 다시 열어도 볼 수 있습니다. 서버에서 따로 실행하는 `verify`·`status`
-명령은 로컬 상태만 확인합니다.
-
-바디 수집은 기본으로 꺼져 있으며, 자동 설정으로 켤 수 있는 것은 Node.js뿐입니다.
+자동·수동 롤백의 성공 여부도 실행 기록에 남으며, 최근 실행 기록은 화면을 다시 열어도 볼 수 있습니다.
+:::
 
 ### 헬퍼가 하는 일
 
+::: details 설치·검증·복구의 내부 동작
 `everyup-otel` 헬퍼는 Docker Collector를 한 줄 설치기로 설치할 때 `/usr/local/bin/everyup-otel`에
 함께 설치됩니다. 적용 명령을 실행하면 헬퍼는 다음 순서로 동작합니다.
 
@@ -73,7 +88,8 @@ Web은 **설정 적용 검증 완료**와 **실행 시작 이후 새 트레이�
 롤백 정보는 앱 Compose 디렉터리의 `.everyup` 폴더에 보관합니다. 헬퍼가 앱과 Docker
 Collector를 `everyup-monitoring` 네트워크에 연결하므로 OTLP 포트를 외부에 열지 않아도
 `everyup-agent:4318`로 접근할 수 있습니다. 기존 `JAVA_TOOL_OPTIONS`·`NODE_OPTIONS` 값은
-유지되고 EveryUp 옵션은 한 번만 덧붙습니다. 지원 버전은 JVM 8+, Node 18.19+ 또는 20.6+입니다.
+유지되고 EveryUp 옵션은 한 번만 덧붙습니다.
+:::
 
 아래 내용은 다른 언어를 쓰거나, SDK를 직접 설정하거나, 번들이 만드는 span의 형식을
 알고 싶을 때 참고하세요.
@@ -91,7 +107,7 @@ Collector를 `everyup-monitoring` 네트워크에 연결하므로 OTLP 포트를
 | `http.route` | string | 선택. 경로 템플릿 (예: `/users/:id`) |
 | `client.address` (또는 `net.peer.ip`) | string | 선택. 클라이언트 IP |
 
-메서드나 상태코드가 없는 span은 API 요청으로 집계하지 않습니다. 요청의 latency는 span
+메서드나 상태 코드가 없는 span은 API 요청으로 집계하지 않습니다. 요청의 응답 시간은 span
 duration을 그대로 쓰며, 1ms 미만은 1ms로 올립니다.
 
 ## 헤더
@@ -193,17 +209,17 @@ Starlette에서 스트리밍 응답의 바디를 캡처하는 것은 더 복잡�
 
 ## 로그를 요청에 연결하기
 
-Trace 패널은 같은 **trace id**를 가진 로그와 span을 한 요청으로 묶어 보여줍니다.
+Trace 패널은 같은 **trace ID**를 가진 로그·span·API 요청을 한 요청으로 묶어 보여줍니다.
 애플리케이션 로그를 이 패널에 표시하려면 다음과 같이 합니다.
 
-- **OTLP 로그를 쓰는 경우**(SDK 로그 exporter): 트레이스되는 요청 안에서 남긴 로그에는
-  trace id가 자동으로 들어가므로 따로 할 일이 없습니다.
-- **일반 stdout 로그를 쓰는 경우**(Docker Collector가 수집): 각 로그 줄에 trace id나,
-  `x-request-id` 헤더로 전파하는 `request_id`를 출력하세요. 그 id로 검색하면 로그를 요청과
-  연결할 수 있습니다.
+- **OTLP 로그를 쓰는 경우**: SDK의 로그 exporter와 로깅 연동을 설정하세요. 요청 안에서 남긴 로그에
+  trace ID가 포함되어 전송되면 해당 트레이스 패널에 표시됩니다.
+- **일반 stdout 로그를 쓰는 경우**: 각 로그 줄에 trace ID나 `x-request-id` 헤더로 전파하는
+  `request_id`를 출력하면 로그 화면에서 같은 ID로 검색할 수 있습니다. 메시지에 ID를 출력하는 것만으로
+  트레이스 패널에 자동 연결되지는 않습니다.
 
-바디 캡처를 꺼 둔 서비스도 이 방법으로 요청과 응답 내용을 확인할 수 있습니다. 바디가 서비스
-로그에 남아 있다면 공유 id로 찾아 요청과 연결하면 됩니다.
+서비스 로그에 요청·응답 바디가 이미 기록되어 있다면 같은 ID로 검색해 기록된 내용을 확인할 수 있습니다.
+공통 ID는 기록하지 않은 바디를 복구하지는 않습니다.
 
 ## 중복 집계
 

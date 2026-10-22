@@ -151,3 +151,11 @@ three steps:
 
 Three infrastructure rules (High CPU Usage, High Memory Usage, Disk Almost Full) exist from the
 start but are turned off. Turn them on with their toggles in the rule list if you want them.
+
+### API request rule evaluation
+
+Error-rate, p95, and p99 rules evaluate the configured recent time window **once a minute**.
+Error-rate rules need at least 20 requests in that window; p95 and p99 rules need at least 20
+requests with measured response times. With fewer requests, these rules do not send an alert
+even if individual requests cross a threshold. This cadence applies only to API request rules;
+health-check, log, and infrastructure rules use different evaluation paths.

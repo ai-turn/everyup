@@ -1,22 +1,31 @@
 # Header & body capture
 
-Service health, logs, host metrics, and API **status codes** need no app changes,
-and the [automatic eBPF Observer](./ebpf-observer) adds real **latency and traces** with no code either.
-This document covers the one app-side step: capturing
-request/response **headers and bodies**, by instrumenting the app with
-OpenTelemetry.
+Capture request and response **headers and bodies** with OpenTelemetry (OTel) to investigate failures.
+If you only need response times and traces, start with the [automatic eBPF Observer](./ebpf-observer).
+Header and body capture requires language-specific instrumentation settings.
 
-Instrumented spans go to the Docker collector's OTLP gateway at
-`http://everyup-agent:4318` (which attributes them to the right service and
-forwards to Web), or directly to Web at `/api/v1/otlp/v1/traces`.
-If the collector profile disables Docker discovery, each app must send its
+A span records one operation in a request's trace. Send spans over the OTLP protocol to the Docker
+Collector's gateway at `http://everyup-agent:4318`, which attributes them to the matching service
+and forwards them to Web, or directly to Web at `/api/v1/otlp/v1/traces`.
+For direct connections, see [Monitoring setup](./monitoring-setup#direct-otel).
+If the Docker Collector profile disables Docker discovery, each app must send its
 service-scoped bearer token; see [Networking Notes](../reference/collector#networking).
 
 ## Quickest path — the bundled instrumentation (Java, Node.js)
 
-For Java and Node.js you don't write any code. Docker collector installation also installs
-the `everyup-otel` helper and provides a ready-made OpenTelemetry bundle (Java
-agent jar + Node.js bootstrap).
+Docker Collector installation includes the `everyup-otel` helper and an OpenTelemetry bundle
+(Java agent jar and Node.js bootstrap). Automatic setup targets Java and Node.js services running
+under Compose.
+
+| Language | Header capture | Body capture |
+| --- | --- | --- |
+| Java | Configured by the bundle | Requires a filter in application code |
+| Node.js | Configured by the bundle | Off by default. Enable **요청·응답 바디도 수집** (also capture request/response bodies) |
+
+Supported versions are JVM 8+, Node.js 18.19+ or 20.6+. Applying the settings restarts the selected
+services. See the header and body examples below for Java body capture and manual setup in other languages.
+
+### Apply the settings
 
 1. In Web, open the environment from **Docker 환경** (Docker environments) and choose
    **상세 수집 설정** (detailed collection settings).
@@ -28,23 +37,34 @@ agent jar + Node.js bootstrap).
 5. When the real Compose validation passes, run the **안전 적용 명령** (safe apply command) and
    check **상세 수집 적용 결과** (apply results) in Web.
 
-`everyup-otel plan ./docker-compose.yml --project=shop api=node` validates the selected services'
-running state, the Compose project, and the settings it would generate, then prints the restart
-scope. It does not change app settings, containers, volumes, or networks. Settings for services
-you did not select are kept on later applies too, and a lock keeps several CLIs from changing the
-same Compose project at once.
+The preview command validates Compose and the restart scope without changing the app. The apply
+command writes a separate override beside the original Compose file and restarts only selected
+services. A failed verification restores the previous configuration automatically.
 
-The helper leaves the original Compose file unchanged and writes
-`docker-compose.everyup.yml` beside it. It recreates only the selected services,
-preserves existing `JAVA_TOOL_OPTIONS`/`NODE_OPTIONS`, and verifies the bundle
-mount, Docker collector network, container health, and injected options. A failed check
-automatically restores the previous configuration. Manual controls are:
+### Confirm receipt and recover
+
+Send requests to the app, then check **상세 수집 적용 결과** (apply results).
+Web shows **설정 적용 검증 완료** (configuration verified) separately from **실행 시작 이후 새 트레이스 수신**
+(new traces since the run started). Traces may arrive through other paths such as eBPF, so receipt
+alone does not prove header and body capture works. Inspect headers in the trace and, if you enabled
+body capture, inspect the captured bodies as an admin. A lack of traces due to no traffic does not trigger a rollback.
+
+Run the following on the server with the application's Compose file to check status or restore the
+previous settings. The `status` and `verify` commands below check local state.
 
 ```bash
 sudo everyup-otel status ./docker-compose.yml
 sudo everyup-otel verify ./docker-compose.yml
 sudo everyup-otel rollback ./docker-compose.yml
 ```
+
+::: details Run records and command behavior
+`everyup-otel plan ./docker-compose.yml --project=shop api=node` validates running state, the Compose
+project, and generated settings without changing app settings, containers, volumes, or networks.
+A lock prevents concurrent CLI changes to the same Compose project.
+
+Applying writes `docker-compose.everyup.yml` and verifies existing `JAVA_TOOL_OPTIONS`/`NODE_OPTIONS`,
+the bundle mount, Collector network, and container health. Settings for unselected services are preserved.
 
 The apply command generated by Web includes `--report=<Docker environment ID>/<run ID>`, so the
 result is sent back to Web. A run plan must start within one hour of being issued, and a plan
@@ -53,17 +73,13 @@ in the server's `everyup-agent` container, so the key never appears in a command
 browser or in the run result. If Web does not approve the run start, the app is not changed. If
 reporting fails, check the CLI output.
 
-Web shows **설정 적용 검증 완료** (configuration verified) separately from **실행 시작 이후 새
-트레이스 수신** (new traces since the run started). New traces can also arrive through other paths
-such as eBPF, so receiving them alone does not prove header and body capture works. If no traffic
-produces traces, nothing is rolled back automatically. Whether an automatic or manual rollback
-succeeded is recorded with the run, and recent runs stay visible when you reopen the screen. The
-`verify` and `status` commands you run on the server check local state only.
-
-Bodies are opt-in and automatically supported for Node only.
+Automatic and manual rollback results are recorded with the run. Recent runs remain visible when
+you reopen the screen.
+:::
 
 ### What the helper does
 
+::: details Installation, verification, and recovery internals
 The one-time Docker Collector installer also installs `/usr/local/bin/everyup-otel`.
 When you run the apply command, the helper:
 
@@ -82,7 +98,8 @@ The helper keeps rollback metadata in the app Compose directory's `.everyup`
 folder. It attaches the app and Docker Collector to the shared `everyup-monitoring`
 network so `everyup-agent:4318` resolves without publishing an OTLP port.
 Existing `JAVA_TOOL_OPTIONS` / `NODE_OPTIONS` values are retained and the
-EveryUp option is appended once. Supported versions: JVM 8+, Node 18.19+ or 20.6+.
+EveryUp option is appended once.
+:::
 
 Everything below is for **other languages, manual SDK setups, or understanding
 the span contract** the bundle produces.
@@ -205,22 +222,22 @@ start with request bodies.
 
 ## Correlating logs with a request
 
-The Trace panel stitches a request together with the logs and spans that share
-its **trace id**. To make your application logs show up there:
+The Trace panel combines spans, API requests, and logs with the same **trace ID**.
+To associate your application logs with a request:
 
-- **Using OTLP logs** (SDK log exporter): the trace id is injected automatically
-  when a log is emitted inside a traced request — nothing to do.
-- **Using plain stdout logs** (collected by the Docker collector): print the trace id (or a
-  `request_id` you propagate via the `x-request-id` header) in each log line so
-  you can search by it and line the log up with the request.
+- **Using OTLP logs**: configure the SDK log exporter and logging integration. Logs emitted inside
+  a request appear in its trace panel when exported with the trace ID.
+- **Using plain stdout logs**: print the trace ID or a `request_id` propagated through the
+  `x-request-id` header in each line so you can search for it in Logs. Printing an ID in the message
+  alone does not attach the log to the trace panel automatically.
 
-This is how you recover full request/response detail even where body capture is
-off — the body stays in your own service log, findable by the shared id.
+If your service already logs request or response bodies, search those logs by the shared ID to
+inspect the recorded content. A shared ID does not recover bodies that were never logged.
 
 ## Double-counting
 
 Handled automatically: while a service ships real spans through the Docker
-collector gateway, the Docker collector pauses its access-log synthetic spans
+Collector gateway, the Docker Collector pauses its access-log synthetic spans
 for that service (it resumes ~10 minutes after real spans stop). Only apps that
 send OTLP **directly to Web**, bypassing the gateway, can still double-count —
 point them at the gateway instead.

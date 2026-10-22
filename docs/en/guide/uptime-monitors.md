@@ -1,8 +1,8 @@
 # Uptime monitors
 
-An uptime monitor has Web itself check, on a schedule, that a URL or TCP port responds. Use it for
-targets where you can't or don't need to install a Collector, such as public websites and APIs.
-Docker containers are discovered by the [Docker Collector](./quickstart), so you don't add them here.
+Use uptime monitors to check responses from public URLs and TCP ports on a schedule. Web performs
+the checks, so the target does not need a Collector. Docker service response checks come from the
+[Docker Collector](./quickstart); you do not need to add them again as independent monitors.
 
 ## Add a monitor
 
@@ -27,11 +27,15 @@ services with the [Docker Collector](./quickstart) instead.
 
 ## Status and management
 
-The **업타임** (Uptime) screen lists Docker services and uptime monitors together, with counts for
-**정상** (healthy), **장애** (down), and **일시정지·대기** (paused or pending) at the top. Use
-**일시정지** (Pause) on a monitor card to stop checking and **재개** (Resume) to start again. Click a
-card to open its detail screen, where you can see the check history (result, time, response time,
-message) and **수정** (Edit) or **삭제** (Delete) the monitor.
+The **업타임** (Uptime) screen combines independent uptime monitors and Docker Collector response
+checks. Each target shows its HTTP or TCP method and where the check runs. Checks that only report
+whether a container is running are excluded; view those in **Docker 환경** (Docker environments).
+
+Counts for **정상** (healthy), **장애** (down), and **정지·대기·지연** (paused, pending, or delayed) appear
+at the top. Use **일시정지** (Pause) on an independent monitor to stop checks and **재개** (Resume) to
+restart them. Open a target to inspect its check history (result, time, response time, message).
+**수정** (Edit) and **삭제** (Delete) manage independent monitors; Docker targets are managed in
+their environment's service screen.
 
 ## Getting outage alerts
 

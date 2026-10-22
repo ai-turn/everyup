@@ -5,11 +5,10 @@ pageClass: reference-page
 
 # Docker Collector Configuration
 
-The EveryUp Docker Collector is the lightweight component that runs on a Docker
-host you want to monitor. It discovers Docker containers automatically, reads
-stdout/stderr logs, collects host metrics, and syncs everything to EveryUp Web.
-API status codes are derived by parsing access-log lines out of the logs it
-already collects — no proxy, no app changes.
+Run the EveryUp Docker Collector on each Docker host you want to monitor. It collects container
+state, stdout/stderr logs, and host metrics according to your selected scope and sends them to Web.
+When an app or proxy writes access logs to stdout/stderr, it also extracts request method, path,
+and status code.
 
 Alert rules, notification channels, and dashboard behavior are configured in Web.
 The Docker Collector only collects and forwards data. Its binary, environment
@@ -36,9 +35,10 @@ for restart and retention behavior.
 
 API status codes are extracted from those same logs: lines that parse as access
 logs (Nginx / Apache / structured JSON) are emitted as synthetic OTel SERVER
-spans, which Web projects into the **API 요청** (API requests) tab. There is no latency in access
-logs, so duration is unknown; an app that emits no access logs simply shows no
-API rows while logs and metrics keep flowing.
+spans, which Web projects into the **API 요청** (API requests) tab. The current parser only extracts
+method, path, and status code. Response times in a log are not used as API latency through this path.
+Without access logs, this path produces no API rows, but regular logs and configured metric
+collection continue. Requests sent through eBPF or app instrumentation are displayed separately.
 
 For real latency without touching your apps, use the
 [automatic eBPF Observer](../guide/ebpf-observer) included in the monitoring bundle.
@@ -55,6 +55,7 @@ or reverse proxy to write logs to stdout.
 The Docker Collector discovers containers through the mounted Docker socket. It can run in
 the same Compose file as your application or in a separate Compose project on the
 same Docker host.
+The Quick Start installer uses a Compose project separate from your application.
 
 When Docker discovery is enabled, the OTLP gateway accepts telemetry only from
 running containers it discovers. It assigns each app payload the service name
