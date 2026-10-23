@@ -7,7 +7,7 @@ hero:
   tagline: 'Monitor uptime, logs, API response times, and server resources.<br>Configure notification channels and rules to receive alerts when their conditions are met.'
   actions:
     - theme: brand
-      text: Connect a Docker environment
+      text: Get started
       link: /en/guide/quickstart
     - theme: alt
       text: Live Demo

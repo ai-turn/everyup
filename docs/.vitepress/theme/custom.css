@@ -679,9 +679,61 @@ html:not(.dark) .only-dark {
    VitePress 기본 600은 Spoqa에 없어 Bold(700)로 그려지고, 흰 글자가 뭉개져 보였다.
    모서리도 제품 Button(rounded-lg)과 같은 8px. 기본은 알약 모양(20px)이다. */
 .VPHero .VPButton.medium {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   line-height: 42px;
   font-weight: 500;
   border-radius: 8px;
+}
+/* 보조 버튼은 제품 Button secondary와 같은 모양: 회색 채움 대신 보더, 라벨은 text-1, 아이콘만 brand(DESIGN.md §4.1) */
+.VPHero {
+  --vp-button-alt-bg: transparent;
+  --vp-button-alt-border: var(--vp-c-divider);
+  --vp-button-alt-text: var(--vp-c-text-1);
+  --vp-button-alt-hover-bg: var(--vp-c-bg-alt);
+  --vp-button-alt-hover-border: var(--vp-c-text-3);
+  --vp-button-alt-hover-text: var(--vp-c-text-1);
+  --vp-button-alt-active-bg: var(--vp-c-bg-soft);
+  --vp-button-alt-active-border: var(--vp-c-text-3);
+  --vp-button-alt-active-text: var(--vp-c-text-1);
+}
+/* 아이콘은 mask라 글자색(currentColor)이나 brand를 그대로 받는다. 언어별 페이지가 같은 링크를 쓰므로 href로 고른다.
+   →는 문서 안 이동, ↗는 새 탭(VPButton이 외부 링크에 target=_blank를 붙인다) */
+.VPHero .VPButton.brand::after,
+.VPHero .VPButton[href*='/demo/']::after,
+.VPHero .VPButton[href*='github.com']::before {
+  content: '';
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  mask: var(--hero-icon) center / contain no-repeat;
+  transition: transform 0.2s;
+}
+.VPHero .VPButton.brand::after {
+  --hero-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z'/%3E%3C/svg%3E");
+}
+.VPHero .VPButton.brand:hover::after {
+  transform: translateX(3px);
+}
+.VPHero .VPButton.alt::before,
+.VPHero .VPButton.alt::after {
+  background-color: var(--vp-c-brand-1);
+}
+.VPHero .VPButton[href*='/demo/']::after {
+  --hero-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6v2h8.59L5 17.59 6.41 19 16 9.41V18h2V6z'/%3E%3C/svg%3E");
+}
+.VPHero .VPButton[href*='/demo/']:hover::after {
+  transform: translate(2px, -2px);
+}
+.VPHero .VPButton[href*='github.com']::before {
+  --hero-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  .VPHero .VPButton::after {
+    transition: none;
+  }
 }
 
 .screenshot-caption {
