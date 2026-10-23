@@ -7,7 +7,7 @@ hero:
   tagline: '업타임·로그·API 응답 시간·서버 자원을 확인하세요.<br>알림 채널과 규칙을 설정하면 조건을 만족할 때 알림을 받습니다.'
   actions:
     - theme: brand
-      text: Docker 환경 연결
+      text: 시작하기
       link: /guide/quickstart
     - theme: alt
       text: 라이브 데모
