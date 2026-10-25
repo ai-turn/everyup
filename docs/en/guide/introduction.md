@@ -30,7 +30,7 @@ configuration in English; the running UI looks like the screenshot above.
 
 The Uptime, Logs, Infrastructure, API requests, and Metrics pages show only the targets you configure
 directly. Response checks, container state, logs, host resources, and API requests collected by a Docker
-Collector appear in that Docker environment. Overview, Projects, and alerts cover both paths.
+Collector appear in that Docker environment. Overview, groups, and alerts cover both paths.
 
 | Feature | What you can inspect | Required setup |
 | --- | --- | --- |

@@ -345,7 +345,7 @@ export function OverviewPage() {
                 ))}
               </ul>
               <ButtonLink variant="ghost" size="sm" to="/projects" className="mt-3">
-                Project로 대상 정리하기 <MaterialIcon size={20} name="arrow_forward" />
+                그룹으로 대상 정리하기 <MaterialIcon size={20} name="arrow_forward" />
               </ButtonLink>
             </article>
           </section>

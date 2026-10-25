@@ -58,7 +58,7 @@ export function DirectInfrastructureDetailPage() {
     try {
       const updated = await api.updateInfrastructureResource(resource.id, { name: resource.name, projectId: projectId || undefined });
       setResource(updated);
-      toast.success('Project 배정을 저장했습니다.');
+      toast.success('그룹 배정을 저장했습니다.');
     } catch (requestError) {
       toast.error(getErrorMessage(requestError));
     } finally {

@@ -9,7 +9,7 @@ export function SummaryCard({ label, value, detail, tone = 'idle' }: {
   // warn/error 하나만 튄다 (§5.1 StatusLight와 같은 논리).
   //
   // 이 규칙이 기존 오용 두 건도 같이 걷어낸다: 업타임 '정상' 카드의 `전체 5개 대상 중`
-  // (분모)과 개요 'Projects' 카드의 `대상을 운영 단위로 묶고 있습니다`(설명)가
+  // (분모)과 개요 '그룹' 카드의 `대상을 운영 단위로 묶고 있습니다`(설명)가
   // tone=healthy를 타고 초록으로 칠해지고 있었다. 둘 다 상태가 아니다.
   const detailClass = tone === 'warn' ? 'text-status-warn'
     : tone === 'error' ? 'text-status-error'

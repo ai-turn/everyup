@@ -120,8 +120,8 @@ export function ProjectOverviewPage() {
   const totalTargets = data.agents.length + data.monitors.length + data.observedServices.length + data.infrastructure.length;
 
   if (loading) return <div className="h-64 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
-  if (error) return <EmptyState icon="sync_problem" title="Project를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} />;
-  if (!data.project) return <EmptyState icon="folder_open" title="Project를 찾을 수 없습니다" action={{ label: 'Projects', to: '/projects' }} />;
+  if (error) return <EmptyState icon="sync_problem" title="그룹을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} />;
+  if (!data.project) return <EmptyState icon="folder_open" title="그룹을 찾을 수 없습니다" action={{ label: '그룹', to: '/projects' }} />;
 
   const project = data.project;
   const deleteProject = async () => {
@@ -161,11 +161,11 @@ export function ProjectOverviewPage() {
 
       {failedSources.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{failedSources.join(', ')} 정보를 제외한 결과입니다.</p></div></div><Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button></section>}
 
-      {totalTargets === 0 ? <section className="rounded-xl border border-ui-border bg-bg-surface"><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="Project 관리 화면에서 환경과 모니터링 대상을 배정하세요." action={{ label: 'Project 관리', to: '/projects' }} /></section> : (
+      {totalTargets === 0 ? <section className="rounded-xl border border-ui-border bg-bg-surface"><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="그룹 관리 화면에서 환경과 모니터링 대상을 배정하세요." action={{ label: '그룹 관리', to: '/projects' }} /></section> : (
         <section>
           <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
           {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, ...member }) => <div key={key} className="overflow-hidden rounded-xl border border-ui-border bg-bg-surface"><MemberLink {...member} returnTo={returnTo} /></div>)}</div> :
-            <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="Project 구성 그리드" columns={[
+            <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="그룹 구성 그리드" columns={[
               { key: 'name', label: '대상', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 break-words type-caption text-text-muted md:hidden">{row.detail}</p></> },
               { key: 'detail', label: '현황', className: 'hidden md:table-cell', render: row => <span className="text-text-muted">{row.detail}</span> },
             ]} />}
@@ -173,7 +173,7 @@ export function ProjectOverviewPage() {
       )}
 
       {editing && <ProjectDialog project={project} onClose={() => setEditing(false)} onSave={async input => { await api.updateProject(project.id, input); await load(); }} />}
-      <ConfirmDialog isOpen={deleting} onClose={() => setDeleting(false)} onConfirm={() => void deleteProject()} title="Project를 삭제할까요?" message="배정된 Docker 환경, 업타임 모니터, 직접 서비스와 Collector는 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
+      <ConfirmDialog isOpen={deleting} onClose={() => setDeleting(false)} onConfirm={() => void deleteProject()} title="그룹을 삭제할까요?" message="배정된 Docker 환경, 업타임 모니터, 직접 서비스와 Collector는 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
     </div>
   );
 }

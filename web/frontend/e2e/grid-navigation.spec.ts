@@ -1,7 +1,7 @@
 import { expect, test, type Locator } from '@playwright/test';
 
 const menus = [
-  ['projects', 'Projects 그리드'],
+  ['projects', '그룹 그리드'],
   ['environments', 'Docker 환경 그리드'],
   ['uptime', '업타임 그리드'],
   ['logs', '로그 서비스 그리드'],
@@ -9,7 +9,7 @@ const menus = [
   ['api', 'API 대상 그리드'],
   ['metrics', '메트릭 서비스 그리드'],
   ['agents/agent_demo_01', 'Docker 서비스 그리드'],
-  ['projects/project_mock_production', 'Project 구성 그리드'],
+  ['projects/project_mock_production', '그룹 구성 그리드'],
 ] as const;
 
 async function blankCorner(row: Locator) {
@@ -45,7 +45,7 @@ for (const mode of ['modifier', 'middle'] as const) {
   test(`${mode} click on row whitespace opens the actual detail in a new tab`, async ({ page }) => {
     await page.goto('./projects');
     const listUrl = page.url();
-    const table = page.getByRole('table', { name: 'Projects 그리드', exact: true });
+    const table = page.getByRole('table', { name: '그룹 그리드', exact: true });
     const row = table.getByRole('row').filter({ has: page.getByRole('link') }).first();
     const link = row.getByRole('link').first();
     const destination = new URL((await link.getAttribute('href'))!, listUrl).href;
