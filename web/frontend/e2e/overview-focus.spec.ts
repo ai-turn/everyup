@@ -22,7 +22,7 @@ for (const { width, height, reducedMotion } of [
     await page.emulateMedia({ reducedMotion });
     await page.goto('./');
     const refresh = page.getByRole('button', { name: '새로고침', exact: true });
-    const project = page.getByRole('link', { name: /Project로 대상 정리하기/ });
+    const project = page.getByRole('link', { name: /그룹으로 대상 정리하기/ });
     const lastIncident = page.getByRole('region', { name: '최근 장애 이력' }).getByRole('link').last();
     await expect(lastIncident).toBeVisible();
     await page.evaluate(() => document.fonts.ready);

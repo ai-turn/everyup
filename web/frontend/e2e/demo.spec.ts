@@ -72,7 +72,7 @@ test.describe('live demo', () => {
 
     await expect(page.getByRole('combobox', { name: '데모 시나리오' })).toBeVisible();
     await expect(page.getByRole('link', { name: '개요', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Projects', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: '그룹', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: '알림', exact: true })).toBeVisible();
     await page.getByRole('link', { name: '더보기', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: '더보기' })).toBeVisible();

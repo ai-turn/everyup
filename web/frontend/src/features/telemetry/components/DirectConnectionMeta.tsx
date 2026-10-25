@@ -1,7 +1,7 @@
 import { Button, DetailMeta, MaterialIcon, Select, StatusLight } from '../../../components/common';
 import type { Project } from '../../../services/api';
 
-// 직접 연결(Logs·Metrics·API·Collector) 상세의 연결 메타데이터. 수집 키·마지막 수집·Project는
+// 직접 연결(Logs·Metrics·API·Collector) 상세의 연결 메타데이터. 수집 키·마지막 수집·그룹은
 // 대상의 속성이지 본문이 아니라서 카드가 아니라 제목 아래 DetailMeta로 둔다.
 interface DirectConnectionMetaProps {
   isActive: boolean;
@@ -56,10 +56,10 @@ export function DirectConnectionMeta({
           ),
         },
         {
-          label: 'Project',
+          label: '그룹',
           value: (
             <>
-              <Select wrapperClassName="w-48" value={projectId} onChange={event => onProjectChange(event.target.value)} aria-label="Project 배정">
+              <Select wrapperClassName="w-48" value={projectId} onChange={event => onProjectChange(event.target.value)} aria-label="그룹 배정">
                 <option value="">미분류</option>
                 {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
               </Select>

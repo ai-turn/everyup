@@ -57,7 +57,7 @@ export function InfrastructurePage() {
 
   useEffect(() => {
     let alive = true;
-    // 같은 목록을 개요·Projects·알림도 쓰므로 Docker 호스트는 서버가 아니라 여기서 뺀다(ADR 0007).
+    // 같은 목록을 개요·그룹·알림도 쓰므로 Docker 호스트는 서버가 아니라 여기서 뺀다(ADR 0007).
     api.getInfrastructureResources()
       .then(rows => { if (alive) setResources((rows ?? []).filter(resource => resource.adapter === 'otel-collector')); })
       .catch(requestError => { if (alive) setError(getErrorMessage(requestError)); })

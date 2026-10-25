@@ -144,7 +144,7 @@ export function DirectTelemetrySetupDialog({
                 <span className="block type-body text-text-muted">수신 payload의 service.name 대신 이 이름으로 고정합니다.</span>
               </label>
               <label className="block space-y-1.5" htmlFor={`direct-${signal}-project`}>
-                <span className="text-sm font-medium text-text-secondary">Project</span>
+                <span className="text-sm font-medium text-text-secondary">그룹</span>
                 <Select id={`direct-${signal}-project`} value={projectId} onChange={event => setProjectId(event.target.value)}>
                   <option value="">미분류</option>
                   {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}

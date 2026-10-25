@@ -73,7 +73,7 @@ The sidebar, mobile navigation, command palette, and breadcrumbs all read their 
 | Route | Section | Purpose |
 | --- | --- | --- |
 | `/` | 개요 (Overview) | What needs attention now, monitoring scope, recent incidents |
-| `/projects` | Projects | Targets grouped into Projects |
+| `/projects` | 그룹 (Groups) | Separately registered targets collected into groups |
 | `/environments` | Docker 환경 (Docker environments) | Connected environments; `/agents/:id` is an environment, `/services/:agentId/:key` a service |
 | `/uptime` | 업타임 (Uptime) | Docker services and HTTP/TCP uptime monitors |
 | `/logs` | 로그 (Logs) | Error and warning counts per service, frequent errors |

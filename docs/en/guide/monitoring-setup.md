@@ -39,7 +39,7 @@ latest installation command.
 
 Open the environment on the **Docker 환경** (Docker environments) screen and use the buttons in its
 monitoring setup guide, such as **로그 추가** (Add logs) or **메트릭 추가** (Add metrics), to add a capability
-that is not selected yet. The environment keeps its ID, key, Project assignment, and collection history.
+that is not selected yet. The environment keeps its ID, key, group assignment, and collection history.
 EveryUp issues a new apply command; run it on the target server to enable the capability across that
 Docker environment.
 
@@ -72,13 +72,13 @@ API Key and adds only the required data permission. Configure export for that si
 or Collector, then restart or redeploy. Generate requests or logs, or wait for the metric collection
 interval, and check **데이터 수신 확인** for receipt.
 
-## Grouping targets into a Project
+## Grouping targets
 
-To view related targets together, open **Projects** and click **추가** (Add) to create a Project.
-Select Docker environments, uptime monitors, directly connected services, and infrastructure
-Collectors, then click **배정** (Assign). Services and data discovered within a Docker environment
-inherit its Project assignment. The Project screen lists failing targets first. Deleting a Project
-does not delete its assigned targets.
+To view separately registered targets together, open **그룹** (Groups) under **모아 보기** (Collected
+views) in the sidebar and click **추가** (Add) to create a group. Select Docker environments, uptime
+monitors, directly connected services, and infrastructure Collectors, then click **배정** (Assign).
+Services and data discovered within a Docker environment inherit its group assignment. The group
+screen lists failing targets first. Deleting a group does not delete its assigned targets.
 
 ## Detailed header and body capture
 

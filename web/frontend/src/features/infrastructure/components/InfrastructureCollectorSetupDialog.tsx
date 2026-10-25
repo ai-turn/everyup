@@ -65,7 +65,7 @@ export function InfrastructureCollectorSetupDialog({
             <Input id="collector-resource-name" required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="edge-host-01" />
           </label>
           <label className="block space-y-1.5" htmlFor="collector-project">
-            <span className="text-sm font-medium text-text-secondary">Project</span>
+            <span className="text-sm font-medium text-text-secondary">그룹</span>
             <Select id="collector-project" value={projectId} onChange={event => setProjectId(event.target.value)}>
               <option value="">미분류</option>
               {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}

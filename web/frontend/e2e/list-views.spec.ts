@@ -1,7 +1,7 @@
 import { expect, test, type Locator } from '@playwright/test';
 
 const menus = [
-  ['projects', 'Projects', 'Projects 그리드'],
+  ['projects', '그룹', '그룹 그리드'],
   ['environments', 'Docker 환경', 'Docker 환경 그리드'],
   ['logs', '로그', '로그 서비스 그리드'],
   ['infrastructure', '인프라', '인프라 대상 그리드'],
@@ -11,7 +11,7 @@ const menus = [
   ['alerts?tab=rules', '알림', '알림 규칙 그리드'],
   ['alerts?tab=history', '알림', '알림 로그 그리드'],
   ['agents/agent_demo_01', 'prod-server', 'Docker 서비스 그리드'],
-  ['projects/project_mock_production', 'Production', 'Project 구성 그리드'],
+  ['projects/project_mock_production', 'Production', '그룹 구성 그리드'],
 ] as const;
 
 const hrefs = (scope: Locator) => scope.getByRole('link').evaluateAll(elements => [...new Set(elements.map(element => element.getAttribute('href') ?? ''))]);
@@ -75,18 +75,18 @@ test('Docker search and connect cleanup retain the chosen view and pending actio
   await expect(page.getByRole('table', { name: 'Docker 환경 그리드' })).toContainText('staging-api');
 });
 
-test('Project grid exposes editing, membership controls and deletion without changing views', async ({ page }) => {
+test('Group grid exposes editing, membership controls and deletion without changing views', async ({ page }) => {
   await page.goto('./projects');
   await page.getByRole('button', { name: 'Production 구성 관리', exact: true }).click();
   const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Production', exact: true }) });
   await expect(card.getByRole('button', { name: 'Docker 환경 해제', exact: true }).first()).toBeVisible();
-  await card.getByRole('button', { name: 'Project 수정', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Project 수정', exact: true })).toBeVisible();
+  await card.getByRole('button', { name: '그룹 수정', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '그룹 수정', exact: true })).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
-  await card.getByRole('button', { name: 'Project 삭제', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Project를 삭제할까요?', exact: true })).toBeVisible();
+  await card.getByRole('button', { name: '그룹 삭제', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '그룹을 삭제할까요?', exact: true })).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
-  await expect(page.getByRole('table', { name: 'Projects 그리드', exact: true })).toBeVisible();
+  await expect(page.getByRole('table', { name: '그룹 그리드', exact: true })).toBeVisible();
 });
 
 test('alert target and local search stay intact while switching views', async ({ page }) => {
