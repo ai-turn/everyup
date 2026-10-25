@@ -707,7 +707,7 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 **패널을 바꾸면 탭, 같은 데이터의 보기·필터를 바꾸면 `SegmentedControl`이다.** 탭은 `role="tablist"`/`role="tab"` + `aria-selected`, `SegmentedControl`은 `aria-pressed`다. 탭은 위치가 아니므로 브레드크럼에 넣지 않는다(§3.4).
 
-- **밑줄 탭**(기본) — 서비스 상세, 알림 데스크톱. 목록에 `border-b border-ui-border`, 탭은 `-mb-px border-b-2 px-4 py-2.5 text-sm font-medium`. 선택은 `border-primary text-text-base`, 비선택은 `border-transparent text-text-muted hover:text-text-base`. **라벨을 `action`으로 칠하지 않는다** — 밑줄이 이미 선택을 말한다(§4.1 `secondary` 라벨을 칠하지 않는 것과 같은 이유).
+- **밑줄 탭**(기본) — 서비스 상세, 알림 데스크톱. 목록에 `border-b border-ui-border`, 탭은 `-mb-px border-b-2 px-4 py-2.5 text-sm font-medium`. 선택은 `border-primary text-text-base`, 비선택은 `border-transparent text-text-muted hover:text-text-base`. **라벨을 `action`으로 칠하지 않는다** — 밑줄이 이미 선택을 말한다(§4.1 `secondary` 라벨을 칠하지 않는 것과 같은 이유). **탭 목록이 가로로 넘칠 수 있어 `overflow-x-auto`를 거는 자리(서비스 상세)는 이 조합을 쓰지 않는다** — `overflow-x`가 `auto`면 `overflow-y`도 `auto`가 되어, `-mb-px`로 겹친 1px 때문에 세로 스크롤바가 생긴다. 기준선을 스크롤 영역 밖의 `absolute` 요소로 그리고, 목록은 `relative overflow-x-auto overflow-y-hidden`, 탭에서 `-mb-px`를 뺀다(`AgentServiceTabs`).
 - **세그먼트 모양 탭** — 모바일에서 화면 폭을 탭 수로 나눠 쓰는 자리(알림 모바일). 표면은 `SegmentedControl`과 같다: 트랙 `bg-ui-hover`, 선택 칸 `bg-ui-raised`. `bg-bg-surface`로 칠하면 다크에서 선택 칸이 트랙보다 어두워져 방향이 뒤집힌다(§1.2).
 
 ---
