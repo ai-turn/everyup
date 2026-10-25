@@ -2,7 +2,7 @@
 
 Docker 환경의 수집 상태를 확인하거나 수집 범위를 넓힐 수 있습니다.
 Docker 밖의 앱과 서버는 [OpenTelemetry로 직접 연결](#direct-otel)하세요. Docker Collector 설치 없이도 연결할 수 있습니다.
-첫 Docker 환경을 연결하려면 [Quick Start](./quickstart)를 참고하세요.
+첫 Docker 환경을 연결하려면 [Quick Start](./quickstart#docker)를 참고하세요.
 
 ## 모니터링 설정 가이드
 

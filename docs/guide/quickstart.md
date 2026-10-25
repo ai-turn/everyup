@@ -1,16 +1,13 @@
 # Quick Start
 
-대시보드 서버에 Web을 띄우고, 모니터링할 서버에 모니터링 번들(Docker Collector와 필요한 구성
-요소)을 설치하는 최소 구성입니다. 서버가 한 대라면 둘을 같은 서버에서 실행해도 됩니다.
-4단계에서 Docker 환경이 **수집 중**으로 바뀌고, 선택한 데이터의 수신 기록을 확인하면 완료입니다.
+대시보드 서버에 Web을 띄우고 업타임 모니터를 하나 추가해 첫 검사 결과를 확인합니다. 2단계에서 모니터가
+**정상**으로 표시되면 기본 구성은 끝입니다. 그다음 필요한 기능을 직접 연결하고, Linux Docker 서버라면
+Docker 환경도 연결할 수 있습니다. 두 단계 모두 선택입니다.
 
 ## 준비물
 
 - **대시보드 서버**: Docker와 Docker Compose
-- **모니터링할 서버**: Linux, Docker Engine, Docker Compose 2.23.1 이상, `curl`, `sudo` 권한.
-  Compose 버전은 `docker compose version`으로 확인하세요.
-- **네트워크**: 모니터링할 서버에서 대시보드 서버의 `3001` 포트(또는 `EVERYUP_PUBLIC_URL`로
-  지정한 주소)에 접속할 수 있어야 합니다.
+- **네트워크**: 대시보드 서버에서 확인할 URL이나 TCP 포트에 접속할 수 있어야 합니다.
 
 ## 1. Web 실행 (대시보드 서버)
 
@@ -72,7 +69,47 @@ volumes:
 브라우저에서 `http://<대시보드 서버 IP>:3001`을 열고 첫 관리자 계정을 만듭니다.
 열리지 않으면 [대시보드가 열리지 않습니다](./troubleshooting#web-not-reachable)를 확인하세요.
 
-## 2. Docker 연결 명령 만들기 (브라우저)
+## 2. 업타임 모니터 추가 (브라우저)
+
+**업타임** 화면에서 **추가**를 누르세요. **체크 방식**은 **HTTP**로 두고, **이름**과 확인할 공개 **URL**
+(예: `https://api.example.com/health`)을 입력한 뒤 **추가**를 누릅니다. 나머지 값은 기본값으로 두어도 됩니다.
+
+검사는 Web이 수행하므로 대상에 아무것도 설치하지 않아도 됩니다. 첫 검사는 추가하자마자 실행되고, 이후
+30초마다 반복됩니다. 응답 코드가 2xx이면 모니터가 **정상**으로 표시됩니다.
+
+`localhost`나 사설망 같은 내부 주소는 확인할 수 없습니다. 입력 항목과 TCP 검사는
+[업타임 모니터](./uptime-monitors)를 참고하세요.
+
+## 3. 기능별 직접 연결 (선택)
+
+앱의 로그·API 요청·메트릭은 OpenTelemetry로 Web에 직접 보내고, 서버 자원은 표준 OpenTelemetry
+Collector로 보냅니다. Docker를 쓰지 않아도 연결할 수 있고, 필요한 기능만 골라 연결하면 됩니다.
+
+| 데이터 | 대시보드에서 여는 경로 |
+| --- | --- |
+| 로그 | **로그 → 로그 연결 → OpenTelemetry로 직접 연결** |
+| API 요청·트레이스 | **API 요청 → API 연결 → OpenTelemetry로 직접 연결** |
+| 앱 메트릭 | **메트릭 → 메트릭 연결 → OpenTelemetry로 직접 연결** |
+| 서버 자원 | **인프라 → 인프라 연결 → 표준 Collector 연결** |
+
+연결 화면에서 데이터 전송 주소와 API Key를 확인한 뒤 앱이나 Collector에 적용하세요. 언어별 설정과
+수신 확인 방법은 [OpenTelemetry로 직접 연결](./monitoring-setup#direct-otel)에 있습니다.
+
+## 4. Docker 환경 연결 (선택) {#docker}
+
+Linux Docker 서버에 모니터링 번들(Docker Collector와 필요한 구성 요소)을 설치하면, 앱을 고치지 않고
+컨테이너 상태·로그·호스트 자원·API 요청을 한 번에 수집합니다. 이 데이터는 업타임·로그·인프라 같은
+기능 메뉴가 아니라 해당 **Docker 환경** 화면에 표시됩니다. 서버가 한 대라면 Web과 같은 서버에 설치해도
+됩니다.
+
+모니터링할 서버에는 다음이 필요합니다.
+
+- Linux, Docker Engine, Docker Compose 2.23.1 이상, `curl`, `sudo` 권한.
+  Compose 버전은 `docker compose version`으로 확인하세요.
+- 대시보드 서버의 `3001` 포트(또는 [`EVERYUP_PUBLIC_URL`](#public-url)로 지정한 주소)에 접속할 수 있는
+  네트워크
+
+### Docker 연결 명령 만들기 (브라우저)
 
 **브라우저에서** 대시보드의 **Docker 환경** 화면을 여세요. 오른쪽 위의 **Docker 연결**을 누른 뒤
 환경 이름과 수집 범위를 정하세요.
@@ -109,7 +146,7 @@ curl -fsSL 'https://<Web 주소>/api/v1/agents/install.sh' |
 장기 API Key는 브라우저에 표시되지 않고, 설치 과정에서 대상 서버로 직접 전달됩니다.
 :::
 
-## 3. 모니터링 번들 설치 (모니터링할 서버)
+### 모니터링 번들 설치 (모니터링할 서버)
 
 화면에 표시된 명령을 복사해 **모니터링할 Linux Docker 서버에서** 실행합니다.
 
@@ -132,7 +169,7 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 [`agent/docker-compose.yml`](https://github.com/ai-turn/everyup/blob/main/agent/docker-compose.yml)과
 [Docker Collector 설정](../reference/collector)을 참고하세요.
 
-## 4. 연결 확인 (브라우저)
+### 연결 확인 (브라우저)
 
 설치가 끝나면 **브라우저에서 Docker 환경** 화면을 확인하세요. 약 30초 안에 해당 환경이
 **설치 대기**에서 **수집 중**으로 바뀝니다.
@@ -151,13 +188,13 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 
 ## 다음 단계
 
-수집이 시작되었다면 [알림](./notifications)을 설정하세요. Telegram·Discord·Slack 채널을 연결하고
+모니터링 대상을 연결했다면 [알림](./notifications)을 설정하세요. Telegram·Discord·Slack 채널을 연결하고
 알림 규칙을 활성화하면 규칙의 조건을 만족할 때 알림을 받습니다.
 
 그 밖의 가이드:
 
-- [모니터링 설정](./monitoring-setup): 수집 상태 진단, 기존 환경에 기능 추가, OpenTelemetry 직접 연결
-- [자동 eBPF Observer](./ebpf-observer): API latency와 트레이스
+- [업타임 모니터](./uptime-monitors): URL·TCP 포트 확인, 일시정지와 체크 기록
+- [모니터링 설정](./monitoring-setup): OpenTelemetry 직접 연결, 수집 상태 진단, Docker 환경에 기능 추가
 - [헤더·바디 상세 수집](./otel-instrumentation): 요청이 실패한 이유까지 진단
-- [업타임 모니터](./uptime-monitors): Docker 밖의 URL·TCP 포트 확인
+- [자동 eBPF Observer](./ebpf-observer): Docker 환경에서 API latency와 트레이스 수집
 - [업그레이드·제거](./upgrade-uninstall): 새 버전 적용, 설치 되돌리기

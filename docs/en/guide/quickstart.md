@@ -1,17 +1,14 @@
 # Quick Start
 
-This is the minimal setup: Web on a dashboard server and the monitoring bundle (the Docker
-Collector plus the components it needs) on each server you monitor. With a single server you can
-run both side by side. You are done when the Docker environment turns **수집 중** (collecting) in
-step 4 and you confirm receipt of the selected data.
+Start Web on a dashboard server, add one uptime monitor, and see its first check result. The basic
+setup is done when the monitor shows **정상** (Healthy) in step 2. After that you can connect the
+capabilities you need directly and, on a Linux Docker server, connect a Docker environment. Both are
+optional.
 
 ## Before you start
 
 - **Dashboard server**: Docker and Docker Compose
-- **Monitored server**: Linux, Docker Engine, Docker Compose 2.23.1 or newer, `curl`, and `sudo`.
-  Check the Compose version with `docker compose version`.
-- **Network**: the monitored server must reach port `3001` on the dashboard server (or the address
-  set in `EVERYUP_PUBLIC_URL`).
+- **Network**: the dashboard server must reach the URL or TCP port you want to check.
 
 ## 1. Start Web (dashboard server)
 
@@ -74,7 +71,51 @@ volumes:
 Open `http://<dashboard server IP>:3001` in a browser and create the first admin account.
 If it does not open, see [The dashboard does not open](./troubleshooting#web-not-reachable).
 
-## 2. Create a Docker connection command (browser)
+## 2. Add an uptime monitor (browser)
+
+On the **업타임** (Uptime) screen, click **추가** (Add). Leave **체크 방식** (Check type) at **HTTP**,
+enter a **이름** (Name) and the public **URL** to check (for example `https://api.example.com/health`),
+and click **추가** (Add). The other fields can keep their defaults.
+
+Web runs the check, so nothing is installed on the target. The first check runs as soon as you add
+the monitor and repeats every 30 seconds. On a 2xx response the monitor shows **정상** (Healthy).
+
+Internal addresses such as `localhost` and private networks can't be checked. See
+[Uptime monitors](./uptime-monitors) for every field and TCP checks.
+
+## 3. Connect capabilities directly (optional)
+
+Apps send logs, API requests, and metrics to Web directly through OpenTelemetry, and server resources
+come from a standard OpenTelemetry Collector. No Docker is required, and you connect only the
+capabilities you need.
+
+| Data | Dashboard path |
+| --- | --- |
+| Logs | **로그** (Logs) → **로그 연결** (Connect logs) → **OpenTelemetry로 직접 연결** (Connect directly through OpenTelemetry) |
+| API requests and traces | **API 요청** (API requests) → **API 연결** (Connect API) → **OpenTelemetry로 직접 연결** |
+| App metrics | **메트릭** (Metrics) → **메트릭 연결** (Connect metrics) → **OpenTelemetry로 직접 연결** |
+| Server resources | **인프라** (Infrastructure) → **인프라 연결** (Connect infrastructure) → **표준 Collector 연결** (Connect standard Collector) |
+
+The connection screen shows the export address and API Key to apply in your app or Collector. See
+[Connecting OpenTelemetry directly](./monitoring-setup#direct-otel) for language-specific setup and
+how to confirm receipt.
+
+## 4. Connect a Docker environment (optional) {#docker}
+
+Installing the monitoring bundle (the Docker Collector plus the components it needs) on a Linux
+Docker server collects container state, logs, host resources, and API requests in one install,
+without changing your apps. This data appears in that **Docker 환경** (Docker environment), not in
+capability menus such as Uptime, Logs, or Infrastructure. With a single server you can install it
+next to Web.
+
+The monitored server needs:
+
+- Linux, Docker Engine, Docker Compose 2.23.1 or newer, `curl`, and `sudo`.
+  Check the Compose version with `docker compose version`.
+- Network access to port `3001` on the dashboard server (or the address set in
+  [`EVERYUP_PUBLIC_URL`](#public-url))
+
+### Create a Docker connection command (browser)
 
 **In the browser**, open **Docker 환경** (Docker environments) in the dashboard. Click **Docker 연결**
 (Connect Docker) at the top right, then name the environment and choose its collection scope:
@@ -112,7 +153,7 @@ and copy the refreshed command. The long-lived API key is never displayed in the
 delivered directly to the target server during installation.
 :::
 
-## 3. Install the monitoring bundle (monitored server)
+### Install the monitoring bundle (monitored server)
 
 Copy the displayed command and run it **on the monitored Linux Docker server**.
 
@@ -136,7 +177,7 @@ To set it up by hand instead, see
 [`agent/docker-compose.yml`](https://github.com/ai-turn/everyup/blob/main/agent/docker-compose.yml)
 and the [Docker Collector configuration](../reference/collector).
 
-## 4. Check the connection (browser)
+### Check the connection (browser)
 
 After installation, open **Docker 환경** in the browser. Within about 30 seconds, the environment
 changes from **설치 대기** (awaiting install) to **수집 중** (collecting). When uptime collection is enabled, the containers
@@ -156,13 +197,13 @@ interval before checking receipt.
 
 ## Next steps
 
-Once collection has started, set up [Notifications](./notifications). Connect a Telegram, Discord,
+Once your monitoring targets are connected, set up [Notifications](./notifications). Connect a Telegram, Discord,
 or Slack channel and enable alert rules to receive notifications when their conditions are met.
 
 Other guides:
 
-- [Monitoring setup](./monitoring-setup): diagnose collection, add capabilities, connect OpenTelemetry directly
-- [Automatic eBPF Observer](./ebpf-observer): API latency and traces
+- [Uptime monitors](./uptime-monitors): check URLs and TCP ports, pause monitors, read check history
+- [Monitoring setup](./monitoring-setup): connect OpenTelemetry directly, diagnose collection, add capabilities to a Docker environment
 - [Header & body capture](./otel-instrumentation): see why a request failed
-- [Uptime monitors](./uptime-monitors): check URLs and TCP ports outside Docker
+- [Automatic eBPF Observer](./ebpf-observer): API latency and traces in a Docker environment
 - [Upgrade and uninstall](./upgrade-uninstall): apply new versions, undo an installation

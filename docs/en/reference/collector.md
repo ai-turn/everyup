@@ -14,7 +14,7 @@ Alert rules, notification channels, and dashboard behavior are configured in Web
 The Docker Collector only collects and forwards data. Its binary, environment
 variables, storage paths, and compatibility API retain the internal `agent` name.
 
-For installation, see the [Quick Start](../guide/quickstart).
+For installation, see the [Quick Start](../guide/quickstart#docker).
 
 ## Logs and API Requests
 

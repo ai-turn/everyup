@@ -2,7 +2,7 @@
 
 업타임 모니터로 공개 URL이나 TCP 포트의 응답을 주기적으로 확인할 수 있습니다. 검사는 Web에서 수행하므로
 대상에 Collector를 설치할 필요가 없습니다. Docker 서비스의 응답 검사는
-[Docker Collector](./quickstart)가 수집해 해당 **Docker 환경** 화면에 표시하므로, 업타임 모니터로 다시
+[Docker Collector](./quickstart#docker)가 수집해 해당 **Docker 환경** 화면에 표시하므로, 업타임 모니터로 다시
 추가하지 않아도 됩니다.
 
 ## 추가하기
@@ -23,7 +23,7 @@ HTTP는 응답 코드가 2xx이면 정상이고, TCP는 연결에 성공하면 �
 ::: warning 내부 주소는 확인할 수 없습니다
 보안을 위해 `localhost`와 사설망(`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), 링크 로컬
 (`169.254.0.0/16`, 클라우드 메타데이터 포함) 같은 내부 주소는 거부합니다. 내부 서비스는
-[Docker Collector](./quickstart)로 모니터링하세요.
+[Docker Collector](./quickstart#docker)로 모니터링하세요.
 :::
 
 ## 상태 확인과 관리

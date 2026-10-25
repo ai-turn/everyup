@@ -13,7 +13,7 @@ EveryUp Docker Collector는 모니터링할 Docker 호스트에서 실행하는 
 수집하고 전달하기만 합니다. 바이너리, 환경변수, 저장 경로, 호환 API에는 내부 이름인
 `agent`가 그대로 남아 있습니다.
 
-설치 방법은 [Quick Start](../guide/quickstart)를 참고하세요.
+설치 방법은 [Quick Start](../guide/quickstart#docker)를 참고하세요.
 
 ## 로그와 API 요청
 
