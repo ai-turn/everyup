@@ -18,7 +18,7 @@ createRoot(document.getElementById('root')!).render(
             style: {
               background: 'var(--toast-bg, #fff)',
               color: 'var(--toast-color, #1e293b)',
-              border: '1px solid var(--toast-border, #e2e8f0)',
+              border: '1px solid var(--toast-border, #d9d9e0)',
             },
             success: {
               iconTheme: {

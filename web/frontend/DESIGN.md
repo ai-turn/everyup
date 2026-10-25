@@ -3,48 +3,48 @@ version: alpha
 name: EveryUp
 description: 개발자용 모니터링 대시보드. 중립 slate 표면에 primary 파랑 하나, 색은 데이터와 액션에만 싣는다.
 colors:
-  primary: "#3b76c9"
-  primary-hover: "#3268b3"
-  action: "#1e5fb3"
-  bg-main: "#fbfcfe"
+  primary: "#3e63dd"
+  primary-hover: "#3358d4"
+  action: "#3a5bc7"
+  bg-main: "#f9f9fb"
   bg-surface: "#ffffff"
-  ui-border: "#e2e8f0"
-  ui-border-soft: "#f1f5f9"
-  ui-hover: "#f1f5f9"
-  ui-hover-soft: "#f8fafc"
-  ui-table-header: "#f1f5f9"
-  ui-active: "#e2e8f0"
+  ui-border: "#d9d9e0"
+  ui-border-soft: "#e8e8ec"
+  ui-hover: "#f0f0f3"
+  ui-hover-soft: "#f9f9fb"
+  ui-table-header: "#f0f0f3"
+  ui-active: "#e8e8ec"
   ui-raised: "#ffffff"
-  text-base: "#0f172a"
-  text-secondary: "#334155"
-  text-muted: "#475569"
-  text-dim: "#64748b"
-  status-healthy: "#047857"
-  status-warn: "#92400e"
-  status-error: "#b91c1c"
-  status-idle: "#475569"
-  chart-border: "#e2e8f0"
-  primary-dark: "#3F6FDB"
-  primary-hover-dark: "#355fc0"
-  action-dark: "#7aa2f7"
-  bg-main-dark: "#0d1117"
-  bg-surface-dark: "#161b22"
-  ui-border-dark: "#30363d"
-  ui-border-soft-dark: "#30363d"
-  ui-hover-dark: "#1f2937"
-  ui-hover-soft-dark: "#1f2937"
-  ui-table-header-dark: "#0d1117"
-  ui-active-dark: "#374151"
-  ui-raised-dark: "#374151"
-  text-base-dark: "#ffffff"
-  text-secondary-dark: "#cbd5e1"
-  text-muted-dark: "#94a3b8"
-  text-dim-dark: "#8795a9"
-  status-healthy-dark: "#5eead4"
-  status-warn-dark: "#fbbf24"
-  status-error-dark: "#f87171"
-  status-idle-dark: "#94a3b8"
-  chart-border-dark: "#2e3c4a"
+  text-base: "#1c2024"
+  text-secondary: "#363a3f"
+  text-muted: "#60646c"
+  text-dim: "#6b6f78"
+  status-healthy: "#127058"
+  status-warn: "#925500"
+  status-error: "#c4282d"
+  status-idle: "#60646c"
+  chart-border: "#e0e1e6"
+  primary-dark: "#3e63dd"
+  primary-hover-dark: "#3358d4"
+  action-dark: "#9eb1ff"
+  bg-main-dark: "#111113"
+  bg-surface-dark: "#18191b"
+  ui-border-dark: "#363a3f"
+  ui-border-soft-dark: "#363a3f"
+  ui-hover-dark: "#212225"
+  ui-hover-soft-dark: "#212225"
+  ui-table-header-dark: "#111113"
+  ui-active-dark: "#2e3135"
+  ui-raised-dark: "#2e3135"
+  text-base-dark: "#edeef0"
+  text-secondary-dark: "#c8cbd0"
+  text-muted-dark: "#b0b4ba"
+  text-dim-dark: "#8b8f97"
+  status-healthy-dark: "#3dd6c6"
+  status-warn-dark: "#ffca16"
+  status-error-dark: "#ff6369"
+  status-idle-dark: "#b0b4ba"
+  chart-border-dark: "#2e3135"
   series-emerald: "#059669"
   series-amber: "#d97706"
   series-violet: "#7c3aed"
@@ -156,19 +156,21 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 ### 1.2 표면 · 경계
 
+팔레트 출처는 [Radix Colors](https://www.radix-ui.com/colors)의 slate(중립)와 indigo(브랜드)다(2026-10-25 교체, 이전은 Tailwind slate + 자체 파랑). 아래 괄호 안 숫자는 Radix 12단계 스케일의 단계다 — 1–2 배경, 3–5 컴포넌트 채움, 6–8 보더, 9–10 채움색, 11–12 텍스트.
+
 | 역할 | 클래스 | light | dark |
 |------|--------|-------|------|
-| 페이지 배경 | `bg-bg-main` | `#fbfcfe` | `#0d1117` |
-| 카드 표면 | `bg-bg-surface` | `#ffffff` | `#161b22` |
-| 헤어라인 | `border-ui-border` | `#e2e8f0` | `#30363d` |
-| 내부 구분선 | `border-ui-border-soft` | `#f1f5f9` | `#30363d` |
-| hover 채움 | `bg-ui-hover` | `#f1f5f9` | `#1f2937` |
-| 옅은 내부 채움 | `bg-ui-hover-soft` | `#f8fafc` | `#1f2937` |
-| 표 헤더 | `bg-ui-table-header` | `#f1f5f9` | `#0d1117` |
-| 눌린 표면 | `bg-ui-active` | `#e2e8f0` | `#374151` |
-| **떠오른 표면** | `bg-ui-raised` | `#ffffff` | `#374151` |
+| 페이지 배경 | `bg-bg-main` | `#f9f9fb` (2) | `#111113` (1) |
+| 카드 표면 | `bg-bg-surface` | `#ffffff` | `#18191b` (2) |
+| 헤어라인 | `border-ui-border` | `#d9d9e0` (6) | `#363a3f` (6) |
+| 내부 구분선 | `border-ui-border-soft` | `#e8e8ec` (4) | `#363a3f` |
+| hover 채움 | `bg-ui-hover` | `#f0f0f3` (3) | `#212225` (3) |
+| 옅은 내부 채움 | `bg-ui-hover-soft` | `#f9f9fb` (2) | `#212225` |
+| 표 헤더 | `bg-ui-table-header` | `#f0f0f3` | `#111113` |
+| 눌린 표면 | `bg-ui-active` | `#e8e8ec` (4) | `#2e3135` (5) |
+| **떠오른 표면** | `bg-ui-raised` | `#ffffff` | `#2e3135` (5) |
 
-`ui-active`와 `ui-raised`는 **다크값이 같지만 역할이 반대다.** `ui-active`(라이트 `#e2e8f0`)는 스켈레톤·칩·hover처럼 트랙보다 **눌려** 보여야 하는 자리, `ui-raised`(라이트 흰색)는 세그먼티드 컨트롤의 선택된 칸처럼 `ui-hover` 트랙 **위로 솟아** 보여야 하는 자리다. 라이트에서 흰색이어야 하므로 `bg-bg-surface`로 대체할 수 없다 — 다크값(`#161b22`)이 트랙(`#1f2937`)보다 어두워 방향이 뒤집힌다.
+`ui-active`와 `ui-raised`는 **다크값이 같지만 역할이 반대다.** `ui-active`(라이트 `#e8e8ec`)는 스켈레톤·칩·hover처럼 트랙보다 **눌려** 보여야 하는 자리, `ui-raised`(라이트 흰색)는 세그먼티드 컨트롤의 선택된 칸처럼 `ui-hover` 트랙 **위로 솟아** 보여야 하는 자리다. 라이트에서 흰색이어야 하므로 `bg-bg-surface`로 대체할 수 없다 — 다크값(`#18191b`)이 트랙(`#212225`)보다 어두워 방향이 뒤집힌다.
 
 다크에서 `soft` 계열은 상위 토큰과 동일하다 — **다크 모드의 명도 계층은 2단(main/surface)뿐**이고, 이는 의도된 설계다.
 
@@ -176,40 +178,40 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 | 역할 | 클래스 | light | 대비 | dark |
 |------|--------|-------|------|------|
-| 제목·강조 | `text-text-base` | `#0f172a` | 17.85 | `#ffffff` |
-| 본문 | `text-text-secondary` | `#334155` | 10.35 | `#cbd5e1` |
-| 보조 | `text-text-muted` | `#475569` | 7.58 | `#94a3b8` |
-| 메타·placeholder | `text-text-dim` | `#64748b` | 4.76 | `#8795a9` |
+| 제목·강조 | `text-text-base` | `#1c2024` (12) | 16.39 | `#edeef0` (12) |
+| 본문 | `text-text-secondary` | `#363a3f` | 11.45 | `#c8cbd0` |
+| 보조 | `text-text-muted` | `#60646c` (11) | 5.94 | `#b0b4ba` (11) |
+| 메타·placeholder | `text-text-dim` | `#6b6f78` | 5.04 | `#8b8f97` |
 
 한 화면에서 4단을 전부 쓰지 않는다. 카드 하나에는 보통 **base + muted 2단**이면 충분하다.
 
-대비 열은 **라이트의 흰 카드 배경 기준**이다. 다크 `dim`은 페이지 6.22:1, 카드 5.69:1, hover 4.82:1이다. 이전 값 `#6b7280`은 카드에서 3.58:1로 AA에 미달했다. 대비는 토큰 하나가 아니라 실제 배경과의 조합으로 확인한다. 더 옅은 등급을 추가하지 말 것.
+대비 열은 **라이트의 흰 카드 배경 기준**이다. 다크 `dim`은 페이지 5.81:1, 카드 5.42:1, hover 4.90:1이다. Radix의 dim 후보인 10단계(`#80838d`)는 흰 카드에서 3.8:1로 AA에 미달해 11단계 쪽으로 당긴 값을 쓴다. `secondary`도 Radix에 없는 단계라 11과 12 사이에 둔 값이다. 대비는 토큰 하나가 아니라 실제 배경과의 조합으로 확인한다. 더 옅은 등급을 추가하지 말 것.
 
-**`dim`이 허용되는 배경은 `bg-main`·`bg-surface`·`ui-hover-soft`까지다.** 그보다 진한 채움 위에서는 AA에 미달한다 — 라이트 기준 `ui-hover` 4.34, `ui-active`/`ui-raised` 3.86. `ui-hover` 이상의 채움 위에는 `muted`(같은 자리에서 6.92)나 `secondary`를 쓴다. 다크도 `ui-active`/`ui-raised`(`#374151`)에서는 `dim` 3.39·`muted` 4.02로 둘 다 미달이라 `secondary`(6.94)가 유일한 선택지다.
+**`dim`이 허용되는 배경은 `bg-main`·`bg-surface`·`ui-hover-soft`까지다.** 그보다 진한 채움 위에서는 AA에 미달한다 — 라이트 기준 `ui-hover` 4.43, `ui-active` 4.12. `ui-hover` 이상의 채움 위에는 `muted`(같은 자리에서 5.22)나 `secondary`를 쓴다. 다크 `ui-active`/`ui-raised`(`#2e3135`)에서는 `dim`이 4.03으로 미달이고, `muted`(6.28)와 `secondary`(8.03)는 통과한다.
 
-**읽는 산문에 `dim`을 쓰지 않는다.** `dim`은 표에 적힌 대로 **메타·placeholder 전용**이다 — `최근 3건`, 타임스탬프, 차트 축 라벨, endpoint 값처럼 훑는 자리. 문장으로 읽어야 하는 설명문·경고문은 `muted`(7.58)다. 산문은 훑는 값보다 오래 눈이 머물기 때문에 하한선인 4.76에 두면 흐리게 읽힌다.
+**읽는 산문에 `dim`을 쓰지 않는다.** `dim`은 표에 적힌 대로 **메타·placeholder 전용**이다 — `최근 3건`, 타임스탬프, 차트 축 라벨, endpoint 값처럼 훑는 자리. 문장으로 읽어야 하는 설명문·경고문은 `muted`(5.94)다. 산문은 훑는 값보다 오래 눈이 머물기 때문에 하한선에 가까운 `dim`에 두면 흐리게 읽힌다.
 
 ### 1.4 브랜드 · 상태
 
-**primary** `#3b76c9` (dark `#3F6FDB`) — 주 액션, 링크, 선택 상태, 차트 첫 시리즈
+**primary** `#3e63dd` indigo-9 (dark 같은 값) — 주 액션, 링크, 선택 상태, 차트 첫 시리즈. 흰 글자 5.21
 
-**primary-hover** `#3268b3` (dark `#355fc0`) — primary 채움의 hover. 흰 글자가 얹히므로 **더 진하게** 간다(라이트 5.58 / 다크 5.92). 이전 `hover:bg-primary/90`은 배경과 섞여 밝아지면서 4.54 → 3.80으로 AA 아래로 떨어졌다. 채움 버튼의 hover·누름은 어두워지는 쪽이 보편 규칙이다(Carbon·Primer·Polaris).
+**primary-hover** `#3358d4` indigo-10 (dark 같은 값) — primary 채움의 hover. 흰 글자가 얹히므로 **더 진하게** 간다(6.02). Radix 다크 indigo-10(`#5472e4`)은 밝아지는 쪽이라 쓰지 않는다. 이전 `hover:bg-primary/90`은 배경과 섞여 밝아지면서 흰 글자 대비가 AA 아래로 떨어졌다. 채움 버튼의 hover·누름은 어두워지는 쪽이 보편 규칙이다(Carbon·Primer·Polaris).
 
-**action** `#1e5fb3` (dark `#7aa2f7`) — 채움 없는 액션(버튼 라벨·아이콘)의 색. primary를 그대로 텍스트로 쓰면 hover 배경(`ui-hover`) 위에서 라이트 4.15 / 다크 3.15로 AA 미달이라 명도만 옮긴 변주를 둔다. 표면·hover 배경 모두에서 라이트 5.7~6.3, 다크 5.8~6.9다. **채움에는 쓰지 않는다** — `bg-primary`는 그대로 primary다.
+**action** `#3a5bc7` indigo-11 (dark `#9eb1ff`) — 채움 없는 액션(버튼 라벨·아이콘)의 색. primary를 그대로 텍스트로 쓰면 다크의 hover 배경(`ui-hover`) 위에서 3.06으로 AA 미달이라 명도만 옮긴 변주를 둔다. 표면·hover·페이지 배경에서 라이트 5.27~6.00, 다크 7.72~9.15다. **채움에는 쓰지 않는다** — `bg-primary`는 그대로 primary다.
 
 **상태색도 시맨틱 토큰이다.** `emerald-600 dark:emerald-400` 같은 primitive 직접 사용 금지 — 토큰이 `.dark`에서 자가 전환하므로 `dark:` 짝이 필요 없다.
 
 | 상태 | 클래스 | light | dark |
 |------|--------|-------|------|
-| healthy · online | `text-status-healthy` | `#047857` emerald-700 | `#5eead4` teal-300 |
-| warning | `text-status-warn` | `#92400e` amber-800 | `#fbbf24` amber-400 |
-| error · critical · degraded | `text-status-error` | `#b91c1c` red-700 | `#f87171` red-400 |
-| offline · paused · unknown | `text-status-idle` | `#475569` slate-600 | `#94a3b8` slate-400 |
+| healthy · online | `text-status-healthy` | `#127058` | `#3dd6c6` teal |
+| warning | `text-status-warn` | `#925500` | `#ffca16` amber-11 |
+| error · critical · degraded | `text-status-error` | `#c4282d` | `#ff6369` |
+| offline · paused · unknown | `text-status-idle` | `#60646c` slate-11 | `#b0b4ba` slate-11 |
 
-두 가지가 통념과 다르니 근거를 남긴다.
+상태색은 Radix 스케일을 그대로 쓰지 않았다. 두 가지 이유가 있으니 근거를 남긴다.
 
-- **라이트가 700~800단계다.** 600단계는 배지가 자기 `/10` 틴트 위에서 healthy 3.43 / warn 2.95 / error 4.23으로 AA(4.5) 미달이었다. 11px bold는 WCAG large text(18.66px bold)가 아니라 4.5:1이 적용된다.
-- **다크 healthy만 emerald가 아니라 teal이다.** emerald-400과 red-400은 적록색각이상에서 각각 `#b2b29d`·`#aeae6a`로 **둘 다 흙빛에 수렴**해 거리 20.1까지 붙었다. 모니터링 도구에서 정상/장애를 구분 못 하는 건 기능 실패라 teal-300으로 밀어 45.5까지 벌렸다.
+- **라이트가 Radix 11단계보다 한 칸 진하다.** 11단계 그대로(`#218358`·`#ab6400`·`#ce2c31`)면 배지가 자기 `/10` 틴트 위에서 healthy 4.16 / warn 4.08 / error 4.47로 AA(4.5) 미달이었다. 지금 값은 `ui-hover-soft` 위 틴트에서도 4.63 이상이다. 11px bold는 WCAG large text(18.66px bold)가 아니라 4.5:1이 적용된다. 이전 Tailwind 팔레트에서 700~800단계를 쓴 것과 같은 이유다.
+- **다크 healthy는 green이 아니라 teal이고, error는 Radix red-11보다 붉다.** Radix 다크 green-11(`#3dd68c`)과 red-11(`#ff9592`)은 적록색각이상(Machado 2009 deuteranopia) 시뮬레이션에서 ΔE 2.3으로 **사실상 같은 색**이 됐다. 모니터링 도구에서 정상/장애를 구분 못 하는 건 기능 실패라 healthy를 teal로, error를 채도가 높은 `#ff6369`로 옮겨 42.8까지 벌렸다(라이트는 39.8). 같은 방식으로 잰 이전 팔레트는 다크 38.2 / 라이트 39.5였고, 그 전의 emerald-400 / red-400 조합은 18.5였다.
 
 `info` 역할은 아직 소비처가 없어 토큰을 만들지 않았다 — Tailwind v4는 미사용 `@theme` 변수를 트리셰이킹하므로 죽은 토큰이 된다. 첫 소비처가 생길 때 추가한다.
 
@@ -225,7 +227,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | debug | violet | `#7c3aed` | `text-violet-700` |
 | trace | slate | `#64748b` | `text-text-muted` |
 
-info가 sky인 이유: primary(#3b76c9)와 붙어 있으면 "선택된 항목"으로 오독된다.
+info가 sky인 이유: primary(#3e63dd)와 붙어 있으면 "선택된 항목"으로 오독된다.
 
 **로그 행의 레벨은 채움 없는 mono 텍스트다** (`LEVEL_BASE` = `inline-block shrink-0 w-12 font-mono text-xs font-medium uppercase`). 2026-09-20까지는 `bg-red-100` 계열 불투명 파스텔 틴트를 깐 배지였는데, 사용자 피드백은 *"색상이 너무 AI스럽다"*였다. 두 가지가 겹쳐 있었다:
 
@@ -243,8 +245,10 @@ info가 sky인 이유: primary(#3b76c9)와 붙어 있으면 "선택된 항목"�
 `chartTheme.ts`의 `SERIES_HEX` + `getSeriesPalette(theme)`. **첫 슬롯은 항상 브랜드 primary.**
 
 ```
-primary #3b76c9 → emerald #059669 → amber #d97706 → violet #7c3aed → red #dc2626 → teal #0d9488
+primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red #dc2626 → teal #0d9488
 ```
+
+2026-10-25 Radix로 팔레트를 바꿀 때 시리즈는 첫 슬롯(primary)만 바꾸고 나머지 다섯 색은 Tailwind 600단계로 유지했다. 이 다섯 색은 라이트·다크 양쪽 3:1과 아래의 색각이상 순서 검증을 이미 거쳤고, `SERIES_HEX`의 키 이름(`emerald`·`amber` …)이 여러 파일에서 쓰인다.
 
 시리즈 색 하드코딩 금지. mock 데이터도 `SERIES_HEX`를 import한다.
 
@@ -793,7 +797,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 **칩은 상태 전용이다.** 분류·출처처럼 "정상/장애를 말하지 않는" 라벨은 배경 없는 맨 텍스트(`type-caption text-text-muted`)로 둔다. 한 카드에 칩이 둘이면 어느 쪽이 상태인지 읽히지 않고, 대상 이름보다 라벨이 먼저 눈에 들어온다.
 
-**중립 칩으로는 부족하다 — 형태로 갈라야 한다.** 출처를 `bg-ui-hover text-text-muted` 칩으로 만들어 봤더니 `일시정지`(status-idle) 배지와 구분이 되지 않았다. `status-idle` 라이트와 `text-muted`가 **둘 다 slate-600(`#475569`)로 값이 같고**, 틴트 배경(`status-idle/10`)과 `ui-hover`도 브라우저 실측에서 거의 겹쳤다. 회색 상태가 존재하는 한 중립 색으로는 상태와 분류를 못 가른다.
+**중립 칩으로는 부족하다 — 형태로 갈라야 한다.** 출처를 `bg-ui-hover text-text-muted` 칩으로 만들어 봤더니 `일시정지`(status-idle) 배지와 구분이 되지 않았다. `status-idle` 라이트와 `text-muted`가 **둘 다 slate-11(`#60646c`)로 값이 같고**, 틴트 배경(`status-idle/10`)과 `ui-hover`도 브라우저 실측에서 거의 겹쳤다. 회색 상태가 존재하는 한 중립 색으로는 상태와 분류를 못 가른다.
 
 **분류 축에 `primary`를 쓰지 않는다.** primary는 선택 상태·주 액션·링크의 색이라 라벨에 쓰면 "선택됨"으로 오독된다 — §1.5에서 로그 `info`를 sky로 밀어낸 것과 같은 이유다. `ConnectionSourceBadge`의 `direct`가 primary 틴트였는데 `docker`는 회색이어서, **같은 축이 두 색으로 갈라져 있었다**(2026-09-20 둘 다 중립으로 통일).
 
@@ -866,7 +870,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 **Material Design 3(32%)이나 shadcn(80%)과 다른 이유는 blur를 같이 걸기 때문이다.** scrim만 쓰는 시스템은 배경 판독을 막으려 60~80%가 필요하지만, `backdrop-blur`가 이미 판독을 막으므로 scrim은 명도만 낮추면 된다 — 그 구간이 30~40%다.
 
-`bg-black`이 아니라 `slate-900`인 것도 의도다. 다크 배경(`#0d1117`) 위에서 순수 검정은 대비가 생기지 않아 구멍처럼 보이고, 앱 팔레트가 slate 계열이라 정합도 맞다.
+`bg-black`이 아니라 `slate-900`인 것도 의도다. 다크 배경(`#111113`) 위에서 순수 검정은 대비가 생기지 않아 구멍처럼 보이고, 앱 팔레트가 slate 계열이라 정합도 맞다.
 
 `SCRIM_MODAL_DIALOG`가 따로 있는 이유는 `backdrop:` 접두가 유틸리티마다 필요한데 Tailwind JIT가 런타임 조합을 못 읽기 때문이다. **값을 바꿀 때 둘을 함께 고칠 것.**
 
@@ -885,7 +889,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 - **렌더 중 부작용 금지** — 렌더 본문에서 `navigate()`를 부르거나 ref를 갱신하지 않는다. React가 렌더를 버릴 수 있어 커밋되지 않은 상태가 샌다. 리다이렉트는 `<Navigate>`, ref 갱신은 effect에서.
 - **Toggle** `role="switch"` + `aria-checked`
 - **`prefers-reduced-motion`** 전역 처리됨 (모든 애니메이션 0.01ms)
-- **대비** 작은 메타·placeholder도 일반 텍스트 기준 4.5:1을 만족해야 한다. `text-text-dim`의 다크 값 `#8795a9`는 페이지·카드·hover 배경에서 검증했다. 더 밝은 표면에서는 `base` 또는 `secondary`를 사용한다 (§1.3).
+- **대비** 작은 메타·placeholder도 일반 텍스트 기준 4.5:1을 만족해야 한다. `text-text-dim`의 다크 값 `#8b8f97`는 페이지·카드·hover 배경에서 검증했다. 더 밝은 표면에서는 `base` 또는 `secondary`를 사용한다 (§1.3).
 
 ---
 

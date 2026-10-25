@@ -34,79 +34,80 @@
    → 컴포넌트는 `text-text-muted` 하나만 쓴다. `dark:` 이중 작성 금지.
    ───────────────────────────────────────────────────────────── */
 @theme {
-  /* 1. Primary: 다크모드에서 조금 더 화사한 블루 채택 */
-  --color-primary: #3b76c9;
-  --color-primary-dark: #3F6FDB;
-  /* primary 채움의 hover·누름. 채움 위 흰 글자라 **더 진하게** 간다 — 이전 `primary/90`은
-     배경과 섞여 밝아지면서 흰 글자 대비가 4.54 → 3.80으로 AA 아래로 떨어졌다.
-     라이트 5.58 / 다크 5.92. */
-  --color-primary-hover: #3268b3;
-  --color-primary-hover-dark: #355fc0;
+  /* 팔레트 출처: Radix Colors slate + indigo (2026-10-25 교체). 단계 번호는 Radix 12단계 스케일. */
 
-  /* 액션 어포던스 전용 primary 변주 — 채움 없는 버튼의 라벨·아이콘 색.
-     primary 자체는 표면 위 텍스트로 쓰면 AA 미달이다(라이트 4.15 / 다크 3.15,
-     둘 다 hover 배경 기준). 이 값은 표면·hover 배경 모두에서 4.5를 넘는다. */
-  --color-action: #1e5fb3;
-  --color-action-dark: #7aa2f7;
+  /* 1. Primary: indigo-9. 라이트·다크 같은 값 — 흰 글자 5.21 */
+  --color-primary: #3e63dd;
+  --color-primary-dark: #3e63dd;
+  /* primary 채움의 hover·누름. 채움 위 흰 글자라 **더 진하게** 간다 — 이전 `primary/90`은
+     배경과 섞여 밝아지면서 흰 글자 대비가 AA 아래로 떨어졌다. indigo-10, 흰 글자 6.02. */
+  --color-primary-hover: #3358d4;
+  --color-primary-hover-dark: #3358d4;
+
+  /* 액션 어포던스 전용 primary 변주 — 채움 없는 버튼의 라벨·아이콘 색 (indigo-11).
+     primary 자체는 표면 위 텍스트로 쓰면 다크에서 AA 미달이다(hover 배경 3.06).
+     이 값은 표면·hover 배경 모두에서 4.5를 넘는다(라이트 5.27~6.00 / 다크 7.72~8.53). */
+  --color-action: #3a5bc7;
+  --color-action-dark: #9eb1ff;
 
   /* 2. Backgrounds */
-  --color-bg-main: #fbfcfe;
-  --color-bg-main-dark: #0d1117;   /* GitHub Dark 수준 — 눈 피로 감소 */
+  --color-bg-main: #f9f9fb;         /* slate-2 */
+  --color-bg-main-dark: #111113;    /* slate-1 */
   --color-bg-surface: #ffffff;      /* 라이트 카드 표면 = 흰색 */
-  --color-bg-surface-dark: #161b22; /* bg와 충분한 명도차 확보 */
+  --color-bg-surface-dark: #18191b; /* slate-2 */
 
   /* 3. UI Components */
-  --color-ui-border: #e2e8f0;       /* 기본 헤어라인 (≈ slate-200) */
-  --color-ui-border-dark: #30363d;
-  --color-ui-border-soft: #f1f5f9;  /* 카드 내부 행 구분선 (≈ slate-100) */
-  --color-ui-border-soft-dark: #30363d; /* 다크는 헤어라인 1단계뿐 */
-  --color-ui-hover: #f1f5f9;        /* ≈ slate-100 */
-  --color-ui-hover-dark: #1f2937;
-  --color-ui-hover-soft: #f8fafc;   /* 옅은 내부 채움 (≈ slate-50) */
-  --color-ui-hover-soft-dark: #1f2937;
-  --color-ui-table-header: #f1f5f9;
-  --color-ui-table-header-dark: #0d1117;
-  --color-ui-active: #e2e8f0;       /* 눌린 표면 — 스켈레톤·칩·hover (≈ slate-200) */
-  --color-ui-active-dark: #374151;  /* (≈ slate-700) */
+  --color-ui-border: #d9d9e0;       /* 기본 헤어라인 (slate-6) */
+  --color-ui-border-dark: #363a3f;
+  --color-ui-border-soft: #e8e8ec;  /* 카드 내부 행 구분선 (slate-4) */
+  --color-ui-border-soft-dark: #363a3f; /* 다크는 헤어라인 1단계뿐 */
+  --color-ui-hover: #f0f0f3;        /* slate-3 */
+  --color-ui-hover-dark: #212225;
+  --color-ui-hover-soft: #f9f9fb;   /* 옅은 내부 채움 (slate-2) */
+  --color-ui-hover-soft-dark: #212225;
+  --color-ui-table-header: #f0f0f3;
+  --color-ui-table-header-dark: #111113;
+  --color-ui-active: #e8e8ec;       /* 눌린 표면 — 스켈레톤·칩·hover (slate-4) */
+  --color-ui-active-dark: #2e3135;  /* (slate-5) */
 
   /* 떠오른 표면 — 세그먼티드 컨트롤의 선택된 세그먼트처럼 ui-hover 트랙 **위로**
      솟아 보여야 하는 자리. ui-active와 다크값은 같지만 라이트가 흰색이라 역할이 다르다:
-     ui-active(#e2e8f0)는 트랙보다 눌려 보이고, 이쪽은 떠 보여야 한다. */
+     ui-active(#e8e8ec)는 트랙보다 눌려 보이고, 이쪽은 떠 보여야 한다. */
   --color-ui-raised: #ffffff;
-  --color-ui-raised-dark: #374151;
+  --color-ui-raised-dark: #2e3135;
 
   /* 4. Text Colors: 4단 위계 — base > secondary > muted > dim */
-  --color-text-base: #0f172a;       /* 제목·강조 (≈ slate-900) */
-  --color-text-base-dark: #ffffff;
+  --color-text-base: #1c2024;       /* 제목·강조 (slate-12) */
+  --color-text-base-dark: #edeef0;
 
-  --color-text-secondary: #334155;  /* 본문 (≈ slate-700) */
-  --color-text-secondary-dark: #cbd5e1;
+  --color-text-secondary: #363a3f;  /* 본문 (slate-12와 11 사이) */
+  --color-text-secondary-dark: #c8cbd0;
 
-  --color-text-muted: #475569;      /* 보조 텍스트 (≈ slate-600) — 7.58:1 */
-  --color-text-muted-dark: #94a3b8;
+  --color-text-muted: #60646c;      /* 보조 텍스트 (slate-11) — 5.94:1 */
+  --color-text-muted-dark: #b0b4ba;
 
-  /* dim은 slate-400(#94a3b8)이었으나 흰 배경 2.56:1로 AA(4.5) 미달이었다.
-     slate-500로 내려 4.76:1 확보 — 그만큼 muted도 한 칸 내려 4단 위계를 유지. */
-  --color-text-dim: #64748b;        /* 메타·플레이스홀더 (≈ slate-500) — 4.76:1 */
-  --color-text-dim-dark: #8795a9;   /* surface 5.69:1, hover 4.82:1 — 작은 메타·placeholder도 AA 확보 */
+  /* dim은 slate-10(#80838d)이면 흰 배경 3.8:1로 AA(4.5) 미달이라 11 쪽으로 당겼다. */
+  --color-text-dim: #6b6f78;        /* 메타·플레이스홀더 — 5.04:1 */
+  --color-text-dim-dark: #8b8f97;   /* surface 5.42:1, hover 4.90:1 — 작은 메타·placeholder도 AA 확보 */
 
   /* 5. Status: 시맨틱 레이어. 컴포넌트는 primitive(emerald-600 등) 대신 이 토큰을 쓴다.
-     라이트는 700~800단계 — 11px bold 배지가 자기 /10 틴트 위에서 WCAG AA(4.5)를 넘겨야 한다.
-     다크 healthy만 emerald가 아닌 teal-300: emerald-400과 red-400은 적록색각이상에서
-     둘 다 흙빛으로 수렴해(거리 20.1) 구분이 안 됐다. teal로 밀어 45.5까지 벌렸다. */
-  --color-status-healthy: #047857;      /* emerald-700 */
-  --color-status-healthy-dark: #5eead4; /* teal-300 */
-  --color-status-warn: #92400e;         /* amber-800 */
-  --color-status-warn-dark: #fbbf24;    /* amber-400 */
-  --color-status-error: #b91c1c;        /* red-700 */
-  --color-status-error-dark: #f87171;   /* red-400 */
-  --color-status-idle: #475569;         /* slate-600 — offline·paused·unknown */
-  --color-status-idle-dark: #94a3b8;    /* slate-400 */
+     라이트는 Radix 11단계보다 한 칸 진하다 — 11단계 그대로면 12px 배지가 자기 /10 틴트 위에서
+     WCAG AA(4.5)에 못 미쳤다(healthy 4.16 / warn 4.08 / error 4.47).
+     다크 healthy는 green이 아닌 teal: Radix 다크 green-11(#3dd68c)과 red-11(#ff9592)은
+     적록색각이상에서 거의 같은 색이 된다(ΔE 2.3). teal + 더 붉은 error로 42.8까지 벌렸다. */
+  --color-status-healthy: #127058;
+  --color-status-healthy-dark: #3dd6c6;
+  --color-status-warn: #925500;
+  --color-status-warn-dark: #ffca16;    /* amber-11 */
+  --color-status-error: #c4282d;
+  --color-status-error-dark: #ff6369;
+  --color-status-idle: #60646c;         /* slate-11 — offline·paused·unknown */
+  --color-status-idle-dark: #b0b4ba;
 
   /* 6. Chart tokens — 다크 그리드/툴팁 보더 전용. chartTheme.ts가 getCssVar로 읽는다.
-     chart-bg(#131920)는 bg-surface-dark(#161b22)와 대비 1.02로 사실상 같은 색이라 제거하고
+     chart-bg(#131920)는 당시 bg-surface-dark와 대비 1.02로 사실상 같은 색이라 제거하고
      bg-bg-surface로 통합했다. 쓰이지 않던 chart-surface/chart-hover/text-chart-dim도 함께 제거. */
-  --color-chart-border: #e2e8f0;
+  --color-chart-border: #e0e1e6;    /* slate-5 */
 
   /* 7. Sans: 본문 전용. body와 font-sans 유틸리티가 같은 값을 보게 한다 —
      토큰을 안 정의하면 font-sans가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다. */
@@ -229,10 +230,10 @@
   --color-status-warn: var(--color-status-warn-dark);
   --color-status-error: var(--color-status-error-dark);
   --color-status-idle: var(--color-status-idle-dark);
-  --color-chart-border: #2e3c4a;
+  --color-chart-border: #2e3135;
 
   /* Toast Dark */
-  --toast-bg: #161b22;
+  --toast-bg: #18191b;
   --toast-color: var(--color-text-base-dark);
   --toast-border: var(--color-ui-border-dark);
 }

@@ -46,7 +46,7 @@ function getCssVar(name: string): string {
  * 어떤 순서로 배열해도 충돌한다(primary/violet 16.0, emerald/teal 11.8, amber/red 12.8).
  * 시리즈가 4개를 넘으면 색만으로 구분이 보장되지 않는다 — 선 스타일이나 직접 라벨 병행. */
 export const SERIES_HEX = {
-  primary: '#3b76c9',
+  primary: '#3e63dd',
   emerald: '#059669',
   amber: '#d97706',
   violet: '#7c3aed',
@@ -143,14 +143,14 @@ export function areaProps(gradientId: string) {
 
 export function getChartTheme(): ChartTheme {
   return {
-    gridColor: getCssVar('--color-chart-border') || '#e2e8f0',
+    gridColor: getCssVar('--color-chart-border') || '#e0e1e6',
     // text-muted is the AA-safe chart label token in both themes. Never read
     // the implementation-only *-dark variables here.
-    tickColor: getCssVar('--color-text-muted') || '#475569',
+    tickColor: getCssVar('--color-text-muted') || '#60646c',
     tooltipBg: getCssVar('--color-bg-surface') || '#ffffff',
-    tooltipBorder: getCssVar('--color-chart-border') || '#e2e8f0',
+    tooltipBorder: getCssVar('--color-chart-border') || '#e0e1e6',
     primaryColor: getCssVar('--color-primary') || SERIES_HEX.primary,
-    errorColor: getCssVar('--color-status-error') || '#b91c1c',
+    errorColor: getCssVar('--color-status-error') || '#c4282d',
   };
 }
 
