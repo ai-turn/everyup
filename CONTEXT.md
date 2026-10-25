@@ -1,11 +1,15 @@
 # EveryUp Monitoring
 
-EveryUp connects monitoring data to the places where users investigate availability, telemetry, and incidents. A single Docker Environment can contribute several kinds of data through its Docker Collector, while users can also configure supported monitoring capabilities independently.
+EveryUp connects monitoring data to the places where users investigate availability, telemetry, and incidents. Each monitoring capability is configured directly in its own Capability Menu. A Docker Environment is a separate, optional integration whose collected data stays in that Docker Environment.
 
 ## Language
 
+**Capability Menu**:
+One of Uptime, Logs, Infrastructure, API, and Metrics. It lists and configures only directly configured targets: Uptime Monitors, Observed Services created for a Direct Telemetry Connection, and Infrastructure Resources backed by a standard OpenTelemetry Collector.
+_Avoid_: Docker Environment view
+
 **Docker Environment**:
-A connected Docker host monitored through an EveryUp Docker Collector. Its discovered workloads and infrastructure data share the Docker Environment's Project membership.
+A connected Docker host monitored through an EveryUp Docker Collector. Its discovered workloads and infrastructure data share the Docker Environment's Project membership and appear only in the Docker Environment, not in Capability Menus.
 _Avoid_: Agent, Project, Docker Project, server
 
 **Docker Collector**:
@@ -17,7 +21,7 @@ A data-ingestion mechanism. The EveryUp Docker Collector is the integrated Docke
 _Avoid_: Project
 
 **Docker Collection Profile**:
-The set of monitoring capabilities enabled for a Docker Collector. A profile changes what the Collector runs and may be configured from a specific capability menu.
+The set of monitoring capabilities enabled for a Docker Collector. A profile changes what the Collector runs and is configured from its Docker Environment.
 _Avoid_: Capability-specific Agent, Independent Collector
 
 **Uptime Monitor**:
@@ -25,7 +29,7 @@ A configured availability check, such as HTTP or TCP, with its own target and sc
 _Avoid_: Service, Project
 
 **Response Check**:
-A check that asks a target to answer, such as an HTTP request or TCP connection. Independent Uptime Monitors and Docker Collector HTTP checks are both Response Checks and appear on Uptime.
+A check that asks a target to answer, such as an HTTP request or TCP connection. Independent Uptime Monitors and Docker Collector HTTP checks are both Response Checks. Uptime shows only Uptime Monitors; Docker Collector Response Checks appear in their Docker Environment.
 _Avoid_: Liveness Check
 
 **Liveness Check**:
