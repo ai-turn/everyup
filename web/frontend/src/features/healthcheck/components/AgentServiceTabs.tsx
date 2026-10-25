@@ -33,7 +33,11 @@ const TABS: { key: DetailTab; labelKo: string }[] = [
 
 function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange: (t: DetailTab) => void; serviceKey: string }) {
   return (
-    <div role="tablist" aria-label="서비스 데이터" className="mb-6 flex gap-1 overflow-x-auto border-b border-ui-border">
+    // 기준선은 스크롤 영역 밖에 따로 그린다. 스크롤 영역에 border-b를 주고 탭에 -mb-px를 걸면
+    // overflow-x-auto가 overflow-y까지 auto로 만들어, 겹친 1px 때문에 세로 스크롤바가 생긴다.
+    <div className="relative mb-6">
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 border-b border-ui-border" />
+      <div role="tablist" aria-label="서비스 데이터" className="relative flex gap-1 overflow-x-auto overflow-y-hidden">
       {TABS.map(tab => {
         const selected = active === tab.key;
         const tabId = `service-tab-${serviceKey}-${tab.key}`;
@@ -46,7 +50,7 @@ function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange:
           aria-selected={selected}
           aria-controls={`service-panel-${serviceKey}-${tab.key}`}
           onClick={() => onChange(tab.key)}
-          className={`-mb-px shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+          className={`shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             selected
               ? 'border-primary text-text-base'
               : 'border-transparent text-text-muted hover:text-text-base'
@@ -56,6 +60,7 @@ function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange:
         </button>
         );
       })}
+      </div>
     </div>
   );
 }
