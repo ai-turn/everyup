@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { CollectionStatusBadge, ConnectionSourceBadge, ResourceCardHeader, ResourceTable, StatusLight, type CollectionStatus } from '../../../components/common';
+import { CollectionStatusBadge, ResourceCardHeader, ResourceTable, StatusLight, type CollectionStatus } from '../../../components/common';
 import { fillBuckets, formatTimeTick } from '../../../components/charts';
 import { LEVEL_BASE, LEVEL_FILL, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import type { LogHistogramBucket, LogPattern, LogServiceSummary } from '../../../services/api';
@@ -91,7 +91,6 @@ function LogCard({ row, window: span, returnTo }: { row: LogServiceRow; window: 
     <Link to={row.to} state={{ returnTo }} className="card-interactive group flex flex-col rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.name}</h3>}
-        badge={row.connection && <ConnectionSourceBadge source={row.connection} />}
         subtitle={row.subtitle}
         status={row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collection} />}
       />
@@ -151,7 +150,7 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
         </div>
         {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{rows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
           <ResourceTable rows={rows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
-            { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 truncate type-caption text-text-muted">{row.subtitle || (row.connection === 'direct' ? '직접 연결' : '')}</p><div className="mt-2 md:hidden">{row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} />}</div><div className="mt-2 flex min-w-0 items-baseline gap-2 text-xs xl:hidden"><LatestLine summary={row.summary} known={collectionOf(row.summary, span[0]) === 'collecting'} /></div></> },
+            { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden">{row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} />}</div><div className="mt-2 flex min-w-0 items-baseline gap-2 text-xs xl:hidden"><LatestLine summary={row.summary} known={collectionOf(row.summary, span[0]) === 'collecting'} /></div></> },
             { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} /> },
             ...(['error', 'warn'] as const).map(level => ({ key: level, label: level.toUpperCase(), className: 'w-20', align: 'right' as const, render: (row: LogServiceRow) => collectionOf(row.summary, span[0]) === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <span className="text-text-muted" title="최근 24시간 수신한 로그 없음">—</span> })),
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },

@@ -61,9 +61,9 @@ for (const mode of ['modifier', 'middle'] as const) {
 }
 
 test('dragging row text selects it without opening the detail', async ({ page }) => {
-  await page.goto('./logs');
+  await page.goto('./agents/agent_demo_01');
   const listUrl = page.url();
-  const row = page.getByRole('table', { name: '로그 서비스 그리드' }).getByRole('row').filter({ has: page.getByRole('link', { name: 'payment-worker', exact: true }) });
+  const row = page.getByRole('table', { name: '로그 그리드' }).getByRole('row').filter({ has: page.getByRole('link', { name: 'payment-worker', exact: true }) });
   const subtitle = row.locator('td').first().locator('p').first();
   const box = await subtitle.boundingBox();
   if (!box) throw new Error('Subtitle is not visible');
@@ -71,7 +71,7 @@ test('dragging row text selects it without opening the detail', async ({ page })
   await page.mouse.down();
   await page.mouse.move(box.x + 90, box.y + box.height / 2, { steps: 8 });
   await page.mouse.up();
-  await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toContain('prod-server');
+  await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toContain('java');
   await expect(page).toHaveURL(listUrl);
 });
 

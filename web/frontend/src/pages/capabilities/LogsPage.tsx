@@ -4,6 +4,7 @@ import { useListView } from '../../hooks/useListView';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries, type LogPatternRow, type LogServiceRow } from '../../features/logs/logServiceRows';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
+import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { api } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -20,31 +21,16 @@ export function LogsPage() {
   useEffect(() => {
     let alive = true;
     Promise.all([
-      api.getAgents(), api.getAllAgentServicesFlat(), api.getObservedServices('logs'), api.getLogSummary(), api.getLogPatterns(),
+      api.getObservedServices('logs'), api.getLogSummary(), api.getLogPatterns(),
     ])
-      .then(([agents, agentServices, directServices, summaries, patternRows]) => {
+      .then(([directServices, summaries, patternRows]) => {
         if (!alive) return;
-        // 프로필이 없으면 전 기능 수집(MonitoringSetupPanel과 같은 기본값). 로그를 끈 에이전트의
-        // 서비스는 0건이 "이상 없음"으로 읽히므로 뺀다.
-        const logAgents = new Set(agents
-          .filter(agent => !agent.profile?.capabilities.length || agent.profile.capabilities.includes('logs'))
-          .map(agent => agent.id));
-        const base: LogServiceRow[] = [
-          ...(directServices ?? []).map(service => ({
-            key: logScopeKey({ serviceId: service.id }),
-            name: service.name,
-            connection: 'direct' as const,
-            stopped: !service.isActive,
-            to: `/logs/${service.id}?range=24h`,
-          })),
-          ...(agentServices ?? []).filter(service => logAgents.has(service.agentId)).map(service => ({
-            key: logScopeKey({ agentId: service.agentId, serviceName: service.name }),
-            name: service.name,
-            connection: 'docker' as const,
-            subtitle: service.agentName,
-            to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=logs&range=24h`,
-          })),
-        ];
+        const base: LogServiceRow[] = (directServices ?? []).map(service => ({
+          key: logScopeKey({ serviceId: service.id }),
+          name: service.name,
+          stopped: !service.isActive,
+          to: `/logs/${service.id}?range=24h`,
+        }));
         const next = withLogSummaries(base, summaries ?? [], patternRows ?? []);
         setError(null);
         setSpan(next.span);
@@ -69,8 +55,11 @@ export function LogsPage() {
       ) : error ? (
         <EmptyState icon="error_outline" title="로그를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       ) : rows.length === 0 ? (
-        <EmptyState icon="article" title="아직 로그 서비스가 없습니다" description="기존 Docker 환경을 선택하거나 앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
-          <MonitoringConnection capability="logs" onConnected={reload} />
+        <EmptyState icon="article" title="아직 로그 서비스가 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
+          <div className="flex flex-col items-center gap-4">
+            <MonitoringConnection capability="logs" onConnected={reload} />
+            <DockerEnvironmentHint />
+          </div>
         </EmptyState>
       ) : (
         <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} />

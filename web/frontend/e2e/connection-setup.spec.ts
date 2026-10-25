@@ -10,13 +10,11 @@ test('connection URLs resolve relative API paths and respect the configured exte
   }
 });
 
-test('existing collector gains metrics without creating a new Docker environment', async ({ page }) => {
-  await page.goto('./metrics');
-  await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
-  await page.getByRole('combobox', { name: '기존 모니터링 대상' }).click();
-  await page.getByRole('option', { name: 'staging-api · Docker 환경 전체' }).click();
-  await page.getByRole('button', { name: '기존 대상 연결 확인' }).click();
-  const chooser = page.getByRole('dialog');
+test('existing collector gains metrics from its Docker environment', async ({ page }) => {
+  // 수집 프로필은 Docker 환경 화면에서만 바꾼다(ADR 0007).
+  await page.goto('./agents/agent_demo_02');
+  await page.getByRole('button', { name: '메트릭 추가', exact: true }).click();
+  const chooser = page.getByRole('dialog', { name: '메트릭 수집 추가' });
   await chooser.getByRole('button', { name: '메트릭 추가 및 적용 명령' }).click();
   const installer = page.getByRole('dialog', { name: 'Docker Collector 설치 및 모니터링 설정' });
   await expect(installer.getByText('Docker Collector 연결을 기다리는 중', { exact: true })).toBeVisible();
@@ -25,12 +23,8 @@ test('existing collector gains metrics without creating a new Docker environment
   await expect(installer.getByRole('button', { name: '설치 명령 복사' })).toBeEnabled();
   await expect(installer.getByText('Docker Collector 연결을 확인했습니다', { exact: true })).toHaveCount(0);
   await installer.getByRole('button', { name: '나중에 확인' }).click();
-  await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
-  await page.getByRole('button', { name: '기존 대상 연결 확인' }).click();
-  await page.getByRole('dialog').getByRole('combobox', { name: '사용할 Docker 환경' }).click();
-  await expect(page.getByRole('option')).toHaveCount(2);
-  await page.getByRole('option', { name: 'staging-api' }).click();
-  await expect(page.getByText('이미 선택된 기능입니다. 데이터 수신 기록을 확인하세요.')).toBeVisible();
+  await expect(page.getByRole('button', { name: '메트릭 추가', exact: true })).toHaveCount(0);
+  await expect(page.getByText(/사용 업타임, 로그, 메트릭/)).toBeVisible();
 });
 
 test('direct setup uses an external endpoint and waits for actual data', async ({ page }) => {
@@ -53,15 +47,14 @@ test('direct setup uses an external endpoint and waits for actual data', async (
   await expect(dialog.getByRole('button', { name: '환경 변수 복사' })).toBeDisabled();
 });
 
-test('existing Docker service opens the selected monitoring tab', async ({ page }) => {
+test('menu connection offers direct targets only', async ({ page }) => {
   await page.goto('./logs');
   await page.getByRole('button', { name: '로그 연결', exact: true }).click();
   await page.getByRole('combobox', { name: '기존 모니터링 대상' }).click();
-  await page.getByRole('option', { name: 'prod-server / api', exact: true }).click();
-  await page.getByRole('button', { name: '기존 대상 연결 확인' }).click();
-  await page.getByRole('button', { name: '로그 보기', exact: true }).click();
-  await expect(page).toHaveURL(/services\/agent_demo_01\/shop%3Aapi\?tab=logs/);
-  await expect(page.getByRole('tab', { name: '로그', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('option', { name: /Docker|prod-server/ })).toHaveCount(0);
+  await expect(page.getByRole('option', { name: 'checkout-api · 직접 연결' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Docker Collector 설치' })).toHaveCount(0);
 });
 
 test('instrumentation requires explicit targets and invalidates changed previews', async ({ page }) => {

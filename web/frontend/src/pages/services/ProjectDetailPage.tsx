@@ -23,6 +23,7 @@ import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
 import { AddServiceModal } from '../../features/services/components/AddServiceModal';
 import { InstrumentationOverrideModal } from '../../features/services/components/InstrumentationOverrideModal';
 import { MonitoringSetupPanel } from '../../features/services/components/MonitoringSetupPanel';
+import { CollectorCapabilityDialog } from '../../features/services/components/CollectorCapabilityDialog';
 import { AgentServiceRequestTrends } from '../../features/healthcheck/components/AgentServiceRequestTrends';
 import { AgentCheckHistoryBar } from '../../features/healthcheck/components/AgentCheckHistoryBar';
 import { getErrorMessage } from '../../utils/errors';
@@ -121,6 +122,7 @@ export function ProjectDetailPage() {
   const [showKey, setShowKey] = useState(false);
   const [showInstall, setShowInstall] = useState(false);
   const [showInstrumentation, setShowInstrumentation] = useState(false);
+  const [addingCapability, setAddingCapability] = useState<AgentCollectionCapability | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const headerName = agent?.name ?? services[0]?.agentName ?? '';
@@ -274,6 +276,7 @@ export function ProjectDetailPage() {
           services={services}
           onInstall={() => setShowInstall(true)}
           onInstrument={() => setShowInstrumentation(true)}
+          onAddCapability={setAddingCapability}
         />
       )}
 
@@ -427,6 +430,18 @@ export function ProjectDetailPage() {
           onConfigureInstrumentation={() => {
             setShowInstall(false);
             setShowInstrumentation(true);
+          }}
+        />
+      )}
+      {addingCapability && agent && (
+        <CollectorCapabilityDialog
+          agent={agent}
+          capability={addingCapability}
+          onClose={() => setAddingCapability(null)}
+          onApply={() => {
+            setAddingCapability(null);
+            setShowInstall(true);
+            void load();
           }}
         />
       )}

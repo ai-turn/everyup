@@ -11,8 +11,6 @@ export const logScopeKey = (scope: { serviceId?: string; agentId?: string; servi
 export interface LogServiceRow {
   key: string;
   name: string;
-  /** 출처 배지. 한 출처만 보이는 화면에서는 뺀다. */
-  connection?: 'direct' | 'docker';
   subtitle?: string;
   /** 직접 연결을 꺼 둔 상태. */
   stopped?: boolean;

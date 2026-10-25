@@ -27,7 +27,6 @@ import type { CollectorSetupStatus } from '../../../services/api/agents';
 interface Props {
   onClose: () => void;
   onCreated: () => void;
-  initialProfile?: AgentProfile;
   existingAgent?: { id: string; name: string };
   onOpenProject?: (agentId: string) => void;
   onConfigureInstrumentation?: (agentId: string) => void;
@@ -289,20 +288,14 @@ function AgentInstallCommand({
 export function AddServiceModal({
   onClose,
   onCreated,
-  initialProfile,
   existingAgent,
   onOpenProject,
   onConfigureInstrumentation,
 }: Props) {
   const [step, setStep] = useState<Step>(existingAgent ? 'install' : 'form');
   const [name, setName] = useState(existingAgent?.name ?? '');
-  const [profileKind, setProfileKind] = useState<AgentProfileKind>(initialProfile?.kind ?? 'all-in-one');
-  const [customCapabilities, setCustomCapabilities] = useState<AgentCollectionCapability[]>(() => {
-    const capabilities = initialProfile?.capabilities ?? ['uptime'];
-    const set = new Set(capabilities);
-    if (set.has('logs') || set.has('api')) set.add('uptime');
-    return CAPABILITY_OPTIONS.map((option) => option.capability).filter((capability) => set.has(capability));
-  });
+  const [profileKind, setProfileKind] = useState<AgentProfileKind>('all-in-one');
+  const [customCapabilities, setCustomCapabilities] = useState<AgentCollectionCapability[]>(['uptime']);
   const [submitting, setSubmitting] = useState(false);
   const [refreshingCode, setRefreshingCode] = useState(Boolean(existingAgent));
   const [agentId, setAgentId] = useState(existingAgent?.id ?? '');

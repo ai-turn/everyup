@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CollectionStatusBadge, ConnectionSourceBadge, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { CollectionStatusBadge, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
+import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { api, type InfrastructureResource } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -15,7 +16,6 @@ function resourceCollectionStatus(resource: InfrastructureResource) {
 }
 
 function ResourceCard({ resource, returnTo }: { resource: InfrastructureResource; returnTo: string }) {
-  const direct = resource.adapter === 'otel-collector';
   const values = [
     ['CPU', resource.cpuUsage],
     ['메모리', resource.memoryUsage],
@@ -23,13 +23,12 @@ function ResourceCard({ resource, returnTo }: { resource: InfrastructureResource
   ] as const;
   return (
     <Link
-      to={direct ? `/infrastructure/${resource.id}` : `/agents/${resource.id}`}
+      to={`/infrastructure/${resource.id}`}
       state={{ returnTo }}
       className="card-interactive group rounded-xl border border-ui-border bg-bg-surface p-4"
     >
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{resource.name}</h3>}
-        badge={<ConnectionSourceBadge source={direct ? 'direct' : 'docker'} />}
         status={resourceCollectionStatus(resource)}
       />
       {values.some(([, value]) => value != null) ? (
@@ -58,8 +57,9 @@ export function InfrastructurePage() {
 
   useEffect(() => {
     let alive = true;
+    // 같은 목록을 개요·Projects·알림도 쓰므로 Docker 호스트는 서버가 아니라 여기서 뺀다(ADR 0007).
     api.getInfrastructureResources()
-      .then(rows => { if (alive) setResources(rows ?? []); })
+      .then(rows => { if (alive) setResources((rows ?? []).filter(resource => resource.adapter === 'otel-collector')); })
       .catch(requestError => { if (alive) setError(getErrorMessage(requestError)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -76,8 +76,11 @@ export function InfrastructurePage() {
       ) : error ? (
         <EmptyState icon="error_outline" title="인프라를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       ) : resources.length === 0 ? (
-        <EmptyState icon="memory" title="표시할 인프라가 없습니다" description="기존 Docker 환경을 선택하거나 표준 OpenTelemetry Collector를 연결하면 여기에 표시됩니다.">
-          <MonitoringConnection capability="infrastructure" onConnected={reload} />
+        <EmptyState icon="memory" title="표시할 인프라가 없습니다" description="표준 OpenTelemetry Collector를 연결하면 여기에 표시됩니다.">
+          <div className="flex flex-col items-center gap-4">
+            <MonitoringConnection capability="infrastructure" onConnected={reload} />
+            <DockerEnvironmentHint />
+          </div>
         </EmptyState>
       ) : (
         <section>
@@ -87,7 +90,7 @@ export function InfrastructurePage() {
           </div>
           {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{resources.map(resource => <ResourceCard key={resource.id} resource={resource} returnTo={returnTo} />)}</div> :
             <ResourceTable rows={resources} rowKey={row => row.id} ariaLabel="인프라 대상 그리드" columns={[
-              { key: 'name', label: '대상', render: row => <><Link to={row.adapter === 'otel-collector' ? `/infrastructure/${row.id}` : `/agents/${row.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.adapter === 'otel-collector' ? '직접 연결' : 'Docker'}</p><div className="mt-2 md:hidden">{resourceCollectionStatus(row)}<p className="mt-2 type-caption text-text-muted">CPU {row.cpuUsage == null ? '—' : `${row.cpuUsage.toFixed(1)}%`} · 메모리 {row.memoryUsage == null ? '—' : `${row.memoryUsage.toFixed(1)}%`} · 디스크 {row.diskUsage == null ? '—' : `${row.diskUsage.toFixed(1)}%`}</p></div></> },
+              { key: 'name', label: '대상', render: row => <><Link to={`/infrastructure/${row.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><div className="mt-2 md:hidden">{resourceCollectionStatus(row)}<p className="mt-2 type-caption text-text-muted">CPU {row.cpuUsage == null ? '—' : `${row.cpuUsage.toFixed(1)}%`} · 메모리 {row.memoryUsage == null ? '—' : `${row.memoryUsage.toFixed(1)}%`} · 디스크 {row.diskUsage == null ? '—' : `${row.diskUsage.toFixed(1)}%`}</p></div></> },
               { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: resourceCollectionStatus },
               ...(['cpuUsage', 'memoryUsage', 'diskUsage'] as const).map((key, index) => ({ key, label: ['CPU', '메모리', '디스크'][index], className: 'hidden w-24 md:table-cell', align: 'right' as const, render: (row: InfrastructureResource) => row[key] == null ? '—' : `${row[key].toFixed(1)}%` })),
             ]} />}

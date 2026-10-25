@@ -26,12 +26,13 @@ export interface NavSection extends NavTarget {
 export const NAV_SECTIONS: NavSection[] = [
   { to: '/', label: '개요', icon: 'dashboard', mobile: 'bottom' },
   { to: '/projects', label: 'Projects', icon: 'folder_open', mobile: 'bottom' },
-  { to: '/environments', label: 'Docker 환경', icon: 'dns', mobile: 'more', aliases: ['/agents', '/services'], description: 'Collector 연결과 발견된 서비스를 관리합니다.' },
   { to: '/uptime', label: '업타임', icon: 'monitor_heart', group: '메뉴', mobile: 'more', description: '서비스 응답과 장애 대상을 확인합니다.' },
   { to: '/logs', label: '로그', icon: 'article', group: '메뉴', mobile: 'more', description: '서비스별 오류·경고를 보고 로그를 검색합니다.' },
   { to: '/infrastructure', label: '인프라', icon: 'memory', group: '메뉴', mobile: 'more', description: '서버의 CPU, 메모리, 디스크 상태를 확인합니다.' },
   { to: '/api', label: 'API 요청', icon: 'api', group: '메뉴', mobile: 'more', description: '요청 상태와 오류를 확인합니다.' },
   { to: '/metrics', label: '메트릭', icon: 'monitoring', group: '메뉴', mobile: 'more', description: 'OpenTelemetry 메트릭을 확인합니다.' },
+  // Capability Menu 뒤 — 메뉴는 직접 설정한 대상만, Docker 데이터는 이 화면에서만 본다(ADR 0007).
+  { to: '/environments', label: 'Docker 환경', icon: 'dns', group: '메뉴', mobile: 'more', aliases: ['/agents', '/services'], description: 'Collector 연결과 발견된 서비스를 관리합니다.' },
   { to: '/alerts', label: '알림', icon: 'notifications', group: '관리', mobile: 'bottom' },
   { to: '/settings', label: '환경 설정', icon: 'settings', group: '관리', mobile: 'more', description: 'EveryUp 환경을 설정합니다.' },
 ];
