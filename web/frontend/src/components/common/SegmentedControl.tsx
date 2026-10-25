@@ -7,7 +7,7 @@ import { MaterialIcon } from './MaterialIcon';
 // keyboard contract of a document-tab interface by accident.
 //
 // Dark layering is context-proof: track = ui-hover, active pill = ui-active —
-// both lighter than the page (#0d1117) and card (#161b22) surfaces, so the
+// both lighter than the page (#111113) and card (#18191b) surfaces, so the
 // control stays visible whether it sits on a card or the bare page.
 
 interface SegmentedOption<T extends string> {
