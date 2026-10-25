@@ -2,7 +2,7 @@
 
 Check collection status or expand collection in a Docker environment.
 Apps and servers outside Docker can [connect directly through OpenTelemetry](#direct-otel)
-without a Docker Collector. For your first Docker connection, follow the [Quick Start](./quickstart).
+without a Docker Collector. For your first Docker connection, follow the [Quick Start](./quickstart#docker).
 
 ## Monitoring setup guide
 

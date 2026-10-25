@@ -2,7 +2,7 @@
 
 Use uptime monitors to check responses from public URLs and TCP ports on a schedule. Web performs
 the checks, so the target does not need a Collector. Docker service response checks come from the
-[Docker Collector](./quickstart) and appear in that **Docker 환경** (Docker environment); you do not need
+[Docker Collector](./quickstart#docker) and appear in that **Docker 환경** (Docker environment); you do not need
 to add them again as uptime monitors.
 
 ## Add a monitor
@@ -23,7 +23,7 @@ An HTTP check passes on a 2xx response; a TCP check passes when the connection s
 ::: warning Internal addresses can't be checked
 For security, `localhost`, private networks (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and
 link-local addresses (`169.254.0.0/16`, including cloud metadata) are rejected. Monitor internal
-services with the [Docker Collector](./quickstart) instead.
+services with the [Docker Collector](./quickstart#docker) instead.
 :::
 
 ## Status and management
