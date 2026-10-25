@@ -16,9 +16,11 @@ test('metric values are scaled to a readable unit before ticks are picked', () =
 
 test('metric list shows one card per service and the detail shows every metric at once', async ({ page }) => {
   await page.goto('./metrics?view=card');
-  // The API returns one row per (service, metric); the demo api service exports two.
-  await expect(page.getByRole('heading', { level: 3, name: 'api', exact: true })).toHaveCount(1);
-  await expect(page.getByText('메트릭 2개')).toBeVisible();
+  // The API returns one row per (service, metric); the demo catalog-worker exports three.
+  await expect(page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true })).toHaveCount(1);
+  await expect(page.getByText('메트릭 3개')).toBeVisible();
+  // Docker Collector metrics stay in their Docker Environment (ADR 0007).
+  await expect(page.getByRole('heading', { level: 3, name: 'api', exact: true })).toHaveCount(0);
 
   await page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true }).click();
   const panels = ['http.server.active_requests', 'http.server.request.duration', 'jvm.memory.used'];

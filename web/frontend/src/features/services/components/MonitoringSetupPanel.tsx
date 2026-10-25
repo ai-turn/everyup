@@ -61,6 +61,8 @@ interface Props {
   services: AgentServiceSnapshot[];
   onInstall?: () => void;
   onInstrument?: () => void;
+  /** 미선택 기능을 이 Docker 환경에 더한다. */
+  onAddCapability?: (capability: AgentCollectionCapability) => void;
   compact?: boolean;
   className?: string;
 }
@@ -155,7 +157,7 @@ function SetupStep({
   );
 }
 
-export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, onInstrument, compact = false, className = '' }: Props) {
+export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, onInstrument, onAddCapability, compact = false, className = '' }: Props) {
   const statusRequest = useSetupStatus<CollectorSetupStatus>(setupStatus === undefined ? `/agents/${agent.id}/setup-status` : null);
   const status = setupStatus ?? statusRequest.data;
   const report = agent.capabilities;
@@ -166,9 +168,9 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
   const enabledCapabilityLabels = PROFILE_CAPABILITIES
     .filter((item) => enabledCapabilities.includes(item.capability))
     .map((item) => item.label);
-  const unavailableCapabilityLabels = PROFILE_CAPABILITIES
-    .filter((item) => !enabledCapabilities.includes(item.capability))
-    .map((item) => item.label);
+  const unavailableCapabilities = PROFILE_CAPABILITIES
+    .filter((item) => !enabledCapabilities.includes(item.capability));
+  const unavailableCapabilityLabels = unavailableCapabilities.map((item) => item.label);
   const connected = Boolean(status?.connected) && !statusRequest.error;
   const received = (signal: string) => Boolean(status?.signals.some(item => item.signal === signal));
   const containerCollectionEnabled = enabledCapabilities.includes('uptime') || enabledCapabilities.includes('logs');
@@ -237,6 +239,15 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
             수집 프로필: {profileLabels[profile?.kind ?? 'all-in-one']} · 사용 {enabledCapabilityLabels.join(', ')}
             {unavailableCapabilityLabels.length > 0 && ` · 미선택 ${unavailableCapabilityLabels.join(', ')}`}
           </p>
+          {onAddCapability && unavailableCapabilities.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {unavailableCapabilities.map((item) => (
+                <Button key={item.capability} variant="secondary" size="sm" onClick={() => onAddCapability(item.capability)}>
+                  <MaterialIcon name="add" />{item.label} 추가
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
         {report && (
           <div className="text-right text-xs text-text-dim">

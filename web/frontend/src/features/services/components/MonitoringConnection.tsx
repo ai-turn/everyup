@@ -2,19 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, MaterialIcon, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
-import { api, type ConnectedAgent, type ObservedService, type TelemetrySignal } from '../../../services/api';
+import { api, type ObservedService, type TelemetrySignal } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
-import { AddServiceModal } from './AddServiceModal';
-import { ExistingCollectorDialog } from './ExistingCollectorDialog';
-import { InstrumentationOverrideModal } from './InstrumentationOverrideModal';
 import { TelemetryReceiptStatus } from './TelemetryReceiptStatus';
 
 type Capability = 'logs' | 'api' | 'metrics' | 'infrastructure';
 const labels: Record<Capability, string> = { logs: '로그', api: 'API', metrics: '메트릭', infrastructure: '인프라' };
-type Target = { id: string; label: string; agent?: ConnectedAgent; serviceKey?: string; direct?: ObservedService; infrastructureId?: string };
+type Target = { id: string; label: string; direct?: ObservedService; infrastructureId?: string };
 
+// 메뉴는 직접 설정만 연다 — Docker 환경 선택과 수집 프로필 변경은 Docker 환경 화면에 있다(ADR 0007).
 export function MonitoringConnection({ capability, onConnected }: { capability: Capability; onConnected?: () => void }) {
   const [open, setOpen] = useState(false);
   return <>
@@ -26,11 +24,9 @@ export function MonitoringConnection({ capability, onConnected }: { capability: 
 function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capability; onClose: () => void; onConnected?: () => void }) {
   const navigate = useNavigate();
   const ref = useRef<HTMLDialogElement>(null);
-  const [mode, setMode] = useState<'choose' | 'existing' | 'install' | 'direct' | 'receipt' | 'instrument'>('choose');
+  const [mode, setMode] = useState<'choose' | 'direct' | 'receipt'>('choose');
   const [targets, setTargets] = useState<Target[]>([]);
   const [selectedId, setSelectedId] = useState('');
-  const [installAgent, setInstallAgent] = useState<ConnectedAgent>();
-  const [instrumentAgentId, setInstrumentAgentId] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const selected = targets.find(target => target.id === selectedId);
@@ -41,15 +37,10 @@ function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capa
   }, [mode]);
   useEffect(() => {
     let active = true;
-    Promise.all([api.getAgents(), api.getAllAgentServicesFlat(), capability === 'infrastructure' ? Promise.resolve([]) : api.getObservedServices(), capability === 'infrastructure' ? api.getInfrastructureResources() : Promise.resolve([])])
-      .then(([agents, services, direct, infrastructure]) => {
+    Promise.all([capability === 'infrastructure' ? Promise.resolve([]) : api.getObservedServices(), capability === 'infrastructure' ? api.getInfrastructureResources() : Promise.resolve([])])
+      .then(([direct, infrastructure]) => {
         if (!active) return;
         const rows: Target[] = [];
-        for (const agent of agents ?? []) {
-          const discovered = capability === 'infrastructure' ? [] : (services ?? []).filter(service => service.agentId === agent.id);
-          rows.push({ id: `agent:${agent.id}`, label: `${agent.name} · Docker 환경 전체`, agent });
-          for (const service of discovered) rows.push({ id: `service:${agent.id}:${service.key}`, label: `${agent.name} / ${service.name}`, agent, serviceKey: service.key });
-        }
         for (const service of direct ?? []) if (service.isActive) rows.push({ id: `direct:${service.id}`, label: `${service.name} · 직접 연결`, direct: service });
         for (const resource of infrastructure ?? []) if (resource.adapter === 'otel-collector' && resource.isActive) rows.push({ id: `infra:${resource.id}`, label: `${resource.name} · Collector`, infrastructureId: resource.id });
         setTargets(rows);
@@ -59,22 +50,12 @@ function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capa
     return () => { active = false; };
   }, [capability]);
 
-  const viewAgent = (agentId: string) => {
-    const tab = capability === 'api' ? 'requests' : capability === 'infrastructure' ? 'infra' : capability;
-    const path = selected?.agent?.id === agentId && selected.serviceKey
-      ? `/services/${agentId}/${encodeURIComponent(selected.serviceKey)}?tab=${tab}` : `/agents/${agentId}`;
-    onClose(); navigate(path);
-  };
   const viewDirect = (id: string) => { onConnected?.(); onClose(); navigate(`/${capability}/${id}`); };
   const next = () => {
-    if (selected?.agent) setMode('existing');
-    else if (selected?.direct?.signals.includes(signal) || selected?.infrastructureId) setMode('receipt');
+    if (selected?.direct?.signals.includes(signal) || selected?.infrastructureId) setMode('receipt');
     else setMode('direct');
   };
 
-  if (mode === 'existing' && selected?.agent) return <ExistingCollectorDialog capability={capability} initialAgentId={selected.agent.id} onView={agent => viewAgent(agent.id)} onClose={onClose} onNew={() => { setInstallAgent(undefined); setMode('install'); }} onInstall={agent => { setInstallAgent(agent); setMode('install'); }} />;
-  if (mode === 'instrument') return <InstrumentationOverrideModal agentId={instrumentAgentId} onClose={onClose} />;
-  if (mode === 'install') return <AddServiceModal existingAgent={installAgent} initialProfile={{ kind: 'custom', capabilities: [capability] }} onClose={onClose} onCreated={() => onConnected?.()} onOpenProject={viewAgent} onConfigureInstrumentation={agentId => { setInstrumentAgentId(agentId); setMode('instrument'); }} />;
   if (mode === 'direct') return capability === 'infrastructure'
     ? <InfrastructureCollectorSetupDialog onClose={onClose} onCreated={resource => viewDirect(resource.id)} />
     : <DirectTelemetrySetupDialog initialService={selected?.direct} signal={signal} capabilityLabel={label} title={`${label} 직접 연결`} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다." onClose={onClose} onCreated={service => viewDirect(service.id)} />;
@@ -97,7 +78,6 @@ function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capa
       <div className="space-y-3 border-t border-ui-border pt-4">
         <p className="type-label text-text-base">새로운 대상</p>
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => { setSelectedId(''); setMode('install'); }}>Docker Collector 설치</Button>
           <Button variant="secondary" onClick={() => { setSelectedId(''); setMode('direct'); }}>{capability === 'infrastructure' ? '표준 Collector 연결' : 'OpenTelemetry로 직접 연결'}</Button>
         </div>
       </div>

@@ -1,52 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ConnectionSourceBadge, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable } from '../../components/common';
+import { EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { TelemetryCollectionStatus } from '../../features/telemetry/components/TelemetryCollectionStatus';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
+import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import {
   api,
-  type AgentServiceFlat,
-  type ConnectedAgent,
   type ObservedService,
   type OtelServiceMetric,
 } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
-// The API returns one row per (service, metric); a card is one service.
-interface DockerMetricCard {
-  agent: ConnectedAgent;
-  service: AgentServiceFlat;
-  metricNames: string[];
-}
-
 const METRIC_SKELETONS = ['metric-1', 'metric-2', 'metric-3', 'metric-4', 'metric-5', 'metric-6'];
 
 const METRIC_NAMES_SHOWN = 3;
-
-function agentOnline(agent: ConnectedAgent) {
-  return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
-}
 
 // Same order as the metric picker in the detail view.
 const sortedNames = (names: string[] = []) => [...names].sort((a, b) => a.localeCompare(b));
 
 function MetricCard({
   name,
-  connection,
-  subtitle,
   metricNames,
   to,
   active,
   returnTo,
 }: {
   name: string;
-  connection: 'direct' | 'docker';
-  subtitle?: string;
   /** Sorted by name — the detail opens on the first one. */
   metricNames: string[];
   to: string;
-  /** direct: 연결이 켜져 있는가 · docker: Collector가 최근에 보고했는가 */
+  /** 직접 연결이 켜져 있는가 */
   active: boolean;
   returnTo: string;
 }) {
@@ -54,10 +38,8 @@ function MetricCard({
     <Link to={to} state={{ returnTo }} className="card-interactive group rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{name}</h3>}
-        badge={<ConnectionSourceBadge source={connection} />}
-        subtitle={subtitle}
         // API·인프라 목록과 같은 수집 상태 표기 (§5.1a)
-        status={<TelemetryCollectionStatus connection={connection} active={active} />}
+        status={<TelemetryCollectionStatus active={active} />}
       />
       {/* No single "current value": which of a service's metrics would represent it is arbitrary. */}
       {metricNames.length > 0 ? (
@@ -81,7 +63,6 @@ function MetricCard({
 
 export function MetricsPage() {
   const { view, setView, returnTo } = useListView();
-  const [dockerCards, setDockerCards] = useState<DockerMetricCard[]>([]);
   const [directServices, setDirectServices] = useState<ObservedService[]>([]);
   const [directMetrics, setDirectMetrics] = useState<OtelServiceMetric[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,27 +73,11 @@ export function MetricsPage() {
   useEffect(() => {
     let alive = true;
     Promise.all([
-      api.getAgents(),
-      api.getAllAgentServicesFlat(),
       api.getObservedServices('metrics'),
       api.getObservedServiceMetrics(),
     ])
-      .then(async ([agents, services, observedServices, observedMetrics]) => {
-        const servicesByName = new Map(services.map(service => [`${service.agentId}:${service.name}`, service]));
-        const cards = new Map<string, DockerMetricCard>();
-        await Promise.all(agents.map(async agent => {
-          const items = await api.getAgentServiceMetrics(agent.id);
-          for (const metric of items) {
-            const key = `${agent.id}:${metric.serviceName}`;
-            const service = servicesByName.get(key);
-            if (!service) continue;
-            const card = cards.get(key) ?? { agent, service, metricNames: [] };
-            card.metricNames.push(metric.metricName);
-            cards.set(key, card);
-          }
-        }));
+      .then(([observedServices, observedMetrics]) => {
         if (!alive) return;
-        setDockerCards([...cards.values()]);
         setDirectServices(observedServices ?? []);
         setDirectMetrics(observedMetrics ?? []);
       })
@@ -130,11 +95,7 @@ export function MetricsPage() {
     return names;
   }, [directMetrics]);
 
-  const isEmpty = directServices.length === 0 && dockerCards.length === 0;
-  const rows = [
-    ...directServices.map(service => ({ id: `direct:${service.id}`, name: service.name, connection: 'direct' as const, subtitle: undefined, metricNames: sortedNames(directNamesByService.get(service.id)), to: `/metrics/${service.id}`, active: service.isActive })),
-    ...dockerCards.map(card => ({ id: `docker:${card.agent.id}:${card.service.key}`, name: card.service.name, connection: 'docker' as const, subtitle: card.agent.name, metricNames: sortedNames(card.metricNames), to: `/services/${card.service.agentId}/${encodeURIComponent(card.service.key)}?tab=metrics`, active: agentOnline(card.agent) })),
-  ];
+  const rows = directServices.map(service => ({ id: service.id, name: service.name, metricNames: sortedNames(directNamesByService.get(service.id)), to: `/metrics/${service.id}`, active: service.isActive }));
 
   return (
     <div>
@@ -149,20 +110,23 @@ export function MetricsPage() {
         </div>
       ) : error ? (
         <EmptyState icon="error_outline" title="메트릭을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
-      ) : isEmpty ? (
-        <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="기존 Docker 환경을 선택하거나 앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
-          <MonitoringConnection capability="metrics" onConnected={reload} />
+      ) : rows.length === 0 ? (
+        <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
+          <div className="flex flex-col items-center gap-4">
+            <MonitoringConnection capability="metrics" onConnected={reload} />
+            <DockerEnvironmentHint />
+          </div>
         </EmptyState>
       ) : (
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">메트릭 서비스</h2>
-            <span className="text-xs text-text-dim">{directServices.length + dockerCards.length}</span>
+            <span className="text-xs text-text-dim">{rows.length}</span>
           </div>
           {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{rows.map(row => <MetricCard key={row.id} {...row} returnTo={returnTo} />)}</div> :
             <ResourceTable rows={rows} rowKey={row => row.id} ariaLabel="메트릭 서비스 그리드" columns={[
-              { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 truncate type-caption text-text-muted">{row.subtitle || '직접 연결'}</p><div className="mt-2 md:hidden"><TelemetryCollectionStatus {...row} /></div><p className="mt-2 truncate font-mono text-xs text-text-muted lg:hidden">{row.metricNames.length ? row.metricNames.slice(0, METRIC_NAMES_SHOWN).join(' · ') : '첫 메트릭 수신 대기'}</p></> },
-              { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => <TelemetryCollectionStatus {...row} /> },
+              { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><div className="mt-2 md:hidden"><TelemetryCollectionStatus active={row.active} /></div><p className="mt-2 truncate font-mono text-xs text-text-muted lg:hidden">{row.metricNames.length ? row.metricNames.slice(0, METRIC_NAMES_SHOWN).join(' · ') : '첫 메트릭 수신 대기'}</p></> },
+              { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => <TelemetryCollectionStatus active={row.active} /> },
               { key: 'count', label: '메트릭', className: 'w-20 sm:w-24', align: 'right', render: row => row.metricNames.length },
               { key: 'metrics', label: '메트릭 이름', className: 'hidden lg:table-cell', render: row => row.metricNames.length ? <><ul className="space-y-1">{row.metricNames.slice(0, METRIC_NAMES_SHOWN).map(name => <li key={name} className="truncate font-mono text-xs text-text-secondary">{name}</li>)}</ul>{row.metricNames.length > METRIC_NAMES_SHOWN && <p className="mt-1 type-caption text-text-muted">외 {row.metricNames.length - METRIC_NAMES_SHOWN}개</p>}</> : <span className="type-caption text-text-muted">첫 메트릭 수신 대기</span> },
             ]} />}

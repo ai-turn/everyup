@@ -20,7 +20,8 @@ test.describe('live demo', () => {
     await page.getByRole('link', { name: 'prod-server', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
 
-    await page.getByRole('link', { name: 'api', exact: true }).click();
+    // 환경 상세의 로그 표에도 같은 서비스 링크가 있다 — 서비스 표의 것을 연다.
+    await page.getByRole('table', { name: 'Docker 서비스 그리드' }).getByRole('link', { name: 'api', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'api' })).toBeVisible();
     // 상세 경로도 담긴 섹션에 속한다(navSections.ts) — 사이드바 활성 항목과 첫 크럼이 같은 섹션이다.
     await expect(page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: 'Docker 환경', exact: true })).toHaveAttribute('aria-current', 'page');

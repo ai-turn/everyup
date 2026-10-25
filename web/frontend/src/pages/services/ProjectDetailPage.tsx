@@ -1,5 +1,5 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -13,12 +13,17 @@ import { useSpinAction } from '../../hooks/useSpinAction';
 import {
   api,
   type AgentServiceFlat, type ConnectedAgent, type AgentIncident,
-  type AgentEvent, type OtelServiceMetric,
+  type AgentEvent, type OtelServiceMetric, type AgentCollectionCapability,
+  type LogServiceSummary, type LogPattern,
 } from '../../services/api';
+import { InfraGauges } from '../../features/infra/components/InfraGauges';
+import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
+import { logScopeKey, withLogSummaries } from '../../features/logs/logServiceRows';
 import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
 import { AddServiceModal } from '../../features/services/components/AddServiceModal';
 import { InstrumentationOverrideModal } from '../../features/services/components/InstrumentationOverrideModal';
 import { MonitoringSetupPanel } from '../../features/services/components/MonitoringSetupPanel';
+import { CollectorCapabilityDialog } from '../../features/services/components/CollectorCapabilityDialog';
 import { AgentServiceRequestTrends } from '../../features/healthcheck/components/AgentServiceRequestTrends';
 import { AgentCheckHistoryBar } from '../../features/healthcheck/components/AgentCheckHistoryBar';
 import { getErrorMessage } from '../../utils/errors';
@@ -117,6 +122,7 @@ export function ProjectDetailPage() {
   const [showKey, setShowKey] = useState(false);
   const [showInstall, setShowInstall] = useState(false);
   const [showInstrumentation, setShowInstrumentation] = useState(false);
+  const [addingCapability, setAddingCapability] = useState<AgentCollectionCapability | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const headerName = agent?.name ?? services[0]?.agentName ?? '';
@@ -127,10 +133,16 @@ export function ProjectDetailPage() {
   const [events, setEvents] = useState<AgentEvent[]>([]);
   // Representative OTel metric per service name (project cards); non-critical.
   const [metrics, setMetrics] = useState<Record<string, OtelServiceMetric>>({});
+  // 로그 메뉴가 Docker 서비스를 보여 주지 않으므로(ADR 0007) 같은 24시간 요약을 여기서 그린다.
+  const [logData, setLogData] = useState<{ summaries: LogServiceSummary[]; patterns: LogPattern[] } | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
     if (!agentId) return;
     setLoadError(null);
+    Promise.all([api.getLogSummary(), api.getLogPatterns()])
+      .then(([summaries, patterns]) => setLogData({ summaries: summaries ?? [], patterns: patterns ?? [] }))
+      .catch(() => {});
     api.getAgentIncidents(agentId).then((d) => setIncidents(d ?? [])).catch(() => {});
     api.getAgentServiceMetrics(agentId)
       .then((rows) => setMetrics(Object.fromEntries((rows ?? []).map((m) => [m.serviceName, m]))))
@@ -150,9 +162,29 @@ export function ProjectDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
-  useAutoRefresh(load, 30_000);
+  // 인프라 게이지는 자기 fetch를 가진다 — 새로고침마다 refreshKey로 함께 다시 읽힌다.
+  const refresh = useCallback(() => {
+    setRefreshKey((key) => key + 1);
+    void load();
+  }, [load]);
+  useAutoRefresh(refresh, 30_000);
 
-  const { spinning, trigger: handleRefresh } = useSpinAction(load);
+  const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
+
+  // 프로필이 없으면 전 기능 수집(MonitoringSetupPanel과 같은 기본값).
+  const collects = (capability: AgentCollectionCapability) =>
+    !agent?.profile?.capabilities.length || agent.profile.capabilities.includes(capability);
+
+  const logOverview = useMemo(() => logData && agentId ? withLogSummaries(
+    services.map((s) => ({
+      key: logScopeKey({ agentId, serviceName: s.name }),
+      name: s.name,
+      subtitle: s.runtime ?? s.checkType,
+      to: `/services/${agentId}/${encodeURIComponent(s.key)}?tab=logs&range=24h`,
+    })),
+    logData.summaries,
+    logData.patterns,
+  ) : null, [logData, services, agentId]);
 
   const handleConfirmDelete = async () => {
     if (!deleteConfirm || !agentId) return;
@@ -244,6 +276,7 @@ export function ProjectDetailPage() {
           services={services}
           onInstall={() => setShowInstall(true)}
           onInstrument={() => setShowInstrumentation(true)}
+          onAddCapability={setAddingCapability}
         />
       )}
 
@@ -291,6 +324,18 @@ export function ProjectDetailPage() {
             />
           ))}
         </div>
+      )}
+
+      {/* 인프라 메뉴는 직접 연결한 호스트만 보여 준다(ADR 0007) — 이 Collector의 호스트 지표는 여기서 본다. */}
+      {agentId && collects('infrastructure') && (
+        <section>
+          <h2 className="mb-3 type-section-title text-text-base">인프라</h2>
+          <InfraGauges hostId={agentId} refreshKey={refreshKey} />
+        </section>
+      )}
+
+      {services.length > 0 && collects('logs') && logOverview && (
+        <LogServiceOverview rows={logOverview.rows} patterns={logOverview.patterns} span={logOverview.span} view={view} returnTo={returnTo} title="로그" />
       )}
 
       {/* Project-level Requests aggregate (rolls up all services; self-hides when no request data) */}
@@ -385,6 +430,18 @@ export function ProjectDetailPage() {
           onConfigureInstrumentation={() => {
             setShowInstall(false);
             setShowInstrumentation(true);
+          }}
+        />
+      )}
+      {addingCapability && agent && (
+        <CollectorCapabilityDialog
+          agent={agent}
+          capability={addingCapability}
+          onClose={() => setAddingCapability(null)}
+          onApply={() => {
+            setAddingCapability(null);
+            setShowInstall(true);
+            void load();
           }}
         />
       )}

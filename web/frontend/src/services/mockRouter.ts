@@ -779,6 +779,11 @@ function mockLogSummary(scenario: MockScenario): LogServiceSummary[] {
       mockLogActivity({ 0: 1, 3: 2 }, 4),
       { level: 'error', message: mockCheckoutError.message, createdAt: mockCheckoutError.createdAt },
     ),
+    summary(
+      { serviceId: 'observed_mock_payments', serviceName: 'payments-api' },
+      mockLogActivity({ 2: 1 }, 5),
+      { level: 'error', message: mockPaymentTimeout.message, createdAt: mockMsAgo(2 * 3_600_000) },
+    ),
   ];
 }
 
@@ -859,6 +864,19 @@ const mockUptimeMonitors: UptimeMonitor[] = [
     timeout: 5000, interval: 30, status: 'healthy', responseTime: 128,
     uptime: 99.98, lastCheckAt: new Date(nowAgent - 18_000).toISOString(),
   },
+  // 업타임 메뉴는 직접 등록한 모니터만 보여 준다(ADR 0007) — 데모 목록이 비어 보이지 않게 둘을 더 둔다.
+  {
+    id: 'uptime_mock_checkout', name: 'Checkout API', type: 'http', isActive: true,
+    url: 'https://checkout.example.com/healthz', method: 'GET', expectedStatus: 200,
+    timeout: 5000, interval: 30, status: 'healthy', responseTime: 214,
+    uptime: 99.91, lastCheckAt: new Date(nowAgent - 9_000).toISOString(),
+  },
+  {
+    id: 'uptime_mock_smtp', name: 'Mail relay', type: 'tcp', isActive: true,
+    url: 'smtp.example.com', port: 587, method: 'GET', expectedStatus: 200,
+    timeout: 3000, interval: 60, status: 'healthy', responseTime: 41,
+    uptime: 100, lastCheckAt: new Date(nowAgent - 32_000).toISOString(),
+  },
   {
     id: 'uptime_mock_redis', name: 'Redis TCP', type: 'tcp', isActive: false,
     url: 'cache.example.com', port: 6379, method: 'GET', expectedStatus: 200,
@@ -936,7 +954,7 @@ const mockObservedServices: ObservedService[] = [
     id: 'observed_mock_payments',
     name: 'payments-api',
     projectId: 'project_mock_production',
-    signals: ['traces'],
+    signals: ['traces', 'logs'],
     isActive: true,
     apiKeyMasked: 'evup_****a741',
     lastSeenAt: new Date(nowAgent - 15_000).toISOString(),

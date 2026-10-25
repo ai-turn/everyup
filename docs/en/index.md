@@ -20,11 +20,11 @@ carousel:
   - title: Overview
     caption: The services that need attention, your monitoring scope, and recent incidents on one screen.
     image: overview
-    alt: The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 2 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.
+    alt: The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 4 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.
   - title: Uptime
-    caption: HTTP and TCP response checks from independent uptime monitors and Docker Collectors in one view.
+    caption: Check public URLs and TCP ports with uptime monitors. Docker service checks stay in their Docker environment.
     image: uptime
-    alt: The uptime screen. Summary of 3 healthy, 1 down, 1 paused or pending, and cards for 5 monitored targets.
+    alt: The uptime screen. Summary of 3 healthy, 0 down, 1 paused or pending, and a list of 4 HTTP and TCP monitors.
   - title: Logs
     caption: Error and warning trends per service, plus the errors that keep repeating.
     image: logs

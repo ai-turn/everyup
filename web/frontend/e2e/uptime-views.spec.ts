@@ -12,12 +12,12 @@ test('grid is the default and switching views preserves search, reload and detai
   await expect(toggle.getByRole('button', { name: '그리드', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(targets.getByRole('table', { name: '업타임 그리드' })).toBeVisible();
   await search.fill('api');
-  await expect(targets.getByRole('link')).toHaveCount(2);
+  await expect(targets.getByRole('link')).toHaveCount(1);
   const names = await targets.getByRole('link').allTextContents();
   await toggle.getByRole('button', { name: '카드', exact: true }).click();
   await expect(page).toHaveURL(/view=card/);
   await expect(search).toHaveValue('api');
-  await expect(targets.getByRole('article')).toHaveCount(2);
+  await expect(targets.getByRole('article')).toHaveCount(1);
   await expect(targets.getByRole('link')).toHaveText(names);
   await page.reload();
   await expect(toggle.getByRole('button', { name: '카드', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -35,7 +35,7 @@ test('grid is the default and switching views preserves search, reload and detai
   await expect(toggle.getByRole('button', { name: '카드', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('검색 결과가 없습니다', { exact: true })).toBeVisible();
   await search.clear();
-  await expect(targets.getByRole('article')).toHaveCount(3);
+  await expect(targets.getByRole('article')).toHaveCount(2);
 });
 
 test('both views share state priority and mobile grid retains actions without horizontal scrolling', async ({ page }) => {
@@ -52,6 +52,6 @@ test('both views share state priority and mobile grid retains actions without ho
   expect(await targets.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
   const names = await targets.getByRole('link').allTextContents();
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();
-  await expect(targets.getByRole('article')).toHaveCount(3);
+  await expect(targets.getByRole('article')).toHaveCount(2);
   await expect(targets.getByRole('link')).toHaveText(names);
 });

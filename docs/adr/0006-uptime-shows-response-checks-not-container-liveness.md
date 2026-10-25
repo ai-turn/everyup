@@ -1,6 +1,6 @@
 # Uptime shows response checks, not container liveness
 
-Status: accepted
+Status: superseded by ADR 0007
 
 Date: 2026-10-18
 

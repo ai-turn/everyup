@@ -14,8 +14,8 @@ Docker 밖의 앱과 서버는 [OpenTelemetry로 직접 연결](./monitoring-set
 | **Web** | 대시보드, 사용자, 알림 규칙·채널, 히스토리 | 대시보드 서버 |
 | **Docker Collector** | Docker 컨테이너 자동 발견, 컨테이너 상태, 로그, 호스트 메트릭 | 모니터링할 각 Docker 호스트 |
 
-![EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 2개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
-![EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 2개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
+![EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 4개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
+![EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 4개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
 
 ## 핵심 기능
 
@@ -27,7 +27,7 @@ Docker Collector는 선택한 수집 범위에 따라 동작합니다. **기본*
 | --- | --- | --- |
 | 개요 | 장애·수집 지연, 모니터링 범위, 최근 장애 이력 | 모니터링 대상 연결 |
 | 컨테이너 상태 | 자동 발견한 컨테이너의 실행 상태와 검사 결과 | Docker Collector의 업타임 수집 선택 |
-| 업타임 | 독립 모니터와 Docker Collector의 HTTP·TCP 응답 검사 | [모니터 추가](./uptime-monitors) 또는 Docker 응답 검사 설정 |
+| 업타임 | 직접 등록한 업타임 모니터의 HTTP·TCP 응답 검사 | [모니터 추가](./uptime-monitors) |
 | 인프라 | 호스트 CPU·메모리·디스크·네트워크 추이 | 인프라 수집 선택 또는 [표준 Collector 연결](./monitoring-setup#direct-otel) |
 | 로그 | 오류·경고 추이, 반복 메시지 묶기, 검색 | stdout/stderr 수집 또는 직접 OTLP 로그 전송 |
 | API 상태 | access log에서 추출한 요청 메서드·경로·상태 코드 | 앱이나 프록시의 access log 출력 |
@@ -36,8 +36,9 @@ Docker Collector는 선택한 수집 범위에 따라 동작합니다. **기본*
 | 헤더·바디 상세 수집 | 요청 진단 정보와 캡처된 바디 | [언어별 계측](./otel-instrumentation). 바디 자동 수집은 Node.js에서 선택적으로 활성화 |
 | 알림 | 규칙·채널·발송 결과 | [알림 채널과 활성 규칙 설정](./notifications) |
 
-업타임 화면은 서비스가 요청에 응답하는지를 보여줍니다. 컨테이너 실행 여부만 확인하는 검사 결과는
-Docker 환경에서 확인하세요.
+업타임·로그·인프라·API 요청·메트릭 화면은 직접 설정한 대상만 보여줍니다. Docker Collector가 수집한
+응답 검사·컨테이너 상태·로그·호스트 자원·API 요청은 해당 Docker 환경 화면에서 확인하세요.
+개요·Projects·알림은 두 경로의 대상을 함께 다룹니다.
 
 API 요청 추이는 과거 데이터가 있으면 지난주와 비교할 수 있습니다. Docker 환경에서는 배포·재시작
 이벤트도 함께 표시합니다. **지연 시간 p95**는 측정한 요청의 95%가 이 시간 안에 끝났다는 뜻입니다.

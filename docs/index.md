@@ -20,11 +20,11 @@ carousel:
   - title: 개요
     caption: 지금 확인이 필요한 서비스와 모니터링 범위, 최근 장애 이력을 한 화면에서 봅니다.
     image: overview
-    alt: EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 2개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.
+    alt: EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 4개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.
   - title: 업타임
-    caption: 독립 업타임 모니터와 Docker Collector의 HTTP·TCP 응답 검사 결과를 함께 확인합니다.
+    caption: 공개 URL과 TCP 포트를 업타임 모니터로 확인합니다. Docker 서비스의 검사는 Docker 환경에서 봅니다.
     image: uptime
-    alt: 업타임 화면. 정상 3, 장애 1, 일시정지·대기 1 요약과 모니터링 대상 5개 카드.
+    alt: 업타임 화면. 정상 3, 장애 0, 정지·대기 1 요약과 HTTP·TCP 모니터 4개 목록.
   - title: 로그
     caption: 서비스별 오류·경고 추이와 자주 반복되는 오류를 함께 봅니다.
     image: logs

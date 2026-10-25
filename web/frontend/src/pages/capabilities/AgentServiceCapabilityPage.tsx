@@ -3,13 +3,13 @@ import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import {
   Button, EmptyState, ListToolbar, MaterialIcon, PageHeader, SearchInput,
-  ListViewToggle, Select, StatusLight,
+  ListViewToggle, StatusLight,
 } from '../../components/common';
+import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeTargets } from '../../features/uptime/components/UptimeTargets';
-import { api, type AgentServiceFlat, type UptimeMonitor, type UptimeMonitorInput } from '../../services/api';
+import { api, type UptimeMonitor, type UptimeMonitorInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
-import { dockerUptimeState } from '../../utils/operationalStatus';
 import { useListView } from '../../hooks/useListView';
 
 const UptimeListPrototype = import.meta.env.DEV ? lazy(() => import('./UptimeList.prototype').then((module) => ({ default: module.UptimeListPrototype }))) : null;
@@ -24,45 +24,29 @@ function ServiceListSkeleton() {
   );
 }
 
-interface LoadErrors {
-  services?: string;
-  monitors?: string;
-}
-
 export function AgentServiceCapabilityPage() {
-
-  const [agentServices, setAgentServices] = useState<AgentServiceFlat[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
-  const sourceParam = searchParams.get('source');
-  const source = sourceParam === 'direct' || sourceParam === 'docker' ? sourceParam : 'all';
   const { view, setView } = useListView();
-  const setParam = (key: string, value: string) => {
+  const setQuery = (value: string) => {
     const next = new URLSearchParams(searchParams);
-    if (value) next.set(key, value); else next.delete(key);
+    if (value) next.set('q', value); else next.delete('q');
     setSearchParams(next, { replace: true });
   };
-  const setQuery = (value: string) => setParam('q', value);
   const returnTo = `/uptime${searchParams.size ? `?${searchParams}` : ''}`;
   const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState<LoadErrors>({});
+  const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [changingMonitor, setChangingMonitor] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [servicesResult, monitorsResult] = await Promise.allSettled([
-        api.getAllAgentServicesFlat(),
-        api.getUptimeMonitors(),
-      ]);
-      const nextErrors: LoadErrors = {};
-      if (servicesResult.status === 'fulfilled') setAgentServices(servicesResult.value ?? []);
-      else nextErrors.services = getErrorMessage(servicesResult.reason);
-      if (monitorsResult.status === 'fulfilled') setMonitors(monitorsResult.value ?? []);
-      else nextErrors.monitors = getErrorMessage(monitorsResult.reason);
-      setErrors(nextErrors);
+      setMonitors(await api.getUptimeMonitors() ?? []);
+      setError(null);
+    } catch (loadError) {
+      setError(getErrorMessage(loadError));
     } finally {
       setLoading(false);
     }
@@ -73,16 +57,11 @@ export function AgentServiceCapabilityPage() {
     return () => window.clearTimeout(initialLoad);
   }, [load]);
 
-  // 업타임은 응답 검사만 담는다(ADR-0006). 컨테이너 실행 여부만 보는 검사는 Docker 환경에서만 보인다.
-  const responseServices = useMemo(() => agentServices.filter((service) => service.checkType !== 'docker'), [agentServices]);
+  // 업타임은 직접 등록한 모니터만 담는다(ADR 0007). Docker Collector의 검사는 Docker 환경에서 본다.
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredAgentServices = useMemo(() => source === 'direct' ? [] : responseServices.filter((service) => !normalizedQuery
-    || service.name.toLowerCase().includes(normalizedQuery)
-    || service.agentName.toLowerCase().includes(normalizedQuery)
-    || (service.endpoint || service.key).toLowerCase().includes(normalizedQuery)), [responseServices, source, normalizedQuery]);
-  const filteredMonitors = useMemo(() => source === 'docker' ? [] : monitors.filter((monitor) => !normalizedQuery
+  const filteredMonitors = useMemo(() => monitors.filter((monitor) => !normalizedQuery
     || monitor.name.toLowerCase().includes(normalizedQuery)
-    || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery)), [monitors, source, normalizedQuery]);
+    || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery)), [monitors, normalizedQuery]);
 
   const saveMonitor = async (input: UptimeMonitorInput) => {
     await api.createUptimeMonitor(input);
@@ -107,24 +86,18 @@ export function AgentServiceCapabilityPage() {
     }
   };
 
-  const empty = filteredAgentServices.length === 0 && filteredMonitors.length === 0;
-  const hasTargets = responseServices.length + monitors.length > 0;
-  const searchingTargets = (Boolean(normalizedQuery) || source !== 'all') && hasTargets;
-  const hasErrors = Boolean(errors.services || errors.monitors);
-  const hasPreviousData = Boolean((errors.services && responseServices.length > 0) || (errors.monitors && monitors.length > 0));
+  const empty = filteredMonitors.length === 0;
+  const hasTargets = monitors.length > 0;
+  const searchingTargets = Boolean(normalizedQuery) && hasTargets;
 
-  const dockerStates = responseServices.map(dockerUptimeState);
-  const paused = monitors.filter((monitor) => !monitor.isActive).length + dockerStates.filter((state) => state === 'paused').length;
-  const waiting = monitors.filter((monitor) => monitor.isActive && monitor.status === 'unknown').length + dockerStates.filter((state) => state === 'waiting').length;
-  const stale = dockerStates.filter((state) => state === 'stale').length;
-  const down = monitors.filter((monitor) => monitor.isActive && monitor.status === 'unhealthy').length
-    + dockerStates.filter((state) => state === 'down').length;
-  const up = monitors.filter((monitor) => monitor.isActive && monitor.status === 'healthy').length
-    + dockerStates.filter((state) => state === 'up').length;
+  const paused = monitors.filter((monitor) => !monitor.isActive).length;
+  const waiting = monitors.filter((monitor) => monitor.isActive && monitor.status === 'unknown').length;
+  const down = monitors.filter((monitor) => monitor.isActive && monitor.status === 'unhealthy').length;
+  const up = monitors.filter((monitor) => monitor.isActive && monitor.status === 'healthy').length;
 
   const prototypeVariant = import.meta.env.DEV ? searchParams.get('variant') : null;
   if (UptimeListPrototype && prototypeVariant && ['B', 'C'].includes(prototypeVariant) && !loading) {
-    return <Suspense fallback={<p className="p-6 text-text-muted">설계안을 불러오는 중</p>}><UptimeListPrototype variant={prototypeVariant} services={responseServices} monitors={monitors} errors={errors} query={query} onQueryChange={setQuery} /></Suspense>;
+    return <Suspense fallback={<p className="p-6 text-text-muted">설계안을 불러오는 중</p>}><UptimeListPrototype variant={prototypeVariant} services={[]} monitors={monitors} errors={{ monitors: error ?? undefined }} query={query} onQueryChange={setQuery} /></Suspense>;
   }
 
   return (
@@ -133,38 +106,32 @@ export function AgentServiceCapabilityPage() {
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>
 
-      {!loading && !hasErrors && hasTargets && (
+      {!loading && !error && hasTargets && (
         <section aria-label="업타임 상태 요약" className="mb-5 border-b border-ui-border pb-4">
           <dl className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <div className="flex items-center gap-2"><dt><StatusLight label="정상" tone="healthy" /></dt><dd className="text-xl font-medium tabular-nums">{up}</dd></div>
             <div className="flex items-center gap-2"><dt><StatusLight label="장애" tone={down ? 'error' : 'idle'} /></dt><dd className="text-xl font-medium tabular-nums">{down}</dd></div>
-            <div className="flex items-center gap-2"><dt><StatusLight label="정지·대기·지연" tone="idle" /></dt><dd className="text-xl font-medium tabular-nums">{paused + waiting + stale}</dd></div>
+            <div className="flex items-center gap-2"><dt><StatusLight label="정지·대기" tone="idle" /></dt><dd className="text-xl font-medium tabular-nums">{paused + waiting}</dd></div>
           </dl>
-          <p className="mt-2 type-caption text-text-muted">전체 {monitors.length + responseServices.length}개 대상 · 일시정지 {paused}개 · 확인 대기 {waiting}개{stale ? ` · 수집 지연 ${stale}개` : ''}</p>
+          <p className="mt-2 type-caption text-text-muted">전체 {monitors.length}개 대상 · 일시정지 {paused}개 · 확인 대기 {waiting}개</p>
         </section>
       )}
 
       <ListToolbar search={
         <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
       }>
-        <Select aria-label="검사 출처" value={source} onChange={(event) => setParam('source', event.target.value === 'all' ? '' : event.target.value)} wrapperClassName="w-36">
-          <option value="all">전체 출처</option>
-          <option value="direct">직접 등록</option>
-          <option value="docker">Docker 환경</option>
-        </Select>
         <ListViewToggle view={view} onChange={setView} />
       </ListToolbar>
 
-      {hasErrors && (
+      {error && (
         <section role="status" className="mb-6 flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <MaterialIcon name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
             <div>
               <p className="type-label text-text-base">업타임 정보를 불러오지 못했습니다</p>
-              {errors.services && <p className="mt-0.5 type-body text-text-muted">Docker 서비스: {errors.services}</p>}
-              {errors.monitors && <p className="mt-0.5 type-body text-text-muted">업타임 모니터: {errors.monitors}</p>}
+              <p className="mt-0.5 type-body text-text-muted">업타임 모니터: {error}</p>
               <p className="mt-1 type-body text-text-muted">
-                {hasPreviousData ? '실패한 영역은 이전에 불러온 정보입니다. 최신 상태는 확인할 수 없습니다.' : '실패한 영역의 상태는 확인할 수 없습니다.'}
+                {hasTargets ? '목록은 이전에 불러온 정보입니다. 최신 상태는 확인할 수 없습니다.' : '모니터 상태를 확인할 수 없습니다.'}
               </p>
             </div>
           </div>
@@ -173,16 +140,21 @@ export function AgentServiceCapabilityPage() {
       )}
 
       {loading && !hasTargets ? <ServiceListSkeleton /> : empty ? (
-        !hasErrors && (
-          <EmptyState icon="monitor_heart" title={searchingTargets ? '검색 결과가 없습니다' : '표시할 업타임 대상이 없습니다'} description={searchingTargets ? '검색어나 출처를 바꿔 다시 시도해 보세요.' : 'Docker 환경을 연결하거나 업타임 모니터를 직접 추가해 보세요.'} action={searchingTargets ? undefined : { label: '추가', onClick: () => setAdding(true) }} />
-        )
+        !error && (searchingTargets
+          ? <EmptyState icon="monitor_heart" title="검색 결과가 없습니다" description="검색어를 바꿔 다시 시도해 보세요." />
+          : <EmptyState icon="monitor_heart" title="표시할 업타임 대상이 없습니다" description="확인할 주소를 업타임 모니터로 추가해 보세요.">
+            <div className="flex flex-col items-center gap-4">
+              <Button onClick={() => setAdding(true)}>추가</Button>
+              <DockerEnvironmentHint />
+            </div>
+          </EmptyState>)
       ) : (
         <section aria-label="업타임 대상" aria-busy={loading || undefined}>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">모니터링 대상</h2>
-            <span className="text-xs text-text-dim">{filteredMonitors.length + filteredAgentServices.length}</span>
+            <span className="text-xs text-text-dim">{filteredMonitors.length}</span>
           </div>
-          <UptimeTargets view={view} services={filteredAgentServices} monitors={filteredMonitors} errors={errors}
+          <UptimeTargets view={view} monitors={filteredMonitors} error={Boolean(error)}
             returnTo={returnTo} loading={loading} changingMonitor={changingMonitor} onSetActive={(monitor) => void setActive(monitor)} />
         </section>
       )}
