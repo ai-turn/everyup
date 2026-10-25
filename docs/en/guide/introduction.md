@@ -15,8 +15,8 @@ Apps and servers outside Docker can [connect directly through OpenTelemetry](./m
 | **Web** | Dashboard, users, alert rules, notification channels, history | Your dashboard server |
 | **Docker Collector** | Docker discovery, container state, logs, host metrics | Each Docker host you monitor |
 
-![The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 2 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
-![The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 2 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
+![The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 4 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
+![The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 4 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
 
 ::: info
 The dashboard interface is Korean only. These docs cover setup and
@@ -33,7 +33,7 @@ reception. Configure uptime monitors and alerts separately in the dashboard.
 | --- | --- | --- |
 | Overview | Failures, delayed collection, monitoring scope, recent incidents | Connect monitoring targets |
 | Container state | Discovered containers, their running state and check results | Enable Docker Collector uptime collection |
-| Uptime | HTTP and TCP response checks from independent monitors and Docker Collectors | [Add monitors](./uptime-monitors) or configure Docker response checks |
+| Uptime | HTTP and TCP response checks from the uptime monitors you add | [Add monitors](./uptime-monitors) |
 | Infrastructure | Host CPU, memory, disk, and network trends | Enable infrastructure collection or [connect a standard Collector](./monitoring-setup#direct-otel) |
 | Logs | Error and warning trends, recurring messages, search | Collect stdout/stderr or export OTLP logs directly |
 | API status | Request method, path, and status code parsed from access logs | App or proxy access-log output |
@@ -42,8 +42,9 @@ reception. Configure uptime monitors and alerts separately in the dashboard.
 | Header and body capture | Request details and captured bodies | [Language-specific instrumentation](./otel-instrumentation). Automatic body capture is opt-in for Node.js |
 | Notifications | Rules, channels, delivery results | [Configure channels and enabled rules](./notifications) |
 
-Uptime shows whether a service responds to requests. Checks that only report whether a container
-is running appear in its Docker environment.
+The Uptime, Logs, Infrastructure, API requests, and Metrics pages show only the targets you configure
+directly. Response checks, container state, logs, host resources, and API requests collected by a Docker
+Collector appear in that Docker environment. Overview, Projects, and alerts cover both paths.
 
 Compare API request trends with last week when historical data exists. Docker environments also
 show deployment and restart events. **p95 latency** means 95% of measured requests finished within

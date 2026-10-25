@@ -37,14 +37,16 @@ latest installation command.
 
 ## Adding capabilities to an existing environment
 
-The connect buttons on the **로그** (Logs), **API 요청** (API requests), **메트릭** (Metrics), and **인프라**
-(Infrastructure) pages, such as **로그 연결** (Connect logs), let you reuse a registered target or
-connect a new one. Adding a capability to an existing Docker environment
-preserves its ID, key, Project assignment, and collection history. EveryUp issues a new apply
-command; run it on the target server to enable the capability across that Docker environment.
+Open the environment on the **Docker 환경** (Docker environments) screen and use the buttons in its
+monitoring setup guide, such as **로그 추가** (Add logs) or **메트릭 추가** (Add metrics), to add a capability
+that is not selected yet. The environment keeps its ID, key, Project assignment, and collection history.
+EveryUp issues a new apply command; run it on the target server to enable the capability across that
+Docker environment.
 
-Each connection screen lets you pick an existing target or start a Docker installation. Choosing
-a configured target shows its receipt history before opening the corresponding data page.
+The connect buttons on the **로그** (Logs), **API 요청** (API requests), **메트릭** (Metrics), and **인프라**
+(Infrastructure) pages, such as **로그 연결** (Connect logs), handle direct connections only. Reuse a
+registered direct target or connect a new one. Choosing a configured target shows its receipt history
+before opening the corresponding data page.
 
 ## Connecting OpenTelemetry directly {#direct-otel}
 
