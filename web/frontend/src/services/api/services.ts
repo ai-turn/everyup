@@ -152,8 +152,12 @@ export interface UptimeMonitor {
   interval: number;
   status: UptimeMonitorStatus;
   lastCheckAt?: string;
+  /** 최근 24시간. 체크가 없으면 없다 — 0은 모두 실패했다는 뜻이다. */
   uptime?: number;
+  /** 최근 24시간 성공한 체크의 평균(ms). 성공한 체크가 없으면 없다. */
   responseTime?: number;
+  /** 최근 성공한 체크의 응답 시간(ms), 오래된 것부터. 목록 스파크라인용. */
+  latencyHistory?: number[];
 }
 
 export interface UptimeMonitorInput {

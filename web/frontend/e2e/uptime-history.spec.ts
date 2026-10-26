@@ -44,7 +44,8 @@ test('[13] zero history is explicitly unknown rather than zero uptime', async ({
   await page.goto('./uptime/http-monitor');
   const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
   await expect(overview.locator('dl > div').filter({ hasText: '30일 업타임' }).locator('dd')).toHaveText('—');
-  await expect(overview.locator('dl > div').filter({ hasText: '30일 실패' }).locator('dd')).toHaveText('—');
+  await expect(overview.locator('dl > div').filter({ hasText: '24시간 업타임' }).locator('dd')).toHaveText('—');
+  await expect(overview.locator('dl > div').filter({ hasText: '평균 응답' }).locator('dd')).toHaveText('—');
   const strip = overview.getByRole('group'); await strip.focus();
   await expect(overview.locator('[aria-live="polite"]')).toContainText('기록 없음');
   await expect(overview.getByText('기록 0/90일', { exact: true })).toBeVisible();

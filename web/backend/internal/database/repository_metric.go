@@ -81,10 +81,11 @@ func (r *MetricRepository) GetSummary(serviceID string, duration time.Duration) 
 	err := DB.QueryRow(`
 		SELECT
 			COUNT(*) as total,
-			SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as success,
-			AVG(CASE WHEN response_time > 0 THEN response_time END) as avg_rt,
-			MIN(CASE WHEN response_time > 0 THEN response_time END) as min_rt,
-			MAX(response_time) as max_rt
+			COALESCE(SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END), 0) as success,
+			-- A failed check's response_time is its timeout, not a response.
+			COALESCE(AVG(CASE WHEN status = 'success' AND response_time > 0 THEN response_time END), 0) as avg_rt,
+			COALESCE(MIN(CASE WHEN status = 'success' AND response_time > 0 THEN response_time END), 0) as min_rt,
+			COALESCE(MAX(CASE WHEN status = 'success' THEN response_time END), 0) as max_rt
 		FROM metrics
 		WHERE service_id = ? AND checked_at >= ?
 	`, serviceID, since).Scan(
@@ -278,7 +279,7 @@ func (r *MetricRepository) GetRecentResponseTimesBatch(limit int) (map[string][]
 	rows, err := DB.Query(`
 		SELECT service_id, response_time
 		FROM metrics
-		WHERE checked_at >= datetime('now', '-7 days') AND response_time > 0
+		WHERE checked_at >= datetime('now', '-7 days') AND status = 'success' AND response_time > 0
 		ORDER BY service_id, checked_at DESC
 	`)
 	if err != nil {

@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -1094,5 +1095,76 @@ func TestIncidentTimelineMergesUptimeAndDockerSources(t *testing.T) {
 	}
 	if uptime.DurationSec != 3600 {
 		t.Fatalf("resolved duration should be start→resolve, got %d", uptime.DurationSec)
+	}
+}
+
+// The uptime list shows each monitor's 24h uptime, average response and a
+// response-time sparkline. A failed check's response time is how long it waited
+// before giving up, so it must not count as a response; and a monitor whose
+// every check failed is 0% up, not "no data".
+func TestUptimeListStatsExcludeFailedChecks(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "uptime-list-pass-1")
+	now := time.Now()
+
+	svcRepo := database.NewServiceRepository()
+	metricRepo := database.NewMetricRepository()
+	for _, id := range []string{"mixed", "down"} {
+		if err := svcRepo.Create(&models.Service{
+			ID: id, Name: id, Type: "http", IsActive: true,
+			URL: "https://" + id + ".example.com", Method: "GET", Interval: 60, Timeout: 5000,
+		}); err != nil {
+			t.Fatalf("create monitor: %v", err)
+		}
+	}
+	seed := []models.Metric{
+		{ServiceID: "mixed", Status: models.CheckStatusSuccess, ResponseTime: 100, CheckedAt: now.Add(-3 * time.Minute)},
+		{ServiceID: "mixed", Status: models.CheckStatusFailure, ResponseTime: 5000, CheckedAt: now.Add(-2 * time.Minute)},
+		{ServiceID: "mixed", Status: models.CheckStatusSuccess, ResponseTime: 200, CheckedAt: now.Add(-1 * time.Minute)},
+		{ServiceID: "down", Status: models.CheckStatusFailure, ResponseTime: 5000, CheckedAt: now.Add(-1 * time.Minute)},
+	}
+	for i := range seed {
+		if err := metricRepo.Create(&seed[i]); err != nil {
+			t.Fatalf("seed metric: %v", err)
+		}
+	}
+
+	_, result := ts.doRequest(t, "GET", "/api/v1/services?type=http,tcp", nil, authHeader(token)...)
+	if !result.Success {
+		t.Fatalf("list request failed: %+v", result.Error)
+	}
+	raw, err := json.Marshal(result.Data)
+	if err != nil {
+		t.Fatalf("re-marshal data: %v", err)
+	}
+	var monitors []map[string]any
+	if err := json.Unmarshal(raw, &monitors); err != nil {
+		t.Fatalf("decode list: %v", err)
+	}
+	byID := map[string]map[string]any{}
+	for _, m := range monitors {
+		byID[m["id"].(string)] = m
+	}
+
+	mixed := byID["mixed"]
+	if got := mixed["responseTime"]; got != float64(150) {
+		t.Errorf("mixed responseTime = %v, want 150 (successes only)", got)
+	}
+	if got := fmt.Sprint(mixed["latencyHistory"]); got != "[100 200]" {
+		t.Errorf("mixed latencyHistory = %s, want [100 200] (successes only)", got)
+	}
+	if got, ok := mixed["uptime"].(float64); !ok || got < 66.6 || got > 66.7 {
+		t.Errorf("mixed uptime = %v, want ~66.67", mixed["uptime"])
+	}
+
+	down := byID["down"]
+	if got, ok := down["uptime"]; !ok || got != float64(0) {
+		t.Errorf("down uptime = %v (present=%v), want 0", got, ok)
+	}
+	if _, ok := down["responseTime"]; ok {
+		t.Errorf("down responseTime = %v, want absent (no successful check)", down["responseTime"])
+	}
+	if _, ok := down["latencyHistory"]; ok {
+		t.Errorf("down latencyHistory = %v, want absent", down["latencyHistory"])
 	}
 }

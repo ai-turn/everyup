@@ -9,3 +9,4 @@ export {
   ChartTooltip, ChartLegend, ChartStatsLegend, ChartSummary, ChartStats, ChartCard, ChartEmpty, ChartSkeleton,
 } from './ChartElements';
 export { rangeAreas, thresholdLines, areaGradient, OPERATOR_LABEL } from './chartMarks';
+export { Sparkline } from './Sparkline';
