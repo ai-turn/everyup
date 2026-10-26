@@ -71,8 +71,8 @@ type Service struct {
 	// Computed fields (not stored in DB, populated from metrics)
 	Status         ServiceStatus `json:"status,omitempty"`
 	LastCheckAt    *time.Time    `json:"lastCheckAt,omitempty"`
-	Uptime         float64       `json:"uptime,omitempty"`
-	ResponseTime   int           `json:"responseTime,omitempty"`
+	Uptime         *float64      `json:"uptime,omitempty"`         // nil = no check in the window; 0 = every check failed
+	ResponseTime   *int          `json:"responseTime,omitempty"`   // nil = no successful check in the window
 	LatencyHistory []int         `json:"latencyHistory,omitempty"` // recent response times oldest→newest
 }
 

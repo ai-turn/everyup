@@ -16,12 +16,14 @@ export interface UptimeOverviewDay {
 interface UptimeOverviewProps {
   stats: UptimeOverviewStat[];
   days: UptimeOverviewDay[];
+  /** 90일 전체 업타임. 주면 띠 머리글에 붙인다 — 타일로 두면 바로 아래 띠와 같은 것을 두 번 말한다. */
+  historyUptime?: number;
   loading?: boolean;
   error?: string;
   className?: string;
 }
 
-export function UptimeOverview({ stats, days, loading = false, error, className = '' }: UptimeOverviewProps) {
+export function UptimeOverview({ stats, days, historyUptime, loading = false, error, className = '' }: UptimeOverviewProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const slots = useMemo(() => {
     const today = new Date();
@@ -67,7 +69,7 @@ export function UptimeOverview({ stats, days, loading = false, error, className 
       </dl>
 
       <div className="mt-6 mb-2 flex flex-wrap justify-between gap-3 type-caption text-text-muted">
-        <span>지난 90일</span>
+        <span>지난 90일{historyUptime !== undefined && !loading && !error && <> · <span className="font-medium tabular-nums text-text-base">{historyUptime.toFixed(2)}%</span></>}</span>
         {!loading && !error && <><span>기록 {recordedDays}/90일</span><span>일부 실패 {partialDays}일 · 전체 실패 {downDays}일</span></>}
       </div>
       {error ? <p className="py-3 text-sm text-text-muted">90일 이력을 불러오지 못했습니다. {error}</p> : loading ? (

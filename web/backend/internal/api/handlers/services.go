@@ -106,9 +106,12 @@ func (h *ServiceHandler) enrichService(service *models.Service, history []int) {
 		}
 	}
 	summary, _ := h.metricRepo.GetSummary(service.ID, 24*time.Hour)
-	if summary != nil {
-		service.Uptime = summary.Uptime
-		service.ResponseTime = int(summary.AvgResponseTime)
+	if summary != nil && summary.TotalChecks > 0 {
+		service.Uptime = &summary.Uptime
+	}
+	if summary != nil && summary.SuccessfulChecks > 0 {
+		avg := int(summary.AvgResponseTime)
+		service.ResponseTime = &avg
 	}
 }
 

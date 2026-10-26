@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { dockerService, uptimeFixture } from './fixtures/uptime';
+import { dockerService, monitor, uptimeFixture } from './fixtures/uptime';
 
 test.use({ baseURL: 'http://127.0.0.1:4174/' });
 
@@ -29,7 +29,7 @@ test('Uptime lists independent monitors only (ADR 0007)', async ({ page }) => {
   await page.goto('./uptime');
   const rows = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row');
 
-  await expect(rows.filter({ hasText: 'Public API' })).toContainText('EveryUp에서 검사');
+  await expect(rows.filter({ hasText: 'Public API' })).toContainText('HTTP · 30초');
   await expect(page.getByRole('link', { name: 'Docker API', exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Liveness worker', exact: true })).toHaveCount(0);
   await expect(page.getByRole('region', { name: '업타임 상태 요약' })).toContainText('전체 2개 대상');
@@ -42,4 +42,17 @@ test('empty Uptime points Docker users to their Docker environment', async ({ pa
   await expect(page.getByRole('heading', { name: '표시할 업타임 대상이 없습니다' })).toBeVisible();
   await page.getByRole('link', { name: 'Docker 환경', exact: true }).last().click();
   await expect(page).toHaveURL(/\/environments$/);
+});
+
+test('Uptime list shows 24h uptime and average response, and 0% is not "no data"', async ({ page }) => {
+  const state = await uptimeFixture(page);
+  state.monitors = [
+    monitor('http-monitor', { uptime: 99.5, responseTime: 1200, latencyHistory: [1100, 1200, 1300] }),
+    monitor('down-monitor', { name: 'Down API', status: 'unhealthy', uptime: 0 }),
+  ];
+  await page.goto('./uptime');
+  const rows = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row');
+  await expect(rows.filter({ hasText: 'Public API' })).toContainText('99.50%');
+  await expect(rows.filter({ hasText: 'Public API' })).toContainText('1,200ms');
+  await expect(rows.filter({ hasText: 'Down API' })).toContainText('0.00%');
 });

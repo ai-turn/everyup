@@ -232,11 +232,12 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
 
       <UptimeOverview
         stats={[
+          { label: '24시간 업타임', value: monitor.uptime === undefined ? '—' : `${monitor.uptime.toFixed(2)}%` },
           { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '—' },
-          { label: '90일 업타임', value: history && history.days.length > 0 ? `${history.percentage.toFixed(2)}%` : '—' },
-          { label: '30일 실패', value: summary && summary.totalChecks > 0 ? `${summary.failedChecks.toLocaleString()}회` : '—' },
+          { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '—' : `${monitor.responseTime.toLocaleString()}ms` },
           { label: '마지막 확인', value: lastCheck },
         ]}
+        historyUptime={history && history.days.length > 0 ? history.percentage : undefined}
         days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
         error={!history ? errors.history : undefined}
       />

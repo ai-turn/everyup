@@ -857,25 +857,28 @@ const mockAppSettings: AppSettings = {
   system: { collectInterval: 30 },
 };
 
+const mockLatencyHistory = (base: number, swing: number) =>
+  Array.from({ length: 24 }, (_, index) => Math.round(base + swing * Math.sin(index / 3) + (index % 5) * 2));
+
 const mockUptimeMonitors: UptimeMonitor[] = [
   {
     id: 'uptime_mock_store', name: 'Storefront', type: 'http', isActive: true,
     url: 'https://store.example.com/health', method: 'GET', expectedStatus: 200,
     timeout: 5000, interval: 30, status: 'healthy', responseTime: 128,
-    uptime: 99.98, lastCheckAt: new Date(nowAgent - 18_000).toISOString(),
+    uptime: 99.98, latencyHistory: mockLatencyHistory(128, 24), lastCheckAt: new Date(nowAgent - 18_000).toISOString(),
   },
   // 업타임 메뉴는 직접 등록한 모니터만 보여 준다(ADR 0007) — 데모 목록이 비어 보이지 않게 둘을 더 둔다.
   {
     id: 'uptime_mock_checkout', name: 'Checkout API', type: 'http', isActive: true,
     url: 'https://checkout.example.com/healthz', method: 'GET', expectedStatus: 200,
     timeout: 5000, interval: 30, status: 'healthy', responseTime: 214,
-    uptime: 99.91, lastCheckAt: new Date(nowAgent - 9_000).toISOString(),
+    uptime: 99.91, latencyHistory: mockLatencyHistory(214, 40), lastCheckAt: new Date(nowAgent - 9_000).toISOString(),
   },
   {
     id: 'uptime_mock_smtp', name: 'Mail relay', type: 'tcp', isActive: true,
     url: 'smtp.example.com', port: 587, method: 'GET', expectedStatus: 200,
     timeout: 3000, interval: 60, status: 'healthy', responseTime: 41,
-    uptime: 100, lastCheckAt: new Date(nowAgent - 32_000).toISOString(),
+    uptime: 100, latencyHistory: mockLatencyHistory(41, 6), lastCheckAt: new Date(nowAgent - 32_000).toISOString(),
   },
   {
     id: 'uptime_mock_redis', name: 'Redis TCP', type: 'tcp', isActive: false,
