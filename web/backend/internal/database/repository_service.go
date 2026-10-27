@@ -152,15 +152,16 @@ func (r *ServiceRepository) GetByID(id string) (*models.Service, error) {
 	var url, method, headers, body, tags, scheduleType, cronExpression sql.NullString
 	var port, expectedStatus, interval, timeout sql.NullInt64
 	var apiKeyHash, apiKeyMasked, logLevelFilter, apiExcludePaths sql.NullString
+	var certExpiresAt sql.NullTime
 
 	err := DB.QueryRow(`
 		SELECT id, name, COALESCE(project_id, ''), type, is_active, url, port, method, headers, body,
 		       expected_status, interval, timeout, tags, schedule_type, cron_expression,
-		       api_key, api_key_masked, log_level_filter, api_exclude_paths, created_at, updated_at
+		       api_key, api_key_masked, log_level_filter, api_exclude_paths, cert_expires_at, created_at, updated_at
 		FROM services WHERE id = ?
 	`, id).Scan(&s.ID, &s.Name, &s.ProjectID, &s.Type, &isActive, &url, &port, &method, &headers, &body,
 		&expectedStatus, &interval, &timeout, &tags, &scheduleType, &cronExpression,
-		&apiKeyHash, &apiKeyMasked, &logLevelFilter, &apiExcludePaths, &s.CreatedAt, &s.UpdatedAt)
+		&apiKeyHash, &apiKeyMasked, &logLevelFilter, &apiExcludePaths, &certExpiresAt, &s.CreatedAt, &s.UpdatedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -213,9 +214,26 @@ func (r *ServiceRepository) GetByID(id string) (*models.Service, error) {
 	}
 	s.LogLevelFilter = unmarshalLogLevelFilter(logLevelFilter)
 	s.ApiExcludePaths = unmarshalStringList(apiExcludePaths)
+	if certExpiresAt.Valid {
+		s.CertExpiresAt = &certExpiresAt.Time
+	}
 	s.Status = models.StatusUnknown
 
 	return &s, nil
+}
+
+// SetCertExpiry records the TLS certificate expiry the checker saw.
+func (r *ServiceRepository) SetCertExpiry(id string, expiresAt time.Time) error {
+	_, err := DB.Exec(`UPDATE services SET cert_expires_at = ? WHERE id = ?`, expiresAt.UTC(), id)
+	return err
+}
+
+// migrateV55 adds the TLS certificate expiry an HTTPS uptime check observed.
+func migrateV55() error {
+	if _, err := DB.Exec(`ALTER TABLE services ADD COLUMN cert_expires_at DATETIME`); err != nil && !isDuplicateColumnError(err) {
+		return err
+	}
+	return nil
 }
 
 // Create creates a new service
@@ -293,11 +311,13 @@ func (r *ServiceRepository) Update(s *models.Service) error {
 		UPDATE services SET name = ?, type = ?, is_active = ?, url = ?, port = ?, method = ?,
 		                    headers = ?, body = ?, expected_status = ?, interval = ?, timeout = ?,
 		                    tags = ?, schedule_type = ?, cron_expression = ?,
-		                    log_level_filter = ?, api_exclude_paths = ?, updated_at = ?
+		                    log_level_filter = ?, api_exclude_paths = ?, updated_at = ?,
+		                    -- RHS sees the old url: a certificate seen at another address no longer applies.
+		                    cert_expires_at = CASE WHEN url = ? THEN cert_expires_at ELSE NULL END
 		WHERE id = ?
 	`, s.Name, s.Type, isActive, s.URL, s.Port, s.Method, string(headersJSON), s.Body,
 		s.ExpectedStatus, s.Interval, s.Timeout, string(tagsJSON), scheduleType, s.CronExpression,
-		marshalLogLevelFilter(s.LogLevelFilter), marshalStringList(s.ApiExcludePaths), s.UpdatedAt, s.ID)
+		marshalLogLevelFilter(s.LogLevelFilter), marshalStringList(s.ApiExcludePaths), s.UpdatedAt, s.URL, s.ID)
 	return err
 }
 

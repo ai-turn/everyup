@@ -19,19 +19,18 @@ for (const kind of ['direct', 'agent'] as const) {
     await page.goto(kind === 'direct' ? './uptime/http-monitor' : `./services/docker-host/${encodeURIComponent(serviceKey)}`);
     await expect(page.getByText('알림 > 111ms', { exact: true })).toBeVisible();
     for (const threshold of [333, 444, 555, 666]) await expect(page.getByText(`알림 > ${threshold}ms`, { exact: true })).toHaveCount(0);
-    if (kind === 'direct') {
-      // Direct detail currently exposes edit/delete and chart thresholds; no rules shortcut exists.
-      await expect(page.getByRole('link', { name: '알림 규칙', exact: true })).toHaveCount(0);
-    } else {
-      const entry = page.getByRole('link', { name: '알림 규칙', exact: true });
-      await entry.click();
-      const query = new URL(page.url()).searchParams;
-      expect(query.get('target')).toBe('agent');
+    // Both details hand off to the rules tab filtered to this target.
+    const entry = page.getByRole('link', { name: '알림 규칙', exact: true });
+    await entry.click();
+    const query = new URL(page.url()).searchParams;
+    expect(query.get('target')).toBe(kind);
+    if (kind === 'direct') expect(query.get('serviceId')).toBe('http-monitor');
+    else {
       expect(query.get('agentId')).toBe('docker-host');
       expect(query.get('serviceKey')).toBe(serviceKey);
-      expect(query.get('tab')).toBe('rules');
-      await expect(page.getByText('Exact', { exact: true }).first()).toBeVisible();
-      await expect(page.getByText('Other target', { exact: true })).toHaveCount(0);
     }
+    expect(query.get('tab')).toBe('rules');
+    await expect(page.getByText('Exact', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('Other target', { exact: true })).toHaveCount(0);
   });
 }

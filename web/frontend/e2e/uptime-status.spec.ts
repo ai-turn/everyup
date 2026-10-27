@@ -43,7 +43,7 @@ test('active waiting checks and paused monitors stay distinct in the summary and
     await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name, exact: true }) }).getByText(label, { exact: true })).toBeVisible();
   }
   // 정상 · 장애 · 확인 대기 · 일시정지 — 대기와 정지를 합치지 않는다.
-  await expect(summary.locator('dd')).toHaveText(['1', '1', '1', '1']);
+  await expect(summary.getByRole('button')).toHaveText([/정상\s*1/, /장애\s*1/, /확인 대기\s*1/, /일시정지\s*1/]);
 });
 
 test('a load failure stays unknown rather than empty and recovers on retry', async ({ page }) => {

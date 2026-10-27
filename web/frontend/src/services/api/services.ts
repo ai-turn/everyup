@@ -1,4 +1,5 @@
 import { request } from './base';
+import type { ServiceHistoryPoint, TimelineIncident } from './agents';
 
 // --- Types ---
 
@@ -158,6 +159,8 @@ export interface UptimeMonitor {
   responseTime?: number;
   /** 최근 성공한 체크의 응답 시간(ms), 오래된 것부터. 목록 스파크라인용. */
   latencyHistory?: number[];
+  /** HTTPS 체크가 마지막으로 본 인증서 만료 시각. 주소를 바꾸면 비워진다. */
+  certExpiresAt?: string;
 }
 
 export interface UptimeMonitorInput {
@@ -221,6 +224,13 @@ export const servicesApi = {
 
   getUptimeMonitorHistory: (id: string, days = 90) =>
     request<UptimeMonitorHistory>(`/services/${id}/uptime?days=${days}`),
+
+  // Docker 서비스 이력과 같은 범위·버킷이다(1h 2분 · 6h 5분 · 24h 20분).
+  getUptimeMonitorBuckets: (id: string, range: '1h' | '6h' | '24h') =>
+    request<ServiceHistoryPoint[]>(`/services/${id}/metrics/history?range=${range}`),
+
+  getUptimeMonitorIncidents: (id: string, days = 90, limit = 20) =>
+    request<TimelineIncident[]>(`/services/${id}/incidents?days=${days}&limit=${limit}`),
 
   createUptimeMonitor: (data: UptimeMonitorInput) =>
     request<UptimeMonitor>('/services', { method: 'POST', body: JSON.stringify(data) }),

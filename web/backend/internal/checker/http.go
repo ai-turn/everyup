@@ -76,6 +76,7 @@ func (c *HTTPChecker) Check(config *models.HTTPConfig) *CheckResult {
 	defer resp.Body.Close()
 
 	result.StatusCode = resp.StatusCode
+	result.CertExpiresAt = leafCertExpiry(resp)
 
 	// Check expected status
 	if config.ExpectedStatus > 0 && resp.StatusCode != config.ExpectedStatus {
@@ -98,10 +99,22 @@ func (c *HTTPChecker) Check(config *models.HTTPConfig) *CheckResult {
 // CheckResult represents the result of a health check
 type CheckResult struct {
 	Status       models.CheckStatus
-	ResponseTime int    // milliseconds
-	StatusCode   int    // HTTP status code
+	ResponseTime int // milliseconds
+	StatusCode   int // HTTP status code
 	ErrorMessage string
 	CheckedAt    time.Time
+	// CertExpiresAt is the served leaf certificate's NotAfter; nil for plain HTTP.
+	CertExpiresAt *time.Time
+}
+
+// leafCertExpiry reads the certificate of the final (post-redirect) response.
+// Verification is skipped for self-signed certs, but the chain is still recorded.
+func leafCertExpiry(resp *http.Response) *time.Time {
+	if resp.TLS == nil || len(resp.TLS.PeerCertificates) == 0 {
+		return nil
+	}
+	t := resp.TLS.PeerCertificates[0].NotAfter
+	return &t
 }
 
 // ToMetric converts CheckResult to Metric model

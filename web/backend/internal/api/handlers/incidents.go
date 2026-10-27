@@ -65,20 +65,7 @@ func (h *IncidentHandler) GetTimeline(c *fiber.Ctx) error {
 	now := time.Now()
 	out := make([]models.TimelineIncident, 0, len(uptime)+len(docker))
 	for _, in := range uptime {
-		end := now
-		if in.ResolvedAt != nil {
-			end = *in.ResolvedAt
-		}
-		out = append(out, models.TimelineIncident{
-			Source:      models.IncidentSourceUptime,
-			TargetName:  in.ServiceName,
-			TargetPath:  "/uptime/" + in.ServiceID,
-			StartedAt:   in.StartedAt,
-			EndedAt:     in.ResolvedAt,
-			DurationSec: int64(end.Sub(in.StartedAt).Seconds()),
-			Active:      in.ResolvedAt == nil,
-			Message:     in.Message,
-		})
+		out = append(out, uptimeEpisode(in, now))
 	}
 	for _, in := range docker {
 		out = append(out, models.TimelineIncident{
@@ -137,4 +124,38 @@ func queryInt(c *fiber.Ctx, name string, def, min, max int) int {
 		return def
 	}
 	return parsed
+}
+
+// GetByService returns one uptime monitor's outage episodes, newest first.
+func (h *IncidentHandler) GetByService(c *fiber.Ctx) error {
+	days := queryInt(c, "days", 90, 1, 365)
+	limit := queryInt(c, "limit", 20, 1, 100)
+	uptime, err := h.repo.GetUptimeIncidentsForService(c.Params("id"), days, limit)
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	now := time.Now()
+	out := make([]models.TimelineIncident, 0, len(uptime))
+	for _, in := range uptime {
+		out = append(out, uptimeEpisode(in, now))
+	}
+	return c.JSON(fiber.Map{"success": true, "data": out})
+}
+
+// uptimeEpisode converts a stored uptime incident; an open one lasts until now.
+func uptimeEpisode(in database.UptimeIncident, now time.Time) models.TimelineIncident {
+	end := now
+	if in.ResolvedAt != nil {
+		end = *in.ResolvedAt
+	}
+	return models.TimelineIncident{
+		Source:      models.IncidentSourceUptime,
+		TargetName:  in.ServiceName,
+		TargetPath:  "/uptime/" + in.ServiceID,
+		StartedAt:   in.StartedAt,
+		EndedAt:     in.ResolvedAt,
+		DurationSec: int64(end.Sub(in.StartedAt).Seconds()),
+		Active:      in.ResolvedAt == nil,
+		Message:     in.Message,
+	}
 }

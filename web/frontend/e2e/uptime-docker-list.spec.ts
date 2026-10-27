@@ -32,7 +32,7 @@ test('Uptime lists independent monitors only (ADR 0007)', async ({ page }) => {
   await expect(rows.filter({ hasText: 'Public API' })).toContainText('HTTP · 30초');
   await expect(page.getByRole('link', { name: 'Docker API', exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Liveness worker', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('region', { name: '업타임 상태 요약' }).locator('dd')).toHaveText(['2', '0', '0', '0']);
+  await expect(page.getByRole('group', { name: '상태로 거르기' }).getByRole('button')).toHaveText([/정상\s*2/, /장애\s*0/, /확인 대기\s*0/, /일시정지\s*0/]);
   await expect(page.getByRole('combobox', { name: '검사 출처' })).toHaveCount(0);
 });
 

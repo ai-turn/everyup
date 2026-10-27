@@ -31,6 +31,16 @@ type UptimeIncident struct {
 // open are included — an outage running for a week is exactly what a timeline
 // must not hide.
 func (r *IncidentRepository) GetRecentUptimeIncidents(days, limit int) ([]UptimeIncident, error) {
+	return r.uptimeIncidents("", days, limit)
+}
+
+// GetUptimeIncidentsForService is GetRecentUptimeIncidents for one monitor.
+func (r *IncidentRepository) GetUptimeIncidentsForService(serviceID string, days, limit int) ([]UptimeIncident, error) {
+	return r.uptimeIncidents(serviceID, days, limit)
+}
+
+// uptimeIncidents filters by monitor when serviceID is non-empty.
+func (r *IncidentRepository) uptimeIncidents(serviceID string, days, limit int) ([]UptimeIncident, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 20
 	}
@@ -39,9 +49,9 @@ func (r *IncidentRepository) GetRecentUptimeIncidents(days, limit int) ([]Uptime
 SELECT i.service_id, COALESCE(s.name, i.service_id), COALESCE(i.message, ''), i.started_at, i.resolved_at
 FROM incidents i
 LEFT JOIN services s ON s.id = i.service_id
-WHERE i.started_at >= ? OR i.resolved_at IS NULL
+WHERE (i.started_at >= ? OR i.resolved_at IS NULL) AND (? = '' OR i.service_id = ?)
 ORDER BY i.started_at DESC
-LIMIT ?`, since, limit)
+LIMIT ?`, since, serviceID, serviceID, limit)
 	if err != nil {
 		return nil, err
 	}
