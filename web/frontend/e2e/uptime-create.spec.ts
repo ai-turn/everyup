@@ -25,9 +25,9 @@ test('[06] HTTP fields retain drafts through a failed save and block edits while
   const name = dialog.getByRole('textbox', { name: '이름', exact: true });
   const url = dialog.getByRole('textbox', { name: 'URL', exact: true });
   const interval = dialog.getByRole('spinbutton', { name: '주기 (초)', exact: true });
-  const timeout = dialog.getByRole('spinbutton', { name: '타임아웃 (ms)', exact: true });
+  const timeout = dialog.getByRole('spinbutton', { name: '타임아웃 (초)', exact: true });
   await expect(interval).toHaveValue('30');
-  await expect(timeout).toHaveValue('5000');
+  await expect(timeout).toHaveValue('5');
   await name.fill('HTTP Probe');
   await url.fill('https://probe.example.com/health');
   await interval.fill('');
@@ -37,7 +37,8 @@ test('[06] HTTP fields retain drafts through a failed save and block edits while
   await interval.fill('60');
   await timeout.fill('0');
   expect(await timeout.evaluate((element: HTMLInputElement) => element.validity.rangeUnderflow)).toBe(true);
-  await timeout.fill('2500');
+  // 주기와 같은 초 단위로 받고, API에는 ms로 보낸다.
+  await timeout.fill('2.5');
   const gate = deferred();
   state.holds.set('POST /services', gate.promise);
   state.failures.set('POST /services', 500);
@@ -112,7 +113,7 @@ test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves T
   await type.press('ArrowDown');
   await expect(port).toHaveValue('5432');
   await dialog.getByRole('spinbutton', { name: '주기 (초)' }).fill('5');
-  await dialog.getByRole('spinbutton', { name: '타임아웃 (ms)' }).fill('1');
+  await dialog.getByRole('spinbutton', { name: '타임아웃 (초)' }).fill('1');
   state.failures.set('POST /services', 500);
   const save = dialog.getByRole('button', { name: '추가', exact: true });
   await save.click();
@@ -129,5 +130,5 @@ test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves T
   await expect(card.getByText('db.example.com:5432', { exact: true })).toBeVisible();
   const writes = state.requests.filter((request) => request.method === 'POST');
   expect(writes).toHaveLength(2);
-  expect(writes[1].body).toEqual({ name: 'TCP Probe', type: 'tcp', host: 'db.example.com', port: 5432, interval: 5, timeout: 1 });
+  expect(writes[1].body).toEqual({ name: 'TCP Probe', type: 'tcp', host: 'db.example.com', port: 5432, interval: 5, timeout: 1000 });
 });

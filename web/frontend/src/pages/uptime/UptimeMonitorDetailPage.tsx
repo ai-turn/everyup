@@ -44,7 +44,8 @@ function ResponseTimeChart({ monitorId, metrics }: { monitorId: string; metrics:
 
 const CHECK_LOG_ROWS = 10;
 
-function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
+// TCP 체크에는 HTTP 상태 코드가 없다 — 열을 두면 모든 행이 `—`다.
+function CheckLog({ metrics, showStatusCode }: { metrics: UptimeMonitorMetric[]; showStatusCode: boolean }) {
   const rows = metrics.slice(0, CHECK_LOG_ROWS);
   // Bars share one scale across the table; failed checks have no response time to draw.
   const longest = Math.max(1, ...rows.filter((metric) => metric.status === 'success').map((metric) => metric.responseTime));
@@ -63,7 +64,7 @@ function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
               <tr className="text-left type-caption text-text-muted">
                 <th className="w-20 px-2 py-2 font-normal">결과</th>
                 <th className="w-44 px-2 py-2 font-normal">시각</th>
-                <th className="w-16 px-2 py-2 font-normal">HTTP</th>
+                {showStatusCode && <th className="w-16 px-2 py-2 font-normal">HTTP</th>}
                 <th className="w-28 px-2 py-2 font-normal sm:w-64">응답 시간</th>
                 <th className="px-2 py-2 font-normal">메시지</th>
               </tr>
@@ -75,7 +76,7 @@ function CheckLog({ metrics }: { metrics: UptimeMonitorMetric[] }) {
                   <tr key={metric.id} className="border-t border-ui-border-soft">
                     <td className="px-2 py-2.5"><StatusLight tone={ok ? 'healthy' : 'error'} label={ok ? '성공' : '실패'} /></td>
                     <td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatTimeLabel(new Date(metric.checkedAt).getTime())}</td>
-                    <td className="px-2 py-2.5 tabular-nums text-text-muted">{metric.statusCode ?? '—'}</td>
+                    {showStatusCode && <td className="px-2 py-2.5 tabular-nums text-text-muted">{metric.statusCode ?? '—'}</td>}
                     <td className="px-2 py-2.5">
                       {ok ? (
                         <div className="flex items-center gap-2">
@@ -241,7 +242,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
         days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
         error={!history ? errors.history : undefined}
       />
-      {metrics ? <><ResponseTimeChart monitorId={monitor.id} metrics={metrics} /><CheckLog metrics={metrics} /></> : (
+      {metrics ? <><ResponseTimeChart monitorId={monitor.id} metrics={metrics} /><CheckLog metrics={metrics} showStatusCode={monitor.type === 'http'} /></> : (
         <section className="rounded-xl border border-ui-border bg-bg-surface p-6 text-sm text-text-muted">응답 시간과 체크 기록을 불러오지 못했습니다.</section>
       )}
 

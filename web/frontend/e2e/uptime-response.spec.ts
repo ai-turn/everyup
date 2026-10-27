@@ -65,6 +65,8 @@ for (const mode of ['empty', 'single', 'tcp'] as const) {
       const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
       await expect(chart.locator('[aria-live="polite"]')).toContainText(mode === 'single' ? '120ms · HTTP 200' : '실패 · TCP connection refused');
       await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(1);
+      // TCP has no status code; the column would only ever show "—".
+      await expect(page.getByRole('table').getByRole('columnheader', { name: 'HTTP', exact: true })).toHaveCount(mode === 'tcp' ? 0 : 1);
       expect(await plot.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     }
   });

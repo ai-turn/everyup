@@ -39,11 +39,11 @@ test('active waiting checks and paused monitors stay distinct in the summary and
   });
   await page.goto('./uptime');
   const summary = page.getByRole('region', { name: '업타임 상태 요약' });
-  await expect(summary).toContainText('일시정지 1개 · 확인 대기 1개');
   for (const [name, label] of [['healthy-monitor', '정상'], ['failed-monitor', '장애'], ['waiting-monitor', '확인 대기'], ['paused-monitor', '일시정지']]) {
     await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name, exact: true }) }).getByText(label, { exact: true })).toBeVisible();
   }
-  await expect(summary.locator('dd')).toHaveText(['1', '1', '2']);
+  // 정상 · 장애 · 확인 대기 · 일시정지 — 대기와 정지를 합치지 않는다.
+  await expect(summary.locator('dd')).toHaveText(['1', '1', '1', '1']);
 });
 
 test('a load failure stays unknown rather than empty and recovers on retry', async ({ page }) => {
