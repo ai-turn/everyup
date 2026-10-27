@@ -94,6 +94,26 @@ func (h *MetricHandler) GetSummary(c *fiber.Ctx) error {
 	})
 }
 
+// GetHistory returns an uptime monitor's checks bucketed for the response-time
+// chart, with the same ranges and bucket sizes as Docker service history.
+func (h *MetricHandler) GetHistory(c *fiber.Ctx) error {
+	var since time.Duration
+	var bucketMins int
+	switch c.Query("range", "24h") {
+	case "1h":
+		since, bucketMins = time.Hour, 2
+	case "6h":
+		since, bucketMins = 6*time.Hour, 5
+	default: // 24h
+		since, bucketMins = 24*time.Hour, 20
+	}
+	points, err := h.repo.GetHistoryBuckets(c.Params("id"), time.Now().Add(-since), bucketMins)
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": points})
+}
+
 // GetRecentChecks returns recent check results (success + failure) across all non-log services
 func (h *MetricHandler) GetRecentChecks(c *fiber.Ctx) error {
 	limit := 200

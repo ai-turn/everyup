@@ -11,13 +11,15 @@ type MonitorDraft = {
   type: UptimeMonitorType;
   target: string;
   port: string;
+  /** HTTP만. 이 코드가 아니면 실패다(기본 200). */
+  expectedStatus: string;
   interval: string;
   /** 초. API는 ms라 저장할 때 바꾼다 — 주기와 같은 단위로 보여 주려고. */
   timeout: string;
 };
 
 const EMPTY_DRAFT: MonitorDraft = {
-  name: '', type: 'http', target: '', port: '443', interval: '30', timeout: '5',
+  name: '', type: 'http', target: '', port: '443', expectedStatus: '200', interval: '30', timeout: '5',
 };
 
 export function UptimeMonitorDialog({
@@ -36,6 +38,7 @@ export function UptimeMonitorDialog({
     type: monitor.type,
     target: monitor.url,
     port: String(monitor.port ?? 443),
+    expectedStatus: String(monitor.expectedStatus || 200),
     interval: String(monitor.interval),
     timeout: String(monitor.timeout / 1000),
   } : EMPTY_DRAFT);
@@ -54,7 +57,9 @@ export function UptimeMonitorDialog({
       await onSave({
         name: draft.name.trim(),
         type: draft.type,
-        ...(draft.type === 'http' ? { url: draft.target.trim() } : { host: draft.target.trim(), port: Number(draft.port) }),
+        ...(draft.type === 'http'
+          ? { url: draft.target.trim(), expectedStatus: Number(draft.expectedStatus) }
+          : { host: draft.target.trim(), port: Number(draft.port) }),
         interval: Number(draft.interval),
         timeout: Math.round(Number(draft.timeout) * 1000),
       });
@@ -102,10 +107,16 @@ export function UptimeMonitorDialog({
             <span className="text-sm font-medium text-text-secondary">{draft.type === 'http' ? 'URL' : '호스트'}</span>
             <Input required mono type={draft.type === 'http' ? 'url' : 'text'} pattern={draft.type === 'http' ? '[Hh][Tt][Tt][Pp][Ss]?://.+' : '.*\\S.*'} title={draft.type === 'http' ? 'http:// 또는 https://로 시작하는 주소를 입력하세요.' : undefined} value={draft.target} onChange={(event) => update('target', event.target.value)} placeholder={draft.type === 'http' ? 'https://api.example.com/health' : 'db.example.com'} />
           </label>
-          {draft.type === 'tcp' && (
+          {draft.type === 'tcp' ? (
             <label className="block space-y-1.5">
               <span className="text-sm font-medium text-text-secondary">포트</span>
               <Input required type="number" min={1} max={65535} value={draft.port} onChange={(event) => update('port', event.target.value)} />
+            </label>
+          ) : (
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-text-secondary">기대 상태 코드</span>
+              <Input required type="number" min={100} max={599} value={draft.expectedStatus} onChange={(event) => update('expectedStatus', event.target.value)} />
+              <span className="block type-caption text-text-muted">응답 코드가 이 값과 다르면 실패로 기록합니다.</span>
             </label>
           )}
           <div className="grid grid-cols-2 gap-3">

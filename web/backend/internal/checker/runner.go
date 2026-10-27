@@ -40,6 +40,13 @@ func (s *Scheduler) checkService(svc *models.Service) {
 		log.Printf("Failed to save metric for %s: %v", service.ID, err)
 	}
 
+	// The service was just re-read from the DB, so this writes only on change.
+	if result.CertExpiresAt != nil && (service.CertExpiresAt == nil || !service.CertExpiresAt.Equal(*result.CertExpiresAt)) {
+		if err := s.serviceRepo.SetCertExpiry(service.ID, *result.CertExpiresAt); err != nil {
+			log.Printf("Failed to save certificate expiry for %s: %v", service.ID, err)
+		}
+	}
+
 	// Evaluate endpoint alert rules
 	if s.serviceEvaluator != nil {
 		s.serviceEvaluator.Evaluate(service.ID, service.Name, result.StatusCode, result.ResponseTime)

@@ -404,3 +404,60 @@ func (r *MetricRepository) DeleteOld(retention time.Duration) (int64, error) {
 	}
 	return result.RowsAffected()
 }
+
+// GetHistoryBuckets groups a monitor's checks since `since` into bucketMins-minute
+// buckets, oldest first. The latency average covers successful checks only — a
+// failed check's time is its timeout.
+func (r *MetricRepository) GetHistoryBuckets(serviceID string, since time.Time, bucketMins int) ([]models.ServiceHistoryPoint, error) {
+	rows, err := DB.Query(`
+		SELECT status, response_time, checked_at
+		FROM metrics
+		WHERE service_id = ? AND checked_at >= ?
+		ORDER BY checked_at`, serviceID, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	type bucket struct {
+		t                     time.Time
+		total, success, sumMs int
+	}
+	var buckets []*bucket
+	for rows.Next() {
+		var status string
+		var ms int
+		var at time.Time
+		if err := rows.Scan(&status, &ms, &at); err != nil {
+			return nil, err
+		}
+		t := at.Truncate(time.Duration(bucketMins) * time.Minute)
+		// Rows arrive in time order, so a bucket only ever extends the last one.
+		if len(buckets) == 0 || !buckets[len(buckets)-1].t.Equal(t) {
+			buckets = append(buckets, &bucket{t: t})
+		}
+		b := buckets[len(buckets)-1]
+		b.total++
+		if status == string(models.CheckStatusSuccess) {
+			b.success++
+			b.sumMs += ms
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	points := make([]models.ServiceHistoryPoint, 0, len(buckets))
+	for _, b := range buckets {
+		p := models.ServiceHistoryPoint{
+			Time:      b.t.UTC().Format(time.RFC3339),
+			UptimePct: float64(b.success) * 100 / float64(b.total),
+			Total:     b.total,
+		}
+		if b.success > 0 {
+			p.LatencyMs = float64(b.sumMs) / float64(b.success)
+		}
+		points = append(points, p)
+	}
+	return points, nil
+}

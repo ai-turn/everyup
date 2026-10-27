@@ -5,6 +5,7 @@ import { Sparkline } from '../../../components/charts';
 import type { UptimeMonitor } from '../../../services/api';
 import { formatIncidentTime } from '../../../utils/incidentFormat';
 import { UptimeMonitorStatusBadge } from './UptimeMonitorStatusBadge';
+import { uptimeState } from '../uptimeState';
 import { UptimeTargetCard } from './UptimeTargetCard';
 import { tableRowLinkHandlers } from '../../../utils/tableRowLink';
 
@@ -17,6 +18,9 @@ interface Props {
   loading: boolean;
   changingMonitor: string | null;
   onSetActive: (monitor: UptimeMonitor) => void;
+  /** 일괄 작업 대상. 목록에 보이는 것만 담긴다. */
+  selected: ReadonlySet<string>;
+  onSelect: (ids: string[], checked: boolean) => void;
 }
 
 interface Target {
@@ -38,6 +42,18 @@ const stateOrder = { down: 0, stale: 1, waiting: 2, up: 3, paused: 4 } as const;
 const uptimeText = (monitor: UptimeMonitor) => monitor.uptime === undefined ? '—' : `${monitor.uptime.toFixed(2)}%`;
 const latencyText = (monitor: UptimeMonitor) => monitor.responseTime === undefined ? '—' : `${monitor.responseTime.toLocaleString()}ms`;
 
+// 체크박스는 16px이지만 누르는 자리는 44px(모바일)로 둔다.
+function SelectBox({ label, checked, indeterminate = false, disabled, onChange }: { label: string; checked: boolean; indeterminate?: boolean; disabled?: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <label className="-m-3 inline-flex cursor-pointer items-center justify-center p-3 sm:-m-2 sm:p-2">
+      <input type="checkbox" aria-label={label} checked={checked} disabled={disabled}
+        ref={(element) => { if (element) element.indeterminate = indeterminate; }}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-4 w-4 cursor-pointer accent-primary disabled:cursor-not-allowed" />
+    </label>
+  );
+}
+
 function LatencyTrend({ monitor }: { monitor: UptimeMonitor }) {
   const history = monitor.latencyHistory ?? [];
   return (
@@ -54,10 +70,14 @@ export function UptimeTargets(props: Props) {
     key: monitor.id, name: monitor.name, to: `/uptime/${monitor.id}`,
     endpoint: monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url,
     method: `${monitor.type.toUpperCase()} · ${monitor.interval}초`, lastCheck: monitor.lastCheckAt, monitor,
-    priority: error ? 1 : !monitor.isActive ? stateOrder.paused : monitor.status === 'unhealthy' ? stateOrder.down : monitor.status === 'healthy' ? stateOrder.up : stateOrder.waiting,
+    priority: error ? stateOrder.stale : stateOrder[uptimeState(monitor)],
     status: error ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />,
   }));
   targets.sort((a, b) => a.priority - b.priority);
+  const selectedCount = targets.filter((target) => props.selected.has(target.key)).length;
+  const selectBox = (target: Target) => (
+    <SelectBox label={`${target.name} 선택`} checked={props.selected.has(target.key)} onChange={(checked) => props.onSelect([target.key], checked)} />
+  );
 
   const action = (target: Target) => {
     const monitor = target.monitor;
@@ -85,7 +105,7 @@ export function UptimeTargets(props: Props) {
           </dl>
           <p className="type-caption text-text-muted">마지막 확인 {target.lastCheck ? formatIncidentTime(target.lastCheck) : '아직 없음'}</p>
         </div>}
-        actions={action(target)} />)}
+        actions={<div className="flex items-center gap-3">{selectBox(target)}{action(target)}</div>} />)}
     </div>;
   }
 
@@ -93,6 +113,12 @@ export function UptimeTargets(props: Props) {
     <table aria-label="업타임 그리드" className="w-full table-fixed text-left text-sm">
       <caption className="sr-only">장애와 확인이 필요한 대상을 먼저 표시합니다. 좁은 화면에서는 숨긴 열(주소, 업타임·응답, 최근 확인)을 대상 열에 함께 표시합니다.</caption>
       <thead className="border-b border-ui-border bg-ui-table-header text-xs text-text-muted"><tr>
+        {/* 모바일 그리드는 폭이 모자라 선택 열을 숨긴다 — 카드 보기에서는 고를 수 있다. */}
+        <th scope="col" className="hidden w-10 py-3 pl-4 sm:table-cell">
+          <SelectBox label="보이는 대상 모두 선택" checked={selectedCount > 0 && selectedCount === targets.length}
+            indeterminate={selectedCount > 0 && selectedCount < targets.length}
+            onChange={(checked) => props.onSelect(targets.map((target) => target.key), checked)} />
+        </th>
         <th scope="col" className="w-24 px-3 py-3 font-medium sm:w-28 sm:px-4">상태</th>
         <th scope="col" className="px-3 py-3 font-medium sm:px-4 md:w-48 xl:w-56">대상</th>
         <th scope="col" className="hidden px-4 py-3 font-medium md:table-cell">체크 주소</th>
@@ -102,6 +128,7 @@ export function UptimeTargets(props: Props) {
         <th scope="col" className="w-14 px-1 py-3 font-medium sm:w-28 sm:px-3"><span className="sr-only">모니터 상태 변경</span></th>
       </tr></thead>
       <tbody className="divide-y divide-ui-border-soft">{targets.map((target) => <tr key={target.key} {...tableRowLinkHandlers} className="table-row-link align-top transition-colors hover:bg-ui-hover-soft">
+        <td className="hidden py-4 pl-4 sm:table-cell">{selectBox(target)}</td>
         <td className="px-3 py-4 sm:px-4">{target.status}</td>
         <td className="min-w-0 px-3 py-4 sm:px-4">
           <Link data-row-link to={target.to} state={{ returnTo }} className="block truncate font-medium text-action" title={target.name}>{target.name}</Link>

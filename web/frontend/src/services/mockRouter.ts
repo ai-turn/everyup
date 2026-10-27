@@ -865,14 +865,14 @@ const mockUptimeMonitors: UptimeMonitor[] = [
     id: 'uptime_mock_store', name: 'Storefront', type: 'http', isActive: true,
     url: 'https://store.example.com/health', method: 'GET', expectedStatus: 200,
     timeout: 5000, interval: 30, status: 'healthy', responseTime: 128,
-    uptime: 99.98, latencyHistory: mockLatencyHistory(128, 24), lastCheckAt: new Date(nowAgent - 18_000).toISOString(),
+    uptime: 99.98, latencyHistory: mockLatencyHistory(128, 24), certExpiresAt: new Date(nowAgent + 83 * 86_400_000).toISOString(), lastCheckAt: new Date(nowAgent - 18_000).toISOString(),
   },
   // 업타임 메뉴는 직접 등록한 모니터만 보여 준다(ADR 0007) — 데모 목록이 비어 보이지 않게 둘을 더 둔다.
   {
     id: 'uptime_mock_checkout', name: 'Checkout API', type: 'http', isActive: true,
     url: 'https://checkout.example.com/healthz', method: 'GET', expectedStatus: 200,
     timeout: 5000, interval: 30, status: 'healthy', responseTime: 214,
-    uptime: 99.91, latencyHistory: mockLatencyHistory(214, 40), lastCheckAt: new Date(nowAgent - 9_000).toISOString(),
+    uptime: 99.91, latencyHistory: mockLatencyHistory(214, 40), certExpiresAt: new Date(nowAgent + 9 * 86_400_000).toISOString(), lastCheckAt: new Date(nowAgent - 9_000).toISOString(),
   },
   {
     id: 'uptime_mock_smtp', name: 'Mail relay', type: 'tcp', isActive: true,
@@ -910,6 +910,29 @@ const mockUptimeSummary: UptimeMonitorSummary = {
   minResponseTime: 82,
   maxResponseTime: 5000,
 };
+
+// 응답 시간 6H·24H 버킷 — 실제 API처럼 성공한 체크만 평균한다.
+function mockUptimeBuckets(range: string): ServiceHistoryPoint[] {
+  const [hours, bucketMs] = range === '1h' ? [1, 120_000] : range === '6h' ? [6, 300_000] : [24, 1_200_000];
+  const buckets = new Map<number, ServiceHistoryPoint & { sum: number; ok: number }>();
+  for (const metric of [...mockUptimeMetrics].reverse()) {
+    const at = new Date(metric.checkedAt).getTime();
+    if (at < nowAgent - hours * 3_600_000) continue;
+    const t = at - (at % bucketMs);
+    const bucket = buckets.get(t) ?? { time: new Date(t).toISOString(), latencyMs: 0, uptimePct: 0, total: 0, sum: 0, ok: 0 };
+    bucket.total += 1;
+    if (metric.status === 'success') { bucket.ok += 1; bucket.sum += metric.responseTime; }
+    buckets.set(t, bucket);
+  }
+  return [...buckets.values()].map(({ sum, ok, ...point }) => ({ ...point, latencyMs: ok ? sum / ok : 0, uptimePct: (ok / point.total) * 100 }));
+}
+
+// mockUptimeMetrics의 두 실패(9시간·8.5시간 전)가 연속 실패 기준을 넘긴 한 번의 장애다.
+const mockUptimeIncidents: TimelineIncident[] = [{
+  source: 'uptime', targetName: 'Storefront', targetPath: '/uptime/uptime_mock_store',
+  startedAt: new Date(nowAgent - 9 * 3_600_000).toISOString(), endedAt: new Date(nowAgent - 8.5 * 3_600_000).toISOString(),
+  durationSec: 1_800, active: false, message: 'upstream timeout',
+}];
 
 const mockUptimeHistory: UptimeMonitorHistory = {
   percentage: 99.98,
@@ -1498,6 +1521,10 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (uptimeMetricsMatch) return (uptimeMetricsMatch[1] === 'uptime_mock_store' ? mockUptimeMetrics : []) as T;
   const uptimeHistoryMatch = endpoint.match(/^\/services\/([^/]+)\/uptime(?:\?|$)/);
   if (uptimeHistoryMatch) return (uptimeHistoryMatch[1] === 'uptime_mock_store' ? mockUptimeHistory : { percentage: 100, days: [] }) as T;
+  const uptimeBucketsMatch = endpoint.match(/^\/services\/([^/]+)\/metrics\/history\?range=(\w+)/);
+  if (uptimeBucketsMatch) return (uptimeBucketsMatch[1] === 'uptime_mock_store' ? mockUptimeBuckets(uptimeBucketsMatch[2]) : []) as T;
+  const uptimeIncidentsMatch = endpoint.match(/^\/services\/([^/]+)\/incidents(?:\?|$)/);
+  if (uptimeIncidentsMatch) return (uptimeIncidentsMatch[1] === 'uptime_mock_store' ? mockUptimeIncidents : []) as T;
   const uptimeDetailMatch = endpoint.match(/^\/services\/([^/?]+)$/);
   if (uptimeDetailMatch) return (mockUptimeMonitors.find(({ id }) => id === uptimeDetailMatch[1]) ?? null) as T;
   const traceMatch = endpoint.match(/^\/traces\/([^/?]+)/);

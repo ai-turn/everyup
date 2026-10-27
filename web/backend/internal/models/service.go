@@ -68,6 +68,9 @@ type Service struct {
 	// wildcard (/actuator/*) matching.
 	ApiExcludePaths []string `json:"apiExcludePaths,omitempty"`
 
+	// TLS certificate expiry seen by the last HTTPS check. Cleared when the URL changes.
+	CertExpiresAt *time.Time `json:"certExpiresAt,omitempty"`
+
 	// Computed fields (not stored in DB, populated from metrics)
 	Status         ServiceStatus `json:"status,omitempty"`
 	LastCheckAt    *time.Time    `json:"lastCheckAt,omitempty"`
