@@ -323,7 +323,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           {loading && (
             <div className="flex items-center justify-center py-10 text-sm text-text-muted">
               <MaterialIcon size={20} name="sync" className="mr-2 animate-spin" />
-              트레이스 불러오는 중...
+              트레이스 불러오는 중…
             </div>
           )}
 
@@ -628,7 +628,7 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
             className="flex items-start gap-2 px-3 py-2 rounded-lg bg-ui-hover-soft border border-ui-border-soft text-sm"
           >
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs shrink-0 ${logLevelBadge(log.level)}`}>
-              {log.level.toUpperCase()}
+              {log.level}
             </span>
             <span className="text-text-muted shrink-0 mt-0.5">
               {formatTime(log.createdAt)}

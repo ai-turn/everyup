@@ -12,6 +12,12 @@ export function getChannelStyle(type: string): ChannelStyle {
   return channelStyles[type] ?? fallbackStyle;
 }
 
+const channelNames: Record<string, string> = { telegram: 'Telegram', discord: 'Discord', slack: 'Slack' };
+
+export function getChannelName(type: string): string {
+  return channelNames[type] ?? type;
+}
+
 // Brand name + transport, e.g. "Telegram · Bot API" — brand names are not translated
 const channelSubtitles: Record<string, string> = {
   telegram: 'Telegram · Bot API',

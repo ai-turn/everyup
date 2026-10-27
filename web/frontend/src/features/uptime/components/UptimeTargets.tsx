@@ -39,8 +39,8 @@ interface Target {
 const stateOrder = { down: 0, stale: 1, waiting: 2, up: 3, paused: 4 } as const;
 
 // 일시정지했거나 24시간 안에 체크가 없으면 서버가 값을 보내지 않는다.
-const uptimeText = (monitor: UptimeMonitor) => monitor.uptime === undefined ? '—' : `${monitor.uptime.toFixed(2)}%`;
-const latencyText = (monitor: UptimeMonitor) => monitor.responseTime === undefined ? '—' : `${monitor.responseTime.toLocaleString()}ms`;
+const uptimeText = (monitor: UptimeMonitor) => monitor.uptime === undefined ? '-' : `${monitor.uptime.toFixed(2)}%`;
+const latencyText = (monitor: UptimeMonitor) => monitor.responseTime === undefined ? '-' : `${monitor.responseTime.toLocaleString()}ms`;
 
 // 체크박스는 16px이지만 누르는 자리는 44px(모바일)로 둔다.
 function SelectBox({ label, checked, indeterminate = false, disabled, onChange }: { label: string; checked: boolean; indeterminate?: boolean; disabled?: boolean; onChange: (checked: boolean) => void }) {

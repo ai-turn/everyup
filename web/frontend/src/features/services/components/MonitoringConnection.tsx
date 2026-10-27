@@ -71,7 +71,7 @@ function ConnectionFlow({ capability, onClose, onConnected }: { capability: Capa
     </div> : <div className="mt-4 space-y-5">
       <p className="type-body text-text-muted">이미 등록된 대상을 사용하거나 새 대상을 연결하세요.</p>
       {error && <p role="alert" className="type-body text-status-error">{error}</p>}
-      {loading ? <p className="type-body text-text-muted">기존 대상 확인 중...</p> : targets.length > 0 ? <div className="space-y-3">
+      {loading ? <p className="type-body text-text-muted">기존 대상 확인 중…</p> : targets.length > 0 ? <div className="space-y-3">
         <Select aria-label="기존 모니터링 대상" value={selectedId} onChange={event => setSelectedId(event.target.value)}>{targets.map(target => <option key={target.id} value={target.id}>{target.label}</option>)}</Select>
         <Button onClick={next}>기존 대상 연결 확인</Button>
       </div> : <p className="type-body text-text-muted">등록된 대상이 없습니다.</p>}

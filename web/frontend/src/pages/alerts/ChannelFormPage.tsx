@@ -41,7 +41,7 @@ export function ChannelFormPage() {
 
   const goBack = () => navigate('/alerts');
 
-  useBreadcrumb([{ label: loading ? '...' : isEdit ? (channel?.name ?? '수정') : '새 채널' }]);
+  useBreadcrumb([{ label: loading ? '…' : isEdit ? (channel?.name ?? '수정') : '새 채널' }]);
 
   const title = isEdit
     ? '채널 편집'

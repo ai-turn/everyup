@@ -332,7 +332,7 @@ export function OverviewPage() {
                     {failedSources.includes(source) ? (
                       <div className="flex min-h-10 items-center justify-between gap-3 px-2">
                         <span className="text-sm text-text-secondary">{label}</span>
-                        <span className="text-sm text-text-muted" aria-label="확인 불가" title="불러오지 못했습니다">—</span>
+                        <span className="text-sm text-text-muted" aria-label="확인 불가" title="불러오지 못했습니다">-</span>
                       </div>
                     ) : (
                       // 숫자만 링크였던 8px 타깃 대신 행 전체를 링크로 — 이름도 "Docker 환경 2"로 읽힌다.
@@ -361,7 +361,7 @@ export function OverviewPage() {
                 <p className="mt-0.5 type-body text-text-muted">업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.</p>
               </div>
               <span className="text-sm tabular-nums text-text-muted" aria-label={timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}>
-                {timelineFailed ? '—' : timeline.length}
+                {timelineFailed ? '-' : timeline.length}
               </span>
             </div>
             {timelineFailed && (

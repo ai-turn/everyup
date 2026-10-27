@@ -72,7 +72,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview, returnTo }
           <div>
             <div className="text-xs text-text-dim">업타임 30일</div>
             <div className="font-medium text-text-base">
-              {overview.uptimePct != null ? `${overview.uptimePct.toFixed(2)}%` : '—'}
+              {overview.uptimePct != null ? `${overview.uptimePct.toFixed(2)}%` : '-'}
             </div>
           </div>
           <div>
@@ -80,7 +80,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview, returnTo }
             <div className="font-medium text-text-base">
               {overview.requests24h > 0
                 ? Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(overview.requests24h)
-                : '—'}
+                : '-'}
             </div>
           </div>
           <div>
@@ -90,7 +90,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview, returnTo }
                 ? 'text-status-warn'
                 : 'text-text-base'
             }`}>
-              {overview.p95Ms != null ? `${overview.p95Ms}ms` : '—'}
+              {overview.p95Ms != null ? `${overview.p95Ms}ms` : '-'}
             </div>
           </div>
         </div>
@@ -261,9 +261,9 @@ export function ServiceGridPage() {
           { key: 'name', label: 'Docker 환경', render: row => <>{row.pending ? <span className="block truncate font-medium">{row.agentName}</span> : <Link to={`/agents/${row.agentId}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.agentName}</Link>}<div className="mt-2 md:hidden">{row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} />}</div><p className="mt-2 type-caption text-text-muted lg:hidden">서비스 {row.services.length}개{row.rollup?.uptimePct != null ? ` · 30일 업타임 ${row.rollup.uptimePct.toFixed(2)}%` : ''}</p></> },
           { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} /> },
           { key: 'services', label: '서비스', className: 'hidden w-24 lg:table-cell', align: 'right', render: row => row.services.length },
-          { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => row.rollup?.uptimePct == null ? '—' : `${row.rollup.uptimePct.toFixed(2)}%` },
-          { key: 'requests', label: '요청 24h', className: 'hidden w-28 xl:table-cell', align: 'right', render: row => row.rollup?.requests24h ? row.rollup.requests24h.toLocaleString() : '—' },
-          { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => row.rollup?.p95Ms == null ? '—' : `${row.rollup.p95Ms}ms` },
+          { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => row.rollup?.uptimePct == null ? '-' : `${row.rollup.uptimePct.toFixed(2)}%` },
+          { key: 'requests', label: '요청 24h', className: 'hidden w-28 xl:table-cell', align: 'right', render: row => row.rollup?.requests24h ? row.rollup.requests24h.toLocaleString() : '-' },
+          { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => row.rollup?.p95Ms == null ? '-' : `${row.rollup.p95Ms}ms` },
           { key: 'actions', label: '작업', className: 'w-32', render: row => row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-2"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
         ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {groups.map((g) => (

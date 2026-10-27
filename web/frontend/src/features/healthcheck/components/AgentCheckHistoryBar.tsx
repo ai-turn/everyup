@@ -31,8 +31,8 @@ export function AgentCheckHistoryBar({ agentId, refreshKey, className }: AgentCh
       className={className}
       loading={loading}
       stats={[
-        { label: '90일 업타임', value: uptime90d === null ? '—' : `${uptime90d.toFixed(2)}%` },
-        { label: '90일 장애', value: loading ? '—' : `${incidentDays}일` },
+        { label: '90일 업타임', value: uptime90d === null ? '-' : `${uptime90d.toFixed(2)}%` },
+        { label: '90일 장애', value: loading ? '-' : `${incidentDays}일` },
       ]}
       days={days.map((day) => ({
         date: day.date,

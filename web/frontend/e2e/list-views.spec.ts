@@ -29,7 +29,7 @@ for (const width of [1440, 375]) for (const [route, title, label] of menus) {
     const table = page.getByRole('table', { name: label, exact: true });
     const main = page.locator('main');
     await expect(table).toBeVisible();
-    await expect(page.getByText('로딩 중...', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('로딩 중…', { exact: true })).toHaveCount(0);
     await expect(toggle.getByRole('button', { name: '그리드', exact: true })).toHaveAttribute('aria-pressed', 'true');
     const originalHrefs = await hrefs(table);
     const originalSwitches = await switches(main);
@@ -126,7 +126,7 @@ test('notification cards preserve the current page and filter without fetching a
   const requests = historyRequests.length;
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();
   await expect(page.getByText('Record #26', { exact: true })).toBeVisible();
-  await expect(page.getByText('총 60건 중 26–50', { exact: true })).toBeVisible();
+  await expect(page.getByText('총 60건 중 26~50', { exact: true })).toBeVisible();
   expect(historyRequests.length).toBe(requests);
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '그리드', exact: true }).click();
   await expect(table.getByText('Record #26', { exact: true })).toBeVisible();

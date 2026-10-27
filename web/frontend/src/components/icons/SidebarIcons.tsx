@@ -11,6 +11,7 @@ const defaults = (size = 20): SVGProps<SVGSVGElement> => ({
   strokeWidth: 1.8,
   strokeLinecap: 'round' as const,
   strokeLinejoin: 'round' as const,
+  'aria-hidden': true,
 });
 
 /**

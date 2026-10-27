@@ -25,8 +25,8 @@ test('metric list shows one card per service and the detail shows every metric a
   await page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true }).click();
   const panels = ['http.server.active_requests', 'http.server.request.duration', 'jvm.memory.used'];
   for (const name of panels) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
-  await expect(page.getByText('gauge · MB', { exact: true })).toBeVisible();
-  await expect(page.getByText('histogram · 구간 평균 · ms', { exact: true })).toBeVisible();
+  await expect(page.getByText('gauge, MB', { exact: true })).toBeVisible();
+  await expect(page.getByText('histogram, 구간 평균, ms', { exact: true })).toBeVisible();
 
   // A panel's title opens that metric alone, with the histogram distribution.
   await page.getByRole('button', { name: 'http.server.request.duration', exact: true }).click();

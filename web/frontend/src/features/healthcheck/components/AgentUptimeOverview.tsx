@@ -46,15 +46,15 @@ export function AgentUptimeOverview({ agentId, serviceKey, refreshKey }: AgentUp
 
   return (
     <div className="space-y-3">
-    {errors.length > 0 && <UptimeFetchNotice source={errors.join(' · ')} onRetry={() => setAttempt((value) => value + 1)} />}
+    {errors.length > 0 && <UptimeFetchNotice source={errors.join(', ')} onRetry={() => setAttempt((value) => value + 1)} />}
     <UptimeOverview
       loading={loading}
       error={!days && errors.includes('90일 이력') ? '조회 실패' : undefined}
       stats={[
-        { label: '24시간 업타임', value: uptime24h === null ? '—' : `${uptime24h.toFixed(2)}%` },
-        { label: '90일 업타임', value: uptime90d === null ? '—' : `${uptime90d.toFixed(2)}%` },
-        { label: '24시간 체크', value: points === null ? '—' : totalChecks.toLocaleString() },
-        { label: '90일 장애', value: checks90d === 0 ? '—' : `${incidentDays}일` },
+        { label: '24시간 업타임', value: uptime24h === null ? '-' : `${uptime24h.toFixed(2)}%` },
+        { label: '90일 업타임', value: uptime90d === null ? '-' : `${uptime90d.toFixed(2)}%` },
+        { label: '24시간 체크', value: points === null ? '-' : totalChecks.toLocaleString() },
+        { label: '90일 장애', value: checks90d === 0 ? '-' : `${incidentDays}일` },
       ]}
       days={(days ?? []).filter((day) => day.totalChecks > 0).map((day) => ({
         date: day.date,

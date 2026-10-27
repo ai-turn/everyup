@@ -37,7 +37,7 @@ function LogSparkline({ buckets, window: span }: { buckets: LogHistogramBucket[]
       className="flex h-8 items-end gap-px border-b border-ui-border"
     >
       {slots.map(slot => (
-        <div key={slot.t} title={`${formatTimeTick(slot.t)} · ERROR ${slot.error} · WARN ${slot.warn}`} className="flex h-full flex-1 flex-col-reverse">
+        <div key={slot.t} title={`${formatTimeTick(slot.t)} 오류 ${slot.error}건, 경고 ${slot.warn}건`} className="flex h-full flex-1 flex-col-reverse">
           {slot.error > 0 && <div className={LEVEL_FILL.error} style={bar(slot.error)} />}
           {slot.warn > 0 && <div className={LEVEL_FILL.warn} style={bar(slot.warn)} />}
         </div>
@@ -60,7 +60,7 @@ function LevelCount({ label, value, tone, known }: { label: string; value: numbe
       <p className="text-xs text-text-dim">{label}</p>
       {known
         ? <p className={`text-lg tabular-nums ${value > 0 ? tone : 'text-text-base'}`}>{value.toLocaleString()}</p>
-        : <p className="text-lg text-text-dim" title="최근 24시간 수신한 로그 없음">—</p>}
+        : <p className="text-lg text-text-dim" title="최근 24시간 수신한 로그 없음">-</p>}
     </div>
   );
 }
@@ -120,10 +120,10 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
         <div className="min-w-0 flex-1">
           <p className="truncate font-mono text-sm text-text-base" title={pattern.message}>{pattern.message}</p>
           {/* 줄바꿈은 항목 사이에서만 — "처음 2일 / 전"처럼 시간 표현이 갈라지지 않게 */}
-          <p className="mt-0.5 text-xs text-text-dim">
-            {row.name} · <span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span> ·{' '}
+          <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-text-dim">
+            <span>{row.name}</span><span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span>
             {isNew
-              ? <strong className="whitespace-nowrap font-medium text-text-secondary">새로 발생 · {ago(pattern.firstSeen)}</strong>
+              ? <strong className="whitespace-nowrap font-medium text-text-secondary">새로 발생 {ago(pattern.firstSeen)}</strong>
               : <span className="whitespace-nowrap">처음 {ago(pattern.firstSeen)}</span>}
           </p>
         </div>
@@ -152,7 +152,7 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
           <ResourceTable rows={rows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
             { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden">{row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} />}</div><div className="mt-2 flex min-w-0 items-baseline gap-2 text-xs xl:hidden"><LatestLine summary={row.summary} known={collectionOf(row.summary, span[0]) === 'collecting'} /></div></> },
             { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} /> },
-            ...(['error', 'warn'] as const).map(level => ({ key: level, label: level.toUpperCase(), className: 'w-20', align: 'right' as const, render: (row: LogServiceRow) => collectionOf(row.summary, span[0]) === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <span className="text-text-muted" title="최근 24시간 수신한 로그 없음">—</span> })),
+            ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: LogServiceRow) => collectionOf(row.summary, span[0]) === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <span className="text-text-muted" title="최근 24시간 수신한 로그 없음">-</span> })),
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },
             { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 text-xs"><LatestLine summary={row.summary} known={collectionOf(row.summary, span[0]) === 'collecting'} /></div> },
           ]} />}

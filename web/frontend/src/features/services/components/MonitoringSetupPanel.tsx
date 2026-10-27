@@ -207,7 +207,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
   const host = report
     ? [report.host.os, report.host.kernelVersion && `kernel ${report.host.kernelVersion}`, report.host.arch]
       .filter(Boolean)
-      .join(' · ')
+      .join(', ')
     : '';
   const basicTitle = containerCollectionEnabled && infrastructureEnabled
     ? '컨테이너·로그·호스트'
@@ -235,9 +235,9 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
               ? '기본 모니터링 설정이 완료됐습니다. 필요할 때 상세 수집을 추가하세요.'
               : '위에서 아래 순서로 확인하면 별도 앱 수정 없이 기본 모니터링을 시작할 수 있습니다.'}
           </p>
-          <p className="mt-2 type-body text-text-muted">
-            수집 프로필: {profileLabels[profile?.kind ?? 'all-in-one']} · 사용 {enabledCapabilityLabels.join(', ')}
-            {unavailableCapabilityLabels.length > 0 && ` · 미선택 ${unavailableCapabilityLabels.join(', ')}`}
+          <p className="mt-2 flex flex-wrap gap-x-4 type-body text-text-muted">
+            <span>수집 프로필: {profileLabels[profile?.kind ?? 'all-in-one']}</span><span>사용: {enabledCapabilityLabels.join(', ')}</span>
+            {unavailableCapabilityLabels.length > 0 && <span>미선택: {unavailableCapabilityLabels.join(', ')}</span>}
           </p>
           {onAddCapability && unavailableCapabilities.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">

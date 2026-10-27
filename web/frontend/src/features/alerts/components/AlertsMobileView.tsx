@@ -241,7 +241,7 @@ export function AlertsMobileView({
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-lg ${sev.bg} flex items-center justify-center shrink-0`}>
                       <span className={`text-xs ${sev.text}`}>
-                        {rule.metric?.toUpperCase().slice(0, 3)}
+                        {rule.metric === 'cpu' ? 'CPU' : rule.metric?.slice(0, 3)}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">

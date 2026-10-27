@@ -39,7 +39,6 @@ export function DirectConnectionMeta({
       status={
         <>
           <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '수집 가능' : '중지됨'} />
-          <span aria-hidden="true">·</span>
           <span>마지막 수집 {lastSeenAt ? new Date(lastSeenAt).toLocaleString() : '아직 없음'}</span>
           {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 원리 */}
           {isActive && <Button variant="ghost" onClick={onRevoke}><MaterialIcon name="block" />연결 중지</Button>}

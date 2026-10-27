@@ -92,11 +92,9 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
                 <DockerUptimeStatus service={service} />
                 {service.lastLatency && (
                   <>
-                    <span aria-hidden="true">·</span>
                     <span>지연 시간 {service.lastLatency}</span>
                   </>
                 )}
-                <span aria-hidden="true">·</span>
                 <span>마지막 체크 {lastChecked}</span>
               </>
             }

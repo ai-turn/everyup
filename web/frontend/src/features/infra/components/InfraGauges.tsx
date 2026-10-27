@@ -45,7 +45,7 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
   return (
     <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
       <div className="flex min-h-5 items-center justify-between gap-2">
-        <p className="truncate text-xs font-medium uppercase tracking-wider text-text-muted">
+        <p className="truncate text-xs font-medium text-text-muted">
           {gauge.label}
         </p>
         {critical && <StatusLight tone="error" label="위험" />}

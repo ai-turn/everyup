@@ -21,7 +21,7 @@ test('[12] Docker snapshot loading, errors, stale refresh and missing keys are d
   const gate = deferred(); state.holds.set('GET /agents/services/all', gate.promise);
   try {
     await page.goto(url);
-    await expect(page.getByText('로딩 중...', { exact: true })).toBeVisible();
+    await expect(page.getByText('로딩 중…', { exact: true })).toBeVisible();
     gate.resolve(); state.holds.clear();
     await expect(page.getByText('서비스를 불러오지 못했습니다', { exact: true })).toBeVisible();
     state.failures.clear();
@@ -76,7 +76,7 @@ test('[12] Docker uptime uses check-weighted totals and no-data is not zero inci
   await expect(overview.locator('dl > div').filter({ hasText: '24시간 업타임' }).locator('dd')).toHaveText('90.00%');
   state.responses.set(`GET ${source}/history`, []); state.responses.set(`GET ${source}/uptime`, []);
   await page.getByRole('button', { name: '새로고침', exact: true }).click();
-  await expect(overview.locator('dl > div').filter({ hasText: '90일 장애' }).locator('dd')).toHaveText('—');
+  await expect(overview.locator('dl > div').filter({ hasText: '90일 장애' }).locator('dd')).toHaveText('-');
   await expect(page.getByText('알림 기록이 없습니다', { exact: true })).toBeVisible();
 });
 
@@ -87,7 +87,7 @@ test('[12] Docker data sources show loading until their own requests complete', 
     await page.goto(url);
     await expect(page.getByRole('heading', { name: 'Docker API', exact: true })).toBeVisible();
     const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
-    await expect(overview.locator('dd')).toHaveText(['—', '—', '—', '—']);
+    await expect(overview.locator('dd')).toHaveText(['-', '-', '-', '-']);
     await expect(page.getByText('알림 기록이 없습니다', { exact: true })).toHaveCount(0);
     gate.resolve();
     await expect(overview.locator('dd').first()).toHaveText('90.00%');

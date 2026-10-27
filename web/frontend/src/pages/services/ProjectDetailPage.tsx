@@ -80,12 +80,12 @@ function ServiceCard({ service, metric, to, returnTo }: {
       <div className="grid grid-cols-3 gap-3 text-sm">
         <div className="min-w-0">
           <div className="text-xs text-text-dim">응답 시간</div>
-          <div className="font-medium text-text-base truncate">{service.lastLatency ?? '—'}</div>
+          <div className="font-medium text-text-base truncate">{service.lastLatency ?? '-'}</div>
         </div>
         <div className="min-w-0">
           <div className="text-xs text-text-dim">상태</div>
           <div className={`${service.healthy ? 'text-status-healthy' : 'text-status-error'}`}>
-            {service.lastStatus ?? '—'}
+            {service.lastStatus ?? '-'}
           </div>
         </div>
         {metric && (
@@ -243,11 +243,9 @@ export function ProjectDetailPage() {
             status={
               <>
                 <CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />
-                <span aria-hidden="true">·</span>
-                <span>
-                  서비스 {services.length}개 · 정상 {healthy}
-                  {!allHealthy && ` · 장애 ${services.length - healthy}`}
-                </span>
+                <span>서비스 {services.length}개</span>
+                <span>정상 {healthy}</span>
+                {!allHealthy && <span>장애 {services.length - healthy}</span>}
               </>
             }
             fields={agent?.version ? [{ label: 'Version', value: `v${agent.version}` }] : []}
@@ -288,7 +286,7 @@ export function ProjectDetailPage() {
         >
           <span className="h-2.5 w-2.5 rounded-full bg-status-error animate-pulse shrink-0" />
           <span className="text-sm font-medium text-text-base truncate">
-            진행 중 장애 — {banner.serviceName}
+            진행 중 장애: {banner.serviceName}
           </span>
           <span className="text-xs text-text-muted shrink-0">
             {formatDuration(banner.durationSec)} {'경과'}
@@ -308,11 +306,11 @@ export function ProjectDetailPage() {
       ) : (
         view === 'grid' ? <ResourceTable rows={services} rowKey={row => row.key} ariaLabel="Docker 서비스 그리드" columns={[
           { key: 'state', label: '상태', className: 'w-24 sm:w-28', render: row => <DockerUptimeStatus service={row} /> },
-          { key: 'name', label: '서비스', render: row => <><Link to={`/services/${agentId}/${encodeURIComponent(row.key)}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.runtime || row.checkType}</p><p className="mt-2 truncate font-mono text-xs text-text-muted md:hidden">{row.endpoint}</p><p className="mt-1 type-caption text-text-muted md:hidden">응답 {row.lastLatency ?? '—'} · 상태 {row.lastStatus ?? '—'}</p></> },
+          { key: 'name', label: '서비스', render: row => <><Link to={`/services/${agentId}/${encodeURIComponent(row.key)}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.runtime || row.checkType}</p><p className="mt-2 truncate font-mono text-xs text-text-muted md:hidden">{row.endpoint}</p><p className="mt-1 type-caption text-text-muted md:hidden">응답 {row.lastLatency ?? '-'} · 상태 {row.lastStatus ?? '-'}</p></> },
           { key: 'endpoint', label: '체크 주소', className: 'hidden lg:table-cell', render: row => <p className="truncate font-mono text-xs text-text-muted" title={row.endpoint}>{row.endpoint}</p> },
-          { key: 'latency', label: '응답 시간', className: 'hidden w-28 md:table-cell', align: 'right', render: row => row.lastLatency ?? '—' },
-          { key: 'status', label: '상태 코드', className: 'hidden w-24 md:table-cell', align: 'right', render: row => row.lastStatus ?? '—' },
-          { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <><p className="truncate font-mono text-xs text-text-muted" title={metrics[row.name].metricName}>{metricLabel(metrics[row.name].metricName)}</p><p className="mt-1">{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></> : '—' },
+          { key: 'latency', label: '응답 시간', className: 'hidden w-28 md:table-cell', align: 'right', render: row => row.lastLatency ?? '-' },
+          { key: 'status', label: '상태 코드', className: 'hidden w-24 md:table-cell', align: 'right', render: row => row.lastStatus ?? '-' },
+          { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <><p className="truncate font-mono text-xs text-text-muted" title={metrics[row.name].metricName}>{metricLabel(metrics[row.name].metricName)}</p><p className="mt-1">{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></> : '-' },
         ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {services.map((s) => (
             <ServiceCard

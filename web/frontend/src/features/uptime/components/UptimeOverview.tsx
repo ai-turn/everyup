@@ -70,7 +70,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
 
       <div className="mt-6 mb-2 flex flex-wrap justify-between gap-3 type-caption text-text-muted">
         <span>지난 90일{historyUptime !== undefined && !loading && !error && <> · <span className="font-medium tabular-nums text-text-base">{historyUptime.toFixed(2)}%</span></>}</span>
-        {!loading && !error && <><span>기록 {recordedDays}/90일</span><span>일부 실패 {partialDays}일 · 전체 실패 {downDays}일</span></>}
+        {!loading && !error && <><span>기록 {recordedDays}/90일</span><span>일부 실패 {partialDays}일, 전체 실패 {downDays}일</span></>}
       </div>
       {error ? <p className="py-3 text-sm text-text-muted">90일 이력을 불러오지 못했습니다. {error}</p> : loading ? (
         <div className="h-7 animate-pulse rounded bg-ui-hover" />
@@ -79,7 +79,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
           className="flex gap-0.5"
           role="group"
           tabIndex={0}
-          aria-label="최근 90일 일별 업타임 상태 — 방향키로 날짜를 옮깁니다"
+          aria-label="최근 90일 일별 업타임 상태. 방향키로 날짜를 옮깁니다"
           onKeyDown={moveFocus}
           onFocus={() => setHoveredIndex((index) => index ?? HISTORY_DAYS - 1)}
           onBlur={() => setHoveredIndex(null)}
@@ -110,7 +110,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
         {hovered && (
           <span className="order-last basis-full break-words text-center text-text-secondary sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">
             <span className="font-medium">{hovered.date}</span>
-            {' — '}
+            {' '}
             {hovered.day === null ? '기록 없음' : <>{hovered.day.uptime.toFixed(1)}% {'업타임'}</>}
             {hovered.day?.detail && <> ({hovered.day.detail})</>}
           </span>
