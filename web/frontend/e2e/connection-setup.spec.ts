@@ -18,13 +18,13 @@ test('existing collector gains metrics from its Docker environment', async ({ pa
   await chooser.getByRole('button', { name: '메트릭 추가 및 적용 명령' }).click();
   const installer = page.getByRole('dialog', { name: 'Docker Collector 설치 및 모니터링 설정' });
   await expect(installer.getByText('Docker Collector 연결을 기다리는 중', { exact: true })).toBeVisible();
-  await expect(installer.getByText(/사용 업타임, 로그, 메트릭/)).toBeVisible();
+  await expect(installer.getByText(/사용: 업타임, 로그, 메트릭/)).toBeVisible();
   await expect(installer.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
   await expect(installer.getByRole('button', { name: '설치 명령 복사' })).toBeEnabled();
   await expect(installer.getByText('Docker Collector 연결을 확인했습니다', { exact: true })).toHaveCount(0);
   await installer.getByRole('button', { name: '나중에 확인' }).click();
   await expect(page.getByRole('button', { name: '메트릭 추가', exact: true })).toHaveCount(0);
-  await expect(page.getByText(/사용 업타임, 로그, 메트릭/)).toBeVisible();
+  await expect(page.getByText(/사용: 업타임, 로그, 메트릭/)).toBeVisible();
 });
 
 test('direct setup uses an external endpoint and waits for actual data', async ({ page }) => {

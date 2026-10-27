@@ -8,12 +8,12 @@
  * 이미 금지하던 패턴이고, 배지만 예외였다). 틴트를 빼니 대비도 같이 올랐다 —
  * 라이트 기준 red 5.30→6.47, amber 4.51→5.02, sky 5.17→5.93.
  *
- * 서체도 sans에서 mono로 바꿨다. ERROR/WARN/INFO는 기계가 찍는 토큰이고 같은 표의
+ * 서체도 sans에서 mono로 바꿨다. error/warn/info는 기계가 찍는 토큰이고 같은 표의
  * 시간·메시지 컬럼이 전부 mono인데 레벨만 Spoqa(가변폭)라, 글자폭이 제각각인 만큼
  * 컬럼이 들쭉날쭉했다. 틴트는 그 들쭉날쭉함을 덮는 역할도 하고 있었다 — mono 고정폭
  * + `w-12`로 컬럼 모양을 잡으면 채움이 필요 없어진다.
  */
-export const LEVEL_BASE = 'inline-block shrink-0 w-12 font-mono text-xs font-medium uppercase';
+export const LEVEL_BASE = 'inline-block shrink-0 w-12 font-mono text-xs font-medium';
 
 export const LEVEL_TEXT: Record<string, string> = {
   error: 'text-red-700 dark:text-red-400',

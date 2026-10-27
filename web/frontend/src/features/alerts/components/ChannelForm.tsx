@@ -360,7 +360,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                             <input {...register('type')} type="radio" value={type} className="sr-only" />
                                             <m.Icon size={26} className={active ? m.color : 'text-text-dim'} />
                                             <span className={`text-sm ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
-                                            <span className="text-sm font-medium uppercase tracking-wider text-text-dim">{m.sub}</span>
+                                            <span className="text-sm font-medium text-text-dim">{m.sub}</span>
                                         </label>
                                     );
                                 })}
@@ -391,7 +391,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     <Input
                                         id="channel-bot-token"
                                         {...register('botToken')}
-                                        placeholder="123456:ABC-DEF1234ghIkl..."
+                                        placeholder="123456:ABC-DEF1234ghIkl…"
                                         mono invalid={!!errors.botToken}
                                     />
                                 </Field>
@@ -424,8 +424,8 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         id="channel-webhook-url"
                                         {...register('webhookUrl')}
                                         placeholder={watchedType === 'slack'
-                                            ? 'https://hooks.slack.com/services/...'
-                                            : 'https://discord.com/api/webhooks/...'}
+                                            ? 'https://hooks.slack.com/services/…'
+                                            : 'https://discord.com/api/webhooks/…'}
                                         mono invalid={!!errors.webhookUrl}
                                     />
                                 </Field>
@@ -466,13 +466,13 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     {watchedType === 'telegram' ? (
                                         <>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-text-dim uppercase text-xs tracking-wide">Bot Token</span>
+                                                <span className="text-text-dim text-xs">Bot Token</span>
                                                 <span className="font-mono text-text-muted">
                                                     {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim">미입력</span>}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-text-dim uppercase text-xs tracking-wide">Chat ID</span>
+                                                <span className="text-text-dim text-xs">Chat ID</span>
                                                 <span className="font-mono text-text-muted">
                                                     {watchedChatId || <span className="text-text-dim">미입력</span>}
                                                 </span>
@@ -480,7 +480,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         </>
                                     ) : (
                                         <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg gap-3">
-                                            <span className="text-text-dim uppercase text-xs tracking-wide shrink-0">Webhook</span>
+                                            <span className="text-text-dim text-xs shrink-0">Webhook</span>
                                             <span className="font-mono text-text-muted truncate text-right">
                                                 {watchedWebhook
                                                     ? watchedWebhook.replace(/^https?:\/\//, '').slice(0, 32) + (watchedWebhook.length > 40 ? '…' : '')

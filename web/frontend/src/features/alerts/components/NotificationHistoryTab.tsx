@@ -48,7 +48,7 @@ interface NotificationHistoryTabProps {
 type HistoryRow = { kind: 'group'; label: string; key: string } | { kind: 'item'; item: NotificationHistory };
 
 function HistoryCards({ rows, loading }: { rows: HistoryRow[]; loading: boolean }) {
-  if (loading) return <p className="p-6 text-sm text-text-muted">로딩 중...</p>;
+  if (loading) return <p className="p-6 text-sm text-text-muted">로딩 중…</p>;
   if (rows.length === 0) return <p className="p-6 text-sm text-text-muted">알림 히스토리가 없습니다</p>;
   return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{rows.map(row => row.kind === 'group' ? <h2 key={`g-${row.key}`} className="col-span-full type-label text-text-muted">{row.label}</h2> : <HistoryCard key={row.item.id} item={row.item} />)}</div>;
 }
@@ -56,7 +56,7 @@ function HistoryCards({ rows, loading }: { rows: HistoryRow[]; loading: boolean 
 function HistoryCard({ item }: { item: NotificationHistory }) {
   return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><StatusLight tone={item.status === 'sent' ? 'healthy' : item.status === 'failed' ? 'error' : 'warn'} label={item.status} />{item.severity && <SeverityBadge severity={item.severity} />}</div>
-    <p className="mt-3 break-words text-sm text-text-base">{item.message}</p><p className="mt-2 break-words type-caption text-text-muted">{item.channelName} · {item.channelType} · {typeLabel(item.alertType)}</p>
+    <p className="mt-3 break-words text-sm text-text-base">{item.message}</p><p className="mt-2 flex flex-wrap gap-x-3 break-words type-caption text-text-muted"><span>{item.channelName}</span><span>{item.channelType}</span><span>{typeLabel(item.alertType)}</span></p>
     {item.errorMessage && <p className="mt-3 break-words type-caption text-status-error">{item.errorMessage}{item.retryCount > 0 && ` · ${item.retryCount}회 재시도`}</p>}
     <p className="mt-3 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })} · {format(new Date(item.createdAt), 'M월 d일 HH:mm')}</p>
   </article>;
@@ -229,7 +229,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-text-muted">
                     <MaterialIcon size={36} name="sync" className="animate-spin mx-auto mb-2" />
-                    <p>로딩 중...</p>
+                    <p>로딩 중…</p>
                   </td>
                 </tr>
               ) : history.length === 0 ? (
@@ -308,7 +308,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
         {!loading && total > 0 && (
           <div className="flex items-center justify-between border-t border-ui-border bg-ui-hover-soft/60 px-4 py-2.5">
             <p className="text-xs text-text-muted">
-              {`총 ${total}건 중 ${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, total)}`}
+              {`총 ${total}건 중 ${(page - 1) * PAGE_SIZE + 1}~${Math.min(page * PAGE_SIZE, total)}`}
             </p>
             <Pagination
               page={page}

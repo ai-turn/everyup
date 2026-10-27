@@ -36,7 +36,7 @@ function ResourceCard({ resource, returnTo }: { resource: InfrastructureResource
           {values.map(([label, value]) => (
             <div key={label}>
               <p className="text-xs text-text-dim">{label}</p>
-              <p className="text-base text-text-base">{value == null ? '—' :`${value.toFixed(1)}%`}</p>
+              <p className="text-base text-text-base">{value == null ? '-' :`${value.toFixed(1)}%`}</p>
             </div>
           ))}
         </div>
@@ -90,9 +90,9 @@ export function InfrastructurePage() {
           </div>
           {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{resources.map(resource => <ResourceCard key={resource.id} resource={resource} returnTo={returnTo} />)}</div> :
             <ResourceTable rows={resources} rowKey={row => row.id} ariaLabel="인프라 대상 그리드" columns={[
-              { key: 'name', label: '대상', render: row => <><Link to={`/infrastructure/${row.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><div className="mt-2 md:hidden">{resourceCollectionStatus(row)}<p className="mt-2 type-caption text-text-muted">CPU {row.cpuUsage == null ? '—' : `${row.cpuUsage.toFixed(1)}%`} · 메모리 {row.memoryUsage == null ? '—' : `${row.memoryUsage.toFixed(1)}%`} · 디스크 {row.diskUsage == null ? '—' : `${row.diskUsage.toFixed(1)}%`}</p></div></> },
+              { key: 'name', label: '대상', render: row => <><Link to={`/infrastructure/${row.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><div className="mt-2 md:hidden">{resourceCollectionStatus(row)}<p className="mt-2 type-caption text-text-muted">CPU {row.cpuUsage == null ? '-' : `${row.cpuUsage.toFixed(1)}%`}, 메모리 {row.memoryUsage == null ? '-' : `${row.memoryUsage.toFixed(1)}%`}, 디스크 {row.diskUsage == null ? '-' : `${row.diskUsage.toFixed(1)}%`}</p></div></> },
               { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: resourceCollectionStatus },
-              ...(['cpuUsage', 'memoryUsage', 'diskUsage'] as const).map((key, index) => ({ key, label: ['CPU', '메모리', '디스크'][index], className: 'hidden w-24 md:table-cell', align: 'right' as const, render: (row: InfrastructureResource) => row[key] == null ? '—' : `${row[key].toFixed(1)}%` })),
+              ...(['cpuUsage', 'memoryUsage', 'diskUsage'] as const).map((key, index) => ({ key, label: ['CPU', '메모리', '디스크'][index], className: 'hidden w-24 md:table-cell', align: 'right' as const, render: (row: InfrastructureResource) => row[key] == null ? '-' : `${row[key].toFixed(1)}%` })),
             ]} />}
         </section>
       )}

@@ -101,7 +101,7 @@ function ProjectCard({ project, returnTo, agents, monitors, directServices, infr
       <div className="mt-5 space-y-2">
         {agents.map(agent => <AssignedRow key={agent.id} label={agent.name} detail="Docker 환경" removeLabel="Docker 환경 해제" onRemove={() => onUnassignAgent(agent.id)} />)}
         {monitors.map(monitor => <AssignedRow key={monitor.id} label={monitor.name} detail={monitor.type.toUpperCase()} removeLabel="업타임 해제" onRemove={() => onUnassignMonitor(monitor.id)} />)}
-        {directServices.map(service => <AssignedRow key={service.id} label={service.name} detail={service.signals.join(' · ')} removeLabel="직접 서비스 해제" onRemove={() => onUnassignDirect(service.id)} />)}
+        {directServices.map(service => <AssignedRow key={service.id} label={service.name} detail={service.signals.join(', ')} removeLabel="직접 서비스 해제" onRemove={() => onUnassignDirect(service.id)} />)}
         {infrastructureResources.map(resource => <AssignedRow key={resource.id} label={resource.name} detail="Collector" removeLabel="Collector 해제" onRemove={() => onUnassignInfrastructure(resource.id)} />)}
         {empty && <p className="type-body text-text-muted">아직 배정된 대상이 없습니다</p>}
       </div>

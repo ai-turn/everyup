@@ -174,7 +174,7 @@ function ServiceRequestsPanel({
             wrapperClassName="flex-1"
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
-            placeholder="경로 검색..."
+            placeholder="경로 검색…"
           />
           {search && (
             <IconButton icon="close" label="검색어 지우기" tone="quiet" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }} />
@@ -215,16 +215,16 @@ function ServiceRequestsPanel({
                     <span className="shrink-0 text-action">1</span>
                     <span>
                       Docker Collector Compose의 <code className="font-mono text-xs bg-ui-hover px-1 py-0.5 rounded">everyup-ebpf</code> 블록
-                      주석 해제 — 앱 수정 없이 경로·상태·지연 시간 수집
+                      주석 해제(앱 수정 없이 경로·상태·지연 시간 수집)
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <span className="shrink-0 text-action">2</span>
                     <span>
                       헤더까지 필요하면 앱에 OpenTelemetry 연결
-                      {source.runtime === 'java' && ' — Java는 JAVA_TOOL_OPTIONS 환경변수만으로 가능'}
-                      {source.runtime === 'node' && ' — Node.js는 NODE_OPTIONS 환경변수만으로 가능'}
-                      {source.runtime === 'python' && ' — Python은 opentelemetry-instrument로 가능'}
+                      {source.runtime === 'java' && ' (Java는 JAVA_TOOL_OPTIONS 환경변수만으로 가능)'}
+                      {source.runtime === 'node' && ' (Node.js는 NODE_OPTIONS 환경변수만으로 가능)'}
+                      {source.runtime === 'python' && ' (Python은 opentelemetry-instrument로 가능)'}
                     </span>
                   </li>
                 </ul>
@@ -242,8 +242,8 @@ function ServiceRequestsPanel({
                 {...activatable(() => setActiveTraceId(req.traceId!), clickable)}
                 className={`flex items-center gap-3 px-4 py-3 bg-bg-surface transition-colors ${clickable ? 'cursor-pointer hover:bg-ui-hover-soft' : ''}`}
               >
-                <span className={`shrink-0 px-1.5 py-0.5 rounded text-xs uppercase ${methodClass(req.method)}`}>
-                  {req.method}
+                <span className={`shrink-0 px-1.5 py-0.5 rounded text-xs ${methodClass(req.method)}`}>
+                  {req.method.toUpperCase()}
                 </span>
                 <span className={`shrink-0 text-sm ${statusClass(req.statusCode)}`}>
                   {req.statusCode}
@@ -262,7 +262,7 @@ function ServiceRequestsPanel({
           {totalPages > 1 && (
             <div className="flex items-center justify-between bg-ui-hover-soft/60 px-4 py-2.5">
               <p className="text-xs text-text-dim">
-                {total.toLocaleString()}건 중 {((page - 1) * PAGE_SIZE + 1).toLocaleString()}–{Math.min(page * PAGE_SIZE, total).toLocaleString()}
+                {total.toLocaleString()}건 중 {((page - 1) * PAGE_SIZE + 1).toLocaleString()}~{Math.min(page * PAGE_SIZE, total).toLocaleString()}
               </p>
               <Pagination page={page} totalPages={totalPages} onChange={setPage} previousLabel="이전" nextLabel="다음" />
             </div>

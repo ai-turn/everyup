@@ -234,7 +234,7 @@ function ServiceRequestTrends({
               ))}
               {summary.top5xxPath && (
                 <span className="text-text-muted truncate">
-                  · {'5xx 최다'}: <span className="font-mono text-status-error">{summary.top5xxMethod} {summary.top5xxPath}</span> ×{summary.top5xxCount}
+                  {'5xx 최다'}: <span className="font-mono text-status-error">{summary.top5xxMethod} {summary.top5xxPath}</span> ×{summary.top5xxCount}
                 </span>
               )}
             </div>

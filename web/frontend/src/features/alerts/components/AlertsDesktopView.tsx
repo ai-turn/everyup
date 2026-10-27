@@ -141,7 +141,7 @@ export function AlertsDesktopView({
           <span className="text-xs text-text-muted">성공률</span>
           <span className="flex items-center gap-2">
             <span className="text-xl tabular-nums text-text-base">
-              {successRate != null ? `${successRate}%` : '—'}
+              {successRate != null ? `${successRate}%` : '-'}
             </span>
             {successRate != null && (
               <span className="h-1 w-12 overflow-hidden rounded-full bg-ui-hover">
@@ -348,7 +348,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
                 <td className="px-4 py-2.5 text-sm text-text-muted">
                   {lastSent
                     ? formatDistanceToNow(lastSent, { addSuffix: true, locale: ko })
-                    : <span className="text-text-dim">— 테스트로 확인</span>}
+                    : <span className="text-text-dim">테스트로 확인</span>}
                 </td>
                 <td className="sticky right-0 border-l border-ui-border-soft bg-bg-surface px-4 py-2.5 transition-colors group-hover:bg-ui-hover-soft">
                   <div className="flex items-center justify-end gap-1">

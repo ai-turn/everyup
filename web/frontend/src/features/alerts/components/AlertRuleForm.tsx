@@ -8,7 +8,7 @@ import { FormStep, Field } from './FormLayout';
 import { MaterialIcon, Input, Select } from '../../../components/common';
 import { FIELD_SHELL } from '../../../components/common/Input';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
-import { getChannelStyle } from '../utils/channelMeta';
+import { getChannelName, getChannelStyle } from '../utils/channelMeta';
 import { SEVERITY_LABELS } from '../utils/severityLabel';
 import {
     api,
@@ -184,7 +184,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                 <p className="text-sm text-text-muted">등록된 알림 채널이 없습니다</p>
                             ) : channels.map(ch => (
                                 <button key={ch.id} type="button" onClick={() => handleToggleChannel(ch.id)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-all ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-action' : 'border-ui-border-soft text-slate-500'}`}>
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-colors ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-action' : 'border-ui-border-soft text-slate-500'}`}>
                                     <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
                                     <span className="text-sm flex-1 text-left">{ch.name}</span>
                                 </button>
@@ -470,7 +470,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         key={cat.value}
                                         type="button"
                                         onClick={() => handleCategoryChange(cat.value)}
-                                        className={`flex items-center gap-2 px-3 py-3 border-2 rounded-xl transition-all text-left ${
+                                        className={`flex items-center gap-2 px-3 py-3 border-2 rounded-xl transition-colors text-left ${
                                             watchedCategory === cat.value
                                                 ? 'border-primary bg-primary/10 text-action'
                                                 : 'border-ui-border-soft text-text-muted hover:border-slate-200 dark:hover:border-slate-600'
@@ -563,7 +563,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                                 key={m}
                                                 type="button"
                                                 onClick={() => handleMetricChange(m)}
-                                                className={`px-3 py-2 rounded-lg text-sm border-2 transition-all ${
+                                                className={`px-3 py-2 rounded-lg text-sm border-2 transition-colors ${
                                                     watchedMetric === m
                                                         ? 'border-primary bg-primary/10 text-action'
                                                         : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
@@ -571,7 +571,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                             >
                                                 {m === 'log_level' ? '로그 레벨' : m === 'api_status_code' ? 'API 요청'
                                                     : m === 'error_rate' ? '에러율' : m === 'latency_p95' ? 'p95 지연' : m === 'latency_p99' ? 'p99 지연'
-                                                    : m.replace('_', ' ').toUpperCase()}
+                                                    : m === 'cpu' ? 'CPU' : m === 'memory' ? '메모리' : m === 'disk' ? '디스크' : m.replace('_', ' ')}
                                             </button>
                                         ))}
                                     </div>
@@ -602,7 +602,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         key={p.value}
                                         type="button"
                                         onClick={() => handleConditionPreset(p.value)}
-                                        className={`flex items-center justify-center gap-1.5 p-3 border-2 rounded-xl transition-all text-sm ${
+                                        className={`flex items-center justify-center gap-1.5 p-3 border-2 rounded-xl transition-colors text-sm ${
                                             conditionPreset === p.value
                                                 ? 'border-primary bg-primary/10 text-action'
                                                 : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
@@ -736,7 +736,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         key={s.value}
                                         type="button"
                                         onClick={() => setValue('severity', s.value)}
-                                        className={`py-2.5 text-sm rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
+                                        className={`py-2.5 text-sm rounded-xl border-2 transition-colors flex items-center justify-center gap-2 ${
                                             watchedSeverity === s.value
                                                 ? s.active
                                                 : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
@@ -761,7 +761,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                         key={ch.id}
                                         type="button"
                                         onClick={() => handleToggleChannel(ch.id)}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-all ${
+                                        className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-colors ${
                                             watchedChannelIds.includes(ch.id)
                                                 ? 'border-primary bg-primary/5 text-action'
                                                 : 'border-ui-border-soft text-slate-500 hover:border-slate-200 dark:hover:border-slate-600'
@@ -769,7 +769,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                     >
                                         <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
                                         <span className="text-sm flex-1 text-left">{ch.name}</span>
-                                        <span className="text-sm uppercase tracking-wider text-text-dim">{ch.type}</span>
+                                        <span className="text-sm text-text-dim">{getChannelName(ch.type)}</span>
                                     </button>
                                 ))}
                             </div>
@@ -778,7 +778,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                         <Field
                             htmlFor="rule-message"
                             label="알림 메시지"
-                            hint={'선택 · 자동 생성 메시지 대체' + ' · ' + `사용 가능한 변수: ${(isRequest
+                            hint={'선택 사항입니다. 입력하면 자동 생성 메시지 대신 보냅니다. ' + `사용 가능한 변수: ${(isRequest
                                     ? ['{service_name}', '{value}', '{threshold}', '{duration}']
                                     : isApiStatus
                                     ? ['{service_name}', '{method}', '{path}', '{status}', '{duration}']
@@ -863,7 +863,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                     <p className="text-xs font-medium text-text-muted mb-2">메시지</p>
                                     <div className={`rounded-xl px-3 py-3 ${severityClasses.bg}`}>
                                         <div className="flex items-center gap-2 mb-1.5">
-                                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs uppercase tracking-wide ${severityClasses.badge}`}>
+                                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs ${severityClasses.badge}`}>
                                                 <span className={`w-1.5 h-1.5 rounded-full ${severityClasses.dot}`} />
                                                 {watchedSeverity}
                                             </span>
@@ -889,7 +889,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                             <div key={ch.id} className="flex items-center gap-2 px-3 py-1.5 bg-ui-hover-soft/50 rounded-lg">
                                                 <ChannelIcon type={ch.type} size={14} className={getChannelStyle(ch.type).text} />
                                                 <span className="text-sm font-medium text-text-secondary flex-1 truncate">{ch.name}</span>
-                                                <span className="text-xs text-text-dim uppercase">{ch.type}</span>
+                                                <span className="text-xs text-text-dim">{getChannelName(ch.type)}</span>
                                             </div>
                                         ))}
                                         {previewChannels.length > 5 && (

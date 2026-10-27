@@ -181,7 +181,7 @@ function MetricChart({ source, meta, range, refreshKey, rules, expanded = false,
       // A metric name is an identifier, so it reads in mono like other code.
       titleClassName="font-mono text-sm"
       // A histogram is stored as each export's average, so that is what the line is.
-      unit={[meta.metricType, histogram && '구간 평균', unit].filter(Boolean).join(' · ')}
+      unit={[meta.metricType, histogram && '구간 평균', unit].filter(Boolean).join(', ')}
       right={right}
     >
       {/* Quantiles cover the whole window and every series, so they get their own

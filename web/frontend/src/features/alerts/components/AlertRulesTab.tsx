@@ -361,7 +361,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
     return (
       <div className="p-8 text-center text-slate-500">
         <MaterialIcon size={32} name="sync" className="text-action animate-spin mx-auto mb-2 block" />
-        로딩 중...
+        로딩 중…
       </div>
     );
   }
@@ -527,7 +527,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                       <td className="px-4 py-2.5 align-middle text-sm text-text-muted whitespace-nowrap">
                         {rule.lastTriggeredAt
                           ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko })
-                          : <span className="text-text-dim">—</span>}
+                          : <span className="text-text-dim">-</span>}
                       </td>
                       <td className="sticky right-0 border-l border-ui-border-soft bg-bg-surface px-4 py-2 text-right align-middle whitespace-nowrap transition-colors group-hover:bg-ui-hover-soft">
                         <div className="inline-flex items-center justify-end gap-1">

@@ -70,7 +70,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
     return (
       <div className="flex items-center justify-center h-64 gap-3 text-text-muted">
         <MaterialIcon size={24} name="sync" className="animate-spin" />
-        <span>로딩 중...</span>
+        <span>로딩 중…</span>
       </div>
     );
   }

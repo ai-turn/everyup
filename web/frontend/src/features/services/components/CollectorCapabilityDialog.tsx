@@ -44,7 +44,7 @@ export function CollectorCapabilityDialog({ agent, capability, onClose, onApply 
           <ReceiptPanel signals={status.signals} expected={[capability === 'api' ? 'traces' : capability]} />
         </> : <p className="text-sm text-text-muted">이 Docker 환경 전체에 기능을 추가합니다. 적용 명령을 서버에서 실행해야 하며, API 요청 수집은 eBPF Observer와 호스트 권한을 추가합니다. 앱 재시작은 필요하지 않습니다.</p>}
         {(!enabled || !status.configApplied || !status.connected) && <Button onClick={() => void apply()} loading={saving}>{enabled ? '설정 적용 명령' : `${labels[capability]} 추가 및 적용 명령`}</Button>}
-      </> : <p className="text-sm text-text-muted">수집 설정 확인 중...</p>}
+      </> : <p className="text-sm text-text-muted">수집 설정 확인 중…</p>}
     </div>
     <div className="mt-5 flex justify-end border-t border-ui-border pt-4">
       <Button variant="quiet" onClick={onClose} disabled={saving}>닫기</Button>

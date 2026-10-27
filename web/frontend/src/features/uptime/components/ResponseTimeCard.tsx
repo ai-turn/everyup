@@ -57,7 +57,7 @@ function SummaryLine({ slot, latencies, failedChecks }: { slot: ResponseSlot | n
       {slot ? (
         <span className="text-text-secondary">
           <span className="font-medium">{formatTimeLabel(slot.t)}</span>
-          {` — ${slot.latencyMs === null ? '실패' : `${round(slot.latencyMs)}ms`} · ${slot.detail}`}
+          {` ${slot.latencyMs === null ? '실패' : `${round(slot.latencyMs)}ms`}, ${slot.detail}`}
         </span>
       ) : (
         <>
@@ -134,7 +134,7 @@ export function ResponseTimeCard({ slots, failedChecks, caption, window, thresho
               className="relative min-w-0 flex-1 overflow-x-clip"
               role="group"
               tabIndex={0}
-              aria-label="체크별 결과와 응답 시간 — 방향키로 체크를 옮깁니다"
+              aria-label="체크별 결과와 응답 시간. 방향키로 체크를 옮깁니다"
               onKeyDown={moveFocus}
               onFocus={() => setHovered((index) => index ?? slots.length - 1)}
               onBlur={() => setHovered(null)}

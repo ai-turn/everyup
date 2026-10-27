@@ -35,7 +35,7 @@ test('6H switches the response chart to server buckets', async ({ page }) => {
   await page.goto('./uptime/http-monitor');
   await page.getByRole('group', { name: '응답 시간 범위' }).getByRole('button', { name: '6H' }).click();
   const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
-  await expect(chart.getByText('최근 6시간 · 5분 단위 · ms')).toBeVisible();
+  await expect(chart.getByText('최근 6시간, 5분 단위, ms')).toBeVisible();
   await expect(chart.locator('[aria-live="polite"]')).toContainText('실패 1회');
   expect(state.requests.some((request) => request.path === '/services/http-monitor/metrics/history' && request.query === '?range=6h')).toBe(true);
 });

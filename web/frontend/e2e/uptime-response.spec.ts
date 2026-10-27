@@ -22,16 +22,16 @@ test('[14] successful latency, failed timeout, gaps, summaries and check rows ag
   const positions = await slots.evaluateAll((elements) => elements.map((element) => { const box = element.getBoundingClientRect(); return { x: box.x, width: box.width }; }));
   expect(positions[3].x - positions[2].x).toBeGreaterThan(positions[2].width * 10);
   await plot.focus(); await plot.press('Home');
-  await expect(chart.locator('[aria-live="polite"]')).toContainText('0ms · HTTP 200');
+  await expect(chart.locator('[aria-live="polite"]')).toContainText('0ms, HTTP 200');
   await plot.press('ArrowRight');
-  await expect(chart.locator('[aria-live="polite"]')).toContainText('100ms · HTTP 200');
+  await expect(chart.locator('[aria-live="polite"]')).toContainText('100ms, HTTP 200');
   await plot.press('End');
-  await expect(chart.locator('[aria-live="polite"]')).toContainText(`실패 · HTTP 503 · ${longError}`);
+  await expect(chart.locator('[aria-live="polite"]')).toContainText(`실패, HTTP 503, ${longError}`);
   await slots.nth(2).hover();
-  await expect(chart.locator('[aria-live="polite"]')).toContainText('200ms · HTTP 200');
+  await expect(chart.locator('[aria-live="polite"]')).toContainText('200ms, HTTP 200');
   const rows = page.getByRole('table').locator('tbody tr');
   await expect(rows).toHaveCount(4);
-  await expect(rows.first().getByRole('cell').nth(3)).toHaveText('—');
+  await expect(rows.first().getByRole('cell').nth(3)).toHaveText('-');
   await expect(rows.first()).toContainText(longError);
   await expect(rows.nth(1).getByRole('cell').nth(3)).toContainText('200ms');
   await expect(rows.first().getByRole('cell').nth(1)).toContainText(new Date(state.metrics[0].checkedAt).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
@@ -63,7 +63,7 @@ for (const mode of ['empty', 'single', 'tcp'] as const) {
     } else {
       const plot = page.getByRole('group', { name: /체크별/ }); await plot.focus();
       const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
-      await expect(chart.locator('[aria-live="polite"]')).toContainText(mode === 'single' ? '120ms · HTTP 200' : '실패 · TCP connection refused');
+      await expect(chart.locator('[aria-live="polite"]')).toContainText(mode === 'single' ? '120ms, HTTP 200' : '실패, TCP connection refused');
       await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(1);
       // TCP has no status code; the column would only ever show "—".
       await expect(page.getByRole('table').getByRole('columnheader', { name: 'HTTP', exact: true })).toHaveCount(mode === 'tcp' ? 0 : 1);

@@ -388,7 +388,7 @@ function ServiceLogsPanel(props: Props) {
             wrapperClassName="flex-1"
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
-            placeholder="메시지 검색..."
+            placeholder="메시지 검색…"
           />
           {search && (
             <IconButton icon="close" label="검색어 지우기" tone="quiet" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }} />
@@ -425,7 +425,7 @@ function ServiceLogsPanel(props: Props) {
             onClick={() => { setPicked(null); setPage(1); }}
             title="구간 필터 해제"
           >
-            <span className="tabular-nums">{formatTimeTick(activeBucket)} – {formatTimeTick(activeBucket + bucketMs)}</span>
+            <span className="tabular-nums">{formatTimeTick(activeBucket)} ~ {formatTimeTick(activeBucket + bucketMs)}</span>
             <MaterialIcon size={20} name="close" />
           </Button>
         )}
@@ -478,7 +478,7 @@ function ServiceLogsPanel(props: Props) {
                   key={l}
                   type="button"
                   onClick={() => toggleIngestLevel(l)}
-                  className={`px-2.5 py-1 rounded-lg text-xs uppercase transition-colors ${
+                  className={`px-2.5 py-1 rounded-lg text-xs transition-colors ${
                     on
                       ? LEVEL_CHIP[l]
                       : 'bg-bg-surface text-text-dim border border-ui-border opacity-60'
@@ -514,7 +514,7 @@ function ServiceLogsPanel(props: Props) {
       {/* Count */}
       {!loading && total > 0 && (
         <p className="text-xs text-text-dim">
-          {total.toLocaleString()}건 중 {((page - 1) * PAGE_SIZE + 1).toLocaleString()}–{Math.min(page * PAGE_SIZE, total).toLocaleString()}
+          {total.toLocaleString()}건 중 {((page - 1) * PAGE_SIZE + 1).toLocaleString()}~{Math.min(page * PAGE_SIZE, total).toLocaleString()}
         </p>
       )}
 

@@ -75,7 +75,7 @@ export function Sidebar() {
 
       {env.isDemoMode && (
         <div data-demo-chrome className="mx-3 mb-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-action">Live Demo</p>
+          <p className="text-xs font-medium text-action">Live Demo</p>
           <div className="mt-2"><DemoScenarioSwitcher tone="light" /></div>
         </div>
       )}

@@ -22,7 +22,7 @@ import { listReturnTo } from '../../utils/listReturnTo';
 // 최근 = 체크별 막대(체크마다 상태 코드·메시지가 있다), 6H·24H = 버킷. Uptime Kuma의 recent/6h/24h와 같다.
 type ResponseRange = 'recent' | '6h' | '24h';
 const RESPONSE_RANGES = [{ label: '최근', value: 'recent' }, { label: '6H', value: '6h' }, { label: '24H', value: '24h' }] as const;
-const BUCKET_CAPTION = { '6h': '최근 6시간 · 5분 단위 · ms', '24h': '최근 24시간 · 20분 단위 · ms' } as const;
+const BUCKET_CAPTION = { '6h': '최근 6시간, 5분 단위, ms', '24h': '최근 24시간, 20분 단위, ms' } as const;
 
 function ResponseTimeChart({ monitorId, metrics, range, refreshKey }: { monitorId: string; metrics: UptimeMonitorMetric[]; range: ResponseRange; refreshKey: number }) {
   const thresholds = useAlertThresholds({ kind: 'direct', serviceId: monitorId }, 'response_time');
@@ -40,7 +40,7 @@ function ResponseTimeChart({ monitorId, metrics, range, refreshKey }: { monitorI
       t: new Date(metric.checkedAt).getTime(),
       latencyMs: ok ? metric.responseTime : null,
       state: ok ? 'up' as const : 'down' as const,
-      detail: [code, ok ? '' : metric.errorMessage].filter(Boolean).join(' · ') || '체크 실패',
+      detail: [code, ok ? '' : metric.errorMessage].filter(Boolean).join(', ') || '체크 실패',
     };
   });
   const hours = slots.length > 1 ? Math.round((slots[slots.length - 1].t - slots[0].t) / 3_600_000) : 0;
@@ -49,7 +49,7 @@ function ResponseTimeChart({ monitorId, metrics, range, refreshKey }: { monitorI
     <ResponseTimeCard
       slots={slots}
       failedChecks={slots.filter((slot) => slot.latencyMs === null).length}
-      caption={[`체크 ${slots.length}회`, hours > 0 && `최근 ${hours}시간`, 'ms'].filter(Boolean).join(' · ')}
+      caption={[`체크 ${slots.length}회`, hours > 0 && `최근 ${hours}시간`, 'ms'].filter(Boolean).join(', ')}
       thresholds={thresholds}
     />
   );
@@ -84,7 +84,7 @@ function OutageHistory({ incidents }: { incidents: TimelineIncident[] }) {
                   <td className="px-2 py-2.5"><StatusLight tone={incident.active ? 'error' : 'healthy'} label={incident.active ? '진행 중' : '복구'} /></td>
                   <td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary" title={new Date(incident.startedAt).toLocaleString()}>{formatIncidentTime(incident.startedAt)}</td>
                   <td className="px-2 py-2.5 tabular-nums text-text-base">{formatDuration(incident.durationSec)}</td>
-                  <td className="truncate px-2 py-2.5 font-mono text-xs text-text-muted" title={incident.message}>{incident.message || '—'}</td>
+                  <td className="truncate px-2 py-2.5 font-mono text-xs text-text-muted" title={incident.message}>{incident.message || '-'}</td>
                 </tr>
               ))}
             </tbody>
@@ -117,7 +117,7 @@ function metaFields(monitor: UptimeMonitor, target: string) {
   ];
 }
 
-// TCP 체크에는 HTTP 상태 코드가 없다 — 열을 두면 모든 행이 `—`다.
+// TCP 체크에는 HTTP 상태 코드가 없다 — 열을 두면 모든 행이 `-`다.
 function CheckLog({ metrics, showStatusCode }: { metrics: UptimeMonitorMetric[]; showStatusCode: boolean }) {
   const rows = metrics.slice(0, CHECK_LOG_ROWS);
   // Bars share one scale across the table; failed checks have no response time to draw.
@@ -149,7 +149,7 @@ function CheckLog({ metrics, showStatusCode }: { metrics: UptimeMonitorMetric[];
                   <tr key={metric.id} className="border-t border-ui-border-soft">
                     <td className="px-2 py-2.5"><StatusLight tone={ok ? 'healthy' : 'error'} label={ok ? '성공' : '실패'} /></td>
                     <td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatTimeLabel(new Date(metric.checkedAt).getTime())}</td>
-                    {showStatusCode && <td className="px-2 py-2.5 tabular-nums text-text-muted">{metric.statusCode ?? '—'}</td>}
+                    {showStatusCode && <td className="px-2 py-2.5 tabular-nums text-text-muted">{metric.statusCode ?? '-'}</td>}
                     <td className="px-2 py-2.5">
                       {ok ? (
                         <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ function CheckLog({ metrics, showStatusCode }: { metrics: UptimeMonitorMetric[];
                           <span className="tabular-nums text-text-base">{metric.responseTime.toLocaleString()}ms</span>
                         </div>
                       ) : (
-                        <span className="text-text-dim">—</span>
+                        <span className="text-text-dim">-</span>
                       )}
                     </td>
                     <td className="px-2 py-2.5 font-mono text-xs text-text-muted">{ok ? '' : metric.errorMessage}</td>
@@ -262,7 +262,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   const target = monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url;
   const lastCheck = monitor.lastCheckAt
     ? new Date(monitor.lastCheckAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-    : '—';
+    : '-';
   const failedSources = [errors.monitor && '모니터', errors.metrics && '체크 기록', errors.summary && '30일 요약', errors.history && '90일 이력', errors.incidents && '장애 이력'].filter(Boolean);
   const actionsDisabled = processing || refreshing || Boolean(errors.monitor);
 
@@ -303,16 +303,16 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
 
       {failedSources.length > 0 && (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border bg-bg-surface px-4 py-3 text-sm text-text-secondary">
-          <p>{failedSources.join(' · ')} 조회에 실패했습니다. 이전에 불러온 데이터가 있으면 유지합니다.</p>
+          <p>{failedSources.join(', ')} 조회에 실패했습니다. 이전에 불러온 데이터가 있으면 유지합니다.</p>
           <Button size="sm" variant="secondary" loading={refreshing} disabled={processing} onClick={() => void load()}>다시 시도</Button>
         </div>
       )}
 
       <UptimeOverview
         stats={[
-          { label: '24시간 업타임', value: monitor.uptime === undefined ? '—' : `${monitor.uptime.toFixed(2)}%` },
-          { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '—' },
-          { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '—' : `${monitor.responseTime.toLocaleString()}ms` },
+          { label: '24시간 업타임', value: monitor.uptime === undefined ? '-' : `${monitor.uptime.toFixed(2)}%` },
+          { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '-' },
+          { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '-' : `${monitor.responseTime.toLocaleString()}ms` },
           { label: '마지막 확인', value: lastCheck },
         ]}
         historyUptime={history && history.days.length > 0 ? history.percentage : undefined}

@@ -78,7 +78,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
           ) : available ? (
             <>
               <div className="space-y-1.5">
-                <p className="text-xs text-text-muted uppercase tracking-wider">API Key</p>
+                <p className="text-xs text-text-muted">API Key</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 px-3 py-2.5 rounded-xl bg-ui-hover-soft border border-ui-border text-xs font-mono text-text-base break-all">
                     {apiKey}
