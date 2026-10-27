@@ -16,7 +16,7 @@ for (const type of ['http', 'tcp'] as const) {
     await expect(dialog.getByRole('textbox', { name: type === 'http' ? 'URL' : '호스트', exact: true })).toHaveValue(state.monitors[0].url);
     if (type === 'tcp') await expect(dialog.getByRole('spinbutton', { name: '포트', exact: true })).toHaveValue('6443');
     await expect(dialog.getByRole('spinbutton', { name: '주기 (초)' })).toHaveValue('45');
-    await expect(dialog.getByRole('spinbutton', { name: '타임아웃 (ms)' })).toHaveValue('3200');
+    await expect(dialog.getByRole('spinbutton', { name: '타임아웃 (초)' })).toHaveValue('3.2');
     await name.fill('Discard');
     await dialog.getByRole('button', { name: '취소' }).click();
     expect(state.requests.filter((request) => request.method === 'PUT')).toHaveLength(0);

@@ -12,11 +12,12 @@ type MonitorDraft = {
   target: string;
   port: string;
   interval: string;
+  /** 초. API는 ms라 저장할 때 바꾼다 — 주기와 같은 단위로 보여 주려고. */
   timeout: string;
 };
 
 const EMPTY_DRAFT: MonitorDraft = {
-  name: '', type: 'http', target: '', port: '443', interval: '30', timeout: '5000',
+  name: '', type: 'http', target: '', port: '443', interval: '30', timeout: '5',
 };
 
 export function UptimeMonitorDialog({
@@ -36,7 +37,7 @@ export function UptimeMonitorDialog({
     target: monitor.url,
     port: String(monitor.port ?? 443),
     interval: String(monitor.interval),
-    timeout: String(monitor.timeout),
+    timeout: String(monitor.timeout / 1000),
   } : EMPTY_DRAFT);
   const [saving, setSaving] = useState(false);
 
@@ -55,7 +56,7 @@ export function UptimeMonitorDialog({
         type: draft.type,
         ...(draft.type === 'http' ? { url: draft.target.trim() } : { host: draft.target.trim(), port: Number(draft.port) }),
         interval: Number(draft.interval),
-        timeout: Number(draft.timeout),
+        timeout: Math.round(Number(draft.timeout) * 1000),
       });
       onClose();
     } catch (error) {
@@ -113,8 +114,9 @@ export function UptimeMonitorDialog({
               <Input required type="number" min={5} value={draft.interval} onChange={(event) => update('interval', event.target.value)} />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-text-secondary">타임아웃 (ms)</span>
-              <Input required type="number" min={1} value={draft.timeout} onChange={(event) => update('timeout', event.target.value)} />
+              <span className="text-sm font-medium text-text-secondary">타임아웃 (초)</span>
+              {/* step="any": ms로 저장된 기존 값(예: 2550 → 2.55)을 그대로 열고 저장할 수 있어야 한다. */}
+              <Input required type="number" min={0.1} step="any" value={draft.timeout} onChange={(event) => update('timeout', event.target.value)} />
             </label>
           </div>
         </fieldset>

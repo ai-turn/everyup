@@ -111,9 +111,9 @@ export function AgentServiceCapabilityPage() {
           <dl className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <div className="flex items-center gap-2"><dt><StatusLight label="정상" tone="healthy" /></dt><dd className="text-xl font-medium tabular-nums">{up}</dd></div>
             <div className="flex items-center gap-2"><dt><StatusLight label="장애" tone={down ? 'error' : 'idle'} /></dt><dd className="text-xl font-medium tabular-nums">{down}</dd></div>
-            <div className="flex items-center gap-2"><dt><StatusLight label="정지·대기" tone="idle" /></dt><dd className="text-xl font-medium tabular-nums">{paused + waiting}</dd></div>
+            <div className="flex items-center gap-2"><dt><StatusLight label="확인 대기" tone="idle" /></dt><dd className="text-xl font-medium tabular-nums">{waiting}</dd></div>
+            <div className="flex items-center gap-2"><dt><StatusLight label="일시정지" tone="idle" /></dt><dd className="text-xl font-medium tabular-nums">{paused}</dd></div>
           </dl>
-          <p className="mt-2 type-caption text-text-muted">전체 {monitors.length}개 대상 · 일시정지 {paused}개 · 확인 대기 {waiting}개</p>
         </section>
       )}
 
