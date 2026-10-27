@@ -6,9 +6,9 @@ application framework dependencies.
 
 | Service | Runtime | Host URL | Purpose |
 | --- | --- | --- | --- |
-| `node-api` | Node.js 22 | `http://127.0.0.1:18080` | Traces, headers, opt-in masked bodies and truncation |
+| `node-api` | Node.js 24 | `http://127.0.0.1:18080` | Traces, headers, opt-in masked bodies and truncation |
 | `java-api` | Java 21 | `http://127.0.0.1:18081` | Java agent injection and traces |
-| `rollback-probe` | Node.js 22 | internal only | Deliberate startup failure after injection |
+| `rollback-probe` | Node.js 24 | internal only | Deliberate startup failure after injection |
 
 The services expose `/health`, `/ok`, `/slow?ms=350`, `/error`, `/echo`,
 `/large`, and `/env`. Both services start with an existing runtime option; the

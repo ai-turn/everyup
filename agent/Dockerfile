@@ -10,7 +10,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /out/everyup-agent ./cmd/everyup-agent
 # App-instrumentation bundle: Node auto-instrumentation + EveryUp register.js.
 # Copied into a shared volume at agent startup so app containers can load it
 # via NODE_OPTIONS without installing anything.
-FROM node:22-alpine AS instrumentation-node
+FROM node:24-alpine AS instrumentation-node
 WORKDIR /bundle
 COPY instrumentation/node/package.json instrumentation/node/package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund

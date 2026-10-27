@@ -1,7 +1,7 @@
 # EveryUp 모니터링 대상 테스트 앱
 
 EveryUp의 발견, eBPF, OpenTelemetry 계측, 민감정보 마스킹, 롤백을 실제로 확인하기
-위한 작은 Node.js 22 + Java 21 앱입니다. Docker Desktop의 `amd64`와 ARM64 Linux
+위한 작은 Node.js 24 + Java 21 앱입니다. Docker Desktop의 `amd64`와 ARM64 Linux
 서버에서 같은 구성으로 실행됩니다.
 
 | 서비스 | 주소 | 주요 검증 |

@@ -48,7 +48,7 @@ jobs:
           version: 10.27.0
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
           cache-dependency-path: web/frontend/pnpm-lock.yaml
       - name: Install, lint, typecheck, and build frontend
@@ -71,7 +71,7 @@ jobs:
           version: 10.27.0
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
           cache-dependency-path: docs/pnpm-lock.yaml
       - name: Install and build docs
