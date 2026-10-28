@@ -82,21 +82,26 @@ function LatestLine({ summary, known }: { summary?: LogServiceSummary; known: bo
   return <span className="text-text-muted">{`${known ? '오류·경고 없음 · ' : ''}마지막 수신 ${ago(lastReceived)}`}</span>;
 }
 
-function LogCard({ row, window: span, returnTo }: { row: LogServiceRow; window: [number, number]; returnTo: string }) {
+type StatusRow = LogServiceRow & { collection: CollectionStatus };
+
+function LogStatus({ row }: { row: StatusRow }) {
+  return row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={row.collection} />;
+}
+
+function LogCard({ row, window: span, returnTo }: { row: StatusRow; window: [number, number]; returnTo: string }) {
   const summary = row.summary;
-  const collection = collectionOf(summary, span[0]);
-  const known = collection === 'collecting';
+  const known = row.collection === 'collecting';
 
   return (
     <Link to={row.to} state={{ returnTo }} className="card-interactive group flex flex-col rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.name}</h3>}
         subtitle={row.subtitle}
-        status={row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collection} />}
+        status={<LogStatus row={row} />}
       />
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <LevelCount label="ERROR" value={summary?.error ?? 0} tone={LEVEL_TEXT.error} known={known} />
-        <LevelCount label="WARN" value={summary?.warn ?? 0} tone={LEVEL_TEXT.warn} known={known} />
+        <LevelCount label="오류" value={summary?.error ?? 0} tone={LEVEL_TEXT.error} known={known} />
+        <LevelCount label="경고" value={summary?.warn ?? 0} tone={LEVEL_TEXT.warn} known={known} />
       </div>
       <div className="mt-3">
         <LogSparkline buckets={summary?.buckets ?? []} window={span} />
@@ -135,40 +140,46 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
 
 export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스' }: {
   rows: LogServiceRow[];
-  patterns: LogPatternRow[];
+  /** null이면 패턴만 불러오지 못한 상태 — 서비스 목록은 그대로 그린다. */
+  patterns: LogPatternRow[] | null;
   span: [number, number];
   view: 'card' | 'grid';
   returnTo: string;
   title?: string;
 }) {
+  const statusRows = rows.map(row => ({ ...row, collection: collectionOf(row.summary, span[0]) }));
   return (
     <div className="space-y-5">
       <section>
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="type-section-title text-text-base">{title}</h2>
-          <span className="text-xs text-text-dim">{`최근 24시간 · ${rows.length}`}</span>
+          <span className="text-xs text-text-dim">{`최근 24시간 · 서비스 ${rows.length}개`}</span>
         </div>
-        {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{rows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
-          <ResourceTable rows={rows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
-            { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden">{row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} />}</div><div className="mt-2 flex min-w-0 items-baseline gap-2 text-xs xl:hidden"><LatestLine summary={row.summary} known={collectionOf(row.summary, span[0]) === 'collecting'} /></div></> },
-            { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => row.stopped ? <StatusLight tone="error" label="중지됨" /> : <CollectionStatusBadge status={collectionOf(row.summary, span[0])} /> },
-            ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: LogServiceRow) => collectionOf(row.summary, span[0]) === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <span className="text-text-muted" title="최근 24시간 수신한 로그 없음">-</span> })),
+        {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{statusRows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
+          <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
+            { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 items-baseline gap-2 text-xs xl:hidden"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div></> },
+            { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => <LogStatus row={row} /> },
+            ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: StatusRow) => row.collection === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <span className="text-text-muted" title="최근 24시간 수신한 로그 없음">-</span> })),
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },
-            { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 text-xs"><LatestLine summary={row.summary} known={collectionOf(row.summary, span[0]) === 'collecting'} /></div> },
+            { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 text-xs"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div> },
           ]} />}
       </section>
-      {/* 오류가 없으면 섹션째 숨긴다 — 위 카드가 이미 0건이라고 말한다. */}
-      {patterns.length > 0 && (
+      {/* 오류가 없으면 섹션째 숨긴다 — 위 카드가 이미 0건이라고 말한다. 실패는 숨기지 않는다 — "패턴 없음"으로 읽힌다. */}
+      {(patterns === null || patterns.length > 0) && (
         <section>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
             <h2 className="type-section-title text-text-base">자주 발생한 오류·경고</h2>
             <span className="text-xs text-text-dim">최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다</span>
           </div>
-          <ul className="divide-y divide-ui-border-soft overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
-            {patterns.map(({ pattern, row }) => (
-              <PatternRow key={`${row.key}|${pattern.fingerprint}`} pattern={pattern} row={row} windowStart={span[0]} />
-            ))}
-          </ul>
+          {patterns === null ? (
+            <p className="rounded-xl border border-ui-border bg-bg-surface px-4 py-3 text-sm text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
+          ) : (
+            <ul className="divide-y divide-ui-border-soft overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
+              {patterns.map(({ pattern, row }) => (
+                <PatternRow key={`${row.key}|${pattern.fingerprint}`} pattern={pattern} row={row} windowStart={span[0]} />
+              ))}
+            </ul>
+          )}
         </section>
       )}
     </div>

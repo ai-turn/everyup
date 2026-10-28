@@ -5,7 +5,12 @@ import { ConnectionAddressField } from '../../services/components/ConnectionAddr
 import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
 import { TelemetrySetupGuidance } from './TelemetrySetupGuidance';
 import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
-import type { ObservedServiceSetup } from '../../../services/api';
+import type { ObservedServiceSetup, TelemetrySignal } from '../../../services/api';
+
+// A key accepts only its own signals. SDKs that export every signal by default
+// (the Java agent sends all three) got a 403 on each batch of the others, so the
+// configuration turns those off. The env names are the signal tokens upper-cased.
+const SIGNALS: TelemetrySignal[] = ['traces', 'metrics', 'logs'];
 
 interface DirectTelemetrySetupResultProps {
   setup: ObservedServiceSetup;
@@ -34,6 +39,7 @@ export function DirectTelemetrySetupResult({
     `OTEL_EXPORTER_OTLP_ENDPOINT=${endpoint}`,
     'OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf',
     `OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer ${setup.apiKey}`,
+    ...SIGNALS.filter(signal => !setup.signals.includes(signal)).map(signal => `OTEL_${signal.toUpperCase()}_EXPORTER=none`),
   ].join('\n');
 
   return (

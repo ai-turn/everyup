@@ -789,7 +789,7 @@ function mockLogSummary(scenario: MockScenario): LogServiceSummary[] {
 
 // Counts line up with mockLogSummary; the fingerprints match mockFingerprint so
 // following a pattern filters the demo service logs.
-function mockLogPatterns(scenario: MockScenario): LogPattern[] {
+function mockLogPatterns(scenario: MockScenario, agentId: string): LogPattern[] {
   if (scenario === 'empty') return [];
   const worker = { agentId: 'agent_demo_01', serviceName: 'payment-worker' };
   const apiScope = { agentId: 'agent_demo_01', serviceName: 'api' };
@@ -805,7 +805,8 @@ function mockLogPatterns(scenario: MockScenario): LogPattern[] {
     pattern(checkout, mockCheckoutError, 3, mockMsAgo(2 * 86_400_000), mockCheckoutError.createdAt),
     pattern(apiScope, mockPaymentTimeout, 1, mockMsAgo(26 * 3_600_000), mockPaymentTimeout.createdAt),
     pattern(apiScope, mockApiRateLimit, 8, mockMsAgo(5 * 86_400_000), mockApiRateLimit.createdAt),
-  ].sort((a, b) => Number(b.level === 'error') - Number(a.level === 'error') || b.count - a.count);
+  ].filter(p => (p.agentId ?? '') === agentId)
+    .sort((a, b) => Number(b.level === 'error') - Number(a.level === 'error') || b.count - a.count);
 }
 
 const mockOtelMetricNames = [
@@ -1520,7 +1521,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   }
   if (endpoint === '/services?type=http,tcp') return scenarioMonitors(scenario) as T;
   if (endpoint === '/logs/summary') return mockLogSummary(scenario) as T;
-  if (endpoint.startsWith('/logs/patterns')) return mockLogPatterns(scenario) as T;
+  if (endpoint.startsWith('/logs/patterns')) return mockLogPatterns(scenario, new URLSearchParams(endpoint.split('?')[1]).get('agentId') ?? '') as T;
   const uptimeSummaryMatch = endpoint.match(/^\/services\/([^/]+)\/metrics\/summary(?:\?|$)/);
   if (uptimeSummaryMatch) return (uptimeSummaryMatch[1] === 'uptime_mock_store' ? mockUptimeSummary : null) as T;
   const uptimeMetricsMatch = endpoint.match(/^\/services\/([^/]+)\/metrics(?:\?|$)/);

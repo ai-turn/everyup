@@ -115,11 +115,19 @@ func TestLogSummaryAndPatterns(t *testing.T) {
 		t.Errorf("quiet summary = %+v, want zero counts, a receipt and an empty bucket list", quiet)
 	}
 
+	// Patterns are scoped before the limit: the logs menu asks for direct
+	// connections only, so a busy Docker environment cannot crowd them out.
+	var direct []models.LogPattern
+	getJSON(t, ts, "/api/v1/logs/patterns?limit=1", &direct, auth...)
+	if len(direct) != 1 || direct[0].ServiceID != "direct-1" {
+		t.Errorf("direct patterns = %+v, want only slow query", direct)
+	}
+
 	// Errors come before warnings; within a level the busiest pattern leads.
 	var patterns []models.LogPattern
-	getJSON(t, ts, "/api/v1/logs/patterns", &patterns, auth...)
-	if len(patterns) != 4 {
-		t.Fatalf("patterns = %+v, want 4 (users, payment, retry, slow query)", patterns)
+	getJSON(t, ts, "/api/v1/logs/patterns?agentId="+agent.ID, &patterns, auth...)
+	if len(patterns) != 3 {
+		t.Fatalf("patterns = %+v, want 3 (users, payment, retry)", patterns)
 	}
 	users := patterns[0]
 	if users.Count != 2 || users.Message != "user 456 not found" || users.AgentID != agent.ID || users.ServiceName != svcName {

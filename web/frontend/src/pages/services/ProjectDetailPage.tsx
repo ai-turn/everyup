@@ -140,7 +140,7 @@ export function ProjectDetailPage() {
   const load = useCallback(async () => {
     if (!agentId) return;
     setLoadError(null);
-    Promise.all([api.getLogSummary(), api.getLogPatterns()])
+    Promise.all([api.getLogSummary(), api.getLogPatterns(agentId)])
       .then(([summaries, patterns]) => setLogData({ summaries: summaries ?? [], patterns: patterns ?? [] }))
       .catch(() => {});
     api.getAgentIncidents(agentId).then((d) => setIncidents(d ?? [])).catch(() => {});

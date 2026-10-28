@@ -6,6 +6,7 @@ import {
   Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, parseTimeRange, type GlobalTimeRange,
 } from '../../components/common';
 import { DirectServiceLogsTab } from '../../features/healthcheck/components/AgentServiceLogsTab';
+import { LogIngestLevels } from '../../features/logs/components/LogIngestLevels';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/RotatedTelemetryKeyDialog';
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
@@ -140,6 +141,7 @@ export function DirectLogsDetailPage() {
             onProjectChange={setProjectId}
             onSaveProject={() => void saveProject()}
             savingProject={savingProject}
+            extraFields={[{ label: '수집 레벨', value: <LogIngestLevels observedServiceId={service.id} /> }]}
           />
         }
       />

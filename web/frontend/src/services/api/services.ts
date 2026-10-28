@@ -247,7 +247,9 @@ export const servicesApi = {
 
   // Logs page: both cover the last 24 hours.
   getLogSummary: () => request<LogServiceSummary[]>('/logs/summary'),
-  getLogPatterns: (limit = 10) => request<LogPattern[]>(`/logs/patterns?limit=${limit}`),
+  /** One Docker environment's patterns, or direct connections' without agentId. */
+  getLogPatterns: (agentId?: string, limit = 10) =>
+    request<LogPattern[]>(`/logs/patterns?limit=${limit}${agentId ? `&agentId=${encodeURIComponent(agentId)}` : ''}`),
 
   getTrace: (traceId: string) =>
     request<TraceDetail>(`/traces/${traceId}`),

@@ -273,9 +273,11 @@ func (r *LogRepository) Summary(from time.Time, bucketMins int) ([]models.LogSer
 	return out, nil
 }
 
-// Patterns returns the most frequent error/warn groups since `from`, errors
-// before warnings. Stored fingerprints already mask the variable parts.
-func (r *LogRepository) Patterns(from time.Time, limit int) ([]models.LogPattern, error) {
+// Patterns returns the most frequent error/warn groups since `from` for one
+// Docker environment, or for direct connections when agentID is empty, errors
+// before warnings. Scoping before the limit keeps one busy source from filling
+// every slot. Stored fingerprints already mask the variable parts.
+func (r *LogRepository) Patterns(from time.Time, agentID string, limit int) ([]models.LogPattern, error) {
 	// With a single MAX() aggregate SQLite takes the bare columns from that row,
 	// so created_at and message are the newest occurrence's. The bare created_at
 	// also keeps its DATETIME type — the driver returns MAX(created_at) as text.
@@ -283,10 +285,10 @@ func (r *LogRepository) Patterns(from time.Time, limit int) ([]models.LogPattern
 		SELECT fingerprint, level, COALESCE(service_id, ''), COALESCE(agent_id, ''), COALESCE(service_name, ''),
 			COUNT(*) AS n, MAX(created_at), created_at, message
 		FROM logs
-		WHERE level IN ('error', 'warn') AND created_at >= ? AND fingerprint != ''
+		WHERE level IN ('error', 'warn') AND created_at >= ? AND fingerprint != '' AND COALESCE(agent_id, '') = ?
 		GROUP BY fingerprint
 		ORDER BY level = 'error' DESC, n DESC
-		LIMIT ?`, from, limit)
+		LIMIT ?`, from, agentID, limit)
 	if err != nil {
 		return nil, err
 	}
