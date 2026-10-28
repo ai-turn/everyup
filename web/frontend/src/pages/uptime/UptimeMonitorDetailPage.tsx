@@ -2,14 +2,13 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, SegmentedControl, StatusLight } from '../../components/common';
-import { formatTimeLabel } from '../../components/charts';
+import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, SegmentedControl, StatusLight, type StatusTone } from '../../components/common';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { useAlertThresholds } from '../../features/alerts/useAlertThresholds';
 import { BucketedResponseTimeChart } from '../../features/uptime/components/BucketedResponseTimeChart';
 import { ResponseTimeCard } from '../../features/uptime/components/ResponseTimeCard';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
-import { UptimeOverview } from '../../features/uptime/components/UptimeOverview';
+import { UptimeOverview, UptimeStats, type UptimeOverviewStat } from '../../features/uptime/components/UptimeOverview';
 import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
 import { useUptimeMonitorDetail } from '../../features/uptime/useUptimeMonitorDetail';
 import {
@@ -55,114 +54,78 @@ function ResponseTimeChart({ monitorId, metrics, range, refreshKey }: { monitorI
   );
 }
 
-const CHECK_LOG_ROWS = 10;
+const HISTORY_ROWS = 10;
+type HistoryFilter = 'all' | 'outage' | 'failure';
+const HISTORY_FILTERS = [{ label: '전체', value: 'all' }, { label: '장애', value: 'outage' }, { label: '실패', value: 'failure' }] as const;
 
-// 연속 실패가 기준(환경설정)을 넘은 구간 — 체크 기록 한 줄보다 "언제부터 얼마나"가 먼저 궁금하다.
-function OutageHistory({ incidents }: { incidents: TimelineIncident[] }) {
+interface HistoryRow {
+  key: string;
+  at: string;
+  kind: 'outage' | 'failure';
+  active: boolean;
+  durationSec?: number;
+  message: string;
+}
+
+// 장애(연속 실패가 기준을 넘은 구간)와 장애로 이어지지 않은 실패 체크를 한 목록에 시간순으로.
+function historyRows(incidents: TimelineIncident[], failures: UptimeMonitorMetric[]): HistoryRow[] {
+  return [
+    ...incidents.map((incident): HistoryRow => ({
+      key: `outage-${incident.startedAt}`, at: incident.startedAt, kind: 'outage', active: incident.active,
+      durationSec: incident.durationSec, message: incident.message ?? '',
+    })),
+    ...failures.map((failure): HistoryRow => ({
+      key: `failure-${failure.id}`, at: failure.checkedAt, kind: 'failure', active: false,
+      message: [failure.statusCode && `HTTP ${failure.statusCode}`, failure.errorMessage].filter(Boolean).join(', '),
+    })),
+  ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+}
+
+const ROW_LIGHT = (row: HistoryRow): [StatusTone, string] =>
+  row.kind === 'failure' ? ['warn', '실패'] : row.active ? ['error', '장애 진행 중'] : ['healthy', '장애 복구'];
+
+// 90일 띠 아래, 같은 카드에 붙는다. 띠에서 날짜를 고르면 그날 이력만 남는다.
+function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]; selectedDate: string | null; onClearDate: () => void }) {
+  const [filter, setFilter] = useState<HistoryFilter>('all');
+  const [expanded, setExpanded] = useState(false);
+  const visible = rows.filter((row) => (filter === 'all' || row.kind === filter)
+    && (!selectedDate || new Date(row.at).toLocaleDateString('sv-SE') === selectedDate));
+  const shown = expanded ? visible : visible.slice(0, HISTORY_ROWS);
   return (
-    <section className="rounded-xl border border-ui-border bg-bg-surface p-6">
-      <div className="mb-3 flex items-baseline gap-2">
-        <h2 className="type-card-title text-text-base">장애 이력</h2>
-        <span className="type-caption text-text-dim">최근 90일</span>
+    <div className="mt-6 border-t border-ui-border pt-5">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <h3 className="type-card-title text-text-base">장애 이력</h3>
+        {selectedDate && (
+          <Button size="sm" variant="ghost" aria-label={`${selectedDate} 선택 해제`} onClick={onClearDate}>
+            {selectedDate}<MaterialIcon name="close" size={16} />
+          </Button>
+        )}
+        <div className="ml-auto"><SegmentedControl options={HISTORY_FILTERS} value={filter} onChange={setFilter} ariaLabel="장애 이력 구분" /></div>
       </div>
-      {incidents.length === 0 ? (
-        <div className="py-8 text-center text-sm text-text-dim">최근 90일 동안 기록된 장애가 없습니다</div>
+      {rows.length === 0 ? (
+        <div className="py-6 text-center text-sm text-text-dim">최근 90일 동안 기록된 장애가 없습니다</div>
+      ) : visible.length === 0 ? (
+        <div className="py-6 text-center text-sm text-text-dim">조건에 맞는 이력이 없습니다</div>
       ) : (
         <div className="-mx-2 overflow-x-auto">
           <table className="w-full min-w-2xl table-fixed text-sm">
             <thead>
               <tr className="text-left type-caption text-text-muted">
-                <th className="w-24 px-2 py-2 font-normal">상태</th>
-                <th className="w-32 px-2 py-2 font-normal">시작</th>
+                <th className="w-32 px-2 py-2 font-normal">상태</th>
+                <th className="w-32 px-2 py-2 font-normal">시각</th>
                 <th className="w-32 px-2 py-2 font-normal">지속 시간</th>
                 <th className="px-2 py-2 font-normal">메시지</th>
               </tr>
             </thead>
             <tbody>
-              {incidents.map((incident) => (
-                <tr key={incident.startedAt} className="border-t border-ui-border-soft">
-                  <td className="px-2 py-2.5"><StatusLight tone={incident.active ? 'error' : 'healthy'} label={incident.active ? '진행 중' : '복구'} /></td>
-                  <td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary" title={new Date(incident.startedAt).toLocaleString()}>{formatIncidentTime(incident.startedAt)}</td>
-                  <td className="px-2 py-2.5 tabular-nums text-text-base">{formatDuration(incident.durationSec)}</td>
-                  <td className="truncate px-2 py-2.5 font-mono text-xs text-text-muted" title={incident.message}>{incident.message || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  );
-}
-
-const CERT_WARN_DAYS = 14;
-
-const daysUntil = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
-
-/** 남은 일수가 먼저 읽히게 `D-80 · 2027. 1. 15.`. 14일 이하는 주의, 지나면 오류 색. */
-function CertExpiry({ iso }: { iso: string }) {
-  const expires = new Date(iso);
-  const days = daysUntil(iso);
-  const tone = days < 0 ? 'text-status-error' : days <= CERT_WARN_DAYS ? 'text-status-warn' : '';
-  return <span className={`tabular-nums ${tone}`}>{days < 0 ? '만료됨' : `D-${days}`} · {expires.toLocaleDateString()}</span>;
-}
-
-function metaFields(monitor: UptimeMonitor, target: string) {
-  return [
-    { label: monitor.type === 'tcp' ? 'Host' : 'URL', value: <span className="truncate font-mono">{target}</span> },
-    { label: 'Protocol', value: monitor.type.toUpperCase() },
-    { label: 'Interval', value: `${monitor.interval}초` },
-    ...(monitor.type === 'http' ? [{ label: '기대 상태 코드', value: <span className="tabular-nums">{monitor.expectedStatus}</span> }] : []),
-    ...(monitor.certExpiresAt ? [{ label: '인증서', value: <CertExpiry iso={monitor.certExpiresAt} /> }] : []),
-  ];
-}
-
-// TCP 체크에는 HTTP 상태 코드가 없다 — 열을 두면 모든 행이 `-`다.
-function CheckLog({ metrics, showStatusCode }: { metrics: UptimeMonitorMetric[]; showStatusCode: boolean }) {
-  const rows = metrics.slice(0, CHECK_LOG_ROWS);
-  // Bars share one scale across the table; failed checks have no response time to draw.
-  const longest = Math.max(1, ...rows.filter((metric) => metric.status === 'success').map((metric) => metric.responseTime));
-  return (
-    <section className="rounded-xl border border-ui-border bg-bg-surface p-6">
-      <div className="mb-3 flex items-baseline gap-2">
-        <h2 className="type-card-title text-text-base">체크 기록</h2>
-        {rows.length > 0 && <span className="type-caption text-text-dim">최근 {rows.length}회</span>}
-      </div>
-      {rows.length === 0 ? (
-        <div className="py-8 text-center text-sm text-text-dim">아직 체크 기록이 없습니다</div>
-      ) : (
-        <div className="-mx-2 overflow-x-auto">
-          <table className="w-full min-w-2xl table-fixed text-sm">
-            <thead>
-              <tr className="text-left type-caption text-text-muted">
-                <th className="w-20 px-2 py-2 font-normal">결과</th>
-                <th className="w-44 px-2 py-2 font-normal">시각</th>
-                {showStatusCode && <th className="w-16 px-2 py-2 font-normal">HTTP</th>}
-                <th className="w-28 px-2 py-2 font-normal sm:w-64">응답 시간</th>
-                <th className="px-2 py-2 font-normal">메시지</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((metric) => {
-                const ok = metric.status === 'success';
+              {shown.map((row) => {
+                const [tone, label] = ROW_LIGHT(row);
                 return (
-                  <tr key={metric.id} className="border-t border-ui-border-soft">
-                    <td className="px-2 py-2.5"><StatusLight tone={ok ? 'healthy' : 'error'} label={ok ? '성공' : '실패'} /></td>
-                    <td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatTimeLabel(new Date(metric.checkedAt).getTime())}</td>
-                    {showStatusCode && <td className="px-2 py-2.5 tabular-nums text-text-muted">{metric.statusCode ?? '-'}</td>}
-                    <td className="px-2 py-2.5">
-                      {ok ? (
-                        <div className="flex items-center gap-2">
-                          <span className="hidden h-1.5 w-40 rounded-full bg-ui-hover sm:block">
-                            <span className="block h-1.5 rounded-full bg-primary" style={{ width: `${(metric.responseTime / longest) * 100}%` }} />
-                          </span>
-                          <span className="tabular-nums text-text-base">{metric.responseTime.toLocaleString()}ms</span>
-                        </div>
-                      ) : (
-                        <span className="text-text-dim">-</span>
-                      )}
-                    </td>
-                    <td className="px-2 py-2.5 font-mono text-xs text-text-muted">{ok ? '' : metric.errorMessage}</td>
+                  <tr key={row.key} className="border-t border-ui-border-soft">
+                    <td className="px-2 py-2.5"><StatusLight tone={tone} label={label} /></td>
+                    <td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary" title={new Date(row.at).toLocaleString()}>{formatIncidentTime(row.at)}</td>
+                    <td className="px-2 py-2.5 tabular-nums text-text-base">{row.durationSec === undefined ? '-' : formatDuration(row.durationSec)}</td>
+                    <td className="truncate px-2 py-2.5 font-mono text-xs text-text-muted" title={row.message}>{row.message || '-'}</td>
                   </tr>
                 );
               })}
@@ -170,8 +133,33 @@ function CheckLog({ metrics, showStatusCode }: { metrics: UptimeMonitorMetric[];
           </table>
         </div>
       )}
-    </section>
+      {visible.length > HISTORY_ROWS && (
+        <Button size="sm" variant="ghost" className="mt-2" onClick={() => setExpanded((value) => !value)}>
+          {expanded ? '접기' : `${visible.length - HISTORY_ROWS}개 더 보기`}
+        </Button>
+      )}
+    </div>
   );
+}
+
+const CERT_WARN_DAYS = 14;
+
+const daysUntil = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
+
+/** HTTPS만 네 번째 지표가 된다. 14일 이하는 주의, 지나면 오류 색. */
+function certStat(iso: string): UptimeOverviewStat {
+  const days = daysUntil(iso);
+  return { label: '인증서 만료', value: days < 0 ? '만료됨' : `D-${days}`, tone: days < 0 ? 'error' : days <= CERT_WARN_DAYS ? 'warn' : undefined };
+}
+
+function metaFields(monitor: UptimeMonitor, target: string, lastCheck: string) {
+  return [
+    { label: monitor.type === 'tcp' ? 'Host' : 'URL', value: <span className="truncate font-mono">{target}</span> },
+    { label: 'Protocol', value: monitor.type.toUpperCase() },
+    { label: 'Interval', value: `${monitor.interval}초` },
+    ...(monitor.type === 'http' ? [{ label: '기대 상태 코드', value: <span className="tabular-nums">{monitor.expectedStatus}</span> }] : []),
+    { label: '마지막 확인', value: <span className="tabular-nums">{lastCheck}</span> },
+  ];
 }
 
 // 일시정지/재개 — 상태에 따라 아이콘·라벨이 바뀐다. 페이지 함수에 삼항을 더하면
@@ -195,7 +183,8 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   const location = useLocation();
   const returnTo = listReturnTo(location.state, '/uptime');
 
-  const { monitor, metrics, summary, history, incidents, loading, refreshing, errors, notFound, load } = useUptimeMonitorDetail(monitorId);
+  const { monitor, metrics, summary, history, incidents, failures, loading, refreshing, errors, notFound, load } = useUptimeMonitorDetail(monitorId);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [range, setRange] = useState<ResponseRange>('recent');
   // 버킷 차트는 자기 데이터를 따로 불러오므로 새로고침 신호만 받는다.
   const [refreshKey, setRefreshKey] = useState(0);
@@ -263,7 +252,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   const lastCheck = monitor.lastCheckAt
     ? new Date(monitor.lastCheckAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     : '-';
-  const failedSources = [errors.monitor && '모니터', errors.metrics && '체크 기록', errors.summary && '30일 요약', errors.history && '90일 이력', errors.incidents && '장애 이력'].filter(Boolean);
+  const failedSources = [errors.monitor && '모니터', errors.metrics && '최근 체크', errors.summary && '30일 요약', errors.history && '90일 이력', (errors.incidents || errors.failures) && '장애 이력'].filter(Boolean);
   const actionsDisabled = processing || refreshing || Boolean(errors.monitor);
 
   return (
@@ -283,7 +272,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
                 <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
               </>
             }
-            fields={metaFields(monitor, target)}
+            fields={metaFields(monitor, target, lastCheck)}
           />
         }
       />
@@ -308,22 +297,31 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
         </div>
       )}
 
-      <UptimeOverview
-        stats={[
+      {/* 수치 → 응답 시간(툴바의 범위 버튼 바로 아래) → 90일 띠와 장애 이력 순서. */}
+      <section className="rounded-xl border border-ui-border bg-bg-surface p-6">
+        <h2 className="sr-only">주요 지표</h2>
+        <UptimeStats stats={[
           { label: '24시간 업타임', value: monitor.uptime === undefined ? '-' : `${monitor.uptime.toFixed(2)}%` },
           { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '-' },
           { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '-' : `${monitor.responseTime.toLocaleString()}ms` },
-          { label: '마지막 확인', value: lastCheck },
-        ]}
+          ...(monitor.certExpiresAt ? [certStat(monitor.certExpiresAt)] : []),
+        ]} />
+      </section>
+      {metrics ? <ResponseTimeChart monitorId={monitor.id} metrics={metrics} range={range} refreshKey={refreshKey} /> : (
+        <section className="rounded-xl border border-ui-border bg-bg-surface p-6 text-sm text-text-muted">응답 시간을 불러오지 못했습니다.</section>
+      )}
+      <UptimeOverview
+        stats={[]}
         historyUptime={history && history.days.length > 0 ? history.percentage : undefined}
         days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
         error={!history ? errors.history : undefined}
-      />
-      {metrics ? <ResponseTimeChart monitorId={monitor.id} metrics={metrics} range={range} refreshKey={refreshKey} /> : (
-        <section className="rounded-xl border border-ui-border bg-bg-surface p-6 text-sm text-text-muted">응답 시간과 체크 기록을 불러오지 못했습니다.</section>
-      )}
-      {incidents && <OutageHistory incidents={incidents} />}
-      {metrics && <CheckLog metrics={metrics} showStatusCode={monitor.type === 'http'} />}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+      >
+        {incidents && failures && (
+          <OutageHistory rows={historyRows(incidents, failures)} selectedDate={selectedDate} onClearDate={() => setSelectedDate(null)} />
+        )}
+      </UptimeOverview>
 
       {editing && <UptimeMonitorDialog monitor={monitor} onClose={() => setEditing(false)} onSave={updateMonitor} />}
       <ConfirmDialog

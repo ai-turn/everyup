@@ -49,9 +49,14 @@ test('[16] mobile keyboard focus remains above bottom navigation and charts are 
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const history = page.getByRole('group', { name: /최근 90일/ });
   const response = page.getByRole('group', { name: /체크별/ });
-  await tabTo(page, history); await page.keyboard.press('End');
-  await page.keyboard.press('Tab'); await expect(response).toBeFocused();
-  await page.keyboard.press('Home'); await page.keyboard.press('End');
+  // Each chart is one stop: the response chart, then the 90-day strip, then the outage history's three filters.
+  await tabTo(page, response); await page.keyboard.press('Home'); await page.keyboard.press('End');
+  await page.keyboard.press('Tab'); await expect(history).toBeFocused();
+  await page.keyboard.press('End');
+  for (const name of ['전체', '장애', '실패']) {
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('group', { name: '장애 이력 구분' }).getByRole('button', { name, exact: true })).toBeFocused();
+  }
   for (const key of ['Tab', 'Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab']) {
     await page.keyboard.press(key);
     await expect.poll(async () => page.evaluate(() => {

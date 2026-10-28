@@ -934,6 +934,12 @@ const mockUptimeIncidents: TimelineIncident[] = [{
   durationSec: 1_800, active: false, message: 'upstream timeout',
 }];
 
+// 장애로 이어지지 않은 실패 — 연속 실패 기준에 못 미쳐 장애 이력에는 없던 신호다.
+const mockUptimeFailures: UptimeMonitorMetric[] = [
+  { id: 20_001, serviceId: 'uptime_mock_store', status: 'failure', responseTime: 612, statusCode: 503, errorMessage: 'upstream connect error', checkedAt: new Date(nowAgent - 150 * 60_000).toISOString() },
+  { id: 20_002, serviceId: 'uptime_mock_store', status: 'failure', responseTime: 5000, errorMessage: 'context deadline exceeded', checkedAt: new Date(nowAgent - 37 * 86_400_000).toISOString() },
+];
+
 const mockUptimeHistory: UptimeMonitorHistory = {
   percentage: 99.98,
   days: Array.from({ length: 90 }, (_, index) => {
@@ -1523,6 +1529,8 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (uptimeHistoryMatch) return (uptimeHistoryMatch[1] === 'uptime_mock_store' ? mockUptimeHistory : { percentage: 100, days: [] }) as T;
   const uptimeBucketsMatch = endpoint.match(/^\/services\/([^/]+)\/metrics\/history\?range=(\w+)/);
   if (uptimeBucketsMatch) return (uptimeBucketsMatch[1] === 'uptime_mock_store' ? mockUptimeBuckets(uptimeBucketsMatch[2]) : []) as T;
+  const uptimeFailuresMatch = endpoint.match(/^\/services\/([^/]+)\/failures(?:\?|$)/);
+  if (uptimeFailuresMatch) return (uptimeFailuresMatch[1] === 'uptime_mock_store' ? mockUptimeFailures : []) as T;
   const uptimeIncidentsMatch = endpoint.match(/^\/services\/([^/]+)\/incidents(?:\?|$)/);
   if (uptimeIncidentsMatch) return (uptimeIncidentsMatch[1] === 'uptime_mock_store' ? mockUptimeIncidents : []) as T;
   const uptimeDetailMatch = endpoint.match(/^\/services\/([^/?]+)$/);

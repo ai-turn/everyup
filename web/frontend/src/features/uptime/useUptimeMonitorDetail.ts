@@ -8,7 +8,8 @@ type DetailState = {
   summary: UptimeMonitorSummary | null;
   history: UptimeMonitorHistory | null;
   incidents: TimelineIncident[] | null;
-  errors: { monitor?: string; metrics?: string; summary?: string; history?: string; incidents?: string };
+  failures: UptimeMonitorMetric[] | null;
+  errors: { monitor?: string; metrics?: string; summary?: string; history?: string; incidents?: string; failures?: string };
   notFound: boolean;
   loading: boolean;
   refreshing: boolean;
@@ -16,7 +17,7 @@ type DetailState = {
 
 // The page is keyed by monitorId: a late result belongs only to that instance.
 export function useUptimeMonitorDetail(monitorId: string) {
-  const [state, setState] = useState<DetailState>({ monitor: null, metrics: null, summary: null, history: null, incidents: null, errors: {}, notFound: false, loading: true, refreshing: false });
+  const [state, setState] = useState<DetailState>({ monitor: null, metrics: null, summary: null, history: null, incidents: null, failures: null, errors: {}, notFound: false, loading: true, refreshing: false });
   const pending = useRef<Promise<void> | null>(null);
   const load = useCallback(() => {
     if (pending.current) return pending.current;
@@ -27,7 +28,8 @@ export function useUptimeMonitorDetail(monitorId: string) {
       api.getUptimeMonitorSummary(monitorId, '30d'),
       api.getUptimeMonitorHistory(monitorId, 90),
       api.getUptimeMonitorIncidents(monitorId, 90),
-    ]).then(([monitor, metrics, summary, history, incidents]) => {
+      api.getUptimeMonitorFailures(monitorId, 90),
+    ]).then(([monitor, metrics, summary, history, incidents, failures]) => {
       const notFound = monitor.status === 'rejected' && monitor.reason instanceof ApiError && monitor.reason.status === 404;
       setState((current) => ({
         monitor: monitor.status === 'fulfilled' ? monitor.value : notFound ? null : current.monitor,
@@ -35,12 +37,14 @@ export function useUptimeMonitorDetail(monitorId: string) {
         summary: summary.status === 'fulfilled' ? summary.value : current.summary,
         history: history.status === 'fulfilled' ? history.value : current.history,
         incidents: incidents.status === 'fulfilled' ? incidents.value ?? [] : current.incidents,
+        failures: failures.status === 'fulfilled' ? failures.value ?? [] : current.failures,
         errors: {
           monitor: monitor.status === 'rejected' ? getErrorMessage(monitor.reason) : undefined,
           metrics: metrics.status === 'rejected' ? getErrorMessage(metrics.reason) : undefined,
           summary: summary.status === 'rejected' ? getErrorMessage(summary.reason) : undefined,
           history: history.status === 'rejected' ? getErrorMessage(history.reason) : undefined,
           incidents: incidents.status === 'rejected' ? getErrorMessage(incidents.reason) : undefined,
+          failures: failures.status === 'rejected' ? getErrorMessage(failures.reason) : undefined,
         },
         notFound, loading: false, refreshing: false,
       }));

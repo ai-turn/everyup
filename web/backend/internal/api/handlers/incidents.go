@@ -9,21 +9,26 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	"github.com/aiturn/everyup/internal/config"
 	"github.com/aiturn/everyup/internal/database"
 	"github.com/aiturn/everyup/internal/models"
 )
 
 // IncidentHandler handles incident-related requests
 type IncidentHandler struct {
-	repo      *database.IncidentRepository
-	agentRepo *database.AgentRepository
+	repo        *database.IncidentRepository
+	agentRepo   *database.AgentRepository
+	metricRepo  *database.MetricRepository
+	serviceRepo *database.ServiceRepository
 }
 
 // NewIncidentHandler creates a new incident handler
 func NewIncidentHandler() *IncidentHandler {
 	return &IncidentHandler{
-		repo:      database.NewIncidentRepository(),
-		agentRepo: database.NewAgentRepository(),
+		repo:        database.NewIncidentRepository(),
+		agentRepo:   database.NewAgentRepository(),
+		metricRepo:  database.NewMetricRepository(),
+		serviceRepo: database.NewServiceRepository(),
 	}
 }
 
@@ -138,6 +143,61 @@ func (h *IncidentHandler) GetByService(c *fiber.Ctx) error {
 	out := make([]models.TimelineIncident, 0, len(uptime))
 	for _, in := range uptime {
 		out = append(out, uptimeEpisode(in, now))
+	}
+	return c.JSON(fiber.Map{"success": true, "data": out})
+}
+
+// GetIsolatedFailures returns one monitor's failed checks that did not become an
+// outage, newest first. A check belongs to an outage when it falls inside it or
+// among the consecutive failures that opened it — the incident starts only at
+// the threshold-th failure, so its window reaches back threshold-1 intervals.
+func (h *IncidentHandler) GetIsolatedFailures(c *fiber.Ctx) error {
+	id := c.Params("id")
+	days := queryInt(c, "days", 90, 1, 365)
+	limit := queryInt(c, "limit", 50, 1, 200)
+	service, err := h.serviceRepo.GetByID(id)
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	if service == nil {
+		return c.JSON(fiber.Map{"success": true, "data": []models.Metric{}})
+	}
+	incidents, err := h.repo.GetUptimeIncidentsForService(id, days, 100)
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	// ponytail: fetch extra and filter in Go — fine while outages are a handful per window.
+	failures, err := h.metricRepo.GetFailuresSince(id, time.Now().AddDate(0, 0, -days), limit+200)
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+
+	threshold := 3
+	if cfg := config.Get(); cfg != nil && cfg.Alerts.ConsecutiveFailures > 0 {
+		threshold = cfg.Alerts.ConsecutiveFailures
+	}
+	// Half an interval of slack: checks drift a little from their schedule.
+	lookback := time.Duration(threshold-1)*time.Duration(service.Interval)*time.Second + time.Duration(service.Interval)*time.Second/2
+	now := time.Now()
+	out := make([]models.Metric, 0, limit)
+	for _, f := range failures {
+		inOutage := false
+		for _, in := range incidents {
+			end := now
+			if in.ResolvedAt != nil {
+				end = *in.ResolvedAt
+			}
+			if !f.CheckedAt.Before(in.StartedAt.Add(-lookback)) && !f.CheckedAt.After(end) {
+				inOutage = true
+				break
+			}
+		}
+		if !inOutage {
+			out = append(out, f)
+			if len(out) == limit {
+				break
+			}
+		}
 	}
 	return c.JSON(fiber.Map{"success": true, "data": out})
 }

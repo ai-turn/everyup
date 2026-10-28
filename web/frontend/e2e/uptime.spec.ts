@@ -14,5 +14,5 @@ test('uptime response time shows one result cell and bar per check', async ({ pa
   await card.getByRole('group', { name: /체크별 결과와 응답 시간/ }).press('ArrowLeft');
   await expect(summary).toContainText('114ms, HTTP 200');
 
-  await expect(page.getByRole('heading', { name: '체크 기록', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '장애 이력', exact: true })).toBeVisible();
 });

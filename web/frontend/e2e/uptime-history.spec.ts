@@ -15,7 +15,7 @@ for (const timezoneId of ['Asia/Seoul', 'America/New_York']) {
       ] });
       await page.goto('./uptime/http-monitor');
       const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
-      const strip = overview.getByRole('group');
+      const strip = overview.getByRole('group', { name: /최근 90일/ });
       const bars = strip.locator(':scope > div');
       await expect(bars).toHaveCount(90);
       for (const [index, tone] of [[0, 'error'], [28, 'warn'], [35, 'healthy'], [88, 'warn'], [89, 'healthy']] as const) await expect(bars.nth(index)).toHaveClass(new RegExp(`bg-status-${tone}`));
@@ -43,10 +43,10 @@ test('[13] zero history is explicitly unknown rather than zero uptime', async ({
   state.summary = { ...state.summary!, totalChecks: 0, failedChecks: 0, successfulChecks: 0, uptime: 0 };
   await page.goto('./uptime/http-monitor');
   const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
-  await expect(overview.locator('dl > div').filter({ hasText: '30일 업타임' }).locator('dd')).toHaveText('-');
-  await expect(overview.locator('dl > div').filter({ hasText: '24시간 업타임' }).locator('dd')).toHaveText('-');
-  await expect(overview.locator('dl > div').filter({ hasText: '평균 응답' }).locator('dd')).toHaveText('-');
-  const strip = overview.getByRole('group'); await strip.focus();
+  await expect(page.locator('dl > div').filter({ hasText: '30일 업타임' }).locator('dd')).toHaveText('-');
+  await expect(page.locator('dl > div').filter({ hasText: '24시간 업타임' }).locator('dd')).toHaveText('-');
+  await expect(page.locator('dl > div').filter({ hasText: '평균 응답' }).locator('dd')).toHaveText('-');
+  const strip = overview.getByRole('group', { name: /최근 90일/ }); await strip.focus();
   await expect(overview.locator('[aria-live="polite"]')).toContainText('기록 없음');
   await expect(overview.getByText('기록 0/90일', { exact: true })).toBeVisible();
 });
