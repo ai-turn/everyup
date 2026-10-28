@@ -30,12 +30,19 @@ test('existing collector gains metrics from its Docker environment', async ({ pa
 test('direct setup uses an external endpoint and waits for actual data', async ({ page }) => {
   await page.goto('./logs');
   await page.getByRole('button', { name: '로그 연결', exact: true }).click();
-  await page.getByRole('button', { name: 'OpenTelemetry로 직접 연결' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('서비스 이름').fill('new-log-service');
   await dialog.getByRole('button', { name: '추가', exact: true }).click();
   await expect(dialog.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
-  await expect(dialog.locator('pre')).toContainText('OTEL_EXPORTER_OTLP_ENDPOINT=https://monitor.example.com/api/v1/otlp');
+  const env = dialog.locator('pre');
+  await expect(env).toContainText('OTEL_EXPORTER_OTLP_ENDPOINT=https://monitor.example.com/api/v1/otlp');
+  // A logs-only key refuses traces and metrics, so the SDK must not send them.
+  await expect(env).toContainText('OTEL_TRACES_EXPORTER=none');
+  await expect(env).toContainText('OTEL_METRICS_EXPORTER=none');
+  await expect(env).not.toContainText('OTEL_LOGS_EXPORTER');
+  // The key is shown once; a click on the backdrop must not close it away.
+  await page.mouse.click(5, 5);
+  await expect(dialog.getByText('API Key는 지금 한 번만 표시됩니다.', { exact: false })).toBeVisible();
   const receipts = dialog.getByRole('region', { name: '데이터 수신 확인' });
   await expect(receipts).toContainText('로그');
   await expect(receipts).toContainText('수신 대기');
@@ -50,9 +57,15 @@ test('direct setup uses an external endpoint and waits for actual data', async (
 test('menu connection offers direct targets only', async ({ page }) => {
   await page.goto('./logs');
   await page.getByRole('button', { name: '로그 연결', exact: true }).click();
-  await page.getByRole('combobox', { name: '기존 모니터링 대상' }).click();
+  const dialog = page.getByRole('dialog');
+  // Container stdout logs are a Docker environment's job, not this dialog's.
+  await expect(dialog.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/environments$/);
+  await dialog.getByRole('button', { name: '기존 서비스', exact: true }).click();
+  await dialog.getByRole('combobox', { name: '서비스' }).click();
   await expect(page.getByRole('option', { name: /Docker|prod-server/ })).toHaveCount(0);
-  await expect(page.getByRole('option', { name: 'checkout-api · 직접 연결' })).toBeVisible();
+  // Only services that do not send logs yet can take them on.
+  await expect(page.getByRole('option', { name: 'catalog-worker' })).toBeVisible();
+  await expect(page.getByRole('option', { name: 'checkout-api' })).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Docker Collector 설치' })).toHaveCount(0);
 });
