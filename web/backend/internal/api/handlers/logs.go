@@ -98,13 +98,14 @@ func (h *LogHandler) GetSummary(c *fiber.Ctx) error {
 }
 
 // GetPatterns returns the most frequent error/warn log patterns over the logs
-// page window. GET /logs/patterns?limit= (default 10)
+// page window, for one Docker environment or, without agentId, for direct
+// connections. GET /logs/patterns?agentId=&limit= (default 10)
 func (h *LogHandler) GetPatterns(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	if limit <= 0 || limit > 50 {
 		limit = 10
 	}
-	patterns, err := h.repo.Patterns(logsPageWindowStart(), limit)
+	patterns, err := h.repo.Patterns(logsPageWindowStart(), c.Query("agentId"), limit)
 	if err != nil {
 		return internalError(c, ErrCodeDatabase, err)
 	}

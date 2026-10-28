@@ -11,7 +11,7 @@ import { getErrorMessage } from '../../utils/errors';
 export function LogsPage() {
   const { view, setView, returnTo } = useListView();
   const [rows, setRows] = useState<LogServiceRow[]>([]);
-  const [patterns, setPatterns] = useState<LogPatternRow[]>([]);
+  const [patterns, setPatterns] = useState<LogPatternRow[] | null>([]);
   const [span, setSpan] = useState<[number, number]>([0, 0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,8 @@ export function LogsPage() {
   useEffect(() => {
     let alive = true;
     Promise.all([
-      api.getObservedServices('logs'), api.getLogSummary(), api.getLogPatterns(),
+      // 패턴은 보조 정보라, 실패해도 서비스 목록은 그린다.
+      api.getObservedServices('logs'), api.getLogSummary(), api.getLogPatterns().catch(() => null),
     ])
       .then(([directServices, summaries, patternRows]) => {
         if (!alive) return;
@@ -35,7 +36,7 @@ export function LogsPage() {
         setError(null);
         setSpan(next.span);
         setRows(next.rows);
-        setPatterns(next.patterns);
+        setPatterns(patternRows === null ? null : next.patterns);
       })
       .catch(requestError => { if (alive) setError(getErrorMessage(requestError)); })
       .finally(() => { if (alive) setLoading(false); });
