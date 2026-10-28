@@ -232,6 +232,10 @@ export const servicesApi = {
   getUptimeMonitorIncidents: (id: string, days = 90, limit = 20) =>
     request<TimelineIncident[]>(`/services/${id}/incidents?days=${days}&limit=${limit}`),
 
+  // 장애로 이어지지 않은 실패 체크만. 장애 구간과 그 장애를 연 연속 실패는 서버가 뺀다.
+  getUptimeMonitorFailures: (id: string, days = 90, limit = 50) =>
+    request<UptimeMonitorMetric[]>(`/services/${id}/failures?days=${days}&limit=${limit}`),
+
   createUptimeMonitor: (data: UptimeMonitorInput) =>
     request<UptimeMonitor>('/services', { method: 'POST', body: JSON.stringify(data) }),
 

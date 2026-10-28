@@ -29,17 +29,8 @@ test('[14] successful latency, failed timeout, gaps, summaries and check rows ag
   await expect(chart.locator('[aria-live="polite"]')).toContainText(`실패, HTTP 503, ${longError}`);
   await slots.nth(2).hover();
   await expect(chart.locator('[aria-live="polite"]')).toContainText('200ms, HTTP 200');
-  const rows = page.getByRole('table').locator('tbody tr');
-  await expect(rows).toHaveCount(4);
-  await expect(rows.first().getByRole('cell').nth(3)).toHaveText('-');
-  await expect(rows.first()).toContainText(longError);
-  await expect(rows.nth(1).getByRole('cell').nth(3)).toContainText('200ms');
-  await expect(rows.first().getByRole('cell').nth(1)).toContainText(new Date(state.metrics[0].checkedAt).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
-  await page.setViewportSize({ width: 375, height: 812 });
-  const scroller = page.getByRole('table').locator('..');
-  await scroller.scrollIntoViewIfNeeded();
-  await scroller.evaluate((element) => { element.scrollLeft = 100; });
-  expect(await scroller.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  // The per-check table is gone (folded into the chart and the outage history), so nothing else lists checks.
+  await expect(page.getByRole('heading', { name: '체크 기록', exact: true })).toHaveCount(0);
 });
 
 test('[14] time tick labels stay inside the chart at its edges', async ({ page }) => {
@@ -58,15 +49,12 @@ for (const mode of ['empty', 'single', 'tcp'] as const) {
     state.metrics = mode === 'empty' ? [] : mode === 'single' ? [state.metrics[1]] : [{ ...state.metrics[0], statusCode: undefined, errorMessage: 'TCP connection refused' }];
     await page.goto(mode === 'tcp' ? './uptime/tcp-monitor' : './uptime/http-monitor');
     if (mode === 'empty') {
-      await expect(page.getByText('아직 체크 기록이 없습니다', { exact: true })).toBeVisible();
+      await expect(page.getByText('이 기간에 데이터 없음', { exact: true })).toBeVisible();
       await expect(page.getByRole('group', { name: /체크별/ })).toHaveCount(0);
     } else {
       const plot = page.getByRole('group', { name: /체크별/ }); await plot.focus();
       const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
       await expect(chart.locator('[aria-live="polite"]')).toContainText(mode === 'single' ? '120ms, HTTP 200' : '실패, TCP connection refused');
-      await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(1);
-      // TCP has no status code; the column would only ever show "—".
-      await expect(page.getByRole('table').getByRole('columnheader', { name: 'HTTP', exact: true })).toHaveCount(mode === 'tcp' ? 0 : 1);
       expect(await plot.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     }
   });

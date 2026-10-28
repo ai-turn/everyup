@@ -23,18 +23,18 @@ test('[09] initial loading, 404 and server failure have distinct recovery paths'
   } finally { gate.resolve(); }
 });
 
-for (const [path, label] of [['/metrics', '체크 기록'], ['/metrics/summary', '30일 요약'], ['/uptime', '90일 이력']]) {
+for (const [path, label] of [['/metrics', '최근 체크'], ['/metrics/summary', '30일 요약'], ['/uptime', '90일 이력'], ['/failures', '장애 이력']]) {
   test(`[09] independent failure of ${label} retains monitor and other successful sections`, async ({ page }) => {
     const state = await uptimeFixture(page);
     state.failures.set(`GET /services/http-monitor${path}`, 500);
     await page.goto('./uptime/http-monitor');
     await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
     await expect(page.getByRole('alert')).toContainText(label);
-    if (path !== '/metrics') await expect(page.getByRole('heading', { name: '체크 기록', exact: true })).toBeVisible();
+    if (path !== '/failures') await expect(page.getByRole('heading', { name: '장애 이력', exact: true })).toBeVisible();
     state.failures.clear();
     await page.getByRole('button', { name: '다시 시도', exact: true }).click();
     await expect(page.getByRole('alert')).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: '체크 기록', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '장애 이력', exact: true })).toBeVisible();
   });
 }
 
@@ -52,7 +52,7 @@ test('[09] a failed refresh keeps labelled prior data and disables mutations on 
     await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
     gate.resolve(); state.holds.clear();
     await expect(page.getByRole('alert')).toContainText('이전에 불러온');
-    await expect(page.getByRole('heading', { name: '체크 기록', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '장애 이력', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: '일시정지', exact: true })).toBeDisabled();
     await expect(page.getByRole('button', { name: '수정', exact: true })).toBeDisabled();
     state.failures.clear();

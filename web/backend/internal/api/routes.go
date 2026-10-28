@@ -142,6 +142,7 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Get("/incidents", incidentHandler.GetAll)
 	local.Get("/incidents/timeline", incidentHandler.GetTimeline)
 	local.Get("/services/:id/incidents", incidentHandler.GetByService)
+	local.Get("/services/:id/failures", incidentHandler.GetIsolatedFailures)
 
 	// Host endpoints (read-only — write paths removed in agent-only architecture)
 	hostHandler := handlers.NewHostHandler()

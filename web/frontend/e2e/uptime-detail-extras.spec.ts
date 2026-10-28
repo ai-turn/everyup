@@ -44,8 +44,9 @@ test('certificate expiry and expected status show in the header, and the status 
   const state = await uptimeFixture(page);
   state.monitors = [monitor('http-monitor', { certExpiresAt: new Date(Date.now() + 5 * 86_400_000).toISOString() })];
   await page.goto('./uptime/http-monitor');
-  const cert = page.getByText(/^D-5 · /);
-  await expect(cert).toBeVisible();
+  // Certificate expiry is the fourth overview number for HTTPS monitors, coloured only near expiry.
+  const cert = page.locator('dl > div').filter({ hasText: '인증서 만료' }).locator('dd');
+  await expect(cert).toHaveText('D-5');
   await expect(cert).toHaveClass(/text-status-warn/);
   await page.getByRole('button', { name: '수정', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: '업타임 수정' });
@@ -64,4 +65,35 @@ test('TCP monitors have no expected status field or header entry', async ({ page
   await expect(page.getByText('기대 상태 코드', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '수정', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '업타임 수정' }).getByRole('spinbutton', { name: '기대 상태 코드' })).toHaveCount(0);
+});
+
+test('outage history merges outages with failures that never became one, and filters by kind and day', async ({ page }) => {
+  const state = await uptimeFixture(page);
+  const now = Date.now();
+  const day = (ms: number) => new Date(ms).toLocaleDateString('sv-SE');
+  state.history = { percentage: 99, days: [{ date: day(now), status: 'up', uptime: 100 }, { date: day(now - 2 * 86_400_000), status: 'partial', uptime: 98 }] };
+  state.responses.set('GET /services/http-monitor/incidents', [
+    { source: 'uptime', targetName: 'Public API', targetPath: '/uptime/http-monitor', startedAt: new Date(now - 2 * 86_400_000).toISOString(), endedAt: new Date(now - 2 * 86_400_000 + 1_800_000).toISOString(), durationSec: 1800, active: false, message: 'connection refused' },
+  ]);
+  state.responses.set('GET /services/http-monitor/failures', [
+    { id: 9, serviceId: 'http-monitor', status: 'failure', responseTime: 600, statusCode: 503, errorMessage: 'upstream connect error', checkedAt: new Date(now - 600_000).toISOString() },
+  ]);
+  await page.goto('./uptime/http-monitor');
+  const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '장애 이력', exact: true }) });
+  const rows = overview.locator('tbody tr');
+  await expect(rows).toHaveCount(2);
+  await expect(rows.first()).toContainText('실패');
+  await expect(rows.first()).toContainText('HTTP 503, upstream connect error');
+  await expect(rows.nth(1)).toContainText('장애 복구');
+  await overview.getByRole('group', { name: '장애 이력 구분' }).getByRole('button', { name: '장애', exact: true }).click();
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText('connection refused');
+  await overview.getByRole('group', { name: '장애 이력 구분' }).getByRole('button', { name: '전체', exact: true }).click();
+  // Picking the outage's day in the 90-day strip keeps only that day.
+  const strip = overview.getByRole('group', { name: /최근 90일/ });
+  await strip.locator(':scope > div').nth(87).click();
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText('connection refused');
+  await overview.getByRole('button', { name: `${day(now - 2 * 86_400_000)} 선택 해제` }).click();
+  await expect(rows).toHaveCount(2);
 });

@@ -461,3 +461,26 @@ func (r *MetricRepository) GetHistoryBuckets(serviceID string, since time.Time, 
 	}
 	return points, nil
 }
+
+// GetFailuresSince returns a monitor's failed checks since `since`, newest first.
+func (r *MetricRepository) GetFailuresSince(serviceID string, since time.Time, limit int) ([]models.Metric, error) {
+	rows, err := DB.Query(`
+		SELECT id, service_id, status, response_time, COALESCE(status_code, 0), COALESCE(error_message, ''), checked_at
+		FROM metrics
+		WHERE service_id = ? AND status = 'failure' AND checked_at >= ?
+		ORDER BY checked_at DESC
+		LIMIT ?`, serviceID, since, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make([]models.Metric, 0)
+	for rows.Next() {
+		var m models.Metric
+		if err := rows.Scan(&m.ID, &m.ServiceID, &m.Status, &m.ResponseTime, &m.StatusCode, &m.ErrorMessage, &m.CheckedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}

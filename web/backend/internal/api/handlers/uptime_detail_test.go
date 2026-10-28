@@ -2,6 +2,7 @@ package handlers_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -134,5 +135,42 @@ func TestUptimeMonitorReturnsCertificateExpiry(t *testing.T) {
 	got, _ := time.Parse(time.RFC3339, monitor["certExpiresAt"].(string))
 	if !got.Equal(expires) {
 		t.Errorf("certExpiresAt = %v, want %v", monitor["certExpiresAt"], expires)
+	}
+}
+
+// Failed checks that never became an outage are listed on their own; the ones
+// inside an outage, or the consecutive failures that opened it, are not.
+func TestUptimeMonitorFailuresExcludeOutageChecks(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "uptime-failures-1")
+	now := time.Now()
+	seedMonitors(t, "mon-f") // interval 60s; the default threshold is 3 consecutive failures
+	if _, err := database.DB.Exec(
+		`INSERT INTO incidents (service_id, type, message, started_at, resolved_at) VALUES ('mon-f', 'down', 'refused', ?, ?)`,
+		now.Add(-60*time.Minute), now.Add(-30*time.Minute),
+	); err != nil {
+		t.Fatalf("seed incident: %v", err)
+	}
+	metricRepo := database.NewMetricRepository()
+	for _, at := range []time.Duration{200 * time.Minute, 62 * time.Minute, 61 * time.Minute, 45 * time.Minute, 10 * time.Minute} {
+		if err := metricRepo.Create(&models.Metric{ServiceID: "mon-f", Status: models.CheckStatusFailure, ResponseTime: 5000, ErrorMessage: "x", CheckedAt: now.Add(-at)}); err != nil {
+			t.Fatalf("seed metric: %v", err)
+		}
+	}
+	if err := metricRepo.Create(&models.Metric{ServiceID: "mon-f", Status: models.CheckStatusSuccess, ResponseTime: 100, CheckedAt: now.Add(-5 * time.Minute)}); err != nil {
+		t.Fatalf("seed metric: %v", err)
+	}
+
+	_, result := ts.doRequest(t, "GET", "/api/v1/services/mon-f/failures?days=90", nil, authHeader(token)...)
+	if !result.Success {
+		t.Fatalf("failures request failed: %+v", result.Error)
+	}
+	failures := decodeData[[]models.Metric](t, result.Data)
+	var ago []int
+	for _, f := range failures {
+		ago = append(ago, int(now.Sub(f.CheckedAt).Round(time.Minute).Minutes()))
+	}
+	if fmt.Sprint(ago) != "[10 200]" {
+		t.Fatalf("want the two isolated failures newest first (10, 200 min ago), got %v", ago)
 	}
 }
