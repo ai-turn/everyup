@@ -32,7 +32,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
           cache-dependency-path: |
             web/frontend/pnpm-lock.yaml
@@ -73,7 +73,7 @@ jobs:
           sed 's#<head>#<head><script>if(!location.pathname.startsWith("/everyup/demo/"))location.replace("/everyup/")</script>#' web/frontend/dist/index.html > _site/404.html
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
@@ -90,4 +90,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
