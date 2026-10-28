@@ -29,8 +29,8 @@ const RULES = [
   { name: '§2.5 마침표 셋 (… 사용)', re: /[^.]\.\.\.(?=['"`<]|\s*$)/g },
   { name: '§9.16 transition-all', re: /\btransition-all\b/g },
   // 부채 — 현재 건수가 상한 (§10.A·§10.F)
-  { name: '§1.1 *-dark 토큰 직접 사용', re: /\b(?:text|bg|border|ring|fill|stroke|outline|divide|placeholder)-[a-z-]+-dark\b/g, max: 18 },
-  { name: '§10.A slate-* 하드코딩', re: /-slate-\d{2,3}\b/g, max: 78 },
+  { name: '§1.1 *-dark 토큰 직접 사용', re: /\b(?:text|bg|border|ring|fill|stroke|outline|divide|placeholder)-[a-z-]+-dark\b/g, max: 17 },
+  { name: '§10.A slate-* 하드코딩', re: /-slate-\d{2,3}\b/g, max: 77 },
   { name: '§10.A bg-white', re: /\bbg-white\b/g, max: 5 },
 ];
 

@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import { Button, ButtonLink, DetailMeta, MaterialIcon, PageHeader, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
+import { LogIngestLevels } from '../../logs/components/LogIngestLevels';
 import { DockerUptimeStatus } from '../../uptime/components/DockerUptimeStatus';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
@@ -98,7 +99,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
                 <span>마지막 체크 {lastChecked}</span>
               </>
             }
-            fields={[...checkFields(service), ...containerFields(service)]}
+            fields={[...checkFields(service), ...containerFields(service), { label: '수집 레벨', value: <LogIngestLevels agentId={agentId} serviceKey={serviceKey} /> }]}
           />
         }
         aside={

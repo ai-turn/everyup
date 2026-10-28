@@ -1,4 +1,4 @@
-import { Button, DetailMeta, MaterialIcon, Select, StatusLight } from '../../../components/common';
+import { Button, DetailMeta, MaterialIcon, Select, StatusLight, type DetailMetaField } from '../../../components/common';
 import type { Project } from '../../../services/api';
 
 // 직접 연결(Logs·Metrics·API·Collector) 상세의 연결 메타데이터. 수집 키·마지막 수집·그룹은
@@ -18,6 +18,8 @@ interface DirectConnectionMetaProps {
   onProjectChange: (projectId: string) => void;
   onSaveProject: () => void;
   savingProject: boolean;
+  /** 기능별 설정 — 로그의 수집 레벨처럼 그 상세에만 있는 칸 */
+  extraFields?: DetailMetaField[];
 }
 
 export function DirectConnectionMeta({
@@ -33,6 +35,7 @@ export function DirectConnectionMeta({
   onProjectChange,
   onSaveProject,
   savingProject,
+  extraFields = [],
 }: DirectConnectionMetaProps) {
   return (
     <DetailMeta
@@ -71,6 +74,7 @@ export function DirectConnectionMeta({
         // mono 아님 — 신호 목록('logs, metrics')도 어댑터명('OpenTelemetry Collector')도
         // 복사해 쓰는 코드가 아니라 읽는 값이다. 코드인 수집 키만 mono로 둔다.
         { label: detail.label, value: detail.value },
+        ...extraFields,
       ]}
     />
   );
