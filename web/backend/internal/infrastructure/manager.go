@@ -121,10 +121,7 @@ func (m *Manager) GetAll() ([]models.InfrastructureResource, error) {
 		if !ok {
 			continue
 		}
-		cpu, memory, disk := metric.CPUUsage, metric.MemUsage, metric.DiskUsage
-		resources[i].CPUUsage = &cpu
-		resources[i].MemoryUsage = &memory
-		resources[i].DiskUsage = &disk
+		applyLatestUsage(&resources[i], metric)
 		if resources[i].Adapter == models.InfrastructureAdapterOTelCollector {
 			seen := metric.CreatedAt
 			resources[i].LastSeenAt = &seen
@@ -146,12 +143,26 @@ func (m *Manager) GetDirectByID(id string) (*models.InfrastructureResource, erro
 		return nil, err
 	}
 	if metric != nil {
-		cpu, memory, disk := metric.CPUUsage, metric.MemUsage, metric.DiskUsage
-		resource.CPUUsage, resource.MemoryUsage, resource.DiskUsage = &cpu, &memory, &disk
+		applyLatestUsage(resource, *metric)
 		seen := metric.CreatedAt
 		resource.LastSeenAt = &seen
 	}
 	return resource, nil
+}
+
+// A zero size and a zero percent mean the Collector never sent that scraper, so the
+// list shows "-" instead of 0%. CPU has no size to tell the two apart.
+func applyLatestUsage(resource *models.InfrastructureResource, metric models.SystemMetric) {
+	cpu := metric.CPUUsage
+	resource.CPUUsage = &cpu
+	if metric.MemTotal > 0 || metric.MemUsage > 0 {
+		memory := metric.MemUsage
+		resource.MemoryUsage = &memory
+	}
+	if metric.DiskTotal > 0 || metric.DiskUsage > 0 {
+		disk := metric.DiskUsage
+		resource.DiskUsage = &disk
+	}
 }
 
 func (m *Manager) Update(id string, input models.InfrastructureResourceInput) (*models.InfrastructureResource, error) {

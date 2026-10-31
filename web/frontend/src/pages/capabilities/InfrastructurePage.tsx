@@ -1,26 +1,31 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CollectionStatusBadge, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
+import { CRITICAL_PCT } from '../../features/infra/components/InfraGauges';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { api, type InfrastructureResource } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { isCollectorFresh } from '../../utils/operationalStatus';
+
+const USAGE = [['cpuUsage', 'CPU'], ['memoryUsage', '메모리'], ['diskUsage', '디스크']] as const;
 
 // 수집 상태다 — 정상/장애로 그리면 수신이 잠깐 끊긴 호스트가 장애로 읽힌다 (DESIGN.md §5.1a).
 function resourceCollectionStatus(resource: InfrastructureResource) {
   if (!resource.isActive) return <StatusLight tone="error" label="중지됨" />;
   if (!resource.lastSeenAt) return <CollectionStatusBadge status="waiting" />;
-  const fresh = Date.now() - new Date(resource.lastSeenAt).getTime() < 2 * 60 * 1000;
-  return <CollectionStatusBadge status={fresh ? 'collecting' : 'delayed'} />;
+  return <CollectionStatusBadge status={isCollectorFresh(resource.lastSeenAt) ? 'collecting' : 'delayed'} />;
+}
+
+// 상세 게이지와 같은 선을 넘은 값만 칠한다 — 목록에서 자원 이상을 찾는 단서다.
+function UsageValue({ value }: { value?: number }) {
+  if (value == null) return <>-</>;
+  if (value < CRITICAL_PCT) return <>{value.toFixed(1)}%</>;
+  return <span className="text-status-error">{value.toFixed(1)}%<span className="sr-only"> 위험</span></span>;
 }
 
 function ResourceCard({ resource, returnTo }: { resource: InfrastructureResource; returnTo: string }) {
-  const values = [
-    ['CPU', resource.cpuUsage],
-    ['메모리', resource.memoryUsage],
-    ['디스크', resource.diskUsage],
-  ] as const;
   return (
     <Link
       to={`/infrastructure/${resource.id}`}
@@ -31,12 +36,12 @@ function ResourceCard({ resource, returnTo }: { resource: InfrastructureResource
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{resource.name}</h3>}
         status={resourceCollectionStatus(resource)}
       />
-      {values.some(([, value]) => value != null) ? (
+      {USAGE.some(([key]) => resource[key] != null) ? (
         <div className="mt-5 grid grid-cols-3 gap-3">
-          {values.map(([label, value]) => (
-            <div key={label}>
+          {USAGE.map(([key, label]) => (
+            <div key={key}>
               <p className="text-xs text-text-dim">{label}</p>
-              <p className="text-base text-text-base">{value == null ? '-' :`${value.toFixed(1)}%`}</p>
+              <p className="text-base text-text-base"><UsageValue value={resource[key]} /></p>
             </div>
           ))}
         </div>
@@ -90,9 +95,9 @@ export function InfrastructurePage() {
           </div>
           {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{resources.map(resource => <ResourceCard key={resource.id} resource={resource} returnTo={returnTo} />)}</div> :
             <ResourceTable rows={resources} rowKey={row => row.id} ariaLabel="인프라 대상 그리드" columns={[
-              { key: 'name', label: '대상', render: row => <><Link to={`/infrastructure/${row.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><div className="mt-2 md:hidden">{resourceCollectionStatus(row)}<p className="mt-2 type-caption text-text-muted">CPU {row.cpuUsage == null ? '-' : `${row.cpuUsage.toFixed(1)}%`}, 메모리 {row.memoryUsage == null ? '-' : `${row.memoryUsage.toFixed(1)}%`}, 디스크 {row.diskUsage == null ? '-' : `${row.diskUsage.toFixed(1)}%`}</p></div></> },
+              { key: 'name', label: '대상', render: row => <><Link to={`/infrastructure/${row.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><div className="mt-2 md:hidden">{resourceCollectionStatus(row)}<p className="mt-2 type-caption text-text-muted">{USAGE.map(([key, label], index) => <Fragment key={key}>{index > 0 && ', '}{label} <UsageValue value={row[key]} /></Fragment>)}</p></div></> },
               { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: resourceCollectionStatus },
-              ...(['cpuUsage', 'memoryUsage', 'diskUsage'] as const).map((key, index) => ({ key, label: ['CPU', '메모리', '디스크'][index], className: 'hidden w-24 md:table-cell', align: 'right' as const, render: (row: InfrastructureResource) => row[key] == null ? '-' : `${row[key].toFixed(1)}%` })),
+              ...USAGE.map(([key, label]) => ({ key, label, className: 'hidden w-24 md:table-cell', align: 'right' as const, render: (row: InfrastructureResource) => <UsageValue value={row[key]} /> })),
             ]} />}
         </section>
       )}

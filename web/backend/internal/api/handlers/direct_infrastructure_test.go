@@ -163,6 +163,46 @@ func TestDirectInfrastructureCollectorSetupProjectionAlertsAndDelete(t *testing.
 	}
 }
 
+func TestDirectInfrastructureListOmitsUsageTheCollectorNeverSent(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "testpass123")
+	auth := authHeader(token)
+
+	_, createResult := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources", map[string]interface{}{"name": "cpu-only"}, auth...)
+	var created models.InfrastructureResourceSetup
+	if err := json.Unmarshal(createResult.Data, &created); err != nil {
+		t.Fatal(err)
+	}
+	stamp := uint64(time.Now().UTC().UnixNano())
+	request := &collectormetricspb.ExportMetricsServiceRequest{ResourceMetrics: []*metricspb.ResourceMetrics{{
+		ScopeMetrics: []*metricspb.ScopeMetrics{{Metrics: []*metricspb.Metric{
+			hostGauge("system.cpu.utilization", "1", 0.75, stamp, "state", "idle"),
+		}}},
+	}}}
+	if status := postOTLPStatus(t, ts, "/api/v1/otlp/v1/metrics", created.ApiKey, request); status != 200 {
+		t.Fatalf("metrics status=%d, want 200", status)
+	}
+
+	_, listResult := ts.doRequest(t, "GET", "/api/v1/infrastructure-resources", nil, auth...)
+	var resources []models.InfrastructureResource
+	if err := json.Unmarshal(listResult.Data, &resources); err != nil {
+		t.Fatal(err)
+	}
+	_, detailResult := ts.doRequest(t, "GET", "/api/v1/infrastructure-resources/"+created.ID, nil, auth...)
+	var detail models.InfrastructureResource
+	if err := json.Unmarshal(detailResult.Data, &detail); err != nil {
+		t.Fatal(err)
+	}
+	for _, resource := range []models.InfrastructureResource{resources[0], detail} {
+		if resource.CPUUsage == nil || *resource.CPUUsage != 25 {
+			t.Fatalf("cpuUsage = %v, want 25", resource.CPUUsage)
+		}
+		if resource.MemoryUsage != nil || resource.DiskUsage != nil {
+			t.Fatalf("unsent usage reported: memory=%v disk=%v, want nil", resource.MemoryUsage, resource.DiskUsage)
+		}
+	}
+}
+
 func hostGauge(name, unit string, value float64, stamp uint64, attributes ...string) *metricspb.Metric {
 	attrs := make([]*commonpb.KeyValue, 0, len(attributes)/2)
 	for i := 0; i+1 < len(attributes); i += 2 {
