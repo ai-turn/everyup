@@ -7,6 +7,7 @@ import {
 } from '../../components/common';
 import { InfraGauges } from '../../features/infra/components/InfraGauges';
 import { InfraTrends } from '../../features/infra/components/InfraTrends';
+import { useInfraMetrics } from '../../hooks/useInfra';
 import { InfrastructureCollectorKeyDialog } from '../../features/infrastructure/components/InfrastructureCollectorKeyDialog';
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../services/api';
@@ -31,6 +32,7 @@ export function DirectInfrastructureDetailPage() {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<InfrastructureResourceSetup | null>(null);
+  const { data: metrics, loading: metricsLoading } = useInfraMetrics(resourceId, range, refreshKey);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -139,8 +141,8 @@ export function DirectInfrastructureDetailPage() {
       />
 
       <div className="space-y-5">
-        <InfraGauges hostId={resource.id} refreshKey={refreshKey} />
-        <InfraTrends hostId={resource.id} refreshKey={refreshKey} range={range} />
+        <InfraGauges gauges={metrics?.gauges} loading={metricsLoading} />
+        <InfraTrends hostId={resource.id} charts={metrics?.charts} loading={metricsLoading} range={range} />
       </div>
 
       <ConfirmDialog

@@ -25,7 +25,6 @@ function collectorConfig(setup: InfrastructureResourceSetup, endpoint: string) {
     '            enabled: true',
     '      memory:',
     '      filesystem:',
-    '      disk:',
     '      network:',
     'processors:',
     '  batch:',

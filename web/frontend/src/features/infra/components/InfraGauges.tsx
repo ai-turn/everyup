@@ -1,6 +1,5 @@
 import { StatusLight } from '../../../components/common';
 import { Sparkline } from '../../../components/charts';
-import { useMonitoringGauges } from '../../../hooks/useInfra';
 import { Skeleton } from '../../../components/skeleton';
 import type { GaugeData } from '../../../types/infra';
 
@@ -9,13 +8,12 @@ import type { GaugeData } from '../../../types/infra';
 export const CRITICAL_PCT = 85;
 
 interface InfraGaugesProps {
-  hostId: string;
-  refreshKey?: number;
+  /** useInfraMetrics().gauges */
+  gauges?: GaugeData[];
+  loading: boolean;
 }
 
-export function InfraGauges({ hostId, refreshKey = 0 }: InfraGaugesProps) {
-  const { data: gauges, loading } = useMonitoringGauges(hostId, refreshKey);
-
+export function InfraGauges({ gauges, loading }: InfraGaugesProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">

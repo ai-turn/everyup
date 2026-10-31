@@ -1,6 +1,7 @@
 import type { GlobalTimeRange } from '../../../components/common';
 import { InfraGauges } from '../../infra/components/InfraGauges';
 import { InfraTrends } from '../../infra/components/InfraTrends';
+import { useInfraMetrics } from '../../../hooks/useInfra';
 
 interface Props {
   agentId: string;
@@ -10,10 +11,11 @@ interface Props {
 }
 
 export function AgentServiceInfraTab({ agentId, refreshKey, range }: Props) {
+  const { data, loading } = useInfraMetrics(agentId, range, refreshKey);
   return (
     <div className="space-y-5">
-      <InfraGauges hostId={agentId} refreshKey={refreshKey} />
-      <InfraTrends hostId={agentId} refreshKey={refreshKey} range={range} />
+      <InfraGauges gauges={data?.gauges} loading={loading} />
+      <InfraTrends hostId={agentId} charts={data?.charts} loading={loading} range={range} />
     </div>
   );
 }

@@ -50,7 +50,7 @@ func (r *SystemMetricRepository) GetHistory(hostID string, since time.Time, buck
 	}
 
 	rows, err := DB.Query(`
-		SELECT created_at, cpu_usage, mem_used, disk_read, disk_write, net_in, net_out
+		SELECT created_at, cpu_usage, mem_usage, disk_usage, net_in, net_out
 		FROM system_metrics
 		WHERE host_id = ? AND created_at >= ?
 		ORDER BY created_at ASC
@@ -61,8 +61,8 @@ func (r *SystemMetricRepository) GetHistory(hostID string, since time.Time, buck
 	defer rows.Close()
 
 	type acc struct {
-		cpu, memUsed, diskRead, diskWrite, netIn, netOut float64
-		n                                                int
+		cpu, memUsage, diskUsage, netIn, netOut float64
+		n                                       int
 	}
 	bucketDur := time.Duration(bucketMinutes) * time.Minute
 	order := make([]time.Time, 0)
@@ -70,10 +70,10 @@ func (r *SystemMetricRepository) GetHistory(hostID string, since time.Time, buck
 
 	for rows.Next() {
 		var (
-			createdAt                                        time.Time
-			cpu, memUsed, diskRead, diskWrite, netIn, netOut float64
+			createdAt                               time.Time
+			cpu, memUsage, diskUsage, netIn, netOut float64
 		)
-		if err := rows.Scan(&createdAt, &cpu, &memUsed, &diskRead, &diskWrite, &netIn, &netOut); err != nil {
+		if err := rows.Scan(&createdAt, &cpu, &memUsage, &diskUsage, &netIn, &netOut); err != nil {
 			return nil, err
 		}
 		key := createdAt.UTC().Truncate(bucketDur)
@@ -84,9 +84,8 @@ func (r *SystemMetricRepository) GetHistory(hostID string, since time.Time, buck
 			order = append(order, key)
 		}
 		a.cpu += cpu
-		a.memUsed += memUsed
-		a.diskRead += diskRead
-		a.diskWrite += diskWrite
+		a.memUsage += memUsage
+		a.diskUsage += diskUsage
 		a.netIn += netIn
 		a.netOut += netOut
 		a.n++
@@ -102,9 +101,8 @@ func (r *SystemMetricRepository) GetHistory(hostID string, since time.Time, buck
 		points = append(points, models.SystemMetricPoint{
 			Timestamp: key.Format("2006-01-02T15:04:05Z"),
 			CPU:       roundTo(a.cpu/n, 1),
-			MemUsed:   roundTo(a.memUsed/n, 2),
-			DiskRead:  roundTo(a.diskRead/n, 3),
-			DiskWrite: roundTo(a.diskWrite/n, 3),
+			MemUsage:  roundTo(a.memUsage/n, 1),
+			DiskUsage: roundTo(a.diskUsage/n, 1),
 			NetIn:     roundTo(a.netIn/n, 3),
 			NetOut:    roundTo(a.netOut/n, 3),
 		})

@@ -66,10 +66,8 @@ type SystemMetric struct {
 type SystemMetricPoint struct {
 	Timestamp string  `json:"timestamp"`
 	CPU       float64 `json:"cpu"`
-	MemUsed   float64 `json:"memUsed"`
-	MemCached float64 `json:"memCached"`
-	DiskRead  float64 `json:"diskRead"`
-	DiskWrite float64 `json:"diskWrite"`
+	MemUsage  float64 `json:"memUsage"`
+	DiskUsage float64 `json:"diskUsage"`
 	NetIn     float64 `json:"netIn"`
 	NetOut    float64 `json:"netOut"`
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aiturn/everyup/internal/models"
@@ -15,6 +16,19 @@ type filesystemUsage struct {
 	total float64
 }
 
+// system.network.io is a running byte total, so a rate needs the previous batch's total.
+type networkCounter struct {
+	received, transmitted float64
+	at                    time.Time
+}
+
+// ponytail: in-memory, so the first batch after a restart records 0 MB/s; persist the
+// counters if that gap ever matters.
+var (
+	networkCountersMu sync.Mutex
+	networkCounters   = map[string]networkCounter{}
+)
+
 func projectInfrastructureMetric(req *collectormetricspb.ExportMetricsServiceRequest, resourceID string) (*models.SystemMetric, int) {
 	metric := &models.SystemMetric{HostID: resourceID, CreatedAt: time.Now()}
 	cpuIdle := make([]float64, 0)
@@ -22,6 +36,7 @@ func projectInfrastructureMetric(req *collectormetricspb.ExportMetricsServiceReq
 	memStates := make(map[string]float64)
 	filesystems := make(map[string]*filesystemUsage)
 	var cpuDirect, memPercent, diskPercent *float64
+	var network *networkCounter
 	recognized := 0
 
 	for _, resourceMetrics := range req.ResourceMetrics {
@@ -83,6 +98,23 @@ func projectInfrastructureMetric(req *collectormetricspb.ExportMetricsServiceReq
 						if state == "used" {
 							usage.used += row.Value
 						}
+					case "system.network.io":
+						recognized++
+						if firstMetricAttribute(attrs, "device") == "lo" {
+							continue
+						}
+						if network == nil {
+							network = &networkCounter{}
+						}
+						switch firstMetricAttribute(attrs, "direction") {
+						case "receive":
+							network.received += row.Value
+						case "transmit":
+							network.transmitted += row.Value
+						}
+						if row.CreatedAt.After(network.at) {
+							network.at = row.CreatedAt
+						}
 					}
 					if row.CreatedAt.After(metric.CreatedAt) {
 						metric.CreatedAt = row.CreatedAt
@@ -137,7 +169,29 @@ func projectInfrastructureMetric(req *collectormetricspb.ExportMetricsServiceReq
 	if diskPercent != nil && *diskPercent > metric.DiskUsage {
 		metric.DiskUsage = clampPercent(*diskPercent)
 	}
+	if network != nil {
+		metric.NetIn, metric.NetOut = networkRate(resourceID, *network)
+	}
 	return metric, recognized
+}
+
+// networkRate turns two consecutive byte totals into MB/s. A first batch or a counter
+// reset (Collector restart) has nothing to subtract from and reads 0.
+func networkRate(resourceID string, current networkCounter) (float64, float64) {
+	networkCountersMu.Lock()
+	previous, ok := networkCounters[resourceID]
+	networkCounters[resourceID] = current
+	networkCountersMu.Unlock()
+
+	seconds := current.at.Sub(previous.at).Seconds()
+	if !ok || seconds <= 0 || current.received < previous.received || current.transmitted < previous.transmitted {
+		return 0, 0
+	}
+	return mbPerSecond(current.received-previous.received, seconds), mbPerSecond(current.transmitted-previous.transmitted, seconds)
+}
+
+func mbPerSecond(bytes, seconds float64) float64 {
+	return math.Round(bytes/(1024*1024)/seconds*1000) / 1000
 }
 
 func fillMissingInfrastructureValues(metric, previous *models.SystemMetric) {
@@ -189,6 +243,7 @@ func average(values []float64) float64 {
 	return total / float64(len(values))
 }
 
+// Two decimals — the gauges print this value as is.
 func bytesToGiB(value float64) float64 {
-	return value / (1024 * 1024 * 1024)
+	return math.Round(value/(1024*1024*1024)*100) / 100
 }

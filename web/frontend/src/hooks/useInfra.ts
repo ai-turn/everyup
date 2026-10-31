@@ -2,32 +2,29 @@ import { api } from '../services/api';
 import { useDataFetch } from './useDataFetch';
 import { mockGauges, mockCharts as mockTrendCharts } from '../mocks/infra';
 import { systemInfoToGauges, historyToCharts } from '../utils/systemTransform';
+import type { ChartData, GaugeData } from '../types/infra';
 
-export function useMonitoringGauges(hostId: string, refreshKey = 0) {
-  return useDataFetch(
-    mockGauges,
-    async () => {
-      const info = await api.getSystemInfo(hostId);
-      try {
-        const history = await api.getSystemMetricsHistory(hostId, '6h');
-        return systemInfoToGauges(info, history);
-      } catch {
-        return systemInfoToGauges(info);
-      }
-    },
-    [hostId, refreshKey]
-  );
+export interface InfraMetrics {
+  gauges: GaugeData[];
+  charts: ChartData[];
 }
 
-export function useMonitoringTrends(hostId: string, range: string = '6h', refreshKey = 0) {
-  return useDataFetch(
-    mockTrendCharts,
+// 게이지와 추세는 같은 현재값·이력을 쓰므로 한 번만 받는다. 게이지 스파크라인은 6시간 고정이라
+// (DESIGN.md §4.2) 차트 범위가 다를 때만 6시간 이력을 따로 받는다.
+export function useInfraMetrics(hostId: string, range = '6h', refreshKey = 0) {
+  return useDataFetch<InfraMetrics>(
+    { gauges: mockGauges, charts: mockTrendCharts },
     async () => {
-      const [history, info] = await Promise.all([
-        api.getSystemMetricsHistory(hostId, range),
+      const [info, history, sparkHistory] = await Promise.all([
         api.getSystemInfo(hostId).catch(() => null),
+        api.getSystemMetricsHistory(hostId, range).catch(() => null),
+        range === '6h' ? null : api.getSystemMetricsHistory(hostId, '6h').catch(() => null),
       ]);
-      return historyToCharts(history, info);
+      const spark = range === '6h' ? history : sparkHistory;
+      return {
+        gauges: info ? systemInfoToGauges(info, spark ?? undefined) : [],
+        charts: history ? historyToCharts(history, info) : [],
+      };
     },
     [hostId, range, refreshKey]
   );
