@@ -38,12 +38,8 @@ export function InfraTrends({ hostId, charts, loading, range }: InfraTrendsProps
 
   const theme = useChartTheme();
   // Usage rules are %, like the three usage charts. Network (MB/s) has no rule.
-  const target = { kind: 'infrastructure', resourceId: hostId } as const;
-  const rulesBySeries: Record<string, AlertRule[]> = {
-    cpu: useAlertThresholds(target, 'cpu'),
-    memUsage: useAlertThresholds(target, 'memory'),
-    diskUsage: useAlertThresholds(target, 'disk'),
-  };
+  const rules = useAlertThresholds({ kind: 'infrastructure', resourceId: hostId }, ['cpu', 'memory', 'disk']);
+  const metricBySeries: Record<string, AlertRule['metric']> = { cpu: 'cpu', memUsage: 'memory', diskUsage: 'disk' };
 
   const rangeLabel: Record<GlobalTimeRange, string> = {
     '1h': '최근 1시간',
@@ -84,7 +80,7 @@ export function InfraTrends({ hostId, charts, loading, range }: InfraTrendsProps
               theme={theme}
               showTooltip={hovered === chart.title}
               onHover={setHovered}
-              thresholds={rulesBySeries[chart.series[0]?.key] ?? []}
+              thresholds={rules.filter((rule) => rule.metric === metricBySeries[chart.series[0]?.key])}
             />
           ))}
         </div>
