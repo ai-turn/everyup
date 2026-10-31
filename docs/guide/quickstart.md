@@ -90,7 +90,7 @@ Collector로 보냅니다. Docker를 쓰지 않아도 연결할 수 있고, 필�
 | 로그 | **로그 → 로그 연결 → OpenTelemetry로 직접 연결** |
 | API 요청·트레이스 | **API 요청 → API 연결 → OpenTelemetry로 직접 연결** |
 | 앱 메트릭 | **메트릭 → 메트릭 연결 → OpenTelemetry로 직접 연결** |
-| 서버 자원 | **인프라 → 인프라 연결 → 표준 Collector 연결** |
+| 서버 자원 | **인프라 → 인프라 연결** |
 
 연결 화면에서 데이터 전송 주소와 API Key를 확인한 뒤 앱이나 Collector에 적용하세요. 언어별 설정과
 수신 확인 방법은 [OpenTelemetry로 직접 연결](./monitoring-setup#direct-otel)에 있습니다.

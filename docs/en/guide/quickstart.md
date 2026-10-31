@@ -94,7 +94,7 @@ capabilities you need.
 | Logs | **로그** (Logs) → **로그 연결** (Connect logs) → **OpenTelemetry로 직접 연결** (Connect directly through OpenTelemetry) |
 | API requests and traces | **API 요청** (API requests) → **API 연결** (Connect API) → **OpenTelemetry로 직접 연결** |
 | App metrics | **메트릭** (Metrics) → **메트릭 연결** (Connect metrics) → **OpenTelemetry로 직접 연결** |
-| Server resources | **인프라** (Infrastructure) → **인프라 연결** (Connect infrastructure) → **표준 Collector 연결** (Connect standard Collector) |
+| Server resources | **인프라** (Infrastructure) → **인프라 연결** (Connect infrastructure) |
 
 The connection screen shows the export address and API Key to apply in your app or Collector. See
 [Connecting OpenTelemetry directly](./monitoring-setup#direct-otel) for language-specific setup and

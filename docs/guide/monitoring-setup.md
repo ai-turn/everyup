@@ -53,7 +53,7 @@ Docker 밖에서 실행되는 앱은 로그·트레이스·메트릭을 OpenTele
 | 로그 | **로그 → 로그 연결 → OpenTelemetry로 직접 연결** |
 | API 요청·트레이스 | **API 요청 → API 연결 → OpenTelemetry로 직접 연결** |
 | 앱 메트릭 | **메트릭 → 메트릭 연결 → OpenTelemetry로 직접 연결** |
-| 서버 자원 | **인프라 → 인프라 연결 → 표준 Collector 연결** |
+| 서버 자원 | **인프라 → 인프라 연결** |
 
 직접 연결 화면에서 서비스를 추가하면 데이터 전송 주소와 API Key를 확인할 수 있습니다.
 OpenTelemetry를 처음 설정한다면 Java·Node.js·Go 안내에 따라 SDK와 exporter를 연결하세요.
