@@ -1,21 +1,19 @@
 import { StatusLight } from '../../../components/common';
 import { Sparkline } from '../../../components/charts';
-import { useMonitoringGauges } from '../../../hooks/useInfra';
 import { Skeleton } from '../../../components/skeleton';
 import type { GaugeData } from '../../../types/infra';
 
 // 부하 임계값: 85% 이상이면 위험. 색은 이 선을 넘은 카드에만 싣는다 —
-// 정상 카드까지 초록·주황으로 칠하면 정작 넘은 카드가 묻힌다.
-const CRITICAL_PCT = 85;
+// 정상 카드까지 초록·주황으로 칠하면 정작 넘은 카드가 묻힌다. 인프라 목록도 같은 선을 쓴다.
+export const CRITICAL_PCT = 85;
 
 interface InfraGaugesProps {
-  hostId: string;
-  refreshKey?: number;
+  /** useInfraMetrics().gauges */
+  gauges?: GaugeData[];
+  loading: boolean;
 }
 
-export function InfraGauges({ hostId, refreshKey = 0 }: InfraGaugesProps) {
-  const { data: gauges, loading } = useMonitoringGauges(hostId, refreshKey);
-
+export function InfraGauges({ gauges, loading }: InfraGaugesProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">

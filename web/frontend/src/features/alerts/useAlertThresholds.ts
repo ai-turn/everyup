@@ -7,7 +7,8 @@ import { matchesAlertTarget, type AlertTarget } from './alertTarget';
  * as threshold lines. Global rules (no target) are left out: they would draw
  * the same line on every chart without saying where it came from.
  */
-export function useAlertThresholds(target: AlertTarget, metric: AlertMetric, metricName?: string): AlertRule[] {
+export function useAlertThresholds(target: AlertTarget, metric: AlertMetric | AlertMetric[], metricName?: string): AlertRule[] {
+  const metrics = Array.isArray(metric) ? metric : [metric];
   const [rules, setRules] = useState<AlertRule[]>([]);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export function useAlertThresholds(target: AlertTarget, metric: AlertMetric, met
 
   return rules.filter((rule) =>
     rule.isEnabled
-    && rule.metric === metric
+    && metrics.includes(rule.metric)
     && (metricName === undefined || rule.metricName === metricName)
     && matchesAlertTarget(rule, target));
 }

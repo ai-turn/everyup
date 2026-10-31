@@ -46,13 +46,14 @@ export function InfrastructureCollectorSetupDialog({
       ref={ref}
       aria-labelledby="infrastructure-collector-dialog-title"
       onCancel={event => { event.preventDefault(); if (!submitting) onClose(); }}
-      onClick={event => { if (event.target === event.currentTarget && !submitting) onClose(); }}
+      // The API Key is shown once — a stray backdrop click must not throw it away.
+      onClick={event => { if (event.target === event.currentTarget && !submitting && !setup) onClose(); }}
       className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
         <div>
           <h2 id="infrastructure-collector-dialog-title" className="type-card-title text-text-base">OpenTelemetry Collector 연결</h2>
-          <p className="mt-0.5 text-sm text-text-muted">표준 hostmetrics receiver로 CPU, 메모리, 디스크를 수집합니다.</p>
+          <p className="mt-0.5 text-sm text-text-muted">표준 hostmetrics receiver로 CPU, 메모리, 디스크, 네트워크를 수집합니다.</p>
         </div>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
       </div>
@@ -72,7 +73,7 @@ export function InfrastructureCollectorSetupDialog({
             </Select>
           </label>
           <div className="rounded-xl border border-ui-border bg-ui-hover-soft p-4 text-sm text-text-muted">
-            설정 파일과 일회성 API Key를 발급합니다. Collector는 metrics 데이터만 전송할 수 있으며 Docker 환경은 추가되지 않습니다.
+            추가하면 Collector 설정 파일과 한 번만 표시되는 API Key를 발급합니다.
           </div>
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
             <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>

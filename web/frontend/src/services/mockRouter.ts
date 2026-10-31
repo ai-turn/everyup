@@ -5,7 +5,7 @@
  */
 
 import { mockLogEntries as allMockLogs, mockTraceIds } from '../mocks/logs/logs.mock';
-import { mockGauges } from '../mocks/infra/resources.mock';
+import { mockSystemInfo, mockSystemMetrics } from '../mocks/infra/resources.mock';
 import { mockChannels } from '../mocks/alerts/channels.mock';
 import { getDemoScenario, type MockScenario } from '../mocks/demoScenario';
 
@@ -13,8 +13,6 @@ import type {
   LogEntry,
   LogPattern,
   LogServiceSummary,
-  SystemInfo,
-  SystemMetricsHistory,
   AlertRule,
   NotificationHistoryResponse,
   NotificationStats,
@@ -51,32 +49,7 @@ import type {
 
 // ?? System Resource Monitoring ????????????????????????????????????????????????
 
-const mockSystemInfo: SystemInfo = {
-  hostname: 'prod-server-01',
-  os: 'Ubuntu 22.04 LTS',
-  platform: 'linux',
-  kernel: '5.15.0-92-generic',
-  uptime: 1_234_567,
-  ip: '192.168.1.50',
-  cpu: { cores: 8, usage: mockGauges[0]?.percentage ?? 42 },
-  memory: { total: 16, used: 9.6, usage: mockGauges[1]?.percentage ?? 60 },
-  disk: { total: 500, used: 210, usage: mockGauges[2]?.percentage ?? 42, readSpeed: 120, writeSpeed: 80 },
-  network: { in: 3.2, out: 1.4 },
-};
-
-const mockSystemMetrics: SystemMetricsHistory = {
-  range: '6h',
-  points: Array.from({ length: 72 }, (_, i) => ({
-    timestamp: new Date(Date.now() - (71 - i) * 5 * 60_000).toISOString(),
-    cpu: 30 + Math.sin(i / 8) * 20 + Math.random() * 5,
-    memUsed: 55 + Math.cos(i / 10) * 10 + Math.random() * 3,
-    memCached: 10 + Math.random() * 5,
-    diskRead: 50 + Math.random() * 100,
-    diskWrite: 30 + Math.random() * 80,
-    netIn: 8 + Math.random() * 20,
-    netOut: 4 + Math.random() * 16,
-  })),
-};
+// mockSystemInfo·mockSystemMetrics는 mocks/infra에 있다 — 게이지·추세 목업이 같은 값에서 나온다.
 
 // ?? Alert Rules ???????????????????????????????????????????????????????????????
 

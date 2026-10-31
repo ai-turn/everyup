@@ -86,11 +86,11 @@ test('instrumentation requires explicit targets and invalidates changed previews
   await expect(dialog.getByRole('button', { name: '안전 적용 명령 복사' })).toHaveCount(0);
 });
 
-test('mobile connection chooser stays within the viewport', async ({ page }) => {
+test('mobile infrastructure setup stays within the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('./infrastructure');
   await page.getByRole('button', { name: '인프라 연결', exact: true }).click();
-  await expect(page.getByRole('dialog').getByRole('button', { name: '표준 Collector 연결' })).toBeVisible();
+  await expect(page.getByRole('dialog').getByLabel('인프라 이름')).toBeVisible();
   const bounds = await page.getByRole('dialog').boundingBox();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);

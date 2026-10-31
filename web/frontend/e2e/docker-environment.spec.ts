@@ -8,7 +8,7 @@ test.describe('docker environment detail', () => {
 
     const infra = page.locator('section', { has: page.getByRole('heading', { name: '인프라', exact: true }) });
     await expect(infra.getByText('CPU')).toBeVisible();
-    await expect(infra.getByText('DISK')).toBeVisible();
+    await expect(infra.getByText('디스크', { exact: true })).toBeVisible();
 
     const logs = page.locator('section', { has: page.getByRole('heading', { name: '로그', exact: true }) });
     await expect(logs.getByRole('link').first()).toHaveText('payment-worker');

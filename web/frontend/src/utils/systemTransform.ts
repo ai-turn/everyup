@@ -24,6 +24,11 @@ export function systemInfoToResources(info: SystemInfo): Resource[] {
 // Network gauge uses a 125 MB/s baseline (1 Gbps link) to map throughput → %.
 const NETWORK_FULL_SCALE_MBPS = 125;
 
+// Collector가 퍼센트만 보내면 용량(total)이 0이다 — "0 GB / 0 GB"보다 비워 두는 편이 맞다.
+function capacity({ used, total }: { used: number; total: number }) {
+  return total > 0 ? `${used.toFixed(1)} GB / ${total.toFixed(1)} GB` : '';
+}
+
 export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHistory): GaugeData[] {
   const pts = history?.points ?? [];
   const gauges: GaugeData[] = [
@@ -31,20 +36,21 @@ export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHist
       label: 'CPU',
       percentage: info.cpu.usage,
       color: SERIES_HEX.primary,
-      subtitle: `${info.cpu.cores} Cores Online`,
+      // Collector 경로는 코어 수를 모른다(0).
+      subtitle: info.cpu.cores > 0 ? `코어 ${info.cpu.cores}개` : '',
       spark: pts.map((p) => p.cpu),
     },
     {
-      label: 'Memory',
+      label: '메모리',
       percentage: info.memory.usage,
       color: SERIES_HEX.emerald,
-      subtitle: `${info.memory.used} GB / ${info.memory.total} GB`,
+      subtitle: capacity(info.memory),
     },
     {
-      label: 'Disk',
+      label: '디스크',
       percentage: info.disk.usage,
       color: SERIES_HEX.amber,
-      subtitle: `${info.disk.used} GB / ${info.disk.total} GB`,
+      subtitle: capacity(info.disk),
     },
   ];
 
@@ -54,7 +60,7 @@ export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHist
   const { value, unit } = formatThroughput(total);
 
   gauges.push({
-    label: 'Network',
+    label: '네트워크',
     percentage: Math.max(0, Math.min(100, Math.round((total / NETWORK_FULL_SCALE_MBPS) * 100))),
     color: SERIES_HEX.teal,
     subtitle: `In ${formatThroughput(netIn).value} ${formatThroughput(netIn).unit} · Out ${formatThroughput(netOut).value} ${formatThroughput(netOut).unit}`,
@@ -82,52 +88,45 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
   const data: ChartData['data'] = points.map((p) => ({
     t: new Date(p.timestamp).getTime(),
     cpu: Math.round(p.cpu),
-    memUsed: parseFloat(p.memUsed.toFixed(1)),
-    memCached: parseFloat((p.memCached || 0).toFixed(1)),
-    diskRead: parseFloat(p.diskRead.toFixed(2)),
-    diskWrite: parseFloat(p.diskWrite.toFixed(2)),
+    memUsage: Math.round(p.memUsage),
+    diskUsage: Math.round(p.diskUsage),
     netIn: parseFloat((p.netIn || 0).toFixed(2)),
     netOut: parseFloat((p.netOut || 0).toFixed(2)),
   }));
 
   if (currentInfo) {
-    // memCached는 현재값 API에 없다 — 0을 넣으면 Cached 선이 끝에서 바닥으로 떨어지고 Last가 0이 된다.
     data.push({
       t: Date.now(),
       cpu: Math.round(currentInfo.cpu.usage),
-      memUsed: parseFloat(currentInfo.memory.used.toFixed(1)),
-      diskRead: parseFloat((currentInfo.disk.readSpeed ?? 0).toFixed(2)),
-      diskWrite: parseFloat((currentInfo.disk.writeSpeed ?? 0).toFixed(2)),
+      memUsage: Math.round(currentInfo.memory.usage),
+      diskUsage: Math.round(currentInfo.disk.usage),
       netIn: parseFloat((currentInfo.network?.in ?? 0).toFixed(2)),
       netOut: parseFloat((currentInfo.network?.out ?? 0).toFixed(2)),
     });
   }
 
+  // 세 사용률 차트는 같은 %라서 알림 규칙 임계선을 그대로 긋는다(InfraTrends).
   return [
     {
       title: 'CPU',
       unit: '%',
       yMax: 100,
       data,
-      series: [{ key: 'cpu', label: 'Usage', color: SERIES_HEX.primary }],
+      series: [{ key: 'cpu', label: '사용률', color: SERIES_HEX.primary }],
     },
     {
       title: '메모리',
-      unit: 'GB',
+      unit: '%',
+      yMax: 100,
       data,
-      series: [
-        { key: 'memUsed',   label: 'Used',   color: SERIES_HEX.primary },
-        { key: 'memCached', label: 'Cached', color: SERIES_HEX.teal },
-      ],
+      series: [{ key: 'memUsage', label: '사용률', color: SERIES_HEX.primary }],
     },
     {
-      title: '디스크 I/O',
-      unit: 'MB/s',
+      title: '디스크',
+      unit: '%',
+      yMax: 100,
       data,
-      series: [
-        { key: 'diskRead', label: '읽기', color: SERIES_HEX.primary },
-        { key: 'diskWrite', label: '쓰기', color: SERIES_HEX.amber },
-      ],
+      series: [{ key: 'diskUsage', label: '사용률', color: SERIES_HEX.primary }],
     },
     {
       title: '네트워크',

@@ -17,6 +17,7 @@ import {
   type LogServiceSummary, type LogPattern,
 } from '../../services/api';
 import { InfraGauges } from '../../features/infra/components/InfraGauges';
+import { useInfraMetrics } from '../../hooks/useInfra';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries } from '../../features/logs/logServiceRows';
 import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
@@ -28,6 +29,12 @@ import { AgentServiceRequestTrends } from '../../features/healthcheck/components
 import { AgentCheckHistoryBar } from '../../features/healthcheck/components/AgentCheckHistoryBar';
 import { getErrorMessage } from '../../utils/errors';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
+
+// 인프라를 수집할 때만 그려져야 지표를 받는다 — 페이지 본체에서 훅을 부르면 항상 요청한다.
+function HostGauges({ hostId, refreshKey }: { hostId: string; refreshKey: number }) {
+  const { data, loading } = useInfraMetrics(hostId, '6h', refreshKey);
+  return <InfraGauges gauges={data?.gauges} loading={loading} />;
+}
 
 function agentOnline(agent: ConnectedAgent): boolean {
   return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
@@ -328,7 +335,7 @@ export function ProjectDetailPage() {
       {agentId && collects('infrastructure') && (
         <section>
           <h2 className="mb-3 type-section-title text-text-base">인프라</h2>
-          <InfraGauges hostId={agentId} refreshKey={refreshKey} />
+          <HostGauges hostId={agentId} refreshKey={refreshKey} />
         </section>
       )}
 

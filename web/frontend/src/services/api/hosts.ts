@@ -18,10 +18,8 @@ export interface SystemInfo {
 export interface SystemMetricPoint {
   timestamp: string;
   cpu: number;
-  memUsed: number;
-  memCached: number;
-  diskRead: number;
-  diskWrite: number;
+  memUsage: number;
+  diskUsage: number;
   netIn: number;
   netOut: number;
 }

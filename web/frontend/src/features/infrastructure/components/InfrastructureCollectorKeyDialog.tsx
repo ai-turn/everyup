@@ -13,12 +13,12 @@ export function InfrastructureCollectorKeyDialog({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { ref.current?.showModal(); }, []);
+  // No backdrop close: the new API Key is shown once.
   return (
     <dialog
       ref={ref}
       aria-labelledby="collector-key-dialog-title"
       onCancel={event => { event.preventDefault(); onClose(); }}
-      onClick={event => { if (event.target === event.currentTarget) onClose(); }}
       className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="flex items-center justify-between border-b border-ui-border px-6 py-4">

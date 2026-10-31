@@ -163,6 +163,111 @@ func TestDirectInfrastructureCollectorSetupProjectionAlertsAndDelete(t *testing.
 	}
 }
 
+func TestDirectInfrastructureListOmitsUsageTheCollectorNeverSent(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "testpass123")
+	auth := authHeader(token)
+
+	_, createResult := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources", map[string]interface{}{"name": "cpu-only"}, auth...)
+	var created models.InfrastructureResourceSetup
+	if err := json.Unmarshal(createResult.Data, &created); err != nil {
+		t.Fatal(err)
+	}
+	stamp := uint64(time.Now().UTC().UnixNano())
+	request := &collectormetricspb.ExportMetricsServiceRequest{ResourceMetrics: []*metricspb.ResourceMetrics{{
+		ScopeMetrics: []*metricspb.ScopeMetrics{{Metrics: []*metricspb.Metric{
+			hostGauge("system.cpu.utilization", "1", 0.75, stamp, "state", "idle"),
+		}}},
+	}}}
+	if status := postOTLPStatus(t, ts, "/api/v1/otlp/v1/metrics", created.ApiKey, request); status != 200 {
+		t.Fatalf("metrics status=%d, want 200", status)
+	}
+
+	_, listResult := ts.doRequest(t, "GET", "/api/v1/infrastructure-resources", nil, auth...)
+	var resources []models.InfrastructureResource
+	if err := json.Unmarshal(listResult.Data, &resources); err != nil {
+		t.Fatal(err)
+	}
+	_, detailResult := ts.doRequest(t, "GET", "/api/v1/infrastructure-resources/"+created.ID, nil, auth...)
+	var detail models.InfrastructureResource
+	if err := json.Unmarshal(detailResult.Data, &detail); err != nil {
+		t.Fatal(err)
+	}
+	for _, resource := range []models.InfrastructureResource{resources[0], detail} {
+		if resource.CPUUsage == nil || *resource.CPUUsage != 25 {
+			t.Fatalf("cpuUsage = %v, want 25", resource.CPUUsage)
+		}
+		if resource.MemoryUsage != nil || resource.DiskUsage != nil {
+			t.Fatalf("unsent usage reported: memory=%v disk=%v, want nil", resource.MemoryUsage, resource.DiskUsage)
+		}
+	}
+}
+
+func TestDirectInfrastructureNetworkRateRoundingAndUsageHistory(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "testpass123")
+	auth := authHeader(token)
+
+	_, createResult := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources", map[string]interface{}{"name": "net-host"}, auth...)
+	var created models.InfrastructureResourceSetup
+	if err := json.Unmarshal(createResult.Data, &created); err != nil {
+		t.Fatal(err)
+	}
+	const mib = 1024 * 1024
+	start := time.Now().UTC().Add(-time.Minute)
+	send := func(at time.Time, received, transmitted float64) {
+		stamp := uint64(at.UnixNano())
+		request := &collectormetricspb.ExportMetricsServiceRequest{ResourceMetrics: []*metricspb.ResourceMetrics{{
+			ScopeMetrics: []*metricspb.ScopeMetrics{{Metrics: []*metricspb.Metric{
+				hostGauge("system.memory.usage", "By", 6.123456*1024*mib, stamp, "state", "used"),
+				hostGauge("system.memory.usage", "By", 2*1024*mib, stamp, "state", "free"),
+				hostGauge("system.filesystem.usage", "By", 40*1024*mib, stamp, "type", "used", "mountpoint", "/"),
+				hostGauge("system.filesystem.usage", "By", 60*1024*mib, stamp, "type", "free", "mountpoint", "/"),
+				hostSum("system.network.io", "By", received, stamp, "device", "eth0", "direction", "receive"),
+				hostSum("system.network.io", "By", transmitted, stamp, "device", "eth0", "direction", "transmit"),
+				// Loopback traffic never leaves the host, so it is not the host's network.
+				hostSum("system.network.io", "By", received*10, stamp, "device", "lo", "direction", "receive"),
+			}}},
+		}}}
+		if status := postOTLPStatus(t, ts, "/api/v1/otlp/v1/metrics", created.ApiKey, request); status != 200 {
+			t.Fatalf("metrics status=%d, want 200", status)
+		}
+	}
+	send(start, 100*mib, 50*mib)
+	send(start.Add(30*time.Second), 160*mib, 80*mib)
+
+	latest, err := database.NewSystemMetricRepository().GetLatestByHost(created.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if latest.NetIn != 2 || latest.NetOut != 1 {
+		t.Fatalf("network rate in=%v out=%v MB/s, want 2 and 1", latest.NetIn, latest.NetOut)
+	}
+	if latest.MemUsed != 6.12 || latest.MemTotal != 8.12 {
+		t.Fatalf("memory GiB used=%v total=%v, want 6.12 and 8.12", latest.MemUsed, latest.MemTotal)
+	}
+
+	_, historyResult := ts.doRequest(t, "GET", "/api/v1/hosts/"+created.ID+"/system/metrics?range=1h", nil, auth...)
+	var history struct {
+		Points []models.SystemMetricPoint `json:"points"`
+	}
+	if err := json.Unmarshal(historyResult.Data, &history); err != nil {
+		t.Fatal(err)
+	}
+	if len(history.Points) == 0 || history.Points[0].DiskUsage != 40 || history.Points[0].MemUsage == 0 {
+		t.Fatalf("history lacks usage percents: %+v", history.Points)
+	}
+}
+
+func hostSum(name, unit string, value float64, stamp uint64, attributes ...string) *metricspb.Metric {
+	gauge := hostGauge(name, unit, value, stamp, attributes...)
+	return &metricspb.Metric{Name: name, Unit: unit, Data: &metricspb.Metric_Sum{Sum: &metricspb.Sum{
+		DataPoints:             gauge.GetGauge().GetDataPoints(),
+		AggregationTemporality: metricspb.AggregationTemporality_AGGREGATION_TEMPORALITY_CUMULATIVE,
+		IsMonotonic:            true,
+	}}}
+}
+
 func hostGauge(name, unit string, value float64, stamp uint64, attributes ...string) *metricspb.Metric {
 	attrs := make([]*commonpb.KeyValue, 0, len(attributes)/2)
 	for i := 0; i+1 < len(attributes); i += 2 {

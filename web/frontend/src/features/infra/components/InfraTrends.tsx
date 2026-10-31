@@ -17,28 +17,29 @@ import {
 } from '../../../components/charts';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import type { AlertRule } from '../../../services/api';
-import { useMonitoringTrends } from '../../../hooks/useInfra';
 import { Skeleton } from '../../../components/skeleton';
 import type { ChartData } from '../../../types/infra';
 
 interface InfraTrendsProps {
+  /** For the alert rules drawn as threshold lines. */
   hostId: string;
-  refreshKey?: number;
+  /** useInfraMetrics().charts */
+  charts?: ChartData[];
+  loading: boolean;
   /** Shared chart range from the page-header picker. */
   range: GlobalTimeRange;
 }
 
 const RANGE_MS: Record<GlobalTimeRange, number> = { '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000 };
 
-export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps) {
-
-  const { data: charts, loading } = useMonitoringTrends(hostId, range, refreshKey);
+export function InfraTrends({ hostId, charts, loading, range }: InfraTrendsProps) {
   // Charts share a crosshair (syncId); only the hovered one shows its tooltip box.
   const [hovered, setHovered] = useState<string | null>(null);
 
   const theme = useChartTheme();
-  // Memory/disk rules are usage %, while those charts plot GB and MB/s — only CPU lines up.
-  const cpuRules = useAlertThresholds({ kind: 'infrastructure', resourceId: hostId }, 'cpu');
+  // Usage rules are %, like the three usage charts. Network (MB/s) has no rule.
+  const rules = useAlertThresholds({ kind: 'infrastructure', resourceId: hostId }, ['cpu', 'memory', 'disk']);
+  const metricBySeries: Record<string, AlertRule['metric']> = { cpu: 'cpu', memUsage: 'memory', diskUsage: 'disk' };
 
   const rangeLabel: Record<GlobalTimeRange, string> = {
     '1h': '최근 1시간',
@@ -79,7 +80,7 @@ export function InfraTrends({ hostId, refreshKey = 0, range }: InfraTrendsProps)
               theme={theme}
               showTooltip={hovered === chart.title}
               onHover={setHovered}
-              thresholds={chart.series.some((s) => s.key === 'cpu') ? cpuRules : []}
+              thresholds={rules.filter((rule) => rule.metric === metricBySeries[chart.series[0]?.key])}
             />
           ))}
         </div>
