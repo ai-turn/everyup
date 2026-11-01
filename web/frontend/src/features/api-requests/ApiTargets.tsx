@@ -1,3 +1,4 @@
+import { Tooltip } from '../../components/common/Tooltip';
 import { Link } from 'react-router-dom';
 import { Button, ResourceCardHeader, ResourceTable } from '../../components/common';
 import { TelemetryCollectionStatus } from '../telemetry/components/TelemetryCollectionStatus';
@@ -45,11 +46,11 @@ export function ApiTargets({ rows, view, range, returnTo, onRetry }: {
         {(row.error || row.loading) && <div className="px-4 pb-4">{error(row)}</div>}
       </article>)}
     </div> : <ResourceTable rows={rows} rowKey={row => row.service.id} ariaLabel="API 대상 그리드" columns={[
-      { key: 'name', label: '대상', render: row => <><Link to={to(row)} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.service.name}</Link><div className="mt-2 md:hidden"><TelemetryCollectionStatus active={row.service.isActive} /></div><p title={summaryText(row)} className="mt-2 truncate type-caption text-text-muted lg:hidden">{summaryText(row)}</p>{error(row)}</> },
+      { key: 'name', label: '대상', render: row => <><Link to={to(row)} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.service.name}</Link><div className="mt-2 md:hidden"><TelemetryCollectionStatus active={row.service.isActive} /></div><Tooltip content={summaryText(row)} focusable><p className="mt-2 truncate type-caption text-text-muted lg:hidden">{summaryText(row)}</p></Tooltip>{error(row)}</> },
       { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => <TelemetryCollectionStatus active={row.service.isActive} /> },
       { key: 'total', label: '요청', className: 'w-20 sm:w-24', align: 'right', render: row => row.summary ? totalRequests(row.summary).toLocaleString() : '—' },
       { key: 'errors', label: '5xx', className: 'w-20', align: 'right', render: row => <span className={row.summary?.count5xx ? 'text-status-error' : ''}>{row.summary?.count5xx.toLocaleString() ?? '—'}</span> },
-      { key: 'path', label: '5xx 최다 경로', className: 'hidden lg:table-cell', render: row => <p title={summaryText(row)} className={`truncate type-caption text-text-muted ${row.summary?.top5xxPath ? 'font-mono' : ''}`}>{summaryText(row)}</p> },
+      { key: 'path', label: '5xx 최다 경로', className: 'hidden lg:table-cell', render: row => <Tooltip content={summaryText(row)} focusable><p className={`truncate type-caption text-text-muted ${row.summary?.top5xxPath ? 'font-mono' : ''}`}>{summaryText(row)}</p></Tooltip> },
     ]} />}
   </section>;
 }

@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import { useEffect, useState } from 'react';
 import { api, type AuditEvent } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -53,9 +54,9 @@ export function AuditLogSection() {
             return (
               <li key={event.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
                 <span className="font-medium text-text-secondary">{event.username}</span>
-                <span className="min-w-0 flex-1 truncate text-text-muted" title={event.traceId}>
+                <Tooltip content={event.traceId} focusable><span className="min-w-0 flex-1 truncate text-text-muted">
                   {`Trace ${(event.traceId ?? '').slice(0, 12)} 본문 열람`}
-                </span>
+                </span></Tooltip>
                 {typeof count === 'number' && (
                   <span className="text-xs text-text-muted">{`본문 ${count}건`}</span>
                 )}

@@ -31,8 +31,15 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const edit = page.getByRole('button', { name: '수정', exact: true });
   await tabTo(page, edit); await page.keyboard.press('Enter');
-  await expect(page.getByRole('dialog', { name: '업타임 수정' })).toBeVisible();
-  await page.keyboard.press('Escape'); await expect(edit).toBeFocused();
+  const editDialog = page.getByRole('dialog', { name: '업타임 수정' });
+  await expect(editDialog.getByRole('button', { name: '닫기', exact: true })).toBeFocused();
+  await expect(editDialog.getByRole('tooltip')).toHaveText('닫기');
+  await page.keyboard.press('Escape');
+  await expect(editDialog.getByRole('tooltip')).toHaveCount(0);
+  await expect(editDialog).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(editDialog).toHaveCount(0);
+  await expect(edit).toBeFocused();
   const remove = page.getByRole('button', { name: '삭제', exact: true });
   await tabTo(page, remove); await page.keyboard.press('Enter');
   const confirm = page.getByRole('dialog', { name: '업타임을 삭제할까요?' });

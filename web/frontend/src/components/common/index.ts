@@ -24,3 +24,4 @@ export { parseTimeRange } from './timeRange';
 export { SegmentedControl } from './SegmentedControl';
 export { Pagination } from './Pagination';
 export { SummaryCard } from './SummaryCard';
+export { Tooltip, TooltipProvider } from './Tooltip';

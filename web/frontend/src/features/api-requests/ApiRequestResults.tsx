@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { EmptyState, Pagination } from '../../components/common';
+import { Button, EmptyState, MaterialIcon, Pagination } from '../../components/common';
 import type { ApiRequest } from '../../services/api';
 
 function statusClass(code: number) {
@@ -16,11 +16,16 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
   const duration = req.durationMs > 0 ? `${req.durationMs.toLocaleString()}ms` : null;
   return <tr className="transition-colors hover:bg-ui-hover-soft">
     <td className="min-w-0 px-4 py-3">
-      <div className="flex min-w-0 items-start gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <span className="shrink-0 font-mono text-text-muted">{req.method.toUpperCase()}</span>
-        {traceId ? <button type="button" onClick={() => onSelect(traceId)}
-          aria-label={`${req.method.toUpperCase()} ${req.statusCode} ${req.path}`}
-          title={req.path} className="min-w-0 break-all text-left font-mono text-action">{req.path}</button>
+        {traceId ? <div className="min-w-0 flex-1"><Button type="button" variant="text" size="sm" onClick={() => onSelect(traceId)}
+          aria-label={`${req.method.toUpperCase()} ${req.statusCode} ${req.path} 트레이스 상세 열기`}
+          aria-haspopup="dialog"
+          title={`${req.path} — 트레이스 상세를 오른쪽 패널에서 열기`}
+          className="group -ml-3 min-w-0 max-w-full max-sm:h-11">
+          <span className="truncate font-mono underline-offset-2 group-hover:underline group-focus-visible:underline">{req.path}</span>
+          <MaterialIcon name="chevron_right" size={16} />
+        </Button></div>
           : <span className="min-w-0 break-all font-mono text-text-secondary">{req.path}</span>}
         {req.isError && <span className="shrink-0 text-status-error">오류</span>}
       </div>

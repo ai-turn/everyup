@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, MaterialIcon, StatusLight } from '../../../components/common';
@@ -131,13 +132,13 @@ export function UptimeTargets(props: Props) {
         <td className="hidden py-4 pl-4 sm:table-cell">{selectBox(target)}</td>
         <td className="px-3 py-4 sm:px-4">{target.status}</td>
         <td className="min-w-0 px-3 py-4 sm:px-4">
-          <Link data-row-link to={target.to} state={{ returnTo }} className="block truncate font-medium text-action" title={target.name}>{target.name}</Link>
+          <Tooltip content={target.name}><Link data-row-link to={target.to} state={{ returnTo }} className="block truncate font-medium text-action">{target.name}</Link></Tooltip>
           <p className="mt-1 truncate type-caption text-text-muted">{target.method}</p>
-          <p className="mt-2 truncate font-mono text-xs text-text-dim md:hidden" title={target.endpoint}>{target.endpoint}</p>
+          <Tooltip content={target.endpoint} focusable><p className="mt-2 truncate font-mono text-xs text-text-dim md:hidden">{target.endpoint}</p></Tooltip>
           <p className="mt-1 type-caption tabular-nums text-text-muted xl:hidden"><span className="md:hidden">업타임 {uptimeText(target.monitor)} · </span>응답 {latencyText(target.monitor)}</p>
           <p className="mt-1 type-caption text-text-muted 2xl:hidden">{target.lastCheck ? `${formatIncidentTime(target.lastCheck)} 확인` : '확인 기록 없음'}</p>
         </td>
-        <td className="hidden px-4 py-4 md:table-cell"><p className="truncate font-mono text-xs text-text-dim" title={target.endpoint}>{target.endpoint}</p></td>
+        <td className="hidden px-4 py-4 md:table-cell"><Tooltip content={target.endpoint} focusable><p className="truncate font-mono text-xs text-text-dim">{target.endpoint}</p></Tooltip></td>
         <td className="hidden px-4 py-4 text-right tabular-nums text-text-base md:table-cell">{uptimeText(target.monitor)}</td>
         <td className="hidden px-4 py-2.5 xl:table-cell"><LatencyTrend monitor={target.monitor} /></td>
         <td className="hidden px-4 py-4 text-right tabular-nums text-text-muted 2xl:table-cell">{target.lastCheck ? formatIncidentTime(target.lastCheck) : '아직 없음'}</td>

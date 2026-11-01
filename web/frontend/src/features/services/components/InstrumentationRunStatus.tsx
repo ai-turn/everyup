@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import type { InstrumentationRun } from '../instrumentationApi';
@@ -23,9 +24,9 @@ export function InstrumentationRunStatus({ agentId, runId }: { agentId: string; 
     <h4 className="type-label text-text-base">{runId ? '상세 수집 적용 결과' : '최근 상세 수집 적용 기록'}</h4>
     {error ? <p role="alert" className="type-body text-status-warn">{error}</p> : run && <>
       <p className="type-body text-text-secondary">{run.project} · {run.targets.map(target => target.name).join(', ')}</p>
-      <p className={`type-body ${failed ? 'text-status-error' : 'text-text-secondary'}`} title={new Date(run.updatedAt).toLocaleString()}>
+      <Tooltip content={new Date(run.updatedAt).toLocaleString()} focusable><p className={`type-body ${failed ? 'text-status-error' : 'text-text-secondary'}`}>
         {statuses[run.status]} · {formatDistanceToNow(new Date(run.updatedAt), { addSuffix: true, locale: ko })}
-      </p>
+      </p></Tooltip>
       {run.reason && <p className={`type-body ${failed ? 'text-status-error' : 'text-status-warn'}`}>{reasons[run.reason] ?? run.reason}</p>}
       {run.status === 'applying' && <p className="type-body text-text-muted">결과가 갱신되지 않으면 서버의 CLI 출력을 확인하세요. 통신 중단만으로 성공 처리하지 않습니다.</p>}
       {run.status === 'verified' && <ul className="space-y-1 type-body text-text-secondary">{run.targets.map(target => <li key={target.key}>{target.name} · {run.signals.some(receipt => receipt.serviceName === target.name) ? '실행 시작 이후 새 트레이스 수신' : '새 트레이스 대기: 서비스에 요청을 보내 주세요'}</li>)}</ul>}

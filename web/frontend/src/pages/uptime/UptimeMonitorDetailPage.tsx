@@ -1,3 +1,4 @@
+import { Tooltip } from '../../components/common/Tooltip';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -123,9 +124,9 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
                 return (
                   <tr key={row.key} className="border-t border-ui-border-soft">
                     <td className="px-2 py-2.5"><StatusLight tone={tone} label={label} /></td>
-                    <td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary" title={new Date(row.at).toLocaleString()}>{formatIncidentTime(row.at)}</td>
+                    <Tooltip content={new Date(row.at).toLocaleString()} focusable><td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatIncidentTime(row.at)}</td></Tooltip>
                     <td className="px-2 py-2.5 tabular-nums text-text-base">{row.durationSec === undefined ? '-' : formatDuration(row.durationSec)}</td>
-                    <td className="truncate px-2 py-2.5 font-mono text-xs text-text-muted" title={row.message}>{row.message || '-'}</td>
+                    <Tooltip content={row.message} focusable><td className="truncate px-2 py-2.5 font-mono text-xs text-text-muted">{row.message || '-'}</td></Tooltip>
                   </tr>
                 );
               })}

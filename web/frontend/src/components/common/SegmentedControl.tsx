@@ -1,4 +1,5 @@
 import { MaterialIcon } from './MaterialIcon';
+import { Tooltip } from './Tooltip';
 
 // Single-track segmented control for mutually-exclusive pick-one selectors
 // (time ranges, date presets, category filters). It deliberately uses a
@@ -45,20 +46,18 @@ export function SegmentedControl<T extends string>({
       {options.map((o) => {
         const active = o.value === value;
         return (
-          <button
-            key={o.value}
+          <Tooltip key={o.value} content={o.icon ? o.label : undefined}><button
             aria-label={o.icon ? o.label : undefined}
-            title={o.icon ? o.label : undefined}
             aria-pressed={active}
             onClick={() => onChange(o.value)}
             className={`inline-flex items-center justify-center ${o.icon ? ICON_SIZES[size] : SIZES[size]} font-medium rounded-md transition-colors ${
-              active
-                ? 'bg-ui-raised text-text-base shadow-sm'
-                : 'text-text-muted hover:text-text-base'
+            active
+            ? 'bg-ui-raised text-text-base shadow-sm'
+            : 'text-text-muted hover:text-text-base'
             }`}
           >
             {o.icon ? <MaterialIcon name={o.icon} /> : o.label}
-          </button>
+          </button></Tooltip>
         );
       })}
     </div>

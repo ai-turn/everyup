@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
@@ -446,7 +447,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
         {filteredRules.length === 0 ? <p className="rounded-xl border border-ui-border p-5 text-sm text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
-            <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}</p><p className="mt-2 break-words text-sm text-text-muted" title={evaluationSummary(rule)}>{compactTrigger(rule)}</p>
+            <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words text-sm text-text-muted">{compactTrigger(rule)}</p></Tooltip>
             <div className="mt-3"><ChannelAvatars rule={rule} channels={channels} /></div><p className="mt-3 type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p>
             <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => handleToggle(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
@@ -509,17 +510,16 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                         <SeverityBadge severity={rule.severity} />
                       </td>
                       <td className="px-4 py-2.5 align-middle">
-                        <span
+                        <Tooltip content={targetLabel(rule, agentServices, agents, directServices, infrastructureResources)} focusable><span
                           className="inline-block max-w-full truncate rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-ui-hover-dark dark:text-text-base-dark"
-                          title={targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}
                         >
                           {targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}
-                        </span>
+                        </span></Tooltip>
                       </td>
                       <td className="px-4 py-2.5 align-middle text-sm">
-                        <p className="truncate text-text-secondary" title={evaluationSummary(rule)}>
+                        <Tooltip content={evaluationSummary(rule)} focusable><p className="truncate text-text-secondary">
                           {compactTrigger(rule)}
-                        </p>
+                        </p></Tooltip>
                       </td>
                       <td className="px-4 py-2.5 align-middle">
                         <ChannelAvatars rule={rule} channels={channels} />
@@ -544,7 +544,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                             label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'}
                             size="sm"
                             tone="danger"
-                            // 시스템 규칙은 aria-disabled — 포커스·hover가 살아 있어야 이유(title)가 보인다
+                            // 시스템 규칙은 aria-disabled — 키보드로도 삭제 불가 이유를 확인한다.
                             aria-disabled={rule.isSystem || undefined}
                             disabled={isDeleting}
                             onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }}
@@ -618,7 +618,7 @@ function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: Notific
   const names = ruleChannels.map(c => c.name).join(', ');
 
   return (
-    <div className="flex items-center" title={names}>
+    <Tooltip content={names} focusable><div className="flex items-center">
       {visible.map((ch, i) => {
         const style = getChannelStyle(ch.type);
         return (
@@ -635,6 +635,6 @@ function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: Notific
           +{overflow}
         </span>
       )}
-    </div>
+    </div></Tooltip>
   );
 }

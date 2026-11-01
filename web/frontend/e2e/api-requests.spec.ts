@@ -43,6 +43,7 @@ async function mockApi(page: Page, state: ApiState) {
     else if (path.endsWith('/api-exclusions')) data = { paths: ['/health'] };
     else if (path.endsWith('/request-status-summary')) data = { count2xx: 2, count3xx: 0, count4xx: 1, count5xx: 1, countOther: 0, top5xxMethod: 'GET', top5xxPath: '/orders/:id', top5xxCount: 1 };
     else if (path.endsWith('/request-stats')) data = { buckets: [], truncated: state.truncated ?? false };
+    else if (path.startsWith('/traces/')) data = { traceId: path.split('/').at(-1), spans: [], logs: [], apiRequests: [] };
     else if (path.endsWith('/requests')) {
       await state.beforeRequests?.(url);
       const rows = (state.requests ?? []).filter(row => (!url.searchParams.get('errorsOnly') || row.isError)
@@ -104,6 +105,51 @@ function requestRows(): ApiRequest[] {
     createdAt: new Date(Date.now() - (index + 1) * 1000).toISOString(),
   }));
 }
+
+test('request paths advertise their trace panel and support pointer and keyboard activation', async ({ page }, testInfo) => {
+  const rows = requestRows().slice(0, 2);
+  rows[0].path = '/v1/payments';
+  rows[0].isError = false;
+  rows[1].traceId = undefined;
+  await mockApi(page, { requests: rows, queries: [] });
+  for (const width of [360, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('./api/api-test');
+    const table = page.getByRole('table', { name: 'API 요청 목록' });
+    const trigger = table.getByRole('button', { name: 'GET 200 /v1/payments 트레이스 상세 열기', exact: true });
+    await expect(trigger.getByText('트레이스 상세', { exact: true })).toHaveCount(0);
+    const path = trigger.getByText('/v1/payments', { exact: true });
+    await expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    await expect(table.getByRole('row').filter({ hasText: '/orders/1' }).getByRole('button')).toHaveCount(0);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(value => document.documentElement.classList.toggle('dark', value === 'dark'), theme);
+      await expect(path).toHaveCSS('text-decoration-line', 'none');
+      await table.screenshot({ path: testInfo.outputPath(`request-actions-${width}-${theme}.png`) });
+      await trigger.hover();
+      await expect(path).toHaveCSS('text-decoration-line', 'underline');
+      await expect(trigger).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      await table.screenshot({ path: testInfo.outputPath(`request-actions-hover-${width}-${theme}.png`) });
+      await page.mouse.move(0, 0);
+      await expect(path).toHaveCSS('text-decoration-line', 'none');
+    }
+    await trigger.getByText('/v1/payments', { exact: true }).click();
+    const panel = page.getByRole('dialog', { name: '트레이스 상세', exact: true });
+    await expect(panel).toBeVisible();
+    await expect(panel.getByText('trace-0', { exact: true })).toBeVisible();
+    await panel.getByRole('button', { name: '닫기', exact: true }).click();
+    await expect(trigger).toBeFocused();
+    for (const key of ['Enter', 'Space']) {
+      await trigger.press(key);
+      await expect(panel).toBeVisible();
+      await expect(page.getByRole('tooltip')).toHaveText('trace-0');
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('tooltip')).toHaveCount(0);
+      await page.keyboard.press('Escape');
+      await expect(panel).toHaveCount(0);
+      await expect(trigger).toBeFocused();
+    }
+  }
+});
 
 test('investigation range, filters, pagination and tabs survive reload', async ({ page }) => {
   const state: ApiState = { requests: requestRows(), queries: [] };
@@ -223,8 +269,11 @@ test('long service names and request paths remain accessible on narrow screens',
     await expect(page.getByRole('table', { name: 'API 대상 그리드' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.goto('./api/api-test');
-    const path = page.getByRole('button', { name: `GET 200 ${rows[0].path}`, exact: true });
+    const path = page.getByRole('button', { name: `GET 200 ${rows[0].path} 트레이스 상세 열기`, exact: true });
     await expect(path).toBeVisible();
+    await expect(path).not.toHaveAttribute('title');
+    await path.focus();
+    await expect(page.getByRole('tooltip')).toHaveText(`${rows[0].path} — 트레이스 상세를 오른쪽 패널에서 열기`);
     expect(await page.locator('#main-content').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   }
 });

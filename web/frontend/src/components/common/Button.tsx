@@ -7,6 +7,7 @@
 import { Children, type ComponentPropsWithRef, type ReactNode } from 'react';
 import { Link, type LinkProps } from 'react-router-dom';
 import { MaterialIcon } from './MaterialIcon';
+import { Tooltip } from './Tooltip';
 
 // 액션에는 색을 싣는다 (§5.3). 채움도 보더도 없는 버튼이 본문과 같은 회색이면
 // 눈에 들어오지 않아 hover 전까지 버튼인지 읽히지 않았다. `action`은 표면·hover
@@ -18,6 +19,7 @@ const VARIANTS = {
   primary: 'bg-primary text-white hover:bg-primary-hover',
   secondary: 'bg-bg-surface border border-ui-border text-text-base hover:bg-ui-hover [&_svg]:text-action',
   ghost: 'text-action hover:bg-action/10',
+  text: 'text-action',
   // secondary와 같은 모양에 글자·아이콘만 빨갛게 — 툴바에 나란히 놓였을 때 모양으로 튀지 않는다.
   destructive: 'bg-bg-surface border border-ui-border text-status-error hover:bg-status-error/10',
   quiet: 'text-text-muted hover:text-text-base hover:bg-ui-hover',
@@ -36,7 +38,7 @@ const SIZES = {
 // 포커스·hover를 막아 title 툴팁과 스크린리더 안내가 사라진다.
 const BASE =
   'inline-flex items-center justify-center shrink-0 rounded-lg font-medium transition-colors cursor-pointer ' +
-  'disabled:opacity-50 disabled:pointer-events-none ' +
+  'disabled:opacity-50 disabled:cursor-not-allowed ' +
   'aria-disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:hover:bg-transparent ' +
   // loading 중엔 스피너만 남기고 호출부의 아이콘은 숨긴다
   'aria-busy:[&>svg:not(:first-child)]:hidden';
@@ -78,20 +80,20 @@ export function Button({
   disabled,
   className = '',
   children,
+  title,
   ...props
 }: ButtonProps) {
   const c = collapseLabel ? collapsible(children) : null;
   return (
-    <button
+    <Tooltip content={title ?? c?.label}><button
       className={buttonClass(variant, size, `${c?.className ?? ''} ${className}`)}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      title={c?.label}
       {...props}
     >
       {loading && <MaterialIcon name="sync" className="animate-spin" />}
       {c ? c.content : children}
-    </button>
+    </button></Tooltip>
   );
 }
 
@@ -102,12 +104,13 @@ export function ButtonLink({
   collapseLabel = false,
   className = '',
   children,
+  title,
   ...props
 }: LinkProps & { variant?: Variant; size?: Size; collapseLabel?: boolean }) {
   const c = collapseLabel ? collapsible(children) : null;
   return (
-    <Link className={buttonClass(variant, size, `${c?.className ?? ''} ${className}`)} title={c?.label} {...props}>
+    <Tooltip content={title ?? c?.label}><Link className={buttonClass(variant, size, `${c?.className ?? ''} ${className}`)} {...props}>
       {c ? c.content : children}
-    </Link>
+    </Link></Tooltip>
   );
 }
