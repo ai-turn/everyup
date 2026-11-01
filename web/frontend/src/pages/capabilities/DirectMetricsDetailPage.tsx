@@ -1,9 +1,9 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
-  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, type GlobalTimeRange,
+  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker,
 } from '../../components/common';
 import { DirectServiceMetricsTab } from '../../features/healthcheck/components/AgentServiceMetricsTab';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
@@ -11,6 +11,7 @@ import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/R
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { useMetricQuery } from '../../features/metrics/useMetricQuery';
 
 type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
 
@@ -21,39 +22,60 @@ export function DirectMetricsDetailPage() {
   const [service, setService] = useState<ObservedService | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState('');
-  const [range, setRange] = useState<GlobalTimeRange>('6h');
+  const { range, update } = useMetricQuery();
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useBreadcrumb(service ? [{ label: service.name }] : []);
   const [savingProject, setSavingProject] = useState(false);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
+  const [projectsRetryKey, setProjectsRetryKey] = useState(0);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<ObservedServiceSetup | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [serviceRow, projectRows] = await Promise.all([
-        api.getObservedService(serviceId),
-        api.getProjects(),
-      ]);
-      if (!serviceRow.signals.includes('metrics')) {
-        setError('이 서비스에는 Metrics 기능이 연결되어 있지 않습니다.');
-        return;
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const serviceRow = await api.getObservedService(serviceId);
+        if (!active) return;
+        if (!serviceRow.signals.includes('metrics')) {
+          setError('이 서비스에는 Metrics 기능이 연결되어 있지 않습니다.');
+          return;
+        }
+        setService(serviceRow);
+        setProjectId(serviceRow.projectId ?? '');
+      } catch (error) {
+        if (active) setError(getErrorMessage(error));
+      } finally {
+        if (active) setLoading(false);
       }
-      setService(serviceRow);
-      setProjectId(serviceRow.projectId ?? '');
-      setProjects(projectRows ?? []);
-    } catch (requestError) {
-      setError(getErrorMessage(requestError));
-    } finally {
-      setLoading(false);
-    }
+    };
+    void load();
+    return () => { active = false; };
   }, [serviceId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let active = true;
+    const loadProjects = async () => {
+      setProjectsLoading(true);
+      setProjectsError(null);
+      try {
+        const rows = await api.getProjects();
+        if (active) setProjects(rows ?? []);
+      } catch (error) {
+        if (active) setProjectsError(getErrorMessage(error));
+      } finally {
+        if (active) setProjectsLoading(false);
+      }
+    };
+    void loadProjects();
+    return () => { active = false; };
+  }, [serviceId, projectsRetryKey]);
 
   const saveProject = async () => {
     if (!service) return;
@@ -130,6 +152,7 @@ export function DirectMetricsDetailPage() {
         title={service.name}
         meta={
           <DirectConnectionMeta
+            fieldsLabel="연결 관리"
             isActive={service.isActive}
             apiKeyMasked={service.apiKeyMasked}
             lastSeenAt={service.lastSeenAt}
@@ -142,13 +165,16 @@ export function DirectMetricsDetailPage() {
             onProjectChange={setProjectId}
             onSaveProject={() => void saveProject()}
             savingProject={savingProject}
+            projectsLoading={projectsLoading}
+            projectsError={projectsError}
+            onRetryProjects={() => setProjectsRetryKey(key => key + 1)}
           />
         }
       />
       <DetailActionToolbar
         controls={
           <>
-          <TimeRangePicker value={range} onChange={setRange} />
+          <TimeRangePicker value={range} onChange={value => update({ range: value })} />
           <Button collapseLabel variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
           </>
         }

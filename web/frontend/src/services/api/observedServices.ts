@@ -9,6 +9,7 @@ import type {
   OtelMetricName,
   OtelMetricPoint,
   OtelServiceMetric,
+  ObservedServiceMetricName,
 } from './telemetry';
 
 export type TelemetrySignal = 'logs' | 'metrics' | 'traces';
@@ -145,6 +146,9 @@ export const observedServicesApi = {
 
   getObservedServiceMetrics: () =>
     request<OtelServiceMetric[]>('/observed-services/service-metrics'),
+
+  getObservedServiceMetricCatalog: () =>
+    request<ObservedServiceMetricName[]>('/observed-services/metric-catalog'),
 
   getObservedServiceOtelMetricNames: (id: string) =>
     request<OtelMetricName[]>(`/observed-services/${id}/otel-metrics`),

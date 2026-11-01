@@ -69,6 +69,12 @@ type OtelMetricName struct {
 	LastAt     time.Time `json:"lastAt"`
 }
 
+// ObservedServiceMetricName is a retained metric definition in a direct service's catalog.
+type ObservedServiceMetricName struct {
+	ServiceID string `json:"serviceId"`
+	OtelMetricName
+}
+
 // OtelServiceMetric is the latest value of one metric a service exports, used
 // to derive each service's representative metric for the project overview cards.
 type OtelServiceMetric struct {
