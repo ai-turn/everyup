@@ -544,10 +544,11 @@ func TestApiRequestRepo_RequestStats(t *testing.T) {
 		t.Fatalf("CreateBatch: %v", err)
 	}
 
-	stats, err := repo.RequestStats(&models.ApiRequestFilter{ServiceID: "svc-stats"}, 5)
+	result, err := repo.RequestStats(&models.ApiRequestFilter{ServiceID: "svc-stats"}, 5)
 	if err != nil {
 		t.Fatalf("RequestStats: %v", err)
 	}
+	stats := result.Buckets
 	if len(stats) != 2 {
 		t.Fatalf("buckets = %d, want 2", len(stats))
 	}
@@ -594,10 +595,11 @@ func TestApiRequestRepo_RequestStats_P99(t *testing.T) {
 		t.Fatalf("CreateBatch: %v", err)
 	}
 
-	stats, err := repo.RequestStats(&models.ApiRequestFilter{ServiceID: "svc-p99"}, 5)
+	result, err := repo.RequestStats(&models.ApiRequestFilter{ServiceID: "svc-p99"}, 5)
 	if err != nil {
 		t.Fatalf("RequestStats: %v", err)
 	}
+	stats := result.Buckets
 	if len(stats) != 1 {
 		t.Fatalf("buckets = %d, want 1", len(stats))
 	}
@@ -639,10 +641,11 @@ func TestApiRequestRepo_RequestStats_ByAgent(t *testing.T) {
 		t.Fatalf("CreateBatch: %v", err)
 	}
 
-	stats, err := repo.RequestStats(&models.ApiRequestFilter{AgentID: "agent-x"}, 5)
+	result, err := repo.RequestStats(&models.ApiRequestFilter{AgentID: "agent-x"}, 5)
 	if err != nil {
 		t.Fatalf("RequestStats: %v", err)
 	}
+	stats := result.Buckets
 	if len(stats) != 1 {
 		t.Fatalf("buckets = %d, want 1", len(stats))
 	}

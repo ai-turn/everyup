@@ -421,15 +421,24 @@ func (h *AgentHandler) GetOverview(c *fiber.Ctx) error {
 			}
 		}
 
-		buckets, err := h.reqRepo.RequestStats(&models.ApiRequestFilter{
+		requestFilter := &models.ApiRequestFilter{
 			AgentID: a.ID,
 			From:    time.Now().Add(-24 * time.Hour),
-		}, 60)
+		}
+		stats, err := h.reqRepo.RequestStats(requestFilter, 60)
 		if err != nil {
 			return internalError(c, "DATABASE_ERROR", err)
 		}
+		buckets := stats.Buckets
 		for _, b := range buckets {
 			ov.Requests24h += b.Count
+		}
+		if stats.Truncated {
+			summary, err := h.reqRepo.StatusSummary(requestFilter)
+			if err != nil {
+				return internalError(c, "DATABASE_ERROR", err)
+			}
+			ov.Requests24h = summary.Count2xx + summary.Count3xx + summary.Count4xx + summary.Count5xx + summary.CountOther
 		}
 		for i := len(buckets) - 1; i >= 0; i-- {
 			if buckets[i].Timed > 0 {
@@ -799,9 +808,6 @@ func (h *AgentHandler) GetServiceRequestStats(c *fiber.Ctx) error {
 	if err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
-	if stats == nil {
-		stats = []models.ApiRequestStatBucket{}
-	}
 	return c.JSON(fiber.Map{"success": true, "data": stats})
 }
 
@@ -827,9 +833,6 @@ func (h *AgentHandler) GetAgentRequestStats(c *fiber.Ctx) error {
 	stats, err := h.reqRepo.RequestStats(filter, bucketMins)
 	if err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
-	}
-	if stats == nil {
-		stats = []models.ApiRequestStatBucket{}
 	}
 	return c.JSON(fiber.Map{"success": true, "data": stats})
 }

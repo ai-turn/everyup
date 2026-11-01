@@ -18,14 +18,13 @@ export function RotatedTelemetryKeyDialog({
       ref={ref}
       aria-labelledby="rotated-telemetry-key-title"
       onCancel={event => { event.preventDefault(); onClose(); }}
-      onClick={event => { if (event.target === event.currentTarget) onClose(); }}
-      className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="flex items-center justify-between border-b border-ui-border px-6 py-4">
         <h2 id="rotated-telemetry-key-title" className="type-card-title text-text-base">API Key 재발급</h2>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
       </div>
-      <DirectTelemetrySetupResult setup={setup} title="새 키가 발급되었습니다" onDone={onClose} />
+      <DirectTelemetrySetupResult connection={{ kind: 'issued', service: setup }} title="새 키가 발급되었습니다" onDone={onClose} />
     </dialog>
   );
 }

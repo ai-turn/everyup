@@ -322,7 +322,7 @@ func (r *ApiRequestRepository) List(f *models.ApiRequestFilter) ([]models.ApiReq
 // p95, p99) for the trends chart. Scoped by the same agent/service/time filter as
 // List; rows are fetched raw and bucketed in Go (SQLite has no percentile
 // function — same approach as GetServiceHistoryBuckets). maxRows caps the scan.
-func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMins int) ([]models.ApiRequestStatBucket, error) {
+func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMins int) (models.ApiRequestStats, error) {
 	if f == nil {
 		f = &models.ApiRequestFilter{}
 	}
@@ -332,12 +332,12 @@ func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMi
 
 	where, args := requestScopeWhere(f)
 	const maxRows = 100000
-	args = append(args, maxRows)
+	args = append(args, maxRows+1)
 	rows, err := DB.Query(
 		"SELECT created_at, duration_ms, is_error FROM api_requests WHERE "+where+
 			" ORDER BY created_at LIMIT ?", args...)
 	if err != nil {
-		return nil, err
+		return models.ApiRequestStats{}, err
 	}
 	defer rows.Close()
 
@@ -350,15 +350,18 @@ func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMi
 	for rows.Next() {
 		var rec raw
 		if err := rows.Scan(&rec.at, &rec.duration, &rec.isError); err != nil {
-			return nil, err
+			return models.ApiRequestStats{}, err
+		}
+		if len(records) == maxRows {
+			return models.ApiRequestStats{Buckets: []models.ApiRequestStatBucket{}, Truncated: true}, nil
 		}
 		records = append(records, rec)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return models.ApiRequestStats{}, err
 	}
 	if len(records) == 0 {
-		return []models.ApiRequestStatBucket{}, nil
+		return models.ApiRequestStats{Buckets: []models.ApiRequestStatBucket{}}, nil
 	}
 
 	bucketDur := time.Duration(bucketMins) * time.Minute
@@ -399,7 +402,7 @@ func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMi
 			Timed:      len(b.durations),
 		})
 	}
-	return out, nil
+	return models.ApiRequestStats{Buckets: out}, nil
 }
 
 // StatusSummary aggregates status-code classes over the filter window plus the

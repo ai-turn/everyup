@@ -73,6 +73,7 @@ export async function uptimeFixture(page: Page) {
         return;
       }
     } else if (path === '/agents') data = [{ id: 'docker-host', name: 'Production Docker', lastSeenAt: new Date().toISOString() }];
+    else if (path.endsWith('/request-stats')) data = { buckets: [], truncated: false };
     await route.fulfill({ json: { success: true, data } });
   });
   return state;

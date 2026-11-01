@@ -1,6 +1,6 @@
 import type { LogEntry, ApiRequest, LogHistogramBucket } from './services';
 import type {
-  ApiRequestStatBucket,
+  ApiRequestStats,
   ApiRequestStatusSummary,
   TraceListQuery,
   TraceSummary,
@@ -278,7 +278,7 @@ export const agentsApi = {
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     if (params?.bucketMins) p.set('bucketMins', String(params.bucketMins));
-    return request<ApiRequestStatBucket[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/request-stats?${p}`);
+    return request<ApiRequestStats>(`/agents/${agentId}/services/${encodeURIComponent(key)}/request-stats?${p}`);
   },
   // Project-level Requests trend: rolls up all of an agent's services.
   getAgentRequestStats: (
@@ -289,7 +289,7 @@ export const agentsApi = {
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
     if (params?.bucketMins) p.set('bucketMins', String(params.bucketMins));
-    return request<ApiRequestStatBucket[]>(`/agents/${agentId}/request-stats?${p}`);
+    return request<ApiRequestStats>(`/agents/${agentId}/request-stats?${p}`);
   },
   // Status-class distribution + top 5xx endpoint. Omit key for the agent rollup.
   getRequestStatusSummary: (

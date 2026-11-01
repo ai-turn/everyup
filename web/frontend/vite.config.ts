@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5174,
       proxy: {
-        '/api': {
+        '/api/v1': {
           // .env에서 타겟 주소를 가져옴 (기본값: localhost:3001)
           target: env.VITE_API_TARGET || 'http://localhost:3001',
           changeOrigin: true,

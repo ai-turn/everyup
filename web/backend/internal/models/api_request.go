@@ -38,7 +38,13 @@ type ApiRequestStatBucket struct {
 	P50        int       `json:"p50"`
 	P95        int       `json:"p95"`
 	P99        int       `json:"p99"`
-	Timed     int       `json:"timed"` // requests contributing to percentiles
+	Timed      int       `json:"timed"` // requests contributing to percentiles
+}
+
+// ApiRequestStats never returns a partial series as a complete time window.
+type ApiRequestStats struct {
+	Buckets   []ApiRequestStatBucket `json:"buckets"`
+	Truncated bool                   `json:"truncated"`
 }
 
 // ApiRequestStatusSummary aggregates status-code classes over a window plus
@@ -60,14 +66,14 @@ type ApiRequestFilter struct {
 	AgentID     string
 	ServiceName string
 	TraceID     string
-	MinStatus  int
-	MaxStatus  int
-	Methods    []string
-	PathPrefix string
-	Search     string
-	ErrorsOnly bool
-	From       time.Time
-	To         time.Time
-	Limit      int
-	Offset     int
+	MinStatus   int
+	MaxStatus   int
+	Methods     []string
+	PathPrefix  string
+	Search      string
+	ErrorsOnly  bool
+	From        time.Time
+	To          time.Time
+	Limit       int
+	Offset      int
 }

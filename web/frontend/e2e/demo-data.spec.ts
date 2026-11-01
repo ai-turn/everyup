@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { mockRouter } from '../src/services/mockRouter';
 import type {
-  ApiRequest, ApiRequestStatusSummary, InfrastructureResource, LogEntry, LogPattern,
+  ApiRequest, ApiRequestStats, ApiRequestStatusSummary, InfrastructureResource, LogEntry, LogPattern,
   LogServiceSummary, NotificationHistoryResponse, ObservedService, OtelHistogramQuantiles,
   OtelMetricName, Project, TraceDetail, TraceSummary, UptimeMonitor, UptimeMonitorMetric,
 } from '../src/services/api';
@@ -27,6 +27,10 @@ test('demo telemetry stays inside its service and summaries match the rows', () 
     const requests = mockRouter<{ data: ApiRequest[]; total: number }>(`${base}/requests?limit=1000`);
     const status = mockRouter<ApiRequestStatusSummary>(`${base}/request-status-summary`);
     expect(status.count2xx + status.count3xx + status.count4xx + status.count5xx + status.countOther).toBe(requests.total);
+    const stats = mockRouter<ApiRequestStats>(`${base}/request-stats`);
+    expect(stats.truncated).toBe(false);
+    expect(stats.buckets.reduce((count, bucket) => count + bucket.count, 0)).toBe(requests.total);
+    expect(stats.buckets.reduce((count, bucket) => count + bucket.errorCount, 0)).toBe(requests.data.filter(row => row.isError).length);
     const traces = mockRouter<TraceSummary[]>(`${base}/traces`);
     for (const row of traces) {
       expect(allTraceIds.has(row.traceId)).toBe(false);
@@ -54,7 +58,7 @@ test('demo telemetry stays inside its service and summaries match the rows', () 
   expect(next.data.every(row => !first.data.some(other => other.id === row.id))).toBe(true);
   const errors = mockRouter<{ data: ApiRequest[] }>(`${orders}?errorsOnly=true`);
   expect(errors.data.length).toBeGreaterThan(0);
-  expect(errors.data.every(row => row.statusCode >= 400)).toBe(true);
+  expect(errors.data.every(row => row.isError)).toBe(true);
   expect(mockRouter<{ total: number }>(`${orders}?search=checkout`).total).toBe(0);
 });
 

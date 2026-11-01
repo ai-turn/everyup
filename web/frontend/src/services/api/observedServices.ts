@@ -1,7 +1,7 @@
 import { request } from './base';
 import type { ApiRequest, LogEntry, LogHistogramBucket, LogLevel } from './services';
 import type {
-  ApiRequestStatBucket,
+  ApiRequestStats,
   ApiRequestStatusSummary,
   TraceListQuery,
   TraceSummary,
@@ -161,6 +161,7 @@ export const observedServicesApi = {
   getObservedServiceTraces: (id: string, params?: TraceListQuery) => {
     const query = new URLSearchParams();
     if (params?.from) query.set('from', params.from);
+    if (params?.to) query.set('to', params.to);
     if (params?.minDurationMs) query.set('minDurationMs', String(params.minDurationMs));
     if (params?.errorsOnly) query.set('errorsOnly', 'true');
     if (params?.sort === 'slowest') query.set('sort', 'slowest');
@@ -186,7 +187,7 @@ export const observedServicesApi = {
     if (params?.from) query.set('from', params.from);
     if (params?.to) query.set('to', params.to);
     if (params?.bucketMins) query.set('bucketMins', String(params.bucketMins));
-    return request<ApiRequestStatBucket[]>(`/observed-services/${id}/request-stats?${query}`);
+    return request<ApiRequestStats>(`/observed-services/${id}/request-stats?${query}`);
   },
 
   getObservedServiceRequestStatusSummary: (

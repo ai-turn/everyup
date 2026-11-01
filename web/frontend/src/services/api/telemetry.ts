@@ -83,6 +83,11 @@ export interface ApiRequestStatBucket {
   timed: number;
 }
 
+export interface ApiRequestStats {
+  buckets: ApiRequestStatBucket[];
+  truncated: boolean;
+}
+
 export interface ApiRequestStatusSummary {
   count2xx: number;
   count3xx: number;

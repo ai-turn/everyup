@@ -6,14 +6,11 @@ import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import {
   api,
   type ObservedService,
-  type ObservedServiceSetup,
   type Project,
   type TelemetrySignal,
 } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
-import { DirectTelemetrySetupResult } from './DirectTelemetrySetupResult';
-import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
-import { TelemetrySetupGuidance } from './TelemetrySetupGuidance';
+import { DirectTelemetrySetupResult, type TelemetryConnectionResult } from './DirectTelemetrySetupResult';
 
 interface DirectTelemetrySetupDialogProps {
   signal: TelemetrySignal;
@@ -41,19 +38,38 @@ export function DirectTelemetrySetupDialog({
   const [existingId, setExistingId] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [existingServices, setExistingServices] = useState<ObservedService[]>([]);
-  const [setup, setSetup] = useState<ObservedServiceSetup | null>(null);
-  const [attached, setAttached] = useState<ObservedService | null>(null);
+  const [result, setResult] = useState<TelemetryConnectionResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+  const [optionsRetryKey, setOptionsRetryKey] = useState(0);
 
-  useEffect(() => { dialogRef.current?.showModal(); }, []);
   useEffect(() => {
-    Promise.all([api.getProjects(), api.getObservedServices()])
-      .then(([projectRows, serviceRows]) => {
-        setProjects(projectRows ?? []);
-        setExistingServices((serviceRows ?? []).filter(service => service.isActive && !service.signals.includes(signal)));
-      })
-      .catch(() => {});
-  }, [signal]);
+    const dialog = dialogRef.current;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialog?.showModal();
+    return () => { dialog?.close(); if (trigger?.isConnected) trigger.focus(); };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setOptionsLoading(true);
+      setOptionsError(null);
+      try {
+        const [projectRows, serviceRows] = await Promise.all([api.getProjects(), api.getObservedServices()]);
+        if (active) {
+          setProjects(projectRows ?? []);
+          setExistingServices((serviceRows ?? []).filter(service => service.isActive && !service.signals.includes(signal)));
+        }
+      } catch (error) {
+        if (active) setOptionsError(getErrorMessage(error));
+      } finally {
+        if (active) setOptionsLoading(false);
+      }
+    };
+    void load();
+    return () => { active = false; };
+  }, [signal, optionsRetryKey]);
 
   const selected = useMemo(
     () => existingServices.find(service => service.id === existingId),
@@ -65,17 +81,19 @@ export function DirectTelemetrySetupDialog({
     setSubmitting(true);
     try {
       if (mode === 'new') {
-        setSetup(await api.createObservedService({
+        const service = await api.createObservedService({
           name: name.trim(),
           projectId: projectId || undefined,
           signals: [signal],
-        }));
+        });
+        setResult({ kind: 'issued', service });
       } else if (selected) {
-        setAttached(await api.updateObservedService(selected.id, {
+        const service = await api.updateObservedService(selected.id, {
           name: selected.name,
           projectId: selected.projectId,
           signals: [...selected.signals, signal],
-        }));
+        });
+        setResult({ kind: 'attached', service, signal });
       }
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -85,7 +103,7 @@ export function DirectTelemetrySetupDialog({
   };
 
   const done = () => {
-    const service = setup ?? attached;
+    const service = result?.service;
     if (service) onCreated(service);
     onClose();
   };
@@ -101,7 +119,7 @@ export function DirectTelemetrySetupDialog({
       aria-labelledby={`direct-${signal}-dialog-title`}
       onCancel={(event) => { event.preventDefault(); if (!submitting) onClose(); }}
       // The new key is shown once — a stray click outside must not close it away.
-      onClick={(event) => { if (event.target === event.currentTarget && !submitting && !setup) onClose(); }}
+      onClick={(event) => { if (event.target === event.currentTarget && !submitting && result?.kind !== 'issued') onClose(); }}
       className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-ui-border bg-bg-surface px-6 py-4">
@@ -112,29 +130,21 @@ export function DirectTelemetrySetupDialog({
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
       </div>
 
-      {setup ? (
+      {result ? (
         <DirectTelemetrySetupResult
-          setup={setup}
-          title={`${capabilityLabel} 연결이 준비되었습니다`}
+          connection={result}
+          title={result.kind === 'issued' ? `${capabilityLabel} 연결이 준비되었습니다` : `기존 서비스에 ${capabilityLabel}를 추가했습니다`}
           doneLabel={`${capabilityLabel} 보기`}
           onDone={done}
         />
-      ) : attached ? (
-        <div className="space-y-5 p-6">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-status-healthy/10 text-status-healthy"><MaterialIcon name="check" /></span>
-            <div>
-              <h3 className="type-card-title text-text-base">{`기존 서비스에 ${capabilityLabel}를 추가했습니다`}</h3>
-              <p className="mt-0.5 text-sm text-text-muted">{`기존 API Key에 ${capabilityLabel} 권한을 추가했습니다. 실행 중인 OpenTelemetry 설정은 같은 키를 계속 사용합니다.`}</p>
-            </div>
-          </div>
-          <p className="type-body text-text-muted">{`앱 설정에 OTEL_${signal.toUpperCase()}_EXPORTER=none이 있다면 지워 주세요. 그대로 두면 이 데이터는 전송되지 않습니다.`}</p>
-          <TelemetrySetupGuidance signals={[signal]} />
-          <TelemetryReceiptStatus path={`/observed-services/${attached.id}/setup-status`} expected={[signal]} />
-          <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-ui-border bg-bg-surface px-6 py-4"><Button onClick={done}>{`${capabilityLabel} 보기`}</Button></div>
-        </div>
       ) : (
         <form onSubmit={submit} className="space-y-5 p-6">
+          {optionsLoading && <p role="status" className="type-body text-text-muted">연결 정보를 확인하고 있습니다…</p>}
+          {optionsError && <div role="alert" className="space-y-2">
+            <p className="type-body text-status-warn">연결 정보를 불러오지 못했습니다</p>
+            <p className="type-body text-text-muted">{optionsError}</p>
+            <Button variant="secondary" size="sm" type="button" onClick={() => setOptionsRetryKey(key => key + 1)}>다시 시도</Button>
+          </div>}
           {signal === 'logs' && (
             <p className="type-body text-text-muted">
               컨테이너가 stdout으로 내보내는 로그는 <Link to="/environments" className="text-action hover:underline">Docker 환경</Link>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
@@ -147,11 +157,11 @@ export function DirectTelemetrySetupDialog({
 
           {mode === 'new' ? (
             <>
-              <label className="block space-y-1.5" htmlFor={`direct-${signal}-service-name`}>
-                <span className="text-sm font-medium text-text-secondary">서비스 이름</span>
-                <Input id={`direct-${signal}-service-name`} required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="예: orders-api" />
-                <span className="block type-body text-text-muted">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</span>
-              </label>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-text-secondary" htmlFor={`direct-${signal}-service-name`}>서비스 이름</label>
+                <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" aria-describedby={`direct-${signal}-name-hint`} required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="예: orders-api" />
+                <p id={`direct-${signal}-name-hint`} className="type-body text-text-muted">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</p>
+              </div>
               <label className="block space-y-1.5" htmlFor={`direct-${signal}-project`}>
                 <span className="text-sm font-medium text-text-secondary">그룹</span>
                 <Select id={`direct-${signal}-project`} value={projectId} onChange={event => setProjectId(event.target.value)}>
@@ -173,7 +183,7 @@ export function DirectTelemetrySetupDialog({
 
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
             <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
-            <Button type="submit" disabled={mode === 'new' ? !name.trim() : !selected} loading={submitting}>
+            <Button type="submit" disabled={optionsLoading || Boolean(optionsError) || (mode === 'new' ? !name.trim() : !selected)} loading={submitting}>
               <MaterialIcon name="add" />
               추가
             </Button>

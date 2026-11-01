@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { SegmentedControl, Select } from '../../../components/common';
 
 const guides = {
@@ -7,7 +7,7 @@ const guides = {
   go: { label: 'Go', text: 'SDK에서 선택한 데이터 유형의 OTLP/HTTP exporter와 provider를 초기화하고, 핸들러 또는 로그 라이브러리에 SDK를 연결하세요. 재빌드·재배포와 종료 시 flush가 필요합니다.', url: 'https://opentelemetry.io/docs/languages/go/getting-started/' },
 };
 
-export function TelemetrySetupGuidance({ signals }: { signals: string[] }) {
+export function TelemetrySetupGuidance({ signals, appConfiguration }: { signals: string[]; appConfiguration?: ReactNode }) {
   const [experience, setExperience] = useState<'existing' | 'new'>('existing');
   const [language, setLanguage] = useState<keyof typeof guides>('java');
   const guide = guides[language];
@@ -22,6 +22,10 @@ export function TelemetrySetupGuidance({ signals }: { signals: string[] }) {
       <p className="type-body text-text-muted">{guide.text} 환경 변수만 추가해서는 데이터가 수집되지 않습니다.</p>
       <a className="block w-fit type-body text-action hover:underline" href={guide.url} target="_blank" rel="noreferrer">{guide.label} SDK 설정 예제</a>
     </>}
+    {appConfiguration && (experience === 'new' ? appConfiguration : <details className="rounded-lg border border-ui-border p-3">
+      <summary className="cursor-pointer type-label text-action">앱에서 직접 전송할 때의 환경 변수</summary>
+      <div className="mt-3">{appConfiguration}</div>
+    </details>)}
     {signals.includes('logs') && <p className="type-body text-text-muted">로그는 사용하는 로깅 라이브러리의 OTel bridge 또는 appender도 연결해야 합니다. stdout 출력만으로 직접 OTLP 로그가 전송되지는 않습니다.</p>}
     <ol className="list-decimal space-y-1 pl-5 type-body text-text-secondary">
       <li>선택한 데이터 유형의 exporter에 연결 주소와 키를 설정하세요. 기존 연결에 기능을 추가했다면 기존 앱 설정의 주소와 키를 계속 사용합니다.</li>

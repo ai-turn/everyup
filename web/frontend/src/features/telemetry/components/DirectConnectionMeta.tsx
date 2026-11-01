@@ -18,6 +18,9 @@ interface DirectConnectionMetaProps {
   onProjectChange: (projectId: string) => void;
   onSaveProject: () => void;
   savingProject: boolean;
+  projectsLoading?: boolean;
+  projectsError?: string | null;
+  onRetryProjects?: () => void;
   /** 기능별 설정 — 로그의 수집 레벨처럼 그 상세에만 있는 칸 */
   extraFields?: DetailMetaField[];
 }
@@ -35,6 +38,9 @@ export function DirectConnectionMeta({
   onProjectChange,
   onSaveProject,
   savingProject,
+  projectsLoading = false,
+  projectsError,
+  onRetryProjects,
   extraFields = [],
 }: DirectConnectionMetaProps) {
   return (
@@ -42,7 +48,7 @@ export function DirectConnectionMeta({
       status={
         <>
           <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '수집 가능' : '중지됨'} />
-          <span>마지막 수집 {lastSeenAt ? new Date(lastSeenAt).toLocaleString() : '아직 없음'}</span>
+          <span>마지막 수집 {lastSeenAt ? new Date(lastSeenAt).toLocaleString('ko-KR', { hour12: false }) : '아직 없음'}</span>
           {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 원리 */}
           {isActive && <Button variant="ghost" onClick={onRevoke}><MaterialIcon name="block" />연결 중지</Button>}
         </>
@@ -60,7 +66,10 @@ export function DirectConnectionMeta({
         {
           label: '그룹',
           value: (
-            <>
+            projectsLoading ? <span>그룹 목록 확인 중…</span> : projectsError ? <div role="status" className="space-y-2">
+              <p className="type-body text-status-warn">그룹 목록을 불러오지 못했습니다</p>
+              {onRetryProjects && <Button variant="ghost" size="sm" onClick={onRetryProjects}>다시 시도</Button>}
+            </div> : <>
               <Select wrapperClassName="w-48" value={projectId} onChange={event => onProjectChange(event.target.value)} aria-label="그룹 배정">
                 <option value="">미분류</option>
                 {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
