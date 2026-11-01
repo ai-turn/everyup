@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { MaterialIcon } from './MaterialIcon';
+import { Tooltip } from './Tooltip';
 
 // Copy actions are buttons that the Button component does not cover (§4.1), so
 // the two shapes they take live here instead of being re-typed per screen.
@@ -46,12 +47,11 @@ export function CopyButton({
   };
 
   return (
-    <button
+    <Tooltip content={copied ? '복사했습니다' : title}><button
       type="button"
       onClick={handleClick}
       disabled={disabled}
       className={className}
-      title={title}
       aria-label={title}
     >
       <MaterialIcon
@@ -59,6 +59,6 @@ export function CopyButton({
         className={copied ? 'text-emerald-500 dark:text-emerald-400' : ''}
       />
       {children}
-    </button>
+    </button></Tooltip>
   );
 }

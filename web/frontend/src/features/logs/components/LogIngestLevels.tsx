@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Button, MaterialIcon } from '../../../components/common';
@@ -50,9 +51,9 @@ export function LogIngestLevels(source: Source) {
       // The levels truncate before the button moves; the button wraps below only when
       // not even 4rem of them fits (200% text on a phone) instead of pushing past the row.
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2">
-        <span className={`min-w-0 flex-[1_1_4rem] truncate ${saved === null ? 'text-text-dim' : saved.length > 0 ? 'font-mono' : ''}`} title={shown || undefined}>
+        <Tooltip content={shown || undefined} focusable><span className={`min-w-0 flex-[1_1_4rem] truncate ${saved === null ? 'text-text-dim' : saved.length> 0 ? 'font-mono' : ''}`}>
           {saved === null ? '-' : saved.length === 0 ? '전체' : shown}
-        </span>
+        </span></Tooltip>
         <Button collapseLabel variant="ghost" className="ml-auto" disabled={saved === null} onClick={() => setDraft(saved ?? [])}>
           <MaterialIcon name="tune" />변경
         </Button>

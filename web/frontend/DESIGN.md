@@ -493,6 +493,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`DetailActionToolbar`** | `controls` `actions` | 상세의 조회 제어(좌)·변경 액션(우). 모든 상세 화면의 정본 (§4.1 액션 앵커) |
 | **`Pagination`** | `page` `totalPages` `onChange` … | 목록 페이지 이동 |
 | **`MaterialIcon`** | `name` `size` `className` `style` | 로컬 정적 SVG |
+| **`Tooltip`** | `content` `focusable?` + 단일 자식 | hover·포커스 힌트. DOM 래퍼 없이 기존 요소에 연결 |
 | **`IconButton`** | `icon` `label` `tone?` `size?` `iconClassName?` | 라벨 없는 아이콘 액션. `tone`은 `action`(기본)·`danger`·`quiet`. className을 받는 자리(CopyButton)는 같은 파일의 `ICON_ACTION`/`ICON_ACTION_SM` |
 | **`CopyButton`** | `onCopy` `title` `className` … | 3초 완료 피드백. 클래스는 같은 파일이 export하는 `COPY_ACTION_PRIMARY`/`COPY_ACTION_SUBTLE`을 쓴다 |
 
@@ -503,6 +504,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | `primary` | 주 액션 (화면당 1개) | `bg-primary text-white hover:bg-primary-hover` |
 | `secondary` | 보더 있는 보조 액션 | `border border-ui-border text-text-base` + 아이콘 `action` |
 | `ghost` | 배경 없는 3순위 | `text-action hover:bg-action/10` |
+| `text` | 경로처럼 본문 안에 놓는 액션. hover 채움 없음 | `text-action` |
 | `destructive` | 삭제·비활성화 — secondary와 **같은 모양**에 글자만 빨강 | `border border-ui-border text-status-error hover:bg-status-error/10` |
 | `quiet` | 정보만 보여주는 다이얼로그의 `닫기` — 눈에 띄지 않아야 하는 이탈 | `text-text-muted hover:bg-ui-hover` |
 | `danger` | 확인 다이얼로그의 파괴 확정 | `bg-red-600 text-white` |
@@ -520,11 +522,11 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 
 `SegmentedControl`은 트랙을 포함해 `sm` 32px, `md` 40px(터치 44)다. 기본 검색·폼 입력·버튼은 모두 같은 높이로 맞춘다.
 
-아이콘 전용 `md`는 모바일에서 **버튼 자체를 44×44px**로 둔다(트랙 포함 48px). `sm` 이상은 36×36px(트랙 포함 40px)다. 아이콘은 20px이고, `label`을 `aria-label`과 `title`로 제공한다. `aria-pressed` 선택 표현과 전역 포커스 링은 텍스트형과 같다.
+아이콘 전용 `md`는 모바일에서 **버튼 자체를 44×44px**로 둔다(트랙 포함 48px). `sm` 이상은 36×36px(트랙 포함 40px)다. 아이콘은 20px이고, `label`을 `aria-label`과 공통 툴팁으로 제공한다. `aria-pressed` 선택 표현과 전역 포커스 링은 텍스트형과 같다.
 
 **상태**
 - **진행 중** — `loading` prop. 라벨은 그대로 두고 스피너가 앞에 붙는다(호출부의 아이콘은 숨김), `aria-busy`, 클릭 불가. `저장 중…`처럼 라벨을 바꾸지 않는다 — 버튼 폭이 흔들리고 화면마다 문구가 갈렸다.
-- **비활성** — `disabled`. 단 **이유를 보여 줘야 하면 `aria-disabled`** 를 쓰고 핸들러에서 막는다. `disabled`는 hover·포커스를 막아 title 툴팁이 뜨지 않고 스크린리더도 건너뛴다(시스템 알림 규칙 삭제 버튼의 "시스템 규칙은 삭제할 수 없습니다"가 한 번도 보인 적이 없었다).
+- **비활성** — `disabled`에서도 공통 툴팁의 hover는 유지한다. **키보드로도 이유를 확인해야 하면 `aria-disabled`** 를 쓰고 핸들러에서 실행을 막는다. 네이티브 `disabled`는 Tab 순서에서 제외된다.
 - **누름** — 색 변화만. `active:scale-95` 같은 축소 애니메이션은 쓰지 않는다(주요 디자인 시스템 공통, `transition-colors`로 충분).
 
 **이동은 링크다.** 다른 화면으로 가는 버튼은 `<ButtonLink to>`(같은 모양의 `<a href>`)를 쓴다. `<Button onClick={() => navigate(…)}>`은 새 탭 열기·주소 미리보기가 안 되고 스크린리더가 "링크"로 읽지 않는다. `EmptyState`의 `action`도 `{ label, to }`를 받는다. 같은 화면 안에서 상태만 바꾸는 것(탭 전환 등)은 버튼이다.
@@ -700,6 +702,8 @@ API 대상 목록은 기본 6시간의 요청 수·5xx를 비교하며, 기간�
 
 **데이터 표** — 카드 하나를 통째로 쓰는 목록(알림 규칙·채널·발송 이력, 트레이스). 카드 셸(`overflow-hidden rounded-xl border border-ui-border bg-bg-surface`)에 패딩 없이 붙인다. 그래야 첫 열의 `px-4`가 다른 카드의 `p-4`와 같은 기준선이 된다.
 
+API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 화살표를 하나의 `Button text`에 함께 표시한다. 버튼의 hover 채움 없이 경로에만 밑줄을 표시하며, 키보드 포커스에서도 같은 밑줄을 표시한다. `aria-haspopup="dialog"`와 접근 가능한 이름으로 목적을 알린다. 긴 경로는 말줄임하고 전체 경로를 공통 툴팁과 접근 가능한 이름에 유지한다. trace ID가 없는 경로에는 액션을 표시하지 않는다.
+
 | 부분 | 클래스 |
 |------|--------|
 | 헤더 행 | `bg-ui-table-header border-b border-ui-border` — 행 hover와 별도 배경 |
@@ -859,6 +863,15 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 ## 7. 오버레이
 
+### 공통 툴팁
+
+짧은 hover 힌트는 `Tooltip`을 쓴다. `Button`·`ButtonLink`·`CopyButton`·`Input`·`Select`·`Toggle`의 `title` prop과 `IconButton`의 `label`은 공통 툴팁으로 표시하며, DOM에 네이티브 `title`을 남기지 않는다. 일반 요소는 `<Tooltip content="설명" focusable><span>값</span></Tooltip>`으로 연결한다. 독립된 읽기 전용 정보에는 `focusable`을 주고, 버튼·링크 내부나 스파크라인의 각 막대에는 Tab 지점을 추가하지 않는다. 차트의 `ChartTooltip`은 데이터 탐색용으로 유지한다.
+
+- 표면은 `bg-ui-raised`·`text-text-base`·`border-ui-border`, 모서리는 `rounded-md`, 그림자는 `shadow-lg`다. 짧은 힌트는 12px, 최대 폭은 320px이며 긴 문자열과 여러 줄을 허용한다.
+- `TooltipProvider`가 최초 hover 400ms·닫기 100ms 지연을 공유한다. 키보드 포커스에서는 바로 표시한다. 힌트 위로 마우스를 옮겨도 유지하고 Escape·클릭·포커스 이탈로 닫는다.
+- Floating UI로 위쪽 배치를 우선하고 화면 경계에서는 뒤집거나 옮긴다. portal과 `z-[70]`으로 표·카드의 clipping을 피하며, 네이티브 `<dialog>` 안에서는 같은 dialog로 portal한다.
+- `role="tooltip"`·`aria-describedby`로 연결하고 기존 설명 ID를 보존한다. 포커스를 이동하거나 가두지 않으며 `useOverlay`를 사용하지 않는다. 첫 Escape는 툴팁만 닫고, 이후 Escape는 상위 모달이 처리한다.
+
 | 종류 | 용도 | 구현 |
 |------|------|------|
 | **ConfirmDialog** | 파괴적 확인 | `components/common/ConfirmDialog` |
@@ -906,7 +919,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 - **전역 포커스 링** `:focus-visible` 2px primary + 2px offset. 개별 컴포넌트에서 재정의 금지
 - **Skip link** `MainLayout`의 `#main-content` 스킵 링크
-- **아이콘 전용 버튼**은 `aria-label` 필수 — `MaterialIcon`이 `aria-hidden="true"`라 아이콘만으로는 스크린리더에 아무것도 읽히지 않는다. `title`은 툴팁일 뿐 대체 텍스트가 아니므로 **둘 다** 준다. `<span className="sr-only">`로 라벨을 넣는 것도 동등하게 유효하다
+- **아이콘 전용 버튼**은 `aria-label` 필수 — `MaterialIcon`이 `aria-hidden="true"`라 아이콘만으로는 스크린리더에 아무것도 읽히지 않는다. 공통 툴팁은 이름을 대체하지 않는다. `IconButton`은 `label`로 접근 가능한 이름과 힌트를 함께 제공한다. `<span className="sr-only">`로 라벨을 넣는 것도 동등하게 유효하다
 - **색만으로 정보를 전달하지 않는다** (WCAG 1.4.1) — 상태 점은 §5.2, 4개 초과 차트 시리즈는 §1.6 참조
 - **클릭되는 것은 키보드로도 되어야 한다** — `<div onClick>`은 탭으로 도달할 수 없다. 네이티브 `<button>`/`<a>`로 바꿀 수 없는 자리(카드 안에 버튼이 중첩)는 [`activatable()`](src/utils/a11y.ts). **`<tr>`·`<th>`에는 쓰지 말 것** — `role="button"`이 테이블 시맨틱을 덮어써 행·열 관계를 잃는다. 정렬 헤더는 `<th>` 안에 `<button>` + `aria-sort`, 선택 가능한 행은 `tabIndex` + 키핸들러만.
 - **폼 컨트롤에는 접근 가능한 이름을 준다** — 라벨이 붙는 자리는 `<label htmlFor>`, 툴바 필터 셀렉트처럼 시각 라벨이 없는 자리는 `aria-label`. `Field`는 `htmlFor`를 줄 때만 `<label>`로 렌더한다(§6) — 자식이 버튼 그리드면 `<label>`이 첫 버튼을 눌러버리므로 `<span>` 캡션 + 그룹에 `role="group"`이 맞다.

@@ -1,3 +1,4 @@
+import { Tooltip } from '../../components/common/Tooltip';
 // THROWAWAY — A: environment/service state board, B: inventory matrix, C: temporal investigation.
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -45,7 +46,7 @@ const boardStates = {
 function TargetTiles({ targets }: { targets: BoardTarget[] }) {
   return <ul className="grid gap-2 sm:grid-cols-2">{targets.map((target) => <li key={target.id} className="min-w-0">
     <Link to={target.to} className="flex h-full min-h-20 items-center justify-between gap-3 rounded-lg border border-ui-border-soft p-3 transition-colors hover:border-ui-border hover:bg-ui-hover-soft">
-      <span className="min-w-0"><span className="block truncate type-card-title text-text-base" title={target.name}>{target.name}</span><span className="mt-1 block type-caption text-text-muted">{target.protocol}</span></span>
+      <span className="min-w-0"><Tooltip content={target.name}><span className="block truncate type-card-title text-text-base">{target.name}</span></Tooltip><span className="mt-1 block type-caption text-text-muted">{target.protocol}</span></span>
       <StatusLight {...boardStates[target.state]} />
     </Link>
   </li>)}</ul>;

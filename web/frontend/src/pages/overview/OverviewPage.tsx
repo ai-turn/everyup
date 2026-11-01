@@ -1,3 +1,4 @@
+import { Tooltip } from '../../components/common/Tooltip';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
@@ -332,7 +333,7 @@ export function OverviewPage() {
                     {failedSources.includes(source) ? (
                       <div className="flex min-h-10 items-center justify-between gap-3 px-2">
                         <span className="text-sm text-text-secondary">{label}</span>
-                        <span className="text-sm text-text-muted" aria-label="확인 불가" title="불러오지 못했습니다">-</span>
+                        <Tooltip content="불러오지 못했습니다" focusable><span className="text-sm text-text-muted" aria-label="확인 불가">-</span></Tooltip>
                       </div>
                     ) : (
                       // 숫자만 링크였던 8px 타깃 대신 행 전체를 링크로 — 이름도 "Docker 환경 2"로 읽힌다.

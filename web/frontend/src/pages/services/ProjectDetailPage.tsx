@@ -1,3 +1,4 @@
+import { Tooltip } from '../../components/common/Tooltip';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
@@ -97,9 +98,9 @@ function ServiceCard({ service, metric, to, returnTo }: {
         </div>
         {metric && (
           <div className="min-w-0">
-            <div className="text-xs text-text-dim truncate" title={metric.metricName}>
+            <Tooltip content={metric.metricName}><div className="text-xs text-text-dim truncate">
               {metricLabel(metric.metricName)}
-            </div>
+            </div></Tooltip>
             <div className="font-medium text-text-base truncate">
               {formatMetricValue(metric.value, metric.unit)}
             </div>
@@ -314,10 +315,10 @@ export function ProjectDetailPage() {
         view === 'grid' ? <ResourceTable rows={services} rowKey={row => row.key} ariaLabel="Docker 서비스 그리드" columns={[
           { key: 'state', label: '상태', className: 'w-24 sm:w-28', render: row => <DockerUptimeStatus service={row} /> },
           { key: 'name', label: '서비스', render: row => <><Link to={`/services/${agentId}/${encodeURIComponent(row.key)}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.runtime || row.checkType}</p><p className="mt-2 truncate font-mono text-xs text-text-muted md:hidden">{row.endpoint}</p><p className="mt-1 type-caption text-text-muted md:hidden">응답 {row.lastLatency ?? '-'} · 상태 {row.lastStatus ?? '-'}</p></> },
-          { key: 'endpoint', label: '체크 주소', className: 'hidden lg:table-cell', render: row => <p className="truncate font-mono text-xs text-text-muted" title={row.endpoint}>{row.endpoint}</p> },
+          { key: 'endpoint', label: '체크 주소', className: 'hidden lg:table-cell', render: row => <Tooltip content={row.endpoint} focusable><p className="truncate font-mono text-xs text-text-muted">{row.endpoint}</p></Tooltip> },
           { key: 'latency', label: '응답 시간', className: 'hidden w-28 md:table-cell', align: 'right', render: row => row.lastLatency ?? '-' },
           { key: 'status', label: '상태 코드', className: 'hidden w-24 md:table-cell', align: 'right', render: row => row.lastStatus ?? '-' },
-          { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <><p className="truncate font-mono text-xs text-text-muted" title={metrics[row.name].metricName}>{metricLabel(metrics[row.name].metricName)}</p><p className="mt-1">{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></> : '-' },
+          { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <><Tooltip content={metrics[row.name].metricName} focusable><p className="truncate font-mono text-xs text-text-muted">{metricLabel(metrics[row.name].metricName)}</p></Tooltip><p className="mt-1">{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></> : '-' },
         ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {services.map((s) => (
             <ServiceCard
@@ -402,9 +403,9 @@ export function ProjectDetailPage() {
                         : e.type === 'status_change' ? 'bg-amber-500'
                         : 'bg-slate-300 dark:bg-ui-active-dark'
                       }`} />
-                      <span className="text-xs text-text-muted min-w-0 truncate" title={e.message}>
+                      <Tooltip content={e.message} focusable><span className="text-xs text-text-muted min-w-0 truncate">
                         {e.message || e.type}
-                      </span>
+                      </span></Tooltip>
                     </div>
                   ))}
                 </div>

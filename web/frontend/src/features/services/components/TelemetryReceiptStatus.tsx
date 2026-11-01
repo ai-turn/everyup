@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { CollectionStatusBadge, type CollectionStatus } from '../../../components/common';
@@ -23,9 +24,9 @@ export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; e
       return <li key={signal} className="flex flex-wrap items-center gap-2 type-body text-text-secondary">
         <CollectionStatusBadge status={receiptState(last)} />
         {labels[signal] ?? signal}
-        <span className="text-text-muted" title={last ? new Date(last).toLocaleString() : undefined}>
+        <Tooltip content={last ? new Date(last).toLocaleString() : undefined} focusable><span className="text-text-muted">
           {last ? `마지막 수신 ${formatDistanceToNow(new Date(last), { addSuffix: true, locale: ko })}` : '아직 수신 기록 없음'}
-        </span>
+        </span></Tooltip>
       </li>;
     })}
   </ul>;

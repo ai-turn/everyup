@@ -27,6 +27,10 @@ export default defineConfig([
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
+      'no-restricted-syntax': ['error', {
+        selector: ":matches(JSXOpeningElement, JSXSelfClosingElement)[name.type='JSXIdentifier'][name.name=/^([a-z]|Link$)/] > JSXAttribute[name.name='title']",
+        message: '브라우저 title 툴팁 대신 공통 Tooltip을 사용하세요. 버튼·입력의 title prop은 공통 컴포넌트가 처리합니다.',
+      }],
     },
   },
   {

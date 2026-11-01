@@ -1,3 +1,4 @@
+import { Tooltip as HintTooltip } from '../../../components/common/Tooltip';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -174,9 +175,9 @@ function MetricChart({ source, meta, range, refreshKey, rules, expanded = false,
   return (
     <ChartCard
       title={expanded ? name : (
-        <button type="button" onClick={onExpand} title="크게 보기" className="block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline">
+        <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} className="block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline">
           {name}
-        </button>
+        </button></HintTooltip>
       )}
       // A metric name is an identifier, so it reads in mono like other code.
       titleClassName="font-mono text-sm"

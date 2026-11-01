@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { MaterialIcon } from '../../../components/common';
@@ -33,29 +34,29 @@ export function ChannelHealthMeta({ health, compact = false }: Props) {
 
   return (
     <div className={`flex items-center flex-wrap ${gap} ${text} text-text-muted`}>
-      <span className="inline-flex items-center gap-1.5" title="마지막 발송">
+      <Tooltip content="마지막 발송" focusable><span className="inline-flex items-center gap-1.5">
         <MaterialIcon size={20} name="schedule" />
         {lastSentAt
           ? formatDistanceToNow(lastSentAt, { addSuffix: true, locale: ko })
           : '발송 이력 없음'}
-      </span>
+      </span></Tooltip>
 
       {total > 0 ? (
-        <span className={`inline-flex items-center gap-1.5 ${rateColor}`} title="7일 성공률">
+        <Tooltip content="7일 성공률" focusable><span className={`inline-flex items-center gap-1.5 ${rateColor}`}>
           <MaterialIcon size={20} name="check_circle" />
           {successRate}% <span className="font-normal text-text-dim">({sent}/{total})</span>
-        </span>
+        </span></Tooltip>
       ) : (
-        <span className="inline-flex items-center gap-1.5" title="최근 7일 활동 없음">
+        <Tooltip content="최근 7일 활동 없음" focusable><span className="inline-flex items-center gap-1.5">
           <MaterialIcon size={20} name="check_circle" className="text-text-dim" />
           활동 없음
-        </span>
+        </span></Tooltip>
       )}
 
-      <span className="inline-flex items-center gap-1.5" title="연결된 활성 규칙">
+      <Tooltip content="연결된 활성 규칙" focusable><span className="inline-flex items-center gap-1.5">
         <MaterialIcon size={20} name="rule" />
         {`규칙 ${ruleCount}개`}
-      </span>
+      </span></Tooltip>
     </div>
   );
 }

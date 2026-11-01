@@ -2,6 +2,7 @@ import { Children, isValidElement, useEffect, useMemo, useRef, useState, type Co
 import { createPortal } from 'react-dom';
 import { FIELD_HEIGHT, FIELD_SHELL } from './Input';
 import { MaterialIcon } from './MaterialIcon';
+import { Tooltip } from './Tooltip';
 
 interface SelectOption {
   value: string;
@@ -38,6 +39,7 @@ export function Select({
   id,
   name,
   required,
+  title,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy,
   'aria-describedby': ariaDescribedBy,
@@ -121,7 +123,7 @@ export function Select({
       <select ref={nativeRef} name={name} required={required} value={value} defaultValue={defaultValue} disabled={disabled} onChange={onChange} tabIndex={-1} aria-hidden="true" className="sr-only" {...nativeProps}>
         {children}
       </select>
-      <button
+      <Tooltip content={title}><button
         ref={buttonRef}
         id={id}
         type="button"
@@ -141,7 +143,7 @@ export function Select({
       >
         <span className="min-w-0 flex-1 truncate">{selected?.label}</span>
         <MaterialIcon size={20} name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-text-muted" />
-      </button>
+      </button></Tooltip>
       {open && createPortal(
         <div ref={menuRef} id={menuId} role="listbox" aria-label={ariaLabel} style={{ top: position.top, left: position.left, width: position.width }} className="fixed z-[60] max-h-64 overflow-y-auto rounded-lg border border-ui-border bg-bg-surface p-1 shadow-lg">
           {options.map((option) => {

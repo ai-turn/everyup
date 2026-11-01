@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, CopyButton, ICON_ACTION_SM, IconButton, MaterialIcon } from '../../../components/common';
@@ -305,12 +306,11 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
             <MaterialIcon size={20} name="timeline" />
           </div>
           <h3 className="type-card-title text-text-base shrink-0">트레이스</h3>
-          <code
+          <Tooltip content={traceId} focusable><code
             className="flex-1 min-w-0 truncate text-xs font-mono text-text-dim"
-            title={traceId}
           >
             {traceId}
-          </code>
+          </code></Tooltip>
           <CopyButton
             onCopy={() => copy(traceId)}
             className={ICON_ACTION_SM}
@@ -431,9 +431,9 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs shrink-0 ${spanKindBadge(span.kind)}`}>
                   {span.kind}
                 </span>
-                <span className="font-mono text-text-secondary truncate flex-1 min-w-0" title={span.name}>
+                <Tooltip content={span.name} focusable><span className="font-mono text-text-secondary truncate flex-1 min-w-0">
                   {span.name || '(unnamed)'}
-                </span>
+                </span></Tooltip>
                 {span.serviceName && (
                   <span className="text-text-muted shrink-0">
                     {span.serviceName}
@@ -498,9 +498,9 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
               {item.serviceName && (
                 <span className="text-text-muted">{item.serviceName}</span>
               )}
-              <span className="min-w-0 flex-1 truncate font-mono text-text-muted" title={item.spanName}>
+              <Tooltip content={item.spanName} focusable><span className="min-w-0 flex-1 truncate font-mono text-text-muted">
                 {item.spanName}
-              </span>
+              </span></Tooltip>
               {copyButton(() => onCopy(formatCapturedHeadersCopy(item)), '헤더 복사')}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -558,9 +558,9 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
                   {item.serviceName}
                 </span>
               )}
-              <span className="min-w-0 flex-1 truncate font-mono text-text-muted" title={item.spanName}>
+              <Tooltip content={item.spanName} focusable><span className="min-w-0 flex-1 truncate font-mono text-text-muted">
                 {item.spanName}
-              </span>
+              </span></Tooltip>
               {typeof item.size === 'number' && (
                 <span className="text-xs text-text-dim">
                   {item.size}B
@@ -595,9 +595,9 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-ui-active text-text-secondary shrink-0">
               {req.method}
             </span>
-            <span className="font-mono text-text-secondary truncate flex-1 min-w-0" title={req.path}>
+            <Tooltip content={req.path} focusable><span className="font-mono text-text-secondary truncate flex-1 min-w-0">
               {req.path}
-            </span>
+            </span></Tooltip>
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium shrink-0 ${
               req.isError
                 ? 'bg-status-error/10 text-status-error'

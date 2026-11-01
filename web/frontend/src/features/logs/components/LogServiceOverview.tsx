@@ -1,3 +1,4 @@
+import { Tooltip } from '../../../components/common/Tooltip';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -37,10 +38,10 @@ function LogSparkline({ buckets, window: span }: { buckets: LogHistogramBucket[]
       className="flex h-8 items-end gap-px border-b border-ui-border"
     >
       {slots.map(slot => (
-        <div key={slot.t} title={`${formatTimeTick(slot.t)} 오류 ${slot.error}건, 경고 ${slot.warn}건`} className="flex h-full flex-1 flex-col-reverse">
+        <Tooltip key={slot.t} content={`${formatTimeTick(slot.t)} 오류 ${slot.error}건, 경고 ${slot.warn}건`}><div className="flex h-full flex-1 flex-col-reverse">
           {slot.error > 0 && <div className={LEVEL_FILL.error} style={bar(slot.error)} />}
           {slot.warn > 0 && <div className={LEVEL_FILL.warn} style={bar(slot.warn)} />}
-        </div>
+        </div></Tooltip>
       ))}
     </div>
   );
@@ -60,7 +61,7 @@ function LevelCount({ label, value, tone, known }: { label: string; value: numbe
       <p className="text-xs text-text-dim">{label}</p>
       {known
         ? <p className={`text-lg tabular-nums ${value > 0 ? tone : 'text-text-base'}`}>{value.toLocaleString()}</p>
-        : <p className="text-lg text-text-dim" title="최근 24시간 수신한 로그 없음">-</p>}
+        : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><p className="text-lg text-text-dim">-</p></Tooltip>}
     </div>
   );
 }
@@ -72,7 +73,7 @@ function LatestLine({ summary, known }: { summary?: LogServiceSummary; known: bo
     return (
       <>
         <span className={`${LEVEL_BASE} ${LEVEL_TEXT[latest.level] ?? LEVEL_TEXT.info}`}>{latest.level}</span>
-        <span className="min-w-0 flex-1 truncate font-mono text-text-secondary" title={latest.message}>{latest.message}</span>
+        <Tooltip content={latest.message} focusable><span className="min-w-0 flex-1 truncate font-mono text-text-secondary">{latest.message}</span></Tooltip>
         <span className="shrink-0 text-text-dim">{ago(latest.createdAt)}</span>
       </>
     );
@@ -123,7 +124,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
       >
         <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[pattern.level] ?? LEVEL_TEXT.info}`}>{pattern.level}</span>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-mono text-sm text-text-base" title={pattern.message}>{pattern.message}</p>
+          <Tooltip content={pattern.message}><p className="truncate font-mono text-sm text-text-base">{pattern.message}</p></Tooltip>
           {/* 줄바꿈은 항목 사이에서만 — "처음 2일 / 전"처럼 시간 표현이 갈라지지 않게 */}
           <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-text-dim">
             <span>{row.name}</span><span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span>
@@ -159,7 +160,7 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
           <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
             { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 items-baseline gap-2 text-xs xl:hidden"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div></> },
             { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => <LogStatus row={row} /> },
-            ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: StatusRow) => row.collection === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <span className="text-text-muted" title="최근 24시간 수신한 로그 없음">-</span> })),
+            ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: StatusRow) => row.collection === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><span className="text-text-muted">-</span></Tooltip> })),
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },
             { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 text-xs"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div> },
           ]} />}
