@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, MaterialIcon, SegmentedControl, type GlobalTimeRange } from '../../../components/common';
 import { api, type TraceSummary } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { TracePanel } from '../../traces/components/TracePanel';
 import { LEVEL_CHIP } from '../logLevelStyle';
+import { useRequestQuery, useRequestWindow, type RequestWindow } from '../../api-requests/useRequestQuery';
 
 interface SharedProps {
   refreshKey: number;
   range: GlobalTimeRange;
+  window?: RequestWindow;
 }
 
 interface AgentProps extends SharedProps {
@@ -23,7 +25,6 @@ type TraceSource =
   | { kind: 'agent'; agentId: string; serviceKey: string }
   | { kind: 'direct'; observedServiceId: string };
 
-const RANGE_HOURS: Record<GlobalTimeRange, number> = { '1h': 1, '6h': 6, '24h': 24 };
 const LIMIT = 50;
 
 const SORTS = [
@@ -55,13 +56,15 @@ function formatTime(iso: string): string {
   });
 }
 
-function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { source: TraceSource }) {
+function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindow }: SharedProps & { source: TraceSource }) {
   const [traces, setTraces] = useState<TraceSummary[]>([]);
   const [loading, setLoading] = useState(true);
   // 실패를 빈 목록으로 그리면 "SDK가 보내면 표시됩니다"가 떠서 수집 설정 문제로 읽힌다.
   const [error, setError] = useState<string | null>(null);
-  const [sort, setSort] = useState<'recent' | 'slowest'>('recent');
-  const [errorsOnly, setErrorsOnly] = useState(false);
+  const { traceSort: sort, traceErrorsOnly: errorsOnly, update } = useRequestQuery();
+  const [retryKey, setRetryKey] = useState(0);
+  const fallbackWindow = useRequestWindow(range, refreshKey);
+  const window = controlledWindow ?? fallbackWindow;
   const [activeTraceId, setActiveTraceId] = useState<string | null>(null);
 
   const sourceKind = source.kind;
@@ -69,38 +72,36 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
   const serviceKey = source.kind === 'agent' ? source.serviceKey : '';
   const observedServiceId = source.kind === 'direct' ? source.observedServiceId : '';
 
-  const fetch = useCallback(async () => {
-    setLoading(true);
-    const params = {
-      from: new Date(Date.now() - RANGE_HOURS[range] * 3_600_000).toISOString(),
-      sort,
-      errorsOnly: errorsOnly || undefined,
-      limit: LIMIT,
-    };
-    try {
-      setTraces(sourceKind === 'agent'
-        ? await api.getAgentServiceTraces(agentId, serviceKey, params)
-        : await api.getObservedServiceTraces(observedServiceId, params));
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoading(true);
       setError(null);
-    } catch (err) {
-      setError(getErrorMessage(err));
-      setTraces([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [sourceKind, agentId, serviceKey, observedServiceId, sort, errorsOnly, range, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => { fetch(); }, [fetch]);
+      try {
+        const params = { ...window, sort, errorsOnly: errorsOnly || undefined, limit: LIMIT };
+        const rows = sourceKind === 'agent'
+          ? await api.getAgentServiceTraces(agentId, serviceKey, params)
+          : await api.getObservedServiceTraces(observedServiceId, params);
+        if (active) setTraces(rows);
+      } catch (error) {
+        if (active) setError(getErrorMessage(error));
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void load();
+    return () => { active = false; };
+  }, [sourceKind, agentId, serviceKey, observedServiceId, sort, errorsOnly, window, refreshKey, retryKey]);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <SegmentedControl options={SORTS} value={sort} onChange={setSort} ariaLabel="트레이스 정렬" />
+        <SegmentedControl options={SORTS} value={sort} onChange={value => update({ traceSort: value })} ariaLabel="트레이스 정렬" />
         {/* 켜짐 = 로그 탭 레벨 필터 칩과 같은 표현. 흰 글자 + red-500 채움은 3.76으로 AA 미달이었다. */}
         <button
           type="button"
           aria-pressed={errorsOnly}
-          onClick={() => setErrorsOnly(v => !v)}
+          onClick={() => update({ traceErrorsOnly: errorsOnly ? null : 'true' })}
           className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
             errorsOnly ? LEVEL_CHIP.error : 'bg-ui-hover text-text-muted hover:bg-ui-active'
           }`}
@@ -108,6 +109,7 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
           <MaterialIcon size={20} name="error_outline" />
           에러만
         </button>
+        <span className="type-caption text-text-muted">최대 {LIMIT}개 표시</span>
       </div>
 
       {loading ? (
@@ -121,12 +123,12 @@ function ServiceTracesPanel({ source, refreshKey, range }: SharedProps & { sourc
               <p className="mt-0.5 type-body text-text-muted">{error}</p>
             </div>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => void fetch()}>다시 시도</Button>
+          <Button variant="secondary" size="sm" onClick={() => setRetryKey(key => key + 1)}>다시 시도</Button>
         </section>
       ) : traces.length === 0 ? (
         <div className="rounded-xl border border-ui-border bg-bg-surface p-8 text-center">
           <p className="text-sm text-text-muted">
-            {errorsOnly ? '이 기간에 실패한 트레이스가 없습니다' : '수신한 트레이스가 없습니다. OpenTelemetry SDK가 트레이스를 보내면 여기에 표시됩니다.'}
+            {errorsOnly ? '이 기간에 실패한 트레이스가 없습니다' : '이 기간에 수신한 트레이스가 없습니다. 기간을 바꾸거나 수집 설정을 확인해 주세요.'}
           </p>
         </div>
       ) : (

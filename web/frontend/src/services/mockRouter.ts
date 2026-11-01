@@ -568,11 +568,17 @@ function filterMockRequests(rows: ApiRequest[], endpoint: string): ApiRequest[] 
   const from = query.get('from');
   const errorsOnly = query.get('errorsOnly') === 'true';
   const traceId = query.get('traceId');
+  const to = query.get('to');
+  const minStatus = Number(query.get('minStatus') ?? 0);
+  const maxStatus = Number(query.get('maxStatus') ?? 0);
   return rows.filter(request =>
-    (!errorsOnly || request.statusCode >= 400)
+    (!errorsOnly || request.isError)
     && (!traceId || request.traceId === traceId)
     && (!search || request.path.toLowerCase().includes(search))
-    && (!from || request.createdAt >= from));
+    && (!from || request.createdAt >= from)
+    && (!to || request.createdAt <= to)
+    && (!minStatus || request.statusCode >= minStatus)
+    && (!maxStatus || request.statusCode <= maxStatus));
 }
 
 const mockAgentServiceRequests: ApiRequest[] = [
@@ -593,20 +599,24 @@ function mockBucketStart(endpoint: string, fallbackMins: number) {
 
 // Derive chart buckets from the same requests shown in the detail list.
 function mockRequestStats(endpoint: string) {
-  const buckets = [];
-  const { width, last, count: n } = mockBucketStart(endpoint, 5);
   const rows = endpointRequests(endpoint);
-  for (let i = n; i >= 0; i -= 1) {
-    const time = new Date(last - i * width).toISOString();
-    const batch = rows.filter(row => { const at = new Date(row.createdAt).getTime(); return at >= last - i * width && at < last - (i - 1) * width; });
-    const values = batch.map(row => row.durationMs).sort((a, b) => a - b);
+  if (rows.length > 100000) return { buckets: [], truncated: true };
+  const { width } = mockBucketStart(endpoint, 5);
+  const grouped = new Map<number, ApiRequest[]>();
+  for (const row of rows) {
+    const start = Math.floor(Date.parse(row.createdAt) / width) * width;
+    const group = grouped.get(start);
+    if (group) group.push(row); else grouped.set(start, [row]);
+  }
+  const buckets = [...grouped.entries()].sort(([a], [b]) => a - b).map(([start, batch]) => {
+    const values = batch.map(row => row.durationMs).filter(value => value > 0).sort((a, b) => a - b);
     const percentile = (p: number) => values[Math.max(0, Math.ceil(values.length * p) - 1)] ?? 0;
     const count = batch.length;
-    const errorCount = batch.filter(row => row.statusCode >= 500).length;
+    const errorCount = batch.filter(row => row.isError).length;
     const [p50, p95, p99] = [percentile(0.5), percentile(0.95), percentile(0.99)];
-    buckets.push({ time, count, errorCount, p50, p95, p99, timed: count });
-  }
-  return buckets;
+    return { time: new Date(start).toISOString(), count, errorCount, p50, p95, p99, timed: values.length };
+  });
+  return { buckets, truncated: false };
 }
 
 // Use the service's own logs for its volume histogram.

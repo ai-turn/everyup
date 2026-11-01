@@ -10,6 +10,9 @@ import {
 } from '../../../components/charts';
 import { api, type AgentEvent, type ApiRequestStatBucket, type ApiRequestStatusSummary } from '../../../services/api';
 import { TimeRangePicker } from '../../../components/common/TimeRangePicker';
+import { Button } from '../../../components/common';
+import { getErrorMessage } from '../../../utils/errors';
+import { useRequestWindow, type RequestWindow } from '../../api-requests/useRequestQuery';
 
 type TimeRange = '1h' | '6h' | '24h';
 // Bucket width per range keeps ~30-60 points on the chart.
@@ -27,6 +30,7 @@ interface SharedProps {
   refreshKey?: number;
   /** Controlled range from the page-header picker; when set, own buttons hide. */
   range?: TimeRange;
+  window?: RequestWindow;
 }
 
 interface AgentProps extends SharedProps {
@@ -64,16 +68,22 @@ function ServiceRequestTrends({
   source,
   refreshKey,
   range: controlledRange,
+  window: controlledWindow,
 }: SharedProps & { source: RequestTrendSource }) {
   const [localRange, setLocalRange] = useState<TimeRange>('6h');
   const range = controlledRange ?? localRange;
   const [buckets, setBuckets] = useState<ApiRequestStatBucket[]>([]);
   const [prevBuckets, setPrevBuckets] = useState<ApiRequestStatBucket[]>([]);
   const [deploys, setDeploys] = useState<AgentEvent[]>([]);
-  const [timeWindow, setTimeWindow] = useState<[number, number]>([0, 1]);
   const [summary, setSummary] = useState<ApiRequestStatusSummary | null>(null);
-  // First load only — a refresh keeps the previous chart instead of flashing the skeleton.
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [summaryError, setSummaryError] = useState(false);
+  const [truncated, setTruncated] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const fallbackWindow = useRequestWindow(range, refreshKey);
+  const window = controlledWindow ?? fallbackWindow;
+  const timeWindow = useMemo<[number, number]>(() => [Date.parse(window.from), Date.parse(window.to)], [window]);
   const [metric, setMetric] = useState<Metric>('count');
   const gradientId = useId().replace(/[^\w-]/g, '');
   const sourceKind = source.kind;
@@ -82,47 +92,51 @@ function ServiceRequestTrends({
   const observedServiceId = source.kind === 'direct' ? source.observedServiceId : '';
 
   useEffect(() => {
+    let active = true;
     const load = async () => {
+      setLoading(true);
+      setError(null);
+      setSummary(null);
+      setSummaryError(false);
+      setPrevBuckets([]);
+      setDeploys([]);
       const r = RANGES.find((x) => x.value === range)!;
-      const to = Date.now();
-      const from = new Date(to - r.hours * 3600 * 1000).toISOString();
+      const { from, to } = window;
       const fetchStats = (params: { from: string; to?: string; bucketMins: number }) => (sourceKind === 'direct'
         ? api.getObservedServiceRequestStats(observedServiceId, params)
         : serviceKey
           ? api.getAgentServiceRequestStats(agentId, serviceKey, params)
           : api.getAgentRequestStats(agentId, params));
-      const current = fetchStats({ from, bucketMins: r.bucketMins });
+      const current = fetchStats({ from, to, bucketMins: r.bucketMins });
       // Non-critical — no overlay when last week is missing or fails.
       fetchStats({
         from: new Date(Date.parse(from) - WEEK_MS).toISOString(),
-        to: new Date(to - WEEK_MS).toISOString(),
+        to: new Date(Date.parse(to) - WEEK_MS).toISOString(),
         bucketMins: r.bucketMins,
-      }).then((b) => setPrevBuckets(b ?? []), () => setPrevBuckets([]));
+      }).then(result => { if (active) setPrevBuckets(result.truncated ? [] : result.buckets); }, () => {});
       // Deploy markers: "did this start before or after the rollout?" Agent sources only.
       if (sourceKind === 'agent') {
-        api.getAgentDeploys(agentId, { from, key: serviceKey }).then((d) => setDeploys(d ?? []), () => setDeploys([]));
-      } else {
-        setDeploys([]);
+        api.getAgentDeploys(agentId, { from, key: serviceKey }).then(d => { if (active) setDeploys(d ?? []); }, () => {});
       }
+      const summaryRequest = sourceKind === 'direct'
+        ? api.getObservedServiceRequestStatusSummary(observedServiceId, { from, to })
+        : api.getRequestStatusSummary(agentId, serviceKey, { from, to });
+      void summaryRequest.then(value => { if (active) setSummary(value); }, () => { if (active) setSummaryError(true); });
       try {
-        setBuckets((await current) ?? []);
-      } catch {
-        setBuckets([]);
+        const result = await current;
+        if (active) {
+          setBuckets(result.buckets);
+          setTruncated(result.truncated);
+        }
+      } catch (error) {
+        if (active) setError(getErrorMessage(error));
       } finally {
-        setTimeWindow([Date.parse(from), to]);
-        setLoading(false);
-      }
-      // Non-critical — the strip hides itself when the summary is missing.
-      try {
-        setSummary(sourceKind === 'direct'
-          ? await api.getObservedServiceRequestStatusSummary(observedServiceId, { from })
-          : await api.getRequestStatusSummary(agentId, serviceKey, { from }));
-      } catch {
-        setSummary(null);
+        if (active) setLoading(false);
       }
     };
     void load();
-  }, [agentId, observedServiceId, range, refreshKey, serviceKey, sourceKind]);
+    return () => { active = false; };
+  }, [agentId, observedServiceId, range, refreshKey, serviceKey, sourceKind, window, retryKey]);
 
   const theme = useChartTheme();
   const bucketMs = (RANGES.find((x) => x.value === range) ?? RANGES[0]).bucketMins * 60_000;
@@ -158,7 +172,21 @@ function ServiceRequestTrends({
   }, [buckets, prevBuckets, timeWindow, bucketMs]);
 
   if (loading) {
-    return <ChartCard title="요청 추이"><ChartSkeleton /></ChartCard>;
+    return <ChartCard title="서비스 전체 추이"><ChartSkeleton /></ChartCard>;
+  }
+  if (error) {
+    return <ChartCard title="서비스 전체 추이"><div role="alert" className="space-y-3">
+      <p className="type-body text-status-warn">요청 추이를 불러오지 못했습니다</p>
+      <p className="type-body text-text-muted">{error}</p>
+      <Button variant="secondary" size="sm" onClick={() => setRetryKey(key => key + 1)}>다시 시도</Button>
+    </div></ChartCard>;
+  }
+  if (truncated) {
+    return <ChartCard title="서비스 전체 추이"><div role="status" className="space-y-2">
+      <p className="type-body text-status-warn">조회 범위의 요청이 많아 추이를 표시하지 못했습니다</p>
+      <p className="type-body text-text-muted">기간을 줄여 다시 확인해 주세요. 일부 요청만으로 전체 기간의 통계를 표시하지 않습니다.</p>
+      {!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}
+    </div></ChartCard>;
   }
   if (buckets.length === 0) {
     return null; // empty state is handled by the request list below
@@ -170,14 +198,15 @@ function ServiceRequestTrends({
   const shown: Metric = metric === 'latency' && !anyLatency ? 'count' : metric;
   const totalCount = buckets.reduce((sum, b) => sum + b.count, 0);
   const totalErrors = buckets.reduce((sum, b) => sum + b.errorCount, 0);
-  const latestP95 = [...data].reverse().find((d) => d.p95 !== null)?.p95 ?? 0;
+  const latestPoint = [...data].reverse().find(d => d.p95 !== null);
+  const latestP95 = latestPoint?.p95 ?? 0;
   const values = (key: Exclude<keyof ChartPoint, 't'>) =>
     data.flatMap((d) => (d[key] === null ? [] : [d[key]]));
 
   const tiles: { id: Metric; label: string; value: string; unit: string }[] = [
     { id: 'count', label: '요청 수', value: totalCount.toLocaleString(), unit: '건' },
     { id: 'error', label: '에러율', value: (totalCount > 0 ? (totalErrors / totalCount) * 100 : 0).toFixed(1), unit: '%' },
-    ...(anyLatency ? [{ id: 'latency' as const, label: '지연 시간 p95 · 최근', value: String(Math.round(latestP95)), unit: 'ms' }] : []),
+    ...(anyLatency ? [{ id: 'latency' as const, label: '마지막 측정 구간 p95', value: String(Math.round(latestP95)), unit: 'ms' }] : []),
   ];
   const view = {
     count: {
@@ -208,7 +237,10 @@ function ServiceRequestTrends({
   ];
 
   return (
-    <ChartCard title="요청 추이" right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
+    <ChartCard title="서비스 전체 추이" right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
+
+      <p className="mb-3 type-caption text-text-muted">선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
+      {summaryError && <div role="status" className="mb-3 flex flex-wrap items-center gap-2"><p className="type-caption text-status-warn">상태코드 분포를 불러오지 못했습니다</p><Button variant="ghost" size="sm" onClick={() => setRetryKey(key => key + 1)}>다시 시도</Button></div>}
 
       {/* Status-class distribution + top 5xx endpoint (1a 콘솔 prototype) */}
       {summary && (summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther) > 0 && (() => {
@@ -218,6 +250,7 @@ function ServiceRequestTrends({
           { label: '3xx', count: summary.count3xx, bar: 'bg-slate-400', text: 'text-text-muted' },
           { label: '4xx', count: summary.count4xx, bar: 'bg-status-warn', text: 'text-status-warn' },
           { label: '5xx', count: summary.count5xx, bar: 'bg-status-error', text: 'text-status-error' },
+          { label: '기타', count: summary.countOther, bar: 'bg-status-idle', text: 'text-text-muted' },
         ].filter((c) => c.count > 0);
         return (
           <div className="mb-4">
@@ -245,7 +278,7 @@ function ServiceRequestTrends({
       {/* One chart, one measure at a time: ms, counts and % can't share an axis
           (a fixed 0–100% second axis once flattened a 5% error spike). The tiles
           keep all three numbers in view and the tooltip shows every measure. */}
-      <div role="group" aria-label="표시할 지표" className={`grid gap-2 ${tiles.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <div role="group" aria-label="표시할 지표" className={`grid grid-cols-2 gap-2 ${tiles.length === 3 ? 'sm:grid-cols-3' : ''}`}>
         {tiles.map((tile) => {
           const active = tile.id === shown;
           return (
@@ -254,7 +287,7 @@ function ServiceRequestTrends({
               type="button"
               aria-pressed={active}
               onClick={() => setMetric(tile.id)}
-              className={`flex min-w-0 flex-col items-start gap-0.5 rounded-lg border px-3.5 py-2.5 text-left transition-colors ${
+              className={`flex min-w-0 flex-col items-start gap-0.5 rounded-lg border px-3.5 py-2.5 text-left transition-colors ${tile.id === 'latency' ? 'max-sm:col-span-2' : ''} ${
                 active ? 'border-primary ring-1 ring-inset ring-primary' : 'border-ui-border hover:bg-ui-hover-soft'
               }`}
             >
@@ -263,6 +296,7 @@ function ServiceRequestTrends({
                 {tile.value}
                 <span className="ml-0.5 type-caption text-text-dim">{tile.unit}</span>
               </span>
+              {tile.id === 'latency' && latestPoint && <span className="type-caption text-text-muted">{new Date(latestPoint.t).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}~{new Date(Math.min(latestPoint.t + bucketMs, timeWindow[1])).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>}
             </button>
           );
         })}

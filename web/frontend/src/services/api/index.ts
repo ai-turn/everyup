@@ -74,6 +74,7 @@ export type {
 } from './agents';
 export type {
   ApiRequestStatBucket,
+  ApiRequestStats,
   ApiRequestStatusSummary,
   MetricExemplar,
   OtelHistogramQuantiles,

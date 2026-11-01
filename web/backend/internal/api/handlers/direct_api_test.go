@@ -106,8 +106,8 @@ func TestDirectApiSetupProjectionCorrelationAlertAndDelete(t *testing.T) {
 	}
 
 	_, statsResult := ts.doRequest(t, "GET", "/api/v1/observed-services/"+created.ID+"/request-stats", nil, auth...)
-	var stats []models.ApiRequestStatBucket
-	if err := json.Unmarshal(statsResult.Data, &stats); err != nil || len(stats) != 1 || stats[0].Count != 1 || stats[0].ErrorCount != 1 {
+	var stats models.ApiRequestStats
+	if err := json.Unmarshal(statsResult.Data, &stats); err != nil || stats.Truncated || len(stats.Buckets) != 1 || stats.Buckets[0].Count != 1 || stats.Buckets[0].ErrorCount != 1 {
 		t.Fatalf("direct request stats: %+v, err=%v", stats, err)
 	}
 	_, summaryResult := ts.doRequest(t, "GET", "/api/v1/observed-services/"+created.ID+"/request-status-summary", nil, auth...)

@@ -318,9 +318,6 @@ func (h *ObservedServiceHandler) GetRequestStats(c *fiber.Ctx) error {
 	if err != nil {
 		return internalError(c, ErrCodeDatabase, err)
 	}
-	if stats == nil {
-		stats = []models.ApiRequestStatBucket{}
-	}
 	return c.JSON(fiber.Map{"success": true, "data": stats})
 }
 

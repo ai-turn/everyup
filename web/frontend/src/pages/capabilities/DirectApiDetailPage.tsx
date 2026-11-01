@@ -1,9 +1,9 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
-  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, SegmentedControl, Textarea, TimeRangePicker, type GlobalTimeRange,
+  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker,
 } from '../../components/common';
 import { DirectServiceRequestsTab } from '../../features/healthcheck/components/AgentServiceRequestsTab';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
@@ -12,6 +12,8 @@ import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/R
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { ApiExclusionsSettings } from '../../features/api-requests/ApiExclusionsSettings';
+import { useRequestQuery, useRequestWindow } from '../../features/api-requests/useRequestQuery';
 
 type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
 
@@ -19,53 +21,64 @@ export function DirectApiDetailPage() {
 
   const { serviceId = '' } = useParams();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { range, tab: view, traceId, update } = useRequestQuery();
   const [service, setService] = useState<ObservedService | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState('');
-  const [excludePaths, setExcludePaths] = useState('');
-  const [savedExcludePaths, setSavedExcludePaths] = useState('');
-  const [range, setRange] = useState<GlobalTimeRange>('6h');
   const [refreshKey, setRefreshKey] = useState(0);
+  const window = useRequestWindow(range, refreshKey);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useBreadcrumb(service ? [{ label: service.name }] : []);
   const [savingProject, setSavingProject] = useState(false);
-  const [savingExclusions, setSavingExclusions] = useState(false);
-  // Requests only hold HTTP spans carrying a method and status; traces show the
-  // rest of what this service sent.
-  const [view, setView] = useState<'requests' | 'traces'>('requests');
+  const [projectsLoading, setProjectsLoading] = useState(true);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
+  const [projectsRetryKey, setProjectsRetryKey] = useState(0);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<ObservedServiceSetup | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [serviceRow, projectRows, exclusions] = await Promise.all([
-        api.getObservedService(serviceId),
-        api.getProjects(),
-        api.getObservedServiceApiExclusions(serviceId),
-      ]);
-      if (!serviceRow.signals.includes('traces')) {
-        setError('이 서비스에는 API 기능이 연결되어 있지 않습니다.');
-        return;
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const serviceRow = await api.getObservedService(serviceId);
+        if (!active) return;
+        if (!serviceRow.signals.includes('traces')) {
+          setError('이 서비스에는 API 기능이 연결되어 있지 않습니다.');
+          return;
+        }
+        setService(serviceRow);
+        setProjectId(serviceRow.projectId ?? '');
+      } catch (error) {
+        if (active) setError(getErrorMessage(error));
+      } finally {
+        if (active) setLoading(false);
       }
-      const exclusionsText = (exclusions.paths ?? []).join('\n');
-      setService(serviceRow);
-      setProjectId(serviceRow.projectId ?? '');
-      setProjects(projectRows ?? []);
-      setExcludePaths(exclusionsText);
-      setSavedExcludePaths(exclusionsText);
-    } catch (requestError) {
-      setError(getErrorMessage(requestError));
-    } finally {
-      setLoading(false);
-    }
+    };
+    void load();
+    return () => { active = false; };
   }, [serviceId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let active = true;
+    const loadProjects = async () => {
+      setProjectsLoading(true);
+      setProjectsError(null);
+      try {
+        const rows = await api.getProjects();
+        if (active) setProjects(rows ?? []);
+      } catch (error) {
+        if (active) setProjectsError(getErrorMessage(error));
+      } finally {
+        if (active) setProjectsLoading(false);
+      }
+    };
+    void loadProjects();
+    return () => { active = false; };
+  }, [serviceId, projectsRetryKey]);
 
   const saveProject = async () => {
     if (!service) return;
@@ -82,23 +95,6 @@ export function DirectApiDetailPage() {
       toast.error(getErrorMessage(requestError));
     } finally {
       setSavingProject(false);
-    }
-  };
-
-  const saveExclusions = async () => {
-    if (!service) return;
-    const paths = excludePaths.split('\n').map(path => path.trim()).filter(Boolean);
-    setSavingExclusions(true);
-    try {
-      const result = await api.setObservedServiceApiExclusions(service.id, paths);
-      const normalized = (result.paths ?? []).join('\n');
-      setExcludePaths(normalized);
-      setSavedExcludePaths(normalized);
-      toast.success('API 제외 경로를 저장했습니다.');
-    } catch (requestError) {
-      toast.error(getErrorMessage(requestError));
-    } finally {
-      setSavingExclusions(false);
     }
   };
 
@@ -171,13 +167,16 @@ export function DirectApiDetailPage() {
             onProjectChange={setProjectId}
             onSaveProject={() => void saveProject()}
             savingProject={savingProject}
+            projectsLoading={projectsLoading}
+            projectsError={projectsError}
+            onRetryProjects={() => setProjectsRetryKey(key => key + 1)}
           />
         }
       />
       <DetailActionToolbar
         controls={
           <>
-          <TimeRangePicker value={range} onChange={setRange} />
+          <TimeRangePicker value={range} onChange={value => update({ range: value, page: null })} />
           <Button collapseLabel variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
           </>
         }
@@ -189,38 +188,27 @@ export function DirectApiDetailPage() {
         }
       />
 
-      <section className="mb-6 rounded-xl border border-ui-border bg-bg-surface p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="type-card-title text-text-base">API 제외 경로</h2>
-            <p className="mt-0.5 text-sm text-text-muted">수집 전에 제외할 경로를 한 줄에 하나씩 입력합니다. 정확한 경로 또는 끝에 *를 붙인 prefix를 지원합니다.</p>
-          </div>
-          <Button size="sm" onClick={() => void saveExclusions()} disabled={excludePaths === savedExcludePaths} loading={savingExclusions}>
-            제외 경로 저장
-          </Button>
-        </div>
-        <Textarea
-          className="mt-4 min-h-28 resize-y"
-          mono
-          value={excludePaths}
-          onChange={event => setExcludePaths(event.target.value)}
-          placeholder={'/health\n/internal/*'}
-          aria-label="API 제외 경로"
-        />
-      </section>
-
-      <div className="mb-4">
-        <SegmentedControl
-          options={[{ value: 'requests' as const, label: 'API 요청' }, { value: 'traces' as const, label: '트레이스' }]}
-          value={view}
-          onChange={setView}
-          ariaLabel="요청/트레이스 보기"
-        />
+      <div role="tablist" aria-label="요청/트레이스 보기" className="mb-4 flex border-b border-ui-border">
+        {(['requests', 'traces'] as const).map((tab, index) => <button key={tab} id={`api-tab-${tab}`} type="button" role="tab"
+          tabIndex={view === tab ? 0 : -1} aria-selected={view === tab} aria-controls="api-data-panel"
+          onClick={() => update({ tab })}
+          onKeyDown={event => {
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : event.key === 'ArrowRight' || event.key === 'ArrowLeft' ? 1 - index : -1;
+            if (next < 0) return;
+            event.preventDefault();
+            update({ tab: next === 0 ? 'requests' : 'traces' });
+            event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+          }}
+          className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${view === tab ? 'border-primary text-text-base' : 'border-transparent text-text-muted hover:text-text-base'}`}>
+          {tab === 'requests' ? 'API 요청' : '트레이스'}
+        </button>)}
       </div>
-
-      {view === 'requests'
-        ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} traceId={searchParams.get('traceId') ?? undefined} />
-        : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={refreshKey} range={range} />}
+      <div role="tabpanel" id="api-data-panel" aria-labelledby={`api-tab-${view}`}>
+        {view === 'requests'
+          ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} window={window} traceId={traceId} />
+          : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={refreshKey} range={range} window={window} />}
+      </div>
+      <ApiExclusionsSettings key={service.id} serviceId={service.id} paths={service.apiExcludePaths ?? []} onSaved={paths => setService(current => current ? { ...current, apiExcludePaths: paths } : current)} />
 
       <ConfirmDialog
         isOpen={Boolean(selectedConfirm)}
