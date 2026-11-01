@@ -25,4 +25,9 @@ export const mockChannels: NotificationChannel[] = [
     isEnabled: true,
     createdAt: new Date(Date.now() - 10 * 86_400_000).toISOString(),
   },
+  {
+    id: '4', name: '#backoffice Slack', type: 'slack',
+    config: JSON.stringify({ webhookUrl: 'https://hooks.slack.com/services/demo-backoffice' }),
+    isEnabled: true, createdAt: new Date(Date.now() - 7 * 86_400_000).toISOString(),
+  },
 ];

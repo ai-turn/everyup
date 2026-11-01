@@ -28,13 +28,14 @@ test.describe('live demo', () => {
     await expect(page.getByRole('navigation', { name: '현재 위치' }).getByRole('link', { name: 'Docker 환경', exact: true })).toBeVisible();
 
     await page.getByRole('tab', { name: '로그', exact: true }).click();
-    await expect(page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms')).toBeVisible();
+    await expect(page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms').first()).toBeVisible();
   });
 
   test('trace jump keeps the Docker target and filters requests by trace ID', async ({ page }) => {
     await page.goto('./services/agent_demo_01/shop%3Aapi?tab=logs');
-    await expect(page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms')).toBeVisible();
-    await page.getByRole('button', { name: '트레이스', exact: true }).first().click();
+    const timeoutLog = page.getByRole('button').filter({ has: page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms', { exact: true }) }).first();
+    await expect(timeoutLog).toBeVisible();
+    await timeoutLog.getByRole('button', { name: '트레이스', exact: true }).click();
 
     await expect(page.getByRole('dialog', { name: '트레이스 상세' })).toBeVisible();
     await page.getByRole('dialog', { name: '트레이스 상세' }).getByRole('button', { name: /^API 요청 \(/ }).click();
@@ -45,7 +46,7 @@ test.describe('live demo', () => {
   });
 
   test('alert rules use exact target identifiers from the URL', async ({ page }) => {
-    await page.goto('./alerts?tab=rules&target=agent&agentId=agent_123&serviceKey=api');
+    await page.goto('./alerts?tab=rules&target=agent&agentId=agent_demo_01&serviceKey=shop%3Aapi');
 
     await expect(page.getByRole('status').filter({ hasText: '대상:' })).toContainText('api');
     await expect(page.getByText('Service Down', { exact: true })).toBeVisible();

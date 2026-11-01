@@ -90,14 +90,14 @@ test('Group grid exposes editing, membership controls and deletion without chang
 });
 
 test('alert target and local search stay intact while switching views', async ({ page }) => {
-  await page.goto('./alerts?tab=rules&target=agent&agentId=agent_123&serviceKey=api');
+  await page.goto('./alerts?tab=rules&target=agent&agentId=agent_demo_01&serviceKey=shop%3Aapi');
   const search = page.getByRole('textbox', { name: '규칙 이름 또는 대상 검색' });
   await search.fill('Service Down');
   const toggle = page.getByRole('group', { name: '대상 보기 방식' });
   await toggle.getByRole('button', { name: '카드', exact: true }).click();
   await expect(search).toHaveValue('Service Down');
   await expect(page.getByRole('article', { name: 'Service Down', exact: true })).toBeVisible();
-  expect(new URL(page.url()).searchParams.get('serviceKey')).toBe('api');
+  expect(new URL(page.url()).searchParams.get('serviceKey')).toBe('shop:api');
   await expect(page.getByRole('status').filter({ hasText: '대상:' })).toContainText('api');
   await toggle.getByRole('button', { name: '그리드', exact: true }).click();
   await expect(search).toHaveValue('Service Down');
