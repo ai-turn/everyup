@@ -5,8 +5,8 @@ import { api } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
 export function ApiExclusionsSettings({ serviceId, paths, onSaved }: { serviceId: string; paths: string[]; onSaved: (paths: string[]) => void }) {
-  const [draft, setDraft] = useState(paths.join('\n'));
-  const [saved, setSaved] = useState(paths.join('\n'));
+  const [draft, setDraft] = useState(() => paths.join('\n'));
+  const [saved, setSaved] = useState(() => paths.join('\n'));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const save = async () => {
