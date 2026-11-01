@@ -50,6 +50,14 @@ func (h *ObservedServiceHandler) GetServiceMetrics(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true, "data": out})
 }
 
+func (h *ObservedServiceHandler) GetMetricCatalog(c *fiber.Ctx) error {
+	names, err := h.metricRepo.ListNamesByObservedService()
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": names})
+}
+
 func (h *ObservedServiceHandler) GetAll(c *fiber.Ctx) error {
 	services, err := h.manager.GetAll(models.TelemetrySignal(c.Query("signal")))
 	if err != nil {

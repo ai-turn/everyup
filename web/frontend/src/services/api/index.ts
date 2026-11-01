@@ -77,6 +77,7 @@ export type {
   ApiRequestStats,
   ApiRequestStatusSummary,
   MetricExemplar,
+  ObservedServiceMetricName,
   OtelHistogramQuantiles,
   OtelMetricName,
   OtelMetricPoint,

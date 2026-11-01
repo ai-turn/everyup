@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { MaterialIcon } from './MaterialIcon';
 
 // 상세 화면 PageHeader의 `meta` 정본 (DESIGN.md §4.1 상세 헤더).
 // 상태 줄(상태 + 상태를 바꾸는 액션 + 수시로 바뀌는 값)과 속성 목록(라벨 좌 / 값 우, 2열)을
@@ -13,22 +14,30 @@ export interface DetailMetaField {
 interface DetailMetaProps {
   status: ReactNode;
   fields?: DetailMetaField[];
+  /** A label makes infrequently used fields a closed disclosure below the status. */
+  fieldsLabel?: string;
 }
 
-export function DetailMeta({ status, fields = [] }: DetailMetaProps) {
+export function DetailMeta({ status, fields = [], fieldsLabel }: DetailMetaProps) {
+  const fieldList = fields.length > 0 && (
+    <dl className="grid max-w-4xl border-t border-ui-border-soft sm:grid-cols-2 sm:gap-x-12">
+      {fields.map(field => (
+        <div key={field.label} className="flex min-h-12 min-w-0 items-center gap-4 border-b border-ui-border-soft py-1">
+          <dt className="w-24 shrink-0 type-body text-text-dim">{field.label}</dt>
+          <dd className="flex min-w-0 flex-1 items-center gap-2 type-body text-text-base">{field.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 type-caption text-text-muted">{status}</div>
-      {fields.length > 0 && (
-        <dl className="grid max-w-4xl border-t border-ui-border-soft sm:grid-cols-2 sm:gap-x-12">
-          {fields.map(field => (
-            <div key={field.label} className="flex min-h-12 min-w-0 items-center gap-4 border-b border-ui-border-soft py-1">
-              <dt className="w-24 shrink-0 type-body text-text-dim">{field.label}</dt>
-              <dd className="flex min-w-0 flex-1 items-center gap-2 type-body text-text-base">{field.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
+      {fieldsLabel && fieldList ? <details className="group">
+        <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1.5 type-label text-action hover:underline sm:min-h-10 [&::-webkit-details-marker]:hidden">
+          <MaterialIcon name="chevron_right" className="group-open:rotate-90" />{fieldsLabel}
+        </summary>
+        {fieldList}
+      </details> : fieldList}
     </div>
   );
 }

@@ -84,6 +84,7 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Get("/observed-services", observedServiceHandler.GetAll)
 	local.Post("/observed-services", observedServiceHandler.Create)
 	local.Get("/observed-services/service-metrics", observedServiceHandler.GetServiceMetrics)
+	local.Get("/observed-services/metric-catalog", observedServiceHandler.GetMetricCatalog)
 	local.Get("/observed-services/:id", observedServiceHandler.GetByID)
 	local.Get("/observed-services/:id/setup-status", observedServiceHandler.SetupStatus)
 	local.Put("/observed-services/:id", observedServiceHandler.Update)

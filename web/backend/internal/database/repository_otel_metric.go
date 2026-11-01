@@ -106,6 +106,37 @@ func (r *OtelMetricRepository) ListNames(f *models.OtelMetricFilter) ([]models.O
 	return names, rows.Err()
 }
 
+// ListNamesByObservedService returns the complete retained catalog, including
+// metrics not received in the last 15 minutes. Values and attribute series are
+// deliberately omitted; they do not describe how many metrics a service has.
+func (r *OtelMetricRepository) ListNamesByObservedService() ([]models.ObservedServiceMetricName, error) {
+	rows, err := DB.Query(`
+		SELECT service_id, metric_name, metric_type, unit, created_at
+		FROM otel_metrics
+		WHERE id IN (
+			SELECT MAX(m.id) FROM otel_metrics m
+			JOIN observed_services target ON target.id = m.service_id
+			WHERE m.agent_id = ''
+			GROUP BY m.service_id, m.metric_name, m.metric_type, m.unit
+		)
+		ORDER BY service_id, metric_name, metric_type, unit
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	names := make([]models.ObservedServiceMetricName, 0)
+	for rows.Next() {
+		var n models.ObservedServiceMetricName
+		if err := rows.Scan(&n.ServiceID, &n.MetricName, &n.MetricType, &n.Unit, &n.LastAt); err != nil {
+			return nil, err
+		}
+		names = append(names, n)
+	}
+	return names, rows.Err()
+}
+
 // ListPoints returns data points for one metric in the filter scope, oldest
 // first (chart order).
 func (r *OtelMetricRepository) ListPoints(f *models.OtelMetricFilter) ([]models.OtelMetric, error) {

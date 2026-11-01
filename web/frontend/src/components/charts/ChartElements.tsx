@@ -13,6 +13,7 @@ export function ChartCard({
   unit,
   right,
   titleClassName = '',
+  wrapTitle = false,
   as: Heading = 'h3',
   className = '',
   children,
@@ -22,6 +23,8 @@ export function ChartCard({
   right?: ReactNode;
   /** 메트릭 이름처럼 식별자인 제목만 — `font-mono text-sm`. */
   titleClassName?: string;
+  /** Expanded metric identifiers need to remain fully readable on narrow screens. */
+  wrapTitle?: boolean;
   as?: 'h2' | 'h3';
   className?: string;
   children: ReactNode;
@@ -29,8 +32,8 @@ export function ChartCard({
   return (
     <section className={`p-6 ${chartCardClass} ${className}`}>
       <div className="flex min-h-6 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <div className="flex min-w-0 items-baseline gap-2">
-          <Heading className={`truncate type-card-title text-text-base ${titleClassName}`}>{title}</Heading>
+        <div className={`flex min-w-0 items-baseline gap-2 ${wrapTitle ? 'flex-wrap' : ''}`}>
+          <Heading className={`${wrapTitle ? 'break-all' : 'truncate'} type-card-title text-text-base ${titleClassName}`}>{title}</Heading>
           {unit && <span className="shrink-0 type-caption text-text-dim">{unit}</span>}
         </div>
         {right}
@@ -170,10 +173,10 @@ export function ChartLegend({ items, className = '' }: { items: { label: string;
       {items.map((it) => (
         <span
           key={it.label}
-          className="inline-flex items-center gap-1.5 rounded-full border border-ui-border bg-ui-hover-soft px-2 py-0.5 text-xs font-medium text-text-muted"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-ui-border bg-ui-hover-soft px-2 py-0.5 text-xs font-medium text-text-muted"
         >
           <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: it.color }} />
-          {it.label}
+          <span className="min-w-0 break-all">{it.label}</span>
         </span>
       ))}
     </div>

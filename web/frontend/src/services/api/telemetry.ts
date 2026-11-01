@@ -7,6 +7,10 @@ export interface OtelMetricName {
   lastAt: string;
 }
 
+export interface ObservedServiceMetricName extends OtelMetricName {
+  serviceId: string;
+}
+
 export interface OtelMetricPoint {
   id: number;
   metricName: string;

@@ -1397,6 +1397,13 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   }
   const infrastructureDetailMatch = endpoint.match(/^\/infrastructure-resources\/([^/?]+)$/);
   if (infrastructureDetailMatch) return (scenarioInfrastructureResources(scenario).find(resource => resource.id === infrastructureDetailMatch[1]) ?? null) as T;
+  if (endpoint === '/observed-services/metric-catalog') {
+    return scenarioObservedServices(scenario)
+      .filter(service => service.signals.includes('metrics'))
+      .flatMap(service => (serviceTelemetry.get(service.id)?.metricNames ?? []).map(metric => ({
+        ...metric, serviceId: service.id,
+      }))) as T;
+  }
   if (endpoint === '/observed-services/service-metrics') {
     return scenarioObservedServices(scenario)
       .filter(service => service.signals.includes('metrics'))
