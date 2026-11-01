@@ -94,12 +94,9 @@ function ServiceRequestTrends({
   useEffect(() => {
     let active = true;
     const load = async () => {
-      setLoading(true);
+      // A refresh keeps the previous chart until the new data lands instead of flashing the skeleton.
       setError(null);
-      setSummary(null);
       setSummaryError(false);
-      setPrevBuckets([]);
-      setDeploys([]);
       const r = RANGES.find((x) => x.value === range)!;
       const { from, to } = window;
       const fetchStats = (params: { from: string; to?: string; bucketMins: number }) => (sourceKind === 'direct'
@@ -113,15 +110,15 @@ function ServiceRequestTrends({
         from: new Date(Date.parse(from) - WEEK_MS).toISOString(),
         to: new Date(Date.parse(to) - WEEK_MS).toISOString(),
         bucketMins: r.bucketMins,
-      }).then(result => { if (active) setPrevBuckets(result.truncated ? [] : result.buckets); }, () => {});
+      }).then(result => { if (active) setPrevBuckets(result.truncated ? [] : result.buckets); }, () => { if (active) setPrevBuckets([]); });
       // Deploy markers: "did this start before or after the rollout?" Agent sources only.
       if (sourceKind === 'agent') {
-        api.getAgentDeploys(agentId, { from, key: serviceKey }).then(d => { if (active) setDeploys(d ?? []); }, () => {});
+        api.getAgentDeploys(agentId, { from, key: serviceKey }).then(d => { if (active) setDeploys(d ?? []); }, () => { if (active) setDeploys([]); });
       }
       const summaryRequest = sourceKind === 'direct'
         ? api.getObservedServiceRequestStatusSummary(observedServiceId, { from, to })
         : api.getRequestStatusSummary(agentId, serviceKey, { from, to });
-      void summaryRequest.then(value => { if (active) setSummary(value); }, () => { if (active) setSummaryError(true); });
+      void summaryRequest.then(value => { if (active) setSummary(value); }, () => { if (active) { setSummary(null); setSummaryError(true); } });
       try {
         const result = await current;
         if (active) {
@@ -178,7 +175,7 @@ function ServiceRequestTrends({
     return <ChartCard title="서비스 전체 추이"><div role="alert" className="space-y-3">
       <p className="type-body text-status-warn">요청 추이를 불러오지 못했습니다</p>
       <p className="type-body text-text-muted">{error}</p>
-      <Button variant="secondary" size="sm" onClick={() => setRetryKey(key => key + 1)}>다시 시도</Button>
+      <Button variant="secondary" size="sm" onClick={() => { setLoading(true); setRetryKey(key => key + 1); }}>다시 시도</Button>
     </div></ChartCard>;
   }
   if (truncated) {
