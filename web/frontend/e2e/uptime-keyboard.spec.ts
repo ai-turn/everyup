@@ -24,6 +24,16 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
   const type = dialog.getByRole('combobox', { name: /체크 방식/ });
   await tabTo(page, type); await page.keyboard.press('ArrowDown');
   await expect(dialog.getByRole('textbox', { name: '호스트', exact: true })).toBeVisible();
+  await expect(type).toBeFocused();
+  await expect(type).toHaveAttribute('aria-expanded', 'false');
+  // A hover hint can coexist with keyboard focus on the Select. Its first
+  // Escape belongs to the hint, so make that state explicit instead of timing it.
+  await dialog.getByRole('button', { name: '닫기', exact: true }).hover();
+  await expect(dialog.getByRole('tooltip')).toHaveText('닫기');
+  await expect(type).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog.getByRole('tooltip')).toHaveCount(0);
+  await expect(dialog).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0); await expect(add).toBeFocused();
   const target = page.getByRole('link', { name: 'Public API', exact: true });
@@ -48,6 +58,23 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
   await expect(confirm.getByRole('button', { name: '삭제', exact: true })).toBeFocused();
   await page.keyboard.press('Tab'); await page.keyboard.press('Enter');
   await expect(confirm).toHaveCount(0); await expect(remove).toBeFocused();
+});
+
+test('[16] Escape closes the add dialog directly when no child overlay is open', async ({ page }) => {
+  await uptimeFixture(page); await page.goto('./uptime');
+  await page.mouse.move(0, 0);
+  const add = page.getByRole('button', { name: '추가', exact: true });
+  await tabTo(page, add); await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  const type = dialog.getByRole('combobox', { name: /체크 방식/ });
+  await tabTo(page, type); await page.keyboard.press('ArrowDown');
+  await expect(dialog.getByRole('textbox', { name: '호스트', exact: true })).toBeVisible();
+  await expect(type).toBeFocused();
+  await expect(type).toHaveAttribute('aria-expanded', 'false');
+  await expect(dialog.getByRole('tooltip')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(add).toBeFocused();
 });
 
 test('[16] mobile keyboard focus remains above bottom navigation and charts are single stops', async ({ page }) => {
