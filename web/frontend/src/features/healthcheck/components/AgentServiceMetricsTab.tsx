@@ -22,8 +22,8 @@ interface DirectProps extends CommonProps {
 }
 
 /**
- * Every metric at once, as a grid of panels sharing a crosshair — like a
- * Grafana dashboard. A panel's title opens that metric alone (`?metric=`), so
+ * A grid of panels sharing a crosshair, loaded twelve at a time. A panel's
+ * title opens that metric alone (`?metric=`), so
  * the browser's back button returns to the grid.
  */
 function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { source: MetricSource }) {
@@ -34,6 +34,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   const { search: query, metric, update } = useMetricQuery();
   const window = useMetricWindow(range, refreshKey);
   // Panels share a crosshair (syncId); only the hovered one shows its tooltip box.
+  const [visibleLimit, setVisibleLimit] = useState(12);
   const [hovered, setHovered] = useState<string | null>(null);
 
   const agentId = source.kind === 'agent' ? source.agentId : '';
@@ -70,9 +71,9 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   );
   const rulesFor = (name: string) => rules.filter(rule => rule.metricName === name);
 
-  const openMetric = (name: string) => update({ metric: name });
+  const openMetric = (name: string) => update({ metric: name, metricAttributes: null, metricSeries: null, metricMode: null });
   // Returning to the grid replaces the selected view instead of reopening it on Back.
-  const closeMetric = () => update({ metric: null }, true);
+  const closeMetric = () => update({ metric: null, metricAttributes: null, metricSeries: null, metricMode: null }, true);
 
   if (namesLoading && names.length === 0) {
     return (
@@ -136,7 +137,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
         <EmptyState icon="search" title="일치하는 메트릭이 없습니다" description={`'${query.trim()}'와 일치하는 메트릭 이름이 없습니다.`} action={{ label: '검색 초기화', onClick: () => update({ metricSearch: null }, true) }} />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {visible.map(meta => (
+          {visible.slice(0, visibleLimit).map(meta => (
             <MetricChart
               key={`${meta.metricName}:${meta.metricType}:${meta.unit ?? ''}`}
               source={source}
@@ -151,6 +152,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
           ))}
         </div>
       )}
+      {visible.length > visibleLimit && <div className="mt-4 flex flex-wrap items-center gap-3"><p className="type-body text-text-muted">{`${visible.length}개 중 ${visibleLimit}개 메트릭 표시`}</p><Button variant="secondary" onClick={() => setVisibleLimit(value => value + 12)}>메트릭 12개 더 보기</Button></div>}
     </div>
   );
 }

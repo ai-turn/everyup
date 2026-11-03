@@ -81,6 +81,8 @@ export type {
   OtelHistogramQuantiles,
   OtelMetricName,
   OtelMetricPoint,
+  MetricQuery,
+  MetricQueryResult,
   OtelServiceMetric,
   TraceListQuery,
   TraceSummary,

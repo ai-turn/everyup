@@ -1,3 +1,4 @@
+import { filterMetricPoints } from './metricQuery';
 import type {
   ApiRequest, LogEntry, OtelHistogramQuantiles, OtelMetricName, OtelMetricPoint,
   TraceDetail, TraceSummary,
@@ -130,13 +131,15 @@ export function createServiceTelemetry(
     { metricName: profile.routes.length ? 'http.server.request.duration' : 'messaging.process.duration', metricType: 'histogram', unit: 's', lastAt: ago(0.3) },
     { metricName: profile.routes.length ? 'process.memory.usage' : 'queue.messages.pending', metricType: 'gauge', unit: profile.routes.length ? 'By' : '1', lastAt: ago(0.3) },
   ];
+  if (serviceName === 'billing-worker') metricNames.push({ metricName: 'billing.jobs.completed', metricType: 'sum', unit: '{job}', lastAt: ago(0.3) });
   const metricPoints = Object.fromEntries(metricNames.map(metric => [metric.metricName,
     Array.from({ length: 61 }, (_, i) => {
       const value = metric.unit === 'By' ? (180 + index * 24 + 18 * Math.sin(i / 8)) * 1_048_576
         : metric.metricType === 'histogram' ? profile.latency / 1000 * (1 + Math.sin(i / 7) * 0.3)
-          : Math.max(1, Math.round(12 + index * 3 + Math.sin(i / 6) * 8));
-      const operations = metric.metricType === 'histogram' ? (profile.routes.length ? profile.routes.slice(0, 2) : ['batch.process', 'batch.commit']) : [''];
-      return operations.map((operation, series) => ({ id: baseId + i * 2 + series, metricName: metric.metricName, metricType: metric.metricType, unit: metric.unit, attributes: operation ? { 'operation.name': operation } : {}, value: value * (1 + series * 0.4), count: metric.metricType === 'histogram' ? 20 : undefined, total: metric.metricType === 'histogram' ? value * (1 + series * 0.4) * 20 : undefined, createdAt: ago(60 - i) }));
+          : metric.metricName === 'billing.jobs.completed' ? 1000 + i * 20
+            : Math.max(1, Math.round(12 + index * 3 + Math.sin(i / 6) * 8));
+      const operations = metric.metricType === 'histogram' ? (profile.routes.length ? profile.routes.slice(0, 2) : ['batch.process', 'batch.commit']) : metric.metricName === 'billing.jobs.completed' ? Array.from({ length: 8 }, (_, host) => `worker-${host + 1}`) : [''];
+      return operations.map((operation, series) => ({ id: baseId + i * 2 + series, metricName: metric.metricName, metricType: metric.metricType, unit: metric.unit, ...(metric.metricName === 'billing.jobs.completed' ? { temporality: 2, isMonotonic: true, startTimeUnixNano: (now - 120 * 60_000) * 1_000_000 } : {}), attributes: operation ? { 'operation.name': operation } : {}, value: value * (1 + series * 0.4), count: metric.metricType === 'histogram' ? 20 : undefined, total: metric.metricType === 'histogram' ? value * (1 + series * 0.4) * 20 : undefined, createdAt: ago(60 - i) }));
     }).flat(),
   ]));
   return { logs, requests, traces, metricNames, metricPoints };
@@ -149,14 +152,17 @@ export function telemetryTraces(data: DemoTelemetry): TraceSummary[] {
   });
 }
 
-export function telemetryQuantiles(data: DemoTelemetry, name: string): OtelHistogramQuantiles | null {
+export function telemetryQuantiles(data: DemoTelemetry, name: string, query = new URLSearchParams()): OtelHistogramQuantiles | null {
   const metric = data.metricNames.find(row => row.metricName === name);
   if (metric?.metricType !== 'histogram') return null;
-  const values = (data.requests.length ? data.requests.map(row => row.durationMs / 1000) : data.traces.map(trace => trace.spans[0].durationMs / 1000)).sort((a, b) => a - b);
+  // Demo histograms represent 20 known observations per point, with a mean
+  // equal to the displayed point. Filtering must also filter the distribution.
+  const points = filterMetricPoints(data.metricPoints[name] ?? [], query);
+  const values = points.flatMap(point => [point.value * 0.5, ...Array<number>(18).fill(point.value), point.value * 1.5]).sort((a, b) => a - b);
+  if (!values.length) return null;
   const percentile = (p: number) => values[Math.max(0, Math.ceil(values.length * p) - 1)];
   return {
     metricName: name, unit: metric.unit, count: values.length,
     p50: percentile(0.5), p95: percentile(0.95), p99: percentile(0.99),
-    exemplars: [...data.traces].sort((a, b) => b.spans[0].durationMs - a.spans[0].durationMs).slice(0, 2).map(trace => ({ traceId: trace.traceId, spanId: trace.spans[0].spanId, value: trace.spans[0].durationMs / 1000, time: trace.spans[0].createdAt })),
   };
 }

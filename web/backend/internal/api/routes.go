@@ -97,6 +97,7 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Put("/observed-services/:id/log-filter", observedServiceHandler.SetLogFilter)
 	local.Get("/observed-services/:id/otel-metrics", observedServiceHandler.GetOtelMetricNames)
 	local.Get("/observed-services/:id/otel-metrics/points", observedServiceHandler.GetOtelMetricPoints)
+	local.Get("/observed-services/:id/otel-metrics/query", observedServiceHandler.QueryOtelMetric)
 	local.Get("/observed-services/:id/otel-metrics/quantiles", observedServiceHandler.GetOtelMetricQuantiles)
 	local.Get("/observed-services/:id/traces", observedServiceHandler.GetTraces)
 	local.Get("/observed-services/:id/requests", observedServiceHandler.GetRequests)
@@ -227,6 +228,7 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Get("/agents/:agentId/services/:key/request-status-summary", agentHandler.GetServiceRequestStatusSummary)
 	local.Get("/agents/:agentId/services/:key/otel-metrics", agentHandler.GetServiceOtelMetricNames)
 	local.Get("/agents/:agentId/services/:key/otel-metrics/points", agentHandler.GetServiceOtelMetricPoints)
+	local.Get("/agents/:agentId/services/:key/otel-metrics/query", agentHandler.QueryServiceOtelMetric)
 	local.Get("/agents/:agentId/services/:key/otel-metrics/quantiles", agentHandler.GetServiceOtelMetricQuantiles)
 	local.Get("/agents/:agentId/services/:key/traces", agentHandler.GetServiceTraces)
 

@@ -1,3 +1,4 @@
+import { metricQueryString, type MetricQuery, type MetricQueryResult } from './telemetry';
 import type { LogEntry, ApiRequest, LogHistogramBucket } from './services';
 import type {
   ApiRequestStats,
@@ -330,19 +331,14 @@ export const agentsApi = {
     if (params.limit) p.set('limit', String(params.limit));
     return request<OtelMetricPoint[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/otel-metrics/points?${p}`);
   },
+  queryAgentServiceMetric: (agentId: string, key: string, params: MetricQuery, signal?: AbortSignal) =>
+    request<MetricQueryResult>(`/agents/${agentId}/services/${encodeURIComponent(key)}/otel-metrics/query?${metricQueryString(params)}`, { signal }),
   // Trace discovery: the only path to a trace api_requests did not project.
   getAgentServiceTraces: (agentId: string, key: string, params?: TraceListQuery) =>
     request<TraceSummary[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/traces?${traceQuery(params)}`),
   // p50/p95/p99 from an explicit histogram's buckets; null for other shapes.
-  getAgentServiceOtelMetricQuantiles: (
-    agentId: string, key: string, params: { name: string; from?: string; to?: string },
-  ) => {
-    const p = new URLSearchParams();
-    p.set('name', params.name);
-    if (params.from) p.set('from', params.from);
-    if (params.to) p.set('to', params.to);
-    return request<OtelHistogramQuantiles | null>(`/agents/${agentId}/services/${encodeURIComponent(key)}/otel-metrics/quantiles?${p}`);
-  },
+  getAgentServiceOtelMetricQuantiles: (agentId: string, key: string, params: MetricQuery, signal?: AbortSignal) =>
+    request<OtelHistogramQuantiles | null>(`/agents/${agentId}/services/${encodeURIComponent(key)}/otel-metrics/quantiles?${metricQueryString(params)}`, { signal }),
   // Per-service OTLP ingest filter: which log levels are stored. [] = accept all.
   getAgentServiceLogFilter: (agentId: string, key: string) =>
     request<{ levels: string[] }>(`/agents/${agentId}/services/${encodeURIComponent(key)}/log-filter`),

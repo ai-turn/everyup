@@ -21,6 +21,34 @@ export interface OtelMetricPoint {
   count?: number;
   total?: number;
   createdAt: string;
+  streamKey?: string;
+  streamLabel?: string;
+  temporality?: number;
+  isMonotonic?: boolean;
+  startTimeUnixNano?: number;
+}
+
+export interface MetricQuery {
+  name: string;
+  from?: string;
+  to?: string;
+  type?: string;
+  unit?: string;
+  attributes?: string;
+  series?: string;
+}
+
+export interface MetricQueryResult {
+  points: OtelMetricPoint[];
+  series: { id: string; attributes: Record<string, unknown>; streamKey?: string; streamLabel?: string }[];
+  selectedSeries: string[];
+  seriesTruncated: boolean;
+  pointsTruncated: boolean;
+  pointLimit: number;
+}
+
+export function metricQueryString(params: MetricQuery) {
+  return new URLSearchParams(Object.entries(params).filter(([, value]) => value !== undefined) as [string, string][]);
 }
 
 // Latency distribution recovered from an explicit histogram's stored buckets.
@@ -34,6 +62,7 @@ export interface MetricExemplar {
 }
 
 export interface OtelHistogramQuantiles {
+  truncated?: boolean;
   metricName: string;
   unit?: string;
   count: number;

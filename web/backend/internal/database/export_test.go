@@ -6,12 +6,13 @@ package database
 // Used to verify the migration is idempotent (safe to run twice).
 var MigrateV20ForTest = migrateV20
 
-// MigrateV52ForTest and MigrateV53ForTest re-run the telemetry migrations.
-// Both add columns/indexes to tables that already exist in an upgraded
+// These helpers re-run the telemetry migrations.
+// They add columns/indexes to tables that already exist in an upgraded
 // install, so re-running them must be a no-op rather than an error.
 var (
 	MigrateV52ForTest = migrateV52
 	MigrateV53ForTest = migrateV53
+	MigrateV56ForTest = migrateV56
 )
 
 // MigrateV54ForTest re-runs the fingerprint backfill once its marker is cleared.
