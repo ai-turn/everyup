@@ -96,15 +96,17 @@ const average = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / va
 export function ChartSummary({
   values,
   unit,
+  currentLabel = '현재',
   valueFormatter = formatMetricValue,
 }: {
   values: number[];
   unit: string;
+  currentLabel?: string;
   valueFormatter?: (value: number) => string;
 }) {
   const v = finite(values);
   if (v.length === 0) return null;
-  const items: [string, number][] = [['현재', v[v.length - 1]], ['평균', average(v)], ['최대', Math.max(...v)]];
+  const items: [string, number][] = [[currentLabel, v[v.length - 1]], ['평균', average(v)], ['최대', Math.max(...v)]];
   return <ChartStats items={items.map(([label, value]) => ({ label, value: valueFormatter(value), unit }))} />;
 }
 
@@ -115,10 +117,12 @@ export function ChartSummary({
 export function ChartStatsLegend({
   series,
   unit,
+  currentLabel = '현재',
   valueFormatter = formatMetricValue,
 }: {
   series: { label: string; color: string; values: number[] }[];
   unit: string;
+  currentLabel?: string;
   valueFormatter?: (value: number) => string;
 }) {
   const rows = series
@@ -131,7 +135,7 @@ export function ChartStatsLegend({
       <thead>
         <tr className="text-text-dim">
           <th className="py-0.5 pr-4 text-left font-normal"><span className="sr-only">시리즈</span></th>
-          {['현재', '최소', '최대', '평균'].map((label) => (
+          {[currentLabel, '최소', '최대', '평균'].map((label) => (
             <th key={label} className="pl-5 text-right font-normal">{label}</th>
           ))}
         </tr>

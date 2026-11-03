@@ -1,3 +1,4 @@
+import { metricQueryString, type MetricQuery, type MetricQueryResult } from './telemetry';
 import { request } from './base';
 import type { ApiRequest, LogEntry, LogHistogramBucket, LogLevel } from './services';
 import type {
@@ -161,6 +162,9 @@ export const observedServicesApi = {
     return request<OtelMetricPoint[]>(`/observed-services/${id}/otel-metrics/points?${query}`);
   },
 
+  queryObservedServiceMetric: (id: string, params: MetricQuery, signal?: AbortSignal) =>
+    request<MetricQueryResult>(`/observed-services/${id}/otel-metrics/query?${metricQueryString(params)}`, { signal }),
+
   // Trace discovery: the only path to a trace api_requests did not project.
   getObservedServiceTraces: (id: string, params?: TraceListQuery) => {
     const query = new URLSearchParams();
@@ -173,12 +177,8 @@ export const observedServicesApi = {
     return request<TraceSummary[]>(`/observed-services/${id}/traces?${query}`);
   },
   // p50/p95/p99 from an explicit histogram's buckets; null for other shapes.
-  getObservedServiceOtelMetricQuantiles: (id: string, params: { name: string; from?: string; to?: string }) => {
-    const query = new URLSearchParams({ name: params.name });
-    if (params.from) query.set('from', params.from);
-    if (params.to) query.set('to', params.to);
-    return request<OtelHistogramQuantiles | null>(`/observed-services/${id}/otel-metrics/quantiles?${query}`);
-  },
+  getObservedServiceOtelMetricQuantiles: (id: string, params: MetricQuery, signal?: AbortSignal) =>
+    request<OtelHistogramQuantiles | null>(`/observed-services/${id}/otel-metrics/quantiles?${metricQueryString(params)}`, { signal }),
 
   getObservedServiceRequests: (id: string, params?: DirectApiRequestQuery) =>
     request<{ data: ApiRequest[]; total: number }>(`/observed-services/${id}/requests?${apiRequestQuery(params)}`),

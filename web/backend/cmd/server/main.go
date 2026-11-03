@@ -11,9 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/aiturn/everyup/internal/alerter"
 	"github.com/aiturn/everyup/internal/api"
 	"github.com/aiturn/everyup/internal/api/websocket"
@@ -23,6 +20,9 @@ import (
 	"github.com/aiturn/everyup/internal/crypto"
 	"github.com/aiturn/everyup/internal/database"
 	"github.com/aiturn/everyup/internal/models"
+	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -73,6 +73,8 @@ func main() {
 		AppName:               "EveryUp API",
 		DisableStartupMessage: cfg.Server.Mode == "production",
 		BodyLimit:             4 * 1024 * 1024, // 4 MB
+		// Metric filters and six exact series IDs are percent-encoded in URLs.
+		ReadBufferSize: 64 * 1024,
 		// Decode percent-encoded path params (e.g. agent service keys like
 		// "env:demo-prod" arrive as "env%3Ademo-prod"). Without this the colon
 		// stays encoded and service lookups by key return NOT_FOUND.

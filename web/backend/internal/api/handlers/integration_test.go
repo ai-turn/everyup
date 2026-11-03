@@ -54,6 +54,7 @@ func setupTestServer(t *testing.T) *testServer {
 	app := fiber.New(fiber.Config{
 		// Disable error logging in tests
 		DisableStartupMessage: true,
+		ReadBufferSize:        64 * 1024, // Mirror metric query URLs in production.
 		// Mirror production: decode percent-encoded path params so service keys
 		// like "env:demo-prod" (sent as "env%3Ademo-prod") resolve correctly.
 		UnescapePath: true,

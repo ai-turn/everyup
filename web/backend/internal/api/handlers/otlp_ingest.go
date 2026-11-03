@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -340,6 +341,21 @@ func (h *OTLPIngestHandler) IngestMetrics(c *fiber.Ctx) error {
 		serviceName := principal.ResolveServiceName(firstString(resourceMap, "service.name"))
 
 		for _, scopeMetrics := range resourceMetrics.ScopeMetrics {
+			scope := scopeMetrics.GetScope()
+			scopeMap := map[string]interface{}{"name": scope.GetName(), "version": scope.GetVersion(), "attributes": attrsToMap(scope.GetAttributes())}
+			streamJSON := mustJSON([]interface{}{resourceMap, scopeMap, resourceMetrics.GetSchemaUrl(), scopeMetrics.GetSchemaUrl()})
+			digest := sha256.Sum256(streamJSON)
+			streamKey := hex.EncodeToString(digest[:])
+			streamLabel := firstString(resourceMap, "service.instance.id")
+			if scopeName := scopeMetrics.GetScope().GetName(); scopeName != "" {
+				if streamLabel != "" {
+					streamLabel += ", "
+				}
+				streamLabel += scopeName
+				if version := scopeMetrics.GetScope().GetVersion(); version != "" {
+					streamLabel += "@" + version
+				}
+			}
 			for _, metric := range scopeMetrics.Metrics {
 				points, ok := flattenMetric(metric)
 				if !ok {
@@ -350,6 +366,8 @@ func (h *OTLPIngestHandler) IngestMetrics(c *fiber.Ctx) error {
 					points[i].ServiceID = principal.ServiceID
 					points[i].AgentID = principal.AgentID
 					points[i].ServiceName = serviceName
+					points[i].StreamKey = streamKey
+					points[i].StreamLabel = streamLabel
 				}
 				rows = append(rows, points...)
 			}
@@ -394,13 +412,21 @@ func flattenMetric(metric *metricspb.Metric) ([]models.OtelMetric, bool) {
 	switch {
 	case metric.GetGauge() != nil:
 		for _, dp := range metric.GetGauge().GetDataPoints() {
+			if uint32(dp.GetFlags())&1 != 0 {
+				continue
+			}
 			row := numberPointRow(name, "gauge", metric.GetUnit(), dp)
 			attachExemplars(&row, dp.GetExemplars())
 			rows = append(rows, row)
 		}
 	case metric.GetSum() != nil:
 		for _, dp := range metric.GetSum().GetDataPoints() {
+			if uint32(dp.GetFlags())&1 != 0 {
+				continue
+			}
 			row := numberPointRow(name, "sum", metric.GetUnit(), dp)
+			row.Temporality = int(metric.GetSum().GetAggregationTemporality())
+			row.IsMonotonic = metric.GetSum().GetIsMonotonic()
 			attachExemplars(&row, dp.GetExemplars())
 			rows = append(rows, row)
 		}
@@ -440,7 +466,9 @@ func numberPointRow(name, metricType, unit string, dp *metricspb.NumberDataPoint
 	if _, isInt := dp.GetValue().(*metricspb.NumberDataPoint_AsInt); isInt {
 		value = float64(dp.GetAsInt())
 	}
-	return metricRow(name, metricType, unit, value, 0, 0, dp.GetAttributes(), dp.GetTimeUnixNano())
+	row := metricRow(name, metricType, unit, value, 0, 0, dp.GetAttributes(), dp.GetTimeUnixNano())
+	row.StartTimeUnixNano = dp.GetStartTimeUnixNano()
+	return row
 }
 
 func histogramRow(name, unit string, count uint64, sum float64, attrs []*commonpb.KeyValue, timeUnixNano uint64) models.OtelMetric {

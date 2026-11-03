@@ -261,6 +261,9 @@ func (h *ObservedServiceHandler) GetOtelMetricQuantiles(c *fiber.Ctx) error {
 	}
 	filter := &models.OtelMetricFilter{ServiceID: c.Params("id"), MetricName: name}
 	applyMetricWindow(c, filter)
+	if err := applyMetricSelection(c, filter); err != nil {
+		return agentBadRequest(c, ErrCodeValidation, err.Error())
+	}
 	quantiles, err := h.metricRepo.HistogramQuantiles(filter)
 	if err != nil {
 		return internalError(c, ErrCodeDatabase, err)

@@ -19,7 +19,7 @@ test('metric list shows one card per service and the detail shows every metric a
   await page.goto('./metrics?view=card');
   // The retained catalog includes every metric; catalog-worker exports three.
   await expect(page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true })).toHaveCount(1);
-  await expect(page.getByText('메트릭 3개')).toBeVisible();
+  await expect(page.getByRole('link').filter({ has: page.getByRole('heading', { name: 'catalog-worker', exact: true }) }).getByText('메트릭 3개')).toBeVisible();
   // Docker Collector metrics stay in their Docker Environment (ADR 0007).
   await expect(page.getByRole('heading', { level: 3, name: 'api', exact: true })).toHaveCount(0);
 
@@ -27,12 +27,12 @@ test('metric list shows one card per service and the detail shows every metric a
   const panels = ['http.server.active_requests', 'http.server.request.duration', 'jvm.memory.used'];
   for (const name of panels) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   await expect(page.getByText('gauge, MB', { exact: true })).toBeVisible();
-  await expect(page.getByText('histogram, 구간 평균, ms', { exact: true })).toBeVisible();
+  await expect(page.getByText('histogram, 수신 평균, ms', { exact: true })).toBeVisible();
 
   // A panel's title opens that metric alone, with the histogram distribution.
   await page.getByRole('button', { name: 'http.server.request.duration', exact: true }).click();
   await expect(page).toHaveURL(/metric=http\.server\.request\.duration/);
-  await expect(page.getByText('전체 기간 분포', { exact: true })).toBeVisible();
+  await expect(page.getByText('선택한 시리즈의 기간 분포', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'jvm.memory.used', exact: true })).toHaveCount(0);
 
   await page.goBack();
@@ -115,12 +115,12 @@ test('histogram distribution failure is explicit and retries without hiding the 
   const state = await metricsFixture(page);
   state.failures.add('/observed-services/metrics-service/otel-metrics/quantiles');
   await page.goto('http://127.0.0.1:4174/metrics/metrics-service?metric=http.server.request.duration');
-  await expect(page.getByText('전체 기간 분포를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  await expect(page.getByText('선택한 시리즈의 기간 분포를 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(page.locator('.recharts-wrapper')).toBeVisible();
   state.failures.clear();
   await page.getByRole('button', { name: '분포 다시 시도' }).click();
-  await expect(page.getByText('전체 기간 분포', { exact: true })).toBeVisible();
-  await expect(page.getByText('전체 기간 분포를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('선택한 시리즈의 기간 분포', { exact: true })).toBeVisible();
+  await expect(page.getByText('선택한 시리즈의 기간 분포를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
 });
 
 test('metrics connection creates setup instructions and waits for actual metric receipt', async ({ page }) => {

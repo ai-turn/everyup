@@ -72,6 +72,34 @@ API Key and adds only the required data permission. Configure export for that si
 or Collector, then restart or redeploy. Generate requests or logs, or wait for the metric collection
 interval, and check **데이터 수신 확인** for receipt.
 
+## Explore metrics
+
+Open a service in **메트릭** (Metrics) to view metrics alphabetically, 12 panels at a time. Click
+**메트릭 12개 더 보기** (Show 12 more metrics) for more. Metrics collected by a Docker Collector
+stay in the service details of that **Docker environment**.
+
+Click a metric title to open its individual view and adjust these controls:
+
+- **Attribute 필터** (Attribute filters): enter a key, value and value type, then click **필터 적용** (Apply filter). All conditions must match, with up to eight conditions. String `"1"` and number `1` are distinct.
+- **시리즈 선택** (Series selection): search attribute combinations and select up to six series. The list shows the first 200 matches; narrow the attribute filters to find others. **기본 선택** (Default selection) selects the first six series matching the current filters.
+- **초당 증가량** (Increase per second): available in the individual view of a sum. Only monotonic sums are calculated. Delta values are divided by their collection interval in seconds; cumulative values use the difference between consecutive points of the same stream divided by elapsed seconds.
+
+The period, metric search, individual view, filters, series selection and value mode are stored in the URL.
+Periods are relative to the time the page opens. A histogram's **선택한 시리즈의 기간 분포**
+(Selected series distribution over the period) uses the same filters, series and time window as the chart.
+The line shows each received point's mean; distribution p50, p95 and p99 come from stored buckets.
+Chart summary averages are averages of the displayed points.
+
+Rate calculation requires the SDK's aggregation temporality, monotonic flag and start timestamp.
+Instances must identify distinct resources, for example with `service.instance.id`. These fields are saved
+for newly received data after the metadata preservation feature is applied. Use raw values for older sums.
+Points with missing starts, detected resets or overlaps have no rate. Alert thresholds remain based on raw values.
+See the [OpenTelemetry metrics data model](https://opentelemetry.io/docs/specs/otel/metrics/data-model/) for the underlying semantics.
+
+Charts show the latest 5,000 points of the selected series. Narrow the period or attribute filters when
+this limit is exceeded. Distributions cover the selected series over the full query period, but show a
+limit message instead of statistics when more than 50,000 points match.
+
 ## Grouping targets
 
 To view separately registered targets together, open **그룹** (Groups) under **모아 보기** (Collected

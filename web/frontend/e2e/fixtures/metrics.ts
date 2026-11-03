@@ -1,3 +1,4 @@
+import { mockMetricQuery, filterMetricPoints } from '../../src/mocks/metricQuery';
 import type { Page } from '@playwright/test';
 import type { ObservedService, ObservedServiceMetricName, OtelMetricName, OtelMetricPoint } from '../../src/services/api';
 
@@ -19,7 +20,7 @@ export async function metricsFixture(page: Page) {
     service, names,
     failures: new Set<string>(),
     requests: [] as string[],
-    reads: [] as { path: string; name: string | null; from: string | null; to: string | null }[],
+    reads: [] as { path: string; name: string | null; from: string | null; to: string | null; attributes: string | null; series: string | null }[],
     points: new Map<string, OtelMetricPoint[]>(),
     holdNames: null as Promise<void> | null,
   };
@@ -28,8 +29,8 @@ export async function metricsFixture(page: Page) {
     const path = url.pathname.replace('/api/v1', '');
     const name = url.searchParams.get('name');
     state.requests.push(path);
-    state.reads.push({ path, name, from: url.searchParams.get('from'), to: url.searchParams.get('to') });
-    const key = path.endsWith('/points') ? `points:${name}` : path;
+    state.reads.push({ path, name, from: url.searchParams.get('from'), to: url.searchParams.get('to'), attributes: url.searchParams.get('attributes'), series: url.searchParams.get('series') });
+    const key = (path.endsWith('/points') || path.endsWith('/query')) ? `points:${name}` : path;
     if (state.failures.has(key)) {
       await route.fulfill({ status: 500, json: { success: false, error: { code: 'DATABASE_ERROR' } } });
       return;
@@ -41,11 +42,16 @@ export async function metricsFixture(page: Page) {
     else if (path === `/observed-services/${service.id}/otel-metrics`) {
       await state.holdNames;
       data = names;
-    } else if (path.endsWith('/points')) data = state.points.get(name ?? '') ?? [
-      { id: 1, metricName: name, metricType: 'gauge', value: 0, createdAt: new Date(Date.now() - 60_000).toISOString() },
-      { id: 2, metricName: name, metricType: 'gauge', value: 42, createdAt: now },
-    ];
-    else if (path.endsWith('/quantiles')) data = { metricName: name, count: 20, p50: 0.1, p95: 0.3, p99: 0.5 };
+    } else if (path.endsWith('/points') || path.endsWith('/query')) {
+      const points = state.points.get(name ?? '') ?? [
+        { id: 1, metricName: name, metricType: names.find(item => item.metricName === name)?.metricType ?? 'gauge', unit: names.find(item => item.metricName === name)?.unit, value: 0, createdAt: new Date(Date.now() - 60_000).toISOString() },
+        { id: 2, metricName: name, metricType: names.find(item => item.metricName === name)?.metricType ?? 'gauge', unit: names.find(item => item.metricName === name)?.unit, value: 42, createdAt: now },
+      ];
+      data = path.endsWith('/query') ? mockMetricQuery(points, url.searchParams) : points;
+    } else if (path.endsWith('/quantiles')) {
+      const scoped = state.points.has(name ?? '') ? filterMetricPoints(state.points.get(name ?? '')!, url.searchParams) : null;
+      data = scoped?.length === 0 || url.searchParams.get('series') === '[]' ? null : { metricName: name, count: scoped?.length ?? 20, p50: 0.1, p95: 0.3, p99: 0.5 };
+    }
     await route.fulfill({ json: { success: true, data } });
   });
   return state;

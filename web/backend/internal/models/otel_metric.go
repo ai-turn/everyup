@@ -38,9 +38,13 @@ type OtelMetric struct {
 	// BucketBounds holds the N upper bounds of an explicit histogram and
 	// BucketCounts the N+1 per-bucket observation counts (the extra slot is the
 	// +Inf overflow). Temporality mirrors OTLP: 1 = delta, 2 = cumulative.
-	BucketBounds json.RawMessage `json:"bucketBounds,omitempty"`
-	BucketCounts json.RawMessage `json:"bucketCounts,omitempty"`
-	Temporality  int             `json:"temporality,omitempty"`
+	BucketBounds      json.RawMessage `json:"bucketBounds,omitempty"`
+	BucketCounts      json.RawMessage `json:"bucketCounts,omitempty"`
+	Temporality       int             `json:"temporality,omitempty"`
+	StartTimeUnixNano uint64          `json:"startTimeUnixNano,omitempty"`
+	IsMonotonic       bool            `json:"isMonotonic,omitempty"`
+	StreamKey         string          `json:"streamKey,omitempty"`
+	StreamLabel       string          `json:"streamLabel,omitempty"`
 	// Exemplars is a JSON array of MetricExemplar, kept only for points whose
 	// exemplars carry a trace ID.
 	Exemplars json.RawMessage `json:"exemplars,omitempty"`
@@ -50,6 +54,7 @@ type OtelMetric struct {
 // explicit histogram buckets over a time window. Count is the number of
 // observations the quantiles were computed from.
 type OtelHistogramQuantiles struct {
+	Truncated  bool    `json:"truncated,omitempty"`
 	MetricName string  `json:"metricName"`
 	Unit       string  `json:"unit,omitempty"`
 	Count      uint64  `json:"count"`
@@ -96,4 +101,26 @@ type OtelMetricFilter struct {
 	From        time.Time
 	To          time.Time
 	Limit       int
+	MetricType  string
+	Unit        string
+	Attributes  map[string]interface{}
+	// Series contains opaque series IDs, as returned by Query. Nil
+	// means automatic selection; an empty non-nil slice selects no series.
+	Series []string
+}
+
+type OtelMetricSeries struct {
+	ID          string          `json:"id"`
+	Attributes  json.RawMessage `json:"attributes"`
+	StreamKey   string          `json:"streamKey,omitempty"`
+	StreamLabel string          `json:"streamLabel,omitempty"`
+}
+
+type OtelMetricQueryResult struct {
+	Points          []OtelMetric       `json:"points"`
+	Series          []OtelMetricSeries `json:"series"`
+	SelectedSeries  []string           `json:"selectedSeries"`
+	SeriesTruncated bool               `json:"seriesTruncated"`
+	PointsTruncated bool               `json:"pointsTruncated"`
+	PointLimit      int                `json:"pointLimit"`
 }

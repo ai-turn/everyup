@@ -55,20 +55,20 @@ test('all chart and histogram reads share the same exact window, including retri
   await page.goto(`${detail}?range=24h`);
   await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
   await page.getByRole('button', { name: 'http.server.request.duration', exact: true }).click();
-  await expect(page.getByText('전체 기간 분포', { exact: true })).toBeVisible();
-  const windows = state.reads.filter(read => read.path.endsWith('/points') || read.path.endsWith('/quantiles'));
+  await expect(page.getByText('선택한 시리즈의 기간 분포', { exact: true })).toBeVisible();
+  const windows = state.reads.filter(read => read.path.endsWith('/query') || read.path.endsWith('/quantiles'));
   expect(windows.length).toBeGreaterThanOrEqual(3);
   expect(new Set(windows.map(read => `${read.from}/${read.to}`)).size).toBe(1);
   expect(Date.parse(windows[0].to!) - Date.parse(windows[0].from!)).toBe(24 * 3_600_000);
   state.failures.add('/observed-services/metrics-service/otel-metrics/quantiles');
   await page.getByRole('button', { name: '새로고침', exact: true }).click();
-  await expect(page.getByText('전체 기간 분포를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  await expect(page.getByText('선택한 시리즈의 기간 분포를 불러오지 못했습니다', { exact: true })).toBeVisible();
   const refreshed = state.reads.filter(read => read.path.endsWith('/quantiles')).at(-1)!;
   expect(refreshed.to).not.toBe(windows[0].to);
   state.failures.clear();
   await page.getByRole('button', { name: '분포 다시 시도', exact: true }).click();
-  await expect(page.getByText('전체 기간 분포', { exact: true })).toBeVisible();
-  const retried = state.reads.filter(read => read.path.endsWith('/points') || read.path.endsWith('/quantiles')).slice(-2);
+  await expect(page.getByText('선택한 시리즈의 기간 분포', { exact: true })).toBeVisible();
+  const retried = state.reads.filter(read => read.path.endsWith('/query') || read.path.endsWith('/quantiles')).slice(-2);
   expect(retried.map(read => [read.from, read.to])).toEqual([[refreshed.from, refreshed.to], [refreshed.from, refreshed.to]]);
 });
 
@@ -76,8 +76,8 @@ test('full attribute names retain separate chart lines and per-series statistics
   const state = await metricsFixture(page);
   const now = state.service.createdAt;
   state.points.set('http.server.request.duration', [
-    { id: 1, metricName: 'http.server.request.duration', metricType: 'histogram', value: 0.2, attributes: { 'http.method': 'GET' }, createdAt: now },
-    { id: 2, metricName: 'http.server.request.duration', metricType: 'histogram', value: 0.4, attributes: { 'rpc.method': 'GET' }, createdAt: now },
+    { id: 1, metricName: 'http.server.request.duration', metricType: 'histogram', unit: 's', value: 0.2, attributes: { 'http.method': 'GET' }, createdAt: now },
+    { id: 2, metricName: 'http.server.request.duration', metricType: 'histogram', unit: 's', value: 0.4, attributes: { 'rpc.method': 'GET' }, createdAt: now },
   ]);
   await page.goto(`${detail}?metric=http.server.request.duration`);
   await expect(page.locator('.recharts-line')).toHaveCount(2);

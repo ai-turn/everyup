@@ -49,9 +49,9 @@ func (r *OtelMetricRepository) CreateBatch(metrics []models.OtelMetric) (int, er
 			INSERT INTO otel_metrics (
 				service_id, agent_id, service_name, metric_name, metric_type, unit,
 				attributes, value, count, total, time_unix_nano, created_at,
-				bucket_bounds, bucket_counts, temporality, exemplars
+				bucket_bounds, bucket_counts, temporality, exemplars, start_time_unix_nano, is_monotonic, stream_key, stream_label
 			)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`)
 		if err != nil {
 			return err
@@ -62,7 +62,7 @@ func (r *OtelMetricRepository) CreateBatch(metrics []models.OtelMetric) (int, er
 			if _, err := stmt.Exec(
 				m.ServiceID, m.AgentID, m.ServiceName, m.MetricName, m.MetricType, m.Unit,
 				m.Attributes, m.Value, m.Count, m.Total, m.TimeUnixNano, m.CreatedAt,
-				jsonOrEmpty(m.BucketBounds), jsonOrEmpty(m.BucketCounts), m.Temporality, jsonOrEmpty(m.Exemplars),
+				jsonOrEmpty(m.BucketBounds), jsonOrEmpty(m.BucketCounts), m.Temporality, jsonOrEmpty(m.Exemplars), m.StartTimeUnixNano, m.IsMonotonic, m.StreamKey, m.StreamLabel,
 			); err != nil {
 				return err
 			}
@@ -140,33 +140,28 @@ func (r *OtelMetricRepository) ListNamesByObservedService() ([]models.ObservedSe
 // ListPoints returns data points for one metric in the filter scope, oldest
 // first (chart order).
 func (r *OtelMetricRepository) ListPoints(f *models.OtelMetricFilter) ([]models.OtelMetric, error) {
-	where, args := otelMetricScope(f)
-	where += " AND metric_name = ?"
-	args = append(args, f.MetricName)
-	if !f.From.IsZero() {
-		where += " AND created_at >= ?"
-		args = append(args, f.From)
-	}
-	if !f.To.IsZero() {
-		where += " AND created_at <= ?"
-		args = append(args, f.To)
-	}
 	limit := f.Limit
-	if limit <= 0 || limit > 5000 {
-		limit = 5000
+	if limit <= 0 || limit > MetricPointLimit {
+		limit = MetricPointLimit
 	}
+	return r.listPoints(f, limit)
+}
+
+func (r *OtelMetricRepository) listPoints(f *models.OtelMetricFilter, limit int) ([]models.OtelMetric, error) {
+	where, args := metricQueryScope(f)
+	where, args = metricSeriesScope(where, args, f.Series)
 	args = append(args, limit)
 
 	// Newest N points selected, then re-sorted ascending for the chart.
 	rows, err := DB.Query(`
 		SELECT * FROM (
 			SELECT id, service_id, agent_id, service_name, metric_name, metric_type, unit,
-				attributes, value, count, total, time_unix_nano, created_at
+				attributes, value, count, total, time_unix_nano, created_at, temporality, start_time_unix_nano, is_monotonic, stream_key, stream_label
 			FROM otel_metrics
 			WHERE `+where+`
-			ORDER BY created_at DESC
+			ORDER BY created_at DESC, id DESC
 			LIMIT ?
-		) ORDER BY created_at ASC
+		) ORDER BY created_at ASC, id ASC
 	`, args...)
 	if err != nil {
 		return nil, err
@@ -179,7 +174,7 @@ func (r *OtelMetricRepository) ListPoints(f *models.OtelMetricFilter) ([]models.
 		var attributes sql.NullString
 		if err := rows.Scan(
 			&m.ID, &m.ServiceID, &m.AgentID, &m.ServiceName, &m.MetricName, &m.MetricType, &m.Unit,
-			&attributes, &m.Value, &m.Count, &m.Total, &m.TimeUnixNano, &m.CreatedAt,
+			&attributes, &m.Value, &m.Count, &m.Total, &m.TimeUnixNano, &m.CreatedAt, &m.Temporality, &m.StartTimeUnixNano, &m.IsMonotonic, &m.StreamKey, &m.StreamLabel,
 		); err != nil {
 			return nil, err
 		}
@@ -286,23 +281,15 @@ func jsonOrEmpty(raw json.RawMessage) string {
 // They store an average only (see flattenMetric); adding scale decoding when a
 // service actually exports one beats guessing bounds now.
 func (r *OtelMetricRepository) HistogramQuantiles(f *models.OtelMetricFilter) (*models.OtelHistogramQuantiles, error) {
-	where, args := otelMetricScope(f)
-	where += " AND metric_name = ? AND metric_type = 'histogram' AND bucket_bounds != ''"
-	args = append(args, f.MetricName)
-	if !f.From.IsZero() {
-		where += " AND created_at >= ?"
-		args = append(args, f.From)
-	}
-	if !f.To.IsZero() {
-		where += " AND created_at <= ?"
-		args = append(args, f.To)
-	}
+	where, args := metricQueryScope(f)
+	where, args = metricSeriesScope(where, args, f.Series)
+	where += " AND metric_type = 'histogram' AND bucket_bounds != ''"
 
 	rows, err := DB.Query(`
-		SELECT unit, attributes, bucket_bounds, bucket_counts, temporality, exemplars
+		SELECT unit, attributes, stream_key, bucket_bounds, bucket_counts, temporality, exemplars
 		FROM otel_metrics
 		WHERE `+where+`
-		ORDER BY created_at ASC
+		ORDER BY created_at ASC, id ASC LIMIT 50001
 	`, args...)
 	if err != nil {
 		return nil, err
@@ -322,10 +309,15 @@ func (r *OtelMetricRepository) HistogramQuantiles(f *models.OtelMetricFilter) (*
 	unit := ""
 
 	var exemplars []models.MetricExemplar
+	pointCount := 0
 	for rows.Next() {
-		var rowUnit, attributes, boundsJSON, countsJSON, exemplarJSON string
+		pointCount++
+		if pointCount > 50000 {
+			return &models.OtelHistogramQuantiles{MetricName: f.MetricName, Truncated: true}, nil
+		}
+		var rowUnit, attributes, streamKey, boundsJSON, countsJSON, exemplarJSON string
 		var temporality int
-		if err := rows.Scan(&rowUnit, &attributes, &boundsJSON, &countsJSON, &temporality, &exemplarJSON); err != nil {
+		if err := rows.Scan(&rowUnit, &attributes, &streamKey, &boundsJSON, &countsJSON, &temporality, &exemplarJSON); err != nil {
 			return nil, err
 		}
 		if exemplarJSON != "" {
@@ -351,12 +343,13 @@ func (r *OtelMetricRepository) HistogramQuantiles(f *models.OtelMetricFilter) (*
 			series = map[string]*seriesAccumulator{}
 			layouts[boundsJSON] = series
 		}
-		accumulator, ok := series[attributes]
+		signature := attributes + "\x00" + streamKey
+		accumulator, ok := series[signature]
 		if !ok {
 			// Temporality 2 is cumulative; delta and unspecified both sum, which
 			// is the safe read when an exporter omits the field.
 			accumulator = &seriesAccumulator{bounds: bounds, delta: make([]uint64, len(counts)), isDelta: temporality != 2}
-			series[attributes] = accumulator
+			series[signature] = accumulator
 		}
 		if accumulator.isDelta {
 			for i, count := range counts {

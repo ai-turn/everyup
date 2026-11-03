@@ -17,6 +17,7 @@ func TestTelemetryMigrationsAreIdempotent(t *testing.T) {
 	}{
 		{"v52", database.MigrateV52ForTest},
 		{"v53", database.MigrateV53ForTest},
+		{"v56", database.MigrateV56ForTest},
 	} {
 		if err := migration.run(); err != nil {
 			t.Fatalf("%s re-run failed: %v", migration.name, err)
@@ -27,7 +28,7 @@ func TestTelemetryMigrationsAreIdempotent(t *testing.T) {
 	}
 
 	// The columns the quantile and exemplar paths read must exist afterwards.
-	for _, column := range []string{"bucket_bounds", "bucket_counts", "temporality", "exemplars"} {
+	for _, column := range []string{"bucket_bounds", "bucket_counts", "temporality", "exemplars", "start_time_unix_nano", "is_monotonic", "stream_key", "stream_label"} {
 		var count int
 		if err := database.DB.QueryRow(
 			`SELECT COUNT(*) FROM pragma_table_info('otel_metrics') WHERE name = ?`, column,

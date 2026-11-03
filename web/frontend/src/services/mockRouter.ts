@@ -1,3 +1,4 @@
+import { mockMetricQuery } from '../mocks/metricQuery';
 /**
  * Mock router for demo mode.
  * Maps API endpoint patterns to mock data so ALL api.* calls (including direct
@@ -1425,7 +1426,8 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   const observedFilterMatch = endpoint.match(/^\/observed-services\/([^/]+)\/log-filter$/);
   if (observedFilterMatch) return { levels: mockDirectLogFilters.get(observedFilterMatch[1]) ?? [] } as T;
   if (/^\/observed-services\/[^/]+\/traces/.test(endpoint)) return scopedTraceList(endpoint) as T;
-  if (/^\/observed-services\/[^/]+\/otel-metrics\/quantiles/.test(endpoint)) return (endpointTelemetry(endpoint) ? telemetryQuantiles(endpointTelemetry(endpoint)!, new URLSearchParams(endpoint.split('?')[1]).get('name') ?? '') : null) as T;
+  if (/^\/observed-services\/[^/]+\/otel-metrics\/query/.test(endpoint)) return mockMetricQuery(endpointTelemetry(endpoint)?.metricPoints[new URLSearchParams(endpoint.split('?')[1]).get('name') ?? ''] ?? [], new URLSearchParams(endpoint.split('?')[1])) as T;
+  if (/^\/observed-services\/[^/]+\/otel-metrics\/quantiles/.test(endpoint)) return (endpointTelemetry(endpoint) ? telemetryQuantiles(endpointTelemetry(endpoint)!, new URLSearchParams(endpoint.split('?')[1]).get('name') ?? '', new URLSearchParams(endpoint.split('?')[1])) : null) as T;
   if (/^\/observed-services\/[^/]+\/otel-metrics\/points/.test(endpoint)) return (endpointTelemetry(endpoint)?.metricPoints[new URLSearchParams(endpoint.split('?')[1]).get('name') ?? ''] ?? []) as T;
   if (/^\/observed-services\/[^/]+\/otel-metrics/.test(endpoint)) return (endpointTelemetry(endpoint)?.metricNames ?? []) as T;
   const observedRequestsMatch = endpoint.match(/^\/observed-services\/([^/]+)\/requests(?:\?|$)/);
@@ -1506,9 +1508,10 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   // /agents/:agentId/services/:key/traces
   if (/^\/agents\/[^/]+\/services\/[^/]+\/traces/.test(endpoint))
     return scopedTraceList(endpoint) as T;
+  if (/^\/agents\/[^/]+\/services\/[^/]+\/otel-metrics\/query/.test(endpoint)) return mockMetricQuery(endpointTelemetry(endpoint)?.metricPoints[new URLSearchParams(endpoint.split('?')[1]).get('name') ?? ''] ?? [], new URLSearchParams(endpoint.split('?')[1])) as T;
   // /agents/:agentId/services/:key/otel-metrics/quantiles?name=...
   if (/^\/agents\/[^/]+\/services\/[^/]+\/otel-metrics\/quantiles/.test(endpoint))
-    return (endpointTelemetry(endpoint) ? telemetryQuantiles(endpointTelemetry(endpoint)!, new URLSearchParams(endpoint.split('?')[1]).get('name') ?? '') : null) as T;
+    return (endpointTelemetry(endpoint) ? telemetryQuantiles(endpointTelemetry(endpoint)!, new URLSearchParams(endpoint.split('?')[1]).get('name') ?? '', new URLSearchParams(endpoint.split('?')[1])) : null) as T;
   // /agents/:agentId/services/:key/otel-metrics/points?name=...
   if (/^\/agents\/[^/]+\/services\/[^/]+\/otel-metrics\/points/.test(endpoint))
     return (endpointTelemetry(endpoint)?.metricPoints[new URLSearchParams(endpoint.split('?')[1]).get('name') ?? ''] ?? []) as T;
