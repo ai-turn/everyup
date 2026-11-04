@@ -76,7 +76,6 @@ test('metric names, chart and optional groups have independent HTTP failure stat
   state.failures.add('/observed-services/metrics-service/otel-metrics');
   state.failures.add('points:jvm.memory.used');
   await page.goto('http://127.0.0.1:4174/metrics/metrics-service');
-  await page.locator('summary').filter({ hasText: '연결 관리' }).click();
   await expect(page.getByText('그룹 목록을 불러오지 못했습니다', { exact: true })).toBeVisible();
   const namesError = page.getByRole('heading', { name: '메트릭 목록을 불러오지 못했습니다' });
   await expect(namesError).toBeVisible();

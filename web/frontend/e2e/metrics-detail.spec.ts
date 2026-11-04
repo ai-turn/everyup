@@ -3,21 +3,13 @@ import { metricsFixture } from './fixtures/metrics';
 
 const detail = 'http://127.0.0.1:4174/metrics/metrics-service';
 
-test('connection management starts closed and is operable by keyboard', async ({ page }) => {
+test('connection fields are listed open, like the other direct details', async ({ page }) => {
   await metricsFixture(page);
   await page.goto(detail);
-  const summary = page.locator('summary').filter({ hasText: '연결 관리' });
-  const disclosure = summary.locator('..');
-  await expect(disclosure).not.toHaveAttribute('open');
-  await expect(page.getByRole('combobox', { name: '그룹 배정' })).toBeHidden();
-  await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
-  await summary.focus();
-  await page.keyboard.press('Enter');
-  await expect(disclosure).toHaveAttribute('open', '');
+  await expect(page.locator('summary').filter({ hasText: '연결 관리' })).toHaveCount(0);
   await expect(page.getByRole('combobox', { name: '그룹 배정' })).toBeVisible();
   await expect(page.getByRole('button', { name: '키 재발급', exact: true })).toBeVisible();
-  await page.keyboard.press('Enter');
-  await expect(disclosure).not.toHaveAttribute('open');
+  await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
 });
 
 test('period, search and selected metric survive reload and browser history', async ({ page }) => {
