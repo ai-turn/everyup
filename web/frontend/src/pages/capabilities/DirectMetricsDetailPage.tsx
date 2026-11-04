@@ -152,7 +152,6 @@ export function DirectMetricsDetailPage() {
         title={service.name}
         meta={
           <DirectConnectionMeta
-            fieldsLabel="연결 관리"
             isActive={service.isActive}
             apiKeyMasked={service.apiKeyMasked}
             lastSeenAt={service.lastSeenAt}

@@ -227,7 +227,7 @@ export function timeXAxisProps(theme: ChartTheme, [from, to]: [number, number]) 
   } as const;
 }
 
-function medianStep(times: number[]): number {
+export function medianStep(times: number[]): number {
   const diffs = times.slice(1).map((t, i) => t - times[i]).sort((a, b) => a - b);
   return diffs[Math.floor(diffs.length / 2)] ?? 0;
 }
