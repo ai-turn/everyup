@@ -11,7 +11,7 @@ function readFilters(raw: string): Record<string, unknown> {
   } catch { return {}; }
 }
 
-export function MetricExplorerControls({ data, pending, sum }: { data: MetricQueryResult | null; pending: boolean; sum: boolean }) {
+export function MetricExplorerControls({ data, pending, sum, mode }: { data: MetricQueryResult | null; pending: boolean; sum: boolean; mode: 'raw' | 'rate' }) {
   const query = useMetricQuery();
   const [key, setKey] = useState('');
   const [value, setValue] = useState('');
@@ -25,8 +25,8 @@ export function MetricExplorerControls({ data, pending, sum }: { data: MetricQue
 
   return <div className="space-y-3 rounded-xl border border-ui-border bg-bg-surface p-4">
     {sum && <div className="space-y-1.5">
-      <SegmentedControl size="md" ariaLabel="메트릭 값 표시" value={query.mode} options={[{ value: 'raw', label: '원값' }, { value: 'rate', label: '초당 증가량' }]} onChange={mode => query.update({ metricMode: mode === 'raw' ? null : mode })} />
-      {query.mode === 'rate' && <p className="type-body text-text-muted">단조 증가하는 sum만 계산합니다. 누적 시작 정보가 없거나 수집이 재시작된 지점은 비워 둡니다. 알림 임계값은 원값 기준입니다.</p>}
+      <SegmentedControl size="md" ariaLabel="메트릭 값 표시" value={mode} options={[{ value: 'raw', label: '원값' }, { value: 'rate', label: '초당 증가량' }]} onChange={next => query.update({ metricMode: next })} />
+      {mode === 'rate' && <p className="type-body text-text-muted">단조 증가하는 sum만 계산합니다. 누적 시작 정보가 없거나 수집이 재시작된 지점은 비워 둡니다. 알림 임계값은 원값 기준입니다.</p>}
     </div>}
     <details className="group">
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 type-label text-text-base"><MaterialIcon name="chevron_right" className="shrink-0 group-open:rotate-90" />Attribute 필터{Object.keys(filters).length ? ` (${Object.keys(filters).length})` : ''}</summary>
@@ -77,6 +77,6 @@ export function MetricExplorerControls({ data, pending, sum }: { data: MetricQue
         {data?.seriesTruncated && <p className="type-body text-text-muted">시리즈 목록은 처음 200개까지 표시합니다. Attribute 필터를 좁혀 다른 시리즈를 찾아 주세요.</p>}
       </div>
     </details>
-    {(query.attributes || query.series || query.mode === 'rate') && <Button variant="ghost" size="sm" onClick={() => query.update({ metricAttributes: null, metricSeries: null, metricMode: null })}>메트릭 조회 초기화</Button>}
+    {(query.attributes || query.series || query.mode !== null) && <Button variant="ghost" size="sm" onClick={() => query.update({ metricAttributes: null, metricSeries: null, metricMode: null })}>메트릭 조회 초기화</Button>}
   </div>;
 }

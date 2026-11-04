@@ -20,7 +20,7 @@ export function metricSeriesLabel(attributes: Record<string, unknown>, streamKey
   return streamKey ? `${streamLabel || 'stream'} [${streamKey.slice(0, 8)}], ${label}` : label;
 }
 
-function pointIdentity(point: OtelMetricPoint) {
+export function pointIdentity(point: OtelMetricPoint) {
   return `${point.streamKey ?? ''}|${metricSeriesIdentity(point.attributes)}`;
 }
 

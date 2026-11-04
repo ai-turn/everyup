@@ -37,7 +37,8 @@ export function useMetricQuery() {
     metric: params.get('metric'),
     attributes: params.get('metricAttributes') ?? '',
     series: params.get('metricSeries') ?? '',
-    mode: params.get('metricMode') === 'rate' ? 'rate' as const : 'raw' as const,
+    // null = not chosen: a sum shows its rate when one can be computed.
+    mode: params.get('metricMode') === 'rate' ? 'rate' as const : params.get('metricMode') === 'raw' ? 'raw' as const : null,
     update,
   };
 }

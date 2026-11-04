@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Button, EmptyState, MaterialIcon, SearchInput, type GlobalTimeRange } from '../../../components/common';
+import { useCallback, useEffect, useState } from 'react';
+import { Button, EmptyState, MaterialIcon, SearchInput, StatusLight, type GlobalTimeRange } from '../../../components/common';
 import { Skeleton } from '../../../components/skeleton';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import { api, type OtelMetricName } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
-import { MetricChart, type MetricSource } from '../../metrics/MetricChart';
+import { MetricChart, type MetricFlag, type MetricSource } from '../../metrics/MetricChart';
 import { useMetricQuery, useMetricWindow } from '../../metrics/useMetricQuery';
 
 const SEARCH_MIN_METRICS = 8;
@@ -36,6 +36,9 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   // Panels share a crosshair (syncId); only the hovered one shows its tooltip box.
   const [visibleLimit, setVisibleLimit] = useState(12);
   const [hovered, setHovered] = useState<string | null>(null);
+  // Panels keep their name order; what needs a look is listed once above them instead.
+  const [attention, setAttention] = useState<Record<string, MetricFlag[]>>({});
+  const reportAttention = useCallback((name: string, flags: MetricFlag[]) => setAttention(current => ({ ...current, [name]: flags })), []);
 
   const agentId = source.kind === 'agent' ? source.agentId : '';
   const serviceKey = source.kind === 'agent' ? source.serviceKey : '';
@@ -121,6 +124,8 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
   }
 
   const visible = names.filter(item => item.metricName.toLowerCase().includes(query.trim().toLowerCase()));
+  // ponytail: only rendered panels report, so metrics past "12개 더 보기" are not listed.
+  const flagged = visible.slice(0, visibleLimit).filter(item => attention[item.metricName]?.length);
   return (
     <div>
       {(names.length > SEARCH_MIN_METRICS || query) && (
@@ -133,6 +138,17 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
         />
       )}
       {warning}
+      {flagged.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2" aria-label="확인이 필요한 메트릭">
+          <p className="type-label text-text-base">확인 필요</p>
+          {flagged.map(item => (
+            <Button key={item.metricName} variant="secondary" size="sm" onClick={() => openMetric(item.metricName)}>
+              <span className="font-mono">{item.metricName}</span>
+              {attention[item.metricName].map(flag => <StatusLight key={flag.label} tone={flag.tone} label={flag.label} />)}
+            </Button>
+          ))}
+        </div>
+      )}
       {visible.length === 0 ? (
         <EmptyState icon="search" title="일치하는 메트릭이 없습니다" description={`'${query.trim()}'와 일치하는 메트릭 이름이 없습니다.`} action={{ label: '검색 초기화', onClick: () => update({ metricSearch: null }, true) }} />
       ) : (
@@ -146,6 +162,7 @@ function ServiceMetricsPanel({ source, refreshKey, range }: CommonProps & { sour
               refreshKey={refreshKey}
               rules={rulesFor(meta.metricName)}
               onExpand={() => openMetric(meta.metricName)}
+              onAttention={reportAttention}
               showTooltip={hovered === meta.metricName}
               onHover={setHovered}
             />

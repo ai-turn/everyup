@@ -171,7 +171,7 @@ export function ChartStatsLegend({
 }
 
 /** 공용 칩 범례 — recharts <Legend> 대신 차트 위/카드 헤더에 렌더. */
-export function ChartLegend({ items, className = '' }: { items: { label: string; color: string }[]; className?: string }) {
+export function ChartLegend({ items, className = '' }: { items: { label: string; color: string; value?: string }[]; className?: string }) {
   return (
     <div className={`flex flex-wrap gap-1.5 ${className}`}>
       {items.map((it) => (
@@ -181,6 +181,7 @@ export function ChartLegend({ items, className = '' }: { items: { label: string;
         >
           <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: it.color }} />
           <span className="min-w-0 break-all">{it.label}</span>
+          {it.value && <span className="shrink-0 tabular-nums text-text-secondary">{it.value}</span>}
         </span>
       ))}
     </div>

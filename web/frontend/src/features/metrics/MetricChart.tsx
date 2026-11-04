@@ -1,15 +1,15 @@
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { Button, MaterialIcon } from '../../components/common';
+import { Button, MaterialIcon, StatusLight, type StatusTone } from '../../components/common';
 import { Tooltip as HintTooltip } from '../../components/common/Tooltip';
 import {
   CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSkeleton, ChartStats, ChartStatsLegend, ChartSummary, ChartTooltip,
   areaGradient, areaProps, formatAxisValue, formatTimeLabel, getSeriesPalette,
-  getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  getSeriesDash, gridProps, lineProps, medianStep, niceYAxis, rangeAreas, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../components/charts';
 import type { AlertRule, OtelMetricName, OtelMetricPoint } from '../../services/api';
 import { TracePanel } from '../traces/components/TracePanel';
-import { buildMetricSeries, MAX_METRIC_SERIES } from './metricSeries';
+import { buildMetricSeries, MAX_METRIC_SERIES, pointIdentity } from './metricSeries';
 import { useMetricQuery, type MetricWindow } from './useMetricQuery';
 import { useMetricRead, type MetricSource } from './useMetricRead';
 import { MetricExplorerControls } from './MetricExplorerControls';
@@ -19,7 +19,28 @@ const NO_POINTS: OtelMetricPoint[] = [];
 const SYNC_ID = 'otel-metrics';
 const formatValue = (value: number) => String(value !== 0 && Math.abs(value) < 0.01 ? Number(value.toPrecision(2)) : Math.round(value * 100) / 100);
 
-export function MetricChart({ source, meta, window, refreshKey, rules, expanded = false, onExpand, showTooltip, onHover }: {
+const hasFinite = (chartData: Record<string, number>[], series: { key: string }[]) => chartData.some(row => series.some(item => Number.isFinite(row[item.key])));
+const lastFinite = (chartData: Record<string, number>[], key: string) => chartData.map(row => row[key]).filter(Number.isFinite).pop();
+
+// Mirrors compareAlertValue in the backend's log_ingest.go.
+function exceeds(value: number, operator: string, threshold: number) {
+  switch (operator) {
+    case 'gt': return value > threshold;
+    case 'lt': return value < threshold;
+    case 'lte': return value <= threshold;
+    case 'eq': return value === threshold;
+    default: return value >= threshold;
+  }
+}
+
+function silenceLabel(ms: number) {
+  const minutes = Math.floor(ms / 60_000);
+  return minutes < 60 ? `${minutes}분째 수신 없음` : `${Math.floor(minutes / 60)}시간째 수신 없음`;
+}
+
+export interface MetricFlag { tone: StatusTone; label: string }
+
+export function MetricChart({ source, meta, window, refreshKey, rules, expanded = false, onExpand, onAttention, showTooltip, onHover }: {
   window: MetricWindow;
   refreshKey?: number;
   source: MetricSource;
@@ -27,12 +48,16 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
   rules: AlertRule[];
   expanded?: boolean;
   onExpand?: () => void;
+  /** Reports what needs a look (threshold breach, silence) so the grid can list it above the panels. */
+  onAttention?: (name: string, flags: MetricFlag[]) => void;
   showTooltip: boolean;
   onHover?: (name: string | null) => void;
 }) {
   const name = meta.metricName;
   const query = useMetricQuery();
-  const mode = expanded && meta.metricType === 'sum' ? query.mode : 'raw';
+  // A cumulative counter only ever climbs, so sums open as a rate unless the URL picked raw.
+  const autoMode = !expanded || query.mode === null;
+  const preferredMode = meta.metricType !== 'sum' ? 'raw' : expanded ? query.mode ?? 'rate' : 'rate';
   const attributes = expanded ? query.attributes : '';
   const selected = expanded ? query.series : '';
   const read = useMetricRead(source, meta, window, attributes, selected, expanded, refreshKey);
@@ -40,7 +65,14 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
   const { error: pointsError, quantiles, quantilesError, quantilesLoading, displayedWindow } = read;
   const [activeTraceId, setActiveTraceId] = useState<string | null>(null);
   const histogram = meta.metricType === 'histogram';
-  const { chartData, series, truncatedSeries, gaps, display, skippedRatePoints } = useMemo(() => buildMetricSeries(points, meta.unit, mode), [points, meta.unit, mode]);
+  // Sums with no computable rate (UpDownCounter, rows without a start time) fall back
+  // to raw, unless the user asked for the rate explicitly.
+  const { chartData, series, truncatedSeries, gaps, display, skippedRatePoints, mode } = useMemo(() => {
+    const built = buildMetricSeries(points, meta.unit, preferredMode);
+    return autoMode && preferredMode === 'rate' && points.length > 0 && !hasFinite(built.chartData, built.series)
+      ? { ...buildMetricSeries(points, meta.unit, 'raw'), mode: 'raw' as const }
+      : { ...built, mode: preferredMode };
+  }, [points, meta.unit, preferredMode, autoMode]);
 
   const theme = useChartTheme();
   const gradientId = useId().replace(/[^\w-]/g, '');
@@ -50,18 +82,46 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
   const maxValue = Math.max(0, ...thresholds.map(rule => rule.threshold), ...chartData.flatMap(row => series.map(item => row[item.key]).filter(Number.isFinite)));
   const { unit, factor } = display;
   const single = series.length === 1;
-  const hasData = chartData.some(row => series.some(item => Number.isFinite(row[item.key])));
+  const hasData = hasFinite(chartData, series);
 
-  // One series: its numbers sit in the title row. Several: their names, as chips —
-  // the opened view has room for a per-series stats table instead.
-  const right = !hasData || pointsError || !read.data ? null
+  // The line may be a rate but rules are raw, so a breach is judged on each series' latest raw point.
+  const latest = new Map<string, OtelMetricPoint>();
+  for (const point of points) {
+    const id = pointIdentity(point);
+    const previous = latest.get(id);
+    if (!previous || Date.parse(point.createdAt) >= Date.parse(previous.createdAt)) latest.set(id, point);
+  }
+  const breached = rules.some(rule => [...latest.values()].some(point => exceeds(point.value, rule.operator, rule.threshold)));
+  // Silence is measured against this metric's own export interval, never under 5 minutes.
+  const silentMs = Date.parse(window.to) - Date.parse(meta.lastAt);
+  const silent = silentMs > Math.max(3 * (medianStep(chartData.map(row => row.t)) || 60_000), 5 * 60_000);
+  const silence = silent ? silenceLabel(silentMs) : '';
+  const flags = useMemo<MetricFlag[]>(() => [
+    ...(breached ? [{ tone: 'error' as const, label: '임계값 초과' }] : []),
+    ...(silence ? [{ tone: 'warn' as const, label: silence }] : []),
+  ], [breached, silence]);
+  useEffect(() => {
+    onAttention?.(name, flags);
+    return () => onAttention?.(name, []);
+  }, [name, flags, onAttention]);
+
+  // One series: its numbers sit in the title row. Several: chips carrying each
+  // series' latest value — the opened view has room for a per-series stats table instead.
+  const summary = !hasData || pointsError || !read.data ? null
     : single ? <ChartSummary values={chartData.map(row => row[series[0].key])} unit={unit} currentLabel={mode === 'rate' ? '최근 계산값' : undefined} valueFormatter={formatValue} />
     : expanded ? null
-    : <ChartLegend items={series.map((item, index) => ({ label: item.label, color: seriesColors[index % seriesColors.length] }))} />;
+    : <ChartLegend items={series.map((item, index) => {
+      const value = lastFinite(chartData, item.key);
+      return { label: item.label, color: seriesColors[index % seriesColors.length], value: value === undefined ? undefined : `${formatValue(value)}${unit}` };
+    })} />;
+  const right = flags.length || summary ? <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1.5">
+    {flags.map(flag => <StatusLight key={flag.label} tone={flag.tone} label={flag.label} />)}
+    {summary}
+  </div> : null;
 
   return (
     <div className="min-w-0 space-y-3">
-      {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} />}
+      {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
       <ChartCard
         title={expanded ? name : (
           <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} className="block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline">
@@ -182,7 +242,8 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           </>
         )}
 
-        {skippedRatePoints > 0 && hasData && <p className="mt-3 type-body text-text-muted">{`시작 정보 누락·재시작·겹친 구간 등 ${skippedRatePoints}개 포인트는 증가량을 계산하지 않았습니다.`}</p>}
+        {/* A cumulative stream's first point never has a rate; only skips beyond that are worth a note. */}
+        {expanded && skippedRatePoints > latest.size && hasData && <p className="mt-3 type-body text-text-muted">{`시작 정보 누락·재시작·겹친 구간 등 ${skippedRatePoints}개 포인트는 증가량을 계산하지 않았습니다.`}</p>}
         {read.data?.pointsTruncated && <p role="status" className="mt-3 type-body text-text-muted">{`선택한 시리즈의 최근 ${read.data.pointLimit.toLocaleString()}개 포인트만 표시합니다. 기간이나 Attribute 필터를 좁혀 주세요.${histogram ? ' 분포는 선택한 시리즈의 전체 조회 기간을 기준으로 합니다.' : ''}`}</p>}
         {!expanded && read.data && (read.data.series.length > MAX_METRIC_SERIES || read.data.seriesTruncated) && <Button variant="ghost" size="sm" onClick={onExpand}>시리즈 선택하기 ({read.data.series.length}{read.data.seriesTruncated ? '+' : ''}개)</Button>}
         {expanded && selected === '[]' && <p className="mt-3 type-body text-text-muted">선택한 시리즈가 없습니다. 시리즈를 선택하거나 기본 선택으로 돌아가세요.</p>}

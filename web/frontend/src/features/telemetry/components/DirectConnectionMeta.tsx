@@ -23,7 +23,6 @@ interface DirectConnectionMetaProps {
   onRetryProjects?: () => void;
   /** 기능별 설정 — 로그의 수집 레벨처럼 그 상세에만 있는 칸 */
   extraFields?: DetailMetaField[];
-  fieldsLabel?: string;
 }
 
 export function DirectConnectionMeta({
@@ -43,11 +42,9 @@ export function DirectConnectionMeta({
   projectsError,
   onRetryProjects,
   extraFields = [],
-  fieldsLabel,
 }: DirectConnectionMetaProps) {
   return (
     <DetailMeta
-      fieldsLabel={fieldsLabel}
       status={
         <>
           <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '수집 가능' : '중지됨'} />
