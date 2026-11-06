@@ -4,37 +4,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Button, ConfirmDialog, DetailActionToolbar, EmptyState, ListViewToggle, MaterialIcon, PageHeader, ResourceTable } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
-import {
-  api,
-  type AgentServiceFlat,
-  type ConnectedAgent,
-  type InfrastructureResource,
-  type ObservedService,
-  type Project,
-  type UptimeMonitor,
-} from '../../services/api';
+import { api, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { ProjectDialog } from './ProjectsPage';
-import { isCollectorFresh } from '../../utils/operationalStatus';
+import { projectMembers, sourcesForProject, type Member, type ProjectSources } from './projectMembers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 
-type ProjectData = {
-  project: Project | null;
-  agents: ConnectedAgent[];
-  services: AgentServiceFlat[];
-  monitors: UptimeMonitor[];
-  observedServices: ObservedService[];
-  infrastructure: InfrastructureResource[];
-};
-
-type MemberState = 'healthy' | 'warn' | 'error' | 'idle';
-type Member = { key: string; to: string; icon: string; name: string; detail: string; state: MemberState };
-
-// 문제가 먼저 — 장애, 수집 지연, 비활성, 정상. 대상이 많아도 장애가 목록 아래에 묻히지 않게 해서
-// 이 화면의 KPI 카드(장애 수·수집 확인 필요 수)를 대신한다. 같은 상태 안에서는 유형 순서를 지킨다(안정 정렬).
-// key에 유형을 붙인다 — Docker 호스트의 인프라 리소스는 환경과 같은 id를 쓴다.
-const STATE_ORDER: Record<MemberState, number> = { error: 0, warn: 1, idle: 2, healthy: 3 };
+type ProjectData = ProjectSources & { project: Project | null };
 
 function MemberLink({ to, icon, name, detail, state, returnTo }: Omit<Member, 'key'> & { returnTo: string }) {
   const stateClass = { healthy: 'text-status-healthy', warn: 'text-status-warn', error: 'text-status-error', idle: 'text-status-idle' }[state];
@@ -87,16 +64,16 @@ export function ProjectOverviewPage() {
       setError(getErrorMessage(agentsResult.reason));
       return;
     }
-    const projectAgents = agents.filter((agent) => agent.projectId === projectId);
-    const projectAgentIds = new Set(projectAgents.map((agent) => agent.id));
     setError(null);
     setData({
       project,
-      agents: projectAgents,
-      services: servicesResult.status === 'fulfilled' ? (servicesResult.value ?? []).filter((service) => projectAgentIds.has(service.agentId)) : [],
-      monitors: monitorsResult.status === 'fulfilled' ? (monitorsResult.value ?? []).filter((monitor) => monitor.projectId === projectId) : [],
-      observedServices: observedResult.status === 'fulfilled' ? (observedResult.value ?? []).filter((service) => service.projectId === projectId) : [],
-      infrastructure: infrastructureResult.status === 'fulfilled' ? (infrastructureResult.value ?? []).filter((resource) => resource.projectId === projectId) : [],
+      ...sourcesForProject(projectId, {
+        agents,
+        services: servicesResult.status === 'fulfilled' ? servicesResult.value ?? [] : [],
+        monitors: monitorsResult.status === 'fulfilled' ? monitorsResult.value ?? [] : [],
+        observedServices: observedResult.status === 'fulfilled' ? observedResult.value ?? [] : [],
+        infrastructure: infrastructureResult.status === 'fulfilled' ? infrastructureResult.value ?? [] : [],
+      }),
     });
     const failed: string[] = [];
     if (agentsResult.status === 'rejected') failed.push('Docker 환경');
@@ -131,15 +108,7 @@ export function ProjectOverviewPage() {
     finally { setDeletingProject(false); }
   };
 
-  const directPath = (service: ObservedService) => service.signals.includes('logs') ? `/logs/${service.id}` : service.signals.includes('metrics') ? `/metrics/${service.id}` : `/api/${service.id}`;
-
-  const members: Member[] = [
-    ...data.agents.map((agent): Member => ({ key: `agent-${agent.id}`, to: `/agents/${agent.id}`, icon: 'dns', name: agent.name, detail: isCollectorFresh(agent.lastSeenAt) ? 'Docker Collector 데이터 유입 중' : 'Docker Collector 데이터 지연', state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
-    ...data.services.filter((service) => !service.healthy).map((service): Member => ({ key: `service-${service.agentId}-${service.key}`, to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`, icon: 'error_outline', name: service.name, detail: 'Docker 서비스 장애', state: 'error' })),
-    ...data.monitors.map((monitor): Member => ({ key: `monitor-${monitor.id}`, to: `/uptime/${monitor.id}`, icon: 'monitor_heart', name: monitor.name, detail: monitor.status === 'unhealthy' ? '업타임 장애' : monitor.status === 'healthy' ? '업타임 정상' : '상태 확인 중', state: monitor.status === 'unhealthy' ? 'error' : monitor.status === 'healthy' ? 'healthy' : 'idle' })),
-    ...data.observedServices.map((service): Member => ({ key: `direct-${service.id}`, to: directPath(service), icon: 'hub', name: service.name, detail: service.isActive ? (service.lastSeenAt ? `마지막 수신 ${new Date(service.lastSeenAt).toLocaleString()}` : '직접 연결 데이터 대기 중') : '직접 연결이 비활성화됨', state: service.isActive ? (service.lastSeenAt ? 'healthy' : 'warn') : 'idle' })),
-    ...data.infrastructure.map((resource): Member => ({ key: `infra-${resource.id}`, to: `/infrastructure/${resource.id}`, icon: 'memory', name: resource.name, detail: resource.isActive ? (isCollectorFresh(resource.lastSeenAt) ? '인프라 데이터 유입 중' : '인프라 데이터 확인 필요') : '인프라 Collector가 비활성화됨', state: resource.isActive ? (isCollectorFresh(resource.lastSeenAt) ? 'healthy' : 'warn') : 'idle' })),
-  ].sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);
+  const members = projectMembers(data);
 
   return (
     <div className="space-y-5">
