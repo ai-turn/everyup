@@ -1,6 +1,10 @@
 package handlers
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"strings"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 // OTelScript serves the secret-free application instrumentation helper. It is
 // installed by the Agent bootstrapper, but can also be downloaded again from
@@ -8,7 +12,7 @@ import "github.com/gofiber/fiber/v2"
 func (h *AgentHandler) OTelScript(c *fiber.Ctx) error {
 	c.Set(fiber.HeaderContentType, "text/x-shellscript; charset=utf-8")
 	c.Set(fiber.HeaderCacheControl, "public, max-age=300")
-	return c.SendString(agentOTelCLIScript)
+	return c.SendString(strings.Replace(agentOTelCLIScript, "aiturn/everyup-agent:latest", defaultAgentImage, 1))
 }
 
 const agentOTelCLIScript = `#!/bin/sh

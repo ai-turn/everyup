@@ -2,23 +2,44 @@ name: Verify
 
 on:
   pull_request:
-  workflow_call:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: verify-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: verify-${{ github.ref }}
+  # Let publishing finish. Only superseded PR checks may be cancelled.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      images: ${{ steps.changes.outputs.images }}
+      pages: ${{ steps.changes.outputs.pages }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - id: changes
+        run: node .github/scripts/changes.mjs
+      - name: Test deployment policies
+        run: node --test .github/scripts/policies.test.mjs
+
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version-file: web/backend/go.mod
+          go-version: '1.27.x'
+          cache-dependency-path: web/backend/go.sum
       - name: Test and vet backend
         working-directory: web/backend
         run: |
@@ -27,11 +48,13 @@ jobs:
 
   agent:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version-file: agent/go.mod
+          go-version: '1.27.x'
+          cache-dependency-path: agent/go.sum
       - name: Test, vet, and build agent
         working-directory: agent
         run: |
@@ -40,13 +63,15 @@ jobs:
           go build ./...
 
   frontend:
+    needs: changes
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: 10.27.0
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 24
           cache: pnpm
@@ -61,15 +86,36 @@ jobs:
         run: pnpm --dir web/frontend exec playwright install --with-deps chromium
       - name: Build and test demo
         run: pnpm --dir web/frontend test:e2e
+      - name: Preserve Playwright failure evidence
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-results
+          path: web/frontend/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Save the tested demo for Pages
+        if: github.ref == 'refs/heads/main' && needs.changes.outputs.pages == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pages-demo
+          path: web/frontend/dist/
+          retention-days: 1
+          if-no-files-found: error
 
   docs:
+    needs: changes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # VitePress lastUpdated needs the history of the deployed files.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: 10.27.0
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 24
           cache: pnpm
@@ -78,14 +124,83 @@ jobs:
         run: |
           pnpm --dir docs install --frozen-lockfile
           pnpm --dir docs build
+      - name: Save the built docs for Pages
+        if: github.ref == 'refs/heads/main' && needs.changes.outputs.pages == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pages-docs
+          path: docs/.vitepress/dist/
+          retention-days: 1
+          if-no-files-found: error
+
+  docker-smoke:
+    needs: changes
+    if: needs.changes.outputs.images == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - kind: web
+            context: .
+            dockerfile: web/Dockerfile
+          - kind: agent
+            context: ./agent
+            dockerfile: agent/Dockerfile
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build the runtime image without publishing
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          load: true
+          tags: everyup-smoke:${{ matrix.kind }}
+          build-args: EVERYUP_AGENT_IMAGE=aiturn/everyup-agent:sha-${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.kind }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.kind }}
+      - name: Check startup, HTTP responses, and packaged files
+        run: bash .github/scripts/smoke-image.sh '${{ matrix.kind }}' 'everyup-smoke:${{ matrix.kind }}'
 
   compose-profile-smoke:
+    needs: [changes, docker-smoke]
+    if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - name: Require successful image validation when images changed
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          IMAGES_CHANGED: ${{ needs.changes.outputs.images }}
+          IMAGE_RESULT: ${{ needs.docker-smoke.result }}
+        run: |
+          test "$CHANGES_RESULT" = success
+          if [ "$IMAGES_CHANGED" = true ]; then test "$IMAGE_RESULT" = success; fi
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version-file: web/backend/go.mod
+          go-version: '1.27.x'
+          cache-dependency-path: web/backend/go.sum
       - name: Validate generated all-in-one, basic, and custom compose profiles
         working-directory: web/backend
         run: go test ./internal/api/handlers -run 'TestBuildAgentComposePassesDockerComposeValidation|TestBuildAgentComposeOmitsUnselectedPrivileges|TestAgentCustomProfileControlsJoinBundle' -v
+
+  publish:
+    needs: [changes, backend, agent, frontend, docs, compose-profile-smoke]
+    if: github.event_name != 'pull_request' && needs.changes.outputs.images == 'true' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    uses: ./.github/workflows/docker-publish.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  pages:
+    needs: [changes, backend, agent, frontend, docs, compose-profile-smoke]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.changes.outputs.pages == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml
