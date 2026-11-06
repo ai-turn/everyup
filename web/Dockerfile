@@ -8,7 +8,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Build React Frontend
 # -----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM node:24-alpine3.23@sha256:0efee1e068d21f6edcab7fa8c962fc4ecd50d4e28727bc23963379b63ee318ab AS frontend
+FROM --platform=$BUILDPLATFORM node:25-alpine3.23@sha256:bdf2cca6fe3dabd014ea60163eca3f0f7015fbd5c7ee1b0e9ccb4ced6eb02ef4 AS frontend
 
 WORKDIR /build/frontend
 
