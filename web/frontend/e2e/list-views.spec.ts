@@ -131,3 +131,13 @@ test('notification cards preserve the current page and filter without fetching a
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '그리드', exact: true }).click();
   await expect(table.getByText('Record #26', { exact: true })).toBeVisible();
 });
+
+test('Group status summary on the list counts the same members as the group detail', async ({ page }) => {
+  await page.goto('./projects');
+  const row = page.getByRole('table', { name: '그룹 그리드', exact: true }).getByRole('row').filter({ hasText: 'Production' });
+  const summary = await row.getByRole('cell').nth(1).innerText();
+  expect(summary).toMatch(/^(장애|확인 필요|대기|정상) \d+( · (장애|확인 필요|대기|정상) \d+)*$/);
+  const total = [...summary.matchAll(/\d+/g)].reduce((sum, [count]) => sum + Number(count), 0);
+  await page.goto('./projects/project_mock_production');
+  await expect(page.getByRole('table', { name: '그룹 구성 그리드', exact: true }).locator('tbody tr')).toHaveCount(total);
+});

@@ -106,7 +106,8 @@ To view separately registered targets together, open **그룹** (Groups) under *
 views) in the sidebar and click **추가** (Add) to create a group. Select Docker environments, uptime
 monitors, directly connected services, and infrastructure Collectors, then click **배정** (Assign).
 Services and data discovered within a Docker environment inherit its group assignment. The group
-screen lists failing targets first. Deleting a group does not delete its assigned targets.
+list summarizes how many targets in each group are failing, need attention, or are healthy, and the
+group screen lists failing targets first. Deleting a group does not delete its assigned targets.
 
 ## Detailed header and body capture
 
