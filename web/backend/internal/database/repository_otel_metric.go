@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -49,20 +50,21 @@ func (r *OtelMetricRepository) CreateBatch(metrics []models.OtelMetric) (int, er
 			INSERT INTO otel_metrics (
 				service_id, agent_id, service_name, metric_name, metric_type, unit,
 				attributes, value, count, total, time_unix_nano, created_at,
-				bucket_bounds, bucket_counts, temporality, exemplars, start_time_unix_nano, is_monotonic, stream_key, stream_label
+				bucket_bounds, bucket_counts, temporality, exemplars, start_time_unix_nano, is_monotonic, stream_key, stream_label, received_at, description, resource, scope
 			)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`)
 		if err != nil {
 			return err
 		}
 		defer stmt.Close()
 
+		receivedAt := time.Now().UTC().UnixMilli()
 		for _, m := range metrics {
 			if _, err := stmt.Exec(
 				m.ServiceID, m.AgentID, m.ServiceName, m.MetricName, m.MetricType, m.Unit,
 				m.Attributes, m.Value, m.Count, m.Total, m.TimeUnixNano, m.CreatedAt,
-				jsonOrEmpty(m.BucketBounds), jsonOrEmpty(m.BucketCounts), m.Temporality, jsonOrEmpty(m.Exemplars), m.StartTimeUnixNano, m.IsMonotonic, m.StreamKey, m.StreamLabel,
+				jsonOrEmpty(m.BucketBounds), jsonOrEmpty(m.BucketCounts), m.Temporality, jsonOrEmpty(m.Exemplars), m.StartTimeUnixNano, m.IsMonotonic, m.StreamKey, m.StreamLabel, receivedAt, m.Description, jsonOrEmpty(m.Resource), jsonOrEmpty(m.Scope),
 			); err != nil {
 				return err
 			}
@@ -80,16 +82,12 @@ func (r *OtelMetricRepository) CreateBatch(metrics []models.OtelMetric) (int, er
 // strips that (see repository_notification.go).
 func (r *OtelMetricRepository) ListNames(f *models.OtelMetricFilter) ([]models.OtelMetricName, error) {
 	where, args := otelMetricScope(f)
-	rows, err := DB.Query(`
-		SELECT metric_name, metric_type, unit, created_at AS last_at
-		FROM otel_metrics
-		WHERE id IN (
-			SELECT MAX(id) FROM otel_metrics
-			WHERE `+where+`
-			GROUP BY metric_name, metric_type, unit
-		)
-		ORDER BY created_at DESC
-	`, args...)
+	rows, err := DB.Query(`SELECT metric_name, metric_type, unit, created_at, last_received, description FROM (
+ SELECT metric_name, metric_type, unit, created_at, description,
+ MAX(received_at) OVER (PARTITION BY metric_name, metric_type, unit) AS last_received,
+ ROW_NUMBER() OVER (PARTITION BY metric_name, metric_type, unit ORDER BY created_at DESC, id DESC) AS rank
+ FROM otel_metrics WHERE `+where+`
+ ) WHERE rank = 1 ORDER BY created_at DESC`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -98,9 +96,11 @@ func (r *OtelMetricRepository) ListNames(f *models.OtelMetricFilter) ([]models.O
 	var names []models.OtelMetricName
 	for rows.Next() {
 		var n models.OtelMetricName
-		if err := rows.Scan(&n.MetricName, &n.MetricType, &n.Unit, &n.LastAt); err != nil {
+		var received int64
+		if err := rows.Scan(&n.MetricName, &n.MetricType, &n.Unit, &n.LastAt, &received, &n.Description); err != nil {
 			return nil, err
 		}
+		n.LastReceivedAt = receiptTime(received)
 		names = append(names, n)
 	}
 	return names, rows.Err()
@@ -110,17 +110,12 @@ func (r *OtelMetricRepository) ListNames(f *models.OtelMetricFilter) ([]models.O
 // metrics not received in the last 15 minutes. Values and attribute series are
 // deliberately omitted; they do not describe how many metrics a service has.
 func (r *OtelMetricRepository) ListNamesByObservedService() ([]models.ObservedServiceMetricName, error) {
-	rows, err := DB.Query(`
-		SELECT service_id, metric_name, metric_type, unit, created_at
-		FROM otel_metrics
-		WHERE id IN (
-			SELECT MAX(m.id) FROM otel_metrics m
-			JOIN observed_services target ON target.id = m.service_id
-			WHERE m.agent_id = ''
-			GROUP BY m.service_id, m.metric_name, m.metric_type, m.unit
-		)
-		ORDER BY service_id, metric_name, metric_type, unit
-	`)
+	rows, err := DB.Query(`SELECT service_id, metric_name, metric_type, unit, created_at, last_received, description FROM (
+ SELECT m.service_id, m.metric_name, m.metric_type, m.unit, m.created_at, m.description,
+ MAX(m.received_at) OVER (PARTITION BY m.service_id, m.metric_name, m.metric_type, m.unit) AS last_received,
+ ROW_NUMBER() OVER (PARTITION BY m.service_id, m.metric_name, m.metric_type, m.unit ORDER BY m.created_at DESC, m.id DESC) AS rank
+ FROM otel_metrics m JOIN observed_services target ON target.id = m.service_id WHERE m.agent_id = ''
+ ) WHERE rank = 1 ORDER BY service_id, metric_name, metric_type, unit`)
 	if err != nil {
 		return nil, err
 	}
@@ -129,9 +124,11 @@ func (r *OtelMetricRepository) ListNamesByObservedService() ([]models.ObservedSe
 	names := make([]models.ObservedServiceMetricName, 0)
 	for rows.Next() {
 		var n models.ObservedServiceMetricName
-		if err := rows.Scan(&n.ServiceID, &n.MetricName, &n.MetricType, &n.Unit, &n.LastAt); err != nil {
+		var received int64
+		if err := rows.Scan(&n.ServiceID, &n.MetricName, &n.MetricType, &n.Unit, &n.LastAt, &received, &n.Description); err != nil {
 			return nil, err
 		}
+		n.LastReceivedAt = receiptTime(received)
 		names = append(names, n)
 	}
 	return names, rows.Err()
@@ -156,7 +153,7 @@ func (r *OtelMetricRepository) listPoints(f *models.OtelMetricFilter, limit int)
 	rows, err := DB.Query(`
 		SELECT * FROM (
 			SELECT id, service_id, agent_id, service_name, metric_name, metric_type, unit,
-				attributes, value, count, total, time_unix_nano, created_at, temporality, start_time_unix_nano, is_monotonic, stream_key, stream_label
+				attributes, value, count, total, time_unix_nano, created_at, temporality, start_time_unix_nano, is_monotonic, stream_key, stream_label, received_at, description, resource, scope
 			FROM otel_metrics
 			WHERE `+where+`
 			ORDER BY created_at DESC, id DESC
@@ -171,15 +168,24 @@ func (r *OtelMetricRepository) listPoints(f *models.OtelMetricFilter, limit int)
 	var points []models.OtelMetric
 	for rows.Next() {
 		var m models.OtelMetric
+		var received int64
+		var resource, scope string
 		var attributes sql.NullString
 		if err := rows.Scan(
 			&m.ID, &m.ServiceID, &m.AgentID, &m.ServiceName, &m.MetricName, &m.MetricType, &m.Unit,
-			&attributes, &m.Value, &m.Count, &m.Total, &m.TimeUnixNano, &m.CreatedAt, &m.Temporality, &m.StartTimeUnixNano, &m.IsMonotonic, &m.StreamKey, &m.StreamLabel,
+			&attributes, &m.Value, &m.Count, &m.Total, &m.TimeUnixNano, &m.CreatedAt, &m.Temporality, &m.StartTimeUnixNano, &m.IsMonotonic, &m.StreamKey, &m.StreamLabel, &received, &m.Description, &resource, &scope,
 		); err != nil {
 			return nil, err
 		}
 		if attributes.Valid {
 			m.Attributes = []byte(attributes.String)
+		}
+		m.ReceivedAt = receiptTime(received)
+		if resource != "" {
+			m.Resource = json.RawMessage(resource)
+		}
+		if scope != "" {
+			m.Scope = json.RawMessage(scope)
 		}
 		points = append(points, m)
 	}
@@ -286,7 +292,7 @@ func (r *OtelMetricRepository) HistogramQuantiles(f *models.OtelMetricFilter) (*
 	where += " AND metric_type = 'histogram' AND bucket_bounds != ''"
 
 	rows, err := DB.Query(`
-		SELECT unit, attributes, stream_key, bucket_bounds, bucket_counts, temporality, exemplars
+		SELECT unit, attributes, stream_key, bucket_bounds, bucket_counts, temporality, exemplars, start_time_unix_nano
 		FROM otel_metrics
 		WHERE `+where+`
 		ORDER BY created_at ASC, id ASC LIMIT 50001
@@ -317,7 +323,8 @@ func (r *OtelMetricRepository) HistogramQuantiles(f *models.OtelMetricFilter) (*
 		}
 		var rowUnit, attributes, streamKey, boundsJSON, countsJSON, exemplarJSON string
 		var temporality int
-		if err := rows.Scan(&rowUnit, &attributes, &streamKey, &boundsJSON, &countsJSON, &temporality, &exemplarJSON); err != nil {
+		var startTime uint64
+		if err := rows.Scan(&rowUnit, &attributes, &streamKey, &boundsJSON, &countsJSON, &temporality, &exemplarJSON, &startTime); err != nil {
 			return nil, err
 		}
 		if exemplarJSON != "" {
@@ -344,6 +351,9 @@ func (r *OtelMetricRepository) HistogramQuantiles(f *models.OtelMetricFilter) (*
 			layouts[boundsJSON] = series
 		}
 		signature := attributes + "\x00" + streamKey
+		if temporality == 2 {
+			signature += "\x00" + strconv.FormatUint(startTime, 10)
+		}
 		accumulator, ok := series[signature]
 		if !ok {
 			// Temporality 2 is cumulative; delta and unspecified both sum, which

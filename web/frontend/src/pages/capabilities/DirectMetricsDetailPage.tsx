@@ -185,7 +185,7 @@ export function DirectMetricsDetailPage() {
         }
       />
 
-      <DirectServiceMetricsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} />
+      <DirectServiceMetricsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} active={service.isActive} />
 
       <ConfirmDialog
         isOpen={Boolean(selectedConfirm)}

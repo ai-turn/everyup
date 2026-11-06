@@ -7,6 +7,7 @@ import type {
   TraceSummary,
   OtelHistogramQuantiles,
   OtelMetricName,
+  OtelMetricHealth,
   OtelMetricPoint,
   OtelServiceMetric,
 } from './telemetry';
@@ -318,6 +319,8 @@ export const agentsApi = {
   // Each service's representative metric (latest value) for the project cards.
   getAgentServiceMetrics: (agentId: string) =>
     request<OtelServiceMetric[]>(`/agents/${agentId}/service-metrics`),
+  getAgentServiceMetricHealth: (agentId: string, key: string) =>
+    request<OtelMetricHealth>(`/agents/${agentId}/services/${encodeURIComponent(key)}/otel-metrics/health`),
   getAgentServiceOtelMetricNames: (agentId: string, key: string) =>
     request<OtelMetricName[]>(`/agents/${agentId}/services/${encodeURIComponent(key)}/otel-metrics`),
   getAgentServiceOtelMetricPoints: (

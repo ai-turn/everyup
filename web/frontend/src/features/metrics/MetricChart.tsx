@@ -1,17 +1,18 @@
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { Button, MaterialIcon, StatusLight, type StatusTone } from '../../components/common';
+import { Button, MaterialIcon, StatusLight } from '../../components/common';
 import { Tooltip as HintTooltip } from '../../components/common/Tooltip';
 import {
   CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSkeleton, ChartStats, ChartStatsLegend, ChartSummary, ChartTooltip,
   areaGradient, areaProps, formatAxisValue, formatTimeLabel, getSeriesPalette,
-  getSeriesDash, gridProps, lineProps, medianStep, niceYAxis, rangeAreas, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../components/charts';
 import type { AlertRule, OtelMetricName, OtelMetricPoint } from '../../services/api';
 import { TracePanel } from '../traces/components/TracePanel';
 import { buildMetricSeries, MAX_METRIC_SERIES, pointIdentity } from './metricSeries';
 import { useMetricQuery, type MetricWindow } from './useMetricQuery';
 import { useMetricRead, type MetricSource } from './useMetricRead';
+import { metricFlags, metricIdentity, metricTitle } from './metricPresentation';
 import { MetricExplorerControls } from './MetricExplorerControls';
 export type { MetricSource } from './useMetricRead';
 
@@ -22,25 +23,7 @@ const formatValue = (value: number) => String(value !== 0 && Math.abs(value) < 0
 const hasFinite = (chartData: Record<string, number>[], series: { key: string }[]) => chartData.some(row => series.some(item => Number.isFinite(row[item.key])));
 const lastFinite = (chartData: Record<string, number>[], key: string) => chartData.map(row => row[key]).filter(Number.isFinite).pop();
 
-// Mirrors compareAlertValue in the backend's log_ingest.go.
-function exceeds(value: number, operator: string, threshold: number) {
-  switch (operator) {
-    case 'gt': return value > threshold;
-    case 'lt': return value < threshold;
-    case 'lte': return value <= threshold;
-    case 'eq': return value === threshold;
-    default: return value >= threshold;
-  }
-}
-
-function silenceLabel(ms: number) {
-  const minutes = Math.floor(ms / 60_000);
-  return minutes < 60 ? `${minutes}분째 수신 없음` : `${Math.floor(minutes / 60)}시간째 수신 없음`;
-}
-
-export interface MetricFlag { tone: StatusTone; label: string }
-
-export function MetricChart({ source, meta, window, refreshKey, rules, expanded = false, onExpand, onAttention, showTooltip, onHover }: {
+export function MetricChart({ source, meta, window, refreshKey, rules, expanded = false, onExpand, showTooltip, onHover, pinned, onPin, pinDisabled }: {
   window: MetricWindow;
   refreshKey?: number;
   source: MetricSource;
@@ -48,8 +31,9 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
   rules: AlertRule[];
   expanded?: boolean;
   onExpand?: () => void;
-  /** Reports what needs a look (threshold breach, silence) so the grid can list it above the panels. */
-  onAttention?: (name: string, flags: MetricFlag[]) => void;
+  pinned?: boolean;
+  onPin?: () => void;
+  pinDisabled?: boolean;
   showTooltip: boolean;
   onHover?: (name: string | null) => void;
 }) {
@@ -91,55 +75,47 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
     const previous = latest.get(id);
     if (!previous || Date.parse(point.createdAt) >= Date.parse(previous.createdAt)) latest.set(id, point);
   }
-  const breached = rules.some(rule => [...latest.values()].some(point => exceeds(point.value, rule.operator, rule.threshold)));
-  // Silence is measured against this metric's own export interval, never under 5 minutes.
-  const silentMs = Date.parse(window.to) - Date.parse(meta.lastAt);
-  const silent = silentMs > Math.max(3 * (medianStep(chartData.map(row => row.t)) || 60_000), 5 * 60_000);
-  const silence = silent ? silenceLabel(silentMs) : '';
-  const flags = useMemo<MetricFlag[]>(() => [
-    ...(breached ? [{ tone: 'error' as const, label: '임계값 초과' }] : []),
-    ...(silence ? [{ tone: 'warn' as const, label: silence }] : []),
-  ], [breached, silence]);
-  useEffect(() => {
-    onAttention?.(name, flags);
-    return () => onAttention?.(name, []);
-  }, [name, flags, onAttention]);
-
-  // One series: its numbers sit in the title row. Several: chips carrying each
-  // series' latest value — the opened view has room for a per-series stats table instead.
+  const flags = metricFlags(meta);
   const summary = !hasData || pointsError || !read.data ? null
     : single ? <ChartSummary values={chartData.map(row => row[series[0].key])} unit={unit} currentLabel={mode === 'rate' ? '최근 계산값' : undefined} valueFormatter={formatValue} />
-    : expanded ? null
-    : <ChartLegend items={series.map((item, index) => {
-      const value = lastFinite(chartData, item.key);
-      return { label: item.label, color: seriesColors[index % seriesColors.length], value: value === undefined ? undefined : `${formatValue(value)}${unit}` };
-    })} />;
-  const right = flags.length || summary ? <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1.5">
-    {flags.map(flag => <StatusLight key={flag.label} tone={flag.tone} label={flag.label} />)}
-    {summary}
-  </div> : null;
+    : <span className="type-caption text-text-muted">{series.length}개 시리즈 · 최신 값은 범례에서 확인</span>;
+  const legend = !single && hasData && <ChartLegend items={series.map((item, index) => {
+    const value = lastFinite(chartData, item.key);
+    return { label: item.label, color: seriesColors[index % seriesColors.length], value: value === undefined ? undefined : `${formatValue(value)}${unit}` };
+  })} />;
 
   return (
     <div className="min-w-0 space-y-3">
       {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
       <ChartCard
         title={expanded ? name : (
-          <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} className="block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline">
-            {name}
+          <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} aria-label={name} className="block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline">
+            {metricTitle(meta)}
           </button></HintTooltip>
         )}
         // A metric name is an identifier, so it reads in mono like other code.
-        titleClassName="font-mono text-sm"
+        titleClassName={expanded || metricTitle(meta) === name ? "font-mono text-sm" : undefined}
         wrapTitle={expanded}
         className="min-w-0"
         // A histogram is stored as each export's average, so that is what the line is.
-        unit={[meta.metricType, histogram && '수신 평균', mode === 'rate' && '초당 증가량', unit].filter(Boolean).join(', ')}
-        right={right}
+        right={<Button variant={pinned ? 'secondary' : 'ghost'} size="sm" aria-label={`${name} ${pinned ? '고정 해제' : '고정'}`} aria-pressed={pinned} disabled={pinDisabled} onClick={onPin}><MaterialIcon name="push_pin" /></Button>}
       >
+        <div className="mb-3 space-y-2">
+          {!expanded && <p className="truncate font-mono text-xs text-text-muted"><HintTooltip content={name} focusable><span>{name}</span></HintTooltip></p>}
+          <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <span className="type-caption text-text-muted">{[meta.metricType, histogram && '수신 평균', mode === 'rate' && '초당 증가량', unit].filter(Boolean).join(', ')}</span>
+            {summary}
+          </div>
+          {expanded && meta.description && <p className="type-body text-text-muted">{meta.description}</p>}
+          {expanded && flags.length > 0 && <div className="flex flex-wrap gap-3">{flags.map(flag => <StatusLight key={flag.label} {...flag} />)}</div>}
+        </div>
         {expanded && <dl aria-label="메트릭 정보" className="mb-3 flex flex-wrap gap-x-5 gap-y-2 type-caption text-text-muted">
           <div className="flex flex-wrap items-baseline gap-1.5">
-            <dt>마지막 수신</dt>
+            <dt>마지막 측정</dt>
             <dd><time dateTime={meta.lastAt}>{new Date(meta.lastAt).toLocaleString('ko-KR', { hour12: false })}</time></dd>
+          </div>
+          <div className="flex flex-wrap items-baseline gap-1.5">
+            <dt>마지막 수신</dt><dd>{meta.lastReceivedAt ? <time dateTime={meta.lastReceivedAt}>{new Date(meta.lastReceivedAt).toLocaleString('ko-KR', { hour12: false })}</time> : '기록 없음'}</dd>
           </div>
           <div className="flex flex-wrap items-baseline gap-1.5">
             <dt>조회 구간</dt>
@@ -195,7 +171,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           mode === 'rate' && points.length > 0 ? <div className="flex items-center justify-center text-center type-body text-text-muted" style={{ height: CHART_HEIGHT }}>초당 증가량을 계산할 수 없습니다. 단조 증가하는 sum의 누적 시작 정보와 연속된 포인트가 필요합니다.</div> : <ChartEmpty />
         ) : (
           <>
-            <div onMouseEnter={() => onHover?.(name)} onMouseLeave={() => onHover?.(null)}>
+            <div onMouseEnter={() => onHover?.(metricIdentity(meta))} onMouseLeave={() => onHover?.(null)}>
               <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
                 <ComposedChart data={chartData} syncId={expanded ? undefined : SYNC_ID} syncMethod="value" margin={CHART_MARGIN}>
                   {single && areaGradient(gradientId, seriesColors[0])}
@@ -224,6 +200,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
+            {!expanded && legend && <div className="mt-3 max-h-24 overflow-y-auto">{legend}</div>}
             {expanded && !single && (
               <div className="mt-2 overflow-x-auto">
                 <ChartStatsLegend
@@ -247,6 +224,12 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         {read.data?.pointsTruncated && <p role="status" className="mt-3 type-body text-text-muted">{`선택한 시리즈의 최근 ${read.data.pointLimit.toLocaleString()}개 포인트만 표시합니다. 기간이나 Attribute 필터를 좁혀 주세요.${histogram ? ' 분포는 선택한 시리즈의 전체 조회 기간을 기준으로 합니다.' : ''}`}</p>}
         {!expanded && read.data && (read.data.series.length > MAX_METRIC_SERIES || read.data.seriesTruncated) && <Button variant="ghost" size="sm" onClick={onExpand}>시리즈 선택하기 ({read.data.series.length}{read.data.seriesTruncated ? '+' : ''}개)</Button>}
         {expanded && selected === '[]' && <p className="mt-3 type-body text-text-muted">선택한 시리즈가 없습니다. 시리즈를 선택하거나 기본 선택으로 돌아가세요.</p>}
+        {expanded && points.length > 0 && <details className="mt-4 border-t border-ui-border-soft pt-3">
+          <summary className="min-h-11 cursor-pointer type-label text-text-base">수집 정보</summary>
+          <p className="mb-3 type-caption text-text-muted">표시한 최신 포인트의 Resource와 Scope입니다.</p>
+          <dl className="space-y-2 type-caption text-text-muted">{Object.entries(points[points.length - 1]?.resource ?? {}).map(([key, value]) => <div key={key} className="grid gap-1 sm:grid-cols-2"><dt className="break-all font-mono">{key}</dt><dd className="break-all">{value}</dd></div>)}</dl>
+          <p className="mt-3 break-all type-caption text-text-muted">Scope: {points[points.length - 1]?.scope?.name || '기록 없음'} {points[points.length - 1]?.scope?.version}</p>
+        </details>}
         {activeTraceId && <TracePanel traceId={activeTraceId} target={source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }} onClose={() => setActiveTraceId(null)} />}
       </ChartCard>
     </div>

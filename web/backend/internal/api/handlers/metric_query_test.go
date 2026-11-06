@@ -59,6 +59,19 @@ func TestMetricExplorerQueryBothConnectionPaths(t *testing.T) {
 		t.Fatalf("valid long metric query rejected: %d", status.StatusCode)
 	}
 	for index, path := range paths {
+		healthPath := strings.TrimSuffix(path, "/query") + "/health"
+		unauthorized, _ := ts.doRequest(t, "GET", healthPath, nil)
+		if unauthorized.StatusCode != 401 {
+			t.Fatalf("unauthenticated health: %d", unauthorized.StatusCode)
+		}
+		_, healthResponse := ts.doRequest(t, "GET", healthPath, nil, auth...)
+		var health models.OtelMetricHealth
+		if err := json.Unmarshal(healthResponse.Data, &health); err != nil {
+			t.Fatal(err)
+		}
+		if !healthResponse.Success || len(health.Metrics) != 1 || health.Metrics[0].MetricName != "jobs" || health.Metrics[0].LastReceivedAt == nil || health.Metrics[0].FreshSeries != 1 {
+			t.Fatalf("health scope/receipt: %+v", health)
+		}
 		status, _ := ts.doRequest(t, "GET", path+"?name=jobs", nil)
 		if status.StatusCode != 401 {
 			t.Fatalf("unauthenticated query status %d", status.StatusCode)

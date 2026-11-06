@@ -22,7 +22,7 @@ export function useMetricWindow(range: GlobalTimeRange, refreshKey = 0): MetricW
 
 export function useMetricQuery() {
   const [params, setParams] = useSearchParams();
-  const update = useCallback((changes: { range?: GlobalTimeRange; metricSearch?: string | null; metric?: string | null; metricAttributes?: string | null; metricSeries?: string | null; metricMode?: string | null }, replace = false) => setParams(current => {
+  const update = useCallback((changes: { range?: GlobalTimeRange; metricSearch?: string | null; metricType?: string | null; metricUnit?: string | null; metric?: string | null; metricAttributes?: string | null; metricSeries?: string | null; metricMode?: string | null }, replace = false) => setParams(current => {
     const next = new URLSearchParams(current);
     for (const [key, value] of Object.entries(changes)) {
       if (value) next.set(key, value); else next.delete(key);
@@ -35,6 +35,8 @@ export function useMetricQuery() {
     // Docker service tabs also use q for logs and requests.
     search: params.get('metricSearch') ?? '',
     metric: params.get('metric'),
+    metricType: params.get('metricType'),
+    metricUnit: params.get('metricUnit'),
     attributes: params.get('metricAttributes') ?? '',
     series: params.get('metricSeries') ?? '',
     // null = not chosen: a sum shows its rate when one can be computed.

@@ -80,6 +80,7 @@ export type {
   ObservedServiceMetricName,
   OtelHistogramQuantiles,
   OtelMetricName,
+  OtelMetricHealth,
   OtelMetricPoint,
   MetricQuery,
   MetricQueryResult,

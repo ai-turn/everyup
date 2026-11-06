@@ -73,16 +73,16 @@ test('catalog HTTP failure recovers through retry instead of leaving an empty li
 test('metric names, chart and optional groups have independent HTTP failure states', async ({ page }) => {
   const state = await metricsFixture(page);
   state.failures.add('/projects');
-  state.failures.add('/observed-services/metrics-service/otel-metrics');
+  state.failures.add('/observed-services/metrics-service/otel-metrics/health');
   state.failures.add('points:jvm.memory.used');
   await page.goto('http://127.0.0.1:4174/metrics/metrics-service');
   await expect(page.getByText('그룹 목록을 불러오지 못했습니다', { exact: true })).toBeVisible();
   const namesError = page.getByRole('heading', { name: '메트릭 목록을 불러오지 못했습니다' });
   await expect(namesError).toBeVisible();
-  await expect(page.getByText('수신한 메트릭이 없습니다.', { exact: false })).toHaveCount(0);
-  state.failures.delete('/observed-services/metrics-service/otel-metrics');
+  await expect(page.getByText('수신한 메트릭이 없습니다', { exact: false })).toHaveCount(0);
+  state.failures.delete('/observed-services/metrics-service/otel-metrics/health');
   await namesError.locator('..').getByRole('button', { name: '다시 시도' }).click();
-  const memory = page.locator('section').filter({ has: page.getByRole('heading', { name: 'jvm.memory.used', exact: true }) });
+  const memory = page.locator('section').filter({ has: page.getByRole('heading', { name: 'jvm.memory.used', exact: true }) }).last();
   await expect(memory.getByText('메트릭을 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(memory.getByText('이 기간에 데이터 없음', { exact: true })).toHaveCount(0);
   state.failures.delete('points:jvm.memory.used');
@@ -97,12 +97,12 @@ test('refresh keeps existing charts visible while names are loading', async ({ p
   const state = await metricsFixture(page);
   await page.goto('http://127.0.0.1:4174/metrics/metrics-service');
   await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
-  const initialReads = state.requests.filter(path => path === '/observed-services/metrics-service/otel-metrics').length;
+  const initialReads = state.requests.filter(path => path === '/observed-services/metrics-service/otel-metrics/health').length;
   let release = () => {};
   state.holdNames = new Promise<void>(resolve => { release = resolve; });
   try {
     await page.getByRole('button', { name: '새로고침', exact: true }).click();
-    await expect.poll(() => state.requests.filter(path => path === '/observed-services/metrics-service/otel-metrics').length).toBeGreaterThan(initialReads);
+    await expect.poll(() => state.requests.filter(path => path === '/observed-services/metrics-service/otel-metrics/health').length).toBeGreaterThan(initialReads);
     await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
   } finally {
     release();
@@ -135,5 +135,5 @@ test('metrics connection creates setup instructions and waits for actual metric 
   await expect(dialog.getByRole('region', { name: '데이터 수신 확인' })).toContainText('수신 대기');
   await dialog.getByRole('button', { name: '메트릭 보기', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'new-metrics-service' })).toBeVisible();
-  await expect(page.getByText('수신한 메트릭이 없습니다.', { exact: false })).toBeVisible();
+  await expect(page.getByText('수신한 메트릭이 없습니다', { exact: false })).toBeVisible();
 });
