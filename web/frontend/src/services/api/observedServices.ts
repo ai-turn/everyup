@@ -8,6 +8,7 @@ import type {
   TraceSummary,
   OtelHistogramQuantiles,
   OtelMetricName,
+  OtelMetricHealth,
   OtelMetricPoint,
   OtelServiceMetric,
   ObservedServiceMetricName,
@@ -151,6 +152,8 @@ export const observedServicesApi = {
   getObservedServiceMetricCatalog: () =>
     request<ObservedServiceMetricName[]>('/observed-services/metric-catalog'),
 
+  getObservedServiceMetricHealth: (id: string) =>
+    request<OtelMetricHealth>(`/observed-services/${id}/otel-metrics/health`),
   getObservedServiceOtelMetricNames: (id: string) =>
     request<OtelMetricName[]>(`/observed-services/${id}/otel-metrics`),
 

@@ -5,6 +5,17 @@ export interface OtelMetricName {
   metricType: 'gauge' | 'sum' | 'histogram';
   unit?: string;
   lastAt: string;
+  lastReceivedAt?: string;
+  description?: string;
+  breached?: boolean;
+  conflicting?: boolean;
+  freshSeries?: number;
+}
+
+export interface OtelMetricHealth {
+  metrics: OtelMetricName[];
+  checkedAt: string;
+  freshnessSeconds: number;
 }
 
 export interface ObservedServiceMetricName extends OtelMetricName {
@@ -21,6 +32,10 @@ export interface OtelMetricPoint {
   count?: number;
   total?: number;
   createdAt: string;
+  receivedAt?: string;
+  description?: string;
+  resource?: Record<string, string>;
+  scope?: { name?: string; version?: string };
   streamKey?: string;
   streamLabel?: string;
   temporality?: number;

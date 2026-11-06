@@ -34,6 +34,10 @@ type OtelMetric struct {
 	Total        float64         `json:"total,omitempty"`
 	TimeUnixNano uint64          `json:"timeUnixNano"`
 	CreatedAt    time.Time       `json:"createdAt"`
+	ReceivedAt   *time.Time      `json:"receivedAt,omitempty"`
+	Description  string          `json:"description,omitempty"`
+	Resource     json.RawMessage `json:"resource,omitempty"`
+	Scope        json.RawMessage `json:"scope,omitempty"`
 
 	// BucketBounds holds the N upper bounds of an explicit histogram and
 	// BucketCounts the N+1 per-bucket observation counts (the extra slot is the
@@ -68,10 +72,15 @@ type OtelHistogramQuantiles struct {
 
 // OtelMetricName describes one metric a service exports, for the picker UI.
 type OtelMetricName struct {
-	MetricName string    `json:"metricName"`
-	MetricType string    `json:"metricType"`
-	Unit       string    `json:"unit,omitempty"`
-	LastAt     time.Time `json:"lastAt"`
+	MetricName     string     `json:"metricName"`
+	MetricType     string     `json:"metricType"`
+	Unit           string     `json:"unit,omitempty"`
+	LastAt         time.Time  `json:"lastAt"`
+	LastReceivedAt *time.Time `json:"lastReceivedAt,omitempty"`
+	Description    string     `json:"description,omitempty"`
+	Breached       bool       `json:"breached,omitempty"`
+	Conflicting    bool       `json:"conflicting,omitempty"`
+	FreshSeries    int        `json:"freshSeries"`
 }
 
 // ObservedServiceMetricName is a retained metric definition in a direct service's catalog.
@@ -123,4 +132,10 @@ type OtelMetricQueryResult struct {
 	SeriesTruncated bool               `json:"seriesTruncated"`
 	PointsTruncated bool               `json:"pointsTruncated"`
 	PointLimit      int                `json:"pointLimit"`
+}
+
+type OtelMetricHealth struct {
+	Metrics          []OtelMetricName `json:"metrics"`
+	CheckedAt        time.Time        `json:"checkedAt"`
+	FreshnessSeconds int              `json:"freshnessSeconds"`
 }

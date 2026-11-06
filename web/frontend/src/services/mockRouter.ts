@@ -1402,7 +1402,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     return scenarioObservedServices(scenario)
       .filter(service => service.signals.includes('metrics'))
       .flatMap(service => (serviceTelemetry.get(service.id)?.metricNames ?? []).map(metric => ({
-        ...metric, serviceId: service.id,
+        ...metric, lastReceivedAt: metric.lastAt, serviceId: service.id,
       }))) as T;
   }
   if (endpoint === '/observed-services/service-metrics') {
@@ -1426,6 +1426,10 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   const observedFilterMatch = endpoint.match(/^\/observed-services\/([^/]+)\/log-filter$/);
   if (observedFilterMatch) return { levels: mockDirectLogFilters.get(observedFilterMatch[1]) ?? [] } as T;
   if (/^\/observed-services\/[^/]+\/traces/.test(endpoint)) return scopedTraceList(endpoint) as T;
+  if (/\/otel-metrics\/health$/.test(endpoint)) {
+    const metrics = (endpointTelemetry(endpoint)?.metricNames ?? []).map(metric => ({ ...metric, lastReceivedAt: metric.lastAt, freshSeries: 1 }));
+    return { metrics, checkedAt: new Date().toISOString(), freshnessSeconds: 300 } as T;
+  }
   if (/^\/observed-services\/[^/]+\/otel-metrics\/query/.test(endpoint)) return mockMetricQuery(endpointTelemetry(endpoint)?.metricPoints[new URLSearchParams(endpoint.split('?')[1]).get('name') ?? ''] ?? [], new URLSearchParams(endpoint.split('?')[1])) as T;
   if (/^\/observed-services\/[^/]+\/otel-metrics\/quantiles/.test(endpoint)) return (endpointTelemetry(endpoint) ? telemetryQuantiles(endpointTelemetry(endpoint)!, new URLSearchParams(endpoint.split('?')[1]).get('name') ?? '', new URLSearchParams(endpoint.split('?')[1])) : null) as T;
   if (/^\/observed-services\/[^/]+\/otel-metrics\/points/.test(endpoint)) return (endpointTelemetry(endpoint)?.metricPoints[new URLSearchParams(endpoint.split('?')[1]).get('name') ?? ''] ?? []) as T;

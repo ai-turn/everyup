@@ -1,10 +1,11 @@
 import { useSearchParams } from 'react-router-dom';
-import { Button, EmptyState, ListToolbar, ListViewToggle, MaterialIcon, PageHeader, SearchInput } from '../../components/common';
+import { Button, EmptyState, ListToolbar, ListViewToggle, MaterialIcon, PageHeader, SearchInput, Select } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
 import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { MetricServices } from '../../features/metrics/MetricServices';
 import { useMetricServices } from '../../features/metrics/useMetricServices';
+import { metricCollection } from '../../features/metrics/metricPresentation';
 
 const METRIC_SKELETONS = ['metric-1', 'metric-2', 'metric-3', 'metric-4', 'metric-5', 'metric-6'];
 
@@ -14,7 +15,13 @@ export function MetricsPage() {
   const query = params.get('q') ?? '';
   const search = query.trim().toLowerCase();
   const { rows, loading, error, reload } = useMetricServices();
-  const filtered = rows.filter(row => row.name.toLowerCase().includes(search) || row.metricNames.some(name => name.toLowerCase().includes(search)));
+  const sort = params.get('sort') === 'name' ? 'name' : 'collection';
+  const collectionPriority = (row: typeof rows[number]) => {
+    const tone = metricCollection(row.active, row.lastReceivedAt, row.lastMetricAt).tone;
+    return tone === 'warn' ? 0 : tone === 'idle' ? 1 : 2;
+  };
+  const filtered = rows.filter(row => row.name.toLowerCase().includes(search) || row.metricNames.some(name => name.toLowerCase().includes(search)))
+    .sort((a, b) => (sort === 'collection' ? collectionPriority(a) - collectionPriority(b) : 0) || a.name.localeCompare(b.name));
   const setQuery = (value: string) => setParams(current => {
     const next = new URLSearchParams(current);
     if (value) next.set('q', value); else next.delete('q');
@@ -27,6 +34,9 @@ export function MetricsPage() {
     </PageHeader>
     <ListToolbar search={<SearchInput value={query} onChange={event => setQuery(event.target.value)} placeholder="서비스 또는 메트릭 이름으로 찾기" aria-label="서비스 또는 메트릭 이름으로 찾기" />}>
       <Button variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+      <Select aria-label="서비스 정렬" value={sort} onChange={event => setParams(current => { const next = new URLSearchParams(current); next.set('sort', event.target.value); return next; }, { replace: true })}>
+        <option value="collection">수집 확인 필요순</option><option value="name">이름순</option>
+      </Select>
       <div className="sm:ml-auto"><ListViewToggle view={view} onChange={setView} /></div>
     </ListToolbar>
     {loading ? <div aria-label="메트릭 서비스 조회 중" className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

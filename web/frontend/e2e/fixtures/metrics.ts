@@ -39,9 +39,9 @@ export async function metricsFixture(page: Page) {
     if (path === '/observed-services') data = [service, { ...service, id: 'waiting-service', name: 'waiting-worker' }];
     else if (path === '/observed-services/metric-catalog') data = catalog;
     else if (path === `/observed-services/${service.id}`) data = service;
-    else if (path === `/observed-services/${service.id}/otel-metrics`) {
+    else if (path === `/observed-services/${service.id}/otel-metrics` || path === `/observed-services/${service.id}/otel-metrics/health`) {
       await state.holdNames;
-      data = names;
+      data = path.endsWith('/health') ? { metrics: names, checkedAt: new Date().toISOString(), freshnessSeconds: 300 } : names;
     } else if (path.endsWith('/points') || path.endsWith('/query')) {
       const points = state.points.get(name ?? '') ?? [
         { id: 1, metricName: name, metricType: names.find(item => item.metricName === name)?.metricType ?? 'gauge', unit: names.find(item => item.metricName === name)?.unit, value: 0, createdAt: new Date(Date.now() - 60_000).toISOString() },

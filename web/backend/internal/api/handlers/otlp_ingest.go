@@ -368,6 +368,9 @@ func (h *OTLPIngestHandler) IngestMetrics(c *fiber.Ctx) error {
 					points[i].ServiceName = serviceName
 					points[i].StreamKey = streamKey
 					points[i].StreamLabel = streamLabel
+					points[i].Resource = metricResource(resourceMap)
+					points[i].Scope = mustJSON(map[string]string{"name": boundedMetricText(scope.GetName(), 256), "version": boundedMetricText(scope.GetVersion(), 256)})
+					points[i].Description = boundedMetricText(metric.GetDescription(), 1024)
 				}
 				rows = append(rows, points...)
 			}
@@ -433,7 +436,11 @@ func flattenMetric(metric *metricspb.Metric) ([]models.OtelMetric, bool) {
 	case metric.GetHistogram() != nil:
 		temporality := int(metric.GetHistogram().GetAggregationTemporality())
 		for _, dp := range metric.GetHistogram().GetDataPoints() {
+			if uint32(dp.GetFlags())&1 != 0 {
+				continue
+			}
 			row := histogramRow(name, metric.GetUnit(), dp.GetCount(), dp.GetSum(), dp.GetAttributes(), dp.GetTimeUnixNano())
+			row.StartTimeUnixNano = dp.GetStartTimeUnixNano()
 			attachBuckets(&row, dp.GetExplicitBounds(), dp.GetBucketCounts(), temporality)
 			attachExemplars(&row, dp.GetExemplars())
 			rows = append(rows, row)
@@ -441,7 +448,11 @@ func flattenMetric(metric *metricspb.Metric) ([]models.OtelMetric, bool) {
 	case metric.GetExponentialHistogram() != nil:
 		temporality := int(metric.GetExponentialHistogram().GetAggregationTemporality())
 		for _, dp := range metric.GetExponentialHistogram().GetDataPoints() {
+			if uint32(dp.GetFlags())&1 != 0 {
+				continue
+			}
 			row := histogramRow(name, metric.GetUnit(), dp.GetCount(), dp.GetSum(), dp.GetAttributes(), dp.GetTimeUnixNano())
+			row.StartTimeUnixNano = dp.GetStartTimeUnixNano()
 			if bounds, counts, ok := explicitFromExponential(dp); ok {
 				attachBuckets(&row, bounds, counts, temporality)
 			}
@@ -949,4 +960,24 @@ func decodeGzipOTLP(body []byte) ([]byte, error) {
 		return nil, fmt.Errorf("gzip OTLP payload exceeds %d bytes after decompression", maxOTLPDecodedSize)
 	}
 	return decoded, nil
+}
+
+// Keep only bounded operational dimensions; arbitrary resource values can contain
+// user identifiers or credentials. The complete identity still participates in streamKey.
+func boundedMetricText(value string, limit int) string {
+	runes := []rune(value)
+	if len(runes) > limit {
+		return string(runes[:limit])
+	}
+	return value
+}
+
+func metricResource(resource map[string]interface{}) json.RawMessage {
+	out := map[string]string{}
+	for _, key := range []string{"service.name", "service.namespace", "service.instance.id", "service.version", "deployment.environment.name", "deployment.environment", "cloud.region", "cloud.availability_zone", "k8s.namespace.name", "k8s.pod.name", "host.name", "container.name"} {
+		if value, ok := resource[key].(string); ok {
+			out[key] = boundedMetricText(value, 256)
+		}
+	}
+	return mustJSON(out)
 }

@@ -8,6 +8,7 @@ export interface MetricServiceRow {
   active: boolean;
   metricNames: string[];
   lastMetricAt?: string;
+  lastReceivedAt?: string;
 }
 
 export function useMetricServices() {
@@ -41,17 +42,19 @@ export function useMetricServices() {
   }, [reloadKey]);
 
   const rows = useMemo(() => {
-    const byService = new Map<string, { names: Set<string>; lastAt?: string }>();
+    const byService = new Map<string, { names: Set<string>; lastAt?: string; lastReceivedAt?: string }>();
     for (const metric of catalog) {
       const entry = byService.get(metric.serviceId) ?? { names: new Set<string>() };
       entry.names.add(metric.metricName);
       if (!entry.lastAt || Date.parse(metric.lastAt) > Date.parse(entry.lastAt)) entry.lastAt = metric.lastAt;
+      if (metric.lastReceivedAt && (!entry.lastReceivedAt || Date.parse(metric.lastReceivedAt) > Date.parse(entry.lastReceivedAt))) entry.lastReceivedAt = metric.lastReceivedAt;
       byService.set(metric.serviceId, entry);
     }
     return services.map((service): MetricServiceRow => ({
       id: service.id, name: service.name, active: service.isActive,
       metricNames: [...(byService.get(service.id)?.names ?? [])].sort((a, b) => a.localeCompare(b)),
       lastMetricAt: byService.get(service.id)?.lastAt,
+      lastReceivedAt: byService.get(service.id)?.lastReceivedAt,
     })).sort((a, b) => a.name.localeCompare(b.name));
   }, [services, catalog]);
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { ResourceCardHeader, ResourceTable, Tooltip, type ListView } from '../../components/common';
-import { TelemetryCollectionStatus } from '../telemetry/components/TelemetryCollectionStatus';
+import { ResourceCardHeader, ResourceTable, StatusLight, Tooltip, type ListView } from '../../components/common';
+import { metricCollection } from './metricPresentation';
 import type { MetricServiceRow } from './useMetricServices';
 
 const NAMES_SHOWN = 3;
@@ -16,9 +16,9 @@ function MetricNames({ names, query }: { names: string[]; query: string }) {
   </> : <p className="type-body text-text-muted">저장된 메트릭이 없습니다.</p>;
 }
 
-function LastMetricReceived({ at }: { at?: string }) {
+function MetricTime({ at, label }: { at?: string; label: string }) {
   return <p className="type-caption text-text-muted">
-    마지막 수신 {at ? <time dateTime={at}>{new Date(at).toLocaleString('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}</time> : '기록 없음'}
+    {label} {at ? <time dateTime={at}>{new Date(at).toLocaleString('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}</time> : '기록 없음'}
   </p>;
 }
 
@@ -32,12 +32,12 @@ export function MetricServices({ rows, view, returnTo, query }: {
     {rows.map(row => <Link key={row.id} to={`/metrics/${row.id}`} state={{ returnTo }} className="card-interactive group min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.name}</h3>}
-        status={<TelemetryCollectionStatus active={row.active} />}
+        status={<StatusLight {...metricCollection(row.active, row.lastReceivedAt, row.lastMetricAt)} />}
       />
       <div className="mt-4 space-y-2">
         <p className="type-caption text-text-muted">메트릭 {row.metricNames.length}개</p>
         <MetricNames names={row.metricNames} query={query} />
-        <LastMetricReceived at={row.lastMetricAt} />
+        <MetricTime label="마지막 수신" at={row.lastReceivedAt} /><MetricTime label="마지막 측정" at={row.lastMetricAt} />
       </div>
     </Link>)}
   </div>;
@@ -45,11 +45,11 @@ export function MetricServices({ rows, view, returnTo, query }: {
   return <ResourceTable rows={rows} rowKey={row => row.id} ariaLabel="메트릭 서비스 그리드" columns={[
     { key: 'name', label: '서비스', render: row => <>
       <Link to={`/metrics/${row.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>
-      <div className="mt-2 md:hidden"><TelemetryCollectionStatus active={row.active} /></div>
-      <div className="mt-2"><LastMetricReceived at={row.lastMetricAt} /></div>
+      <div className="mt-2 md:hidden"><StatusLight {...metricCollection(row.active, row.lastReceivedAt, row.lastMetricAt)} /></div>
+      <div className="mt-2"><MetricTime label="마지막 수신" at={row.lastReceivedAt} /><MetricTime label="마지막 측정" at={row.lastMetricAt} /></div>
       <div className="mt-2 lg:hidden"><MetricNames names={row.metricNames} query={query} /></div>
     </> },
-    { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => <TelemetryCollectionStatus active={row.active} /> },
+    { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => <StatusLight {...metricCollection(row.active, row.lastReceivedAt, row.lastMetricAt)} /> },
     { key: 'count', label: '메트릭', className: 'w-20 sm:w-24', align: 'right', render: row => row.metricNames.length },
     { key: 'metrics', label: '메트릭 이름', className: 'hidden lg:table-cell', render: row => <MetricNames names={row.metricNames} query={query} /> },
   ]} />;
