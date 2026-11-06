@@ -31,7 +31,6 @@ export function DirectMetricsDetailPage() {
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [projectsError, setProjectsError] = useState<string | null>(null);
   const [projectsRetryKey, setProjectsRetryKey] = useState(0);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<ObservedServiceSetup | null>(null);
@@ -151,26 +150,7 @@ export function DirectMetricsDetailPage() {
     <div>
       <PageHeader
         title={service.name}
-        subtitle="지표의 변화와 실제 수집 상태를 확인합니다."
-      />
-
-      <DetailActionToolbar
-        controls={
-          <>
-          <TimeRangePicker value={range} onChange={value => update({ range: value })} />
-          <Button collapseLabel variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
-          </>
-        }
-        actions={
-          <>
-          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-          <Button collapseLabel variant="secondary" aria-expanded={settingsOpen} aria-controls="metric-connection-settings" onClick={() => setSettingsOpen(value => !value)}><MaterialIcon name="settings" />연결 설정</Button>
-          </>
-        }
-      />
-
-      {settingsOpen && <section id="metric-connection-settings" aria-label="연결 설정" className="mb-5 rounded-xl border border-ui-border bg-bg-surface p-5">
-        <h2 className="type-card-title text-text-base">연결 설정</h2>
+        meta={
           <DirectConnectionMeta
             isActive={service.isActive}
             apiKeyMasked={service.apiKeyMasked}
@@ -188,8 +168,23 @@ export function DirectMetricsDetailPage() {
             projectsError={projectsError}
             onRetryProjects={() => setProjectsRetryKey(key => key + 1)}
           />
-        <div className="mt-4"><Button variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />서비스 삭제</Button></div>
-      </section>}
+        }
+      />
+      <DetailActionToolbar
+        controls={
+          <>
+          <TimeRangePicker value={range} onChange={value => update({ range: value })} />
+          <Button collapseLabel variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
+          </>
+        }
+        actions={
+          <>
+          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
+          <Button collapseLabel variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+          </>
+        }
+      />
+
       <DirectServiceMetricsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} active={service.isActive} />
 
       <ConfirmDialog
