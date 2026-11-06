@@ -1,79 +1,28 @@
 name: Deploy Docs and Demo to GitHub Pages
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - web/frontend/**
-      - docs/**
-      - .github/workflows/deploy-pages.yml
-  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
 
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          # 문서의 마지막 수정일(lastUpdated)을 git 이력에서 읽는다
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v5
+          name: pages-docs
+          path: _site
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          version: 10.27.0
-
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: |
-            web/frontend/pnpm-lock.yaml
-            docs/pnpm-lock.yaml
-
-      - name: Install dependencies
-        working-directory: web/frontend
-        run: pnpm install --frozen-lockfile
-
-      - name: Lint and typecheck frontend
-        working-directory: web/frontend
-        run: |
-          pnpm lint
-          pnpm typecheck
-
-      - name: Install Playwright Chromium
-        working-directory: web/frontend
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Build and test demo
-        working-directory: web/frontend
-        run: pnpm test:e2e
-
-      - name: Build docs
-        working-directory: docs
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build
-
-      # Docs at /everyup/, demo at /everyup/demo/.
-      # Pages serves only the root 404.html, so it is the demo shell (deep links
-      # survive a reload) and any other missing path goes to the docs home.
-      # ponytail: no docs 404 page; add a branch here if one is ever needed.
-      - name: Assemble site
-        run: |
-          cp -r docs/.vitepress/dist _site
-          cp -r web/frontend/dist _site/demo
-          sed 's#<head>#<head><script>if(!location.pathname.startsWith("/everyup/demo/"))location.replace("/everyup/")</script>#' web/frontend/dist/index.html > _site/404.html
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
+          name: pages-demo
+          path: _site/demo
+      - name: Assemble and validate the tested site
+        run: node .github/scripts/assemble-pages.mjs
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site
 
@@ -90,4 +39,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

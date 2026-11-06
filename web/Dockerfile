@@ -8,7 +8,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Build React Frontend
 # -----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM node:24-alpine AS frontend
+FROM --platform=$BUILDPLATFORM node:24-alpine3.23@sha256:0efee1e068d21f6edcab7fa8c962fc4ecd50d4e28727bc23963379b63ee318ab AS frontend
 
 WORKDIR /build/frontend
 
@@ -32,10 +32,11 @@ RUN pnpm run build
 # -----------------------------------------------------------------------------
 # Stage 2: Build Go Backend
 # -----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS backend
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine3.23@sha256:5d5113301ffcac84e2bfb20c42648803fecaea6789c89bb9b66884e18cbb30a7 AS backend
 
 ARG TARGETOS=linux
 ARG TARGETARCH
+ARG EVERYUP_AGENT_IMAGE=aiturn/everyup-agent:latest
 
 WORKDIR /build/backend
 
@@ -49,13 +50,13 @@ COPY web/backend/ ./
 # Cross-compile for target platform
 # CGO_ENABLED=0: pure Go SQLite driver (modernc.org/sqlite)
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -ldflags="-w -s" \
+    go build -ldflags="-w -s -X github.com/aiturn/everyup/internal/api/handlers.defaultAgentImage=${EVERYUP_AGENT_IMAGE}" \
     -o server ./cmd/server
 
 # -----------------------------------------------------------------------------
 # Stage 3: Final minimal image
 # -----------------------------------------------------------------------------
-FROM alpine:3.19
+FROM alpine:3.23@sha256:f3d55900449227ae9e237ede521e7b665d53a253b42065ba90b9db9275e198ad
 
 # Essential packages only
 RUN apk add --no-cache ca-certificates tzdata

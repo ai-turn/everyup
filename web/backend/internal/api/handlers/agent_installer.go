@@ -17,6 +17,9 @@ import (
 
 const agentJoinCodeTTL = 10 * time.Minute
 
+// Official Web images select their matching Collector at build time via -ldflags -X.
+var defaultAgentImage = "aiturn/everyup-agent:latest"
+
 func newAgentJoinCode(now time.Time) (plain, hash string, expiresAt time.Time, err error) {
 	b := make([]byte, 16)
 	if _, err = rand.Read(b); err != nil {
@@ -124,7 +127,7 @@ func buildAgentCompose(baseURL, agentName, apiKey string, profile models.AgentPr
 	var compose strings.Builder
 	compose.WriteString(`services:
   everyup-agent:
-    image: aiturn/everyup-agent:latest
+    image: ` + quote(defaultAgentImage) + `
     container_name: everyup-agent
 `)
 	if docker {
