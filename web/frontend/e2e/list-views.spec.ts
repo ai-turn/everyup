@@ -75,18 +75,58 @@ test('Docker search and connect cleanup retain the chosen view and pending actio
   await expect(page.getByRole('table', { name: 'Docker 환경 그리드' })).toContainText('staging-api');
 });
 
-test('Group grid exposes editing, membership controls and deletion without changing views', async ({ page }) => {
+test('Group cards expose editing and deletion without changing views', async ({ page }) => {
   await page.goto('./projects');
-  await page.getByRole('button', { name: 'Production 구성 관리', exact: true }).click();
+  await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();
   const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Production', exact: true }) });
-  await expect(card.getByRole('button', { name: 'Docker 환경 해제', exact: true }).first()).toBeVisible();
   await card.getByRole('button', { name: '그룹 수정', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '그룹 수정', exact: true })).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
   await card.getByRole('button', { name: '그룹 삭제', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '그룹을 삭제할까요?', exact: true })).toBeVisible();
   await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
-  await expect(page.getByRole('table', { name: '그룹 그리드', exact: true })).toBeVisible();
+  await expect(card).toBeVisible();
+});
+
+test('Group detail adds targets from other groups and removes them again', async ({ page }) => {
+  await page.goto('./projects/project_mock_production');
+  const members = page.getByRole('table', { name: '그룹 구성 그리드', exact: true }).locator('tbody tr');
+  await expect(members.first()).toBeVisible();
+  const before = await members.count();
+  await page.getByRole('button', { name: '대상 추가', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: '대상 추가', exact: true });
+  const add = dialog.getByRole('button', { name: '추가', exact: true });
+  await expect(add).toBeDisabled();
+  const option = dialog.locator('label').first();
+  const name = await option.locator('.type-label').innerText();
+  await option.click();
+  await expect(dialog.getByText(/^1개 선택/)).toBeVisible();
+  await add.click();
+  await expect(dialog).toHaveCount(0);
+  await expect(members).toHaveCount(before + 1);
+  await page.getByRole('button', { name: `${name} 그룹에서 빼기`, exact: true }).click();
+  await expect(members).toHaveCount(before);
+});
+
+test('a target opened from a group stays inside the group until leaving it', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const crumbs = page.getByRole('navigation', { name: '현재 위치', exact: true });
+  const sidebarCurrent = page.locator('aside a[aria-current="page"]');
+  await page.goto('./projects/project_mock_staging');
+  await page.getByRole('link', { name: 'Redis TCP', exact: true }).click();
+  await expect(page).toHaveURL(/\/uptime\//);
+  await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
+  await expect(sidebarCurrent).toHaveText('그룹');
+  // 새로고침해도 그룹 안이다.
+  await page.reload();
+  await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
+  await crumbs.getByRole('link', { name: 'Staging', exact: true }).click();
+  await expect(page).toHaveURL(/\/projects\/project_mock_staging$/);
+  // 그룹을 떠나 업타임 메뉴에서 같은 대상을 열면 업타임 맥락이다.
+  await page.goto('./uptime');
+  await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
+  await expect(crumbs).toHaveText(/^업타임.*Redis TCP$/);
+  await expect(sidebarCurrent).toHaveText('업타임');
 });
 
 test('alert target and local search stay intact while switching views', async ({ page }) => {
@@ -136,7 +176,7 @@ test('Group status summary on the list counts the same members as the group deta
   await page.goto('./projects');
   const row = page.getByRole('table', { name: '그룹 그리드', exact: true }).getByRole('row').filter({ hasText: 'Production' });
   const summary = await row.getByRole('cell').nth(1).innerText();
-  expect(summary).toMatch(/^(장애|확인 필요|대기|정상) \d+( · (장애|확인 필요|대기|정상) \d+)*$/);
+  expect(summary).toMatch(/^(장애|확인 필요|대기|정상) \d+(, (장애|확인 필요|대기|정상) \d+)*$/);
   const total = [...summary.matchAll(/\d+/g)].reduce((sum, [count]) => sum + Number(count), 0);
   await page.goto('./projects/project_mock_production');
   await expect(page.getByRole('table', { name: '그룹 구성 그리드', exact: true }).locator('tbody tr')).toHaveCount(total);
