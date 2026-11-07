@@ -17,7 +17,7 @@ export async function metricsFixture(page: Page) {
     { ...names[0], serviceId: service.id, unit: 'MB' },
   ];
   const state = {
-    service, names,
+    service, names, catalog,
     failures: new Set<string>(),
     requests: [] as string[],
     reads: [] as { path: string; name: string | null; from: string | null; to: string | null; attributes: string | null; series: string | null }[],

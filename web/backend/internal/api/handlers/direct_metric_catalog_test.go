@@ -50,6 +50,12 @@ func TestDirectMetricCatalogIncludesRetainedNamesAndLatestReceipt(t *testing.T) 
 	if _, err := database.NewOtelMetricRepository().CreateBatch(points); err != nil {
 		t.Fatal(err)
 	}
+	if _, rule := ts.doRequest(t, "POST", "/api/v1/alert-rules", map[string]interface{}{
+		"name": "slow billing", "type": "service", "serviceId": first, "metric": "otel_metric",
+		"metricName": "http.server.request.duration", "operator": "gt", "threshold": 0.1,
+	}, auth...); !rule.Success {
+		t.Fatalf("create rule: %+v", rule.Error)
+	}
 	_, result := ts.doRequest(t, "GET", endpoint, nil, auth...)
 	if !result.Success {
 		t.Fatalf("catalog failed: %+v", result.Error)
@@ -67,6 +73,13 @@ func TestDirectMetricCatalogIncludesRetainedNamesAndLatestReceipt(t *testing.T) 
 	}
 	if got := seen[first+":jvm.memory.used"]; !got.LastAt.Equal(now) || got.Unit != "By" || got.MetricType != "gauge" {
 		t.Fatalf("latest metadata=%+v, want gauge/By at %s", got, now)
+	}
+	// The list flags exactly what the detail's health scan flags.
+	if got := seen[first+":http.server.request.duration"]; !got.Breached {
+		t.Fatalf("breached metric not flagged in catalog: %+v", got)
+	}
+	if got := seen[first+":jvm.memory.used"]; got.Breached {
+		t.Fatalf("rule leaked onto another metric: %+v", got)
 	}
 	if got := seen[first+":old.custom.metric"]; !got.LastAt.Equal(old) {
 		t.Fatalf("old metric missing or receipt changed: %+v", got)

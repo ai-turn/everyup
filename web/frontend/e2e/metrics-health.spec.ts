@@ -45,3 +45,27 @@ test('a new receipt does not disguise an old measurement and health failures sta
   await page.getByRole('button', { name: '목록 다시 시도', exact: true }).click();
   await expect(page.getByText('메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.')).toHaveCount(0);
 });
+
+test('the list counts flagged metrics like the detail and puts that service first', async ({ page }) => {
+  const state = await metricsFixture(page);
+  const fresh = new Date().toISOString();
+  state.catalog.splice(0, state.catalog.length,
+    { serviceId: 'metrics-service', metricName: 'http.server.request.duration', metricType: 'histogram', unit: 's', lastAt: fresh, lastReceivedAt: fresh, breached: true },
+    { serviceId: 'metrics-service', metricName: 'jvm.memory.used', metricType: 'gauge', unit: 'By', lastAt: fresh, lastReceivedAt: fresh },
+    { serviceId: 'waiting-service', metricName: 'jvm.memory.used', metricType: 'gauge', unit: 'By', lastAt: fresh, lastReceivedAt: fresh },
+  );
+  // Name order would put billing-api first anyway; rename it so only the flag can lift it.
+  state.service.name = 'zz-billing-api';
+  await page.goto('http://127.0.0.1:4174/metrics');
+  const rows = page.getByRole('table', { name: '메트릭 서비스 그리드' }).getByRole('row');
+  const flagged = rows.nth(1);
+  await expect(flagged).toContainText('zz-billing-api');
+  await expect(flagged.getByText('1', { exact: true })).toHaveClass(/text-status-error/);
+  await expect(flagged).toContainText('임계값 초과');
+  await expect(flagged).toContainText('응답 시간');
+  await expect(rows.nth(2)).toContainText('이상 없음');
+
+  await page.getByRole('combobox', { name: '서비스 정렬' }).click();
+  await page.getByRole('option', { name: '이름순' }).click();
+  await expect(rows.nth(1)).toContainText('waiting-worker');
+});

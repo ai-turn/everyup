@@ -19,7 +19,7 @@ test('metric list shows one card per service and the detail shows every metric a
   await page.goto('./metrics?view=card');
   // The retained catalog includes every metric; catalog-worker exports three.
   await expect(page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true })).toHaveCount(1);
-  await expect(page.getByRole('link').filter({ has: page.getByRole('heading', { name: 'catalog-worker', exact: true }) }).getByText('메트릭 3개')).toBeVisible();
+  await expect(page.getByRole('link').filter({ has: page.getByRole('heading', { name: 'catalog-worker', exact: true }) }).getByRole('group', { name: '메트릭' })).toContainText('3');
   // Docker Collector metrics stay in their Docker Environment (ADR 0007).
   await expect(page.getByRole('heading', { level: 3, name: 'api', exact: true })).toHaveCount(0);
 
@@ -42,15 +42,16 @@ test('metric list shows one card per service and the detail shows every metric a
 test('catalog search keeps the full count, matches metric names and persists in the URL', async ({ page }) => {
   await metricsFixture(page);
   await page.goto('http://127.0.0.1:4174/metrics?view=card');
-  await expect(page.getByText('메트릭 2개', { exact: true })).toBeVisible();
-  await expect(page.getByText('메트릭 0개', { exact: true })).toBeVisible();
-  // The catalog's receipt is independent of the service's all-signal lastSeenAt.
-  await expect(page.locator('time').first()).toHaveAttribute('datetime', /T/);
+  const card = (name: string) => page.getByRole('link').filter({ has: page.getByRole('heading', { name, exact: true }) });
+  await expect(card('billing-api').getByRole('group', { name: '메트릭' })).toContainText('3');
+  await expect(card('waiting-worker').getByRole('group', { name: '메트릭' })).toContainText('0');
+  await expect(card('waiting-worker')).toContainText('아직 수신한 메트릭이 없습니다');
   const search = page.getByRole('textbox', { name: '서비스 또는 메트릭 이름으로 찾기' });
   await search.fill('JVM');
   await expect(page).toHaveURL(/q=JVM/);
   await expect(page.getByRole('heading', { name: 'waiting-worker', exact: true })).toHaveCount(0);
-  await expect(page.getByText('메트릭 2개', { exact: true })).toBeVisible();
+  // A metric-name match says which metric matched.
+  await expect(card('billing-api')).toContainText('jvm.memory.used');
   await page.reload();
   await expect(search).toHaveValue('JVM');
   await search.fill('no-matching-metric');
@@ -67,7 +68,7 @@ test('catalog HTTP failure recovers through retry instead of leaving an empty li
   state.failures.clear();
   await page.getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'billing-api', exact: true })).toBeVisible();
-  await expect(page.getByText('메트릭 2개', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link').filter({ has: page.getByRole('heading', { name: 'billing-api', exact: true }) }).getByRole('group', { name: '메트릭' })).toContainText('3');
 });
 
 test('metric names, chart and optional groups have independent HTTP failure states', async ({ page }) => {

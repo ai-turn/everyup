@@ -43,3 +43,7 @@ export function metricFlags(metric: OtelMetricName, now = Date.now()): MetricSta
   if (collection.tone !== 'healthy') flags.push(collection);
   return flags;
 }
+
+/** The list's 확인 필요 — same per-metric flags as the detail. A stopped service has nothing to check. */
+export const flaggedMetrics = <T extends OtelMetricName>(active: boolean, metrics: T[], now = Date.now()): T[] =>
+  active ? metrics.filter(metric => metricFlags(metric, now).length > 0) : [];

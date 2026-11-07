@@ -5,7 +5,7 @@ import { MonitoringConnection } from '../../features/services/components/Monitor
 import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { MetricServices } from '../../features/metrics/MetricServices';
 import { useMetricServices } from '../../features/metrics/useMetricServices';
-import { metricCollection } from '../../features/metrics/metricPresentation';
+import { flaggedMetrics, metricCollection } from '../../features/metrics/metricPresentation';
 
 const METRIC_SKELETONS = ['metric-1', 'metric-2', 'metric-3', 'metric-4', 'metric-5', 'metric-6'];
 
@@ -14,14 +14,19 @@ export function MetricsPage() {
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
   const search = query.trim().toLowerCase();
-  const { rows, loading, error, reload } = useMetricServices();
+  const { rows, checkedAt: now, loading, error, reload } = useMetricServices();
   const sort = params.get('sort') === 'name' ? 'name' : 'collection';
-  const collectionPriority = (row: typeof rows[number]) => {
-    const tone = metricCollection(row.active, row.lastReceivedAt, row.lastMetricAt).tone;
-    return tone === 'warn' ? 0 : tone === 'idle' ? 1 : 2;
+  // 확인할 지표가 많은 서비스 → 수집 이상 → 수신 대기·중지 → 정상
+  const priority = (row: typeof rows[number]) => {
+    const tone = metricCollection(row.active, row.lastReceivedAt, row.lastMetricAt, now).tone;
+    return [-flaggedMetrics(row.active, row.metrics, now).length, tone === 'warn' ? 0 : tone === 'idle' ? 1 : 2];
+  };
+  const byPriority = (a: typeof rows[number], b: typeof rows[number]) => {
+    const [pa, pb] = [priority(a), priority(b)];
+    return pa[0] - pb[0] || pa[1] - pb[1];
   };
   const filtered = rows.filter(row => row.name.toLowerCase().includes(search) || row.metricNames.some(name => name.toLowerCase().includes(search)))
-    .sort((a, b) => (sort === 'collection' ? collectionPriority(a) - collectionPriority(b) : 0) || a.name.localeCompare(b.name));
+    .sort((a, b) => (sort === 'collection' ? byPriority(a, b) : 0) || a.name.localeCompare(b.name));
   const setQuery = (value: string) => setParams(current => {
     const next = new URLSearchParams(current);
     if (value) next.set('q', value); else next.delete('q');
@@ -33,9 +38,9 @@ export function MetricsPage() {
       <MonitoringConnection capability="metrics" onConnected={reload} />
     </PageHeader>
     <ListToolbar search={<SearchInput value={query} onChange={event => setQuery(event.target.value)} placeholder="서비스 또는 메트릭 이름으로 찾기" aria-label="서비스 또는 메트릭 이름으로 찾기" />}>
-      <Button variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
-      <Select aria-label="서비스 정렬" value={sort} onChange={event => setParams(current => { const next = new URLSearchParams(current); next.set('sort', event.target.value); return next; }, { replace: true })}>
-        <option value="collection">수집 확인 필요순</option><option value="name">이름순</option>
+      <Button collapseLabel variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+      <Select aria-label="서비스 정렬" wrapperClassName="w-40" value={sort} onChange={event => setParams(current => { const next = new URLSearchParams(current); next.set('sort', event.target.value); return next; }, { replace: true })}>
+        <option value="collection">확인 필요순</option><option value="name">이름순</option>
       </Select>
       <div className="sm:ml-auto"><ListViewToggle view={view} onChange={setView} /></div>
     </ListToolbar>
@@ -47,10 +52,9 @@ export function MetricsPage() {
       </EmptyState> : <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="type-section-title text-text-base">메트릭 서비스</h2>
-          <span role="status" className="type-caption text-text-muted">{search ? `${filtered.length} / ${rows.length}개 서비스` : `${rows.length}개 서비스`}</span>
+          <span role="status" className="text-xs text-text-dim">{search ? `서비스 ${filtered.length} / ${rows.length}개` : `서비스 ${rows.length}개`}</span>
         </div>
-        <p className="mb-3 type-caption text-text-muted">보관 중인 전체 메트릭 이름 기준</p>
-        {filtered.length ? <MetricServices rows={filtered} view={view} returnTo={returnTo} query={search} />
+        {filtered.length ? <MetricServices rows={filtered} now={now} view={view} returnTo={returnTo} query={search} />
           : <EmptyState icon="search" title="일치하는 서비스가 없습니다" description={`'${query.trim()}'와 일치하는 서비스나 메트릭 이름이 없습니다.`} action={{ label: '검색 초기화', onClick: () => setQuery('') }} />}
       </section>}
   </div>;
