@@ -1,20 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, EmptyState, IconButton, Input, ListViewToggle, MaterialIcon, PageHeader, ResourceCardHeader, ResourceTable, Select, StatusLight } from '../../components/common';
+import { Button, ConfirmDialog, EmptyState, IconButton, Input, ListViewToggle, MaterialIcon, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
-import {
-  api,
-  type ConnectedAgent,
-  type ObservedService,
-  type Project,
-  type ProjectInput,
-  type UptimeMonitor,
-  type InfrastructureResource,
-} from '../../services/api';
+import { api, type Project, type ProjectInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
-import { projectMembers, sourcesForProject, summarizeMembers, type ProjectSources } from './projectMembers';
+import { assignableTargets, projectMembers, sourcesForProject, summarizeMembers, type ProjectSources } from './projectMembers';
 
 export function ProjectDialog({ project, onClose, onSave }: {
   project: Project | null;
@@ -57,39 +49,15 @@ export function ProjectDialog({ project, onClose, onSave }: {
   );
 }
 
-function AssignedRow({ label, detail, onRemove, removeLabel }: { label: string; detail?: string; onRemove: () => void; removeLabel: string }) {
-  return <div className="flex items-center justify-between gap-2 rounded-md border border-ui-border bg-ui-hover-soft px-3 py-2"><span className="min-w-0 truncate text-sm text-text-secondary">{label}{detail && <span className="ml-1 text-xs text-text-dim">{detail}</span>}</span><IconButton icon="close" label={removeLabel} tone="quiet" size="sm" onClick={onRemove} /></div>;
-}
-
-function ProjectCard({ project, returnTo, status, agents, monitors, directServices, infrastructureResources, unassignedAgents, unassignedMonitors, unassignedDirect, unassignedInfrastructure, onEdit, onDelete, onAssignAgent, onUnassignAgent, onAssignMonitor, onUnassignMonitor, onAssignDirect, onUnassignDirect, onAssignInfrastructure, onUnassignInfrastructure }: {
+// 대상 추가·빼기는 그룹 상세 한곳에서 한다. 목록은 상태를 훑고 그룹으로 들어가는 자리다.
+function ProjectCard({ project, returnTo, status, counts, onEdit, onDelete }: {
   project: Project;
   returnTo: string;
-  status: React.ReactNode;
-  agents: ConnectedAgent[];
-  monitors: UptimeMonitor[];
-  directServices: ObservedService[];
-  infrastructureResources: InfrastructureResource[];
-  unassignedAgents: ConnectedAgent[];
-  unassignedMonitors: UptimeMonitor[];
-  unassignedDirect: ObservedService[];
-  unassignedInfrastructure: InfrastructureResource[];
+  status: ReactNode;
+  counts: [string, number][];
   onEdit: () => void;
   onDelete: () => void;
-  onAssignAgent: (id: string) => void;
-  onUnassignAgent: (id: string) => void;
-  onAssignMonitor: (id: string) => void;
-  onUnassignMonitor: (id: string) => void;
-  onAssignDirect: (id: string) => void;
-  onUnassignDirect: (id: string) => void;
-  onAssignInfrastructure: (id: string) => void;
-  onUnassignInfrastructure: (id: string) => void;
 }) {
-  const [agentId, setAgentId] = useState('');
-  const [monitorId, setMonitorId] = useState('');
-  const [directId, setDirectId] = useState('');
-  const [infrastructureId, setInfrastructureId] = useState('');
-  const empty = agents.length === 0 && monitors.length === 0 && directServices.length === 0 && infrastructureResources.length === 0;
-
   return (
     <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
       <ResourceCardHeader
@@ -99,37 +67,22 @@ function ProjectCard({ project, returnTo, status, agents, monitors, directServic
       />
       <p className="mt-3 type-body text-text-muted">{project.description || '설명이 없습니다'}</p>
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[['Docker 환경', agents.length], ['업타임', monitors.length], ['직접 서비스', directServices.length], ['Collector', infrastructureResources.length]].map(([label, count]) => <div key={String(label)} className="rounded-md border border-ui-border bg-ui-hover-soft p-3"><p className="text-xs text-text-dim">{label}</p><p className="mt-1 text-lg text-text-base">{count}</p></div>)}
+        {counts.map(([label, count]) => <div key={label} className="rounded-md border border-ui-border bg-ui-hover-soft p-3"><p className="text-xs text-text-dim">{label}</p><p className="mt-1 text-lg text-text-base">{count}</p></div>)}
       </div>
-      <div className="mt-5 space-y-2">
-        {agents.map(agent => <AssignedRow key={agent.id} label={agent.name} detail="Docker 환경" removeLabel="Docker 환경 해제" onRemove={() => onUnassignAgent(agent.id)} />)}
-        {monitors.map(monitor => <AssignedRow key={monitor.id} label={monitor.name} detail={monitor.type.toUpperCase()} removeLabel="업타임 해제" onRemove={() => onUnassignMonitor(monitor.id)} />)}
-        {directServices.map(service => <AssignedRow key={service.id} label={service.name} detail={service.signals.join(', ')} removeLabel="직접 서비스 해제" onRemove={() => onUnassignDirect(service.id)} />)}
-        {infrastructureResources.map(resource => <AssignedRow key={resource.id} label={resource.name} detail="Collector" removeLabel="Collector 해제" onRemove={() => onUnassignInfrastructure(resource.id)} />)}
-        {empty && <p className="type-body text-text-muted">아직 배정된 대상이 없습니다</p>}
-      </div>
-      {(unassignedAgents.length > 0 || unassignedMonitors.length > 0 || unassignedDirect.length > 0 || unassignedInfrastructure.length > 0) && (
-        <div className="mt-5 space-y-2 border-t border-ui-border pt-4">
-          {unassignedAgents.length > 0 && <div className="flex gap-2"><Select value={agentId} onChange={event => setAgentId(event.target.value)} aria-label="Docker 환경 추가"><option value="">Docker 환경 추가</option>{unassignedAgents.map(agent => <option key={agent.id} value={agent.id}>{agent.name}</option>)}</Select><Button variant="secondary" disabled={!agentId} onClick={() => { onAssignAgent(agentId); setAgentId(''); }}>배정</Button></div>}
-          {unassignedMonitors.length > 0 && <div className="flex gap-2"><Select value={monitorId} onChange={event => setMonitorId(event.target.value)} aria-label="업타임 모니터 추가"><option value="">업타임 모니터 추가</option>{unassignedMonitors.map(monitor => <option key={monitor.id} value={monitor.id}>{monitor.name}</option>)}</Select><Button variant="secondary" disabled={!monitorId} onClick={() => { onAssignMonitor(monitorId); setMonitorId(''); }}>배정</Button></div>}
-          {unassignedDirect.length > 0 && <div className="flex gap-2"><Select value={directId} onChange={event => setDirectId(event.target.value)} aria-label="직접 서비스 추가"><option value="">직접 서비스 추가</option>{unassignedDirect.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}</Select><Button variant="secondary" disabled={!directId} onClick={() => { onAssignDirect(directId); setDirectId(''); }}>배정</Button></div>}
-          {unassignedInfrastructure.length > 0 && <div className="flex gap-2"><Select value={infrastructureId} onChange={event => setInfrastructureId(event.target.value)} aria-label="Collector 추가"><option value="">Collector 추가</option>{unassignedInfrastructure.map(resource => <option key={resource.id} value={resource.id}>{resource.name}</option>)}</Select><Button variant="secondary" disabled={!infrastructureId} onClick={() => { onAssignInfrastructure(infrastructureId); setInfrastructureId(''); }}>배정</Button></div>}
-        </div>
-      )}
     </article>
   );
 }
 
+type ListSources = Omit<ProjectSources, 'services'> & { services: ProjectSources['services'] | null };
+const COUNTS = [['agent', 'Docker 환경'], ['monitor', '업타임'], ['direct', '직접 서비스'], ['infra', 'Collector']] as const;
+
 export function ProjectsPage() {
   const { view, setView, returnTo } = useListView();
-  const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [agents, setAgents] = useState<ConnectedAgent[]>([]);
-  const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
-  const [directServices, setDirectServices] = useState<ObservedService[]>([]);
-  const [infrastructureResources, setInfrastructureResources] = useState<InfrastructureResource[]>([]);
-  // 상태 요약은 그룹 상세와 같은 입력으로 계산한다. Docker 서비스를 불러오지 못하면 null — 장애를 모른 채 "정상"이라고 말하지 않는다.
-  const [statusSources, setStatusSources] = useState<ProjectSources | null>(null);
+  // 상태 요약은 그룹 상세와 같은 입력으로 계산한다. Docker 서비스를 불러오지 못하면 services가 null이다.
+  // 장애를 모른 채 "정상"이라고 말하지 않는다.
+  const [sources, setSources] = useState<ListSources>({ agents: [], services: [], monitors: [], observedServices: [], infrastructure: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null | undefined>(undefined);
@@ -140,25 +93,19 @@ export function ProjectsPage() {
     setLoading(true); setError(null);
     try {
       const [projectRows, agentRows, monitorRows, directRows, infrastructureRows, serviceRows] = await Promise.all([api.getProjects(), api.getAgents(), api.getUptimeMonitors(), api.getObservedServices(), api.getInfrastructureResources(), api.getAllAgentServicesFlat().catch(() => null)]);
-      setProjects(projectRows ?? []); setAgents(agentRows ?? []); setMonitors(monitorRows ?? []); setDirectServices(directRows ?? []); setInfrastructureResources((infrastructureRows ?? []).filter(resource => resource.adapter === 'otel-collector'));
-      setStatusSources(serviceRows ? { agents: agentRows ?? [], services: serviceRows, monitors: monitorRows ?? [], observedServices: directRows ?? [], infrastructure: infrastructureRows ?? [] } : null);
+      setProjects(projectRows ?? []);
+      setSources({ agents: agentRows ?? [], services: serviceRows, monitors: monitorRows ?? [], observedServices: directRows ?? [], infrastructure: infrastructureRows ?? [] });
     } catch (requestError) { setError(getErrorMessage(requestError)); }
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
 
-  const mutate = async (work: () => Promise<unknown>) => { try { await work(); await load(); } catch (requestError) { toast.error(getErrorMessage(requestError)); } };
-  const updateDirectProject = (serviceId: string, projectId?: string) => {
-    const service = directServices.find(row => row.id === serviceId);
-    if (!service) return Promise.resolve();
-    return api.updateObservedService(service.id, { name: service.name, projectId, signals: service.signals });
+  // 새 그룹은 비어 있으니 바로 상세로 가서 대상을 추가하게 한다.
+  const saveProject = async (input: ProjectInput) => {
+    if (editing) { await api.updateProject(editing.id, input); await load(); return; }
+    const created = await api.createProject(input);
+    navigate(`/projects/${created.id}`, { state: { returnTo } });
   };
-  const updateInfrastructureProject = (resourceId: string, projectId?: string) => {
-    const resource = infrastructureResources.find(row => row.id === resourceId);
-    if (!resource) return Promise.resolve();
-    return api.updateInfrastructureResource(resource.id, { name: resource.name, projectId });
-  };
-  const saveProject = async (input: ProjectInput) => { if (editing) await api.updateProject(editing.id, input); else await api.createProject(input); await load(); };
   const deleteProject = async () => {
     if (!deleting) return;
     setDeletingProject(true);
@@ -166,29 +113,27 @@ export function ProjectsPage() {
     catch (requestError) { toast.error(getErrorMessage(requestError)); }
     finally { setDeletingProject(false); }
   };
-  const unassignedAgents = agents.filter(agent => !agent.projectId);
-  const unassignedMonitors = monitors.filter(monitor => !monitor.projectId);
-  const unassignedDirect = directServices.filter(service => !service.projectId);
-  const unassignedInfrastructure = infrastructureResources.filter(resource => !resource.projectId);
 
+  // Collector는 직접 등록한 인프라만 센다. Docker 호스트의 인프라는 Docker 환경 숫자에 이미 들어 있다.
+  const countsOf = (project: Project): [string, number][] => {
+    const own = assignableTargets(sourcesForProject(project.id, { ...sources, services: [] }));
+    return COUNTS.map(([kind, label]) => [label, own.filter(target => target.kind === kind).length]);
+  };
   const renderStatus = (project: Project) => {
-    if (!statusSources) return <StatusLight tone="idle" label="상태 확인 불가" />;
-    const { tone, label } = summarizeMembers(projectMembers(sourcesForProject(project.id, statusSources)));
+    if (!sources.services) return <StatusLight tone="idle" label="상태 확인 불가" />;
+    const { tone, label } = summarizeMembers(projectMembers(sourcesForProject(project.id, { ...sources, services: sources.services })));
     return <StatusLight tone={tone} label={label} />;
   };
-  const renderProject = (project: Project) => <ProjectCard key={project.id} project={project} returnTo={returnTo} status={renderStatus(project)} agents={agents.filter(agent => agent.projectId === project.id)} monitors={monitors.filter(monitor => monitor.projectId === project.id)} directServices={directServices.filter(service => service.projectId === project.id)} infrastructureResources={infrastructureResources.filter(resource => resource.projectId === project.id)} unassignedAgents={unassignedAgents} unassignedMonitors={unassignedMonitors} unassignedDirect={unassignedDirect} unassignedInfrastructure={unassignedInfrastructure} onEdit={() => setEditing(project)} onDelete={() => setDeleting(project)} onAssignAgent={id => void mutate(() => api.assignAgent(project.id, id))} onUnassignAgent={id => void mutate(() => api.unassignAgent(project.id, id))} onAssignMonitor={id => void mutate(() => api.assignMonitor(project.id, id))} onUnassignMonitor={id => void mutate(() => api.unassignMonitor(project.id, id))} onAssignDirect={id => void mutate(() => updateDirectProject(id, project.id))} onUnassignDirect={id => void mutate(() => updateDirectProject(id))} onAssignInfrastructure={id => void mutate(() => updateInfrastructureProject(id, project.id))} onUnassignInfrastructure={id => void mutate(() => updateInfrastructureProject(id))} />;
 
   return <div>
     <PageHeader title="그룹" subtitle="같이 운영하는 Docker 환경, 업타임 모니터, 애플리케이션과 서버를 한곳에 묶어 상태를 확인합니다."><Button onClick={() => setEditing(null)}><MaterialIcon name="add" />추가</Button></PageHeader>
     <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
     {loading ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1].map(item => <div key={item} className="h-72 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div> : error ? <EmptyState icon="error_outline" title="그룹을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} /> : projects.length === 0 ? <EmptyState icon="folder_open" title="아직 그룹이 없습니다" description="필요할 때 모니터링 대상을 묶어 보세요." action={{ label: '추가', onClick: () => setEditing(null) }} /> : view === 'grid' ? <ResourceTable rows={projects} rowKey={project => project.id} ariaLabel="그룹 그리드"
-      renderDetails={project => expandedProject === project.id ? renderProject(project) : null}
       columns={[
-        { key: 'name', label: '그룹', render: project => <><Link to={`/projects/${project.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{project.name}</Link><p className="mt-1 line-clamp-2 break-words type-caption text-text-muted">{project.description || '설명 없음'}</p><div className="mt-2 md:hidden">{renderStatus(project)}</div><p className="mt-2 type-caption text-text-muted md:hidden">Docker {agents.filter(row => row.projectId === project.id).length}, 업타임 {monitors.filter(row => row.projectId === project.id).length}, 서비스 {directServices.filter(row => row.projectId === project.id).length}, Collector {infrastructureResources.filter(row => row.projectId === project.id).length}</p></> },
+        { key: 'name', label: '그룹', render: project => <><Link to={`/projects/${project.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{project.name}</Link><p className="mt-1 line-clamp-2 break-words type-caption text-text-muted">{project.description || '설명 없음'}</p><div className="mt-2 md:hidden">{renderStatus(project)}</div><p className="mt-2 type-caption text-text-muted md:hidden">{countsOf(project).map(([label, count]) => `${label} ${count}`).join(', ')}</p></> },
         { key: 'status', label: '상태', className: 'hidden md:table-cell', render: renderStatus },
-        ...([{ key: 'agents', label: 'Docker 환경', rows: agents }, { key: 'monitors', label: '업타임', rows: monitors }, { key: 'services', label: '직접 서비스', rows: directServices }, { key: 'infra', label: 'Collector', rows: infrastructureResources }]).map(({ key, label, rows }) => ({ key, label, className: 'hidden w-28 md:table-cell', align: 'right' as const, render: (project: Project) => rows.filter(row => row.projectId === project.id).length })),
-        { key: 'actions', label: '작업', className: 'w-32', render: project => <Button variant="secondary" size="sm" className="min-h-11" aria-label={`${project.name} 구성 관리`} aria-expanded={expandedProject === project.id} onClick={() => setExpandedProject(expandedProject === project.id ? null : project.id)}>구성 관리</Button> },
-      ]} /> : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{projects.map(renderProject)}</div>}
+        ...COUNTS.map(([kind, label], index) => ({ key: kind, label, className: 'hidden w-28 md:table-cell', align: 'right' as const, render: (project: Project) => countsOf(project)[index][1] })),
+      ]} /> : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{projects.map(project => <ProjectCard key={project.id} project={project} returnTo={returnTo} status={renderStatus(project)} counts={countsOf(project)} onEdit={() => setEditing(project)} onDelete={() => setDeleting(project)} />)}</div>}
     {editing !== undefined && <ProjectDialog project={editing} onClose={() => setEditing(undefined)} onSave={saveProject} />}
     <ConfirmDialog isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} onConfirm={() => void deleteProject()} title="그룹을 삭제할까요?" message="배정된 Docker 환경, 업타임 모니터, 직접 서비스와 Collector는 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
   </div>;
