@@ -137,6 +137,8 @@ test('request paths advertise their trace panel and support pointer and keyboard
     await expect(panel).toBeVisible();
     await expect(panel.getByText('trace-0', { exact: true })).toBeVisible();
     await panel.getByRole('button', { name: '닫기', exact: true }).click();
+    // The reopened panel slides in under a resting pointer; its hover tooltip would replace the focus tooltip.
+    await page.mouse.move(0, 0);
     await expect(trigger).toBeFocused();
     for (const key of ['Enter', 'Space']) {
       await trigger.press(key);

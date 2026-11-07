@@ -65,7 +65,8 @@ jobs:
   frontend:
     needs: changes
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Normal runs take ~5 min; leave room for slow apt mirrors during Playwright setup.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
