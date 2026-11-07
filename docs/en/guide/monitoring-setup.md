@@ -103,8 +103,11 @@ limit message instead of statistics when more than 50,000 points match.
 ## Grouping targets
 
 To view separately registered targets together, open **그룹** (Groups) under **모아 보기** (Collected
-views) in the sidebar and click **추가** (Add) to create a group. Select Docker environments, uptime
-monitors, directly connected services, and infrastructure Collectors, then click **배정** (Assign).
+views) in the sidebar and click **추가** (Add) to create a group. The new group opens right away. Click
+**대상 추가** (Add targets), select any number of Docker environments, uptime monitors, directly
+connected services, and infrastructure Collectors, then click **추가** (Add). Selecting a target that
+belongs to another group moves it here. To take a target out, click **빼기** (Remove) on its row; the
+target is not deleted and becomes ungrouped again.
 Services and data discovered within a Docker environment inherit its group assignment. The group
 list summarizes how many targets in each group are failing, need attention, or are healthy, and the
 group screen lists failing targets first. Deleting a group does not delete its assigned targets.

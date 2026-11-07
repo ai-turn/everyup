@@ -18,6 +18,7 @@ import {
 import { getErrorMessage } from '../../utils/errors';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { listReturnTo } from '../../utils/listReturnTo';
+import { useGroupTrail } from '../../hooks/useGroupTrail';
 
 // 최근 = 체크별 막대(체크마다 상태 코드·메시지가 있다), 6H·24H = 버킷. Uptime Kuma의 recent/6h/24h와 같다.
 type ResponseRange = 'recent' | '6h' | '24h';
@@ -182,7 +183,9 @@ export function UptimeMonitorDetailPage() {
 function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const returnTo = listReturnTo(location.state, '/uptime');
+  // 그룹에서 열었으면 삭제 후에도 그 그룹으로 돌아간다. 모바일 돌아가기는 레이아웃의 GroupBackLink가 맡는다.
+  const trail = useGroupTrail();
+  const returnTo = trail ? `/projects/${trail.id}` : listReturnTo(location.state, '/uptime');
 
   const { monitor, metrics, summary, history, incidents, failures, loading, refreshing, errors, notFound, load } = useUptimeMonitorDetail(monitorId);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -259,9 +262,9 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   return (
     <div className="space-y-5">
       {/* 데스크톱은 AppHeader breadcrumb의 첫 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to={returnTo} className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
+      {!trail && <Link to={returnTo} className="inline-flex items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />업타임
-      </Link>
+      </Link>}
       <PageHeader
         title={monitor.name}
         meta={

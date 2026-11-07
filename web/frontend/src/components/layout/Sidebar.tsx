@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { IconButton, MaterialIcon } from '../common';
@@ -8,7 +8,8 @@ import { env } from '../../config/env';
 import logo from '../../assets/logo.webp';
 import { DemoScenarioSwitcher } from './DemoScenarioSwitcher';
 import { DemoHelpLinks } from './DemoHelpLinks';
-import { NAV_SECTIONS, sectionFor } from './navSections';
+import { NAV_SECTIONS } from './navSections';
+import { useCurrentSection } from '../../hooks/useGroupTrail';
 
 interface NavItemProps {
   to: string;
@@ -43,7 +44,6 @@ export function Sidebar() {
   const { theme, toggleTheme } = useTheme();
 
 
-  const location = useLocation();
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
 
@@ -65,7 +65,8 @@ export function Sidebar() {
     + monitors.filter((monitor) => monitor.status === 'unhealthy').length;
 
   // 활성 항목 = 첫 크럼과 같은 섹션(담김 관계, DESIGN.md §3.4) — 서비스 상세는 Docker 환경이다.
-  const current = sectionFor(location.pathname);
+  // 그룹에서 연 대상이면 그룹이다(useGroupTrail).
+  const current = useCurrentSection();
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-ui-border bg-bg-surface lg:flex">

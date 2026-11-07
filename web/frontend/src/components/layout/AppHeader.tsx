@@ -3,6 +3,7 @@ import { MaterialIcon } from '../common';
 import { useBreadcrumbTrail, type Crumb } from '../../contexts/BreadcrumbContext';
 import { sectionFor } from './navSections';
 import { listReturnTo } from '../../utils/listReturnTo';
+import { useGroupTrail } from '../../hooks/useGroupTrail';
 
 // 데스크톱 전용 위치 표시 헤더. 높이 h-16은 Sidebar 로고 블록과 같은 값이라
 // 사이드바 경계 너머로 크롬 상단이 한 줄로 이어진다.
@@ -15,9 +16,13 @@ export function AppHeader() {
 
   // 섹션 크럼은 경로에서 자동으로 나온다. 상세 페이지는 `useBreadcrumb`으로
   // 그 **뒤쪽만** 선언하면 된다 — 목록 페이지는 아무것도 하지 않아도 된다.
+  // 그룹에서 연 대상은 그룹 › 그룹 이름 › 대상으로 보인다.
   const section = sectionFor(pathname);
+  const trail = useGroupTrail();
   const crumbs: Crumb[] = [
-    ...(section ? [{ label: section.label, to: listReturnTo(state, section.to) }] : []),
+    ...(trail
+      ? [{ label: '그룹', to: '/projects' }, { label: trail.name, to: `/projects/${trail.id}` }]
+      : section ? [{ label: section.label, to: listReturnTo(state, section.to) }] : []),
     ...(declared ?? []),
   ];
 
