@@ -72,9 +72,10 @@ export function InfrastructurePage() {
 
   return (
     <div>
-      <PageHeader title="인프라" subtitle="서버의 CPU, 메모리, 디스크 상태를 확인하고 자원 이상을 찾습니다.">
+      <PageHeader title="인프라" subtitle="인프라 Collector로 직접 연결한 서버의 CPU, 메모리, 디스크 상태입니다.">
         <MonitoringConnection capability="infrastructure" onConnected={reload} />
       </PageHeader>
+      <DockerEnvironmentHint className="mb-5" />
       <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>
@@ -84,7 +85,6 @@ export function InfrastructurePage() {
         <EmptyState icon="memory" title="표시할 인프라가 없습니다" description="표준 OpenTelemetry Collector를 연결하면 여기에 표시됩니다.">
           <div className="flex flex-col items-center gap-4">
             <MonitoringConnection capability="infrastructure" onConnected={reload} />
-            <DockerEnvironmentHint />
           </div>
         </EmptyState>
       ) : (

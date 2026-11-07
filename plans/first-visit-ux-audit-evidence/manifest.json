@@ -1,0 +1,826 @@
+{
+  "captures": 78,
+  "timeRangeUtc": [
+    "2026-11-07T13:22:01.166Z",
+    "2026-11-07T13:37:56.496Z"
+  ],
+  "phaseStats": [
+    {
+      "phase": "matrix",
+      "captures": 32,
+      "errors": 0
+    },
+    {
+      "phase": "journey",
+      "captures": 15,
+      "errors": 0
+    },
+    {
+      "phase": "narrow",
+      "captures": 4,
+      "errors": 0
+    },
+    {
+      "phase": "aging",
+      "captures": 4,
+      "errors": 0
+    },
+    {
+      "phase": "interaction",
+      "captures": 9,
+      "errors": 0
+    },
+    {
+      "phase": "supplement",
+      "captures": 8,
+      "errors": 0
+    },
+    {
+      "phase": "accessibility",
+      "captures": 6,
+      "errors": 0
+    }
+  ],
+  "files": [
+    {
+      "path": "captures/aging-attention-after-110s.json",
+      "bytes": 13712,
+      "sha256": "b30c2b06dd8878b64fa4947bc60f4ac0b26d831e288064a690803a42d231e9c0"
+    },
+    {
+      "path": "captures/aging-attention-after-110s.png",
+      "bytes": 123301,
+      "sha256": "55dd8c0b60f10fa8df7dc5c7cce05bb33a5e1e433cd580b26f26febad8726be0"
+    },
+    {
+      "path": "captures/aging-attention-start.json",
+      "bytes": 12599,
+      "sha256": "8487974e63f7a50b42f9d80780008c747d2803bbcb1614965918a3700e2f8b68"
+    },
+    {
+      "path": "captures/aging-attention-start.png",
+      "bytes": 105359,
+      "sha256": "fbf4c2e1458892852782dee06e86a0ef030aa1070e069d3c09ac61d08f912749"
+    },
+    {
+      "path": "captures/aging-normal-after-110s.json",
+      "bytes": 13287,
+      "sha256": "18645d4ee55f616f684e6844627c7746accc74de72c4ca55ab4407e8d7d9a45c"
+    },
+    {
+      "path": "captures/aging-normal-after-110s.png",
+      "bytes": 124047,
+      "sha256": "c47e4846e3a5631eb73e9ebe6eace339505935bee8eaa93c4641472e2a5989ba"
+    },
+    {
+      "path": "captures/aging-normal-start.json",
+      "bytes": 11802,
+      "sha256": "db29183c093534dd7d1035ea4e21dd1f3f0d5866c376e3bd323236e08c37e87e"
+    },
+    {
+      "path": "captures/aging-normal-start.png",
+      "bytes": 104320,
+      "sha256": "61c6567b77c5563b1bfd5e37deb9acf058f2b930b050fa6067c43acca3550275"
+    },
+    {
+      "path": "captures/demo-docker-install-command.json",
+      "bytes": 12136,
+      "sha256": "2b53540d5bc6ed74a82ec1758e69e0f71f373af7f63e4cd8324ca0c2c75c0920"
+    },
+    {
+      "path": "captures/demo-docker-install-command.png",
+      "bytes": 166631,
+      "sha256": "89f11d5f14949c99bdcd34e1856010cf2f071199b6219c0948a3c00563ab2bca"
+    },
+    {
+      "path": "captures/desktop-dark-attention-overview.json",
+      "bytes": 12627,
+      "sha256": "e56a5c7e45cb9c356766ce6eceb72bee81d674152c2d3c9dcdd97639688b2d49"
+    },
+    {
+      "path": "captures/desktop-dark-attention-overview.png",
+      "bytes": 104373,
+      "sha256": "02080d845ef7a2feeeb7132fc2bbf802bf97490a6381825135df805a9f68c076"
+    },
+    {
+      "path": "captures/desktop-dark-home.json",
+      "bytes": 24225,
+      "sha256": "7ecdd054d7d71cdd5b95640cb099c3125fd4ff21f1fa89225978f0ad86ab8c71"
+    },
+    {
+      "path": "captures/desktop-dark-home.png",
+      "bytes": 157651,
+      "sha256": "02e4cea416c5333f24c1f544f0857f06cb2fe8e81f37117f232f442cd25d4e6a"
+    },
+    {
+      "path": "captures/desktop-dark-payment-logs.json",
+      "bytes": 21548,
+      "sha256": "bc873653c4cdb107de20704c7ac2f0dc4dda4a3f4cadd3447c87966f1196402a"
+    },
+    {
+      "path": "captures/desktop-dark-payment-logs.png",
+      "bytes": 106091,
+      "sha256": "c3e1ab343183bca3563cb8c249ca25c383300f89f6115281321bd351ff32a50a"
+    },
+    {
+      "path": "captures/desktop-dark-payment-trace.json",
+      "bytes": 27538,
+      "sha256": "1fbbedebf6d946fb9bd444b2914ddcbce1fb8747d0d131186c874cf928f5b923"
+    },
+    {
+      "path": "captures/desktop-dark-payment-trace.png",
+      "bytes": 199660,
+      "sha256": "86277ef897e943e2c0911664046fa1c2c06808271eb96fc85acc47b14a3613e8"
+    },
+    {
+      "path": "captures/desktop-dark-payment-uptime.json",
+      "bytes": 12301,
+      "sha256": "31474d3d982162afa5a7d459858ffb0fc7bbccc6043ff83d7bcf65c7fbf11a7f"
+    },
+    {
+      "path": "captures/desktop-dark-payment-uptime.png",
+      "bytes": 87756,
+      "sha256": "fd288147814686eb550c4fefbaa90068fc49d87a31fa358634beda999e3112ac"
+    },
+    {
+      "path": "captures/desktop-direct-api-detail.json",
+      "bytes": 19865,
+      "sha256": "3b3c46e9a8ac465562dc78b2369c04c67a0ee334bd5caf43b4596cdec95a380e"
+    },
+    {
+      "path": "captures/desktop-direct-api-detail.png",
+      "bytes": 88355,
+      "sha256": "628c47658cac8a7758c6ba86eb5cae166c597401b36f3a9785b7f0b92d42a1d0"
+    },
+    {
+      "path": "captures/desktop-infra-detail.json",
+      "bytes": 10983,
+      "sha256": "f5244439bbbfe7e6d0b14cdf1837dda7a24991e175b3a16ff41579e062d45bb7"
+    },
+    {
+      "path": "captures/desktop-infra-detail.png",
+      "bytes": 99239,
+      "sha256": "50430be1329b34bf1505d5fff55c659cda21d26c684d462a1b3e210958b642f4"
+    },
+    {
+      "path": "captures/desktop-journey-api.json",
+      "bytes": 9180,
+      "sha256": "dc17ab7aa101bde0433611468f1c3baeacf609ab61d8dad0cd9bf655533e7ada"
+    },
+    {
+      "path": "captures/desktop-journey-api.png",
+      "bytes": 75221,
+      "sha256": "8350f9f35ce36c8cb9edce5a8b78f4849158e5041885dea5170a79505cc52abb"
+    },
+    {
+      "path": "captures/desktop-journey-entry.json",
+      "bytes": 12605,
+      "sha256": "a862978304eabdfcb4ae48b8c000a54ecb9f7b3d639cc26b9c084af9c1b4e134"
+    },
+    {
+      "path": "captures/desktop-journey-entry.png",
+      "bytes": 104986,
+      "sha256": "5d8ac235fbc129a5bc524317a8197b3a0d74c1c3862edd80a85b70b37dc9b5d2"
+    },
+    {
+      "path": "captures/desktop-journey-infrastructure.json",
+      "bytes": 8179,
+      "sha256": "a26f5d2c8bbad68dd1972de0e676758b3f1d0e16f70e429d33520355cebae8a7"
+    },
+    {
+      "path": "captures/desktop-journey-infrastructure.png",
+      "bytes": 68107,
+      "sha256": "59bb82888d1a3c9e796c36ada2abb623486b7085f6af22d24fae5a1feca93d13"
+    },
+    {
+      "path": "captures/desktop-journey-logs.json",
+      "bytes": 22253,
+      "sha256": "623172595731900f0bbbb06c4a7707bc365b531dbe4474b9444e09d824d03e86"
+    },
+    {
+      "path": "captures/desktop-journey-logs.png",
+      "bytes": 104496,
+      "sha256": "60983b0ff7a79782e663ea60f1f1579bd50dd75196e924b7435cc875876e49db"
+    },
+    {
+      "path": "captures/desktop-journey-payment-api.json",
+      "bytes": 11068,
+      "sha256": "ffc8e1b9d0f96ff7788ce6719a064545dcca63ae68eb4f772d1e7c742200a869"
+    },
+    {
+      "path": "captures/desktop-journey-payment-api.png",
+      "bytes": 88461,
+      "sha256": "25793f237ff61b94470680913a15afa44a68141e9ede06dc2692be733d2bcde0"
+    },
+    {
+      "path": "captures/desktop-journey-quickstart-web.json",
+      "bytes": 28655,
+      "sha256": "da132f6eeb3d216816d905fc620cad51011317714694b7a744445903a675d8e4"
+    },
+    {
+      "path": "captures/desktop-journey-quickstart-web.png",
+      "bytes": 148546,
+      "sha256": "cd887165df87832717a1c550c59eb65a48f758e375e5dfd1cf6029b5b055232e"
+    },
+    {
+      "path": "captures/desktop-journey-quickstart.json",
+      "bytes": 28647,
+      "sha256": "53361c1a71b6e625a63a1a2fd5ccf84bdea1e606c4d0cfc767977fcb3779a766"
+    },
+    {
+      "path": "captures/desktop-journey-quickstart.png",
+      "bytes": 148546,
+      "sha256": "cd887165df87832717a1c550c59eb65a48f758e375e5dfd1cf6029b5b055232e"
+    },
+    {
+      "path": "captures/desktop-keyboard-menu.json",
+      "bytes": 22208,
+      "sha256": "5a56a1b15dcd6db332a78aa725a3c4aea55df478dadc68f6ccb0162feeef7b14"
+    },
+    {
+      "path": "captures/desktop-keyboard-menu.png",
+      "bytes": 105251,
+      "sha256": "8517c0b28e60e963c283c9a646c109366550803d620a06528337d0662cb79cad"
+    },
+    {
+      "path": "captures/desktop-keyboard-scenario.json",
+      "bytes": 11820,
+      "sha256": "35a8350cf844e4099bc27fdf5462a622103f1c462ecb99a2e5306204f7070c8d"
+    },
+    {
+      "path": "captures/desktop-keyboard-scenario.png",
+      "bytes": 104142,
+      "sha256": "d737c235cbfa70efee9a8fb973f22fce0794302f7d539ae74648e8a2f75355af"
+    },
+    {
+      "path": "captures/desktop-light-attention-overview.json",
+      "bytes": 12627,
+      "sha256": "e1462991da93feb88f540e417b7e1c5d4236c4cb597d01c0c461904dc9baab0c"
+    },
+    {
+      "path": "captures/desktop-light-attention-overview.png",
+      "bytes": 104883,
+      "sha256": "f731e5eb1f147210961f5d11e0394c55358b1de2bf2c331b1f8f266993c49b9f"
+    },
+    {
+      "path": "captures/desktop-light-empty-docker-connect.json",
+      "bytes": 9433,
+      "sha256": "22cc6b30a5097f3fae1e8d864fd92ed4fdfcf07b6bea13804996dddc9df894a0"
+    },
+    {
+      "path": "captures/desktop-light-empty-docker-connect.png",
+      "bytes": 106815,
+      "sha256": "cdad579c64ffe93d339a65d0ee3b9cc619bc4d6ee7a55247aaf048c2981aac3d"
+    },
+    {
+      "path": "captures/desktop-light-empty-overview.json",
+      "bytes": 8393,
+      "sha256": "abbfea0c7dccbd378709d2821df0862e64d840402266f20ce9fbfb57f5b66954"
+    },
+    {
+      "path": "captures/desktop-light-empty-overview.png",
+      "bytes": 68359,
+      "sha256": "3908733746aa168c910cd26824b8f810bed5d6dab755893a216fcfd28dc0665b"
+    },
+    {
+      "path": "captures/desktop-light-home.json",
+      "bytes": 24225,
+      "sha256": "973f0096509352a55b678975cb12432b3966c63e6ef3419e808ea13305c8df43"
+    },
+    {
+      "path": "captures/desktop-light-home.png",
+      "bytes": 149109,
+      "sha256": "94352243cbc1dd345a8ef8d79b2c773a1f98aed3b652aba14dab784bce87486e"
+    },
+    {
+      "path": "captures/desktop-light-normal-overview.json",
+      "bytes": 11828,
+      "sha256": "f23b01f33f659d27e91666164d439536c46e257644b3fe71d0aa33719a9a58ff"
+    },
+    {
+      "path": "captures/desktop-light-normal-overview.png",
+      "bytes": 103902,
+      "sha256": "ca930d9f6ccc565d4326c0c793d62aeb2051d4e58eb9bc6b74baa99a54803a37"
+    },
+    {
+      "path": "captures/desktop-light-normal-payment.json",
+      "bytes": 12267,
+      "sha256": "49cb975a6e37a25fa47b70c3a56cfb5a01f19333fd5ef1eb5ed2063e5d264966"
+    },
+    {
+      "path": "captures/desktop-light-normal-payment.png",
+      "bytes": 89426,
+      "sha256": "b9df090e22ce34016229438fc20f6c75237953a1475252cfcff13529df48b66a"
+    },
+    {
+      "path": "captures/desktop-light-partial-failure-overview.json",
+      "bytes": 13142,
+      "sha256": "afda9441274a5c4b8a134ade9dbf7451c66ba4c144476bac3f89dd9e8cfc922f"
+    },
+    {
+      "path": "captures/desktop-light-partial-failure-overview.png",
+      "bytes": 108507,
+      "sha256": "76e81711caaa763b9312bf4aff0898b2ba382fb8f5af7958ae3006c75bdbcb5a"
+    },
+    {
+      "path": "captures/desktop-light-partial-failure-retry.json",
+      "bytes": 13146,
+      "sha256": "6c58993e5a72c549e9f14e17263b4406e381c1e1ba99edc497159837d3b5fb67"
+    },
+    {
+      "path": "captures/desktop-light-partial-failure-retry.png",
+      "bytes": 108545,
+      "sha256": "0fda6e0c0b6edaf2021683506870f4ca13c8b25932ba31c02a4eec8a1e58d479"
+    },
+    {
+      "path": "captures/desktop-light-payment-logs.json",
+      "bytes": 21548,
+      "sha256": "28b684fa73eb60ffd07aac3b78ae2c607a715c4702698760009d6d5184ecde9c"
+    },
+    {
+      "path": "captures/desktop-light-payment-logs.png",
+      "bytes": 108407,
+      "sha256": "76cda1ba49a8f3eef35cfd701e69e605a4878802710226dc8242630458ef2166"
+    },
+    {
+      "path": "captures/desktop-light-payment-trace.json",
+      "bytes": 27541,
+      "sha256": "000c466ecb5fc4f96b123afa603d04511ffd27b3634b8735da1e96e565f60b16"
+    },
+    {
+      "path": "captures/desktop-light-payment-trace.png",
+      "bytes": 188417,
+      "sha256": "33232e3ba30d1240591d44984356de95df08ef6d9bc6fc9102aec8648d61a0f8"
+    },
+    {
+      "path": "captures/desktop-light-payment-uptime.json",
+      "bytes": 12295,
+      "sha256": "1683fc55182ce7ac4ed2c3c9389e72361bfbf715454e172fa5b0ce3bfa42e167"
+    },
+    {
+      "path": "captures/desktop-light-payment-uptime.png",
+      "bytes": 88624,
+      "sha256": "afcb94d37eaa7487efa3d3b3049f2c795d6a76791acd192e72e8dbc7fb56a38d"
+    },
+    {
+      "path": "captures/desktop-payment-response-summary.json",
+      "bytes": 12319,
+      "sha256": "c4e43c726cc732e08836894710456380257c49eea6acc12c690d6072fd37f979"
+    },
+    {
+      "path": "captures/desktop-payment-response-summary.png",
+      "bytes": 67809,
+      "sha256": "7fa257475195663d94931905f10d10088517cc38a5f284c632ac881a56b4d192"
+    },
+    {
+      "path": "captures/desktop-response-plot-interaction.json",
+      "bytes": 11172,
+      "sha256": "a0ac219a77c72493867a4858afb9566789bccee175d07563b78f94ffbd68c29c"
+    },
+    {
+      "path": "captures/desktop-response-plot-interaction.png",
+      "bytes": 91017,
+      "sha256": "e2a4c9287fffe0d6af361680436c20c463a687ffe5cf294a6b6f0752b5b4d5bd"
+    },
+    {
+      "path": "captures/desktop-seed-error-trace.json",
+      "bytes": 30872,
+      "sha256": "a8ab3633fcbdfa30f9193c989d6c8eb6f1a70e85afdea16c07353d5d76ebd7b8"
+    },
+    {
+      "path": "captures/desktop-seed-error-trace.png",
+      "bytes": 259110,
+      "sha256": "c9b14e65dfb8f40eef5e707e04fd1f4ad3314f85e8e80e4cd5d8037096297cd1"
+    },
+    {
+      "path": "captures/keyboard-home-demo.json",
+      "bytes": 13250,
+      "sha256": "972fce8831e38cc6d71850dc5d47fdc2129629c194e2962d69f75ec49e5b1005"
+    },
+    {
+      "path": "captures/keyboard-home-demo.png",
+      "bytes": 149639,
+      "sha256": "06cfc13b3219f60d7cba9d8a071ec8f3da2d0853b1ebad0659bd2e8879d14e27"
+    },
+    {
+      "path": "captures/keyboard-incident-focus.json",
+      "bytes": 11091,
+      "sha256": "6ae13e955d7e421aafe19ab8619856c42c5ba6226a1d29d2c1a33bad1116b5e1"
+    },
+    {
+      "path": "captures/keyboard-incident-focus.png",
+      "bytes": 105786,
+      "sha256": "edf48bf0d86a357d542b586fe202ba6499b39e06ddfbed8d5522fedc308b5415"
+    },
+    {
+      "path": "captures/keyboard-trace-after-enter.json",
+      "bytes": 22751,
+      "sha256": "3f19b761a5b7ee23fd5dcb67e288693d1e75b30fc48e2d08801ad985993d7d4b"
+    },
+    {
+      "path": "captures/keyboard-trace-after-enter.png",
+      "bytes": 109945,
+      "sha256": "d5da235630eb0d5337ee3b5560149162210e9b071e461cb4c1efa699cd22cda4"
+    },
+    {
+      "path": "captures/keyboard-trace-closed.json",
+      "bytes": 23841,
+      "sha256": "be26e9989f9e743eba0d899c416ed4aaedfa495f65b8e60230875317a737a39f"
+    },
+    {
+      "path": "captures/keyboard-trace-closed.png",
+      "bytes": 188285,
+      "sha256": "0a2c80d57f1ac997b9ecff640a3cfe02990c429fb35df8dba34eef7bed1fc3e7"
+    },
+    {
+      "path": "captures/keyboard-trace-open.json",
+      "bytes": 27604,
+      "sha256": "44f57cee7dbe71205142d2c6a646591dea14b69515e46a9881ad6d76d637ff37"
+    },
+    {
+      "path": "captures/keyboard-trace-open.png",
+      "bytes": 190947,
+      "sha256": "69dedb9a4992ebc572b2f7d0ace12146c921be366f34a7d66e862d5ae089e557"
+    },
+    {
+      "path": "captures/keyboard-trace-trigger.json",
+      "bytes": 21564,
+      "sha256": "cacb53b6839eb08c2874ad2ae985e0573ddd016d92d24ed2add3a57265ce5327"
+    },
+    {
+      "path": "captures/keyboard-trace-trigger.png",
+      "bytes": 112046,
+      "sha256": "3a629be96b25a61a092a71e26006dab6a0ec18822fab1f8d56ca3734cd307943"
+    },
+    {
+      "path": "captures/mobile-dark-attention-overview.json",
+      "bytes": 10710,
+      "sha256": "f8a13e121235bd9d3ef12d49e5f6820e7aef475664c229fd1b2e92653c114b9f"
+    },
+    {
+      "path": "captures/mobile-dark-attention-overview.png",
+      "bytes": 58371,
+      "sha256": "c7dd05909e21a89c103bb814b7d84d063d2549f2280b11028ac9fd1cd6e95225"
+    },
+    {
+      "path": "captures/mobile-dark-demo-contrast.json",
+      "bytes": 10652,
+      "sha256": "260f27e341477e5d7c1251f056be5f9a3700044c09a11e289971f4fc4d1a5256"
+    },
+    {
+      "path": "captures/mobile-dark-demo-contrast.png",
+      "bytes": 58770,
+      "sha256": "601c4af058ec26589904679e02b6044c4a9d3722bc498c890b60e9e333602ba7"
+    },
+    {
+      "path": "captures/mobile-dark-home.json",
+      "bytes": 19923,
+      "sha256": "5a3ae2294818da6d703a95a2db4636fbb26080d19d5b2f26ef0bf95aad01573a"
+    },
+    {
+      "path": "captures/mobile-dark-home.png",
+      "bytes": 51146,
+      "sha256": "690f1e53f158e912a13e8fefc4ccf958ba17c9cb2f31f17aa42368b2fb3b7082"
+    },
+    {
+      "path": "captures/mobile-dark-payment-logs.json",
+      "bytes": 20063,
+      "sha256": "903dd9d3654bc3372a0cb7b3ef31baea4e7d26d352d22d4fc1e0198d5c207eec"
+    },
+    {
+      "path": "captures/mobile-dark-payment-logs.png",
+      "bytes": 50038,
+      "sha256": "3e1d0ef1a6b985c6a20ee6e9d48cb42381352e4b8a4e3bcae30b037e80827997"
+    },
+    {
+      "path": "captures/mobile-dark-payment-trace.json",
+      "bytes": 25458,
+      "sha256": "f16f3b9df98b8ca1dfdabcf9c82a82670313cf556ab60bc51dd733eb752c1fc2"
+    },
+    {
+      "path": "captures/mobile-dark-payment-trace.png",
+      "bytes": 42556,
+      "sha256": "467d3d90d2bd598c8e5230d3d6bd71ba7af8ccb939f61ad8fd530941e6124cac"
+    },
+    {
+      "path": "captures/mobile-dark-payment-uptime.json",
+      "bytes": 10302,
+      "sha256": "d2f232ca4a2e7dc352effc1e2eb0fbb70721cccc4d359a64c6c0d38215588d7d"
+    },
+    {
+      "path": "captures/mobile-dark-payment-uptime.png",
+      "bytes": 50042,
+      "sha256": "0dc5e0b094186e432e8666358c38473a01cee70876982dca57e5b43b6d799815"
+    },
+    {
+      "path": "captures/mobile-direct-api-detail.json",
+      "bytes": 17671,
+      "sha256": "b5bf4c8d8e6bc768876a4717ca2b34b30e3d6ef3df211b20caf12ad885e82c48"
+    },
+    {
+      "path": "captures/mobile-direct-api-detail.png",
+      "bytes": 55925,
+      "sha256": "9426d2747a6bd2de1af0c7fb4b573891e77eaaf039235257f9b8eb595c14ce96"
+    },
+    {
+      "path": "captures/mobile-infra-detail.json",
+      "bytes": 8824,
+      "sha256": "dab3a87a26e0ca431033b19df23cd7f7f44ea13ea4e6b71693481914a9bc7be6"
+    },
+    {
+      "path": "captures/mobile-infra-detail.png",
+      "bytes": 50414,
+      "sha256": "9dbe38e15438321c2c8e2adcd09df8eb073709ba612644869ecab4d79c49d459"
+    },
+    {
+      "path": "captures/mobile-journey-api.json",
+      "bytes": 8384,
+      "sha256": "50ea3d0ca6ae4bde69bebe0d6daf4a1d7e8fc0cf24057b7d8ac59753852aec5d"
+    },
+    {
+      "path": "captures/mobile-journey-api.png",
+      "bytes": 47006,
+      "sha256": "2d7c93eefebd5b6b69426e8913d16bfb3e70d28ade9ab51bee3d0f8315248f9b"
+    },
+    {
+      "path": "captures/mobile-journey-entry.json",
+      "bytes": 10688,
+      "sha256": "2ccf332a1b1b8e7817493968c262d0f1434949db6403e4ee7b859f1b88b3a6dd"
+    },
+    {
+      "path": "captures/mobile-journey-entry.png",
+      "bytes": 57363,
+      "sha256": "ba69f785e66f0273e846717ba776d367c9e6f1d7d4d2664c8d5b7179363b142d"
+    },
+    {
+      "path": "captures/mobile-journey-infrastructure.json",
+      "bytes": 7515,
+      "sha256": "5ec79ca3e0fc59ab2a3ab8e21463e63100257c899d4cba6b65803ac6b1c41be6"
+    },
+    {
+      "path": "captures/mobile-journey-infrastructure.png",
+      "bytes": 44871,
+      "sha256": "ce5e6c5b0164440ed5c613c75318c78a687ff667c54832f1d5f044bbcd895328"
+    },
+    {
+      "path": "captures/mobile-journey-logs.json",
+      "bytes": 25027,
+      "sha256": "9de9be10833b3c29a75a029dddc248f9b8f7a6b253c69283766c903a80832f64"
+    },
+    {
+      "path": "captures/mobile-journey-logs.png",
+      "bytes": 45831,
+      "sha256": "99ab98d68129ed38819231f056bbf70d828694b0f6c242ab455ec9129b5e176b"
+    },
+    {
+      "path": "captures/mobile-journey-more.json",
+      "bytes": 6815,
+      "sha256": "4ad47c4eb5743761e69edc418e0710f3a673150ca85e5e79657c89783c08b8cd"
+    },
+    {
+      "path": "captures/mobile-journey-more.png",
+      "bytes": 51485,
+      "sha256": "c323f0dd87f8b76e9a694019a6433e72c014d418ae451a1887de0c8df78d501c"
+    },
+    {
+      "path": "captures/mobile-journey-payment-api.json",
+      "bytes": 9614,
+      "sha256": "4820c40883305748024e6372a5ecc5e35a0e4f912f26757868921540cc0dcaad"
+    },
+    {
+      "path": "captures/mobile-journey-payment-api.png",
+      "bytes": 49962,
+      "sha256": "2c57def43f7c8399d6f99182ee4f3716d89aabee16561295e594dfdabcb5a922"
+    },
+    {
+      "path": "captures/mobile-journey-quickstart-web.json",
+      "bytes": 28826,
+      "sha256": "55598cffa3d88b3860dbe7ef6e83dde1dc5ef618e0320b9cb48037b96ec87645"
+    },
+    {
+      "path": "captures/mobile-journey-quickstart-web.png",
+      "bytes": 62158,
+      "sha256": "1c75c7cb5c0101a1b4acb72ee7094943987ac4ab313302e461820e13d8bdc1a5"
+    },
+    {
+      "path": "captures/mobile-journey-quickstart.json",
+      "bytes": 28818,
+      "sha256": "c11c12c9f5006f71e82074260f1f849e95a026fe58d1949063456bf49c8eb7b2"
+    },
+    {
+      "path": "captures/mobile-journey-quickstart.png",
+      "bytes": 62158,
+      "sha256": "1c75c7cb5c0101a1b4acb72ee7094943987ac4ab313302e461820e13d8bdc1a5"
+    },
+    {
+      "path": "captures/mobile-keyboard-menu.json",
+      "bytes": 6767,
+      "sha256": "567ad6e77a539f32cb587215aaf4da85e723b809fabf686423bedee5229d2f72"
+    },
+    {
+      "path": "captures/mobile-keyboard-menu.png",
+      "bytes": 53665,
+      "sha256": "f518dc6e4fada9f2652abf48ca6957ba4a3c2cdd908aab6f842b4001400ffd1b"
+    },
+    {
+      "path": "captures/mobile-keyboard-scenario.json",
+      "bytes": 9939,
+      "sha256": "ea755df6ffb2d54fe3d2be5f36208de1cdee8107ff057cb108f9759f720c1ae6"
+    },
+    {
+      "path": "captures/mobile-keyboard-scenario.png",
+      "bytes": 55178,
+      "sha256": "d704f4743a0c26a084edcfaee7df2e613348c5d2b1e12f9e7e1ac4b56d33ff6c"
+    },
+    {
+      "path": "captures/mobile-light-attention-overview.json",
+      "bytes": 10710,
+      "sha256": "c8effdc80f66ee17a5061105d691b243651170e7cf99855bdc029effee02f455"
+    },
+    {
+      "path": "captures/mobile-light-attention-overview.png",
+      "bytes": 57359,
+      "sha256": "c657983a18f9dfb95c9682dfb6b8934188834702f7a6d7ec8358969d53186a9a"
+    },
+    {
+      "path": "captures/mobile-light-demo-contrast.json",
+      "bytes": 10652,
+      "sha256": "8a82ed89f9ae355564fb145d36a55ce4f5378d12cf1059a2ea082cc8c1ce7b02"
+    },
+    {
+      "path": "captures/mobile-light-demo-contrast.png",
+      "bytes": 57711,
+      "sha256": "6a75885c13de8d68a4ae1a2bbf01d6f9c0c5eb3d1b2463a910922295d5848787"
+    },
+    {
+      "path": "captures/mobile-light-empty-docker-connect.json",
+      "bytes": 7657,
+      "sha256": "912f9019205d422cc19ede3f6af8533b1c18b02e71a09eb1cf05cf071570842b"
+    },
+    {
+      "path": "captures/mobile-light-empty-docker-connect.png",
+      "bytes": 72193,
+      "sha256": "b468f9751b626aa619640a2c6f0bcea03ddd2d840d426a13bbe76fbab8309f77"
+    },
+    {
+      "path": "captures/mobile-light-empty-overview.json",
+      "bytes": 6571,
+      "sha256": "d6115c40a7841a1eaafa265d02f4917167902941a49d2092d6c93638886d5e51"
+    },
+    {
+      "path": "captures/mobile-light-empty-overview.png",
+      "bytes": 52631,
+      "sha256": "10d4cf5f5e27c8d37590ea7b5cfcec37d5b5a02dec17841d1eed577b26c26999"
+    },
+    {
+      "path": "captures/mobile-light-home.json",
+      "bytes": 19923,
+      "sha256": "12ba1e26feca4799e14399589a64232a6e08ebef8b9cbccbb858b7eaf8d5afa2"
+    },
+    {
+      "path": "captures/mobile-light-home.png",
+      "bytes": 50919,
+      "sha256": "95a1551822ccd17e94064c51fdad03cff7f89bbac8096f73c7465a98fb74c597"
+    },
+    {
+      "path": "captures/mobile-light-normal-overview.json",
+      "bytes": 9947,
+      "sha256": "8db212328a96138026a92b9dc2c6760ada57105d1c2c04c05c1f3950bdc9494a"
+    },
+    {
+      "path": "captures/mobile-light-normal-overview.png",
+      "bytes": 55248,
+      "sha256": "8aca59de24a7ce87ce20ebb38c5f63723a4a03cad4731ebb5de005146705369a"
+    },
+    {
+      "path": "captures/mobile-light-normal-payment.json",
+      "bytes": 10289,
+      "sha256": "6ca92f6cc7c9d4dcf8a7b3c3b676153ba3b1d5da25813903859b4213d8c504a2"
+    },
+    {
+      "path": "captures/mobile-light-normal-payment.png",
+      "bytes": 50303,
+      "sha256": "970feb62c4268ac58096fec05bfd3d5ab4085b1a67e3ef8ea3e762d508453eae"
+    },
+    {
+      "path": "captures/mobile-light-partial-failure-overview.json",
+      "bytes": 11258,
+      "sha256": "f12ea5a85161ee0c27a48b971ef3baae6173c19d81998881a2fdc7d526b6d1cb"
+    },
+    {
+      "path": "captures/mobile-light-partial-failure-overview.png",
+      "bytes": 65001,
+      "sha256": "f56ed089ba836dbbbaf0505bad77a200951b4d1047fb1f74021f81e8d068b852"
+    },
+    {
+      "path": "captures/mobile-light-partial-failure-retry.json",
+      "bytes": 11262,
+      "sha256": "00a9ef427082d43602664f2ef7cc3e7c3138b0188fcd4b64e8828a714fe585c1"
+    },
+    {
+      "path": "captures/mobile-light-partial-failure-retry.png",
+      "bytes": 64910,
+      "sha256": "83cd6ea5baa65fb858a7c9d239bedd5c6a5a4b9a7366d9abc5f508d9e1d5d030"
+    },
+    {
+      "path": "captures/mobile-light-payment-logs.json",
+      "bytes": 20063,
+      "sha256": "60565047f75b19fc6676ee891d8a1794473d21fe11c34e74fa3aedfea13255e5"
+    },
+    {
+      "path": "captures/mobile-light-payment-logs.png",
+      "bytes": 49881,
+      "sha256": "34f74c24740ee45f8e6bc60e8ee3bed2cb929264adf3691832fbdb6dceafd020"
+    },
+    {
+      "path": "captures/mobile-light-payment-trace.json",
+      "bytes": 25461,
+      "sha256": "bdf5a42f9ff40de5498cf3cc15514f8fcb8b9b78297eb268355676fff18420bb"
+    },
+    {
+      "path": "captures/mobile-light-payment-trace.png",
+      "bytes": 42384,
+      "sha256": "d3bffca651ab5f167a408f767c05ee898f464f0813fd113953927f0f5d82f64f"
+    },
+    {
+      "path": "captures/mobile-light-payment-uptime.json",
+      "bytes": 10302,
+      "sha256": "40e51f8fc6c75dff83e26c3a2bdc4cca7112b231d3c20c841326ba1efffe5401"
+    },
+    {
+      "path": "captures/mobile-light-payment-uptime.png",
+      "bytes": 49893,
+      "sha256": "a671225fa1eb27fc1082d5ee9c79794fd56c134a3abc2af047175827e0983cdc"
+    },
+    {
+      "path": "captures/mobile-payment-response-summary.json",
+      "bytes": 10323,
+      "sha256": "4e98a22e630a5362ab287d2476bf5b27050fe81bfce96c2bed43b856e1e49a53"
+    },
+    {
+      "path": "captures/mobile-payment-response-summary.png",
+      "bytes": 40529,
+      "sha256": "136cc1c6371e00d01e9d94951772a2e09694dc6b913d0e9ff0f85d2675d49c41"
+    },
+    {
+      "path": "captures/mobile-response-plot-interaction.json",
+      "bytes": 9230,
+      "sha256": "230f8f45bd475d7904781bffc228e46a621612017f98f1a6de6b8f83ad2a5e9e"
+    },
+    {
+      "path": "captures/mobile-response-plot-interaction.png",
+      "bytes": 43313,
+      "sha256": "6dd2438e6d5748ae68f79576ab08f2bf7f77876ee2241e42893cfa893deec272"
+    },
+    {
+      "path": "captures/mobile-seed-error-trace.json",
+      "bytes": 29368,
+      "sha256": "a943c35529859523fc90052d94c0009ae753277b2d71ba0759275fafe684b195"
+    },
+    {
+      "path": "captures/mobile-seed-error-trace.png",
+      "bytes": 71704,
+      "sha256": "985b59d950cbaf2cb1726593b7d479a2ba8f5d02062793658242baf6a76d8040"
+    },
+    {
+      "path": "captures/narrow-light-home.json",
+      "bytes": 19877,
+      "sha256": "b14b31a8e0346cda641f850556eb38e64ac7ff019f5d3a1f7d6d5f56a62d0f95"
+    },
+    {
+      "path": "captures/narrow-light-home.png",
+      "bytes": 49378,
+      "sha256": "39b8b678d5f66c3f3eb6ac1ddc8421489794e4c38db8f8cdc58b0041f70befa3"
+    },
+    {
+      "path": "captures/narrow-light-overview.json",
+      "bytes": 10671,
+      "sha256": "17d65ae58652f8b50377cc580c27cd39865dfab4d6225cdabaf7b33d0fa5da95"
+    },
+    {
+      "path": "captures/narrow-light-overview.png",
+      "bytes": 54170,
+      "sha256": "04d49911483667ddb08d5648ede17c3ea8b504d6c7b341840d512fe54bf8447e"
+    },
+    {
+      "path": "captures/narrow-light-payment.json",
+      "bytes": 10593,
+      "sha256": "e241c660aa429fa6c9014f2f0b8c60bb57a0bd44e9a44e4b7b8a3290191ab875"
+    },
+    {
+      "path": "captures/narrow-light-payment.png",
+      "bytes": 47985,
+      "sha256": "2fa31e387eea251a888b8349589fcd2015aeb0d2ac9169c32e3fb937e2646d4b"
+    },
+    {
+      "path": "captures/narrow-light-quickstart.json",
+      "bytes": 47115,
+      "sha256": "dfdc5dfa2ef636f4506bec270e2ab2e33c4c446c39d9dcba8731b97031f76d73"
+    },
+    {
+      "path": "captures/narrow-light-quickstart.png",
+      "bytes": 51450,
+      "sha256": "d94a986ca980c97391659832786b60ee329cbbe1ed7d980f48ad7f5a1fbe1f8c"
+    }
+  ]
+}

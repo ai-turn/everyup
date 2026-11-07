@@ -1,0 +1,76 @@
+{
+  "impeccableVersion": "4.0.4",
+  "hallmarkVersion": "2.0.0",
+  "sourceCommit": "2d37ed3d",
+  "impeccableStatic": {
+    "warning": 2,
+    "advisory": 1
+  },
+  "impeccableRender": {
+    "warning": 47,
+    "advisory": 82
+  },
+  "impeccableRenderRuns": 16,
+  "impeccableRenderErrors": 0,
+  "screenshots": 38,
+  "confirmedIssues": {
+    "P0": 0,
+    "P1": 3,
+    "P2": 4,
+    "P3": 0
+  },
+  "checks": {
+    "pnpmLint": "passed",
+    "buildDemo": "passed",
+    "productSourceModified": false
+  },
+  "hallmark-static": {
+    "fails": 41,
+    "reflex": 0,
+    "warns": 4,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 147,
+    "render": "off"
+  },
+  "hallmark-docs-static": {
+    "fails": 26,
+    "reflex": 15,
+    "warns": 3,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 4,
+    "render": "off"
+  },
+  "hallmark-render-app": {
+    "fails": 4,
+    "reflex": 1,
+    "warns": 0,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 0,
+    "render": "ran",
+    "before": "before: recorded 26 links, 7 fields, 0 handlers, 0 test hooks, 0 script hooks and 3 rendered page(s) in .hallmark\\before.json; --kept checks a redesign against it"
+  },
+  "hallmark-render-home": {
+    "fails": 0,
+    "reflex": 4,
+    "warns": 2,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 0,
+    "render": "ran"
+  }
+}

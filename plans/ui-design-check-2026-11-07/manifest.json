@@ -1,0 +1,239 @@
+{
+  "files": [
+    {
+      "path": "hallmark-docs-static.json",
+      "bytes": 13143,
+      "sha256": "e1d3fab80dbff462bdf3ab64ed0e72dfe2a055458ddc854952bc7723be3ff5ea"
+    },
+    {
+      "path": "hallmark-render-app.json",
+      "bytes": 2422,
+      "sha256": "d3b2231a11adac8e01a823df5f7a815d70fea31ad044d609e72ac77f7f7a17a1"
+    },
+    {
+      "path": "hallmark-render-home.json",
+      "bytes": 2266,
+      "sha256": "12dd13edfb8ce957476a37f14c5f9c537a8e7dc823c651362be11af90f2ba669"
+    },
+    {
+      "path": "hallmark-static.json",
+      "bytes": 17010,
+      "sha256": "92a4c5c46190b6829144af4e651ff2dca0caa80790cacf3363efbc220b1be103"
+    },
+    {
+      "path": "impeccable-docs-static.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "impeccable-render.json",
+      "bytes": 89675,
+      "sha256": "9a3621af3a15bf3b9a7f52cf38b438d2208a0283df11b8db2ed6470d1e50781d"
+    },
+    {
+      "path": "impeccable-static.json",
+      "bytes": 1702,
+      "sha256": "bb43680e99a9d3e05aa45270cc88e0a66caac31fc2431477f0aadebd06565d2c"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 1587,
+      "sha256": "1d8033e6e391de0c211b6a8ea95a6f3bedae854810246364b4581ff71001b496"
+    },
+    {
+      "path": "verified-observations.json",
+      "bytes": 12965,
+      "sha256": "87b7422fbe246fe5ebff0b55cb72ffb900db72414d4a0aa88fe2b45e2e7defa2"
+    },
+    {
+      "path": "screenshots/channel-form-desktop-dark.png",
+      "bytes": 110082,
+      "sha256": "6b50eb54032ea865215656c7b236e59dc68e2aab9aa8418f97472b6d029f4467"
+    },
+    {
+      "path": "screenshots/channel-form-desktop-light.png",
+      "bytes": 109439,
+      "sha256": "72f5ed3d48cf22b3fe562c6d1a3e477df492b545de44716cde4e9f3b3179f91d"
+    },
+    {
+      "path": "screenshots/channel-form-mobile-dark.png",
+      "bytes": 45531,
+      "sha256": "2c86e7b9fe1055b01e39013c4b79ab75215efd8a2434d454662b4956487681f9"
+    },
+    {
+      "path": "screenshots/channel-form-mobile-light.png",
+      "bytes": 45045,
+      "sha256": "6b837517733d3c479baae42bcb12cdc2c81235b1fb3678f9ed7ce8e598478d30"
+    },
+    {
+      "path": "screenshots/channel-guide-after-scroll.png",
+      "bytes": 112285,
+      "sha256": "cc64f53d4cd3cf36336ab7721cc2425c6a485c34468c928a13ea99085e718547"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-1280x800.png",
+      "bytes": 90894,
+      "sha256": "672eebd65df402f79f26c295e1dac356f0dc768601581e433e878e891288f7f1"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-1440-full.png",
+      "bytes": 103939,
+      "sha256": "7e28f5b56c403cf1d1a1607aa24b30fd10655c32f78f0056c9d2d04ef50421f7"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-1440x900.png",
+      "bytes": 103916,
+      "sha256": "e3e41cb0c97867f5ae375958a4f38b8c5323a27538f89e4f8b90cb90f4068b10"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-1920x1080.png",
+      "bytes": 120496,
+      "sha256": "c729e3b45f2ca46e6d55985524be75cd51c27d5f2f61c6e3cce090d7b3c1a92b"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-375.png",
+      "bytes": 53975,
+      "sha256": "adfc8a74db16c3d4ae76bac3f876fbc3d42aca8b1fc2854eb82142bd3503663b"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-alerts-channels-new-1280x800.png",
+      "bytes": 97737,
+      "sha256": "0c1457d5809ac7888fedf2a294c89fb32514cf1126f44e519768e7181cc2a5a4"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-alerts-channels-new-1440-full.png",
+      "bytes": 109438,
+      "sha256": "07988d16a607884ff165bc4c6940457a289807140fb41f351436a73f9ef008d3"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-alerts-channels-new-1440x900.png",
+      "bytes": 109438,
+      "sha256": "07988d16a607884ff165bc4c6940457a289807140fb41f351436a73f9ef008d3"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-alerts-channels-new-1920x1080.png",
+      "bytes": 128813,
+      "sha256": "4582105987e846e6b2f49ebe6a6ca8265cb17e2f4e722dcedde775db67999418"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-alerts-channels-new-375.png",
+      "bytes": 42170,
+      "sha256": "b6a2b461925f496972bb58b18827d0b22eb1a6d5fca4bd5b7d276d5946ea3552"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-services-agent_demo_01-shop-3Apayment-worker-tab-metrics-1280x800.png",
+      "bytes": 93322,
+      "sha256": "cc1ddb6738fb11c8ecd5a5841cf66c0f26cd6248c02e049e4139114b5804eb6b"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-services-agent_demo_01-shop-3Apayment-worker-tab-metrics-1440-full.png",
+      "bytes": 101282,
+      "sha256": "8024b7192bcfdf1c5d43e29df87bc437b233476f0f34f7502b10bf872d3ea046"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-services-agent_demo_01-shop-3Apayment-worker-tab-metrics-1440x900.png",
+      "bytes": 101294,
+      "sha256": "394fad41737afea26e1cde66908cd00c38a861c1ed066f5cad29e98174adab47"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-services-agent_demo_01-shop-3Apayment-worker-tab-metrics-1920x1080.png",
+      "bytes": 122652,
+      "sha256": "be946af7a776cb8d319a7e9959825c646110918ab1ccdcee7ded7d8338f155d7"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5187-everyup-demo-services-agent_demo_01-shop-3Apayment-worker-tab-metrics-375.png",
+      "bytes": 43538,
+      "sha256": "7d3b9e4c2a83f3b0ffc8308f6ec9750d3f9bcc33ac89113c0d3c6bd0d45f23fc"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5188-everyup-1280x800.png",
+      "bytes": 113889,
+      "sha256": "845038dd41b4e7fdf87c11924e24f8cdbe4553c96463e069f5390a5f21cc5cd0"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5188-everyup-1440-full.png",
+      "bytes": 395190,
+      "sha256": "e014e51405639fcf27c268f5625e5739e089b6c1f97f8905a296c12fd25bbe87"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5188-everyup-1440x900.png",
+      "bytes": 146596,
+      "sha256": "780666a5a5137b7a5bde1d2d053c7e2471d859e6ae7c6470967acfaf3dcb8318"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5188-everyup-1920x1080.png",
+      "bytes": 185734,
+      "sha256": "7b68b8a1ea2e15fd89036b7d511af870ed153b6acd192cf78ae5f3c5192d6093"
+    },
+    {
+      "path": "screenshots/hallmark-127.0.0.1-5188-everyup-375.png",
+      "bytes": 186802,
+      "sha256": "d5919702f4688f4baf67648155454008a2517f974f9a76b2d7e9d598b8f47033"
+    },
+    {
+      "path": "screenshots/home-desktop-dark.png",
+      "bytes": 155522,
+      "sha256": "55f5619b8aa4f7a9737ec774705c3803627053942dd98fd8af66727ccb0c616f"
+    },
+    {
+      "path": "screenshots/home-desktop-light.png",
+      "bytes": 146595,
+      "sha256": "8de2dc6cc255bb5d596b755f5ea9404aae911badd315da68b87c007d75335089"
+    },
+    {
+      "path": "screenshots/home-mobile-dark.png",
+      "bytes": 50443,
+      "sha256": "a9d8b5b10cdbf459f2df07657e2173604d4bafd34fe793f17ff0de6f94b29753"
+    },
+    {
+      "path": "screenshots/home-mobile-light.png",
+      "bytes": 50439,
+      "sha256": "e0651d80edfa636cddb9a057853f2aad9aeb70c929ac922f72092c2f3bdaa9ef"
+    },
+    {
+      "path": "screenshots/keyboard-trace-enter.png",
+      "bytes": 107606,
+      "sha256": "e5925018f55d8e15bf7e66931f304d5f57cf4f3ff3372b180307bedd5f11b364"
+    },
+    {
+      "path": "screenshots/metrics-desktop-dark.png",
+      "bytes": 101151,
+      "sha256": "dc1dec69f89fc40e9bdf0a75baa4ff798034f5f99d7784c4b0e55caf5b6b8f1c"
+    },
+    {
+      "path": "screenshots/metrics-desktop-light.png",
+      "bytes": 101272,
+      "sha256": "8ac775a09eb3069fab6b2583d31bbdeab87087c65d3bf3bf64ae03234d730e6a"
+    },
+    {
+      "path": "screenshots/metrics-mobile-dark.png",
+      "bytes": 48859,
+      "sha256": "40816a42423a941551c3e95fbd6e8324940bab556f79b840233435faaad29f4d"
+    },
+    {
+      "path": "screenshots/metrics-mobile-light.png",
+      "bytes": 49042,
+      "sha256": "fc8ed16c73073a4346be90c091ad7b3842d59f2671e82461bab5e60e6079df0d"
+    },
+    {
+      "path": "screenshots/overview-desktop-dark.png",
+      "bytes": 104704,
+      "sha256": "8b752969520bee610ac2f3b8999aa33f4ca7a8546a896c826b843fd082740c2f"
+    },
+    {
+      "path": "screenshots/overview-desktop-light.png",
+      "bytes": 103777,
+      "sha256": "3f47bb9262b512efa96d0d6f779d22d98f6b0e34afe1e4429724837b481041ca"
+    },
+    {
+      "path": "screenshots/overview-mobile-dark.png",
+      "bytes": 57720,
+      "sha256": "587d974379e8c1883e1a8e6087eec4cc1fe4f6ad0ecb0fa9f20bb69887df712b"
+    },
+    {
+      "path": "screenshots/overview-mobile-light.png",
+      "bytes": 56900,
+      "sha256": "374fc2349d043b2adb5ce96c0f157bc0710ce9b25a600102b65a7e2cbac3bb4e"
+    }
+  ]
+}

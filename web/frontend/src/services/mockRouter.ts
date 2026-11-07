@@ -449,13 +449,6 @@ const mockAgentServicesFlat: AgentServiceFlat[] = [
 
 const nowAgent = Date.now();
 
-const mockAgentHistory: ServiceHistoryPoint[] = Array.from({ length: 24 }, (_, i) => ({
-  time: new Date(nowAgent - (23 - i) * 3_600_000).toISOString(),
-  latencyMs: 30 + Math.sin(i / 4) * 15 + Math.random() * 10,
-  uptimePct: i === 10 || i === 17 ? 0 : 100,
-  total: 12,
-}));
-
 const mockAgentUptime: ServiceUptimeDay[] = Array.from({ length: 90 }, (_, i) => ({
   date: new Date(nowAgent - (89 - i) * 86_400_000).toISOString().slice(0, 10),
   uptimePct: i === 42 || i === 77 ? 94 : 100,
@@ -869,7 +862,7 @@ mockAgentServicesFlat.forEach((service, index) => {
     service.key, service.name, index, service.agentId,
     (api ? mockAgentServiceLogs.filter(log => log.id !== 104) : worker ? [mockAgentServiceLogs[3]] : []).flatMap(log =>
       Array.from({ length: log.id === 101 ? 5 : log.id === 102 ? 8 : log.id === 104 ? 24 : 1 }, (_, i) => ({ ...log, id: log.id * 1000 + i }))),
-    api ? mockAgentServiceRequests.filter(request => request.id !== 203) : [],
+    api ? mockAgentServiceRequests.filter(request => request.id !== 203) : worker ? mockAgentServiceRequests.filter(request => request.id === 203) : [],
     api ? [mockTraceDetails[mockTraceIds.apiGatewayAuth], mockTraceDetails[consumerTraceId]] : worker ? [mockTraceDetails[mockTraceIds.paymentWebhook]] : [],
   ));
 });
@@ -986,17 +979,71 @@ function randomHex(bytes: number): string {
   return s;
 }
 
-function scenarioAgents(scenario: MockScenario): ConnectedAgent[] {
+const initialAgentIds = new Set(mockAgents.map(agent => agent.id));
+const initialMonitorIds = new Set(mockUptimeMonitors.map(monitor => monitor.id));
+const initialObservedIds = new Set(mockObservedServices.map(service => service.id));
+const initialInfrastructureIds = new Set(mockInfrastructureResources.map(resource => resource.id));
+
+// Preserve the fixture's intended age instead of letting collection silently expire.
+function fixtureTime(timestamp: string): string {
+  return new Date(Date.parse(timestamp) + Date.now() - nowAgent).toISOString();
+}
+
+function serviceChecks(agentId: string, key: string, start: number, end: number, scenario: MockScenario) {
+  const shift = Date.now() - nowAgent;
+  const failedMs = mockAgentIncidents
+    .filter(incident => incident.agentId === agentId && incident.key === key && (scenario !== 'normal' || !incident.active))
+    .reduce((sum, incident) => sum + Math.max(0, Math.min(end, incident.endedAt ? Date.parse(incident.endedAt) + shift : end)
+      - Math.max(start, Date.parse(incident.startedAt) + shift)), 0);
+  const totalChecks = Math.max(1, Math.round((end - start) / 30_000));
+  const failedChecks = Math.min(totalChecks, Math.round(failedMs / 30_000));
+  return { totalChecks, healthyChecks: totalChecks - failedChecks, uptimePct: (totalChecks - failedChecks) / totalChecks * 100 };
+}
+
+function serviceHistory(endpoint: string, scenario: MockScenario): ServiceHistoryPoint[] {
   if (scenario === 'empty') return [];
-  if (scenario !== 'normal') return mockAgents;
-  const fresh = new Date(nowAgent - 20_000).toISOString();
-  return mockAgents.map((agent) => ({ ...agent, lastSeenAt: fresh, updatedAt: fresh }));
+  const [, , agentId, , encodedKey] = endpoint.split('/');
+  const key = decodeURIComponent(encodedKey);
+  const range = new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '24h';
+  const windowMs = ({ '1h': 1, '6h': 6, '24h': 24 }[range] ?? 24) * 3_600_000;
+  const now = Date.now();
+  const bucketMs = windowMs / 24;
+  const failedLatency = parseFloat(mockAgentServicesFlat.find(service => service.agentId === agentId && service.key === key)?.lastLatency ?? '') || 5000;
+  return Array.from({ length: 24 }, (_, i) => {
+    const end = now - (23 - i) * bucketMs;
+    const checks = serviceChecks(agentId, key, end - bucketMs, end, scenario);
+    return { time: new Date(end).toISOString(), latencyMs: checks.uptimePct < 100 ? failedLatency : 30 + Math.sin(i / 4) * 5,
+      uptimePct: checks.uptimePct, total: checks.totalChecks };
+  });
+}
+
+function serviceUptime(endpoint: string, scenario: MockScenario): ServiceUptimeDay[] {
+  if (scenario === 'empty') return [];
+  const [, , agentId, , encodedKey] = endpoint.split('/');
+  const days = Math.min(90, Math.max(1, Number(new URLSearchParams(endpoint.split('?')[1]).get('days')) || 90));
+  const now = Date.now();
+  const today = Math.floor(now / 86_400_000) * 86_400_000;
+  return Array.from({ length: days }, (_, i) => {
+    const start = today - (days - i - 1) * 86_400_000;
+    return { date: new Date(start).toISOString().slice(0, 10),
+      ...serviceChecks(agentId, decodeURIComponent(encodedKey), start, Math.min(start + 86_400_000, now), scenario) };
+  });
+}
+
+function scenarioAgents(scenario: MockScenario): ConnectedAgent[] {
+  const agents = scenario === 'empty' ? mockAgents.filter(agent => !initialAgentIds.has(agent.id)) : mockAgents;
+  const fresh = new Date(Date.now() - 20_000).toISOString();
+  return agents.map(agent => initialAgentIds.has(agent.id) ? { ...agent,
+    lastSeenAt: scenario === 'normal' ? fresh : fixtureTime(agent.lastSeenAt),
+    updatedAt: scenario === 'normal' ? fresh : fixtureTime(agent.updatedAt) } : agent);
 }
 
 function scenarioServices(scenario: MockScenario): AgentServiceFlat[] {
   if (scenario === 'empty') return [];
-  if (scenario !== 'normal') return mockAgentServicesFlat;
-  const fresh = new Date(nowAgent - 20_000).toISOString();
+  if (scenario !== 'normal') return mockAgentServicesFlat.map(service => ({ ...service,
+    observedAt: fixtureTime(service.observedAt),
+    updatedAt: service.updatedAt ? fixtureTime(service.updatedAt) : undefined }));
+  const fresh = new Date(Date.now() - 20_000).toISOString();
   return mockAgentServicesFlat.map((service) => ({
     ...service,
     healthy: true,
@@ -1009,7 +1056,7 @@ function scenarioServices(scenario: MockScenario): AgentServiceFlat[] {
 }
 
 function scenarioMonitors(scenario: MockScenario): UptimeMonitor[] {
-  if (scenario === 'empty') return [];
+  if (scenario === 'empty') return mockUptimeMonitors.filter(monitor => !initialMonitorIds.has(monitor.id));
   return mockUptimeMonitors;
 }
 
@@ -1022,24 +1069,27 @@ function scenarioTimeline(scenario: MockScenario): TimelineIncident[] {
   const docker: TimelineIncident[] = mockAgentIncidents.filter(incident => scenario !== 'normal' || !incident.active).map(incident => ({
     source: 'docker', targetName: incident.serviceName,
     targetPath: `/services/${incident.agentId}/${encodeURIComponent(incident.key)}`,
-    startedAt: incident.startedAt, endedAt: incident.endedAt, durationSec: incident.durationSec, active: incident.active,
+    startedAt: fixtureTime(incident.startedAt), endedAt: incident.endedAt ? fixtureTime(incident.endedAt) : undefined,
+    durationSec: incident.durationSec, active: incident.active,
   }));
   return [...uptime, ...docker].filter(incident => new Date(incident.startedAt).getTime() >= nowAgent - 7 * 86_400_000)
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 }
 
 function scenarioObservedServices(scenario: MockScenario): ObservedService[] {
-  if (scenario === 'empty') return [];
-  if (scenario !== 'normal') return mockObservedServices;
-  const fresh = new Date(nowAgent - 20_000).toISOString();
-  return mockObservedServices.map((service) => ({ ...service, lastSeenAt: fresh, updatedAt: fresh }));
+  const services = scenario === 'empty' ? mockObservedServices.filter(service => !initialObservedIds.has(service.id)) : mockObservedServices;
+  const fresh = new Date(Date.now() - 20_000).toISOString();
+  return services.map(service => initialObservedIds.has(service.id) ? { ...service,
+    lastSeenAt: scenario === 'normal' ? fresh : service.lastSeenAt ? fixtureTime(service.lastSeenAt) : undefined,
+    updatedAt: fixtureTime(service.updatedAt) } : service);
 }
 
 function scenarioInfrastructureResources(scenario: MockScenario): InfrastructureResource[] {
-  if (scenario === 'empty') return [];
-  if (scenario !== 'normal') return mockInfrastructureResources;
-  const fresh = new Date(nowAgent - 20_000).toISOString();
-  return mockInfrastructureResources.map((resource) => ({ ...resource, lastSeenAt: fresh, updatedAt: fresh }));
+  const resources = scenario === 'empty' ? mockInfrastructureResources.filter(resource => !initialInfrastructureIds.has(resource.id)) : mockInfrastructureResources;
+  const fresh = new Date(Date.now() - 20_000).toISOString();
+  return resources.map(resource => initialInfrastructureIds.has(resource.id) ? { ...resource,
+    lastSeenAt: scenario === 'normal' ? fresh : resource.lastSeenAt ? fixtureTime(resource.lastSeenAt) : undefined,
+    updatedAt: fixtureTime(resource.updatedAt) } : resource);
 }
 
 function normalizeMockAgentProfile(profile?: Partial<AgentProfile>): AgentProfile {
@@ -1099,7 +1149,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   const directSetup = endpoint.match(/^\/(observed-services|infrastructure-resources)\/([^/]+)\/setup-status$/);
   if (method === 'GET' && directSetup) {
     const infrastructure = directSetup[1] === 'infrastructure-resources';
-    const resource = infrastructure ? mockInfrastructureResources.find(row => row.id === directSetup[2]) : mockObservedServices.find(row => row.id === directSetup[2]);
+    const resource = infrastructure ? scenarioInfrastructureResources(scenario).find(row => row.id === directSetup[2]) : scenarioObservedServices(scenario).find(row => row.id === directSetup[2]);
     const signals = infrastructure ? ['infrastructure'] : mockObservedServices.find(row => row.id === directSetup[2])?.signals ?? [];
     return (resource?.lastSeenAt ? signals.map(signal => ({ serviceName: resource.name, signal, firstReceivedAt: resource.createdAt, lastReceivedAt: resource.lastSeenAt })) : []) as T;
   }
@@ -1378,9 +1428,8 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     })) as T;
   }
   if (endpoint === '/infrastructure-resources') {
-    if (scenario === 'empty') return [] as T;
     const agentResources: InfrastructureResource[] = scenarioAgents(scenario)
-      .filter(agent => agent.profile?.capabilities.includes('infrastructure'))
+      .filter(agent => agent.version && agent.profile?.capabilities.includes('infrastructure'))
       .map(agent => ({
         id: agent.id,
         name: agent.name,
@@ -1523,9 +1572,9 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (/^\/agents\/[^/]+\/services\/[^/]+\/otel-metrics/.test(endpoint))
     return (endpointTelemetry(endpoint)?.metricNames ?? []) as T;
   // /agents/:agentId/services/:key/history
-  if (/^\/agents\/[^/]+\/services\/[^/]+\/history/.test(endpoint)) return mockAgentHistory as T;
+  if (/^\/agents\/[^/]+\/services\/[^/]+\/history/.test(endpoint)) return serviceHistory(endpoint, scenario) as T;
   // /agents/:agentId/services/:key/uptime
-  if (/^\/agents\/[^/]+\/services\/[^/]+\/uptime/.test(endpoint)) return mockAgentUptime as T;
+  if (/^\/agents\/[^/]+\/services\/[^/]+\/uptime/.test(endpoint)) return serviceUptime(endpoint, scenario) as T;
   // /agents/:agentId/services/:key/events
   if (/^\/agents\/[^/]+\/services\/[^/]+\/events/.test(endpoint)) return mockAgentEvents.filter(row => row.agentId === endpoint.split('/')[2] && row.serviceName === endpointTelemetry(endpoint)?.logs[0]?.serviceName) as T;
   // /agents/:agentId/services
@@ -1541,7 +1590,9 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   // /agents/:agentId/uptime — project-level rollup
   if (/^\/agents\/[^/]+\/uptime/.test(endpoint)) return mockAgentUptime as T;
   // /agents/:agentId/incidents
-  if (/^\/agents\/[^/]+\/incidents/.test(endpoint)) return mockAgentIncidents.filter(row => row.agentId === endpoint.split('/')[2] && (scenario !== 'normal' || !row.active)) as T;
+  if (/^\/agents\/[^/]+\/incidents/.test(endpoint)) return mockAgentIncidents
+    .filter(row => row.agentId === endpoint.split('/')[2] && (scenario !== 'normal' || !row.active))
+    .map(row => ({ ...row, startedAt: fixtureTime(row.startedAt), endedAt: row.endedAt ? fixtureTime(row.endedAt) : undefined })) as T;
   // /agents/:agentId/service-metrics — representative metric per service
   if (/^\/agents\/[^/]+\/service-metrics/.test(endpoint)) return scenarioServices(scenario).filter(service => service.agentId === endpoint.split('/')[2])
     .flatMap(service => {

@@ -1,0 +1,1100 @@
+{
+  "id": "mobile-light-payment-trace",
+  "note": "",
+  "image": "captures/mobile-light-payment-trace.png",
+  "time": "2026-11-07T13:22:16.753Z",
+  "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "light",
+  "scenario": "attention",
+  "storage": {
+    "local": {
+      "vitepress-theme-appearance": "auto"
+    },
+    "session": {}
+  },
+  "touch": true,
+  "documentWidth": 390,
+  "text": "본문 바로가기\nLive Demo\n\n모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.\n\n데모 상태\n확인 필요\n정상 운영\n첫 시작\n부분 수집 실패\n확인 필요\nEveryUp\nprod-server\npayment-worker\n장애\n지연 시간 5001ms\n마지막 체크 2분 전\nProtocol\nHTTP\nRuntime\nJava\nImage\nghcr.io/shop/payment-worker:1.8.3\nUptime\n12분\nRestarts\n4회\n수집 레벨\nerror, warn, info\n변경\n1H\n6H\n24H\n새로고침\n알림 규칙\n에러 확인\n업타임\n로그\nAPI 요청\n트레이스\n메트릭\n인프라\n전체\nerror\nwarn\ninfo\ndebug\ntrace\n실시간\n로그 발생량\n건 / 10분\nerror 27\nwarn 3\ninfo 35\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n10\n20\n30\n\n64건 중 1~25\n\n11. 07. 22:20:15\nerror\n\npayment-worker: payments.partner.io deadline exceeded after 5760ms\n\n트레이스\n11. 07. 22:17:15\ninfo\n\nPayment processed successfully — batch 1001\n\n트레이스\n11. 07. 22:14:15\ninfo\n\nPayment processed successfully — batch 1002\n\n트레이스\n11. 07. 22:11:15\ninfo\n\nPayment processed successfully — batch 1003\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n11. 07. 22:10:15\nerror\n\nPayment gateway timeout after 5000ms\n\n트레이스\n‹\n1\n2\n3\n›\n트레이스\n00000000000000000000000000007530\n탭에서 보기:\n로그 (1)\nSpan\n4\nCONSUMER\npayment-worker.process\npayment-worker\nOK\n480ms\nCLIENT\nSELECT records\npayment-worker\nOK\n119ms\nCLIENT\ncache.lookup\npayment-worker\nOK\n238ms\nCLIENT\npayments.partner.io\npayment-worker\nOK\n357ms\n로그\n1\nerror\n22:20:15\npayment-worker: payments.partner.io deadline exceeded after 5760ms\n© 2026 EveryUp\nGitHub\n피드백 보내기\n개요\n그룹\n알림\n더보기\n21:00",
+  "active": {
+    "tag": "CODE",
+    "text": "00000000000000000000000000007530",
+    "label": null,
+    "outline": "rgb(107, 111, 120) none 3px",
+    "rect": {
+      "x": 163.890625,
+      "y": 23.5,
+      "width": 142.109375,
+      "height": 16
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문 바로가기",
+      "href": "#main-content",
+      "target": null,
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "확인 필요정상 운영첫 시작부분 수집 실패",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 69.859375,
+        "y": 59,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "데모 시나리오",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 70.859375,
+        "y": 60,
+        "width": 100.859375,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 116.5,
+        "width": 127.984375,
+        "height": 48
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 322,
+        "y": 118.5,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "prod-server",
+      "href": "/everyup/demo/agents/agent_demo_01",
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": -587,
+        "width": 103.53125,
+        "height": 20
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "변경",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 330,
+        "y": -235,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "1H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 18,
+        "y": -164,
+        "width": 40.046875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "6H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 60.046875,
+        "y": -164,
+        "width": 40.046875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "24H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 102.09375,
+        "y": -164,
+        "width": 47.1875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "새로고침",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": -126,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림 규칙",
+      "href": "/everyup/demo/alerts?tab=rules&target=agent&agentId=agent_demo_01&serviceKey=shop%3Apayment-worker",
+      "target": null,
+      "rect": {
+        "x": 68,
+        "y": -126,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "에러 확인",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 120,
+        "y": -126,
+        "width": 114.65625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "업타임",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": -37,
+        "width": 70.640625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "로그",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 90.640625,
+        "y": -37,
+        "width": 57.765625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "API 요청",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 152.40625,
+        "y": -37,
+        "width": 83,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 239.40625,
+        "y": -37,
+        "width": 83.53125,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "메트릭",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 326.9375,
+        "y": -37,
+        "width": 70.640625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "인프라",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 401.578125,
+        "y": -37,
+        "width": 70.640625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "전체",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 18,
+        "y": 31,
+        "width": 46.09375,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "error",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 66.09375,
+        "y": 31,
+        "width": 52.875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "warn",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 120.96875,
+        "y": 31,
+        "width": 53.234375,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "info",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 176.203125,
+        "y": 31,
+        "width": 46.09375,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "debug",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 224.296875,
+        "y": 31,
+        "width": 60.265625,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "trace",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 286.5625,
+        "y": 31,
+        "width": 53.546875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "INPUT",
+      "role": null,
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 73,
+        "width": 259.359375,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "실시간",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 287.359375,
+        "y": 73,
+        "width": 86.640625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 452,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 599,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 726,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 853,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 980,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1087,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1194,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1301,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1408,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1515,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1622,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1729,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1836,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 1943,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2050,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2157,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2264,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2371,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2478,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2585,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2692,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2799,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 2906,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 3013,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 232.828125,
+        "y": 3120,
+        "width": 92.171875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "이전",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 121,
+        "y": 3203,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "1",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 169,
+        "y": 3203,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "2",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 217,
+        "y": 3203,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "3",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 3203,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "다음",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 313,
+        "y": 3203,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "트레이스 ID 복사",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 318,
+        "y": 15.5,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "닫기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 362,
+        "y": 15.5,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "로그 (1)",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 128.21875,
+        "y": 80,
+        "width": 88.453125,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "Span 행 복사",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 349,
+        "y": 197,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "Span 행 복사",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 349,
+        "y": 265,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "Span 행 복사",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 349,
+        "y": 333,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "Span 행 복사",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 349,
+        "y": 401,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "로그 행 복사",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 349,
+        "y": 511,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/Monitoring",
+      "target": "_blank",
+      "rect": {
+        "x": 122.96875,
+        "y": 3327,
+        "width": 59.125,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "피드백 보내기",
+      "href": "https://github.com/ai-turn/Monitoring/issues",
+      "target": "_blank",
+      "rect": {
+        "x": 198.09375,
+        "y": 3327,
+        "width": 68.9375,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "개요",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 97.5,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/demo/alerts",
+      "target": null,
+      "rect": {
+        "x": 195,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "더보기",
+      "href": "/everyup/demo/more",
+      "target": null,
+      "rect": {
+        "x": 292.5,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    }
+  ],
+  "horizontalOverflow": [
+    {
+      "tag": "BUTTON",
+      "class": "shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors border-transparent text-text-muted hover:text-text-base",
+      "text": "메트릭",
+      "rect": {
+        "x": 326.9375,
+        "y": -37,
+        "width": 70.640625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "class": "shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors border-transparent text-text-muted hover:text-text-base",
+      "text": "인프라",
+      "rect": {
+        "x": 401.578125,
+        "y": -37,
+        "width": 70.640625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "fixed inset-y-0 right-0 w-full sm:w-[560px] lg:w-[720px] bg-bg-surface border-l border-ui-border shadow-lg flex flex-col animate-slide-in-right",
+      "text": "트레이스00000000000000000000000000007530탭에서 보기:로그 (1)Span4CONSUMERpayment-worker.processpayment-workerOK",
+      "rect": {
+        "x": 24,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "flex-none flex items-center gap-3 px-5 h-16 border-b border-ui-border",
+      "text": "트레이스00000000000000000000000000007530",
+      "rect": {
+        "x": 25,
+        "y": 0,
+        "width": 389,
+        "height": 64
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "class": "inline-flex shrink-0 items-center justify-center rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:hover:bg-transparent text-text-muted hover:text-text-base hover:bg-ui-hover h-8 w-8 ",
+      "text": "",
+      "rect": {
+        "x": 362,
+        "y": 15.5,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "flex-1 overflow-y-auto px-5 py-4 space-y-5",
+      "text": "탭에서 보기:로그 (1)Span4CONSUMERpayment-worker.processpayment-workerOK480msCLIENTSELECT recordspayment-wor",
+      "rect": {
+        "x": 25,
+        "y": 64,
+        "width": 389,
+        "height": 780
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "flex flex-wrap items-center gap-2",
+      "text": "탭에서 보기:로그 (1)",
+      "rect": {
+        "x": 45,
+        "y": 80,
+        "width": 349,
+        "height": 32
+      }
+    },
+    {
+      "tag": "SECTION",
+      "class": "",
+      "text": "Span4CONSUMERpayment-worker.processpayment-workerOK480msCLIENTSELECT recordspayment-workerOK119msCLI",
+      "rect": {
+        "x": 45,
+        "y": 132,
+        "width": 349,
+        "height": 322
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "flex items-center gap-2 mb-2",
+      "text": "Span4",
+      "rect": {
+        "x": 45,
+        "y": 132,
+        "width": 349,
+        "height": 20
+      }
+    },
+    {
+      "tag": "UL",
+      "class": "space-y-1.5",
+      "text": "CONSUMERpayment-worker.processpayment-workerOK480msCLIENTSELECT recordspayment-workerOK119msCLIENTca",
+      "rect": {
+        "x": 45,
+        "y": 160,
+        "width": 349,
+        "height": 294
+      }
+    },
+    {
+      "tag": "LI",
+      "class": "px-3 py-2 rounded-lg bg-ui-hover-soft border border-ui-border-soft text-sm",
+      "text": "CONSUMERpayment-worker.processpayment-workerOK480ms",
+      "rect": {
+        "x": 45,
+        "y": 160,
+        "width": 349,
+        "height": 90
+      }
+    },
+    {
+      "tag": "LI",
+      "class": "px-3 py-2 rounded-lg bg-ui-hover-soft border border-ui-border-soft text-sm",
+      "text": "CLIENTSELECT recordspayment-workerOK119ms",
+      "rect": {
+        "x": 45,
+        "y": 256,
+        "width": 349,
+        "height": 62
+      }
+    }
+  ],
+  "assets": [
+    "https://ai-turn.github.io/everyup/demo/theme-init.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-DO9SNNYE.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-BxaN-usw.css"
+  ]
+}

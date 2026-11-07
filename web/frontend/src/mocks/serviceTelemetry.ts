@@ -106,7 +106,7 @@ export function createServiceTelemetry(
   const logs: LogEntry[] = seedLogs.map(log => ({ ...log, ...scope }));
   for (let i = 0; i < 144; i += 1) {
     const trace = traces[seedTraces.length + i % 8];
-    const level = i % 19 === 0 ? 'error' : i % 13 === 0 ? 'warn' : 'info';
+    const level = (i < 8 ? trace.spans[0].statusCode === 'ERROR' : i % 19 === 0) ? 'error' : i % 13 === 0 ? 'warn' : 'info';
     const message = level === 'error' ? `${serviceName}: ${profile.dependency} deadline exceeded after ${profile.latency * 12}ms`
       : level === 'warn' ? `${serviceName}: retry queue above threshold — ${20 + i} pending jobs`
         : `${profile.operation} — batch ${1000 + i}`;

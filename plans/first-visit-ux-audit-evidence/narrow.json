@@ -1,0 +1,65 @@
+{
+  "phase": "narrow",
+  "browserVersion": "151.0.7922.34",
+  "completedAt": "2026-11-07T13:22:57.719Z",
+  "records": [
+    {
+      "id": "narrow-light-home",
+      "note": "",
+      "image": "captures/narrow-light-home.png",
+      "url": "https://ai-turn.github.io/everyup/",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:54.720Z",
+      "documentWidth": 320
+    },
+    {
+      "id": "narrow-light-overview",
+      "note": "",
+      "image": "captures/narrow-light-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:55.630Z",
+      "documentWidth": 320
+    },
+    {
+      "id": "narrow-light-payment",
+      "note": "",
+      "image": "captures/narrow-light-payment.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:56.956Z",
+      "documentWidth": 320
+    },
+    {
+      "id": "narrow-light-quickstart",
+      "note": "",
+      "image": "captures/narrow-light-quickstart.png",
+      "url": "https://ai-turn.github.io/everyup/guide/quickstart",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:57.678Z",
+      "documentWidth": 320
+    }
+  ],
+  "checks": [],
+  "errors": []
+}

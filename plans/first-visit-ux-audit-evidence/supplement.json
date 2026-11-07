@@ -1,0 +1,121 @@
+{
+  "phase": "supplement",
+  "browserVersion": "151.0.7922.34",
+  "completedAt": "2026-11-07T13:37:56.533Z",
+  "records": [
+    {
+      "id": "desktop-payment-response-summary",
+      "note": "Scrolled to the visible response chart summary.",
+      "image": "captures/desktop-payment-response-summary.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:37:46.907Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-seed-error-trace",
+      "note": "The seeded timeout trace provides a successful alternative to the first generated error trace.",
+      "image": "captures/desktop-seed-error-trace.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:37:48.281Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-infra-detail",
+      "note": "",
+      "image": "captures/desktop-infra-detail.png",
+      "url": "https://ai-turn.github.io/everyup/demo/infrastructure/infra_mock_edge_01",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:37:49.684Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-direct-api-detail",
+      "note": "",
+      "image": "captures/desktop-direct-api-detail.png",
+      "url": "https://ai-turn.github.io/everyup/demo/api/observed_mock_payments?range=6h",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:37:51.010Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "mobile-payment-response-summary",
+      "note": "Scrolled to the visible response chart summary.",
+      "image": "captures/mobile-payment-response-summary.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:37:52.490Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-seed-error-trace",
+      "note": "The seeded timeout trace provides a successful alternative to the first generated error trace.",
+      "image": "captures/mobile-seed-error-trace.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:37:53.850Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-infra-detail",
+      "note": "",
+      "image": "captures/mobile-infra-detail.png",
+      "url": "https://ai-turn.github.io/everyup/demo/infrastructure/infra_mock_edge_01",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:37:55.188Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-direct-api-detail",
+      "note": "",
+      "image": "captures/mobile-direct-api-detail.png",
+      "url": "https://ai-turn.github.io/everyup/demo/api/observed_mock_payments?range=6h",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:37:56.496Z",
+      "documentWidth": 390
+    }
+  ],
+  "checks": [],
+  "errors": []
+}

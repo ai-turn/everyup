@@ -89,7 +89,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
       {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
       <ChartCard
         title={expanded ? name : (
-          <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} aria-label={name} className="block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline">
+          <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} aria-label={name} className="block h-11 max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline sm:h-10">
             {metricTitle(meta)}
           </button></HintTooltip>
         )}

@@ -1,0 +1,25 @@
+﻿{
+  "summary": {
+    "fails": 1,
+    "reflex": 0,
+    "warns": 0,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 0,
+    "render": "ran"
+  },
+  "findings": [
+    {
+      "gate": "73",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+      "line": 1,
+      "evidence": "[1440px] text painted under another element: footer.sticky over \"API Key는 어떻게 발급받\"; footer.sticky over \"API Key는 어떻게 발급…",
+      "fix": "Give the text its own space, or put it above what covers it on a surface of its own"
+    }
+  ]
+}

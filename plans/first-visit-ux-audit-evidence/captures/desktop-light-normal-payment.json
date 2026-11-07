@@ -1,0 +1,496 @@
+{
+  "id": "desktop-light-normal-payment",
+  "note": "",
+  "image": "captures/desktop-light-normal-payment.png",
+  "time": "2026-11-07T13:22:09.238Z",
+  "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "theme": "light",
+  "scenario": "normal",
+  "storage": {
+    "local": {},
+    "session": {
+      "everyup_demo_scenario": "normal"
+    }
+  },
+  "touch": false,
+  "documentWidth": 1440,
+  "text": "본문 바로가기\nEveryUp\n\nLive Demo\n\n데모 상태\n확인 필요\n정상 운영\n첫 시작\n부분 수집 실패\n정상 운영\n검색\nCtrl K\n개요\n\n메뉴\n\n업타임\n로그\n인프라\nAPI 요청\n메트릭\n\n모아 보기\n\nDocker 환경\n그룹\n\n관리\n\n알림\n환경 설정\nDocker 환경\nprod-server\npayment-worker\npayment-worker\n정상\n지연 시간 42ms\n마지막 체크 1분 미만 전\nProtocol\nHTTP\nRuntime\nJava\nImage\nghcr.io/shop/payment-worker:1.8.3\nUptime\n12분\nRestarts\n4회\n수집 레벨\nerror, warn, info\n변경\n1H\n6H\n24H\n새로고침\n알림 규칙\n에러 확인\n업타임\n로그\nAPI 요청\n트레이스\n메트릭\n인프라\n업타임 현황\n24시간 업타임\n91.67%\n90일 업타임\n99.87%\n24시간 체크\n288\n90일 장애\n2일\n지난 90일\n기록 90/90일\n일부 실패 2일, 전체 실패 0일\n90일 전\n오늘\n응답 시간\nms\n성공\n실패\n결과\n0\n10\n20\n30\n40\n17:00\n18:00\n19:00\n20:00\n21:00\n\n평균 23 ms\n최대 31 ms\n실패 0회\n\n최근 알림 기록\n\nDocker 서비스 알림 이벤트\n\n알림 기록이 없습니다\n\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "active": {
+    "tag": "BODY",
+    "text": "본문 바로가기Live Demo모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.|All data is for demonstration purposes only and is not connected to a real server.데모 상태확인 필요정상 운영첫 시작부분 수집 실패정상 운영GitHubEveryUpLive Demo데모 상태확인 필요정상 운영첫 시작부분 수집 실패정상 운영검색Ctrl K개요메뉴업타임로그인프라API 요청메트릭모아 보기Docker 환경그룹관리알림환경 설정EveryUpDocker 환경prod-serverpayment-workerprod-serverpayment-worker정상지연 시간 42ms마지막 체크 1분 미만 전ProtocolHTTPRuntimeJavaImageghcr.io/shop/payment-worker:1.8.3Uptime12분Restarts4회수집 레벨error, warn, info변경1H6H24H새로고침알림 규칙에러 확인업타임로그API 요청트레이스메트릭인프라업타임 현황24시간 업타임91.67%90일 업타임99.87%24시간 체크28890일 장애2일지난 90일기록 90/90일일부 실패 2일, 전체 실패 0일90일 전오늘응답 시간ms성공실패결과01020304017:0018:0019:0020:0021:00평균 23 ms최대 31 ms실패 0회최근 알림 기록Docker 서비스 알림 이벤트알림 기록이 없습니다© 2026 EveryUpGitHub피드백 보내기개요그룹알림더보기",
+    "label": null,
+    "outline": "rgb(28, 32, 36) none 3px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문 바로가기",
+      "href": "#main-content",
+      "target": null,
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 239,
+        "height": 64
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "확인 필요정상 운영첫 시작부분 수집 실패",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 78.859375,
+        "y": 96,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "데모 시나리오",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 79.859375,
+        "y": 97,
+        "width": 134.140625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색Ctrl K",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 154,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "개요",
+      "href": "/everyup/demo/#attention",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 198,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임",
+      "href": "/everyup/demo/uptime",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 274,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "로그",
+      "href": "/everyup/demo/logs",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 312,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "인프라",
+      "href": "/everyup/demo/infrastructure",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 350,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "API 요청",
+      "href": "/everyup/demo/api",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 388,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "메트릭",
+      "href": "/everyup/demo/metrics",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 426,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker 환경",
+      "href": "/everyup/demo/environments",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 502,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 540,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/demo/alerts",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 616,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "환경 설정",
+      "href": "/everyup/demo/settings",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 654,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "테마 전환",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 856,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker 환경",
+      "href": "/everyup/demo/environments",
+      "target": null,
+      "rect": {
+        "x": 264,
+        "y": 21.5,
+        "width": 76.203125,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "prod-server",
+      "href": "/everyup/demo/agents/agent_demo_01",
+      "target": null,
+      "rect": {
+        "x": 372.203125,
+        "y": 21.5,
+        "width": 79.75,
+        "height": 20
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "변경",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 793.109375,
+        "y": 260,
+        "width": 83.765625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "1H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 902.875,
+        "y": 90,
+        "width": 40.046875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "6H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 944.921875,
+        "y": 90,
+        "width": 40.046875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "24H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 986.96875,
+        "y": 90,
+        "width": 47.1875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "새로고침",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1044.15625,
+        "y": 84,
+        "width": 111.53125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림 규칙",
+      "href": "/everyup/demo/alerts?tab=rules&target=agent&agentId=agent_demo_01&serviceKey=shop%3Apayment-worker",
+      "target": null,
+      "rect": {
+        "x": 1163.6875,
+        "y": 84,
+        "width": 114.65625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "에러 확인",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1286.34375,
+        "y": 84,
+        "width": 114.65625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "업타임",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 264,
+        "y": 350,
+        "width": 70.640625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "로그",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 338.640625,
+        "y": 350,
+        "width": 57.765625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "API 요청",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 400.40625,
+        "y": 350,
+        "width": 83,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 487.40625,
+        "y": 350,
+        "width": 83.53125,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "메트릭",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 574.9375,
+        "y": 350,
+        "width": 70.640625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "인프라",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 649.578125,
+        "y": 350,
+        "width": 70.640625,
+        "height": 42
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/Monitoring",
+      "target": "_blank",
+      "rect": {
+        "x": 1256.9375,
+        "y": 1309,
+        "width": 59.125,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "피드백 보내기",
+      "href": "https://github.com/ai-turn/Monitoring/issues",
+      "target": "_blank",
+      "rect": {
+        "x": 1332.0625,
+        "y": 1309,
+        "width": 68.9375,
+        "height": 16
+      }
+    }
+  ],
+  "horizontalOverflow": [
+    {
+      "tag": "DIV",
+      "class": "absolute top-0 flex -translate-x-1/2 flex-col items-center rounded-sm ",
+      "text": "",
+      "rect": {
+        "x": 1289.0703125,
+        "y": 705,
+        "width": 173.828125,
+        "height": 200
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "relative w-full",
+      "text": "",
+      "rect": {
+        "x": 1289.0703125,
+        "y": 729,
+        "width": 173.828125,
+        "height": 176
+      }
+    }
+  ],
+  "assets": [
+    "https://ai-turn.github.io/everyup/demo/theme-init.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-DO9SNNYE.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-BxaN-usw.css"
+  ]
+}

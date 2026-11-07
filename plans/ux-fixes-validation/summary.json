@@ -1,0 +1,88 @@
+{
+  "verifiedAt": "2026-11-07T15:07:07.313151+00:00",
+  "baseCommit": "2d37ed3d",
+  "uniqueFindingsFixed": 14,
+  "checks": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "buildDemo": "pass",
+    "docsBuild": "pass",
+    "relatedPlaywright": {
+      "passed": 68,
+      "failed": 0
+    },
+    "strengthenedNewRegressionConfirm": {
+      "passed": 10,
+      "failed": 0
+    },
+    "finalMetricConfirm": {
+      "passed": 10,
+      "failed": 0
+    }
+  },
+  "screenshots": 43,
+  "impeccableStatic": {
+    "warning": 2,
+    "advisory": 1
+  },
+  "impeccableRender": {
+    "runs": 16,
+    "errors": 0,
+    "findings": {
+      "warning": 52,
+      "advisory": 56
+    }
+  },
+  "hallmark": {
+    "hallmark-static": {
+      "fails": 40,
+      "reflex": 0,
+      "warns": 3,
+      "waived": 0,
+      "rejected": 0,
+      "answered": 0,
+      "dismissed": 0,
+      "notes": 0,
+      "files": 148,
+      "render": "off"
+    },
+    "hallmark-docs-static": {
+      "fails": 19,
+      "reflex": 15,
+      "warns": 3,
+      "waived": 0,
+      "rejected": 0,
+      "answered": 0,
+      "dismissed": 0,
+      "notes": 0,
+      "files": 4,
+      "render": "off"
+    },
+    "hallmark-render-app": {
+      "fails": 1,
+      "reflex": 0,
+      "warns": 0,
+      "waived": 0,
+      "rejected": 0,
+      "answered": 0,
+      "dismissed": 0,
+      "notes": 0,
+      "files": 0,
+      "render": "ran"
+    },
+    "hallmark-render-home": {
+      "fails": 0,
+      "reflex": 4,
+      "warns": 2,
+      "waived": 0,
+      "rejected": 0,
+      "answered": 0,
+      "dismissed": 0,
+      "notes": 0,
+      "files": 0,
+      "render": "ran"
+    }
+  },
+  "rawFindingsRequireClassification": true,
+  "report": "../ux-fixes-results.md"
+}

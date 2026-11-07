@@ -1,0 +1,447 @@
+{
+  "id": "keyboard-incident-focus",
+  "note": "",
+  "image": "captures/keyboard-incident-focus.png",
+  "time": "2026-11-07T13:28:33.643Z",
+  "url": "https://ai-turn.github.io/everyup/demo/#main-content",
+  "title": "(1) 장애 · EveryUp | Self-hosted Monitoring Platform",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "theme": "light",
+  "scenario": "attention",
+  "storage": {
+    "local": {
+      "vitepress-theme-appearance": "auto"
+    },
+    "session": {}
+  },
+  "touch": false,
+  "documentWidth": 1440,
+  "text": "본문 바로가기\nEveryUp\n\nLive Demo\n\n데모 상태\n확인 필요\n정상 운영\n첫 시작\n부분 수집 실패\n확인 필요\n검색\nCtrl K\n개요\n장애\n1\n건\n\n메뉴\n\n업타임\n로그\n인프라\nAPI 요청\n메트릭\n\n모아 보기\n\nDocker 환경\n그룹\n\n관리\n\n알림\n환경 설정\n개요\n모니터링 개요\n\n수집 상태와 현재 이상을 먼저 확인하세요.\n\n오후 10:28:32 갱신 · 30초마다 자동 갱신\n새로고침\n\n확인 필요 1건\n\n현재 확인 필요\n\n장애를 먼저, 수집 지연을 그다음에 보여줍니다.\n\n1\npayment-worker\npayment gateway timeout\n오후 10:16 시작\n12분 경과\n모니터링 범위\n\n연결 방식별로 수집 범위를 확인하세요.\n\nDocker 환경\n4\n업타임 모니터\n8\n직접 연결 서비스\n8\n인프라 리소스\n7\n그룹으로 대상 정리하기\n최근 장애 이력\n\n업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.\n\n6\npayment-worker\nDocker 서비스 상태 이상\n오후 10:16 시작\n12분 경과\nPayment endpoint\nupstream deadline exceeded\n오후 06:48 시작\n40분 지속\nStorefront\nHTTP 503 from origin\n오후 01:28 시작\n30분 지속\ncatalog-worker\nDocker 서비스 상태 이상\n11월 5일 시작\n6분 지속\napi\nDocker 서비스 상태 이상\n11월 4일 시작\n24분 지속\nsearch-api\nDocker 서비스 상태 이상\n11월 3일 시작\n3분 지속\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "active": {
+    "tag": "A",
+    "text": "payment-workerpayment gateway timeout오후 10:16 시작12분 경과",
+    "label": null,
+    "outline": "rgb(28, 32, 36) solid 2px",
+    "rect": {
+      "x": 265,
+      "y": 319,
+      "width": 751.96875,
+      "height": 67
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문 바로가기",
+      "href": "#main-content",
+      "target": null,
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 239,
+        "height": 64
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "확인 필요정상 운영첫 시작부분 수집 실패",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 78.859375,
+        "y": 96,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "데모 시나리오",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 79.859375,
+        "y": 97,
+        "width": 134.140625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색Ctrl K",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 154,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "개요장애 1건",
+      "href": "/everyup/demo/#attention",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 198,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임",
+      "href": "/everyup/demo/uptime",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 274,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "로그",
+      "href": "/everyup/demo/logs",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 312,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "인프라",
+      "href": "/everyup/demo/infrastructure",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 350,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "API 요청",
+      "href": "/everyup/demo/api",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 388,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "메트릭",
+      "href": "/everyup/demo/metrics",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 426,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker 환경",
+      "href": "/everyup/demo/environments",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 502,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 540,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/demo/alerts",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 616,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "환경 설정",
+      "href": "/everyup/demo/settings",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 654,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "테마 전환",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 856,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "새로고침",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 478.734375,
+        "y": 157,
+        "width": 109.53125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "payment-workerpayment gateway timeout오후 10:16 시작12분 경과",
+      "href": "/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 319,
+        "width": 751.96875,
+        "height": 67
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker 환경4",
+      "href": "/everyup/demo/environments",
+      "target": null,
+      "rect": {
+        "x": 1046.96875,
+        "y": 318,
+        "width": 345.03125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임 모니터8",
+      "href": "/everyup/demo/uptime",
+      "target": null,
+      "rect": {
+        "x": 1046.96875,
+        "y": 358,
+        "width": 345.03125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "직접 연결 서비스8",
+      "href": "/everyup/demo/logs",
+      "target": null,
+      "rect": {
+        "x": 1046.96875,
+        "y": 398,
+        "width": 345.03125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "인프라 리소스7",
+      "href": "/everyup/demo/infrastructure",
+      "target": null,
+      "rect": {
+        "x": 1046.96875,
+        "y": 438,
+        "width": 345.03125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹으로 대상 정리하기",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 1054.96875,
+        "y": 490,
+        "width": 163.78125,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "payment-workerDocker 서비스 상태 이상오후 10:16 시작12분 경과",
+      "href": "/everyup/demo/services/agent_demo_01/shop%3Apayment-worker",
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 636,
+        "width": 1135,
+        "height": 67
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Payment endpointupstream deadline exceeded오후 06:48 시작40분 지속",
+      "href": "/everyup/demo/uptime/uptime_mock_payments",
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 704,
+        "width": 1135,
+        "height": 67
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "StorefrontHTTP 503 from origin오후 01:28 시작30분 지속",
+      "href": "/everyup/demo/uptime/uptime_mock_store",
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 772,
+        "width": 1135,
+        "height": 67
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "catalog-workerDocker 서비스 상태 이상11월 5일 시작6분 지속",
+      "href": "/everyup/demo/services/agent_demo_03/jobs%3Acatalog-worker",
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 840,
+        "width": 1135,
+        "height": 67
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "apiDocker 서비스 상태 이상11월 4일 시작24분 지속",
+      "href": "/everyup/demo/services/agent_demo_01/shop%3Aapi",
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 908,
+        "width": 1135,
+        "height": 67
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "search-apiDocker 서비스 상태 이상11월 3일 시작3분 지속",
+      "href": "/everyup/demo/services/agent_demo_04/edge%3Asearch-api",
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 976,
+        "width": 1135,
+        "height": 67
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/Monitoring",
+      "target": "_blank",
+      "rect": {
+        "x": 1256.9375,
+        "y": 1077,
+        "width": 59.125,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "피드백 보내기",
+      "href": "https://github.com/ai-turn/Monitoring/issues",
+      "target": "_blank",
+      "rect": {
+        "x": 1332.0625,
+        "y": 1077,
+        "width": 68.9375,
+        "height": 16
+      }
+    }
+  ],
+  "horizontalOverflow": [],
+  "assets": [
+    "https://ai-turn.github.io/everyup/demo/theme-init.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-DO9SNNYE.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-BxaN-usw.css"
+  ]
+}

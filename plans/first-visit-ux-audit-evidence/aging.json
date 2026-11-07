@@ -1,0 +1,65 @@
+{
+  "phase": "aging",
+  "browserVersion": "151.0.7922.34",
+  "completedAt": "2026-11-07T13:27:05.014Z",
+  "records": [
+    {
+      "id": "aging-attention-start",
+      "note": "Wall-clock observation; no clock override.",
+      "image": "captures/aging-attention-start.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:25:11.737Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "aging-normal-start",
+      "note": "Wall-clock observation; no clock override.",
+      "image": "captures/aging-normal-start.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "normal",
+      "time": "2026-11-07T13:25:13.590Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "aging-attention-after-110s",
+      "note": "Wall-clock elapsed; manually refreshed without reloading.",
+      "image": "captures/aging-attention-after-110s.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:27:04.281Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "aging-normal-after-110s",
+      "note": "Wall-clock elapsed; manually refreshed without reloading.",
+      "image": "captures/aging-normal-after-110s.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "normal",
+      "time": "2026-11-07T13:27:04.964Z",
+      "documentWidth": 1440
+    }
+  ],
+  "checks": [],
+  "errors": []
+}

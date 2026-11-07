@@ -88,6 +88,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
         title={service.name}
         meta={
           <DetailMeta
+            collapseOnMobile
             status={
               <>
                 <DockerUptimeStatus service={service} />
@@ -97,6 +98,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
                   </>
                 )}
                 <span>마지막 체크 {lastChecked}</span>
+                {(service.restartCount ?? 0) >= 3 && <span className="text-status-warn sm:hidden">재시작 {service.restartCount}회</span>}
               </>
             }
             fields={[...checkFields(service), ...containerFields(service), { label: '수집 레벨', value: <LogIngestLevels agentId={agentId} serviceKey={serviceKey} /> }]}

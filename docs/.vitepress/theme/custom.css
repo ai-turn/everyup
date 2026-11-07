@@ -49,6 +49,13 @@
   --vp-code-lang-color: var(--vp-c-text-2);
   /* 흰 바탕이어야 github-light-default 토큰이 전부 4.5:1을 넘는다(주석 #6e7781 = 4.55). 경계는 아래 보더가 맡는다. */
   --vp-code-block-bg: #ffffff;
+  --home-carousel-arrow-bg: rgba(255, 255, 255, 0.94);
+  --home-carousel-arrow-hover-bg: #ffffff;
+  --home-carousel-arrow-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+  --home-carousel-dots-bg: rgba(28, 28, 32, 0.75);
+  --home-carousel-dot-bg: rgba(255, 255, 255, 0.7);
+  --home-carousel-dot-active-bg: #ffffff;
+  --home-carousel-dot-focus: #ffffff;
 }
 
 .vp-doc div[class*='language-'] {
@@ -90,6 +97,9 @@
   --vp-c-brand-3: #3f6fdb;
   --vp-c-brand-soft: rgba(63, 111, 219, 0.16);
   --vp-button-brand-hover-bg: #355fc0;
+  --home-carousel-arrow-bg: rgba(32, 33, 39, 0.92);
+  --home-carousel-arrow-hover-bg: rgb(40, 41, 48);
+  --home-carousel-arrow-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* 라이트 테마 스크린샷이 다크 배경에서 경계 없이 뜨지 않게 */
@@ -176,27 +186,20 @@ html:not(.dark) .only-dark {
   height: 48px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.94);
+  background-color: var(--home-carousel-arrow-bg);
   color: var(--vp-c-text-1);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+  box-shadow: var(--home-carousel-arrow-shadow);
   transform: translateY(-50%);
   transition: background-color 0.2s;
 }
 .home-carousel-arrow:hover {
-  background-color: #ffffff;
+  background-color: var(--home-carousel-arrow-hover-bg);
 }
 .home-carousel-arrow.is-prev {
   left: 16px;
 }
 .home-carousel-arrow.is-next {
   right: 16px;
-}
-.dark .home-carousel-arrow {
-  background-color: rgba(32, 33, 39, 0.92);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-.dark .home-carousel-arrow:hover {
-  background-color: rgb(40, 41, 48);
 }
 .home-carousel-dots {
   position: absolute;
@@ -206,7 +209,7 @@ html:not(.dark) .only-dark {
   padding: 0 6px;
   border-radius: 999px;
   /* 흰 슬라이드 위에서도 비활성 점이 3:1을 넘도록(WCAG 1.4.11) 알약은 0.75, 점은 0.7 */
-  background-color: rgba(28, 28, 32, 0.75);
+  background-color: var(--home-carousel-dots-bg);
   transform: translateX(-50%);
 }
 /* 점은 8px로 보이지만 누르는 영역은 24x32px (WCAG 2.5.8: 점 사이 간격이 0이라 폭 자체가 24px 이상이어야 한다) */
@@ -222,16 +225,16 @@ html:not(.dark) .only-dark {
   width: 8px;
   height: 8px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: var(--home-carousel-dot-bg);
   /* 폭(width)은 레이아웃 속성이라 애니메이션하지 않고 색만 전환한다 */
   transition: background-color 0.2s;
 }
 .home-carousel-dot[aria-current='true']::before {
   width: 18px;
-  background-color: #ffffff;
+  background-color: var(--home-carousel-dot-active-bg);
 }
 .home-carousel-dot:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--home-carousel-dot-focus);
   outline-offset: -4px;
   border-radius: 6px;
 }

@@ -1,0 +1,70 @@
+{
+  "summary": {
+    "fails": 0,
+    "reflex": 4,
+    "warns": 2,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 0,
+    "render": "ran"
+  },
+  "findings": [
+    {
+      "gate": "3",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "http://127.0.0.1:5188/everyup/",
+      "line": 1,
+      "evidence": "[1440px] equal columns of icon-above-heading tiles (div.items)",
+      "fix": "Vary the widths, set the icon inline with the heading, or drop the icons"
+    },
+    {
+      "gate": "44c",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "http://127.0.0.1:5188/everyup/",
+      "line": 1,
+      "evidence": "[1440px] hero ends at 64px of a 900px screen",
+      "fix": "Fill the first screen with the visual or the headline, not with copy"
+    },
+    {
+      "gate": "79",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "http://127.0.0.1:5188/everyup/",
+      "line": 1,
+      "evidence": "[1440px] 486px of nothing between the hero's last content (y 64) and the next section",
+      "fix": "Centre the content in the screen and grow the visual or the head (layout.md § 6); never fill it with copy"
+    },
+    {
+      "gate": "83",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "http://127.0.0.1:5188/everyup/",
+      "line": 1,
+      "evidence": "[1440px] photographs cover 143% of the page below the hero (7 pictures)",
+      "fix": "Balance the page: cut or shrink pictures until they cover a quarter to a third of it, and carry the freed sections in type, figures, the product or a list (imagery.md § 5)"
+    },
+    {
+      "gate": "77",
+      "grade": "WARN",
+      "tier": "reflex",
+      "file": "http://127.0.0.1:5188/everyup/",
+      "line": 1,
+      "evidence": "[1440px] 2 sections, hero and footer included",
+      "fix": "A landing strip, not a page: six to nine sections, five on a thin prompt (layout.md § 3)"
+    },
+    {
+      "gate": "F19",
+      "grade": "WARN",
+      "tier": "finish",
+      "file": "http://127.0.0.1:5188/everyup/",
+      "line": 1,
+      "evidence": "[1440px] 4 font weights in running use (400, 500, 600, 700)",
+      "fix": "Three weights at most, display and body together, picked as extremes"
+    }
+  ]
+}

@@ -23,6 +23,8 @@ import { MonitoringSetupPanel } from './MonitoringSetupPanel';
 import { useConnectionAddress } from '../useConnectionAddress';
 import { ConnectionAddressField } from './ConnectionAddressField';
 import type { CollectorSetupStatus } from '../../../services/api/agents';
+import { env } from '../../../config/env';
+import { QUICKSTART_URL } from '../../../components/layout/DemoHelpLinks';
 
 interface Props {
   onClose: () => void;
@@ -162,7 +164,7 @@ function AgentForm({
           ariaLabel="Docker 수집 프로필"
         />
         {profileKind === 'all-in-one' && (
-          <p className="type-body text-text-muted">업타임, 로그, 인프라, API, 메트릭을 한 번에 수집합니다.</p>
+          <p className="type-body text-text-muted">컨테이너 상태·로그·호스트 자원·API 요청을 수집하고 OTLP 메트릭을 받을 수 있습니다. 앱 메트릭은 별도 전송 설정이 필요합니다.</p>
         )}
         {profileKind === 'basic' && (
           <p className="type-body text-text-muted">업타임과 로그만 수집합니다. Docker socket은 읽기 전용으로 사용합니다.</p>
@@ -229,7 +231,7 @@ function AgentInstallCommand({
         <MaterialIcon size={20} name="terminal" className="text-action" />
         Docker Collector 설치 명령
         <span className="ml-auto text-xs font-normal text-text-dim">
-          {connected ? '재설치할 때 사용' : 'Linux Docker 서버에서 실행'}
+          {env.isDemoMode ? '실행할 수 없는 예시 명령' : connected ? '재설치할 때 사용' : 'Linux Docker 서버에서 실행'}
         </span>
         <MaterialIcon size={20} name="expand_more" className="text-text-dim transition-transform group-open:rotate-180" />
       </summary>
@@ -255,7 +257,7 @@ function AgentInstallCommand({
             </div>
             <CopyButton
               onCopy={() => copyInstallCommand(installCommand)}
-              title={address.valid ? '설치 명령 복사' : '연결 주소를 먼저 입력하세요'}
+              title={env.isDemoMode ? '예시 설치 명령 복사' : address.valid ? '설치 명령 복사' : '연결 주소를 먼저 입력하세요'}
               disabled={!address.valid || codeUnavailable}
               className={COPY_ACTION_PRIMARY}
             >
@@ -468,6 +470,13 @@ export function AddServiceModal({
           />
         ) : (
           <div className="p-6 space-y-5 overflow-y-auto">
+            {env.isDemoMode && (
+              <div className="space-y-2 rounded-lg border border-ui-border bg-ui-hover-soft p-4">
+                <p className="type-body text-text-base">예시 설치 화면입니다. 이 데모에서는 서버를 연결할 수 없습니다.</p>
+                <p className="type-caption text-text-muted">추가한 예시 환경은 새로고침하면 초기화됩니다.</p>
+                <a href={QUICKSTART_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center type-body text-action hover:underline">실제 설치 방법 보기</a>
+              </div>
+            )}
             {setupError && <p role="alert" className="text-sm text-status-warn">{setupError}</p>}
             {codeExpired && !connected && <p role="alert" className="text-sm text-status-warn">설치 명령이 만료됐습니다. 아래에서 새 코드를 발급해 주세요.</p>}
             {connected ? (

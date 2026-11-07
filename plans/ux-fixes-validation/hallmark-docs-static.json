@@ -1,0 +1,349 @@
+﻿{
+  "summary": {
+    "fails": 19,
+    "reflex": 15,
+    "warns": 3,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 4,
+    "render": "off"
+  },
+  "findings": [
+    {
+      "gate": "20",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 1,
+      "evidence": "no Hallmark stamp on the first non-empty line of any CSS",
+      "fix": "The stamp comment is line 1 of the CSS; only @charset may precede it"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 83,
+      "evidence": "colour literal #0d1117 outside tokens (--vp-c-bg on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 84,
+      "evidence": "colour literal #161b22 outside tokens (--vp-c-bg-alt on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 85,
+      "evidence": "colour literal #1f2937 outside tokens (--vp-c-bg-soft on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 86,
+      "evidence": "colour literal #161b22 outside tokens (--vp-c-bg-elv on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 87,
+      "evidence": "colour literal #ffffff outside tokens (--vp-c-text-1 on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 88,
+      "evidence": "colour literal #94a3b8 outside tokens (--vp-c-text-2 on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 89,
+      "evidence": "colour literal #8795a9 outside tokens (--vp-c-text-3 on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 90,
+      "evidence": "colour literal #30363d outside tokens (--vp-c-divider on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 91,
+      "evidence": "colour literal #fbbf24 outside tokens (--vp-c-warning-1 on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 92,
+      "evidence": "colour literal #f87171 outside tokens (--vp-c-danger-1 on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 94,
+      "evidence": "colour literal #7aa2f7 outside tokens (--vp-c-brand-1 on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 96,
+      "evidence": "colour literal #a4c0fb outside tokens (--vp-c-brand-2 on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 97,
+      "evidence": "colour literal #3f6fdb outside tokens (--vp-c-brand-3 on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 98,
+      "evidence": "colour literal rgba(63, 111, 219, 0.16) outside tokens (--vp-c-brand-soft on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 99,
+      "evidence": "colour literal #355fc0 outside tokens (--vp-button-brand-hover-bg on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 100,
+      "evidence": "colour literal rgba(32, 33, 39, 0.92) outside tokens (--home-carousel-arrow-bg on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 101,
+      "evidence": "colour literal rgb(40, 41, 48) outside tokens (--home-carousel-arrow-hover-bg on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 102,
+      "evidence": "colour literal rgba(0, 0, 0, 0.4) outside tokens (--home-carousel-arrow-shadow on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 133,
+      "evidence": "margin-bottom: 14px (off the 4px scale) on .VPFeature .icon",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 209,
+      "evidence": "padding: 0 6px (off the 4px scale) on .home-carousel-dots",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 246,
+      "evidence": "margin-top: 14px (off the 4px scale) on .home-carousel-bar",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 358,
+      "evidence": "column-gap: 10px (off the 4px scale) on .topology-chip",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 362,
+      "evidence": "padding: 12px 14px (off the 4px scale) on .topology-chip",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 400,
+      "evidence": "margin-right: 6px (off the 4px scale) on .topology-place .topology-icon",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 508,
+      "evidence": "gap: 14px (off the 4px scale) on .topology-edge",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 519,
+      "evidence": "margin: 14px -14px (off the 4px scale) on .topology-arrow",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 547,
+      "evidence": "gap: 6px (off the 4px scale) on .topology .topology-channels",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 556,
+      "evidence": "padding: 8px 14px (off the 4px scale) on .topology .topology-channels li",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 590,
+      "evidence": "gap: 6px (off the 4px scale) on .topology-edge",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 836,
+      "evidence": "margin-top: 14px (off the 4px scale) on .reference-page .vp-doc li + li",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "24b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 842,
+      "evidence": "padding: 6px 0 (off the 4px scale) on .VPDocAside .VPDocAsideOutline .outline-link",
+      "fix": "Use the 4px spacing scale"
+    },
+    {
+      "gate": "26b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 1,
+      "evidence": "no :active styling anywhere",
+      "fix": "All eight states; guard: not a form control, no aria-disabled anywhere"
+    },
+    {
+      "gate": "26b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 1,
+      "evidence": "no :disabled styling anywhere",
+      "fix": "All eight states; guard: not a form control, no aria-disabled anywhere"
+    },
+    {
+      "gate": "74",
+      "grade": "WARN",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 30,
+      "evidence": "default Tailwind palette #f8fafc on --vp-c-bg-alt",
+      "fix": "Mix the colour for this page in OKLCH; a stock swatch is the AI look"
+    },
+    {
+      "gate": "74",
+      "grade": "WARN",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 32,
+      "evidence": "default Tailwind palette #0f172a on --vp-c-text-1",
+      "fix": "Mix the colour for this page in OKLCH; a stock swatch is the AI look"
+    },
+    {
+      "gate": "74",
+      "grade": "WARN",
+      "tier": "reflex",
+      "file": "docs\\.vitepress\\theme\\custom.css",
+      "line": 34,
+      "evidence": "default Tailwind palette #64748b on --vp-c-text-3",
+      "fix": "Mix the colour for this page in OKLCH; a stock swatch is the AI look"
+    }
+  ]
+}

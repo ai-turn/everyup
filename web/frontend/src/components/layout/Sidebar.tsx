@@ -7,6 +7,7 @@ import { api, type AgentServiceFlat, type UptimeMonitor } from '../../services/a
 import { env } from '../../config/env';
 import logo from '../../assets/logo.webp';
 import { DemoScenarioSwitcher } from './DemoScenarioSwitcher';
+import { DemoHelpLinks } from './DemoHelpLinks';
 import { NAV_SECTIONS, sectionFor } from './navSections';
 
 interface NavItemProps {
@@ -76,7 +77,9 @@ export function Sidebar() {
       {env.isDemoMode && (
         <div data-demo-chrome className="mx-3 mb-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2">
           <p className="text-xs font-medium text-action">Live Demo</p>
+          <p className="mt-2 type-caption text-text-muted">예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.</p>
           <div className="mt-2"><DemoScenarioSwitcher tone="light" /></div>
+          <DemoHelpLinks />
         </div>
       )}
 

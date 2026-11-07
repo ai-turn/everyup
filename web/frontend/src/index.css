@@ -59,6 +59,8 @@
   /* 3. UI Components */
   --color-ui-border: #d9d9e0;       /* 기본 헤어라인 (slate-6) */
   --color-ui-border-dark: #363a3f;
+  --color-ui-control-border: #80838d;
+  --color-ui-control-border-dark: #6b6f78;
   --color-ui-border-soft: #e8e8ec;  /* 카드 내부 행 구분선 (slate-4) */
   --color-ui-border-soft-dark: #363a3f; /* 다크는 헤어라인 1단계뿐 */
   --color-ui-hover: #f0f0f3;        /* slate-3 */
@@ -214,6 +216,7 @@
   --color-bg-surface: var(--color-bg-surface-dark);
 
   --color-ui-border: var(--color-ui-border-dark);
+  --color-ui-control-border: var(--color-ui-control-border-dark);
   --color-ui-border-soft: var(--color-ui-border-soft-dark);
   --color-ui-hover: var(--color-ui-hover-dark);
   --color-ui-hover-soft: var(--color-ui-hover-soft-dark);

@@ -15,5 +15,5 @@ export function TimeRangePicker({ value, onChange }: {
   value: GlobalTimeRange;
   onChange: (range: GlobalTimeRange) => void;
 }) {
-  return <SegmentedControl options={OPTIONS} value={value} onChange={onChange} ariaLabel="시간 범위" />;
+  return <SegmentedControl options={OPTIONS} value={value} onChange={onChange} size="md" ariaLabel="시간 범위" />;
 }
