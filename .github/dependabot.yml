@@ -16,3 +16,7 @@ updates:
     groups:
       base-images:
         patterns: ['*']
+    ignore:
+      # Stay on Node LTS. Moving majors needs a deliberate change (Node 25+ ships without corepack).
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
