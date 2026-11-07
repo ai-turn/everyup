@@ -7,6 +7,7 @@ export interface MetricServiceRow {
   name: string;
   active: boolean;
   metricNames: string[];
+  metrics: ObservedServiceMetricName[];
   lastMetricAt?: string;
   lastReceivedAt?: string;
 }
@@ -17,6 +18,7 @@ export function useMetricServices() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [checkedAt, setCheckedAt] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -30,6 +32,7 @@ export function useMetricServices() {
         if (active) {
           setServices(loadedServices ?? []);
           setCatalog(loadedCatalog ?? []);
+          setCheckedAt(Date.now());
         }
       } catch (error) {
         if (active) setError(getErrorMessage(error));
@@ -42,10 +45,11 @@ export function useMetricServices() {
   }, [reloadKey]);
 
   const rows = useMemo(() => {
-    const byService = new Map<string, { names: Set<string>; lastAt?: string; lastReceivedAt?: string }>();
+    const byService = new Map<string, { names: Set<string>; metrics: ObservedServiceMetricName[]; lastAt?: string; lastReceivedAt?: string }>();
     for (const metric of catalog) {
-      const entry = byService.get(metric.serviceId) ?? { names: new Set<string>() };
+      const entry = byService.get(metric.serviceId) ?? { names: new Set<string>(), metrics: [] };
       entry.names.add(metric.metricName);
+      entry.metrics.push(metric);
       if (!entry.lastAt || Date.parse(metric.lastAt) > Date.parse(entry.lastAt)) entry.lastAt = metric.lastAt;
       if (metric.lastReceivedAt && (!entry.lastReceivedAt || Date.parse(metric.lastReceivedAt) > Date.parse(entry.lastReceivedAt))) entry.lastReceivedAt = metric.lastReceivedAt;
       byService.set(metric.serviceId, entry);
@@ -53,10 +57,11 @@ export function useMetricServices() {
     return services.map((service): MetricServiceRow => ({
       id: service.id, name: service.name, active: service.isActive,
       metricNames: [...(byService.get(service.id)?.names ?? [])].sort((a, b) => a.localeCompare(b)),
+      metrics: byService.get(service.id)?.metrics ?? [],
       lastMetricAt: byService.get(service.id)?.lastAt,
       lastReceivedAt: byService.get(service.id)?.lastReceivedAt,
     })).sort((a, b) => a.name.localeCompare(b.name));
   }, [services, catalog]);
 
-  return { rows, loading, error, reload: () => setReloadKey(key => key + 1) };
+  return { rows, checkedAt, loading, error, reload: () => setReloadKey(key => key + 1) };
 }

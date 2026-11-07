@@ -55,7 +55,28 @@ func (h *ObservedServiceHandler) GetMetricCatalog(c *fiber.Ctx) error {
 	if err != nil {
 		return internalError(c, ErrCodeDatabase, err)
 	}
-	return c.JSON(fiber.Map{"success": true, "data": names})
+	// The list must flag the same metrics the detail's 확인 필요 does, so each
+	// service goes through the same health scan.
+	// ponytail: one scan per service; a single grouped query if services reach hundreds.
+	now := time.Now().UTC()
+	out := make([]models.ObservedServiceMetricName, 0, len(names))
+	for i, name := range names {
+		if i > 0 && names[i-1].ServiceID == name.ServiceID {
+			continue
+		}
+		rules, err := database.NewAlertRuleRepository().GetEnabledOtelMetricRules(name.ServiceID, "", "")
+		if err != nil {
+			return internalError(c, ErrCodeDatabase, err)
+		}
+		health, err := h.metricRepo.MetricHealth(&models.OtelMetricFilter{ServiceID: name.ServiceID}, rules, now)
+		if err != nil {
+			return internalError(c, ErrCodeDatabase, err)
+		}
+		for _, metric := range health.Metrics {
+			out = append(out, models.ObservedServiceMetricName{ServiceID: name.ServiceID, OtelMetricName: metric})
+		}
+	}
+	return c.JSON(fiber.Map{"success": true, "data": out})
 }
 
 func (h *ObservedServiceHandler) GetAll(c *fiber.Ctx) error {
