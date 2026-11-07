@@ -108,6 +108,27 @@ test('Group detail adds targets from other groups and removes them again', async
   await expect(members).toHaveCount(before);
 });
 
+test('a target opened from a group stays inside the group until leaving it', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const crumbs = page.getByRole('navigation', { name: '현재 위치', exact: true });
+  const sidebarCurrent = page.locator('aside a[aria-current="page"]');
+  await page.goto('./projects/project_mock_staging');
+  await page.getByRole('link', { name: 'Redis TCP', exact: true }).click();
+  await expect(page).toHaveURL(/\/uptime\//);
+  await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
+  await expect(sidebarCurrent).toHaveText('그룹');
+  // 새로고침해도 그룹 안이다.
+  await page.reload();
+  await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
+  await crumbs.getByRole('link', { name: 'Staging', exact: true }).click();
+  await expect(page).toHaveURL(/\/projects\/project_mock_staging$/);
+  // 그룹을 떠나 업타임 메뉴에서 같은 대상을 열면 업타임 맥락이다.
+  await page.goto('./uptime');
+  await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
+  await expect(crumbs).toHaveText(/^업타임.*Redis TCP$/);
+  await expect(sidebarCurrent).toHaveText('업타임');
+});
+
 test('alert target and local search stay intact while switching views', async ({ page }) => {
   await page.goto('./alerts?tab=rules&target=agent&agentId=agent_demo_01&serviceKey=shop%3Aapi');
   const search = page.getByRole('textbox', { name: '규칙 이름 또는 대상 검색' });

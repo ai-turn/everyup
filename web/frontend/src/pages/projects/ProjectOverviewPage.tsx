@@ -9,6 +9,7 @@ import { getErrorMessage } from '../../utils/errors';
 import { ProjectDialog } from './ProjectsPage';
 import { assignableTargets, projectMembers, setTargetGroup, sourcesForProject, type Member, type ProjectSources } from './projectMembers';
 import { AddTargetsDialog } from './AddTargetsDialog';
+import { openFromGroup } from '../../hooks/useGroupTrail';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 
@@ -17,10 +18,10 @@ type ProjectData = ProjectSources & { project: Project | null; projects: Project
 
 const EMPTY_SOURCES: ProjectSources = { agents: [], services: [], monitors: [], observedServices: [], infrastructure: [] };
 
-function MemberLink({ to, icon, name, detail, state, returnTo }: Omit<Member, 'key' | 'assignment'> & { returnTo: string }) {
+function MemberLink({ to, icon, name, detail, state, returnTo, onOpen }: Omit<Member, 'key' | 'assignment'> & { returnTo: string; onOpen: () => void }) {
   const stateClass = { healthy: 'text-status-healthy', warn: 'text-status-warn', error: 'text-status-error', idle: 'text-status-idle' }[state];
   return (
-    <Link to={to} state={{ returnTo }} className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
+    <Link to={to} state={{ returnTo }} onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
       <MaterialIcon size={20} name={icon} className={`shrink-0 ${stateClass}`} />
       <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-0.5 block truncate text-xs text-text-muted">{detail}</span></span>
       <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
@@ -112,6 +113,8 @@ export function ProjectOverviewPage() {
   };
 
   const members = projectMembers(data);
+  // 대상 화면을 그룹 안에서 연 것으로 보이게 한다(useGroupTrail). 행 클릭도 이 링크를 누른다.
+  const openMember = (to: string) => openFromGroup({ id: project.id, name: project.name, path: to.split('?')[0] });
   const removeMember = async (member: Member) => {
     if (!member.assignment) return;
     try {
@@ -150,9 +153,9 @@ export function ProjectOverviewPage() {
       {totalTargets === 0 ? <section className="rounded-xl border border-ui-border bg-bg-surface"><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="Docker 환경, 업타임 모니터, 직접 연결 서비스, Collector를 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
         <section>
           <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
-          {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center overflow-hidden rounded-xl border border-ui-border bg-bg-surface"><MemberLink {...member} returnTo={returnTo} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
+          {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center overflow-hidden rounded-xl border border-ui-border bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
             <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="그룹 구성 그리드" columns={[
-              { key: 'name', label: '대상', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 break-words type-caption text-text-muted md:hidden">{row.detail}</p></> },
+              { key: 'name', label: '대상', render: row => <><Link to={row.to} state={{ returnTo }} onClick={() => openMember(row.to)} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 break-words type-caption text-text-muted md:hidden">{row.detail}</p></> },
               { key: 'detail', label: '현황', className: 'hidden md:table-cell', render: row => <span className="text-text-muted">{row.detail}</span> },
               { key: 'actions', label: '작업', className: 'w-28 whitespace-nowrap', align: 'right', render: removeButton },
             ]} />}
