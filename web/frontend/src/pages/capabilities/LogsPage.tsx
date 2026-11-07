@@ -45,9 +45,10 @@ export function LogsPage() {
 
   return (
     <div>
-      <PageHeader title="로그" subtitle="서비스별 최근 오류·경고 건수를 보고, 서비스를 열어 로그를 검색합니다.">
+      <PageHeader title="로그" subtitle="OpenTelemetry로 직접 연결한 앱의 로그와 최근 오류·경고를 확인합니다.">
         <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
+      <DockerEnvironmentHint className="mb-5" />
       <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -59,7 +60,6 @@ export function LogsPage() {
         <EmptyState icon="article" title="아직 로그 서비스가 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
           <div className="flex flex-col items-center gap-4">
             <MonitoringConnection capability="logs" onConnected={reload} />
-            <DockerEnvironmentHint />
           </div>
         </EmptyState>
       ) : (

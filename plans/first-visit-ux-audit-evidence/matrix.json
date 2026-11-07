@@ -1,0 +1,474 @@
+{
+  "phase": "matrix",
+  "browserVersion": "151.0.7922.34",
+  "completedAt": "2026-11-07T13:22:28.005Z",
+  "records": [
+    {
+      "id": "desktop-light-home",
+      "note": "Fresh context; OS color preference; no stored theme.",
+      "image": "captures/desktop-light-home.png",
+      "url": "https://ai-turn.github.io/everyup/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:01.166Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-attention-overview",
+      "note": "",
+      "image": "captures/desktop-light-attention-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:02.095Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-payment-uptime",
+      "note": "",
+      "image": "captures/desktop-light-payment-uptime.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:02.908Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-payment-logs",
+      "note": "",
+      "image": "captures/desktop-light-payment-logs.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:03.035Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-payment-trace",
+      "note": "",
+      "image": "captures/desktop-light-payment-trace.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:03.173Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-dark-home",
+      "note": "Fresh context; OS color preference; no stored theme.",
+      "image": "captures/desktop-dark-home.png",
+      "url": "https://ai-turn.github.io/everyup/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:03.953Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-dark-attention-overview",
+      "note": "",
+      "image": "captures/desktop-dark-attention-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:04.880Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-dark-payment-uptime",
+      "note": "",
+      "image": "captures/desktop-dark-payment-uptime.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:05.483Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-dark-payment-logs",
+      "note": "",
+      "image": "captures/desktop-dark-payment-logs.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:05.597Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-dark-payment-trace",
+      "note": "",
+      "image": "captures/desktop-dark-payment-trace.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:05.733Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-normal-overview",
+      "note": "Scenario changed through the visible selector.",
+      "image": "captures/desktop-light-normal-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "normal",
+      "time": "2026-11-07T13:22:07.699Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-normal-payment",
+      "note": "",
+      "image": "captures/desktop-light-normal-payment.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "normal",
+      "time": "2026-11-07T13:22:09.238Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-empty-overview",
+      "note": "Scenario changed through the visible selector.",
+      "image": "captures/desktop-light-empty-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "empty",
+      "time": "2026-11-07T13:22:11.098Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-empty-docker-connect",
+      "note": "",
+      "image": "captures/desktop-light-empty-docker-connect.png",
+      "url": "https://ai-turn.github.io/everyup/demo/environments",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "empty",
+      "time": "2026-11-07T13:22:11.611Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-partial-failure-overview",
+      "note": "Scenario changed through the visible selector.",
+      "image": "captures/desktop-light-partial-failure-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "partial-failure",
+      "time": "2026-11-07T13:22:13.481Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-light-partial-failure-retry",
+      "note": "No network fault injected; selected fixture still fails.",
+      "image": "captures/desktop-light-partial-failure-retry.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "partial-failure",
+      "time": "2026-11-07T13:22:14.357Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "mobile-light-home",
+      "note": "Fresh context; OS color preference; no stored theme.",
+      "image": "captures/mobile-light-home.png",
+      "url": "https://ai-turn.github.io/everyup/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:15.024Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-attention-overview",
+      "note": "",
+      "image": "captures/mobile-light-attention-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:15.924Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-payment-uptime",
+      "note": "",
+      "image": "captures/mobile-light-payment-uptime.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:16.513Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-payment-logs",
+      "note": "",
+      "image": "captures/mobile-light-payment-logs.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:16.630Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-payment-trace",
+      "note": "",
+      "image": "captures/mobile-light-payment-trace.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:16.753Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-dark-home",
+      "note": "Fresh context; OS color preference; no stored theme.",
+      "image": "captures/mobile-dark-home.png",
+      "url": "https://ai-turn.github.io/everyup/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:17.456Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-dark-attention-overview",
+      "note": "",
+      "image": "captures/mobile-dark-attention-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:18.354Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-dark-payment-uptime",
+      "note": "",
+      "image": "captures/mobile-dark-payment-uptime.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:18.950Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-dark-payment-logs",
+      "note": "",
+      "image": "captures/mobile-dark-payment-logs.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:19.060Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-dark-payment-trace",
+      "note": "",
+      "image": "captures/mobile-dark-payment-trace.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:19.169Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-normal-overview",
+      "note": "Scenario changed through the visible selector.",
+      "image": "captures/mobile-light-normal-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "normal",
+      "time": "2026-11-07T13:22:21.560Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-normal-payment",
+      "note": "",
+      "image": "captures/mobile-light-normal-payment.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "normal",
+      "time": "2026-11-07T13:22:22.876Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-empty-overview",
+      "note": "Scenario changed through the visible selector.",
+      "image": "captures/mobile-light-empty-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "empty",
+      "time": "2026-11-07T13:22:24.711Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-empty-docker-connect",
+      "note": "",
+      "image": "captures/mobile-light-empty-docker-connect.png",
+      "url": "https://ai-turn.github.io/everyup/demo/environments",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "empty",
+      "time": "2026-11-07T13:22:25.229Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-partial-failure-overview",
+      "note": "Scenario changed through the visible selector.",
+      "image": "captures/mobile-light-partial-failure-overview.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "partial-failure",
+      "time": "2026-11-07T13:22:27.109Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-light-partial-failure-retry",
+      "note": "No network fault injected; selected fixture still fails.",
+      "image": "captures/mobile-light-partial-failure-retry.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "partial-failure",
+      "time": "2026-11-07T13:22:27.983Z",
+      "documentWidth": 390
+    }
+  ],
+  "checks": [
+    {
+      "id": "desktop-light-trace-escape",
+      "closed": true
+    },
+    {
+      "id": "desktop-dark-trace-escape",
+      "closed": true
+    },
+    {
+      "id": "mobile-light-trace-escape",
+      "closed": true
+    },
+    {
+      "id": "mobile-dark-trace-escape",
+      "closed": true
+    }
+  ],
+  "errors": []
+}

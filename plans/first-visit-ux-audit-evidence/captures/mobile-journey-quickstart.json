@@ -1,0 +1,929 @@
+{
+  "id": "mobile-journey-quickstart",
+  "note": "",
+  "image": "captures/mobile-journey-quickstart.png",
+  "time": "2026-11-07T13:22:33.247Z",
+  "url": "https://ai-turn.github.io/everyup/guide/quickstart",
+  "title": "Quick Start | EveryUp",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "light",
+  "scenario": "attention",
+  "storage": {
+    "local": {
+      "vitepress-theme-appearance": "auto"
+    },
+    "session": {}
+  },
+  "touch": true,
+  "documentWidth": 390,
+  "text": "본문으로 건너뛰기\nEveryUp\n메뉴\n이 페이지에서\nSidebar Navigation\n시작하기\n\n소개\n\nQuick Start\n\n모니터링 설정\n\n기능 가이드\n\n업타임 모니터\n\n자동 eBPF Observer\n\n헤더·바디 상세 수집\n\n알림\n\n운영\n\n업그레이드·제거\n\n백업·복원\n\n트러블슈팅\n\n레퍼런스\n\nWeb 설정\n\nDocker Collector 설정\n\nDocker socket proxy (영문)\n\nCollector 동작 방식 (영문)\n\nQuick Start\n​\n\n대시보드 서버에 Web을 띄우고 업타임 모니터를 하나 추가해 첫 검사 결과를 확인합니다. 2단계에서 모니터가 정상으로 표시되면 기본 구성은 끝입니다. 그다음 필요한 기능을 직접 연결하고, Linux Docker 서버라면 Docker 환경도 연결할 수 있습니다. 두 단계 모두 선택입니다.\n\n준비물\n​\n대시보드 서버: Docker와 Docker Compose\n네트워크: 대시보드 서버에서 확인할 URL이나 TCP 포트에 접속할 수 있어야 합니다.\n1. Web 실행 (대시보드 서버)\n​\n\n대시보드 서버에서 Compose 파일을 받습니다.\n\nbash\nmkdir everyup && cd everyup\ncurl -O \\\nhttps://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml\n외부 접속 주소 정하기 (선택)\n​\n\n사용자나 모니터링할 서버가 다른 주소(예: https://monitor.example.com)로 Web에 접속한다면, 실행하기 전에 같은 디렉터리의 .env에 지정하세요.\n\nbash\necho 'EVERYUP_PUBLIC_URL=https://monitor.example.com' > .env\n\nEveryUp은 이 주소를 Docker 설치 명령, 직접 OTLP 연결, 인프라 Collector 설정에 넣습니다. 그래서 모니터링할 서버에서 접근할 수 있는 절대 HTTP(S) 주소여야 하며, localhost는 쓸 수 없습니다. 지정하지 않으면 연결 화면이 브라우저가 접속한 주소를 제안하고, 그 화면에서 고칠 수도 있습니다.\n\n실행\n​\nbash\ndocker compose up -d\n받은 Compose 파일의 내용\n\n브라우저에서 http://<대시보드 서버 IP>:3001을 열고 첫 관리자 계정을 만듭니다. 열리지 않으면 대시보드가 열리지 않습니다를 확인하세요.\n\n2. 업타임 모니터 추가 (브라우저)\n​\n\n업타임 화면에서 추가를 누르세요. 체크 방식은 HTTP로 두고, 이름과 확인할 공개 URL (예: https://api.example.com/health)을 입력한 뒤 추가를 누릅니다. 나머지 값은 기본값으로 두어도 됩니다.\n\n검사는 Web이 수행하므로 대상에 아무것도 설치하지 않아도 됩니다. 첫 검사는 추가하자마자 실행되고, 이후 30초마다 반복됩니다. 응답 코드가 2xx이면 모니터가 정상으로 표시됩니다.\n\nlocalhost나 사설망 같은 내부 주소는 확인할 수 없습니다. 입력 항목과 TCP 검사는 업타임 모니터를 참고하세요.\n\n3. 기능별 직접 연결 (선택)\n​\n\n앱의 로그·API 요청·메트릭은 OpenTelemetry로 Web에 직접 보내고, 서버 자원은 표준 OpenTelemetry Collector로 보냅니다. Docker를 쓰지 않아도 연결할 수 있고, 필요한 기능만 골라 연결하면 됩니다.\n\n데이터\t대시보드에서 여는 경로\n로그\t로그 → 로그 연결 → OpenTelemetry로 직접 연결\nAPI 요청·트레이스\tAPI 요청 → API 연결 → OpenTelemetry로 직접 연결\n앱 메트릭\t메트릭 → 메트릭 연결 → OpenTelemetry로 직접 연결\n서버 자원\t인프라 → 인프라 연결\n\n연결 화면에서 데이터 전송 주소와 API Key를 확인한 뒤 앱이나 Collector에 적용하세요. 언어별 설정과 수신 확인 방법은 OpenTelemetry로 직접 연결에 있습니다.\n\n4. Docker 환경 연결 (선택)\n​\n\nLinux Docker 서버에 모니터링 번들(Docker Collector와 필요한 구성 요소)을 설치하면, 앱을 고치지 않고 컨테이너 상태·로그·호스트 자원·API 요청을 한 번에 수집합니다. 이 데이터는 업타임·로그·인프라 같은 기능 메뉴가 아니라 해당 Docker 환경 화면에 표시됩니다. 서버가 한 대라면 Web과 같은 서버에 설치해도 됩니다.\n\n모니터링할 서버에는 다음이 필요합니다.\n\nLinux, Docker Engine, Docker Compose 2.23.1 이상, curl, sudo 권한. Compose 버전은 docker compose version으로 확인하세요.\n대시보드 서버의 3001 포트(또는 EVERYUP_PUBLIC_URL로 지정한 주소)에 접속할 수 있는 네트워크\nDocker 연결 명령 만들기 (브라우저)\n​\n\n브라우저에서 대시보드의 Docker 환경 화면을 여세요. 오른쪽 위의 Docker 연결을 누른 뒤 환경 이름과 수집 범위를 정하세요.\n\n수집 범위\t수집·수신 기능\t설치되는 구성 요소\n전체\t컨테이너 상태·로그·인프라·API 요청 수집, OTLP 메트릭 수신\tDocker Collector, eBPF Observer\n기본\tDocker 서비스 상태, 로그\tDocker Collector\n사용자 지정\t고른 기능만 (권한도 그만큼만)\tDocker Collector. API 요청을 고르면 eBPF Observer도\n\n앱 메트릭은 수신 기능을 켠 뒤 앱이나 OpenTelemetry Collector에서 전송하도록 설정해야 합니다. 로그나 API 요청을 선택하면 Docker 탐색에 필요한 업타임 수집도 함께 켜집니다.\n\neBPF Observer는 앱을 고치지 않고 API 요청의 latency와 트레이스를 수집하는 구성 요소입니다. Docker Collector와 권한이 분리되어 실행되고, 컨테이너 프로세스를 자동으로 찾으므로 포트 목록을 관리할 필요가 없습니다.\n\n사용자 지정 프로필에서 업타임을 빼는 경우\n\n선택을 마치면 설치 명령이 표시됩니다. 명령은 다음과 같은 형태입니다.\n\nbash\ncurl -fsSL 'https://<Web 주소>/api/v1/agents/install.sh' |\n  sudo sh -s -- 'https://<Web 주소>' '<연결 코드>'\n\n연결 코드는 10분 동안 한 번만 쓸 수 있습니다\n\n코드가 만료되었거나 이미 사용했다면 설치 화면에서 새 코드를 눌러 다시 발급하세요. 장기 API Key는 브라우저에 표시되지 않고, 설치 과정에서 대상 서버로 직접 전달됩니다.\n\n모니터링 번들 설치 (모니터링할 서버)\n​\n\n화면에 표시된 명령을 복사해 모니터링할 Linux Docker 서버에서 실행합니다.\n\n설치기는 Docker와 Compose 버전을 확인한 뒤 /opt/everyup-agent에 설정을 만들고, 선택한 수집 범위에 필요한 구성 요소만 시작합니다. 기존 설정이 있으면 compose.yaml.bak.<날짜시각>으로 백업한 뒤 덮어씁니다. 앱의 Compose 파일, 이미지, 포트, 컨테이너는 바꾸지 않습니다. 경로와 컨테이너 이름에 들어가는 everyup-agent는 Docker Collector의 내부 이름입니다.\n\n설치가 끝나면 마지막에 다음과 같이 출력됩니다.\n\ntext\nEveryUp Docker collector installation complete.\nConfiguration: /opt/everyup-agent/compose.yaml\nCheck status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-agent/compose.yaml ps\n\n중간에 멈췄다면 마지막 오류 줄로 트러블슈팅에서 해당 항목을 찾으세요.\n\n설치기 없이 직접 구성하려면 agent/docker-compose.yml과 Docker Collector 설정을 참고하세요.\n\n연결 확인 (브라우저)\n​\n\n설치가 끝나면 브라우저에서 Docker 환경 화면을 확인하세요. 약 30초 안에 해당 환경이 설치 대기에서 수집 중으로 바뀝니다. 업타임 수집을 선택했다면 그 서버의 컨테이너도 서비스로 나타납니다.\n\n수집 중이면 연결된 것이고, 설치 대기면 아직 Collector가 연결되지 않은 것입니다.\n\n시간이 지나도 설치 대기에 머문다면 트러블슈팅을 확인하세요.\n\n수집 중은 Collector 연결 상태입니다. 해당 환경을 열고 모니터링 설정 가이드에서 설정 적용 여부와 데이터 수신 확인도 보세요. 앱에 요청을 보내 로그·트레이스를 발생시키고, 앱 메트릭은 전송 설정을 적용한 뒤 수집 주기가 지났을 때 수신 기록을 확인하세요.\n\n다음 단계\n​\n\n모니터링 대상을 연결했다면 알림을 설정하세요. Telegram·Discord·Slack 채널을 연결하고 알림 규칙을 활성화하면 규칙의 조건을 만족할 때 알림을 받습니다.\n\n그 밖의 가이드:\n\n업타임 모니터: URL·TCP 포트 확인, 일시정지와 체크 기록\n모니터링 설정: OpenTelemetry 직접 연결, 수집 상태 진단, Docker 환경에 기능 추가\n헤더·바디 상세 수집: 요청이 실패한 이유까지 진단\n자동 eBPF Observer: Docker 환경에서 API latency와 트레이스 수집\n업그레이드·제거: 새 버전 적용, 설치 되돌리기\nGitHub에서 이 페이지 편집\n\n마지막 수정: 2026년 10월 31일\n\nPager\n이전\n소개\n다음\n모니터링 설정",
+  "active": {
+    "tag": "SPAN",
+    "text": "",
+    "label": null,
+    "outline": "rgb(15, 23, 42) none 3px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 0
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문으로 건너뛰기",
+      "href": "#VPContent",
+      "target": null,
+      "rect": {
+        "x": 8,
+        "y": 8,
+        "width": 32,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/",
+      "target": null,
+      "rect": {
+        "x": 24,
+        "y": 0,
+        "width": 98.796875,
+        "height": 64
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 278,
+        "y": 4.5,
+        "width": 48,
+        "height": 55
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "mobile navigation",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 334,
+        "y": 0,
+        "width": 48,
+        "height": 64
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "메뉴",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 64,
+        "width": 92.09375,
+        "height": 47
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "이 페이지에서",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 285.0625,
+        "y": 76,
+        "width": 84.9375,
+        "height": 24
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "소개",
+      "href": "/everyup/guide/introduction",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 64,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Quick Start",
+      "href": "/everyup/guide/quickstart",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 96,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "모니터링 설정",
+      "href": "/everyup/guide/monitoring-setup",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 128,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임 모니터",
+      "href": "/everyup/guide/uptime-monitors",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 227,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "자동 eBPF Observer",
+      "href": "/everyup/guide/ebpf-observer",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 259,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "헤더·바디 상세 수집",
+      "href": "/everyup/guide/otel-instrumentation",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 291,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/guide/notifications",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 323,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업그레이드·제거",
+      "href": "/everyup/guide/upgrade-uninstall",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 422,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "백업·복원",
+      "href": "/everyup/guide/backup-restore",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 454,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "트러블슈팅",
+      "href": "/everyup/guide/troubleshooting",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 486,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Web 설정",
+      "href": "/everyup/reference/web",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 585,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker Collector 설정",
+      "href": "/everyup/reference/collector",
+      "target": null,
+      "rect": {
+        "x": -288,
+        "y": 617,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker socket proxy (영문)",
+      "href": "https://github.com/ai-turn/everyup/blob/main/agent/docs/docker-socket-proxy.md",
+      "target": "_blank",
+      "rect": {
+        "x": -288,
+        "y": 649,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Collector 동작 방식 (영문)",
+      "href": "https://github.com/ai-turn/everyup/tree/main/agent/docs",
+      "target": "_blank",
+      "rect": {
+        "x": -288,
+        "y": 681,
+        "width": 256,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"Quick Start\" 섹션 링크",
+      "href": "#quick-start",
+      "target": null,
+      "rect": {
+        "x": -0.359375,
+        "y": 144,
+        "width": 15.015625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"준비물\" 섹션 링크",
+      "href": "#준비물",
+      "target": null,
+      "rect": {
+        "x": 3.125,
+        "y": 441,
+        "width": 12.875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"1. Web 실행 (대시보드 서버)\" 섹션 링크",
+      "href": "#_1-web-실행-대시보드-서버",
+      "target": null,
+      "rect": {
+        "x": 3.125,
+        "y": 642,
+        "width": 12.875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 338,
+        "y": 747,
+        "width": 40,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"외부 접속 주소 정하기 (선택) {#public-url}\" 섹션 링크",
+      "href": "#public-url",
+      "target": null,
+      "rect": {
+        "x": 6.609375,
+        "y": 879.390625,
+        "width": 10.921875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 338,
+        "y": 1066.390625,
+        "width": 40,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"실행\" 섹션 링크",
+      "href": "#실행",
+      "target": null,
+      "rect": {
+        "x": 6.609375,
+        "y": 1364.1875,
+        "width": 10.921875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 338,
+        "y": 1421.1875,
+        "width": 40,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "web/docker-compose.yml",
+      "href": "https://github.com/ai-turn/everyup/blob/main/web/docker-compose.yml",
+      "target": "_blank",
+      "rect": {
+        "x": 41,
+        "y": 1548.984375,
+        "width": 173.703125,
+        "height": 19
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 297,
+        "y": 1592.984375,
+        "width": 40,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "대시보드가 열리지 않습니다",
+      "href": "./troubleshooting#web-not-reachable",
+      "target": null,
+      "rect": {
+        "x": 119.5,
+        "y": 1623.984375,
+        "width": 183.8125,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"2. 업타임 모니터 추가 (브라우저)\" 섹션 링크",
+      "href": "#_2-업타임-모니터-추가-브라우저",
+      "target": null,
+      "rect": {
+        "x": 3.125,
+        "y": 1750.984375,
+        "width": 12.875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임 모니터",
+      "href": "./uptime-monitors",
+      "target": null,
+      "rect": {
+        "x": 252.15625,
+        "y": 2114.984375,
+        "width": 91.90625,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"3. 기능별 직접 연결 (선택)\" 섹션 링크",
+      "href": "#_3-기능별-직접-연결-선택",
+      "target": null,
+      "rect": {
+        "x": 3.125,
+        "y": 2241.984375,
+        "width": 12.875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "OpenTelemetry로 직접 연결",
+      "href": "./monitoring-setup#direct-otel",
+      "target": null,
+      "rect": {
+        "x": 24,
+        "y": 2805.984375,
+        "width": 328.375,
+        "height": 51
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"4. Docker 환경 연결 (선택) {#docker}\" 섹션 링크",
+      "href": "#docker",
+      "target": null,
+      "rect": {
+        "x": 3.125,
+        "y": 2932.984375,
+        "width": 12.875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EVERYUP_PUBLIC_URL",
+      "href": "#public-url",
+      "target": null,
+      "rect": {
+        "x": 44,
+        "y": 3367.984375,
+        "width": 163.203125,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"Docker 연결 명령 만들기 (브라우저)\" 섹션 링크",
+      "href": "#docker-연결-명령-만들기-브라우저",
+      "target": null,
+      "rect": {
+        "x": 6.609375,
+        "y": 3448.984375,
+        "width": 10.921875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "eBPF Observer",
+      "href": "./ebpf-observer",
+      "target": null,
+      "rect": {
+        "x": 24,
+        "y": 4179.984375,
+        "width": 112.40625,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Collector 네트워킹 안내",
+      "href": "./../reference/collector#networking",
+      "target": null,
+      "rect": {
+        "x": 111.6875,
+        "y": 4514.984375,
+        "width": 143.859375,
+        "height": 19
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 338,
+        "y": 4492.984375,
+        "width": 40,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"모니터링 번들 설치 (모니터링할 서버)\" 섹션 링크",
+      "href": "#모니터링-번들-설치-모니터링할-서버",
+      "target": null,
+      "rect": {
+        "x": 6.609375,
+        "y": 4779.578125,
+        "width": 10.921875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 338,
+        "y": 5195.578125,
+        "width": 40,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "트러블슈팅",
+      "href": "./troubleshooting",
+      "target": null,
+      "rect": {
+        "x": 248,
+        "y": 5313.96875,
+        "width": 73.609375,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "agent/docker-compose.yml",
+      "href": "https://github.com/ai-turn/everyup/blob/main/agent/docker-compose.yml",
+      "target": "_blank",
+      "rect": {
+        "x": 24,
+        "y": 5385.96875,
+        "width": 306.1875,
+        "height": 52
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker Collector 설정",
+      "href": "./../reference/collector",
+      "target": null,
+      "rect": {
+        "x": 140.71875,
+        "y": 5414.96875,
+        "width": 159.59375,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"연결 확인 (브라우저)\" 섹션 링크",
+      "href": "#연결-확인-브라우저",
+      "target": null,
+      "rect": {
+        "x": 6.609375,
+        "y": 5501.96875,
+        "width": 10.921875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "트러블슈팅",
+      "href": "./troubleshooting#not-collecting",
+      "target": null,
+      "rect": {
+        "x": 262.796875,
+        "y": 5885.40625,
+        "width": 73.609375,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "\"다음 단계\" 섹션 링크",
+      "href": "#다음-단계",
+      "target": null,
+      "rect": {
+        "x": 3.125,
+        "y": 6196.40625,
+        "width": 12.875,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "./notifications",
+      "target": null,
+      "rect": {
+        "x": 211.40625,
+        "y": 6246.40625,
+        "width": 29.453125,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임 모니터",
+      "href": "./uptime-monitors",
+      "target": null,
+      "rect": {
+        "x": 44,
+        "y": 6416.40625,
+        "width": 91.90625,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "모니터링 설정",
+      "href": "./monitoring-setup",
+      "target": null,
+      "rect": {
+        "x": 44,
+        "y": 6472.40625,
+        "width": 91.90625,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "헤더·바디 상세 수집",
+      "href": "./otel-instrumentation",
+      "target": null,
+      "rect": {
+        "x": 44,
+        "y": 6528.40625,
+        "width": 134.125,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "자동 eBPF Observer",
+      "href": "./ebpf-observer",
+      "target": null,
+      "rect": {
+        "x": 44,
+        "y": 6584.40625,
+        "width": 145.4375,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업그레이드·제거",
+      "href": "./upgrade-uninstall",
+      "target": null,
+      "rect": {
+        "x": 44,
+        "y": 6640.40625,
+        "width": 112.234375,
+        "height": 23
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub에서 이 페이지 편집",
+      "href": "https://github.com/ai-turn/everyup/edit/main/docs/guide/quickstart.md",
+      "target": "_blank",
+      "rect": {
+        "x": 24,
+        "y": 6728.40625,
+        "width": 342,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "이전소개",
+      "href": "/everyup/guide/introduction",
+      "target": null,
+      "rect": {
+        "x": 24,
+        "y": 6827.40625,
+        "width": 342,
+        "height": 66
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "다음모니터링 설정",
+      "href": "/everyup/guide/monitoring-setup",
+      "target": null,
+      "rect": {
+        "x": 24,
+        "y": 6901.40625,
+        "width": 342,
+        "height": 66
+      }
+    }
+  ],
+  "horizontalOverflow": [
+    {
+      "tag": "CODE",
+      "class": "",
+      "text": "mkdir everyup && cd everyup\ncurl -O \\\nhttps://raw.githubusercontent.com/ai-turn/everyup/main/web/doc",
+      "rect": {
+        "x": 0,
+        "y": 755,
+        "width": 694.8125,
+        "height": 71.390625
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "line",
+      "text": "https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml",
+      "rect": {
+        "x": 24,
+        "y": 804.59375,
+        "width": 646.8125,
+        "height": 18
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "",
+      "text": "https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compose.yml",
+      "rect": {
+        "x": 24,
+        "y": 804.59375,
+        "width": 646.8125,
+        "height": 18
+      }
+    },
+    {
+      "tag": "CODE",
+      "class": "",
+      "text": "echo 'EVERYUP_PUBLIC_URL=https://monitor.example.com' > .env",
+      "rect": {
+        "x": 0,
+        "y": 1074.390625,
+        "width": 552.03125,
+        "height": 23.796875
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "line",
+      "text": "echo 'EVERYUP_PUBLIC_URL=https://monitor.example.com' > .env",
+      "rect": {
+        "x": 24,
+        "y": 1076.390625,
+        "width": 504.03125,
+        "height": 18
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "",
+      "text": "'EVERYUP_PUBLIC_URL=https://monitor.example.com'",
+      "rect": {
+        "x": 57.609375,
+        "y": 1076.390625,
+        "width": 411.609375,
+        "height": 18
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "",
+      "text": ">",
+      "rect": {
+        "x": 469.21875,
+        "y": 1076.390625,
+        "width": 16.8125,
+        "height": 18
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "",
+      "text": ".env",
+      "rect": {
+        "x": 486.03125,
+        "y": 1076.390625,
+        "width": 42,
+        "height": 18
+      }
+    },
+    {
+      "tag": "CODE",
+      "class": "",
+      "text": "services:\n  everyup:\n    image: aiturn/everyup:latest\n    container_name: everyup\n    environment:\n ",
+      "rect": {
+        "x": 41,
+        "y": 1600.984375,
+        "width": 834.515625,
+        "height": 437.0625
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "line",
+      "text": "EVERYUP_PUBLIC_URL: ${EVERYUP_PUBLIC_URL:-}",
+      "rect": {
+        "x": 65,
+        "y": 1707.046875,
+        "width": 360.171875,
+        "height": 16
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "",
+      "text": "${EVERYUP_PUBLIC_URL:-}",
+      "rect": {
+        "x": 256.109375,
+        "y": 1707.046875,
+        "width": 169.0625,
+        "height": 16
+      }
+    },
+    {
+      "tag": "SPAN",
+      "class": "line",
+      "text": "test: [\"CMD\", \"wget\", \"--no-verbose\", \"--tries=1\", \"--spider\", \"http://localhost:3001/api/v1/health\"",
+      "rect": {
+        "x": 65,
+        "y": 1852.734375,
+        "width": 786.515625,
+        "height": 16
+      }
+    }
+  ],
+  "assets": [
+    "https://ai-turn.github.io/everyup/assets/app.CzUKUh1W.js"
+  ]
+}

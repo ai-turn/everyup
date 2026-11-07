@@ -1,0 +1,601 @@
+{
+  "id": "mobile-direct-api-detail",
+  "note": "",
+  "image": "captures/mobile-direct-api-detail.png",
+  "time": "2026-11-07T13:37:56.496Z",
+  "url": "https://ai-turn.github.io/everyup/demo/api/observed_mock_payments?range=6h",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "light",
+  "scenario": "attention",
+  "storage": {
+    "local": {},
+    "session": {}
+  },
+  "touch": true,
+  "documentWidth": 390,
+  "text": "본문 바로가기\nLive Demo\n\n모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.\n\n데모 상태\n확인 필요\n정상 운영\n첫 시작\n부분 수집 실패\n확인 필요\nEveryUp\npayments-api\n수집 가능\n마지막 수집 2026. 11. 7. 22시 37분 40초\n연결 중지\nAPI Key\nevup_****a741\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nProduction\n수집 데이터\ntraces, logs\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\nAPI 요청\n트레이스\n서비스 전체 추이\n\n선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.\n\n2xx 84.7%\n4xx 6.9%\n5xx 8.3%\n5xx 최다: POST /v1/payments ×3\n요청 수\n72건\n에러율\n8.3%\n마지막 측정 구간 p95\n221ms\n22:30~22:37\n건 / 10분\n성공\n에러\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n1\n2\n3\n4\n에러만\n검색\n요청 결과\n\n전체 72건\n\n요청\n\nPOST\n/v1/payments\n200\n214ms\n11월 7일 22:35:55\n\n\nPOST\n/v1/refunds\n200\n221ms\n11월 7일 22:32:55\n\n\nPOST\n/v1/payments/4202\n오류\n503\n2,568ms\n11월 7일 22:29:55\n\n\nPOST\n/v1/payments\n200\n235ms\n11월 7일 22:26:55\n\n\nPOST\n/v1/refunds\n200\n242ms\n11월 7일 22:23:55\n\n\nPOST\n/v1/payments/4205\n200\n249ms\n11월 7일 22:20:55\n\n\nPOST\n/v1/payments\n오류\n503\n2,568ms\n11월 7일 22:17:55\n\n\nPOST\n/v1/refunds\n200\n263ms\n11월 7일 22:14:55\n\n\nPOST\n/v1/payments\n오류\n500\n1,712ms\n11월 7일 22:07:55\n\n\nGET\n/v1/refunds\n200\n220ms\n11월 7일 22:03:55\n\n\nGET\n/v1/payments/8002\n200\n226ms\n11월 7일 21:59:55\n\n\nPOST\n/v1/payments\n200\n232ms\n11월 7일 21:55:55\n\n\nGET\n/v1/refunds\n200\n238ms\n11월 7일 21:51:55\n\n\nGET\n/v1/payments/8005\n200\n244ms\n11월 7일 21:47:55\n\n\nPOST\n/v1/payments\n200\n250ms\n11월 7일 21:43:55\n\n\nGET\n/v1/refunds\n200\n256ms\n11월 7일 21:39:55\n\n\nGET\n/v1/payments/8008\n200\n262ms\n11월 7일 21:35:55\n\n\nPOST\n/v1/payments\n200\n214ms\n11월 7일 21:31:55\n\n\nGET\n/v1/refunds\n200\n220ms\n11월 7일 21:27:55\n\n\nGET\n/v1/payments/8011\n422\n226ms\n11월 7일 21:23:55\n\n\nPOST\n/v1/payments\n200\n232ms\n11월 7일 21:19:55\n\n\nGET\n/v1/refunds\n200\n238ms\n11월 7일 21:15:55\n\n\nGET\n/v1/payments/8014\n200\n244ms\n11월 7일 21:11:55\n\n\nPOST\n/v1/payments\n200\n250ms\n11월 7일 21:07:55\n\n\nGET\n/v1/refunds\n200\n256ms\n11월 7일 21:03:55\n\n72건 중 1~25\n\n‹\n1\n2\n3\n›\nAPI 제외 경로 0개\n© 2026 EveryUp\nGitHub\n피드백 보내기\n개요\n그룹\n알림\n더보기\n21:00",
+  "active": {
+    "tag": "BODY",
+    "text": "본문 바로가기Live Demo모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요GitHubEveryUpLive Demo데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요검색Ctrl K개요장애 1건메뉴업타임로그인프라API 요청메트릭모아 보기Docker 환경그룹관리알림환경 설정EveryUpAPI 요청payments-apipayments-api수집 가능마지막 수집 2026. 11. 7. 22시 37분 40초연결 중지API Keyevup_****a741키 재발급그룹미분류ProductionStagingBackofficeProduction수집 데이터traces, logs1H6H24H새로고침알림 규칙삭제API 요청트레이스서비스 전체 추이선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.2xx 84.7%4xx 6.9%5xx 8.3%5xx 최다: POST /v1/payments ×3요청 수72건에러율8.3%마지막 측정 구간 p95221ms22:30~22:37건 / 10분성공에러17:0018:0019:0020:0021:0022:0001234에러만검색요청 결과전체 72건요청상태소요시작POST/v1/payments200214ms11월 7일 22:35:55200214ms11월 7일 22:35:55POST/v1/refunds200221ms11월 7일 22:32:55200221ms11월 7일 22:32:55POST/v1/payments/4202오류5032,568ms11월 7일 22:29:555032,568ms11월 7일 22:29:55POST/v1/payments200235ms11월 7일 22:26:55200235ms11월 7일 22:26:55POST/v1/refunds200242ms11월 7일 22:23:55200242ms11월 7일 22:23:55POST/v1/payments/4205200249ms11월 7일 22:20:55200249ms11월 7일 22:20:55POST/v1/payments오류5032,568ms11월 7일 22:17:555032,568ms11월 7일 22:17:55POST/v1/refunds200263ms11월 7일 22:14:55200263ms11월 7일 22:14:55POST/v1/payments오류5001,712ms11월 7일 22:07:555001,712ms11월 7일 22:07:55GET/v1/refunds200220ms11월 7일 22:03:55200220ms11월 7일 22:03:55GET/v1/payments/8002200226ms11월 7일 21:59:55200226ms11월 7일 21:59:55POST/v1/payments200232ms11월 7일 21:55:55200232ms11월 7일 21:55:55GET/v1/refunds200238ms11월 7일 21:51:55200238ms11월 7일 21:51:55GET/v1/payments/8005200244ms11월 7일 21:47:55200244ms11월 7일 21:47:55POST/v1/payments200250ms11월 7일 21:43:55200250ms11월 7일 21:43:55GET/v1/refunds200256ms11월 7일 21:39:55200256ms11월 7일 21:39:55GET/v1/payments/8008200262ms11월 7일 21:35:55200262ms11월 7일 21:35:55POST/v1/payments200214ms11월 7일 21:31:55200214ms11월 7일 21:31:55GET/v1/refunds200220ms11월 7일 21:27:55200220ms11월 7일 21:27:55GET/v1/payments/8011422226ms11월 7일 21:23:55422226ms11월 7일 21:23:55POST/v1/payments200232ms11월 7일 21:19:55200232ms11월 7일 21:19:55GET/v1/refunds200238ms11월 7일 21:15:55200238ms11월 7일 21:15:55GET/v1/payments/8014200244ms11월 7일 21:11:55200244ms11월 7일 21:11:55POST/v1/payments200250ms11월 7일 21:07:55200250ms11월 7일 21:07:55GET/v1/refunds200256ms11월 7일 21:03:55200256ms11월 7일 21:03:5572건 중 1~25‹123›API 제외 경로 0개새로 수집하는 HTTP 요청에서 제외할 경로입니다. 한 줄에 하나씩 입력하며 정확한 경로 또는 끝에 *를 붙인 prefix를 지원합니다. 트레이스 원본에는 적용하지 않습니다.저장© 2026 EveryUpGitHub피드백 보내기개요그룹알림더보기\n\n\n21:00",
+    "label": null,
+    "outline": "rgb(28, 32, 36) none 3px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문 바로가기",
+      "href": "#main-content",
+      "target": null,
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "확인 필요정상 운영첫 시작부분 수집 실패",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 69.859375,
+        "y": 59,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "데모 시나리오",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 70.859375,
+        "y": 60,
+        "width": 100.859375,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 116.5,
+        "width": 127.984375,
+        "height": 48
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 322,
+        "y": 118.5,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "연결 중지",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 253,
+        "width": 112.65625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "키 재발급",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 261.34375,
+        "y": 314,
+        "width": 112.65625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "미분류ProductionStagingBackoffice",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 127,
+        "y": 366,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "그룹 배정",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 128,
+        "y": 367,
+        "width": 192,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "1H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 18,
+        "y": 517,
+        "width": 40.046875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "6H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 60.046875,
+        "y": 517,
+        "width": 40.046875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "24H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 102.09375,
+        "y": 517,
+        "width": 47.1875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "새로고침",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 159.28125,
+        "y": 509,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림 규칙",
+      "href": "/everyup/demo/alerts?tab=rules&target=direct&serviceId=observed_mock_payments",
+      "target": null,
+      "rect": {
+        "x": 278,
+        "y": 509,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "삭제",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 330,
+        "y": 509,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "API 요청",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 577,
+        "width": 83,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "tab",
+      "name": "트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 99,
+        "y": 577,
+        "width": 83.53125,
+        "height": 42
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "요청 수72건",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 41,
+        "y": 811,
+        "width": 150,
+        "height": 68
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "에러율8.3%",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 199,
+        "y": 811,
+        "width": 150,
+        "height": 68
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "마지막 측정 구간 p95221ms22:30~22:37",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 41,
+        "y": 887,
+        "width": 308,
+        "height": 86
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "에러만",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 1280,
+        "width": 98.640625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "INPUT",
+      "role": null,
+      "name": "요청 경로 검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 1336,
+        "width": 290.234375,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 314.234375,
+        "y": 1336,
+        "width": 59.765625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "POST 200 /v1/payments 트레이스 상세 열기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 57.8125,
+        "y": 1486,
+        "width": 130.40625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "POST 200 /v1/refunds 트레이스 상세 열기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 57.8125,
+        "y": 1579,
+        "width": 123.203125,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "POST 503 /v1/payments/4202 트레이스 상세 열기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 57.8125,
+        "y": 1672,
+        "width": 166.40625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "POST 200 /v1/payments 트레이스 상세 열기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 57.8125,
+        "y": 1765,
+        "width": 130.40625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "POST 200 /v1/refunds 트레이스 상세 열기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 57.8125,
+        "y": 1858,
+        "width": 123.203125,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "POST 200 /v1/payments/4205 트레이스 상세 열기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 57.8125,
+        "y": 1951,
+        "width": 166.40625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "POST 503 /v1/payments 트레이스 상세 열기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 57.8125,
+        "y": 2044,
+        "width": 130.40625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "POST 200 /v1/refunds 트레이스 상세 열기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 57.8125,
+        "y": 2137,
+        "width": 123.203125,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "이전",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 121,
+        "y": 3335,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "1",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 169,
+        "y": 3335,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "2",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 217,
+        "y": 3335,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "3",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 265,
+        "y": 3335,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "다음",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 313,
+        "y": 3335,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "저장",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 299.234375,
+        "y": 3703,
+        "width": 57.765625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/Monitoring",
+      "target": "_blank",
+      "rect": {
+        "x": 122.96875,
+        "y": 3523,
+        "width": 59.125,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "피드백 보내기",
+      "href": "https://github.com/ai-turn/Monitoring/issues",
+      "target": "_blank",
+      "rect": {
+        "x": 198.09375,
+        "y": 3523,
+        "width": 68.9375,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "개요",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 97.5,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/demo/alerts",
+      "target": null,
+      "rect": {
+        "x": 195,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "더보기",
+      "href": "/everyup/demo/more",
+      "target": null,
+      "rect": {
+        "x": 292.5,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    }
+  ],
+  "horizontalOverflow": [],
+  "assets": [
+    "https://ai-turn.github.io/everyup/demo/theme-init.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-DO9SNNYE.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-BxaN-usw.css"
+  ]
+}

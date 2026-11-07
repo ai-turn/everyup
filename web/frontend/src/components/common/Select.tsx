@@ -139,7 +139,7 @@ export function Select({
         aria-controls={open ? menuId : undefined}
         onClick={toggle}
         onKeyDown={onKeyDown}
-        className={`${FIELD_SHELL} ${FIELD_HEIGHT} inline-flex items-center justify-between gap-2 border-ui-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`${FIELD_SHELL} ${FIELD_HEIGHT} inline-flex items-center justify-between gap-2 border-ui-control-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         <span className="min-w-0 flex-1 truncate">{selected?.label}</span>
         <MaterialIcon size={20} name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-text-muted" />

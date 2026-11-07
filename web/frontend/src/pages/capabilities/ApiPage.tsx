@@ -15,9 +15,10 @@ export function ApiPage() {
   const window = useRequestWindow(range, refreshKey);
   const { rows, loading, error, retryTarget } = useApiTargets(window, refreshKey);
   return <div>
-    <PageHeader title="API 요청" subtitle="수집된 HTTP 요청과 오류를 비교하고 조사할 서비스를 선택합니다.">
+    <PageHeader title="API 요청" subtitle="OpenTelemetry로 직접 연결한 앱의 HTTP 요청과 오류를 비교합니다.">
       <MonitoringConnection capability="api" onConnected={reload} />
     </PageHeader>
+      <DockerEnvironmentHint className="mb-5" />
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <TimeRangePicker value={range} onChange={value => update({ range: value })} />
@@ -29,7 +30,7 @@ export function ApiPage() {
     {loading ? <div aria-label="API 대상 조회 중" className="h-40 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
       : error ? <EmptyState icon="error_outline" title="API 데이터를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
         : rows.length === 0 ? <EmptyState icon="api" title="표시할 API 대상이 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
-          <div className="flex flex-col items-center gap-4"><MonitoringConnection capability="api" onConnected={reload} /><DockerEnvironmentHint /></div>
+          <div className="flex flex-col items-center gap-4"><MonitoringConnection capability="api" onConnected={reload} /></div>
         </EmptyState> : <ApiTargets rows={rows} view={view} range={range} returnTo={returnTo} onRetry={retryTarget} />}
   </div>;
 }

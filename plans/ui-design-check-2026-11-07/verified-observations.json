@@ -1,0 +1,454 @@
+{
+  "formFields": [
+    {
+      "id": "channel-name",
+      "border": "rgb(217, 217, 224)",
+      "fill": "rgb(249, 249, 251)",
+      "parentFill": "rgba(0, 0, 0, 0)",
+      "width": 783,
+      "height": 40
+    },
+    {
+      "id": "channel-bot-token",
+      "border": "rgb(217, 217, 224)",
+      "fill": "rgb(249, 249, 251)",
+      "parentFill": "rgba(0, 0, 0, 0)",
+      "width": 783,
+      "height": 40
+    },
+    {
+      "id": "channel-chat-id",
+      "border": "rgb(217, 217, 224)",
+      "fill": "rgb(249, 249, 251)",
+      "parentFill": "rgba(0, 0, 0, 0)",
+      "width": 783,
+      "height": 40
+    }
+  ],
+  "guideBeforeScroll": {
+    "rect": {
+      "top": 809,
+      "bottom": 829
+    },
+    "hit": "<footer class=\"sticky z-10 flex-none flex items-center justify-end gap-2 border-t border-ui-border bg-bg-surface px-5 py-3 lg:static\" style=\"bottom: calc(4rem +",
+    "reachable": false,
+    "clips": [
+      {
+        "tag": "DIV",
+        "class": "rounded-lg border border-ui-border overflow-hidden",
+        "top": 798,
+        "bottom": 840,
+        "scrollTop": 0,
+        "scrollHeight": 40,
+        "clientHeight": 40
+      },
+      {
+        "tag": "DIV",
+        "class": "bg-bg-surface border border-ui-border rounded-xl overflow-hidden",
+        "top": 492,
+        "bottom": 861,
+        "scrollTop": 0,
+        "scrollHeight": 367,
+        "clientHeight": 367
+      },
+      {
+        "tag": "DIV",
+        "class": "lg:flex-1 lg:overflow-y-auto",
+        "top": 143,
+        "bottom": 771,
+        "scrollTop": 0,
+        "scrollHeight": 790,
+        "clientHeight": 628
+      },
+      {
+        "tag": "DIV",
+        "class": "flex-1 overflow-y-auto scroll-pt-1 scroll-pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:scroll-p-1 motion-safe:scroll-smooth [scrollbar-gutter:stable]",
+        "top": 64,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 836,
+        "clientHeight": 836
+      },
+      {
+        "tag": "MAIN",
+        "class": "flex-1 flex flex-col overflow-hidden relative min-w-0 bg-bg-main",
+        "top": 64,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 836,
+        "clientHeight": 836
+      },
+      {
+        "tag": "DIV",
+        "class": "flex flex-1 overflow-hidden relative",
+        "top": 64,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 836,
+        "clientHeight": 836
+      },
+      {
+        "tag": "DIV",
+        "class": "flex flex-1 flex-col overflow-hidden min-w-0",
+        "top": 0,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 900,
+        "clientHeight": 900
+      },
+      {
+        "tag": "DIV",
+        "class": "flex flex-1 overflow-hidden relative",
+        "top": 0,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 900,
+        "clientHeight": 900
+      },
+      {
+        "tag": "DIV",
+        "class": "flex flex-col h-dvh overflow-hidden bg-bg-main",
+        "top": 0,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 900,
+        "clientHeight": 900
+      }
+    ]
+  },
+  "guideAfterScroll": {
+    "rect": {
+      "top": 647,
+      "bottom": 667
+    },
+    "hit": "<span class=\"text-sm font-medium text-text-secondary flex-1\">API Key는 어떻게 발급받나요?</span>",
+    "reachable": true,
+    "clips": [
+      {
+        "tag": "DIV",
+        "class": "rounded-lg border border-ui-border overflow-hidden",
+        "top": 636,
+        "bottom": 678,
+        "scrollTop": 0,
+        "scrollHeight": 40,
+        "clientHeight": 40
+      },
+      {
+        "tag": "DIV",
+        "class": "bg-bg-surface border border-ui-border rounded-xl overflow-hidden",
+        "top": 330,
+        "bottom": 699,
+        "scrollTop": 0,
+        "scrollHeight": 367,
+        "clientHeight": 367
+      },
+      {
+        "tag": "DIV",
+        "class": "lg:flex-1 lg:overflow-y-auto",
+        "top": 143,
+        "bottom": 771,
+        "scrollTop": 162,
+        "scrollHeight": 790,
+        "clientHeight": 628
+      },
+      {
+        "tag": "DIV",
+        "class": "flex-1 overflow-y-auto scroll-pt-1 scroll-pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:scroll-p-1 motion-safe:scroll-smooth [scrollbar-gutter:stable]",
+        "top": 64,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 836,
+        "clientHeight": 836
+      },
+      {
+        "tag": "MAIN",
+        "class": "flex-1 flex flex-col overflow-hidden relative min-w-0 bg-bg-main",
+        "top": 64,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 836,
+        "clientHeight": 836
+      },
+      {
+        "tag": "DIV",
+        "class": "flex flex-1 overflow-hidden relative",
+        "top": 64,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 836,
+        "clientHeight": 836
+      },
+      {
+        "tag": "DIV",
+        "class": "flex flex-1 flex-col overflow-hidden min-w-0",
+        "top": 0,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 900,
+        "clientHeight": 900
+      },
+      {
+        "tag": "DIV",
+        "class": "flex flex-1 overflow-hidden relative",
+        "top": 0,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 900,
+        "clientHeight": 900
+      },
+      {
+        "tag": "DIV",
+        "class": "flex flex-col h-dvh overflow-hidden bg-bg-main",
+        "top": 0,
+        "bottom": 900,
+        "scrollTop": 0,
+        "scrollHeight": 900,
+        "clientHeight": 900
+      }
+    ]
+  },
+  "smallMetricControls1440": [
+    {
+      "label": "1H",
+      "width": 40.046875,
+      "height": 28,
+      "class": "inline-flex items-center justify-center h-7 px-3 text-xs font-medium rounded-md transition-colors text-text-muted hover:text-text-base",
+      "before": "none",
+      "after": "none",
+      "display": "flex"
+    },
+    {
+      "label": "6H",
+      "width": 40.046875,
+      "height": 28,
+      "class": "inline-flex items-center justify-center h-7 px-3 text-xs font-medium rounded-md transition-colors bg-ui-raised text-text-base shadow-sm",
+      "before": "none",
+      "after": "none",
+      "display": "flex"
+    },
+    {
+      "label": "24H",
+      "width": 47.1875,
+      "height": 28,
+      "class": "inline-flex items-center justify-center h-7 px-3 text-xs font-medium rounded-md transition-colors text-text-muted hover:text-text-base",
+      "before": "none",
+      "after": "none",
+      "display": "flex"
+    },
+    {
+      "label": "messaging.process.duration",
+      "width": 110.21875,
+      "height": 24,
+      "class": "block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline",
+      "before": "none",
+      "after": "none",
+      "display": "block"
+    },
+    {
+      "label": "queue.messages.pending",
+      "width": 110.21875,
+      "height": 24,
+      "class": "block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline",
+      "before": "none",
+      "after": "none",
+      "display": "block"
+    }
+  ],
+  "smallMetricControls390": [
+    {
+      "label": "1H",
+      "width": 40.046875,
+      "height": 28,
+      "class": "inline-flex items-center justify-center h-7 px-3 text-xs font-medium rounded-md transition-colors text-text-muted hover:text-text-base",
+      "before": "none",
+      "after": "none",
+      "display": "flex"
+    },
+    {
+      "label": "6H",
+      "width": 40.046875,
+      "height": 28,
+      "class": "inline-flex items-center justify-center h-7 px-3 text-xs font-medium rounded-md transition-colors bg-ui-raised text-text-base shadow-sm",
+      "before": "none",
+      "after": "none",
+      "display": "flex"
+    },
+    {
+      "label": "24H",
+      "width": 47.1875,
+      "height": 28,
+      "class": "inline-flex items-center justify-center h-7 px-3 text-xs font-medium rounded-md transition-colors text-text-muted hover:text-text-base",
+      "before": "none",
+      "after": "none",
+      "display": "flex"
+    },
+    {
+      "label": "messaging.process.duration",
+      "width": 110.21875,
+      "height": 24,
+      "class": "block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline",
+      "before": "none",
+      "after": "none",
+      "display": "block"
+    },
+    {
+      "label": "queue.messages.pending",
+      "width": 110.21875,
+      "height": 24,
+      "class": "block max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline",
+      "before": "none",
+      "after": "none",
+      "display": "block"
+    }
+  ],
+  "keyboardTrace": {
+    "dialogOpened": false,
+    "rowExpanded": "true",
+    "focused": true
+  },
+  "homeShadowElements": [
+    {
+      "tag": "A",
+      "class": "VPSkipLink visually-hidden",
+      "shadow": "rgba(0, 0, 0, 0.1) 0px 12px 32px 0px, rgba(0, 0, 0, 0.08) 0px 2px 6px 0px",
+      "width": 32,
+      "height": 16,
+      "opacity": "1",
+      "visibility": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "VPMenu",
+      "shadow": "rgba(0, 0, 0, 0.1) 0px 12px 32px 0px, rgba(0, 0, 0, 0.08) 0px 2px 6px 0px",
+      "width": 128,
+      "height": 90,
+      "opacity": "1",
+      "visibility": "hidden"
+    },
+    {
+      "tag": "SPAN",
+      "class": "check",
+      "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px",
+      "width": 18,
+      "height": 18,
+      "opacity": "1",
+      "visibility": "visible"
+    },
+    {
+      "tag": "DIV",
+      "class": "VPMenu",
+      "shadow": "rgba(0, 0, 0, 0.1) 0px 12px 32px 0px, rgba(0, 0, 0, 0.08) 0px 2px 6px 0px",
+      "width": 0,
+      "height": 0,
+      "opacity": "1",
+      "visibility": "hidden"
+    },
+    {
+      "tag": "SPAN",
+      "class": "check",
+      "shadow": "rgba(0, 0, 0, 0.04) 0px 1px 2px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px",
+      "width": 0,
+      "height": 0,
+      "opacity": "1",
+      "visibility": "hidden"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "home-carousel-arrow is-prev",
+      "shadow": "rgba(15, 23, 42, 0.14) 0px 2px 8px 0px",
+      "width": 48,
+      "height": 48,
+      "opacity": "1",
+      "visibility": "visible"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "home-carousel-arrow is-next",
+      "shadow": "rgba(15, 23, 42, 0.14) 0px 2px 8px 0px",
+      "width": 48,
+      "height": 48,
+      "opacity": "1",
+      "visibility": "visible"
+    }
+  ],
+  "homeDetectorGroups": [
+    {
+      "selector": "figcaption",
+      "tagName": "figcaption",
+      "rect": {
+        "x": 400,
+        "y": 2247.140625,
+        "width": 640,
+        "height": 44,
+        "top": 2247.140625,
+        "right": 1040,
+        "bottom": 2291.140625,
+        "left": 400
+      },
+      "isPageLevel": false,
+      "isHidden": false,
+      "findings": [
+        {
+          "type": "line-length",
+          "category": "quality",
+          "severity": "warning",
+          "advisory": false,
+          "detail": "~91 chars/line (aim for <80)",
+          "ignoreValue": "",
+          "name": "Line length too long",
+          "description": "Text lines wider than ~80 characters are hard to read. The eye loses its place tracking back to the start of the next line. Add a max-width (65ch to 75ch) to text containers."
+        }
+      ]
+    },
+    {
+      "selector": "body",
+      "tagName": "body",
+      "rect": null,
+      "isPageLevel": true,
+      "isHidden": false,
+      "findings": [
+        {
+          "type": "dark-glow",
+          "category": "slop",
+          "severity": "warning",
+          "advisory": false,
+          "detail": "Colored box-shadow glow (#45629b) on dark page",
+          "ignoreValue": "",
+          "name": "Glowing shadow accents",
+          "description": "Colored glow shadows — a zero-offset chromatic halo (box- or text-shadow) on any background, or any colored blurred shadow on a dark background — are the default \"cool\" look of AI-generated UIs. Use neutral elevation shadows and subtle, purposeful lighting instead."
+        }
+      ]
+    }
+  ],
+  "homeMobileDetectorGroups": [
+    {
+      "selector": "span.container",
+      "tagName": "span",
+      "rect": {
+        "x": 350,
+        "y": 25,
+        "width": 16,
+        "height": 14,
+        "top": 25,
+        "right": 366,
+        "bottom": 39,
+        "left": 350
+      },
+      "isPageLevel": false,
+      "isHidden": false,
+      "findings": [
+        {
+          "type": "clipped-overflow-container",
+          "category": "quality",
+          "severity": "warning",
+          "advisory": false,
+          "detail": "span.container clips a positioned child",
+          "ignoreValue": "",
+          "name": "Positioned child clipped by overflow container",
+          "description": "A clipping container (overflow hidden or clip) wrapping an absolutely-positioned child cuts off tooltips, menus, and popovers that need to escape. Let the overflow be visible, or move the positioned layer out of the clip."
+        }
+      ]
+    }
+  ],
+  "recordedAt": "2026-11-07T14:00:53.241Z"
+}

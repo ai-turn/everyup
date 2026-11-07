@@ -24,7 +24,7 @@ test('duplicate names require an explicit type and unit and preserve them in the
   state.names.push({ metricName: 'jvm.memory.used', metricType: 'gauge', unit: 'MB', lastAt: state.service.createdAt, conflicting: true });
   await page.goto(`${detail}?metric=jvm.memory.used`);
   await expect(page.getByText('같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.')).toBeVisible();
-  await page.getByRole('button', { name: 'jvm.memory.used · gauge · MB', exact: true }).click();
+  await page.getByRole('button', { name: 'jvm.memory.used gauge MB', exact: true }).click();
   await expect(page).toHaveURL(/metricUnit=MB/);
   await page.reload();
   await expect(page.getByRole('heading', { name: 'jvm.memory.used', exact: true })).toBeVisible();

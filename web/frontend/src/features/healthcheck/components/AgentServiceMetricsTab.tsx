@@ -85,12 +85,16 @@ function ServiceMetricsPanel({ source, refreshKey, range, active = true }: Commo
     {error && <div role="alert" className="flex flex-wrap items-center gap-3"><p className="type-body text-status-warn">메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.</p><Button variant="secondary" size="sm" onClick={() => setRetryKey(key => key + 1)}>목록 다시 시도</Button></div>}
     {query.metric !== null ? <>
       <Button variant="ghost" size="sm" onClick={closeMetric}><MaterialIcon name="arrow_back" />전체 메트릭</Button>
-      {opened ? chart(opened, true) : matches.length > 1 ? <div className="space-y-3"><p className="type-body text-text-muted">같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.</p>{matches.map(meta => <Button key={metricIdentity(meta)} variant="secondary" onClick={() => openMetric(meta)}>{meta.metricName} · {meta.metricType} · {meta.unit || '단위 없음'}</Button>)}</div>
+      {opened ? chart(opened, true) : matches.length > 1 ? <div className="space-y-3"><p className="type-body text-text-muted">같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.</p>{matches.map(meta => <Button key={metricIdentity(meta)} variant="secondary" onClick={() => openMetric(meta)} className="h-auto min-h-11 flex-wrap gap-x-3 py-2"><span className="min-w-0 break-all">{meta.metricName}</span><span>{meta.metricType}</span><span>{meta.unit || '단위 없음'}</span></Button>)}</div>
         : <EmptyState icon="search" title="메트릭을 찾을 수 없습니다" description="선택한 메트릭이 이 서비스의 저장된 목록에 없습니다." action={{ label: '전체 메트릭', onClick: closeMetric }} />}
     </> : <>
       {flagged.length > 0 && <details className="rounded-lg border border-ui-border bg-bg-surface p-4" open>
         <summary className="cursor-pointer type-label text-text-base">확인 필요 · {flagged.length}개 지표</summary>
-        <p className="mt-2 type-caption text-text-muted">전체 지표 기준 · 최근 5분 측정값의 원값 임계값과 수신 상태 · {new Date(health.checkedAt).toLocaleTimeString('ko-KR', { hour12: false })} 확인</p>
+        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 type-caption text-text-muted">
+          <span>전체 지표 기준</span>
+          <span>최근 5분 원값 임계값과 수신 상태로 판단</span>
+          <span>{new Date(health.checkedAt).toLocaleTimeString('ko-KR', { hour12: false })} 확인</span>
+        </div>
         <div className="mt-3 max-h-48 divide-y divide-ui-border-soft overflow-y-auto" aria-label="확인이 필요한 메트릭">
           {flagged.map(meta => <button key={metricIdentity(meta)} type="button" onClick={() => openMetric(meta)} className="flex min-h-11 w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-left hover:text-action">
             <span className="min-w-0 break-all type-body">{metricTitle(meta)}<span className="ml-2 type-caption text-text-muted">{meta.metricType} · {meta.unit || '단위 없음'}</span></span>

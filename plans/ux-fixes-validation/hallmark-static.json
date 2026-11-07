@@ -1,0 +1,403 @@
+﻿{
+  "summary": {
+    "fails": 40,
+    "reflex": 0,
+    "warns": 3,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 148,
+    "render": "off"
+  },
+  "findings": [
+    {
+      "gate": "20",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\index.css",
+      "line": 1,
+      "evidence": "no Hallmark stamp on the first non-empty line of any CSS",
+      "fix": "The stamp comment is line 1 of the CSS; only @charset may precede it"
+    },
+    {
+      "gate": "30a",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 105,
+      "evidence": "text opens with an emoji: \"✅ Service Recovered\"",
+      "fix": "One icon library, a custom SVG, or the word alone"
+    },
+    {
+      "gate": "30a",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 145,
+      "evidence": "text opens with an emoji: \"✅ Service healthy: Notification…\"",
+      "fix": "One icon library, a custom SVG, or the word alone"
+    },
+    {
+      "gate": "30a",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 192,
+      "evidence": "text opens with an emoji: \"✅\"",
+      "fix": "One icon library, a custom SVG, or the word alone"
+    },
+    {
+      "gate": "33",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\components\\icons\\SidebarIcons.tsx",
+      "line": 24,
+      "evidence": "<svg> without aria-hidden or aria-label",
+      "fix": "Add aria-hidden or an aria-label"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 92,
+      "evidence": "colour literal bg-[#17212B] in a class on <div class=\"flex items-center gap-2 px-3 py…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 93,
+      "evidence": "colour literal bg-[#26A5E4] in a class on <div class=\"w-7 h-7 rounded-full bg-[#26A5E…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 98,
+      "evidence": "colour literal text-[#7C91A7] in a class on <p class=\"text-[#7C91A7] text-xs\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 102,
+      "evidence": "colour literal bg-[#0E1621] in a class on <div class=\"bg-[#0E1621] px-3 py-3\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 103,
+      "evidence": "colour literal bg-[#182533] in a class on <div class=\"bg-[#182533] rounded-lg rounded…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 105,
+      "evidence": "colour literal text-[#5FBDE3] in a class on <span class=\"text-[#5FBDE3]\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 108,
+      "evidence": "colour literal text-[#7C91A7] in a class on <span class=\"text-[#7C91A7]\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 111,
+      "evidence": "colour literal text-[#7C91A7] in a class on <span class=\"text-[#7C91A7]\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 115,
+      "evidence": "colour literal text-[#7C91A7] in a class on <span class=\"text-[#7C91A7]\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 118,
+      "evidence": "colour literal text-[#7C91A7] in a class on <p class=\"text-[#7C91A7] text-xs text-rig…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 128,
+      "evidence": "colour literal border-[#1e1f22] in a class on <div class=\"rounded-xl overflow-hidden bord…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 130,
+      "evidence": "colour literal bg-[#313338] in a class on <div class=\"flex items-center gap-2 px-3 py…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 131,
+      "evidence": "colour literal bg-[#5865F2] in a class on <div class=\"w-7 h-7 rounded-full bg-[#5865F…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 136,
+      "evidence": "colour literal bg-[#5865F2] in a class on <span class=\"px-1 py-px bg-[#5865F2] text-wh…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 140,
+      "evidence": "colour literal bg-[#313338] in a class on <div class=\"bg-[#313338] px-3 pb-3 pt-1\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 142,
+      "evidence": "colour literal border-[#3baa7c] in a class on <div class=\"border-l-4 border-[#3baa7c] bg-…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 145,
+      "evidence": "colour literal text-[#3baa7c] in a class on <p class=\"text-[#3baa7c]\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 147,
+      "evidence": "colour literal text-[#dbdee1] in a class on <p class=\"text-[#dbdee1] leading-relaxed\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 153,
+      "evidence": "colour literal text-[#b5bac1] in a class on <p class=\"text-[#b5bac1] text-xs uppercas…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 154,
+      "evidence": "colour literal text-[#dbdee1] in a class on <p class=\"text-[#dbdee1]\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 157,
+      "evidence": "colour literal text-[#b5bac1] in a class on <p class=\"text-[#b5bac1] text-xs uppercas…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 158,
+      "evidence": "colour literal text-[#dbdee1] in a class on <p class=\"text-[#dbdee1]\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 162,
+      "evidence": "colour literal text-[#87898c] in a class on <p class=\"text-[#87898c] text-xs pt-1 bor…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 175,
+      "evidence": "colour literal dark:border-[#424242] in a class on <div class=\"rounded-xl overflow-hidden bord…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 177,
+      "evidence": "colour literal bg-[#4A154B] in a class on <div class=\"flex items-center gap-2 px-3 py…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 179,
+      "evidence": "colour literal text-[#E01E5A] in a class on <IconSlack class=\"text-[#E01E5A]\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 187,
+      "evidence": "colour literal dark:bg-[#1a1d21] in a class on <div class=\"bg-white dark:bg-[#1a1d21] px-3…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 189,
+      "evidence": "colour literal border-[#2eb67d] in a class on <div class=\"border-l-4 border-[#2eb67d] pl-…\">",
+      "fix": "Lift the value into the token block (@theme or :root) and use its utility name"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\index.css",
+      "line": 236,
+      "evidence": "colour literal #2e3135 outside tokens (--color-chart-border on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "48",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\index.css",
+      "line": 239,
+      "evidence": "colour literal #18191b outside tokens (--toast-bg on .dark)",
+      "fix": "Lift the value into the token block"
+    },
+    {
+      "gate": "63",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\components\\common\\Pagination.tsx",
+      "line": 60,
+      "evidence": "arrow glued to the label \"›\"",
+      "fix": "A verb as the label; the link already says it goes somewhere"
+    },
+    {
+      "gate": "67",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 136,
+      "evidence": "\"APP\" uppercase at 12px on <span class=\"px-1 py-px bg-[#5865F2] text-wh…\">",
+      "fix": "Sentence case in the body face, a step smaller, untracked: drop uppercase and the tracking-* class"
+    },
+    {
+      "gate": "67",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 153,
+      "evidence": "\"Service ID\" uppercase at 12px on <p class=\"text-[#b5bac1] text-xs uppercas…\">",
+      "fix": "Sentence case in the body face, a step smaller, untracked: drop uppercase and the tracking-* class"
+    },
+    {
+      "gate": "67",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 157,
+      "evidence": "\"Status\" uppercase at 12px on <p class=\"text-[#b5bac1] text-xs uppercas…\">",
+      "fix": "Sentence case in the body face, a step smaller, untracked: drop uppercase and the tracking-* class"
+    },
+    {
+      "gate": "67",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 183,
+      "evidence": "\"APP\" uppercase at 12px on <span class=\"px-1 py-px bg-white/25 text-whi…\">",
+      "fix": "Sentence case in the body face, a step smaller, untracked: drop uppercase and the tracking-* class"
+    },
+    {
+      "gate": "74",
+      "grade": "WARN",
+      "tier": "reflex",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\AlertRuleForm.tsx",
+      "line": 823,
+      "evidence": "default palette instead of theme tokens: 11 distinct palette classes (text-slate-500 border-slate-200 border-slate-600 …",
+      "fix": "Extend the Tailwind theme with the Hallmark tokens and use those names"
+    },
+    {
+      "gate": "74",
+      "grade": "WARN",
+      "tier": "reflex",
+      "file": "web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+      "line": 352,
+      "evidence": "default palette instead of theme tokens: 11 distinct palette classes (border-slate-700 text-slate-300 text-slate-400 bo…",
+      "fix": "Extend the Tailwind theme with the Hallmark tokens and use those names"
+    },
+    {
+      "gate": "74",
+      "grade": "WARN",
+      "tier": "reflex",
+      "file": "web\\frontend\\src\\features\\traces\\components\\TracePanel.tsx",
+      "line": 493,
+      "evidence": "default palette instead of theme tokens: 9 distinct palette classes (bg-slate-200 text-amber-600 text-amber-400 border-…",
+      "fix": "Extend the Tailwind theme with the Hallmark tokens and use those names"
+    }
+  ]
+}

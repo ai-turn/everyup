@@ -25,6 +25,7 @@ export function activatable(onActivate: () => void, enabled: boolean = true) {
     tabIndex: 0,
     onClick: onActivate,
     onKeyDown: (e: KeyboardEvent) => {
+      if (e.target !== e.currentTarget) return;
       // Space는 기본 동작이 스크롤이라 막아야 한다.
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();

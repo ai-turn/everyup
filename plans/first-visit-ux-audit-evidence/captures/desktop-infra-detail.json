@@ -1,0 +1,419 @@
+{
+  "id": "desktop-infra-detail",
+  "note": "",
+  "image": "captures/desktop-infra-detail.png",
+  "time": "2026-11-07T13:37:49.684Z",
+  "url": "https://ai-turn.github.io/everyup/demo/infrastructure/infra_mock_edge_01",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "theme": "light",
+  "scenario": "attention",
+  "storage": {
+    "local": {},
+    "session": {}
+  },
+  "touch": false,
+  "documentWidth": 1440,
+  "text": "본문 바로가기\nEveryUp\n\nLive Demo\n\n데모 상태\n확인 필요\n정상 운영\n첫 시작\n부분 수집 실패\n확인 필요\n검색\nCtrl K\n개요\n장애\n1\n건\n\n메뉴\n\n업타임\n로그\n인프라\nAPI 요청\n메트릭\n\n모아 보기\n\nDocker 환경\n그룹\n\n관리\n\n알림\n환경 설정\n인프라\nedge-host-01\nedge-host-01\n수집 가능\n마지막 수집 2026. 11. 7. 22시 37분 30초\n연결 중지\nAPI Key\nevup_****4e91\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nProduction\n연결 방식\nOpenTelemetry Collector\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\n\nCPU\n\n67\n%\n\n코어 8개\n\n메모리\n\n73\n%\n\n11.7 GB / 16.0 GB\n\n디스크\n\n41\n%\n\n206.0 GB / 500.0 GB\n\n네트워크\n\n4.60\nMB/s\n\nIn 3.20 MB/s · Out 1.40 MB/s\n\n인프라 추세\n\n최근 6시간\n\nCPU\n%\n현재\n67.0%\n평균\n51.7%\n최대\n68.0%\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n25\n50\n75\n100\n알림 > 80%\n메모리\n%\n현재\n73.0%\n평균\n70.9%\n최대\n74.0%\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n25\n50\n75\n100\n디스크\n%\n현재\n41.0%\n평균\n40.6%\n최대\n41.0%\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n25\n50\n75\n100\n네트워크\nMB/s\nIn\nOut\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n2\n4\n6\n© 2026 EveryUp\nGitHub\n피드백 보내기\n21:00",
+  "active": {
+    "tag": "BODY",
+    "text": "본문 바로가기Live Demo모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.|All data is for demonstration purposes only and is not connected to a real server.데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요GitHubEveryUpLive Demo데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요검색Ctrl K개요장애 1건메뉴업타임로그인프라API 요청메트릭모아 보기Docker 환경그룹관리알림환경 설정EveryUp인프라edge-host-01edge-host-01수집 가능마지막 수집 2026. 11. 7. 22시 37분 30초연결 중지API Keyevup_****4e91키 재발급그룹미분류ProductionStagingBackofficeProduction연결 방식OpenTelemetry Collector1H6H24H새로고침알림 규칙삭제CPU67%코어 8개메모리73%11.7 GB / 16.0 GB디스크41%206.0 GB / 500.0 GB네트워크4.60MB/sIn 3.20 MB/s · Out 1.40 MB/s인프라 추세최근 6시간CPU%현재67.0%평균51.7%최대68.0%17:0018:0019:0020:0021:0022:000255075100알림 > 80%메모리%현재73.0%평균70.9%최대74.0%17:0018:0019:0020:0021:0022:000255075100디스크%현재41.0%평균40.6%최대41.0%17:0018:0019:0020:0021:0022:000255075100네트워크MB/sInOut17:0018:0019:0020:0021:0022:000246© 2026 EveryUpGitHub피드백 보내기개요그룹알림더보기\n\n\n21:00",
+    "label": null,
+    "outline": "rgb(28, 32, 36) none 3px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문 바로가기",
+      "href": "#main-content",
+      "target": null,
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 239,
+        "height": 64
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "확인 필요정상 운영첫 시작부분 수집 실패",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 78.859375,
+        "y": 96,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "데모 시나리오",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 79.859375,
+        "y": 97,
+        "width": 134.140625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색Ctrl K",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 154,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "개요장애 1건",
+      "href": "/everyup/demo/#attention",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 198,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임",
+      "href": "/everyup/demo/uptime",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 274,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "로그",
+      "href": "/everyup/demo/logs",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 312,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "인프라",
+      "href": "/everyup/demo/infrastructure",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 350,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "API 요청",
+      "href": "/everyup/demo/api",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 388,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "메트릭",
+      "href": "/everyup/demo/metrics",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 426,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker 환경",
+      "href": "/everyup/demo/environments",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 502,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 540,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/demo/alerts",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 616,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "환경 설정",
+      "href": "/everyup/demo/settings",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 654,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "테마 전환",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 856,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "인프라",
+      "href": "/everyup/demo/infrastructure",
+      "target": null,
+      "rect": {
+        "x": 264,
+        "y": 21.5,
+        "width": 38.640625,
+        "height": 20
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "연결 중지",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 557.265625,
+        "y": 128,
+        "width": 112.65625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "키 재발급",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 575.34375,
+        "y": 185,
+        "width": 112.65625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "미분류ProductionStagingBackoffice",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 847,
+        "y": 184,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "그룹 배정",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 848,
+        "y": 185,
+        "width": 192,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "1H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 266,
+        "y": 329,
+        "width": 40.046875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "6H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 308.046875,
+        "y": 329,
+        "width": 40.046875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "24H",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 350.09375,
+        "y": 329,
+        "width": 47.1875,
+        "height": 28
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "새로고침",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 407.28125,
+        "y": 323,
+        "width": 111.53125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림 규칙",
+      "href": "/everyup/demo/alerts?tab=rules&target=infrastructure&resourceId=infra_mock_edge_01",
+      "target": null,
+      "rect": {
+        "x": 1192.578125,
+        "y": 323,
+        "width": 114.65625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "삭제",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1315.234375,
+        "y": 323,
+        "width": 85.765625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/Monitoring",
+      "target": "_blank",
+      "rect": {
+        "x": 1256.9375,
+        "y": 1310,
+        "width": 59.125,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "피드백 보내기",
+      "href": "https://github.com/ai-turn/Monitoring/issues",
+      "target": "_blank",
+      "rect": {
+        "x": 1332.0625,
+        "y": 1310,
+        "width": 68.9375,
+        "height": 16
+      }
+    }
+  ],
+  "horizontalOverflow": [],
+  "assets": [
+    "https://ai-turn.github.io/everyup/demo/theme-init.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-DO9SNNYE.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-BxaN-usw.css"
+  ]
+}

@@ -20,7 +20,7 @@ interface SegmentedOption<T extends string> {
 
 const SIZES = {
   sm: 'h-7 px-3 text-xs',
-  md: 'h-10 px-3 text-sm sm:h-9', // 트랙 포함 44 / sm 이상 40
+  md: 'h-11 px-3 text-sm sm:h-9', // 실제 터치 영역 44 / sm 이상 트랙 포함 40
 } as const;
 
 const ICON_SIZES = {

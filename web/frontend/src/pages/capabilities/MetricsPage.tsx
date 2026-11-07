@@ -34,9 +34,10 @@ export function MetricsPage() {
   }, { replace: true });
 
   return <div>
-    <PageHeader title="메트릭" subtitle="서비스의 성능 수치와 시간에 따른 변화를 확인합니다.">
+    <PageHeader title="메트릭" subtitle="OpenTelemetry로 직접 연결한 앱의 성능 수치와 시간에 따른 변화를 확인합니다.">
       <MonitoringConnection capability="metrics" onConnected={reload} />
     </PageHeader>
+    <DockerEnvironmentHint className="mb-5" />
     <ListToolbar search={<SearchInput value={query} onChange={event => setQuery(event.target.value)} placeholder="서비스 또는 메트릭 이름으로 찾기" aria-label="서비스 또는 메트릭 이름으로 찾기" />}>
       <Button collapseLabel variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
       <Select aria-label="서비스 정렬" wrapperClassName="w-40" value={sort} onChange={event => setParams(current => { const next = new URLSearchParams(current); next.set('sort', event.target.value); return next; }, { replace: true })}>
@@ -48,7 +49,7 @@ export function MetricsPage() {
       {METRIC_SKELETONS.map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}
     </div> : error ? <EmptyState icon="error_outline" title="메트릭을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       : rows.length === 0 ? <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
-        <div className="flex flex-col items-center gap-4"><MonitoringConnection capability="metrics" onConnected={reload} /><DockerEnvironmentHint /></div>
+        <MonitoringConnection capability="metrics" onConnected={reload} />
       </EmptyState> : <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="type-section-title text-text-base">메트릭 서비스</h2>

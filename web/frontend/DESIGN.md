@@ -9,6 +9,7 @@ colors:
   bg-main: "#f9f9fb"
   bg-surface: "#ffffff"
   ui-border: "#d9d9e0"
+  ui-control-border: "#80838d"
   ui-border-soft: "#e8e8ec"
   ui-hover: "#f0f0f3"
   ui-hover-soft: "#f9f9fb"
@@ -30,6 +31,7 @@ colors:
   bg-main-dark: "#111113"
   bg-surface-dark: "#18191b"
   ui-border-dark: "#363a3f"
+  ui-control-border-dark: "#6b6f78"
   ui-border-soft-dark: "#363a3f"
   ui-hover-dark: "#212225"
   ui-hover-soft-dark: "#212225"
@@ -163,6 +165,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | 페이지 배경 | `bg-bg-main` | `#f9f9fb` (2) | `#111113` (1) |
 | 카드 표면 | `bg-bg-surface` | `#ffffff` | `#18191b` (2) |
 | 헤어라인 | `border-ui-border` | `#d9d9e0` (6) | `#363a3f` (6) |
+| 입력 컨트롤 경계 | `border-ui-control-border` | `#80838d` (10) | `#6b6f78` |
 | 내부 구분선 | `border-ui-border-soft` | `#e8e8ec` (4) | `#363a3f` |
 | hover 채움 | `bg-ui-hover` | `#f0f0f3` (3) | `#212225` (3) |
 | 옅은 내부 채움 | `bg-ui-hover-soft` | `#f9f9fb` (2) | `#212225` |
@@ -173,6 +176,8 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 `ui-active`와 `ui-raised`는 **다크값이 같지만 역할이 반대다.** `ui-active`(라이트 `#e8e8ec`)는 스켈레톤·칩·hover처럼 트랙보다 **눌려** 보여야 하는 자리, `ui-raised`(라이트 흰색)는 세그먼티드 컨트롤의 선택된 칸처럼 `ui-hover` 트랙 **위로 솟아** 보여야 하는 자리다. 라이트에서 흰색이어야 하므로 `bg-bg-surface`로 대체할 수 없다 — 다크값(`#18191b`)이 트랙(`#212225`)보다 어두워 방향이 뒤집힌다.
 
 다크에서 `soft` 계열은 상위 토큰과 동일하다 — **다크 모드의 명도 계층은 2단(main/surface)뿐**이고, 이는 의도된 설계다.
+
+입력·검색·선택 컨트롤은 장식용 구분선보다 뚜렷한 `ui-control-border`를 쓴다. 기본 표면에서 경계 대비 3:1 이상을 유지하고, 카드·표의 구분선은 기존 `ui-border`를 쓴다.
 
 **라이트의 `#ffffff` 표면은 유지한다**(2026-10-27, [ADR 0009](../../docs/adr/0009-hallmark-label-and-punctuation-rules.md)). Hallmark 7b(순백 표면)는 modern-minimal 장르에 `#fff`를 허용하고, §1.3의 대비 수치가 전부 이 값 기준이다. sloplint를 `--genre modern-minimal` 없이 돌리면 REFLEX로 다시 나온다.
 
@@ -453,7 +458,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 
 | 경계 | 바뀌는 것 |
 |------|-----------|
-| `sm` 640 | 터치 높이 44 → 40px(`Button md`·입력·`IconButton md`·`SegmentedControl md`, §4.1) · 툴바 버튼 라벨 표시(`collapseLabel`) · 목록 검색창 전체 폭 → 320px · `DetailMeta` 속성 2열 · 본문 래퍼 패딩 `p-4` → `px-6 py-5` |
+| `sm` 640 | 터치 높이 44 → 40px(`Button md`·입력·`IconButton md`, §4.1) · `SegmentedControl md` 버튼 44 → 36px · 툴바 버튼 라벨 표시(`collapseLabel`) · 목록 검색창 전체 폭 → 320px · `DetailMeta` 속성 2열 · 본문 래퍼 패딩 `p-4` → `px-6 py-5` |
 | `md` 768 | **뷰 분기** — `useIsMobile()`(767px 이하)이 알림·설정을 모바일 전용 뷰(`*MobileView`)로 가른다 · `PageHeader` 액션이 설명과 같은 행 · 대상 카드 목록 2열 |
 | `lg` 1024 | **셸 전환** — `Sidebar` + `AppHeader` ↔ `Header` + `BottomNavMobile`(§3.4) · 차트 패널 2열 · 모바일 `← 목록으로` 숨김 |
 | `xl` 1280 | 대상 카드 목록 3열 · KPI 게이지 4열 |
@@ -486,7 +491,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`ConfirmDialog`** | `isOpen` `title` `message` `variant` `icon` … | `window.confirm()` 금지 — 항상 이것 |
 | **`EmptyState`** | `icon` `title` `description?` `action?` `children?` | 빈 목록의 정본. 라벨+핸들러면 `action`, 자체 상태를 가진 트리거(연결 다이얼로그 등)는 children |
 | **`PageHeader`** | `title` `subtitle?` `meta?` `aside?` `children` | h1 등급 고정. `meta`는 대상 메타데이터 — 상세는 `DetailMeta`. `aside`는 서비스 상세의 우측 조회 제어·바로가기 |
-| **`DetailMeta`** | `status` `fields?` | 상세 헤더 `meta`의 정본. 상태 줄 + 속성 목록(라벨 좌 / 값 우, `sm` 이상 2열) |
+| **`DetailMeta`** | `status` `fields?` `collapseOnMobile?` | 상세 헤더 `meta`의 정본. 상태 줄 + 속성 목록(라벨 좌 / 값 우, `sm` 이상 2열). 속성이 많은 Docker 서비스 상세는 모바일에서 `서비스 정보`를 펼쳐 확인하며 상태는 항상 노출 |
 | **`ListToolbar`** | `search` `children?` | 목록 검색은 왼쪽, 필터는 그다음 |
 | **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
 | **`SummaryCard`** | `label` `value` `detail` `tone?` | KPI 카드. 라벨 좌 / 숫자 우 1행 + 설명 1행 |
@@ -520,9 +525,9 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 
 **`md`는 `sm`(640px) 미만에서 44px다.** Apple 44pt·Material 48dp의 터치 영역 권장을 따른다. 입력(`FIELD_HEIGHT`)·`SearchInput`·`IconButton md`·`SegmentedControl md`가 같은 규칙이라 모바일에서도 나란히 놓인 밑변이 맞는다. `lg`(44px 고정)는 로그인 1곳에서만 쓰이다가 이 규칙에 흡수돼 제거했다.
 
-`SegmentedControl`은 트랙을 포함해 `sm` 32px, `md` 40px(터치 44)다. 기본 검색·폼 입력·버튼은 모두 같은 높이로 맞춘다.
+`SegmentedControl`은 트랙을 포함해 `sm` 32px, `md` 40px(모바일 48)다. `md`의 선택 버튼 자체가 모바일에서 44px, `sm` 이상에서 36px다. `TimeRangePicker`도 `md`를 써 모바일 터치 영역을 확보한다.
 
-아이콘 전용 `md`는 모바일에서 **버튼 자체를 44×44px**로 둔다(트랙 포함 48px). `sm` 이상은 36×36px(트랙 포함 40px)다. 아이콘은 20px이고, `label`을 `aria-label`과 공통 툴팁으로 제공한다. `aria-pressed` 선택 표현과 전역 포커스 링은 텍스트형과 같다.
+아이콘 전용 `md`도 모바일에서 **버튼 자체를 44×44px**로 둔다(트랙 포함 48px). `sm` 이상은 36×36px(트랙 포함 40px)다. 아이콘은 20px이고, `label`을 `aria-label`과 공통 툴팁으로 제공한다. `aria-pressed` 선택 표현과 전역 포커스 링은 텍스트형과 같다.
 
 **상태**
 - **진행 중** — `loading` prop. 라벨은 그대로 두고 스피너가 앞에 붙는다(호출부의 아이콘은 숨김), `aria-busy`, 클릭 불가. `저장 중…`처럼 라벨을 바꾸지 않는다 — 버튼 폭이 흔들리고 화면마다 문구가 갈렸다.
@@ -857,7 +862,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 - `invalid` — 검증 실패. 붉은 보더 + `aria-invalid`. 메시지는 필드 아래 `type-body text-status-error` — 경고문이므로 14px(§2.2)이고, `red-500`은 흰 배경 3.8:1로 AA 미달이다
 - `warn` — 제출은 막지 않는 주의(예: 원격에서 안 통할 주소). 앰버 보더
 
-보더 색은 컴포넌트 내부에서 결정한다. `className`으로 넘기면 base의 `border-ui-border`와 **특이도가 같아** 생성된 CSS 순서로 승패가 갈린다 — 호출부가 이길 거라 가정하면 안 된다.
+보더 색은 컴포넌트 내부에서 결정한다. `className`으로 넘기면 base의 `border-ui-control-border`와 **특이도가 같아** 생성된 CSS 순서로 승패가 갈린다 — 호출부가 이길 거라 가정하면 안 된다.
 
 **포커스 링** — `index.css`의 전역 `:focus-visible { outline: 2px solid var(--color-primary) }`가 처리한다. `focus:outline-none` + 개별 `focus:ring-*`으로 덮어쓰지 않는다.
 

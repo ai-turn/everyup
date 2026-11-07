@@ -1,0 +1,220 @@
+{
+  "phase": "interaction",
+  "browserVersion": "151.0.7922.34",
+  "completedAt": "2026-11-07T13:28:41.489Z",
+  "records": [
+    {
+      "id": "keyboard-home-demo",
+      "note": "",
+      "image": "captures/keyboard-home-demo.png",
+      "url": "https://ai-turn.github.io/everyup/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:28:32.249Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "keyboard-incident-focus",
+      "note": "",
+      "image": "captures/keyboard-incident-focus.png",
+      "url": "https://ai-turn.github.io/everyup/demo/#main-content",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:28:33.643Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "keyboard-trace-trigger",
+      "note": "",
+      "image": "captures/keyboard-trace-trigger.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:28:34.373Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "keyboard-trace-after-enter",
+      "note": "",
+      "image": "captures/keyboard-trace-after-enter.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:28:34.848Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "keyboard-trace-open",
+      "note": "Pointer fallback after Enter and Space failed.",
+      "image": "captures/keyboard-trace-open.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:28:35.259Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "keyboard-trace-closed",
+      "note": "",
+      "image": "captures/keyboard-trace-closed.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:28:35.986Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "demo-docker-install-command",
+      "note": "Simulated form only; no shell command executed.",
+      "image": "captures/demo-docker-install-command.png",
+      "url": "https://ai-turn.github.io/everyup/demo/environments",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "empty",
+      "time": "2026-11-07T13:28:39.540Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "mobile-light-demo-contrast",
+      "note": "",
+      "image": "captures/mobile-light-demo-contrast.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:28:40.536Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-dark-demo-contrast",
+      "note": "",
+      "image": "captures/mobile-dark-demo-contrast.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "dark",
+      "scenario": "attention",
+      "time": "2026-11-07T13:28:41.462Z",
+      "documentWidth": 390
+    }
+  ],
+  "checks": [
+    {
+      "id": "keyboard-skip",
+      "focused": true,
+      "demoEntryTabs": 11
+    },
+    {
+      "id": "keyboard-incident",
+      "tabsFromMain": 2
+    },
+    {
+      "id": "keyboard-trace-enter",
+      "opened": false
+    },
+    {
+      "id": "keyboard-trace-space",
+      "opened": false
+    },
+    {
+      "id": "keyboard-trace-close",
+      "closed": false,
+      "focusRestored": false
+    },
+    {
+      "id": "keyboard-trace-second-escape",
+      "closed": true
+    },
+    {
+      "id": "demo-add-network",
+      "nonGetRequests": []
+    },
+    {
+      "id": "mobile-demo-contrast-light",
+      "badge": {
+        "color": "rgb(58, 91, 199)",
+        "backgroundColor": "oklab(0.543733 -0.00995949 -0.190742 / 0.2)",
+        "fontSize": "14px",
+        "fontWeight": "400"
+      },
+      "banner": {
+        "color": "rgb(28, 32, 36)",
+        "backgroundColor": "oklch(0.208 0.042 265.755)",
+        "fontSize": "16px",
+        "fontWeight": "400"
+      },
+      "foregroundRgb": [
+        58,
+        91,
+        199,
+        255
+      ],
+      "effectiveBackgroundRgb": [
+        24,
+        38.400000000000006,
+        78.4
+      ],
+      "ratio": 2.4441999182719387
+    },
+    {
+      "id": "mobile-demo-contrast-dark",
+      "badge": {
+        "color": "rgb(158, 177, 255)",
+        "backgroundColor": "oklab(0.543733 -0.00995949 -0.190742 / 0.2)",
+        "fontSize": "14px",
+        "fontWeight": "400"
+      },
+      "banner": {
+        "color": "rgb(237, 238, 240)",
+        "backgroundColor": "oklch(0.129 0.042 264.695)",
+        "fontSize": "16px",
+        "fontWeight": "400"
+      },
+      "foregroundRgb": [
+        158,
+        177,
+        255,
+        255
+      ],
+      "effectiveBackgroundRgb": [
+        13.6,
+        24.8,
+        63.2
+      ],
+      "ratio": 8.297963193298829
+    }
+  ],
+  "errors": []
+}

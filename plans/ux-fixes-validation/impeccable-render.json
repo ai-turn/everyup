@@ -1,0 +1,1562 @@
+[
+  {
+    "id": "overview-desktop-light",
+    "url": "http://127.0.0.1:5187/everyup/demo/",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "theme": "light",
+    "findings": [
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "pulsing-dot",
+        "name": "Pulsing status dot",
+        "description": "Small pulsing status dots simulate liveness decoratively. Reserve pulse animation for indicators tied to genuinely live, changing data; a static indicator with clear labeling is honest and calmer.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/",
+        "line": 0,
+        "snippet": "animate-pulse on tiny rounded-full element"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:04.484Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "documentWidth": 1440,
+      "headings": [
+        "모니터링 개요",
+        "현재 확인 필요",
+        "모니터링 범위",
+        "최근 장애 이력"
+      ]
+    }
+  },
+  {
+    "id": "overview-desktop-dark",
+    "url": "http://127.0.0.1:5187/everyup/demo/",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "theme": "dark",
+    "findings": [
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "pulsing-dot",
+        "name": "Pulsing status dot",
+        "description": "Small pulsing status dots simulate liveness decoratively. Reserve pulse animation for indicators tied to genuinely live, changing data; a static indicator with clear labeling is honest and calmer.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/",
+        "line": 0,
+        "snippet": "animate-pulse on tiny rounded-full element"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:07.813Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "documentWidth": 1440,
+      "headings": [
+        "모니터링 개요",
+        "현재 확인 필요",
+        "모니터링 범위",
+        "최근 장애 이력"
+      ]
+    }
+  },
+  {
+    "id": "overview-mobile-light",
+    "url": "http://127.0.0.1:5187/everyup/demo/",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "findings": [
+      {
+        "antipattern": "pulsing-dot",
+        "name": "Pulsing status dot",
+        "description": "Small pulsing status dots simulate liveness decoratively. Reserve pulse animation for indicators tied to genuinely live, changing data; a static indicator with clear labeling is honest and calmer.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/",
+        "line": 0,
+        "snippet": "animate-pulse on tiny rounded-full element"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:11.779Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "headings": [
+        "모니터링 개요",
+        "현재 확인 필요",
+        "모니터링 범위",
+        "최근 장애 이력"
+      ]
+    }
+  },
+  {
+    "id": "overview-mobile-dark",
+    "url": "http://127.0.0.1:5187/everyup/demo/",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "dark",
+    "findings": [
+      {
+        "antipattern": "pulsing-dot",
+        "name": "Pulsing status dot",
+        "description": "Small pulsing status dots simulate liveness decoratively. Reserve pulse animation for indicators tied to genuinely live, changing data; a static indicator with clear labeling is honest and calmer.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/",
+        "line": 0,
+        "snippet": "animate-pulse on tiny rounded-full element"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:15.899Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "headings": [
+        "모니터링 개요",
+        "현재 확인 필요",
+        "모니터링 범위",
+        "최근 장애 이력"
+      ]
+    }
+  },
+  {
+    "id": "channel-form-desktop-light",
+    "url": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "theme": "light",
+    "findings": [
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background oklab(0.684913 -0.0760272 -0.116162 / 0.1) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "oklab(0.684913 -0.0760272 -0.116162 / 0.1)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-top rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-right rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-bottom rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-left rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline rgb(38, 165, 228) on svg is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-top oklch(0.372 0.044 257.287) on div \"EveryUp Botbot✅ Service RecoveredService\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.372 0.044 257.287)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-right oklch(0.372 0.044 257.287) on div \"EveryUp Botbot✅ Service RecoveredService\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.372 0.044 257.287)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-bottom oklch(0.372 0.044 257.287) on div \"EveryUp Botbot✅ Service RecoveredService\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.372 0.044 257.287)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-left oklch(0.372 0.044 257.287) on div \"EveryUp Botbot✅ Service RecoveredService\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.372 0.044 257.287)"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background rgb(23, 33, 43) on div \"EveryUp Botbot\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(23, 33, 43)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background rgb(38, 165, 228) on div is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "text color rgb(124, 145, 167) on p \"bot\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(124, 145, 167)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline rgb(124, 145, 167) on p \"bot\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(124, 145, 167)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background rgb(14, 22, 33) on div \"✅ Service RecoveredService: Notification\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(14, 22, 33)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background rgb(24, 37, 51) on div \"✅ Service RecoveredService: Notification\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(24, 37, 51)"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "text color rgb(95, 189, 227) on span \"✅ Service Recovered\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(95, 189, 227)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline rgb(95, 189, 227) on span \"✅ Service Recovered\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(95, 189, 227)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "text color oklch(0.869 0.022 252.894) on p \"Service: Notification Test\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.869 0.022 252.894)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline oklch(0.869 0.022 252.894) on p \"Service: Notification Test\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.869 0.022 252.894)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "text color oklch(0.704 0.04 256.788) on span \"This is a test notification. Your EVERYU\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.704 0.04 256.788)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline oklch(0.704 0.04 256.788) on span \"This is a test notification. Your EVERYU\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.704 0.04 256.788)"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "span.text-sm.font-medium.text-text-secondary.flex-1 \"API Key는 어떻게 발급받나요?\" is 100% covered by an opaque element (footer.sticky.z-10.flex-none.flex.items-center.justify-end.gap-2.border-t.border-ui-border.bg-bg-surface.px-5.py-3.lg:static)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "p.text-sm.text-text-muted.leading-relaxed \"현재 입력값으로 테스트 메시지를 보냅니다. \" is 32% covered by an opaque element (footer.sticky.z-10.flex-none.flex.items-center.justify-end.gap-2.border-t.border-ui-border.bg-bg-surface.px-5.py-3.lg:static)"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:34.686Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "documentWidth": 1440,
+      "headings": [
+        "채널 추가"
+      ]
+    }
+  },
+  {
+    "id": "channel-form-desktop-dark",
+    "url": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "theme": "dark",
+    "findings": [
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background oklab(0.684913 -0.0760272 -0.116162 / 0.1) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "oklab(0.684913 -0.0760272 -0.116162 / 0.1)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-top rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-right rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-bottom rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-left rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline rgb(38, 165, 228) on svg is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-top oklch(0.372 0.044 257.287) on div \"EveryUp Botbot✅ Service RecoveredService\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.372 0.044 257.287)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-right oklch(0.372 0.044 257.287) on div \"EveryUp Botbot✅ Service RecoveredService\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.372 0.044 257.287)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-bottom oklch(0.372 0.044 257.287) on div \"EveryUp Botbot✅ Service RecoveredService\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.372 0.044 257.287)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-left oklch(0.372 0.044 257.287) on div \"EveryUp Botbot✅ Service RecoveredService\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.372 0.044 257.287)"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background rgb(23, 33, 43) on div \"EveryUp Botbot\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(23, 33, 43)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background rgb(38, 165, 228) on div is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "text color rgb(124, 145, 167) on p \"bot\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(124, 145, 167)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline rgb(124, 145, 167) on p \"bot\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(124, 145, 167)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background rgb(14, 22, 33) on div \"✅ Service RecoveredService: Notification\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(14, 22, 33)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background rgb(24, 37, 51) on div \"✅ Service RecoveredService: Notification\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(24, 37, 51)"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "text color rgb(95, 189, 227) on span \"✅ Service Recovered\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(95, 189, 227)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline rgb(95, 189, 227) on span \"✅ Service Recovered\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(95, 189, 227)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "text color oklch(0.869 0.022 252.894) on p \"Service: Notification Test\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.869 0.022 252.894)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline oklch(0.869 0.022 252.894) on p \"Service: Notification Test\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.869 0.022 252.894)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "text color oklch(0.704 0.04 256.788) on span \"This is a test notification. Your EVERYU\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.704 0.04 256.788)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline oklch(0.704 0.04 256.788) on span \"This is a test notification. Your EVERYU\" is outside DESIGN.md colors",
+        "ignoreValue": "oklch(0.704 0.04 256.788)"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "span.text-sm.font-medium.text-text-secondary.flex-1 \"API Key는 어떻게 발급받나요?\" is 100% covered by an opaque element (footer.sticky.z-10.flex-none.flex.items-center.justify-end.gap-2.border-t.border-ui-border.bg-bg-surface.px-5.py-3.lg:static)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "p.text-sm.text-text-muted.leading-relaxed \"현재 입력값으로 테스트 메시지를 보냅니다. \" is 32% covered by an opaque element (footer.sticky.z-10.flex-none.flex.items-center.justify-end.gap-2.border-t.border-ui-border.bg-bg-surface.px-5.py-3.lg:static)"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:37.995Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "documentWidth": 1440,
+      "headings": [
+        "채널 추가"
+      ]
+    }
+  },
+  {
+    "id": "channel-form-mobile-light",
+    "url": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "findings": [
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background oklab(0.684913 -0.0760272 -0.116162 / 0.1) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "oklab(0.684913 -0.0760272 -0.116162 / 0.1)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-top rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-right rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-bottom rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-left rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline rgb(38, 165, 228) on svg is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:41.843Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "headings": [
+        "채널 추가"
+      ]
+    }
+  },
+  {
+    "id": "channel-form-mobile-dark",
+    "url": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "dark",
+    "findings": [
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "background oklab(0.684913 -0.0760272 -0.116162 / 0.1) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "oklab(0.684913 -0.0760272 -0.116162 / 0.1)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-top rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-right rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-bottom rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "border-left rgb(38, 165, 228) on label \"TelegramBot API\" is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "design-system-color",
+        "name": "Color outside DESIGN.md",
+        "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+        "severity": "advisory",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "outline rgb(38, 165, 228) on svg is outside DESIGN.md colors",
+        "ignoreValue": "rgb(38, 165, 228)"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "ai-color-palette",
+        "name": "AI color palette",
+        "description": "Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. Choose a distinctive, intentional palette.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Cyan neon text on dark background"
+      },
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+        "line": 0,
+        "snippet": "Card inside card"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:45.814Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "headings": [
+        "채널 추가"
+      ]
+    }
+  },
+  {
+    "id": "home-desktop-light",
+    "url": "http://127.0.0.1:5188/everyup/",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "theme": "light",
+    "findings": [
+      {
+        "antipattern": "line-length",
+        "name": "Line length too long",
+        "description": "Text lines wider than ~80 characters are hard to read. The eye loses its place tracking back to the start of the next line. Add a max-width (65ch to 75ch) to text containers.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5188/everyup/",
+        "line": 0,
+        "snippet": "~91 chars/line (aim for <80)"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:49.021Z",
+      "url": "http://127.0.0.1:5188/everyup/",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "documentWidth": 1440,
+      "headings": [
+        "EveryUp · 셀프호스팅 모니터링서비스 상태와 오류를 한곳에서",
+        "멈춘 서비스, 꽉 찬 디스크",
+        "느려진 API",
+        "실패한 요청의 원인",
+        "장애 알림"
+      ]
+    }
+  },
+  {
+    "id": "home-desktop-dark",
+    "url": "http://127.0.0.1:5188/everyup/",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "theme": "dark",
+    "findings": [
+      {
+        "antipattern": "line-length",
+        "name": "Line length too long",
+        "description": "Text lines wider than ~80 characters are hard to read. The eye loses its place tracking back to the start of the next line. Add a max-width (65ch to 75ch) to text containers.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5188/everyup/",
+        "line": 0,
+        "snippet": "~91 chars/line (aim for <80)"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:52.004Z",
+      "url": "http://127.0.0.1:5188/everyup/",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "documentWidth": 1440,
+      "headings": [
+        "EveryUp · 셀프호스팅 모니터링서비스 상태와 오류를 한곳에서",
+        "멈춘 서비스, 꽉 찬 디스크",
+        "느려진 API",
+        "실패한 요청의 원인",
+        "장애 알림"
+      ]
+    }
+  },
+  {
+    "id": "home-mobile-light",
+    "url": "http://127.0.0.1:5188/everyup/",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "findings": [
+      {
+        "antipattern": "clipped-overflow-container",
+        "name": "Positioned child clipped by overflow container",
+        "description": "A clipping container (overflow hidden or clip) wrapping an absolutely-positioned child cuts off tooltips, menus, and popovers that need to escape. Let the overflow be visible, or move the positioned layer out of the clip.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5188/everyup/",
+        "line": 0,
+        "snippet": "span.container clips a positioned child"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:54.790Z",
+      "url": "http://127.0.0.1:5188/everyup/",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "headings": [
+        "EveryUp · 셀프호스팅 모니터링서비스 상태와 오류를 한곳에서",
+        "멈춘 서비스, 꽉 찬 디스크",
+        "느려진 API",
+        "실패한 요청의 원인",
+        "장애 알림"
+      ]
+    }
+  },
+  {
+    "id": "home-mobile-dark",
+    "url": "http://127.0.0.1:5188/everyup/",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "dark",
+    "findings": [
+      {
+        "antipattern": "clipped-overflow-container",
+        "name": "Positioned child clipped by overflow container",
+        "description": "A clipping container (overflow hidden or clip) wrapping an absolutely-positioned child cuts off tooltips, menus, and popovers that need to escape. Let the overflow be visible, or move the positioned layer out of the clip.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5188/everyup/",
+        "line": 0,
+        "snippet": "span.container clips a positioned child"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T14:57:57.652Z",
+      "url": "http://127.0.0.1:5188/everyup/",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "headings": [
+        "EveryUp · 셀프호스팅 모니터링서비스 상태와 오류를 한곳에서",
+        "멈춘 서비스, 꽉 찬 디스크",
+        "느려진 API",
+        "실패한 요청의 원인",
+        "장애 알림"
+      ]
+    }
+  },
+  {
+    "id": "metrics-desktop-light",
+    "url": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "theme": "light",
+    "findings": [
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "Card inside card"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T15:02:50.135Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "documentWidth": 1440,
+      "headings": [
+        "payment-worker",
+        "작업과 메시지2",
+        "메시지 처리 시간",
+        "대기 중인 메시지"
+      ]
+    }
+  },
+  {
+    "id": "metrics-desktop-dark",
+    "url": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "theme": "dark",
+    "findings": [
+      {
+        "antipattern": "nested-cards",
+        "name": "Nested cards",
+        "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+        "severity": "warning",
+        "category": "slop",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "Card inside card"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T15:02:53.540Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "documentWidth": 1440,
+      "headings": [
+        "payment-worker",
+        "작업과 메시지2",
+        "메시지 처리 시간",
+        "대기 중인 메시지"
+      ]
+    }
+  },
+  {
+    "id": "metrics-mobile-light",
+    "url": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "findings": [
+      {
+        "antipattern": "clipped-overflow-container",
+        "name": "Positioned child clipped by overflow container",
+        "description": "A clipping container (overflow hidden or clip) wrapping an absolutely-positioned child cuts off tooltips, menus, and popovers that need to escape. Let the overflow be visible, or move the positioned layer out of the clip.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "div.flex.flex-col.h-dvh.overflow-hidden.bg-bg-main clips a positioned child"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "dt.w-24.shrink-0.type-body.text-text-dim \"Protocol\" is 100% covered by an opaque element (div.inline-flex.max-w-full.flex-wrap.items-center.gap-0.5.rounded-lg.p-px.bg-ui-hover.border.border-ui-border)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "dt.w-24.shrink-0.type-body.text-text-dim \"Runtime\" is 100% covered by an opaque element (div.inline-flex.max-w-full.flex-wrap.items-center.gap-0.5.rounded-lg.p-px.bg-ui-hover.border.border-ui-border)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "dt.w-24.shrink-0.type-body.text-text-dim \"Image\" is 50% covered by an opaque element (button.inline-flex.items-center.justify-center.shrink-0.rounded-lg.font-medium.transition-colors.cursor-pointer.disabled:opacity-50.disabled:cursor-not-allowed.aria-disabled:opacity-50.aria-disabled:cursor-not-allowed.aria-disabled:hover:bg-transparent.aria-busy:[&>svg:not(:first-child)]:hidden.bg-bg-surface.border.border-ui-border.text-text-base.hover:bg-ui-hover.[&_svg]:text-action.h-11.px-4.text-sm.gap-1.5.sm:h-10.max-sm:w-11.max-sm:px-0)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "dt.w-24.shrink-0.type-body.text-text-dim \"수집 레벨\" is 50% covered by an opaque element (input.h-11.sm:h-10.w-full.rounded-lg.border.border-ui-control-border.bg-bg-surface.pl-8.pr-3.text-sm.text-text-base.placeholder:text-text-dim.transition-colors)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "span.min-w-0.flex-[1_1_4rem].truncate.font-mono \"error, warn, info\" is 50% covered by an opaque element (input.h-11.sm:h-10.w-full.rounded-lg.border.border-ui-control-border.bg-bg-surface.pl-8.pr-3.text-sm.text-text-base.placeholder:text-text-dim.transition-colors)"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T15:02:56.877Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "headings": [
+        "payment-worker",
+        "작업과 메시지2",
+        "메시지 처리 시간",
+        "대기 중인 메시지"
+      ]
+    }
+  },
+  {
+    "id": "metrics-mobile-dark",
+    "url": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "dark",
+    "findings": [
+      {
+        "antipattern": "clipped-overflow-container",
+        "name": "Positioned child clipped by overflow container",
+        "description": "A clipping container (overflow hidden or clip) wrapping an absolutely-positioned child cuts off tooltips, menus, and popovers that need to escape. Let the overflow be visible, or move the positioned layer out of the clip.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "div.flex.flex-col.h-dvh.overflow-hidden.bg-bg-main clips a positioned child"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "dt.w-24.shrink-0.type-body.text-text-dim \"Protocol\" is 100% covered by an opaque element (div.inline-flex.max-w-full.flex-wrap.items-center.gap-0.5.rounded-lg.p-px.bg-ui-hover.border.border-ui-border)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "dt.w-24.shrink-0.type-body.text-text-dim \"Runtime\" is 100% covered by an opaque element (div.inline-flex.max-w-full.flex-wrap.items-center.gap-0.5.rounded-lg.p-px.bg-ui-hover.border.border-ui-border)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "dt.w-24.shrink-0.type-body.text-text-dim \"Image\" is 50% covered by an opaque element (button.inline-flex.items-center.justify-center.shrink-0.rounded-lg.font-medium.transition-colors.cursor-pointer.disabled:opacity-50.disabled:cursor-not-allowed.aria-disabled:opacity-50.aria-disabled:cursor-not-allowed.aria-disabled:hover:bg-transparent.aria-busy:[&>svg:not(:first-child)]:hidden.bg-bg-surface.border.border-ui-border.text-text-base.hover:bg-ui-hover.[&_svg]:text-action.h-11.px-4.text-sm.gap-1.5.sm:h-10.max-sm:w-11.max-sm:px-0)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "dt.w-24.shrink-0.type-body.text-text-dim \"수집 레벨\" is 50% covered by an opaque element (input.h-11.sm:h-10.w-full.rounded-lg.border.border-ui-control-border.bg-bg-surface.pl-8.pr-3.text-sm.text-text-base.placeholder:text-text-dim.transition-colors)"
+      },
+      {
+        "antipattern": "text-occlusion",
+        "name": "Text occluded by an overlapping element",
+        "description": "Text is painted under an opaque element or a second text run, so part of it cannot be read. A decorative box, a stacked layer, or an inline element with leaked padding lands on the words instead of beside them. Give overlapping layers room, or move the text out from under the layer above it.",
+        "severity": "warning",
+        "category": "quality",
+        "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+        "line": 0,
+        "snippet": "span.min-w-0.flex-[1_1_4rem].truncate.font-mono \"error, warn, info\" is 50% covered by an opaque element (input.h-11.sm:h-10.w-full.rounded-lg.border.border-ui-control-border.bg-bg-surface.pl-8.pr-3.text-sm.text-text-base.placeholder:text-text-dim.transition-colors)"
+      }
+    ],
+    "error": null,
+    "observed": {
+      "time": "2026-11-07T15:03:00.135Z",
+      "url": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+      "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "headings": [
+        "payment-worker",
+        "작업과 메시지2",
+        "메시지 처리 시간",
+        "대기 중인 메시지"
+      ]
+    }
+  }
+]

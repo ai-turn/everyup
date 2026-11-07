@@ -1,0 +1,212 @@
+{
+  "themes": [
+    {
+      "theme": "light",
+      "demoBadge": {
+        "ratio": 5.21899761042224,
+        "foreground": [
+          58,
+          91,
+          199,
+          255
+        ],
+        "background": [
+          235.0156862745098,
+          238.9921568627451,
+          251.0235294117647
+        ]
+      },
+      "firstData": {
+        "x": 41,
+        "y": 573,
+        "width": 118.5,
+        "height": 16
+      },
+      "bottomNavigation": {
+        "x": 292.5,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      },
+      "timeButtons": [
+        {
+          "label": "1H",
+          "height": 44
+        },
+        {
+          "label": "6H",
+          "height": 44
+        },
+        {
+          "label": "24H",
+          "height": 44
+        }
+      ],
+      "collapsedMetadataVisible": false,
+      "expandedMetadataVisible": true,
+      "telegramLabel": {
+        "ratio": 5.79048246367282,
+        "foreground": [
+          96,
+          100,
+          108,
+          255
+        ],
+        "background": [
+          251.98823529411766,
+          251.98823529411766,
+          252.9921568627451
+        ]
+      },
+      "inputEdge": {
+        "ratio": 3.5990832069791074,
+        "foreground": [
+          128,
+          131,
+          141,
+          255
+        ],
+        "background": [
+          249,
+          249,
+          251
+        ]
+      },
+      "searchEdge": {
+        "ratio": 3.784481905109644,
+        "foreground": [
+          128,
+          131,
+          141,
+          255
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ]
+      },
+      "shortControls": [
+        {
+          "text": "메시지 처리 시간",
+          "height": 40,
+          "visible": true
+        },
+        {
+          "text": "대기 중인 메시지",
+          "height": 40,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "demoBadge": {
+        "ratio": 7.839171580312537,
+        "foreground": [
+          158,
+          177,
+          255,
+          255
+        ],
+        "background": [
+          27.568627450980394,
+          32.44313725490196,
+          46.27058823529411
+        ]
+      },
+      "firstData": {
+        "x": 41,
+        "y": 573,
+        "width": 118.5,
+        "height": 16
+      },
+      "bottomNavigation": {
+        "x": 292.5,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      },
+      "timeButtons": [
+        {
+          "label": "1H",
+          "height": 44
+        },
+        {
+          "label": "6H",
+          "height": 44
+        },
+        {
+          "label": "24H",
+          "height": 44
+        }
+      ],
+      "collapsedMetadataVisible": false,
+      "expandedMetadataVisible": true,
+      "telegramLabel": {
+        "ratio": 8.062853653777136,
+        "foreground": [
+          176,
+          180,
+          186,
+          255
+        ],
+        "background": [
+          28.015686274509804,
+          29.517647058823528,
+          31.517647058823528
+        ]
+      },
+      "inputEdge": {
+        "ratio": 3.158744507028408,
+        "foreground": [
+          107,
+          111,
+          120,
+          255
+        ],
+        "background": [
+          33,
+          34,
+          37
+        ]
+      },
+      "searchEdge": {
+        "ratio": 3.4934159556721416,
+        "foreground": [
+          107,
+          111,
+          120,
+          255
+        ],
+        "background": [
+          24,
+          25,
+          27
+        ]
+      },
+      "shortControls": [
+        {
+          "text": "메시지 처리 시간",
+          "height": 40,
+          "visible": true
+        },
+        {
+          "text": "대기 중인 메시지",
+          "height": 40,
+          "visible": true
+        }
+      ]
+    }
+  ],
+  "keyboard": {
+    "opened": true,
+    "focusRestored": true
+  },
+  "installation": {
+    "alertCount": 0,
+    "guide": "https://ai-turn.github.io/everyup/guide/quickstart",
+    "pendingRow": "first-visit-example\n\t\n설치 대기\t0\t-\t-\t-\t\n설치·작업"
+  },
+  "pageErrors": []
+}

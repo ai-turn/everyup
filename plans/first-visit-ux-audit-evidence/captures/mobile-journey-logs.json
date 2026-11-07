@@ -1,0 +1,564 @@
+{
+  "id": "mobile-journey-logs",
+  "note": "",
+  "image": "captures/mobile-journey-logs.png",
+  "time": "2026-11-07T13:22:28.726Z",
+  "url": "https://ai-turn.github.io/everyup/demo/logs",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "theme": "light",
+  "scenario": "attention",
+  "storage": {
+    "local": {
+      "vitepress-theme-appearance": "auto"
+    },
+    "session": {}
+  },
+  "touch": true,
+  "documentWidth": 390,
+  "text": "본문 바로가기\nLive Demo\n\n모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.\n\n데모 상태\n확인 필요\n정상 운영\n첫 시작\n부분 수집 실패\n확인 필요\nEveryUp\n로그\n\n서비스별 최근 오류·경고 건수를 보고, 서비스를 열어 로그를 검색합니다.\n\n로그 연결\n로그 서비스\n최근 24시간 · 서비스 7개\n서비스\t오류\t경고\n\ncheckout-api\n수집 중\nerror\nConnection timeout to upstream service: auth.internal:8080 after 5000ms\n1분 전\n\t13\t13\n\npayments-api\n수집 중\nerror\npayments-api: payments.partner.io deadline exceeded after 2568ms\n2분 전\n\t8\t11\n\norders-api\n수집 중\nerror\norders-api: inventory.internal deadline exceeded after 1032ms\n2분 전\n\t8\t11\n\ninventory-api\n수집 중\nerror\ninventory-api: inventory-db deadline exceeded after 384ms\n2분 전\n\t8\t11\n\nnotification-worker\n수집 중\nerror\nnotification-worker: smtp.example.com deadline exceeded after 900ms\n2분 전\n\t8\t11\n\nsearch-api\n수집 중\nerror\nsearch-api: opensearch:9200 deadline exceeded after 804ms\n2분 전\n\t8\t11\n\nbilling-worker\n수집 중\nerror\nbilling-worker: billing-db deadline exceeded after 7680ms\n2분 전\n\t8\t11\n자주 발생한 오류·경고\n최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다\nerror\n\ncheckout-api: auth.internal deadline exceeded after 1536ms\n\ncheckout-api\n마지막 2분 전\n새로 발생 약 20시간 전\n\n8회\nerror\n\npayments-api: payments.partner.io deadline exceeded after 2568ms\n\npayments-api\n마지막 2분 전\n새로 발생 약 20시간 전\n\n8회\nerror\n\norders-api: inventory.internal deadline exceeded after 1032ms\n\norders-api\n마지막 2분 전\n새로 발생 약 20시간 전\n\n8회\nerror\n\ninventory-api: inventory-db deadline exceeded after 384ms\n\ninventory-api\n마지막 2분 전\n새로 발생 약 20시간 전\n\n8회\nerror\n\nnotification-worker: smtp.example.com deadline exceeded after 900ms\n\nnotification-worker\n마지막 2분 전\n새로 발생 약 20시간 전\n\n8회\nerror\n\nsearch-api: opensearch:9200 deadline exceeded after 804ms\n\nsearch-api\n마지막 2분 전\n새로 발생 약 20시간 전\n\n8회\nerror\n\nbilling-worker: billing-db deadline exceeded after 7680ms\n\nbilling-worker\n마지막 2분 전\n새로 발생 약 20시간 전\n\n8회\nerror\n\nConnection timeout to upstream service: auth.internal:8080 after 5000ms\n\ncheckout-api\n마지막 1분 전\n새로 발생 1분 전\n\n3회\nerror\n\nTLS certificate validation failed for host payments.partner.io\n\ncheckout-api\n마지막 12분 전\n새로 발생 12분 전\n\n1회\nerror\n\nUpstream returned HTTP 503: Service Unavailable — circuit breaker opened\n\ncheckout-api\n마지막 약 1시간 전\n새로 발생 약 1시간 전\n\n1회\nwarn\n\ncheckout-api: retry queue above threshold — 33 pending jobs\n\ncheckout-api\n마지막 약 2시간 전\n새로 발생 약 21시간 전\n\n11회\nwarn\n\npayments-api: retry queue above threshold — 33 pending jobs\n\npayments-api\n마지막 약 2시간 전\n새로 발생 약 21시간 전\n\n11회\nwarn\n\norders-api: retry queue above threshold — 33 pending jobs\n\norders-api\n마지막 약 2시간 전\n새로 발생 약 21시간 전\n\n11회\nwarn\n\ninventory-api: retry queue above threshold — 33 pending jobs\n\ninventory-api\n마지막 약 2시간 전\n새로 발생 약 21시간 전\n\n11회\nwarn\n\nnotification-worker: retry queue above threshold — 33 pending jobs\n\nnotification-worker\n마지막 약 2시간 전\n새로 발생 약 21시간 전\n\n11회\nwarn\n\nsearch-api: retry queue above threshold — 33 pending jobs\n\nsearch-api\n마지막 약 2시간 전\n새로 발생 약 21시간 전\n\n11회\nwarn\n\nbilling-worker: retry queue above threshold — 33 pending jobs\n\nbilling-worker\n마지막 약 2시간 전\n새로 발생 약 21시간 전\n\n11회\nwarn\n\nRate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s\n\ncheckout-api\n마지막 3분 전\n새로 발생 3분 전\n\n1회\nwarn\n\nSlow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)\n\ncheckout-api\n마지막 18분 전\n새로 발생 18분 전\n\n1회\n© 2026 EveryUp\nGitHub\n피드백 보내기\n개요\n그룹\n알림\n더보기",
+  "active": {
+    "tag": "BODY",
+    "text": "본문 바로가기Live Demo모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요GitHubEveryUpLive Demo데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요검색Ctrl K개요장애 1건메뉴업타임로그인프라API 요청메트릭모아 보기Docker 환경그룹관리알림환경 설정EveryUp로그로그서비스별 최근 오류·경고 건수를 보고, 서비스를 열어 로그를 검색합니다.로그 연결로그 서비스최근 24시간 · 서비스 7개서비스수집오류경고오류·경고 추이최근 로그checkout-api수집 중errorConnection timeout to upstream service: auth.internal:8080 after 5000ms1분 전수집 중1313errorConnection timeout to upstream service: auth.internal:8080 after 5000ms1분 전payments-api수집 중errorpayments-api: payments.partner.io deadline exceeded after 2568ms2분 전수집 중811errorpayments-api: payments.partner.io deadline exceeded after 2568ms2분 전orders-api수집 중errororders-api: inventory.internal deadline exceeded after 1032ms2분 전수집 중811errororders-api: inventory.internal deadline exceeded after 1032ms2분 전inventory-api수집 중errorinventory-api: inventory-db deadline exceeded after 384ms2분 전수집 중811errorinventory-api: inventory-db deadline exceeded after 384ms2분 전notification-worker수집 중errornotification-worker: smtp.example.com deadline exceeded after 900ms2분 전수집 중811errornotification-worker: smtp.example.com deadline exceeded after 900ms2분 전search-api수집 중errorsearch-api: opensearch:9200 deadline exceeded after 804ms2분 전수집 중811errorsearch-api: opensearch:9200 deadline exceeded after 804ms2분 전billing-worker수집 중errorbilling-worker: billing-db deadline exceeded after 7680ms2분 전수집 중811errorbilling-worker: billing-db deadline exceeded after 7680ms2분 전자주 발생한 오류·경고최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다errorcheckout-api: auth.internal deadline exceeded after 1536mscheckout-api마지막 2분 전새로 발생 약 20시간 전8회errorpayments-api: payments.partner.io deadline exceeded after 2568mspayments-api마지막 2분 전새로 발생 약 20시간 전8회errororders-api: inventory.internal deadline exceeded after 1032msorders-api마지막 2분 전새로 발생 약 20시간 전8회errorinventory-api: inventory-db deadline exceeded after 384msinventory-api마지막 2분 전새로 발생 약 20시간 전8회errornotification-worker: smtp.example.com deadline exceeded after 900msnotification-worker마지막 2분 전새로 발생 약 20시간 전8회errorsearch-api: opensearch:9200 deadline exceeded after 804mssearch-api마지막 2분 전새로 발생 약 20시간 전8회errorbilling-worker: billing-db deadline exceeded after 7680msbilling-worker마지막 2분 전새로 발생 약 20시간 전8회errorConnection timeout to upstream service: auth.internal:8080 after 5000mscheckout-api마지막 1분 전새로 발생 1분 전3회errorTLS certificate validation failed for host payments.partner.iocheckout-api마지막 12분 전새로 발생 12분 전1회errorUpstream returned HTTP 503: Service Unavailable — circuit breaker openedcheckout-api마지막 약 1시간 전새로 발생 약 1시간 전1회warncheckout-api: retry queue above threshold — 33 pending jobscheckout-api마지막 약 2시간 전새로 발생 약 21시간 전11회warnpayments-api: retry queue above threshold — 33 pending jobspayments-api마지막 약 2시간 전새로 발생 약 21시간 전11회warnorders-api: retry queue above threshold — 33 pending jobsorders-api마지막 약 2시간 전새로 발생 약 21시간 전11회warninventory-api: retry queue above threshold — 33 pending jobsinventory-api마지막 약 2시간 전새로 발생 약 21시간 전11회warnnotification-worker: retry queue above threshold — 33 pending jobsnotification-worker마지막 약 2시간 전새로 발생 약 21시간 전11회warnsearch-api: retry queue above threshold — 33 pending jobssearch-api마지막 약 2시간 전새로 발생 약 21시간 전11회warnbilling-worker: retry queue above threshold — 33 pending jobsbilling-worker마지막 약 2시간 전새로 발생 약 21시간 전11회warnRate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/scheckout-api마지막 3분 전새로 발생 3분 전1회warnSlow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)checkout-api마지막 18분 전새로 발생 18분 전1회© 2026 EveryUpGitHub피드백 보내기개요그룹알림더보기",
+    "label": null,
+    "outline": "rgb(28, 32, 36) none 3px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문 바로가기",
+      "href": "#main-content",
+      "target": null,
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "확인 필요정상 운영첫 시작부분 수집 실패",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 69.859375,
+        "y": 59,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "데모 시나리오",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 70.859375,
+        "y": 60,
+        "width": 100.859375,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 116.5,
+        "width": 127.984375,
+        "height": 48
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 322,
+        "y": 118.5,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "로그 연결",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 283,
+        "width": 358,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "그리드",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 282,
+        "y": 374,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "카드",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 328,
+        "y": 374,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "checkout-api",
+      "href": "/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "target": null,
+      "rect": {
+        "x": 29,
+        "y": 538,
+        "width": 172,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "payments-api",
+      "href": "/everyup/demo/logs/observed_mock_payments?range=24h",
+      "target": null,
+      "rect": {
+        "x": 29,
+        "y": 643,
+        "width": 172,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "orders-api",
+      "href": "/everyup/demo/logs/observed_mock_orders?range=24h",
+      "target": null,
+      "rect": {
+        "x": 29,
+        "y": 748,
+        "width": 172,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "inventory-api",
+      "href": "/everyup/demo/logs/observed_mock_inventory?range=24h",
+      "target": null,
+      "rect": {
+        "x": 29,
+        "y": 853,
+        "width": 172,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "notification-worker",
+      "href": "/everyup/demo/logs/observed_mock_notifications?range=24h",
+      "target": null,
+      "rect": {
+        "x": 29,
+        "y": 958,
+        "width": 172,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "search-api",
+      "href": "/everyup/demo/logs/observed_mock_search?range=24h",
+      "target": null,
+      "rect": {
+        "x": 29,
+        "y": 1063,
+        "width": 172,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "billing-worker",
+      "href": "/everyup/demo/logs/observed_mock_billing?range=24h",
+      "target": null,
+      "rect": {
+        "x": 29,
+        "y": 1168,
+        "width": 172,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errorcheckout-api: auth.internal deadline exceeded after 1536mscheckout-api마지막 2분 전새로 발생 약 20시간 전8회",
+      "href": "/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1338,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errorpayments-api: payments.partner.io deadline exceeded after 2568mspayments-api마지막 2분 전새로 발생 약 20시간 전8회",
+      "href": "/everyup/demo/logs/observed_mock_payments?range=24h&pattern=error%3Apayments-api%3A%20payments.partner.io%20deadline%20exceeded%20after%20%23ms",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1417,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errororders-api: inventory.internal deadline exceeded after 1032msorders-api마지막 2분 전새로 발생 약 20시간 전8회",
+      "href": "/everyup/demo/logs/observed_mock_orders?range=24h&pattern=error%3Aorders-api%3A%20inventory.internal%20deadline%20exceeded%20after%20%23ms",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1496,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errorinventory-api: inventory-db deadline exceeded after 384msinventory-api마지막 2분 전새로 발생 약 20시간 전8회",
+      "href": "/everyup/demo/logs/observed_mock_inventory?range=24h&pattern=error%3Ainventory-api%3A%20inventory-db%20deadline%20exceeded%20after%20%23ms",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1575,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errornotification-worker: smtp.example.com deadline exceeded after 900msnotification-worker마지막 2분 전새로 발생 약 20시간 전8회",
+      "href": "/everyup/demo/logs/observed_mock_notifications?range=24h&pattern=error%3Anotification-worker%3A%20smtp.example.com%20deadline%20exceeded%20after%20%23ms",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1654,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errorsearch-api: opensearch:9200 deadline exceeded after 804mssearch-api마지막 2분 전새로 발생 약 20시간 전8회",
+      "href": "/everyup/demo/logs/observed_mock_search?range=24h&pattern=error%3Asearch-api%3A%20opensearch%3A%23%20deadline%20exceeded%20after%20%23ms",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1733,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errorbilling-worker: billing-db deadline exceeded after 7680msbilling-worker마지막 2분 전새로 발생 약 20시간 전8회",
+      "href": "/everyup/demo/logs/observed_mock_billing?range=24h&pattern=error%3Abilling-worker%3A%20billing-db%20deadline%20exceeded%20after%20%23ms",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1812,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errorConnection timeout to upstream service: auth.internal:8080 after 5000mscheckout-api마지막 1분 전새로 발생 1분 전3회",
+      "href": "/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3AConnection%20timeout%20to%20upstream%20service%3A%20auth.internal%3A%23%20after%20%23ms",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1891,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errorTLS certificate validation failed for host payments.partner.iocheckout-api마지막 12분 전새로 발생 12분 전1회",
+      "href": "/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3ATLS%20certificate%20validation%20failed%20for%20host%20payments.partner.io",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1970,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "errorUpstream returned HTTP 503: Service Unavailable — circuit breaker openedcheckout-api마지막 약 1시간 전새로 발생 약 1시간 전1회",
+      "href": "/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3AUpstream%20returned%20HTTP%20%23%3A%20Service%20Unavailable%20%E2%80%94%20circuit%20breaker%20opened",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2049,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warncheckout-api: retry queue above threshold — 33 pending jobscheckout-api마지막 약 2시간 전새로 발생 약 21시간 전11회",
+      "href": "/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=warn%3Acheckout-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2128,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warnpayments-api: retry queue above threshold — 33 pending jobspayments-api마지막 약 2시간 전새로 발생 약 21시간 전11회",
+      "href": "/everyup/demo/logs/observed_mock_payments?range=24h&pattern=warn%3Apayments-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2207,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warnorders-api: retry queue above threshold — 33 pending jobsorders-api마지막 약 2시간 전새로 발생 약 21시간 전11회",
+      "href": "/everyup/demo/logs/observed_mock_orders?range=24h&pattern=warn%3Aorders-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2286,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warninventory-api: retry queue above threshold — 33 pending jobsinventory-api마지막 약 2시간 전새로 발생 약 21시간 전11회",
+      "href": "/everyup/demo/logs/observed_mock_inventory?range=24h&pattern=warn%3Ainventory-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2365,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warnnotification-worker: retry queue above threshold — 33 pending jobsnotification-worker마지막 약 2시간 전새로 발생 약 21시간 전11회",
+      "href": "/everyup/demo/logs/observed_mock_notifications?range=24h&pattern=warn%3Anotification-worker%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2444,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warnsearch-api: retry queue above threshold — 33 pending jobssearch-api마지막 약 2시간 전새로 발생 약 21시간 전11회",
+      "href": "/everyup/demo/logs/observed_mock_search?range=24h&pattern=warn%3Asearch-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2523,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warnbilling-worker: retry queue above threshold — 33 pending jobsbilling-worker마지막 약 2시간 전새로 발생 약 21시간 전11회",
+      "href": "/everyup/demo/logs/observed_mock_billing?range=24h&pattern=warn%3Abilling-worker%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2602,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warnRate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/scheckout-api마지막 3분 전새로 발생 3분 전1회",
+      "href": "/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=warn%3ARate%20limit%20exceeded%20for%20client%20IP%20%23.%23.%23.%23%20%E2%80%94%20throttling%20to%20%23%20req%2Fs",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2681,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "warnSlow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)checkout-api마지막 18분 전새로 발생 18분 전1회",
+      "href": "/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=warn%3ASlow%20upstream%20response%3A%20GET%20%2Fapi%2Fv%23%2Fusers%2Fsearch%20took%20%23ms%20(threshold%3A%20%23ms)",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 2760,
+        "width": 356,
+        "height": 78
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/Monitoring",
+      "target": "_blank",
+      "rect": {
+        "x": 122.96875,
+        "y": 2892,
+        "width": 59.125,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "피드백 보내기",
+      "href": "https://github.com/ai-turn/Monitoring/issues",
+      "target": "_blank",
+      "rect": {
+        "x": 198.09375,
+        "y": 2892,
+        "width": 68.9375,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "개요",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 97.5,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/demo/alerts",
+      "target": null,
+      "rect": {
+        "x": 195,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "더보기",
+      "href": "/everyup/demo/more",
+      "target": null,
+      "rect": {
+        "x": 292.5,
+        "y": 781,
+        "width": 97.5,
+        "height": 63
+      }
+    }
+  ],
+  "horizontalOverflow": [],
+  "assets": [
+    "https://ai-turn.github.io/everyup/demo/theme-init.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-DO9SNNYE.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-BxaN-usw.css"
+  ]
+}

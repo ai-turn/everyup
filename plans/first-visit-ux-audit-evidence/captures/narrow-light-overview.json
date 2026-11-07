@@ -1,0 +1,356 @@
+{
+  "id": "narrow-light-overview",
+  "note": "",
+  "image": "captures/narrow-light-overview.png",
+  "time": "2026-11-07T13:22:55.630Z",
+  "url": "https://ai-turn.github.io/everyup/demo/",
+  "title": "(1) 장애 · EveryUp | Self-hosted Monitoring Platform",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 320,
+    "height": 844
+  },
+  "theme": "light",
+  "scenario": "attention",
+  "storage": {
+    "local": {
+      "vitepress-theme-appearance": "auto"
+    },
+    "session": {}
+  },
+  "touch": true,
+  "documentWidth": 320,
+  "text": "본문 바로가기\nLive Demo\n\n모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.\n\n데모 상태\n확인 필요\n정상 운영\n첫 시작\n부분 수집 실패\n확인 필요\nEveryUp\n모니터링 개요\n\n수집 상태와 현재 이상을 먼저 확인하세요.\n\n오후 10:22:55 갱신 · 30초마다 자동 갱신\n새로고침\n\n확인 필요 1건\n\n현재 확인 필요\n\n장애를 먼저, 수집 지연을 그다음에 보여줍니다.\n\n1\npayment-worker\npayment gateway timeout\n오후 10:10 시작\n12분 경과\n모니터링 범위\n\n연결 방식별로 수집 범위를 확인하세요.\n\nDocker 환경\n4\n업타임 모니터\n8\n직접 연결 서비스\n8\n인프라 리소스\n7\n그룹으로 대상 정리하기\n최근 장애 이력\n\n업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.\n\n6\npayment-worker\nDocker 서비스 상태 이상\n오후 10:10 시작\n12분 경과\nPayment endpoint\nupstream deadline exceeded\n오후 06:42 시작\n40분 지속\nStorefront\nHTTP 503 from origin\n오후 01:22 시작\n30분 지속\ncatalog-worker\nDocker 서비스 상태 이상\n11월 5일 시작\n6분 지속\napi\nDocker 서비스 상태 이상\n11월 4일 시작\n24분 지속\nsearch-api\nDocker 서비스 상태 이상\n11월 3일 시작\n3분 지속\n© 2026 EveryUp\nGitHub\n피드백 보내기\n개요\n그룹\n알림\n더보기",
+  "active": {
+    "tag": "BODY",
+    "text": "본문 바로가기Live Demo모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요GitHubEveryUpLive Demo데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요검색Ctrl K개요장애 1건메뉴업타임로그인프라API 요청메트릭모아 보기Docker 환경그룹관리알림환경 설정EveryUp개요모니터링 개요수집 상태와 현재 이상을 먼저 확인하세요.오후 10:22:55 갱신 · 30초마다 자동 갱신새로고침확인 필요 1건현재 확인 필요장애를 먼저, 수집 지연을 그다음에 보여줍니다.1payment-workerpayment gateway timeout오후 10:10 시작12분 경과모니터링 범위연결 방식별로 수집 범위를 확인하세요.Docker 환경4업타임 모니터8직접 연결 서비스8인프라 리소스7그룹으로 대상 정리하기 최근 장애 이력업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.6payment-workerDocker 서비스 상태 이상오후 10:10 시작12분 경과Payment endpointupstream deadline exceeded오후 06:42 시작40분 지속StorefrontHTTP 503 from origin오후 01:22 시작30분 지속catalog-workerDocker 서비스 상태 이상11월 5일 시작6분 지속apiDocker 서비스 상태 이상11월 4일 시작24분 지속search-apiDocker 서비스 상태 이상11월 3일 시작3분 지속© 2026 EveryUpGitHub피드백 보내기개요그룹알림더보기",
+    "label": null,
+    "outline": "rgb(28, 32, 36) none 3px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 844
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문 바로가기",
+      "href": "#main-content",
+      "target": null,
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "확인 필요정상 운영첫 시작부분 수집 실패",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 69.859375,
+        "y": 79,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "데모 시나리오",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 70.859375,
+        "y": 80,
+        "width": 100.859375,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 136.5,
+        "width": 127.984375,
+        "height": 48
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 252,
+        "y": 138.5,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "새로고침",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 302,
+        "width": 109.53125,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "payment-workerpayment gateway timeout오후 10:10 시작12분 경과",
+      "href": "/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 489,
+        "width": 286,
+        "height": 88
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker 환경4",
+      "href": "/everyup/demo/environments",
+      "target": null,
+      "rect": {
+        "x": 25,
+        "y": 674,
+        "width": 270,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임 모니터8",
+      "href": "/everyup/demo/uptime",
+      "target": null,
+      "rect": {
+        "x": 25,
+        "y": 714,
+        "width": 270,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "직접 연결 서비스8",
+      "href": "/everyup/demo/logs",
+      "target": null,
+      "rect": {
+        "x": 25,
+        "y": 754,
+        "width": 270,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "인프라 리소스7",
+      "href": "/everyup/demo/infrastructure",
+      "target": null,
+      "rect": {
+        "x": 25,
+        "y": 794,
+        "width": 270,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹으로 대상 정리하기",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 33,
+        "y": 846,
+        "width": 163.78125,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "payment-workerDocker 서비스 상태 이상오후 10:10 시작12분 경과",
+      "href": "/everyup/demo/services/agent_demo_01/shop%3Apayment-worker",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1013,
+        "width": 286,
+        "height": 88
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Payment endpointupstream deadline exceeded오후 06:42 시작40분 지속",
+      "href": "/everyup/demo/uptime/uptime_mock_payments",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1102,
+        "width": 286,
+        "height": 109
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "StorefrontHTTP 503 from origin오후 01:22 시작30분 지속",
+      "href": "/everyup/demo/uptime/uptime_mock_store",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1212,
+        "width": 286,
+        "height": 88
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "catalog-workerDocker 서비스 상태 이상11월 5일 시작6분 지속",
+      "href": "/everyup/demo/services/agent_demo_03/jobs%3Acatalog-worker",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1301,
+        "width": 286,
+        "height": 88
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "apiDocker 서비스 상태 이상11월 4일 시작24분 지속",
+      "href": "/everyup/demo/services/agent_demo_01/shop%3Aapi",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1390,
+        "width": 286,
+        "height": 88
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "search-apiDocker 서비스 상태 이상11월 3일 시작3분 지속",
+      "href": "/everyup/demo/services/agent_demo_04/edge%3Asearch-api",
+      "target": null,
+      "rect": {
+        "x": 17,
+        "y": 1479,
+        "width": 286,
+        "height": 88
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/Monitoring",
+      "target": "_blank",
+      "rect": {
+        "x": 87.96875,
+        "y": 1621,
+        "width": 59.125,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "피드백 보내기",
+      "href": "https://github.com/ai-turn/Monitoring/issues",
+      "target": "_blank",
+      "rect": {
+        "x": 163.09375,
+        "y": 1621,
+        "width": 68.9375,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "개요",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 781,
+        "width": 80,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 80,
+        "y": 781,
+        "width": 80,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/demo/alerts",
+      "target": null,
+      "rect": {
+        "x": 160,
+        "y": 781,
+        "width": 80,
+        "height": 63
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "더보기",
+      "href": "/everyup/demo/more",
+      "target": null,
+      "rect": {
+        "x": 240,
+        "y": 781,
+        "width": 80,
+        "height": 63
+      }
+    }
+  ],
+  "horizontalOverflow": [],
+  "assets": [
+    "https://ai-turn.github.io/everyup/demo/theme-init.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-DO9SNNYE.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-BxaN-usw.css"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "phase": "accessibility",
+  "browserVersion": "151.0.7922.34",
+  "completedAt": "2026-11-07T13:30:39.949Z",
+  "records": [
+    {
+      "id": "desktop-keyboard-menu",
+      "note": "",
+      "image": "captures/desktop-keyboard-menu.png",
+      "url": "https://ai-turn.github.io/everyup/demo/logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:30:29.820Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-keyboard-scenario",
+      "note": "ArrowDown selects normal and reloads the page.",
+      "image": "captures/desktop-keyboard-scenario.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "normal",
+      "time": "2026-11-07T13:30:31.744Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-response-plot-interaction",
+      "note": "Keyboard arrow on the focusable chart.",
+      "image": "captures/desktop-response-plot-interaction.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:30:34.356Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "mobile-keyboard-menu",
+      "note": "",
+      "image": "captures/mobile-keyboard-menu.png",
+      "url": "https://ai-turn.github.io/everyup/demo/more",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:30:35.874Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-keyboard-scenario",
+      "note": "ArrowDown selects normal and reloads the page.",
+      "image": "captures/mobile-keyboard-scenario.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "normal",
+      "time": "2026-11-07T13:30:37.787Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-response-plot-interaction",
+      "note": "Touch tap, no hover.",
+      "image": "captures/mobile-response-plot-interaction.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=uptime",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:30:39.933Z",
+      "documentWidth": 390
+    }
+  ],
+  "checks": [
+    {
+      "id": "desktop-keyboard-menu-focus",
+      "reached": true
+    },
+    {
+      "id": "mobile-keyboard-menu-focus",
+      "reached": true
+    }
+  ],
+  "errors": []
+}

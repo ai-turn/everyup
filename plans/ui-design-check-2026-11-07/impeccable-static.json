@@ -1,0 +1,41 @@
+[
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "C:\\Users\\tmddn\\orca\\workspaces\\mt-app\\개선사항-확인\\web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+    "line": 142,
+    "snippet": "border-l-4",
+    "importedBy": [
+      "AlertsDesktopView.tsx",
+      "ChannelFormPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "C:\\Users\\tmddn\\orca\\workspaces\\mt-app\\개선사항-확인\\web\\frontend\\src\\features\\alerts\\components\\ChannelForm.tsx",
+    "line": 189,
+    "snippet": "border-l-4",
+    "importedBy": [
+      "AlertsDesktopView.tsx",
+      "ChannelFormPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\tmddn\\orca\\workspaces\\mt-app\\개선사항-확인\\web\\frontend\\src\\main.tsx",
+    "line": 20,
+    "snippet": "Undocumented color #1e293b is outside DESIGN.md colors",
+    "ignoreValue": "#1e293b"
+  }
+]

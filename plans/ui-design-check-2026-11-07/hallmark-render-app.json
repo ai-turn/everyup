@@ -1,0 +1,62 @@
+{
+  "summary": {
+    "fails": 4,
+    "reflex": 1,
+    "warns": 0,
+    "waived": 0,
+    "rejected": 0,
+    "answered": 0,
+    "dismissed": 0,
+    "notes": 0,
+    "files": 0,
+    "render": "ran",
+    "before": "before: recorded 26 links, 7 fields, 0 handlers, 0 test hooks, 0 script hooks and 3 rendered page(s) in .hallmark\\before.json; --kept checks a redesign against it"
+  },
+  "findings": [
+    {
+      "gate": "40",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+      "line": 1,
+      "evidence": "[1280px] contrast 2.70:1 against the pixels behind < 4.5:1 on p.text-sm.text-[#26A5E4] \"Telegram\"",
+      "fix": "Raise the contrast to threshold"
+    },
+    {
+      "gate": "40",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+      "line": 1,
+      "evidence": "[1440px] a field's edge is under 3:1 against what surrounds it: input.w-full 1.40:1, input.w-full 1.40:1, input.w-full …",
+      "fix": "Draw the field in --color-muted, or fill it a step off the surface it sits on"
+    },
+    {
+      "gate": "40",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+      "line": 1,
+      "evidence": "[1440px] a field's edge is under 3:1 against what surrounds it: input.h-11 1.34:1",
+      "fix": "Draw the field in --color-muted, or fill it a step off the surface it sits on"
+    },
+    {
+      "gate": "73",
+      "grade": "FAIL",
+      "tier": "floor",
+      "file": "http://127.0.0.1:5187/everyup/demo/alerts/channels/new",
+      "line": 1,
+      "evidence": "[1440px] text painted under another element: footer.sticky over \"API Key는 어떻게 발급받\"; footer.sticky over \"API Key는 어떻게 발급…",
+      "fix": "Give the text its own space, or put it above what covers it on a surface of its own"
+    },
+    {
+      "gate": "39b",
+      "grade": "REFLEX",
+      "tier": "reflex",
+      "file": "http://127.0.0.1:5187/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=metrics",
+      "line": 1,
+      "evidence": "[1440px] control height outside 32 to 52px: button.inline-flex 28px, button.inline-flex 28px, button.inline-flex 28px",
+      "fix": "Marketing controls stand 44 to 52px; app UI 32 to 40px with a 44px hit target"
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "phase": "journey",
+  "browserVersion": "151.0.7922.34",
+  "completedAt": "2026-11-07T13:22:33.371Z",
+  "records": [
+    {
+      "id": "desktop-journey-entry",
+      "note": "",
+      "image": "captures/desktop-journey-entry.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:21.379Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-journey-logs",
+      "note": "",
+      "image": "captures/desktop-journey-logs.png",
+      "url": "https://ai-turn.github.io/everyup/demo/logs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:21.906Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-journey-api",
+      "note": "",
+      "image": "captures/desktop-journey-api.png",
+      "url": "https://ai-turn.github.io/everyup/demo/api",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:22.421Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-journey-infrastructure",
+      "note": "",
+      "image": "captures/desktop-journey-infrastructure.png",
+      "url": "https://ai-turn.github.io/everyup/demo/infrastructure",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:22.937Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-journey-payment-api",
+      "note": "",
+      "image": "captures/desktop-journey-payment-api.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=requests",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:25.001Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-journey-quickstart",
+      "note": "",
+      "image": "captures/desktop-journey-quickstart.png",
+      "url": "https://ai-turn.github.io/everyup/guide/quickstart",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:25.538Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "desktop-journey-quickstart-web",
+      "note": "",
+      "image": "captures/desktop-journey-quickstart-web.png",
+      "url": "https://ai-turn.github.io/everyup/guide/quickstart",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:25.661Z",
+      "documentWidth": 1440
+    },
+    {
+      "id": "mobile-journey-entry",
+      "note": "",
+      "image": "captures/mobile-journey-entry.png",
+      "url": "https://ai-turn.github.io/everyup/demo/",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:27.683Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-journey-more",
+      "note": "",
+      "image": "captures/mobile-journey-more.png",
+      "url": "https://ai-turn.github.io/everyup/demo/more",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:28.211Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-journey-logs",
+      "note": "",
+      "image": "captures/mobile-journey-logs.png",
+      "url": "https://ai-turn.github.io/everyup/demo/logs",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:28.726Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-journey-api",
+      "note": "",
+      "image": "captures/mobile-journey-api.png",
+      "url": "https://ai-turn.github.io/everyup/demo/api",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:29.724Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-journey-infrastructure",
+      "note": "",
+      "image": "captures/mobile-journey-infrastructure.png",
+      "url": "https://ai-turn.github.io/everyup/demo/infrastructure",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:30.689Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-journey-payment-api",
+      "note": "",
+      "image": "captures/mobile-journey-payment-api.png",
+      "url": "https://ai-turn.github.io/everyup/demo/services/agent_demo_01/shop%3Apayment-worker?tab=requests",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:32.725Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-journey-quickstart",
+      "note": "",
+      "image": "captures/mobile-journey-quickstart.png",
+      "url": "https://ai-turn.github.io/everyup/guide/quickstart",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:33.247Z",
+      "documentWidth": 390
+    },
+    {
+      "id": "mobile-journey-quickstart-web",
+      "note": "",
+      "image": "captures/mobile-journey-quickstart-web.png",
+      "url": "https://ai-turn.github.io/everyup/guide/quickstart",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "scenario": "attention",
+      "time": "2026-11-07T13:22:33.342Z",
+      "documentWidth": 390
+    }
+  ],
+  "checks": [
+    {
+      "id": "desktop-entry",
+      "opensNewTab": true,
+      "url": "https://ai-turn.github.io/everyup/demo/"
+    },
+    {
+      "id": "desktop-docs-exit",
+      "links": []
+    },
+    {
+      "id": "mobile-entry",
+      "opensNewTab": true,
+      "url": "https://ai-turn.github.io/everyup/demo/"
+    },
+    {
+      "id": "mobile-docs-exit",
+      "links": []
+    }
+  ],
+  "errors": []
+}

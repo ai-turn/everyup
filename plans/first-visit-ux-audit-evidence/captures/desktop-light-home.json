@@ -1,0 +1,484 @@
+{
+  "id": "desktop-light-home",
+  "note": "Fresh context; OS color preference; no stored theme.",
+  "image": "captures/desktop-light-home.png",
+  "time": "2026-11-07T13:22:01.166Z",
+  "url": "https://ai-turn.github.io/everyup/",
+  "title": "EveryUp",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "theme": "light",
+  "scenario": "attention",
+  "storage": {
+    "local": {
+      "vitepress-theme-appearance": "auto"
+    },
+    "session": {}
+  },
+  "touch": false,
+  "documentWidth": 1440,
+  "text": "본문으로 건너뛰기\nEveryUp\nMain Navigation\n가이드\n레퍼런스\n데모\n검색\nK\nEveryUp · 셀프호스팅 모니터링\n서비스 상태와 오류를 한곳에서\n\n업타임·로그·API 응답 시간·서버 자원을 확인하세요.\n알림 채널과 규칙을 설정하면 조건을 만족할 때 알림을 받습니다.\n\n시작하기\n라이브 데모\nGitHub\n다른 대상 연결:\n공개 URL·TCP 포트\nDocker 밖의 앱\n\n개요지금 확인이 필요한 서비스와 모니터링 범위, 최근 장애 이력을 한 화면에서 봅니다.\n\n1 / 7\n\n직접 조작해 보려면 라이브 데모를 여세요.\n\n멈춘 서비스, 꽉 찬 디스크\n\nDocker Collector로 컨테이너 상태·로그·호스트 자원 중 필요한 데이터를 수집하세요. 공개 URL·TCP 포트는 업타임 모니터로 확인합니다.\n\n수집 데이터 보기\n\n느려진 API\n\n지원하는 Linux 호스트에서 eBPF Observer로 앱 수정 없이 API 응답 시간과 트레이스를 수집하세요. 서비스 간 트레이스 연결은 별도 조건을 확인해야 합니다.\n\nAPI 자동 수집 조건 보기\n\n실패한 요청의 원인\n\nOpenTelemetry로 요청·응답 헤더와 바디를 수집해 실패 원인을 확인하세요. 바디 자동 수집은 Node.js에서 별도로 켜고, Java는 코드 추가가 필요합니다.\n\n헤더·바디 수집 설정하기\n\n장애 알림\n\n알림 채널과 규칙을 설정하세요. 활성 규칙의 조건을 만족하면 Telegram·Discord·Slack으로 알림을 보냅니다.\n\n알림 설정하기\n\n모니터링할 서버\n\n기존\n앱 컨테이너\n코드·이미지 변경 없음\ndocker.sock:ro\n상태·로그 읽기\n설치\nDocker Collector\n컨테이너 상태 · stdout/stderr 로그 · 호스트 메트릭\nOTLP/HTTP :4318\n트레이스 전송\n선택 설치\neBPF Observer\n앱 코드 변경 없이 API 응답 시간 · 트레이스\n\nHTTP(S) :3001\n인바운드 포트 불필요\n\n대시보드 서버\n\n설치\nEveryUp Web\nUI · REST API · SQLite · 알림 규칙 평가\n\nCollector 없이 수집\n\n업타임 모니터\n공개 HTTP·TCP 엔드포인트 응답 검사\nOTLP 엔드포인트\n/api/v1/otlp Docker 밖 서비스용\n\nHTTPS\n알림 발송\n\n알림 채널\n\nTelegram\nDiscord\nSlack\n모니터링할 서버마다 설치한 Collector가 선택한 데이터를 Web으로 전송합니다. Web은 활성 규칙의 조건을 만족하면 연결한 채널로 알림을 보냅니다. 모니터링할 서버에는 인바운드 포트를 열 필요가 없습니다.\n\nMIT 라이선스로 배포합니다.\n\nCopyright © 2026 catcode",
+  "active": {
+    "tag": "BODY",
+    "text": "본문으로 건너뛰기EveryUp Main Navigation 가이드레퍼런스데모검색K Main Navigation 가이드레퍼런스데모한국어English한국어English테마EveryUp · 셀프호스팅 모니터링서비스 상태와 오류를 한곳에서업타임·로그·API 응답 시간·서버 자원을 확인하세요.알림 채널과 규칙을 설정하면 조건을 만족할 때 알림을 받습니다.시작하기라이브 데모GitHub다른 대상 연결:공개 URL·TCP 포트Docker 밖의 앱개요지금 확인이 필요한 서비스와 모니터링 범위, 최근 장애 이력을 한 화면에서 봅니다.1 / 7직접 조작해 보려면 라이브 데모를 여세요.멈춘 서비스, 꽉 찬 디스크Docker Collector로 컨테이너 상태·로그·호스트 자원 중 필요한 데이터를 수집하세요. 공개 URL·TCP 포트는 업타임 모니터로 확인합니다.수집 데이터 보기 느려진 API지원하는 Linux 호스트에서 eBPF Observer로 앱 수정 없이 API 응답 시간과 트레이스를 수집하세요. 서비스 간 트레이스 연결은 별도 조건을 확인해야 합니다.API 자동 수집 조건 보기 실패한 요청의 원인OpenTelemetry로 요청·응답 헤더와 바디를 수집해 실패 원인을 확인하세요. 바디 자동 수집은 Node.js에서 별도로 켜고, Java는 코드 추가가 필요합니다.헤더·바디 수집 설정하기 장애 알림알림 채널과 규칙을 설정하세요. 활성 규칙의 조건을 만족하면 Telegram·Discord·Slack으로 알림을 보냅니다.알림 설정하기 모니터링할 서버기존앱 컨테이너코드·이미지 변경 없음docker.sock:ro상태·로그 읽기설치Docker Collector컨테이너 상태 · stdout/stderr 로그 · 호스트 메트릭OTLP/HTTP :4318트레이스 전송선택 설치eBPF Observer앱 코드 변경 없이 API 응답 시간 · 트레이스HTTP(S) :3001인바운드 포트 불필요대시보드 서버설치EveryUp WebUI · REST API · SQLite · 알림 규칙 평가Collector 없이 수집업타임 모니터공개 HTTP·TCP 엔드포인트 응답 검사OTLP 엔드포인트/api/v1/otlp Docker 밖 서비스용HTTPS알림 발송알림 채널TelegramDiscordSlack모니터링할 서버마다 설치한 Collector가 선택한 데이터를 Web으로 전송합니다. Web은 활성 규칙의 조건을 만족하면 연결한 채널로 알림을 보냅니다. 모니터링할 서버에는 인바운드 포트를 열 필요가 없습니다.MIT 라이선스로 배포합니다.Copyright © 2026 catcode\n    window.__VP_HASH_MAP__=JSON.parse(\"{\\\"en_guide_backup-restore.md\\\":\\\"D40L3Inw\\\",\\\"en_guide_ebpf-observer.md\\\":\\\"DX8E4M0G\\\",\\\"en_guide_introduction.md\\\":\\\"BC3xOSef\\\",\\\"en_guide_monitoring-setup.md\\\":\\\"C-doDSqV\\\",\\\"en_guide_notifications.md\\\":\\\"6-4qN9d-\\\",\\\"en_guide_otel-instrumentation.md\\\":\\\"BQS_dPf6\\\",\\\"en_guide_quickstart.md\\\":\\\"CCt2c7nv\\\",\\\"en_guide_troubleshooting.md\\\":\\\"CW8Fvdor\\\",\\\"en_guide_upgrade-uninstall.md\\\":\\\"BRGNO_zL\\\",\\\"en_guide_uptime-monitors.md\\\":\\\"BzMO3A-L\\\",\\\"en_index.md\\\":\\\"D_nTlVVa\\\",\\\"en_reference_collector.md\\\":\\\"B1xin_fh\\\",\\\"en_reference_web.md\\\":\\\"BV0ffB2b\\\",\\\"guide_backup-restore.md\\\":\\\"DrDk-1OT\\\",\\\"guide_ebpf-observer.md\\\":\\\"CCmB-i14\\\",\\\"guide_introduction.md\\\":\\\"Bc5kF4pe\\\",\\\"guide_monitoring-setup.md\\\":\\\"MLrci21X\\\",\\\"guide_notifications.md\\\":\\\"MfJenDZz\\\",\\\"guide_otel-instrumentation.md\\\":\\\"BqHxSpsb\\\",\\\"guide_quickstart.md\\\":\\\"DHC42MeS\\\",\\\"guide_troubleshooting.md\\\":\\\"C5u9DLyC\\\",\\\"guide_upgrade-uninstall.md\\\":\\\"TfuPpbCU\\\",\\\"guide_uptime-monitors.md\\\":\\\"DjKG6jsx\\\",\\\"index.md\\\":\\\"CXcS16yF\\\",\\\"reference_collector.md\\\":\\\"B1zN1uwa\\\",\\\"reference_web.md\\\":\\\"DZfsRFyH\\\"}\");window.__VP_SITE_DATA__=JSON.parse(\"{\\\"lang\\\":\\\"en-US\\\",\\\"dir\\\":\\\"ltr\\\",\\\"title\\\":\\\"EveryUp\\\",\\\"description\\\":\\\"A VitePress site\\\",\\\"base\\\":\\\"/everyup/\\\",\\\"head\\\":[],\\\"router\\\":{\\\"prefetchLinks\\\":true},\\\"appearance\\\":true,\\\"themeConfig\\\":{\\\"logo\\\":\\\"/images/logo.webp\\\",\\\"search\\\":{\\\"provider\\\":\\\"local\\\",\\\"options\\\":{\\\"locales\\\":{\\\"root\\\":{\\\"translations\\\":{\\\"button\\\":{\\\"buttonText\\\":\\\"검색\\\",\\\"buttonAriaLabel\\\":\\\"검색\\\"},\\\"modal\\\":{\\\"noResultsText\\\":\\\"결과가 없습니다\\\",\\\"resetButtonTitle\\\":\\\"지우기\\\",\\\"backButtonTitle\\\":\\\"검색 닫기\\\",\\\"displayDetails\\\":\\\"상세 목록 표시\\\",\\\"footer\\\":{\\\"selectText\\\":\\\"선택\\\",\\\"selectKeyAriaLabel\\\":\\\"Enter 키\\\",\\\"navigateText\\\":\\\"이동\\\",\\\"navigateUpKeyAriaLabel\\\":\\\"위쪽 화살표\\\",\\\"navigateDownKeyAriaLabel\\\":\\\"아래쪽 화살표\\\",\\\"closeText\\\":\\\"닫기\\\",\\\"closeKeyAriaLabel\\\":\\\"Esc 키\\\"}}}}}}}},\\\"locales\\\":{\\\"root\\\":{\\\"label\\\":\\\"한국어\\\",\\\"lang\\\":\\\"ko\\\",\\\"description\\\":\\\"업타임·로그·API 응답 시간·서버 자원을 함께 확인하고, 설정한 규칙에 따라 알림을 받는 셀프호스팅 모니터링\\\",\\\"themeConfig\\\":{\\\"nav\\\":[{\\\"text\\\":\\\"가이드\\\",\\\"link\\\":\\\"/guide/introduction\\\"},{\\\"text\\\":\\\"레퍼런스\\\",\\\"link\\\":\\\"/reference/web\\\"},{\\\"text\\\":\\\"데모\\\",\\\"link\\\":\\\"https://ai-turn.github.io/everyup/demo/\\\"}],\\\"sidebar\\\":[{\\\"text\\\":\\\"시작하기\\\",\\\"items\\\":[{\\\"text\\\":\\\"소개\\\",\\\"link\\\":\\\"/guide/introduction\\\"},{\\\"text\\\":\\\"Quick Start\\\",\\\"link\\\":\\\"/guide/quickstart\\\"},{\\\"text\\\":\\\"모니터링 설정\\\",\\\"link\\\":\\\"/guide/monitoring-setup\\\"}]},{\\\"text\\\":\\\"기능 가이드\\\",\\\"items\\\":[{\\\"text\\\":\\\"업타임 모니터\\\",\\\"link\\\":\\\"/guide/uptime-monitors\\\"},{\\\"text\\\":\\\"자동 eBPF Observer\\\",\\\"link\\\":\\\"/guide/ebpf-observer\\\"},{\\\"text\\\":\\\"헤더·바디 상세 수집\\\",\\\"link\\\":\\\"/guide/otel-instrumentation\\\"},{\\\"text\\\":\\\"알림\\\",\\\"link\\\":\\\"/guide/notifications\\\"}]},{\\\"text\\\":\\\"운영\\\",\\\"items\\\":[{\\\"text\\\":\\\"업그레이드·제거\\\",\\\"link\\\":\\\"/guide/upgrade-uninstall\\\"},{\\\"text\\\":\\\"백업·복원\\\",\\\"link\\\":\\\"/guide/backup-restore\\\"},{\\\"text\\\":\\\"트러블슈팅\\\",\\\"link\\\":\\\"/guide/troubleshooting\\\"}]},{\\\"text\\\":\\\"레퍼런스\\\",\\\"items\\\":[{\\\"text\\\":\\\"Web 설정\\\",\\\"link\\\":\\\"/reference/web\\\"},{\\\"text\\\":\\\"Docker Collector 설정\\\",\\\"link\\\":\\\"/reference/collector\\\"},{\\\"text\\\":\\\"Docker socket proxy (영문)\\\",\\\"link\\\":\\\"https://github.com/ai-turn/everyup/blob/main/agent/docs/docker-socket-proxy.md\\\"},{\\\"text\\\":\\\"Collector 동작 방식 (영문)\\\",\\\"link\\\":\\\"https://github.com/ai-turn/everyup/tree/main/agent/docs\\\"}]}],\\\"editLink\\\":{\\\"pattern\\\":\\\"https://github.com/ai-turn/everyup/edit/main/docs/:path\\\",\\\"text\\\":\\\"GitHub에서 이 페이지 편집\\\"},\\\"outline\\\":{\\\"label\\\":\\\"이 페이지에서\\\"},\\\"docFooter\\\":{\\\"prev\\\":\\\"이전\\\",\\\"next\\\":\\\"다음\\\"},\\\"darkModeSwitchLabel\\\":\\\"테마\\\",\\\"darkModeSwitchTitle\\\":\\\"다크 테마로 전환\\\",\\\"lightModeSwitchTitle\\\":\\\"라이트 테마로 전환\\\",\\\"skipToContentLabel\\\":\\\"본문으로 건너뛰기\\\",\\\"lastUpdated\\\":{\\\"text\\\":\\\"마지막 수정\\\",\\\"formatOptions\\\":{\\\"dateStyle\\\":\\\"long\\\"}},\\\"socialLinks\\\":[{\\\"icon\\\":\\\"github\\\",\\\"link\\\":\\\"https://github.com/ai-turn/everyup\\\",\\\"ariaLabel\\\":\\\"GitHub 저장소\\\"}],\\\"sidebarMenuLabel\\\":\\\"메뉴\\\",\\\"returnToTopLabel\\\":\\\"맨 위로\\\",\\\"langMenuLabel\\\":\\\"언어\\\",\\\"notFound\\\":{\\\"title\\\":\\\"페이지를 찾을 수 없습니다\\\",\\\"quote\\\":\\\"\\\",\\\"linkText\\\":\\\"홈으로\\\"},\\\"footer\\\":{\\\"message\\\":\\\"<a href=\\\\\\\"https://github.com/ai-turn/everyup/blob/main/LICENSE\\\\\\\">MIT 라이선스</a>로 배포합니다.\\\",\\\"copyright\\\":\\\"Copyright © 2026 catcode\\\"}}},\\\"en\\\":{\\\"label\\\":\\\"English\\\",\\\"lang\\\":\\\"en\\\",\\\"link\\\":\\\"/en/\\\",\\\"description\\\":\\\"Self-hosted monitoring for uptime, logs, API response times, and server resources, with alerts based on the rules you configure\\\",\\\"themeConfig\\\":{\\\"nav\\\":[{\\\"text\\\":\\\"Guide\\\",\\\"link\\\":\\\"/en/guide/introduction\\\"},{\\\"text\\\":\\\"Reference\\\",\\\"link\\\":\\\"/en/reference/web\\\"},{\\\"text\\\":\\\"Demo\\\",\\\"link\\\":\\\"https://ai-turn.github.io/everyup/demo/\\\"}],\\\"sidebar\\\":[{\\\"text\\\":\\\"Getting Started\\\",\\\"items\\\":[{\\\"text\\\":\\\"Introduction\\\",\\\"link\\\":\\\"/en/guide/introduction\\\"},{\\\"text\\\":\\\"Quick Start\\\",\\\"link\\\":\\\"/en/guide/quickstart\\\"},{\\\"text\\\":\\\"Monitoring setup\\\",\\\"link\\\":\\\"/en/guide/monitoring-setup\\\"}]},{\\\"text\\\":\\\"Feature Guides\\\",\\\"items\\\":[{\\\"text\\\":\\\"Uptime monitors\\\",\\\"link\\\":\\\"/en/guide/uptime-monitors\\\"},{\\\"text\\\":\\\"Automatic eBPF Observer\\\",\\\"link\\\":\\\"/en/guide/ebpf-observer\\\"},{\\\"text\\\":\\\"Header & body capture\\\",\\\"link\\\":\\\"/en/guide/otel-instrumentation\\\"},{\\\"text\\\":\\\"Notifications\\\",\\\"link\\\":\\\"/en/guide/notifications\\\"}]},{\\\"text\\\":\\\"Operations\\\",\\\"items\\\":[{\\\"text\\\":\\\"Upgrade and uninstall\\\",\\\"link\\\":\\\"/en/guide/upgrade-uninstall\\\"},{\\\"text\\\":\\\"Backup and restore\\\",\\\"link\\\":\\\"/en/guide/backup-restore\\\"},{\\\"text\\\":\\\"Troubleshooting\\\",\\\"link\\\":\\\"/en/guide/troubleshooting\\\"}]},{\\\"text\\\":\\\"Reference\\\",\\\"items\\\":[{\\\"text\\\":\\\"Web configuration\\\",\\\"link\\\":\\\"/en/reference/web\\\"},{\\\"text\\\":\\\"Docker Collector configuration\\\",\\\"link\\\":\\\"/en/reference/collector\\\"},{\\\"text\\\":\\\"Docker socket proxy\\\",\\\"link\\\":\\\"https://github.com/ai-turn/everyup/blob/main/agent/docs/docker-socket-proxy.md\\\"},{\\\"text\\\":\\\"How the Collector works\\\",\\\"link\\\":\\\"https://github.com/ai-turn/everyup/tree/main/agent/docs\\\"}]}],\\\"editLink\\\":{\\\"pattern\\\":\\\"https://github.com/ai-turn/everyup/edit/main/docs/:path\\\",\\\"text\\\":\\\"Edit this page on GitHub\\\"},\\\"lastUpdated\\\":{\\\"formatOptions\\\":{\\\"dateStyle\\\":\\\"long\\\"}},\\\"socialLinks\\\":[{\\\"icon\\\":\\\"github\\\",\\\"link\\\":\\\"https://github.com/ai-turn/everyup\\\",\\\"ariaLabel\\\":\\\"GitHub repository\\\"}],\\\"footer\\\":{\\\"message\\\":\\\"Released under the <a href=\\\\\\\"https://github.com/ai-turn/everyup/blob/main/LICENSE\\\\\\\">MIT License</a>.\\\",\\\"copyright\\\":\\\"Copyright © 2026 catcode\\\"}}}},\\\"scrollOffset\\\":134,\\\"cleanUrls\\\":true}\");",
+    "label": null,
+    "outline": "rgb(15, 23, 42) none 3px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 2532.140625
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문으로 건너뛰기",
+      "href": "#VPContent",
+      "target": null,
+      "rect": {
+        "x": 16,
+        "y": 14,
+        "width": 32,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/",
+      "target": null,
+      "rect": {
+        "x": 32,
+        "y": 0,
+        "width": 98.796875,
+        "height": 64
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "가이드",
+      "href": "/everyup/guide/introduction",
+      "target": null,
+      "rect": {
+        "x": 170.796875,
+        "y": 0,
+        "width": 62.640625,
+        "height": 64
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "레퍼런스",
+      "href": "/everyup/reference/web",
+      "target": null,
+      "rect": {
+        "x": 233.4375,
+        "y": 0,
+        "width": 75.53125,
+        "height": 64
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "데모",
+      "href": "https://ai-turn.github.io/everyup/demo/",
+      "target": "_blank",
+      "rect": {
+        "x": 308.96875,
+        "y": 0,
+        "width": 64.765625,
+        "height": 64
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 540,
+        "y": 12,
+        "width": 360,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "언어",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1232,
+        "y": 0,
+        "width": 58,
+        "height": 64
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "switch",
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1315,
+        "y": 21,
+        "width": 40,
+        "height": 22
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub 저장소",
+      "href": "https://github.com/ai-turn/everyup",
+      "target": "_blank",
+      "rect": {
+        "x": 1380,
+        "y": 14,
+        "width": 36,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "시작하기",
+      "href": "/everyup/guide/quickstart",
+      "target": null,
+      "rect": {
+        "x": 520.046875,
+        "y": 382.390625,
+        "width": 121.53125,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "라이브 데모",
+      "href": "https://ai-turn.github.io/everyup/demo/",
+      "target": "_blank",
+      "rect": {
+        "x": 653.578125,
+        "y": 382.390625,
+        "width": 137.546875,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/everyup",
+      "target": "_blank",
+      "rect": {
+        "x": 803.125,
+        "y": 382.390625,
+        "width": 116.828125,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "공개 URL·TCP 포트",
+      "href": "/everyup/guide/uptime-monitors",
+      "target": null,
+      "rect": {
+        "x": 659,
+        "y": 442.390625,
+        "width": 117.8125,
+        "height": 44
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker 밖의 앱",
+      "href": "/everyup/guide/monitoring-setup#direct-otel",
+      "target": null,
+      "rect": {
+        "x": 792.8125,
+        "y": 442.390625,
+        "width": 91.0625,
+        "height": 44
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "이전 화면",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 161,
+        "y": 886.765625,
+        "width": 48,
+        "height": 48
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "다음 화면",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1231,
+        "y": 886.765625,
+        "width": 48,
+        "height": 48
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "1: 개요",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 636,
+        "y": 1224.140625,
+        "width": 24,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "2: 업타임",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 660,
+        "y": 1224.140625,
+        "width": 24,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "3: 로그",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 684,
+        "y": 1224.140625,
+        "width": 24,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "4: 인프라",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 708,
+        "y": 1224.140625,
+        "width": 24,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "5: API 요청",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 732,
+        "y": 1224.140625,
+        "width": 24,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "6: 트레이스",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 756,
+        "y": 1224.140625,
+        "width": 24,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "7: 알림",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 780,
+        "y": 1224.140625,
+        "width": 24,
+        "height": 32
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "라이브 데모",
+      "href": "https://ai-turn.github.io/everyup/demo/",
+      "target": "_blank",
+      "rect": {
+        "x": 256.453125,
+        "y": 1316.140625,
+        "width": 67.546875,
+        "height": 19
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "멈춘 서비스, 꽉 찬 디스크Docker Collector로 컨테이너 상태·로그·호스트 자원 중 필요한 데이터를 수집하세요. 공개 URL·TCP 포트는 업타임 모니터로 확인합니다.수집 데이터 보기",
+      "href": "/everyup/guide/introduction#docker-collector",
+      "target": null,
+      "rect": {
+        "x": 144,
+        "y": 1410.140625,
+        "width": 276,
+        "height": 276
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "느려진 API지원하는 Linux 호스트에서 eBPF Observer로 앱 수정 없이 API 응답 시간과 트레이스를 수집하세요. 서비스 간 트레이스 연결은 별도 조건을 확인해야 합니다.API 자동 수집 조건 보기",
+      "href": "/everyup/guide/ebpf-observer",
+      "target": null,
+      "rect": {
+        "x": 436,
+        "y": 1410.140625,
+        "width": 276,
+        "height": 276
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "실패한 요청의 원인OpenTelemetry로 요청·응답 헤더와 바디를 수집해 실패 원인을 확인하세요. 바디 자동 수집은 Node.js에서 별도로 켜고, Java는 코드 추가가 필요합니다.헤더·바디 수집 설정하기",
+      "href": "/everyup/guide/otel-instrumentation",
+      "target": null,
+      "rect": {
+        "x": 728,
+        "y": 1410.140625,
+        "width": 276,
+        "height": 276
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "장애 알림알림 채널과 규칙을 설정하세요. 활성 규칙의 조건을 만족하면 Telegram·Discord·Slack으로 알림을 보냅니다.알림 설정하기",
+      "href": "/everyup/guide/notifications",
+      "target": null,
+      "rect": {
+        "x": 1020,
+        "y": 1410.140625,
+        "width": 276,
+        "height": 276
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker Collector",
+      "href": "/everyup/reference/collector",
+      "target": null,
+      "rect": {
+        "x": 206,
+        "y": 1974.140625,
+        "width": 245.375,
+        "height": 22
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "eBPF Observer",
+      "href": "/everyup/guide/ebpf-observer",
+      "target": null,
+      "rect": {
+        "x": 206,
+        "y": 2139.140625,
+        "width": 245.375,
+        "height": 22
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임 모니터",
+      "href": "/everyup/guide/uptime-monitors",
+      "target": null,
+      "rect": {
+        "x": 673.375,
+        "y": 2012.140625,
+        "width": 245.390625,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "OTLP 엔드포인트",
+      "href": "/everyup/guide/monitoring-setup#direct-otel",
+      "target": null,
+      "rect": {
+        "x": 673.375,
+        "y": 2060.140625,
+        "width": 245.390625,
+        "height": 20
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림 채널",
+      "href": "/everyup/guide/notifications",
+      "target": null,
+      "rect": {
+        "x": 1117.765625,
+        "y": 1900.640625,
+        "width": 50.765625,
+        "height": 18
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "MIT 라이선스",
+      "href": "https://github.com/ai-turn/everyup/blob/main/LICENSE",
+      "target": null,
+      "rect": {
+        "x": 638.34375,
+        "y": 2454.140625,
+        "width": 79.15625,
+        "height": 19
+      }
+    }
+  ],
+  "horizontalOverflow": [],
+  "assets": [
+    "https://ai-turn.github.io/everyup/assets/app.CzUKUh1W.js"
+  ]
+}

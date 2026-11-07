@@ -33,7 +33,7 @@ interface InputProps extends ComponentPropsWithRef<'input'> {
 // 보더 색은 컴포넌트가 정한다. className으로 넘기면 BASE의 border-ui-border와 특이도가 같아
 // 생성된 CSS 순서로 승패가 갈린다 — 호출부가 이길 거라 가정하면 안 된다.
 export function Input({ invalid = false, warn = false, mono = false, className = '', title, ...props }: InputProps) {
-  const border = invalid ? 'border-red-500' : warn ? 'border-amber-400' : 'border-ui-border';
+  const border = invalid ? 'border-red-500' : warn ? 'border-amber-400' : 'border-ui-control-border';
   return (
     <Tooltip content={title}><input
       aria-invalid={invalid || undefined}

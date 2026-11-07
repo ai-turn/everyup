@@ -1,0 +1,434 @@
+{
+  "id": "demo-docker-install-command",
+  "note": "Simulated form only; no shell command executed.",
+  "image": "captures/demo-docker-install-command.png",
+  "time": "2026-11-07T13:28:39.540Z",
+  "url": "https://ai-turn.github.io/everyup/demo/environments",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "theme": "light",
+  "scenario": "empty",
+  "storage": {
+    "local": {},
+    "session": {
+      "everyup_demo_scenario": "empty"
+    }
+  },
+  "touch": false,
+  "documentWidth": 1440,
+  "text": "본문 바로가기\nEveryUp\n\nLive Demo\n\n데모 상태\n확인 필요\n정상 운영\n첫 시작\n부분 수집 실패\n첫 시작\n검색\nCtrl K\n개요\n\n메뉴\n\n업타임\n로그\n인프라\nAPI 요청\n메트릭\n\n모아 보기\n\nDocker 환경\n그룹\n\n관리\n\n알림\n환경 설정\nDocker 환경\nDocker 환경\n\n연결된 Docker 환경과 모니터링 서비스 현황\n\nDocker 연결\n아직 연결된 Docker 환경이 없습니다\n\nDocker 환경을 연결하면 컨테이너와 호스트가 자동으로 표시됩니다\n\nDocker 연결\nDocker Collector 설치\nDocker 환경\n2\nCollector 설치\n3\n기능 확인\n4\n상세 수집\n\nDocker 환경을 찾을 수 없습니다\n\nDocker Collector 연결을 기다리는 중\n\n명령을 실행하면 최대 5초 간격으로 자동 확인합니다.\n\n지금 확인\nDocker Collector 설치 명령\nLinux Docker 서버에서 실행\n\n일회용 연결 코드\n\n오후 10:38까지 한 번만 사용할 수 있습니다. 장기 API Key는 서버에 직접 저장됩니다.\n\n새 코드\nEveryUp 외부 연결 주소\nCollector 또는 앱에서 접근할 수 있는 서버 주소입니다. localhost는 사용할 수 없습니다.\n\n설치 명령\n\n검사, 설정 백업, Docker Collector·eBPF 시작을 한 번에 처리합니다.\n\n복사\ncurl -fsSL 'https://monitor.example.com/api/v1/agents/install.sh' | sudo sh -s -- 'https://monitor.example.com' 'evup_join_d5e5ad630c935cbd11775571df225969'\n\n환경 검사\n\nDocker와 Compose 조건을 먼저 확인\n\n안전한 설치\n\n기존 설정을 백업하고 새 설정 저장\n\n자동 발견\n\nDocker Collector와 eBPF Observer를 함께 시작\n\n나중에 확인\n연결 확인\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "active": {
+    "tag": "BODY",
+    "text": "본문 바로가기Live Demo모든 데이터는 예시용 데이터이며, 실제 서버와 연결되어 있지 않습니다.|All data is for demonstration purposes only and is not connected to a real server.데모 상태확인 필요정상 운영첫 시작부분 수집 실패첫 시작GitHubEveryUpLive Demo데모 상태확인 필요정상 운영첫 시작부분 수집 실패첫 시작검색Ctrl K개요메뉴업타임로그인프라API 요청메트릭모아 보기Docker 환경그룹관리알림환경 설정EveryUpDocker 환경Docker 환경연결된 Docker 환경과 모니터링 서비스 현황Docker 연결아직 연결된 Docker 환경이 없습니다Docker 환경을 연결하면 컨테이너와 호스트가 자동으로 표시됩니다Docker 연결Docker Collector 설치Docker 환경2Collector 설치3기능 확인4상세 수집Docker 환경을 찾을 수 없습니다Docker Collector 연결을 기다리는 중명령을 실행하면 최대 5초 간격으로 자동 확인합니다.지금 확인Docker Collector 설치 명령Linux Docker 서버에서 실행일회용 연결 코드오후 10:38까지 한 번만 사용할 수 있습니다. 장기 API Key는 서버에 직접 저장됩니다.새 코드EveryUp 외부 연결 주소Collector 또는 앱에서 접근할 수 있는 서버 주소입니다. localhost는 사용할 수 없습니다.설치 명령검사, 설정 백업, Docker Collector·eBPF 시작을 한 번에 처리합니다.복사curl -fsSL 'https://monitor.example.com/api/v1/agents/install.sh' | sudo sh -s -- 'https://monitor.example.com' 'evup_join_d5e5ad630c935cbd11775571df225969'환경 검사Docker와 Compose 조건을 먼저 확인안전한 설치기존 설정을 백업하고 새 설정 저장자동 발견Docker Collector와 eBPF Observer를 함께 시작나중에 확인연결 확인© 2026 EveryUpGitHub피드백 보내기개요그룹알림더보기",
+    "label": null,
+    "outline": "rgb(28, 32, 36) none 3px",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "controls": [
+    {
+      "tag": "A",
+      "role": null,
+      "name": "본문 바로가기",
+      "href": "#main-content",
+      "target": null,
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "EveryUp",
+      "href": "/everyup/demo/",
+      "target": null,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 239,
+        "height": 64
+      }
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "name": "확인 필요정상 운영첫 시작부분 수집 실패",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 78.859375,
+        "y": 96,
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "name": "데모 시나리오",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 79.859375,
+        "y": 97,
+        "width": 134.140625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "검색Ctrl K",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 154,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "개요",
+      "href": "/everyup/demo/#attention",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 198,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "업타임",
+      "href": "/everyup/demo/uptime",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 274,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "로그",
+      "href": "/everyup/demo/logs",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 312,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "인프라",
+      "href": "/everyup/demo/infrastructure",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 350,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "API 요청",
+      "href": "/everyup/demo/api",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 388,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "메트릭",
+      "href": "/everyup/demo/metrics",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 426,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "Docker 환경",
+      "href": "/everyup/demo/environments",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 502,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "그룹",
+      "href": "/everyup/demo/projects",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 540,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "알림",
+      "href": "/everyup/demo/alerts",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 616,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "환경 설정",
+      "href": "/everyup/demo/settings",
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 654,
+        "width": 215,
+        "height": 36
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "테마 전환",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 12,
+        "y": 856,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "Docker 연결",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1266.796875,
+        "y": 124,
+        "width": 134.203125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "INPUT",
+      "role": null,
+      "name": "서비스 또는 Docker 환경 검색",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 264,
+        "y": 209,
+        "width": 320,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "그리드",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1325,
+        "y": 211,
+        "width": 36,
+        "height": 36
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "카드",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 1363,
+        "y": 211,
+        "width": 36,
+        "height": 36
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "Docker 연결",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 778.390625,
+        "y": 525,
+        "width": 108.203125,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "닫기",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 999,
+        "y": 53,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "지금 확인",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 943.140625,
+        "y": 233.5,
+        "width": 70.859375,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "새 코드",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 941.1875,
+        "y": 383,
+        "width": 59.8125,
+        "height": 32
+      }
+    },
+    {
+      "tag": "INPUT",
+      "role": null,
+      "name": "",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 426,
+        "y": 496,
+        "width": 588,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "설치 명령 복사",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 941.90625,
+        "y": 584.5,
+        "width": 72.09375,
+        "height": 32
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "나중에 확인",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 834.796875,
+        "y": 859,
+        "width": 101.546875,
+        "height": 40
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "name": "연결 확인",
+      "href": null,
+      "target": null,
+      "rect": {
+        "x": 944.34375,
+        "y": 859,
+        "width": 86.65625,
+        "height": 40
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "GitHub",
+      "href": "https://github.com/ai-turn/Monitoring",
+      "target": "_blank",
+      "rect": {
+        "x": 1256.9375,
+        "y": 872,
+        "width": 59.125,
+        "height": 16
+      }
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "name": "피드백 보내기",
+      "href": "https://github.com/ai-turn/Monitoring/issues",
+      "target": "_blank",
+      "rect": {
+        "x": 1332.0625,
+        "y": 872,
+        "width": 68.9375,
+        "height": 16
+      }
+    }
+  ],
+  "horizontalOverflow": [],
+  "assets": [
+    "https://ai-turn.github.io/everyup/demo/theme-init.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-DO9SNNYE.js",
+    "https://ai-turn.github.io/everyup/demo/assets/index-BxaN-usw.css"
+  ]
+}
