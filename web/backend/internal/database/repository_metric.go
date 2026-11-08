@@ -71,6 +71,41 @@ func (r *MetricRepository) GetByServiceID(serviceID string, limit int) ([]models
 	return metrics, nil
 }
 
+// GetRecentChecksBatch uses the service/time index to read at most limit checks
+// per HTTP/TCP monitor, including failed checks and paused monitors' history.
+func (r *MetricRepository) GetRecentChecksBatch(limit int) (map[string][]models.Metric, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	rows, err := DB.Query(`
+		SELECT m.id, m.service_id, m.status, m.response_time, m.status_code, m.error_message, m.checked_at
+		FROM services s
+		JOIN metrics m ON m.id IN (
+			SELECT id FROM metrics WHERE service_id = s.id ORDER BY checked_at DESC, id DESC LIMIT ?
+		)
+		WHERE s.type IN ('http', 'tcp')
+		ORDER BY m.service_id, m.checked_at DESC, m.id DESC
+	`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := make(map[string][]models.Metric)
+	for rows.Next() {
+		var metric models.Metric
+		var responseTime, statusCode sql.NullInt64
+		var message sql.NullString
+		if err := rows.Scan(&metric.ID, &metric.ServiceID, &metric.Status, &responseTime, &statusCode, &message, &metric.CheckedAt); err != nil {
+			return nil, err
+		}
+		metric.ResponseTime = int(responseTime.Int64)
+		metric.StatusCode = int(statusCode.Int64)
+		metric.ErrorMessage = message.String
+		result[metric.ServiceID] = append(result[metric.ServiceID], metric)
+	}
+	return result, rows.Err()
+}
+
 // GetSummary returns metric summary for a service
 func (r *MetricRepository) GetSummary(serviceID string, duration time.Duration) (*models.MetricSummary, error) {
 	since := time.Now().Add(-duration)

@@ -716,18 +716,31 @@ const mockUptimeMonitors: UptimeMonitor[] = [
   ...additionalMonitors,
 ];
 
-const mockUptimeMetrics: UptimeMonitorMetric[] = Array.from({ length: 72 }, (_, index) => {
-  const failed = index === 17 || index === 18;
-  return {
-    id: 10_000 + index,
-    serviceId: 'uptime_mock_store',
-    status: failed ? 'failure' : 'success',
-    responseTime: failed ? 5000 : Math.round(105 + 28 * Math.sin(index / 5) + (index % 7) * 3),
-    statusCode: failed ? 503 : 200,
-    errorMessage: failed ? 'upstream timeout' : undefined,
-    checkedAt: new Date(nowAgent - index * 30 * 60_000).toISOString(),
-  };
-});
+// One day at the configured cadence: jitter, a short slowdown, a spike,
+// an eight-minute outage, and a separate ten-minute collection gap.
+function demoMonitorMetrics(monitor: UptimeMonitor, seed = 0): UptimeMonitorMetric[] {
+  if (!monitor.isActive) return [];
+  const step = monitor.interval * 1000;
+  const store = monitor.id === 'uptime_mock_store';
+  return Array.from({ length: Math.ceil(86_400_000 / step) }, (_, index): UptimeMonitorMetric | null => {
+    const minutes = index * step / 60_000;
+    if (store && minutes >= 205 && minutes < 215) return null;
+    const failed = ((store || monitor.id === 'uptime_mock_payments') && minutes >= 120 && minutes < 128) || (store && index === 90);
+    const base = monitor.responseTime ?? 50;
+    const jitter = ((index * 17 + seed * 7) % 29 - 14) * Math.max(base * 0.008, 0.3);
+    const slowdown = store && minutes >= 40 && minutes < 60 ? 80 + index % 19 : 0;
+    const spike = store && minutes >= 90 && minutes < 94 ? 320 + index % 71 : 0;
+    return {
+      id: 10_000 + seed * 10_000 + index, serviceId: monitor.id,
+      status: failed ? 'failure' : 'success', responseTime: failed ? monitor.timeout : Math.max(0, Math.round(base + jitter + slowdown + spike)),
+      statusCode: monitor.type === 'http' && !failed ? 200 : undefined,
+      errorMessage: failed ? 'upstream timeout' : undefined,
+      checkedAt: new Date(nowAgent - index * step).toISOString(),
+    };
+  }).filter((metric): metric is UptimeMonitorMetric => metric !== null);
+}
+
+const mockUptimeMetrics = demoMonitorMetrics(mockUptimeMonitors[0]);
 
 const mockUptimeSummary: UptimeMonitorSummary = {
   serviceId: 'uptime_mock_store',
@@ -756,16 +769,16 @@ function mockUptimeBuckets(range: string, metrics = mockUptimeMetrics): ServiceH
   return [...buckets.values()].map(({ sum, ok, ...point }) => ({ ...point, latencyMs: ok ? sum / ok : 0, uptimePct: (ok / point.total) * 100 }));
 }
 
-// mockUptimeMetrics의 두 실패(9시간·8.5시간 전)가 연속 실패 기준을 넘긴 한 번의 장애다.
+// 8분간의 연속 실패. 수집 공백은 장애 이력으로 만들지 않는다.
 const mockUptimeIncidents: TimelineIncident[] = [{
   source: 'uptime', targetName: 'Storefront', targetPath: '/uptime/uptime_mock_store',
-  startedAt: new Date(nowAgent - 9 * 3_600_000).toISOString(), endedAt: new Date(nowAgent - 8.5 * 3_600_000).toISOString(),
-  durationSec: 1_800, active: false, message: 'HTTP 503 from origin',
+  startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(),
+  durationSec: 480, active: false, message: 'upstream timeout',
 }];
 
 // 장애로 이어지지 않은 실패 — 연속 실패 기준에 못 미쳐 장애 이력에는 없던 신호다.
 const mockUptimeFailures: UptimeMonitorMetric[] = [
-  { id: 20_001, serviceId: 'uptime_mock_store', status: 'failure', responseTime: 612, statusCode: 503, errorMessage: 'upstream connect error', checkedAt: new Date(nowAgent - 150 * 60_000).toISOString() },
+  { id: 20_001, serviceId: 'uptime_mock_store', status: 'failure', responseTime: 5000, errorMessage: 'upstream timeout', checkedAt: new Date(nowAgent - 45 * 60_000).toISOString() },
   { id: 20_002, serviceId: 'uptime_mock_store', status: 'failure', responseTime: 5000, errorMessage: 'context deadline exceeded', checkedAt: new Date(nowAgent - 37 * 86_400_000).toISOString() },
 ];
 
@@ -938,15 +951,12 @@ const monitorData = new Map(mockUptimeMonitors.map((monitor, index) => {
   if (monitor.id === 'uptime_mock_store') return [monitor.id, {
     metrics: mockUptimeMetrics, summary: mockUptimeSummary, history: mockUptimeHistory, incidents: mockUptimeIncidents, failures: mockUptimeFailures,
   }] as const;
-  const metrics: UptimeMonitorMetric[] = !monitor.isActive ? [] : Array.from({ length: 72 }, (_, i) => {
-    const failed = monitor.id === 'uptime_mock_payments' && (i === 10 || i === 11);
-    return { id: 30_000 + index * 100 + i, serviceId: monitor.id, status: failed ? 'failure' : 'success', responseTime: failed ? 5000 : Math.max(1, Math.round((monitor.responseTime ?? 50) * (1 + Math.sin(i / 5 + index) * 0.2))), statusCode: monitor.type === 'tcp' ? undefined : failed ? 503 : 200, errorMessage: failed ? 'upstream deadline exceeded' : undefined, checkedAt: new Date(nowAgent - i * 20 * 60_000).toISOString() };
-  });
+  const metrics = demoMonitorMetrics(monitor, index);
   const successful = metrics.filter(row => row.status === 'success');
   const values = successful.map(row => row.responseTime);
   const summary: UptimeMonitorSummary = { serviceId: monitor.id, totalChecks: metrics.length, successfulChecks: successful.length, failedChecks: metrics.length - successful.length, uptime: metrics.length ? successful.length / metrics.length * 100 : 0, avgResponseTime: values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0, minResponseTime: values.length ? Math.min(...values) : 0, maxResponseTime: metrics.length ? Math.max(...metrics.map(row => row.responseTime)) : 0 };
   const history: UptimeMonitorHistory = { percentage: summary.uptime, days: !metrics.length ? [] : Array.from({ length: 90 }, (_, i) => ({ date: new Date(nowAgent - i * 86_400_000).toISOString().slice(0, 10), uptime: i === 0 ? summary.uptime : 100, status: i === 0 && summary.failedChecks ? 'partial' : 'up' })) };
-  const incidents: TimelineIncident[] = summary.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/uptime/${monitor.id}`, startedAt: metrics[11].checkedAt, endedAt: metrics[9].checkedAt, durationSec: 40 * 60, active: false, message: 'upstream deadline exceeded' }] : [];
+  const incidents: TimelineIncident[] = summary.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/uptime/${monitor.id}`, startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(), durationSec: 480, active: false, message: 'upstream deadline exceeded' }] : [];
   return [monitor.id, { metrics, summary, history, incidents, failures: [] as UptimeMonitorMetric[] }] as const;
 }));
 
@@ -1499,6 +1509,11 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     return scenarioObservedServices(scenario).filter(service => !signal || service.signals.includes(signal as 'logs' | 'metrics' | 'traces')) as T;
   }
   if (endpoint === '/services?type=http,tcp') return scenarioMonitors(scenario) as T;
+  if (endpoint === '/services?type=http,tcp&include=checks') return scenarioMonitors(scenario).map(monitor => {
+    const data = monitorData.get(monitor.id);
+    return { ...monitor, recentChecks: data?.metrics.slice(0, 10) ?? [],
+      activeIncident: monitor.isActive && monitor.status === 'unhealthy' ? data?.incidents.find(incident => incident.active) : undefined };
+  }) as T;
   if (endpoint === '/logs/summary') return mockLogSummary(scenario) as T;
   if (endpoint.startsWith('/logs/patterns')) return mockLogPatterns(scenario, new URLSearchParams(endpoint.split('?')[1]).get('agentId') ?? '') as T;
   const uptimeDataMatch = endpoint.match(/^\/services\/([^/]+)\/(metrics\/summary|metrics\/history|metrics|uptime|failures|incidents)(?:\?|$)/);
@@ -1507,7 +1522,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const part = uptimeDataMatch[2];
     if (part === 'metrics/summary') return (data?.metrics.length ? data.summary : null) as T;
     if (part === 'metrics/history') return mockUptimeBuckets(new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '24h', data?.metrics ?? []) as T;
-    if (part === 'metrics') return (data?.metrics ?? []) as T;
+    if (part === 'metrics') return (data?.metrics ?? []).slice(0, Number(new URLSearchParams(endpoint.split('?')[1]).get('limit') ?? 100)) as T;
     if (part === 'uptime') return (data?.history ?? { percentage: 100, days: [] }) as T;
     if (part === 'failures') return (data?.failures ?? []) as T;
     return (data?.incidents ?? []) as T;

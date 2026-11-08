@@ -8,21 +8,26 @@ interface PageHeaderProps {
     /** 넓은 화면에서 제목·메타데이터 우측에 놓을 대상 제어와 요약. */
     aside?: React.ReactNode;
     children?: React.ReactNode;
+    /** 목록의 주 액션을 좁은 화면에서도 제목 옆에 둔다. */
+    compactActions?: boolean;
 }
 
-export function PageHeader({ title, subtitle, meta, aside, children }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false }: PageHeaderProps) {
     return (
         <div className={`mb-6 border-b border-ui-border pb-5 ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
             <div className="min-w-0 flex-1">
-                <h1 className="wrap-anywhere type-page-title text-text-base">{title}</h1>
-                {(subtitle || children) && (
+                <div className={compactActions ? 'flex items-center justify-between gap-3' : ''}>
+                    <h1 className="wrap-anywhere type-page-title text-text-base">{title}</h1>
+                    {compactActions && children && <div className="flex shrink-0 items-center gap-2">{children}</div>}
+                </div>
+                {(subtitle || (!compactActions && children)) && (
                     <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-center">
                         {subtitle && (
                             <p className="min-w-0 type-body text-text-muted max-w-2xl">
                                 {subtitle}
                             </p>
                         )}
-                        {children && (
+                        {!compactActions && children && (
                             <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:w-auto md:shrink-0 md:justify-end">
                                 {children}
                             </div>

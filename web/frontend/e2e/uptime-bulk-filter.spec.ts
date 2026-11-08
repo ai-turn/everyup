@@ -33,7 +33,7 @@ test('summary counts filter the list by state and keep it in the URL', async ({ 
 
 test('bulk pause only touches selected active monitors', async ({ page }) => {
   const state = await threeMonitors(page);
-  await page.goto('./uptime');
+  await page.goto('./uptime?view=card');
   await page.getByRole('checkbox', { name: 'Up API 선택' }).check();
   await page.getByRole('checkbox', { name: 'Paused API 선택' }).check();
   const bar = page.getByRole('region', { name: '선택한 대상 작업' });
@@ -44,14 +44,14 @@ test('bulk pause only touches selected active monitors', async ({ page }) => {
   expect(puts.map((request) => [request.path, request.body?.isActive])).toEqual([['/services/up-monitor', false]]);
 });
 
-test('select all + delete confirms, deletes every visible monitor and nothing hidden by a filter', async ({ page }) => {
+test('card bulk delete confirms and only deletes selected monitors visible in the filter', async ({ page }) => {
   const state = await threeMonitors(page);
-  await page.goto('./uptime');
+  await page.goto('./uptime?view=card');
   await page.getByRole('checkbox', { name: 'Paused API 선택' }).check();
   // Filtered out of view → dropped from the bulk selection.
   await page.getByRole('group', { name: '상태로 거르기' }).getByRole('button', { name: /장애/ }).click();
   await expect(page.getByRole('region', { name: '선택한 대상 작업' })).toHaveCount(0);
-  await page.getByRole('checkbox', { name: '보이는 대상 모두 선택' }).check();
+  await page.getByRole('checkbox', { name: 'Down API 선택' }).check();
   await page.getByRole('region', { name: '선택한 대상 작업' }).getByRole('button', { name: '삭제' }).click();
   const dialog = page.getByRole('dialog', { name: '업타임 1개를 삭제할까요?' });
   await expect(dialog).toContainText('Down API');

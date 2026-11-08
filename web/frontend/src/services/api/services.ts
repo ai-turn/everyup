@@ -161,6 +161,9 @@ export interface UptimeMonitor {
   latencyHistory?: number[];
   /** HTTPS 체크가 마지막으로 본 인증서 만료 시각. 주소를 바꾸면 비워진다. */
   certExpiresAt?: string;
+  /** 목록에서 요청한 최근 10회 체크. []는 기록 없음, 생략은 상세 확인 불가. */
+  recentChecks?: UptimeMonitorMetric[];
+  activeIncident?: TimelineIncident;
 }
 
 export interface UptimeMonitorInput {
@@ -211,7 +214,7 @@ export interface UptimeMonitorHistory {
 // --- API ---
 
 export const servicesApi = {
-  getUptimeMonitors: () => request<UptimeMonitor[]>('/services?type=http,tcp'),
+  getUptimeMonitors: (includeChecks = false) => request<UptimeMonitor[]>(`/services?type=http,tcp${includeChecks ? '&include=checks' : ''}`),
 
   getUptimeMonitor: (id: string) =>
     request<UptimeMonitor>(`/services/${id}`),

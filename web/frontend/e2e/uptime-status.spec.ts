@@ -42,8 +42,8 @@ test('active waiting checks and paused monitors stay distinct in the summary and
   for (const [name, label] of [['healthy-monitor', '정상'], ['failed-monitor', '장애'], ['waiting-monitor', '확인 대기'], ['paused-monitor', '일시정지']]) {
     await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name, exact: true }) }).getByText(label, { exact: true })).toBeVisible();
   }
-  // 정상 · 장애 · 확인 대기 · 일시정지 — 대기와 정지를 합치지 않는다.
-  await expect(summary.getByRole('button')).toHaveText([/정상\s*1/, /장애\s*1/, /확인 대기\s*1/, /일시정지\s*1/]);
+  // 장애를 먼저 보이며, 대기와 정지는 따로 센다.
+  await expect(summary.getByRole('button')).toHaveText([/장애\s*1/, /정상\s*1/, /확인 대기\s*1/, /일시정지\s*1/]);
 });
 
 test('a load failure stays unknown rather than empty and recovers on retry', async ({ page }) => {
@@ -78,10 +78,10 @@ test('a failed refresh retains previous targets without presenting stale health 
   await expect(staleCard.getByText('확인 불가', { exact: true })).toBeVisible();
   await expect(staleCard.getByText('정상', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('status')).toContainText('이전에 불러온');
-  await expect(staleCard.getByRole('button')).toBeDisabled();
+  await expect(staleCard.getByRole('button', { name: 'healthy-monitor 일시정지', exact: true })).toBeDisabled();
   state.failed = false;
   await page.getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(staleCard.getByText('일시정지', { exact: true })).toBeVisible();
-  await expect(staleCard.getByRole('button')).toBeEnabled();
+  await expect(staleCard.getByRole('button', { name: 'healthy-monitor 재개', exact: true })).toBeEnabled();
   await expect(page.getByRole('status')).toHaveCount(0);
 });

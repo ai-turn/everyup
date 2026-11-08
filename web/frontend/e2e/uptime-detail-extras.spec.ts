@@ -35,9 +35,24 @@ test('6H switches the response chart to server buckets', async ({ page }) => {
   await page.goto('./uptime/http-monitor');
   await page.getByRole('group', { name: '응답 시간 범위' }).getByRole('button', { name: '6H' }).click();
   const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
-  await expect(chart.getByText('최근 6시간, 5분 단위, ms')).toBeVisible();
-  await expect(chart.locator('[aria-live="polite"]')).toContainText('실패 1회');
+  await expect(chart.getByText('5분 평균', { exact: true }).first()).toBeVisible();
+  await expect(chart.locator('[data-response-counts]')).toHaveText('체크 2회 중 실패 1회');
+  await expect(chart.locator('.response-failure')).toHaveCount(1);
   expect(state.requests.some((request) => request.path === '/services/http-monitor/metrics/history' && request.query === '?range=6h')).toBe(true);
+});
+
+test('bucket summary counts real checks and weights average latency by successful checks', async ({ page }) => {
+  const state = await uptimeFixture(page);
+  state.responses.set('GET /services/http-monitor/metrics/history', [
+    { time: new Date(Date.now() - 600_000).toISOString(), latencyMs: 100, uptimePct: 50, total: 10 },
+    { time: new Date(Date.now() - 300_000).toISOString(), latencyMs: 300, uptimePct: 100, total: 2 },
+  ]);
+  await page.goto('./uptime/http-monitor');
+  await page.getByRole('group', { name: '응답 시간 범위' }).getByRole('button', { name: '6H' }).click();
+  const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
+  await expect(chart.locator('[data-response-counts]')).toHaveText('체크 12회 중 실패 5회');
+  await expect(chart.locator('[data-response-average]')).toHaveText('157ms');
+  await expect(chart.locator('.response-failure')).toHaveCount(1);
 });
 
 test('certificate expiry and expected status show in the header, and the status code is editable', async ({ page }) => {

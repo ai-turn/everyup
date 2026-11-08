@@ -77,6 +77,9 @@ type Service struct {
 	Uptime         *float64      `json:"uptime,omitempty"`         // nil = no check in the window; 0 = every check failed
 	ResponseTime   *int          `json:"responseTime,omitempty"`   // nil = no successful check in the window
 	LatencyHistory []int         `json:"latencyHistory,omitempty"` // recent response times oldest→newest
+	// Included only when the list requests check details. An empty slice means no checks.
+	RecentChecks   *[]Metric         `json:"recentChecks,omitempty"`
+	ActiveIncident *TimelineIncident `json:"activeIncident,omitempty"`
 }
 
 // HTTPConfig holds HTTP check configuration

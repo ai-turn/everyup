@@ -7,7 +7,7 @@ import { Button, ButtonLink, ConfirmDialog, DetailActionToolbar, DetailMeta, Mat
 import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { useAlertThresholds } from '../../features/alerts/useAlertThresholds';
 import { BucketedResponseTimeChart } from '../../features/uptime/components/BucketedResponseTimeChart';
-import { ResponseTimeCard } from '../../features/uptime/components/ResponseTimeCard';
+import type { ResponseFailure } from '../../features/uptime/components/ResponseTimeCard';
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UptimeOverview, UptimeStats, type UptimeOverviewStat } from '../../features/uptime/components/UptimeOverview';
 import { UptimeMonitorStatusBadge } from '../../features/uptime/components/UptimeMonitorStatusBadge';
@@ -19,42 +19,25 @@ import { getErrorMessage } from '../../utils/errors';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { listReturnTo } from '../../utils/listReturnTo';
 import { useGroupTrail } from '../../hooks/useGroupTrail';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
+import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRefreshControls';
+import { UptimeCheckSummary } from '../../features/uptime/components/UptimeCheckSummary';
 
-// 최근 = 체크별 막대(체크마다 상태 코드·메시지가 있다), 6H·24H = 버킷. Uptime Kuma의 recent/6h/24h와 같다.
-type ResponseRange = 'recent' | '6h' | '24h';
-const RESPONSE_RANGES = [{ label: '최근', value: 'recent' }, { label: '6H', value: '6h' }, { label: '24H', value: '24h' }] as const;
-const BUCKET_CAPTION = { '6h': '최근 6시간, 5분 단위, ms', '24h': '최근 24시간, 20분 단위, ms' } as const;
+type ResponseRange = '1h' | '6h' | '24h';
+const RESPONSE_RANGES = [{ label: '1H', value: '1h' }, { label: '6H', value: '6h' }, { label: '24H', value: '24h' }] as const;
+const RESPONSE_WINDOW = { '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000 } as const;
+const RESPONSE_BUCKET = { '1h': 120_000, '6h': 300_000, '24h': 1_200_000 } as const;
 
-function ResponseTimeChart({ monitorId, metrics, range, refreshKey }: { monitorId: string; metrics: UptimeMonitorMetric[]; range: ResponseRange; refreshKey: number }) {
+function ResponseTimeChart({ monitorId, incidents, failures, range, refreshKey, onRangeChange }: { monitorId: string; incidents: TimelineIncident[]; failures: ResponseFailure[]; range: ResponseRange; refreshKey: number; onRangeChange: (range: ResponseRange) => void }) {
   const thresholds = useAlertThresholds({ kind: 'direct', serviceId: monitorId }, 'response_time');
-  const bucketRange = range === 'recent' ? '6h' : range;
-  const loadBuckets = useCallback(() => api.getUptimeMonitorBuckets(monitorId, bucketRange), [monitorId, bucketRange]);
-  if (range !== 'recent') {
-    return <BucketedResponseTimeChart load={loadBuckets} windowMs={(range === '6h' ? 6 : 24) * 3_600_000} caption={BUCKET_CAPTION[range]} thresholds={thresholds} refreshKey={refreshKey} />;
-  }
-  // A failed check's responseTime is how long it waited before giving up (the
-  // timeout), not a response — as a bar it would read as "slow" and stretch the axis.
-  const slots = [...metrics].reverse().map((metric) => {
-    const ok = metric.status === 'success';
-    const code = metric.statusCode ? `HTTP ${metric.statusCode}` : ok ? '정상 응답' : '';
-    return {
-      t: new Date(metric.checkedAt).getTime(),
-      latencyMs: ok ? metric.responseTime : null,
-      state: ok ? 'up' as const : 'down' as const,
-      detail: [code, ok ? '' : metric.errorMessage].filter(Boolean).join(', ') || '체크 실패',
-    };
-  });
-  const hours = slots.length > 1 ? Math.round((slots[slots.length - 1].t - slots[0].t) / 3_600_000) : 0;
-
-  return (
-    <ResponseTimeCard
-      slots={slots}
-      failedChecks={slots.filter((slot) => slot.latencyMs === null).length}
-      caption={[`체크 ${slots.length}회`, hours > 0 && `최근 ${hours}시간`, 'ms'].filter(Boolean).join(', ')}
-      thresholds={thresholds}
-    />
-  );
+  const loadBuckets = useCallback(() => api.getUptimeMonitorBuckets(monitorId, range), [monitorId, range]);
+  const controls = <SegmentedControl options={RESPONSE_RANGES} value={range} onChange={onRangeChange} ariaLabel="응답 시간 범위" />;
+  return <BucketedResponseTimeChart key={range} load={loadBuckets} windowMs={RESPONSE_WINDOW[range]} bucketMs={RESPONSE_BUCKET[range]}
+    caption={`${RESPONSE_BUCKET[range] / 60_000}분 평균`} incidents={incidents} failures={failures} thresholds={thresholds} refreshKey={refreshKey} controls={controls} />;
 }
+
+const failureMessage = (failure: UptimeMonitorMetric) => [failure.statusCode && `HTTP ${failure.statusCode}`, failure.errorMessage].filter(Boolean).join(', ');
+const failureEvent = (failure: UptimeMonitorMetric): ResponseFailure => ({ at: Date.parse(failure.checkedAt), message: failureMessage(failure) });
 
 const HISTORY_ROWS = 10;
 type HistoryFilter = 'all' | 'outage' | 'failure';
@@ -78,7 +61,7 @@ function historyRows(incidents: TimelineIncident[], failures: UptimeMonitorMetri
     })),
     ...failures.map((failure): HistoryRow => ({
       key: `failure-${failure.id}`, at: failure.checkedAt, kind: 'failure', active: false,
-      message: [failure.statusCode && `HTTP ${failure.statusCode}`, failure.errorMessage].filter(Boolean).join(', '),
+      message: failureMessage(failure),
     })),
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 }
@@ -187,9 +170,10 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   const trail = useGroupTrail();
   const returnTo = trail ? `/projects/${trail.id}` : listReturnTo(location.state, '/uptime');
 
-  const { monitor, metrics, summary, history, incidents, failures, loading, refreshing, errors, notFound, load } = useUptimeMonitorDetail(monitorId);
+  const { monitor, metrics, summary, history, incidents, failures, loading, refreshing, errors, notFound, updatedAt, load } = useUptimeMonitorDetail(monitorId);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [range, setRange] = useState<ResponseRange>('recent');
+  const [range, setRange] = useState<ResponseRange>('6h');
   // 버킷 차트는 자기 데이터를 따로 불러오므로 새로고침 신호만 받는다.
   const [refreshKey, setRefreshKey] = useState(0);
   const refresh = () => { setRefreshKey((key) => key + 1); void load(); };
@@ -197,6 +181,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [processing, setProcessing] = useState(false);
+  useAutoRefresh(refresh, 30_000, autoRefresh && !editing && !deleting && !processing);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -272,7 +257,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
             status={
               <>
                 {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 자리 (§4.1) */}
-                <UptimeMonitorStatusBadge monitor={monitor} />
+                {errors.monitor ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
                 <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
               </>
             }
@@ -281,10 +266,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
         }
       />
       <DetailActionToolbar
-        controls={<>
-          <SegmentedControl options={RESPONSE_RANGES} value={range} onChange={setRange} ariaLabel="응답 시간 범위" />
-          <Button collapseLabel variant="secondary" loading={refreshing} disabled={processing} onClick={refresh}><MaterialIcon name="refresh" />새로고침</Button>
-        </>}
+        controls={<UptimeRefreshControls updatedAt={updatedAt} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={(enabled) => { setAutoRefresh(enabled); if (enabled) refresh(); }} onRefresh={refresh} disabled={processing} />}
         actions={
           <>
             <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: monitor.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
@@ -301,7 +283,13 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
         </div>
       )}
 
-      {/* 수치 → 응답 시간(툴바의 범위 버튼 바로 아래) → 90일 띠와 장애 이력 순서. */}
+      <section aria-label="현재 체크 상태" className="rounded-xl border border-ui-border bg-bg-surface p-6">
+        <h2 className="mb-4 type-card-title text-text-base">현재 상태</h2>
+        <UptimeCheckSummary monitor={monitor} metrics={metrics} incidents={incidents} metricsError={errors.metrics}
+          incidentsError={errors.monitor ? '모니터 상태를 갱신한 뒤 다시 확인하세요.' : errors.incidents} />
+      </section>
+
+      {/* 현재 실패 → 기간별 수치 → 응답 추이 → 장기 이력 순서. */}
       <section className="rounded-xl border border-ui-border bg-bg-surface p-6">
         <h2 className="sr-only">주요 지표</h2>
         <UptimeStats stats={[
@@ -311,9 +299,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
           ...(monitor.certExpiresAt ? [certStat(monitor.certExpiresAt)] : []),
         ]} />
       </section>
-      {metrics ? <ResponseTimeChart monitorId={monitor.id} metrics={metrics} range={range} refreshKey={refreshKey} /> : (
-        <section className="rounded-xl border border-ui-border bg-bg-surface p-6 text-sm text-text-muted">응답 시간을 불러오지 못했습니다.</section>
-      )}
+      <ResponseTimeChart monitorId={monitor.id} incidents={incidents ?? []} failures={(failures ?? []).map(failureEvent)} range={range} refreshKey={refreshKey} onRangeChange={setRange} />
       <UptimeOverview
         stats={[]}
         historyUptime={history && history.days.length > 0 ? history.percentage : undefined}

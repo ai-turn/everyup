@@ -11,6 +11,8 @@ test('grid is the default and switching views preserves search, reload and detai
   const search = page.getByRole('textbox', { name: '서비스 또는 대상 검색' });
   await expect(toggle.getByRole('button', { name: '그리드', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(targets.getByRole('table', { name: '업타임 그리드' })).toBeVisible();
+  await expect(targets.getByRole('checkbox')).toHaveCount(0);
+  await expect(targets.getByRole('columnheader').first()).toHaveText('상태');
   await search.fill('api');
   await expect(targets.getByRole('link')).toHaveCount(1);
   const names = await targets.getByRole('link').allTextContents();
