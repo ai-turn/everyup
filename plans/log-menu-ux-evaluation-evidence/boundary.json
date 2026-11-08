@@ -1,0 +1,90 @@
+{
+  "phase": "boundary",
+  "startedAt": "2026-11-08T04:41:21.271Z",
+  "finishedAt": "2026-11-08T04:41:26.714Z",
+  "browser": "151.0.7922.34",
+  "records": [
+    {
+      "id": "boundary-1440-light-long-header",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Injected 200-character service name and long log/attribute values."
+    },
+    {
+      "id": "boundary-1440-light-long-attribute",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "boundary-1440-dark-long-header",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Injected 200-character service name and long log/attribute values."
+    },
+    {
+      "id": "boundary-1440-dark-long-attribute",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "boundary-390-light-long-header",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected 200-character service name and long log/attribute values."
+    },
+    {
+      "id": "boundary-390-light-long-attribute",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "boundary-390-dark-long-header",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected 200-character service name and long log/attribute values."
+    },
+    {
+      "id": "boundary-390-dark-long-attribute",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    }
+  ],
+  "checks": [],
+  "errors": []
+}

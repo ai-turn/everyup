@@ -1,0 +1,59 @@
+{
+  "time": "2026-11-08T04:34:27.349Z",
+  "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "theme": "dark",
+  "scenario": "attention",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "documentWidth": 390,
+  "mainWidth": 390,
+  "text": "직접 로그 서비스를 삭제할까요?\n이 서비스의 로그, 직접 수집 연결, 대상별 알림 규칙이 함께 삭제됩니다.\n취소\n삭제",
+  "controls": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "취소",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 237.2453155517578,
+        "y": 473.77496337890625,
+        "width": 56.77732849121094,
+        "height": 41.79998779296875
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "삭제",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 301.6226501464844,
+        "y": 473.77496337890625,
+        "width": 54.877349853515625,
+        "height": 41.79998779296875
+      },
+      "fontSize": "14px",
+      "color": "rgb(255, 255, 255)",
+      "background": "oklch(0.577 0.245 27.325)"
+    }
+  ],
+  "overflows": [],
+  "focus": {
+    "tag": "BUTTON",
+    "label": "취소"
+  },
+  "snapshot": "- link \"본문 바로가기\":\n  - /url: \"#main-content\"\n- text: Live Demo\n- paragraph: 예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.\n- text: 데모 상태\n- combobox \"데모 시나리오\": 확인 필요\n- navigation \"데모 안내\":\n  - link \"실제 사용 시작하기\":\n    - /url: https://ai-turn.github.io/everyup/guide/quickstart\n  - link \"서비스 소개\":\n    - /url: https://ai-turn.github.io/everyup/\n- banner:\n  - link \"EveryUp\":\n    - /url: /everyup/demo/\n  - button \"검색\"\n- main:\n  - heading \"checkout-api\" [level=1]\n  - text: 수집 가능 마지막 수집 2026. 11. 8. 13시 33분 56초\n  - button \"연결 중지\"\n  - term: API Key\n  - definition:\n    - text: evup_****9f2a\n    - button \"키 재발급\"\n  - term: 그룹\n  - definition:\n    - combobox \"그룹 배정\": Production\n  - term: 수집 데이터\n  - definition: logs\n  - term: 수집 레벨\n  - definition:\n    - text: error, warn, info, debug\n    - button \"변경\"\n  - group \"시간 범위\":\n    - button \"1H\"\n    - button \"6H\"\n    - button \"24H\" [pressed]\n  - button \"새로고침\"\n  - link \"알림 규칙\":\n    - /url: /everyup/demo/alerts?tab=rules&target=direct&serviceId=observed_mock_checkout\n  - button \"삭제\"\n  - group \"로그 레벨\":\n    - button \"전체\" [pressed]\n    - button \"error\"\n    - button \"warn\"\n    - button \"info\"\n    - button \"debug\"\n    - button \"trace\"\n  - textbox \"메시지 검색…\"\n  - button \"실시간\"\n  - heading \"로그 발생량\" [level=3]\n  - text: 건 / 30분 error 9 warn 6 info 36\n  - application: 15:00 21:00 03:00 12:00 0 5 10 15\n  - paragraph: 154건 중 26~50\n  - button \"11. 08. 11:18:21 info Checkout session created — batch 1015\":\n    - time: 11. 08. 11:18:21\n    - text: info\n    - paragraph: Checkout session created — batch 1015\n  - button \"11. 08. 11:09:21 info Checkout session created — batch 1016\":\n    - time: 11. 08. 11:09:21\n    - text: info\n    - paragraph: Checkout session created — batch 1016\n  - button \"11. 08. 11:00:21 info Checkout session created — batch 1017\":\n    - time: 11. 08. 11:00:21\n    - text: info\n    - paragraph: Checkout session created — batch 1017\n  - button \"11. 08. 10:51:21 info Checkout session created — batch 1018\":\n    - time: 11. 08. 10:51:21\n    - text: info\n    - paragraph: Checkout session created — batch 1018\n  - 'button \"11. 08. 10:42:21 error checkout-api: auth.internal deadline exceeded after 1536ms\"':\n    - time: 11. 08. 10:42:21\n    - text: error\n    - paragraph: \"checkout-api: auth.internal deadline exceeded after 1536ms\"\n  - button \"11. 08. 10:33:21 info Checkout session created — batch 1020\":\n    - time: 11. 08. 10:33:21\n    - text: info\n    - paragraph: Checkout session created — batch 1020\n  - button \"11. 08. 10:24:21 info Checkout session created — batch 1021\":\n    - time: 11. 08. 10:24:21\n    - text: info\n    - paragraph: Checkout session created — batch 1021\n  - button \"11. 08. 10:15:21 info Checkout session created — batch 1022\":\n    - time: 11. 08. 10:15:21\n    - text: info\n    - paragraph: Checkout session created — batch 1022\n  - button \"11. 08. 10:06:21 info Checkout session created — batch 1023\":\n    - time: 11. 08. 10:06:21\n    - text: info\n    - paragraph: Checkout session created — batch 1023\n  - button \"11. 08. 09:57:21 info Checkout session created — batch 1024\":\n    - time: 11. 08. 09:57:21\n    - text: info\n    - paragraph: Checkout session created — batch 1024\n  - button \"11. 08. 09:48:21 info Checkout session created — batch 1025\":\n    - time: 11. 08. 09:48:21\n    - text: info\n    - paragraph: Checkout session created — batch 1025\n  - 'button \"11. 08. 09:39:21 warn checkout-api: retry queue above threshold — 46 pending jobs\"':\n    - time: 11. 08. 09:39:21\n    - text: warn\n    - paragraph: \"checkout-api: retry queue above threshold — 46 pending jobs\"\n  - button \"11. 08. 09:30:21 info Checkout session created — batch 1027\":\n    - time: 11. 08. 09:30:21\n    - text: info\n    - paragraph: Checkout session created — batch 1027\n  - button \"11. 08. 09:21:21 info Checkout session created — batch 1028\":\n    - time: 11. 08. 09:21:21\n    - text: info\n    - paragraph: Checkout session created — batch 1028\n  - button \"11. 08. 09:12:21 info Checkout session created — batch 1029\":\n    - time: 11. 08. 09:12:21\n    - text: info\n    - paragraph: Checkout session created — batch 1029\n  - button \"11. 08. 09:03:21 info Checkout session created — batch 1030\":\n    - time: 11. 08. 09:03:21\n    - text: info\n    - paragraph: Checkout session created — batch 1030\n  - button \"11. 08. 08:54:21 info Checkout session created — batch 1031\":\n    - time: 11. 08. 08:54:21\n    - text: info\n    - paragraph: Checkout session created — batch 1031\n  - button \"11. 08. 08:45:21 info Checkout session created — batch 1032\":\n    - time: 11. 08. 08:45:21\n    - text: info\n    - paragraph: Checkout session created — batch 1032\n  - button \"11. 08. 08:36:21 info Checkout session created — batch 1033\":\n    - time: 11. 08. 08:36:21\n    - text: info\n    - paragraph: Checkout session created — batch 1033\n  - button \"11. 08. 08:27:21 info Checkout session created — batch 1034\":\n    - time: 11. 08. 08:27:21\n    - text: info\n    - paragraph: Checkout session created — batch 1034\n  - button \"11. 08. 08:18:21 info Checkout session created — batch 1035\":\n    - time: 11. 08. 08:18:21\n    - text: info\n    - paragraph: Checkout session created — batch 1035\n  - button \"11. 08. 08:09:21 info Checkout session created — batch 1036\":\n    - time: 11. 08. 08:09:21\n    - text: info\n    - paragraph: Checkout session created — batch 1036\n  - button \"11. 08. 08:00:21 info Checkout session created — batch 1037\":\n    - time: 11. 08. 08:00:21\n    - text: info\n    - paragraph: Checkout session created — batch 1037\n  - 'button \"11. 08. 07:51:21 error checkout-api: auth.internal deadline exceeded after 1536ms\"':\n    - time: 11. 08. 07:51:21\n    - text: error\n    - paragraph: \"checkout-api: auth.internal deadline exceeded after 1536ms\"\n  - 'button \"11. 08. 07:42:21 warn checkout-api: retry queue above threshold — 59 pending jobs\"':\n    - time: 11. 08. 07:42:21\n    - text: warn\n    - paragraph: \"checkout-api: retry queue above threshold — 59 pending jobs\"\n  - button \"이전\": ‹\n  - button \"1\"\n  - button \"2\"\n  - button \"3\"\n  - text: …\n  - button \"7\"\n  - button \"다음\": ›\n  - dialog \"직접 로그 서비스를 삭제할까요?\":\n    - heading \"직접 로그 서비스를 삭제할까요?\" [level=2]\n    - text: 이 서비스의 로그, 직접 수집 연결, 대상별 알림 규칙이 함께 삭제됩니다.\n    - button \"취소\"\n    - button \"삭제\"\n  - text: © 2026 EveryUp\n  - link \"GitHub\":\n    - /url: https://github.com/ai-turn/Monitoring\n  - link \"피드백 보내기\":\n    - /url: https://github.com/ai-turn/Monitoring/issues\n- navigation:\n  - link \"개요\":\n    - /url: /everyup/demo/\n  - link \"그룹\":\n    - /url: /everyup/demo/projects\n  - link \"알림\":\n    - /url: /everyup/demo/alerts\n  - link \"더보기\":\n    - /url: /everyup/demo/more\n- status: 수집 레벨을 저장했습니다.",
+  "note": ""
+}

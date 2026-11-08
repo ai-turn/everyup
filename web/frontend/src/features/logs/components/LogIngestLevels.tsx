@@ -22,11 +22,15 @@ export function LogIngestLevels(source: Source) {
   // null = 보기 상태
   const [draft, setDraft] = useState<LogLevel[] | null>(null);
   const [saving, setSaving] = useState(false);
+  // 조회 실패를 '-'로만 두면 왜 변경할 수 없는지 알 수 없었다 — 실패를 따로 보여 주고 재시도한다.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    setLoadFailed(false);
     const request = directId ? api.getObservedServiceLogFilter(directId) : api.getAgentServiceLogFilter(agentId!, serviceKey!);
-    request.then(r => setSaved((r?.levels ?? []) as LogLevel[])).catch(() => {});
-  }, [directId, agentId, serviceKey]);
+    request.then(r => setSaved((r?.levels ?? []) as LogLevel[])).catch(() => setLoadFailed(true));
+  }, [directId, agentId, serviceKey, attempt]);
 
   const save = async () => {
     if (!draft) return;
@@ -45,6 +49,15 @@ export function LogIngestLevels(source: Source) {
     }
   };
 
+  if (draft === null && saved === null && loadFailed) {
+    return (
+      <div role="status" className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2">
+        <span className="type-body text-status-warn">불러오지 못했습니다</span>
+        <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setAttempt(n => n + 1)}>다시 시도</Button>
+      </div>
+    );
+  }
+
   if (draft === null) {
     const shown = LEVELS.filter(l => saved?.includes(l)).join(', ');
     return (
@@ -52,7 +65,7 @@ export function LogIngestLevels(source: Source) {
       // not even 4rem of them fits (200% text on a phone) instead of pushing past the row.
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2">
         <Tooltip content={shown || undefined} focusable><span className={`min-w-0 flex-[1_1_4rem] truncate ${saved === null ? 'text-text-dim' : saved.length> 0 ? 'font-mono' : ''}`}>
-          {saved === null ? '-' : saved.length === 0 ? '전체' : shown}
+          {saved === null ? '확인 중…' : saved.length === 0 ? '전체' : shown}
         </span></Tooltip>
         <Button collapseLabel variant="ghost" className="ml-auto" disabled={saved === null} onClick={() => setDraft(saved ?? [])}>
           <MaterialIcon name="tune" />변경
@@ -67,14 +80,14 @@ export function LogIngestLevels(source: Source) {
         {LEVELS.map(l => {
           const on = draft.includes(l);
           return (
-            <Button key={l} size="sm" variant={on ? 'secondary' : 'quiet'} aria-pressed={on} className="font-mono"
+            <Button key={l} size="sm" variant={on ? 'primary' : 'secondary'} aria-pressed={on} className="font-mono"
               onClick={() => setDraft(on ? draft.filter(x => x !== l) : [...draft, l])}>
               {l}
             </Button>
           );
         })}
       </div>
-      <p className="type-caption text-text-muted">선택한 레벨만 저장합니다. 모두 해제하면 전체를 저장하고, 앞으로 들어오는 로그에만 적용됩니다.</p>
+      <p className="type-caption text-text-muted">아래 목록의 레벨 필터와 달리 저장 자체를 정합니다. 선택한 레벨만 저장합니다. 모두 해제하면 전체를 저장하고, 앞으로 들어오는 로그에만 적용됩니다.</p>
       <div className="flex gap-2">
         <Button size="sm" onClick={() => void save()} loading={saving}>저장</Button>
         <Button size="sm" variant="quiet" onClick={() => setDraft(null)}>취소</Button>

@@ -1,0 +1,324 @@
+본문 바로가기
+EveryUp
+
+Live Demo
+
+예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.
+
+데모 상태
+확인 필요
+정상 운영
+첫 시작
+부분 수집 실패
+확인 필요
+실제 사용 시작하기
+서비스 소개
+검색
+Ctrl K
+개요
+장애
+1
+건
+
+메뉴
+
+업타임
+로그
+인프라
+API 요청
+메트릭
+
+모아 보기
+
+Docker 환경
+그룹
+
+관리
+
+알림
+환경 설정
+로그
+로그
+
+OpenTelemetry로 직접 연결한 앱의 로그와 최근 오류·경고를 확인합니다.
+
+로그 연결
+
+Docker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.
+
+로그 서비스
+최근 24시간 · 서비스 7개
+checkout-api
+수집 중
+
+오류
+
+14
+
+경고
+
+14
+
+error
+Connection timeout to upstream service: auth.internal:8080 after 5000ms
+1분 전
+payments-api
+수집 중
+
+오류
+
+9
+
+경고
+
+12
+
+error
+payments-api: payments.partner.io deadline exceeded after 2568ms
+8분 전
+orders-api
+수집 중
+
+오류
+
+9
+
+경고
+
+12
+
+error
+orders-api: inventory.internal deadline exceeded after 1032ms
+8분 전
+inventory-api
+수집 중
+
+오류
+
+9
+
+경고
+
+12
+
+error
+inventory-api: inventory-db deadline exceeded after 384ms
+8분 전
+notification-worker
+수집 중
+
+오류
+
+9
+
+경고
+
+12
+
+error
+notification-worker: smtp.example.com deadline exceeded after 900ms
+8분 전
+search-api
+수집 중
+
+오류
+
+9
+
+경고
+
+12
+
+error
+search-api: opensearch:9200 deadline exceeded after 804ms
+8분 전
+billing-worker
+수집 중
+
+오류
+
+9
+
+경고
+
+12
+
+error
+billing-worker: billing-db deadline exceeded after 7680ms
+8분 전
+자주 발생한 오류·경고
+최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다
+error
+
+checkout-api: auth.internal deadline exceeded after 1536ms
+
+checkout-api
+마지막 8분 전
+새로 발생 약 20시간 전
+
+9회
+error
+
+payments-api: payments.partner.io deadline exceeded after 2568ms
+
+payments-api
+마지막 8분 전
+새로 발생 약 20시간 전
+
+9회
+error
+
+orders-api: inventory.internal deadline exceeded after 1032ms
+
+orders-api
+마지막 8분 전
+새로 발생 약 20시간 전
+
+9회
+error
+
+inventory-api: inventory-db deadline exceeded after 384ms
+
+inventory-api
+마지막 8분 전
+새로 발생 약 20시간 전
+
+9회
+error
+
+notification-worker: smtp.example.com deadline exceeded after 900ms
+
+notification-worker
+마지막 8분 전
+새로 발생 약 20시간 전
+
+9회
+error
+
+search-api: opensearch:9200 deadline exceeded after 804ms
+
+search-api
+마지막 8분 전
+새로 발생 약 20시간 전
+
+9회
+error
+
+billing-worker: billing-db deadline exceeded after 7680ms
+
+billing-worker
+마지막 8분 전
+새로 발생 약 20시간 전
+
+9회
+error
+
+Connection timeout to upstream service: auth.internal:8080 after 5000ms
+
+checkout-api
+마지막 1분 전
+새로 발생 1분 전
+
+3회
+error
+
+TLS certificate validation failed for host payments.partner.io
+
+checkout-api
+마지막 12분 전
+새로 발생 12분 전
+
+1회
+error
+
+Upstream returned HTTP 503: Service Unavailable — circuit breaker opened
+
+checkout-api
+마지막 약 1시간 전
+새로 발생 약 1시간 전
+
+1회
+warn
+
+checkout-api: retry queue above threshold — 20 pending jobs
+
+checkout-api
+마지막 2분 전
+새로 발생 약 21시간 전
+
+12회
+warn
+
+payments-api: retry queue above threshold — 20 pending jobs
+
+payments-api
+마지막 2분 전
+새로 발생 약 21시간 전
+
+12회
+warn
+
+orders-api: retry queue above threshold — 20 pending jobs
+
+orders-api
+마지막 2분 전
+새로 발생 약 21시간 전
+
+12회
+warn
+
+inventory-api: retry queue above threshold — 20 pending jobs
+
+inventory-api
+마지막 2분 전
+새로 발생 약 21시간 전
+
+12회
+warn
+
+notification-worker: retry queue above threshold — 20 pending jobs
+
+notification-worker
+마지막 2분 전
+새로 발생 약 21시간 전
+
+12회
+warn
+
+search-api: retry queue above threshold — 20 pending jobs
+
+search-api
+마지막 2분 전
+새로 발생 약 21시간 전
+
+12회
+warn
+
+billing-worker: retry queue above threshold — 20 pending jobs
+
+billing-worker
+마지막 2분 전
+새로 발생 약 21시간 전
+
+12회
+warn
+
+Rate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s
+
+checkout-api
+마지막 3분 전
+새로 발생 3분 전
+
+1회
+warn
+
+Slow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)
+
+checkout-api
+마지막 18분 전
+새로 발생 18분 전
+
+1회
+© 2026 EveryUp
+GitHub
+피드백 보내기

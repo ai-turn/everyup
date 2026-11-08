@@ -1,0 +1,236 @@
+본문 바로가기
+EveryUp
+
+Live Demo
+
+예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.
+
+데모 상태
+확인 필요
+정상 운영
+첫 시작
+부분 수집 실패
+확인 필요
+실제 사용 시작하기
+서비스 소개
+검색
+Ctrl K
+개요
+장애
+1
+건
+
+메뉴
+
+업타임
+로그
+인프라
+API 요청
+메트릭
+
+모아 보기
+
+Docker 환경
+그룹
+
+관리
+
+알림
+환경 설정
+로그
+checkout-api
+checkout-api
+수집 가능
+마지막 수집 2026. 11. 8. 13시 30분 15초
+연결 중지
+API Key
+evup_****9f2a
+키 재발급
+그룹
+미분류
+Production
+Staging
+Backoffice
+Production
+수집 데이터
+logs
+수집 레벨
+error, warn, info
+변경
+1H
+6H
+24H
+새로고침
+알림 규칙
+삭제
+전체
+error
+warn
+info
+debug
+trace
+실시간
+로그 발생량
+건 / 30분
+error 9
+warn 6
+info 35
+15:00
+18:00
+21:00
+00:00
+03:00
+06:00
+09:00
+12:00
+0
+5
+10
+15
+20
+
+154건 중 1~25
+
+11. 08. 13:29:40
+error
+
+Connection timeout to upstream service: auth.internal:8080 after 5000ms
+
+11. 08. 13:29:40
+error
+
+Connection timeout to upstream service: auth.internal:8080 after 5000ms
+
+11. 08. 13:29:40
+error
+
+Connection timeout to upstream service: auth.internal:8080 after 5000ms
+
+11. 08. 13:28:40
+warn
+
+checkout-api: retry queue above threshold — 20 pending jobs
+
+트레이스
+11. 08. 13:27:40
+warn
+
+Rate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s
+
+11. 08. 13:25:40
+info
+
+Route registered: POST /api/v2/webhooks/stripe
+
+11. 08. 13:25:40
+info
+
+Checkout session created — batch 1001
+
+트레이스
+11. 08. 13:22:40
+error
+
+checkout-api: auth.internal deadline exceeded after 1536ms
+
+트레이스
+11. 08. 13:19:40
+info
+
+Checkout session created — batch 1003
+
+트레이스
+11. 08. 13:18:40
+error
+
+TLS certificate validation failed for host payments.partner.io
+
+11. 08. 13:16:40
+info
+
+Checkout session created — batch 1004
+
+트레이스
+11. 08. 13:13:40
+info
+
+Checkout session created — batch 1005
+
+트레이스
+11. 08. 13:12:40
+warn
+
+Slow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)
+
+11. 08. 13:10:40
+error
+
+checkout-api: auth.internal deadline exceeded after 1536ms
+
+트레이스
+11. 08. 13:07:40
+info
+
+Checkout session created — batch 1007
+
+트레이스
+11. 08. 13:00:40
+info
+
+Health check passed for all 3 upstream replicas
+
+11. 08. 12:45:40
+error
+
+Upstream returned HTTP 503: Service Unavailable — circuit breaker opened
+
+11. 08. 12:30:40
+info
+
+Configuration reload completed — 14 routes active
+
+11. 08. 12:17:40
+info
+
+Checkout session created — batch 1008
+
+11. 08. 12:08:40
+info
+
+Checkout session created — batch 1009
+
+11. 08. 11:59:40
+info
+
+Checkout session created — batch 1010
+
+11. 08. 11:50:40
+info
+
+Checkout session created — batch 1011
+
+11. 08. 11:41:40
+info
+
+Checkout session created — batch 1012
+
+11. 08. 11:32:40
+warn
+
+checkout-api: retry queue above threshold — 33 pending jobs
+
+11. 08. 11:23:40
+info
+
+Checkout session created — batch 1014
+
+‹
+1
+2
+…
+7
+›
+© 2026 EveryUp
+GitHub
+피드백 보내기
+09:00

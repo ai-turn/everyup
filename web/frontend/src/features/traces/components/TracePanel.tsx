@@ -39,10 +39,10 @@ function formatTime(iso: string): string {
 
 function spanKindBadge(kind: string): string {
   switch (kind) {
-    case 'SERVER':   return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
-    case 'CLIENT':   return 'bg-sky-500/10 text-sky-600 dark:text-sky-400';
+    case 'SERVER':   return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+    case 'CLIENT':   return 'bg-sky-500/10 text-sky-700 dark:text-sky-400';
     case 'PRODUCER':
-    case 'CONSUMER': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
+    case 'CONSUMER': return 'bg-amber-500/10 text-amber-700 dark:text-amber-400';
     case 'INTERNAL': return 'bg-slate-500/10 text-text-muted';
     default:         return 'bg-slate-500/10 text-text-muted';
   }
@@ -57,8 +57,8 @@ function statusBadge(code: string | undefined): string {
 function logLevelBadge(level: string): string {
   switch (level) {
     case 'error': return 'bg-red-500/10 text-red-600 dark:text-red-400';
-    case 'warn':  return 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
-    case 'info':  return 'bg-sky-500/10 text-sky-600 dark:text-sky-400';
+    case 'warn':  return 'bg-amber-500/10 text-amber-700 dark:text-amber-400';
+    case 'info':  return 'bg-sky-500/10 text-sky-700 dark:text-sky-400';
     case 'debug': return 'bg-slate-500/10 text-text-muted';
     case 'trace': return 'bg-slate-500/10 text-text-dim';
     default:      return 'bg-slate-500/10 text-text-muted';
@@ -473,7 +473,7 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
         {headers.map((h) => (
           <div key={h.name} className="flex gap-2 font-mono text-xs">
             <dt className="shrink-0 text-text-muted">{h.name}:</dt>
-            <dd className={`min-w-0 break-all ${h.value === '***' ? 'text-amber-600 dark:text-amber-400' : 'text-text-secondary'}`}>
+            <dd className={`min-w-0 break-all ${h.value === '***' ? 'text-amber-700 dark:text-amber-400' : 'text-text-secondary'}`}>
               {h.value}
             </dd>
           </div>
@@ -567,7 +567,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
                 </span>
               )}
               {item.truncated && (
-                <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-xs text-amber-600 dark:text-amber-400">
+                <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-400">
                   잘림
                 </span>
               )}

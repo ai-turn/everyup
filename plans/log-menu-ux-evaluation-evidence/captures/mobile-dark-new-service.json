@@ -1,0 +1,401 @@
+{
+  "time": "2026-11-08T04:34:30.059Z",
+  "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_1794112469524",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "theme": "dark",
+  "scenario": "attention",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "documentWidth": 390,
+  "mainWidth": 390,
+  "text": "ux-audit-mobile-dark\n수집 가능\n마지막 수집 아직 없음\n연결 중지\nAPI Key\nevup_****demo\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\n미분류\n수집 데이터\nlogs\n수집 레벨\nerror, warn, info\n변경\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\n전체\nerror\nwarn\ninfo\ndebug\ntrace\n실시간\n로그 발생량\n건 / 10분\n08:00\n10:00\n13:00\n\n이 기간에 수집된 로그가 없습니다\n\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "controls": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "연결 중지",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 208.296875,
+        "y": 213,
+        "width": 112.65625,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "키 재발급",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 261.34375,
+        "y": 274,
+        "width": 112.65625,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "label": "미분류\nProduction\nStaging\nBackoffice",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 127,
+        "y": 326,
+        "width": 1,
+        "height": 1
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "label": "그룹 배정",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 128,
+        "y": 327,
+        "width": 192,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(33, 34, 37)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "변경",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 330,
+        "y": 428,
+        "width": 44,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "1H",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 18,
+        "y": 524,
+        "width": 42.71875,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "6H",
+      "title": null,
+      "pressed": "true",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 62.71875,
+        "y": 524,
+        "width": 42.71875,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(46, 49, 53)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "24H",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 107.4375,
+        "y": 524,
+        "width": 51.0625,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "새로고침",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 168.5,
+        "y": 524,
+        "width": 44,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "알림 규칙",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 278,
+        "y": 524,
+        "width": 44,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "삭제",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 330,
+        "y": 524,
+        "width": 44,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(255, 99, 105)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "전체",
+      "title": null,
+      "pressed": "true",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 18,
+        "y": 596,
+        "width": 46.09375,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(46, 49, 53)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "error",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 66.09375,
+        "y": 596,
+        "width": 52.875,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "warn",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 120.96875,
+        "y": 596,
+        "width": 53.234375,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "info",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 176.203125,
+        "y": 596,
+        "width": 46.09375,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "debug",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 224.296875,
+        "y": 596,
+        "width": 60.265625,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "trace",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 286.5625,
+        "y": 596,
+        "width": 53.546875,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "INPUT",
+      "role": null,
+      "label": "메시지 검색…",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 16,
+        "y": 638,
+        "width": 259.359375,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "실시간",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 287.359375,
+        "y": 638,
+        "width": 86.640625,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "GitHub",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 122.96875,
+        "y": 1169,
+        "width": 59.125,
+        "height": 16
+      },
+      "fontSize": "12px",
+      "color": "rgb(139, 143, 151)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "피드백 보내기",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 198.09375,
+        "y": 1169,
+        "width": 68.9375,
+        "height": 16
+      },
+      "fontSize": "12px",
+      "color": "rgb(139, 143, 151)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  ],
+  "overflows": [],
+  "focus": {
+    "tag": "BODY",
+    "label": "본문 바로가기Live Demo예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요실제 사용 시작하기서비스 소개E"
+  },
+  "snapshot": "- link \"본문 바로가기\":\n  - /url: \"#main-content\"\n- text: Live Demo\n- paragraph: 예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.\n- text: 데모 상태\n- combobox \"데모 시나리오\": 확인 필요\n- navigation \"데모 안내\":\n  - link \"실제 사용 시작하기\":\n    - /url: https://ai-turn.github.io/everyup/guide/quickstart\n  - link \"서비스 소개\":\n    - /url: https://ai-turn.github.io/everyup/\n- banner:\n  - link \"EveryUp\":\n    - /url: /everyup/demo/\n  - button \"검색\"\n- main:\n  - heading \"ux-audit-mobile-dark\" [level=1]\n  - text: 수집 가능 마지막 수집 아직 없음\n  - button \"연결 중지\"\n  - term: API Key\n  - definition:\n    - text: evup_****demo\n    - button \"키 재발급\"\n  - term: 그룹\n  - definition:\n    - combobox \"그룹 배정\": 미분류\n  - term: 수집 데이터\n  - definition: logs\n  - term: 수집 레벨\n  - definition:\n    - text: error, warn, info\n    - button \"변경\"\n  - group \"시간 범위\":\n    - button \"1H\"\n    - button \"6H\" [pressed]\n    - button \"24H\"\n  - button \"새로고침\"\n  - link \"알림 규칙\":\n    - /url: /everyup/demo/alerts?tab=rules&target=direct&serviceId=observed_mock_1794112469524\n  - button \"삭제\"\n  - group \"로그 레벨\":\n    - button \"전체\" [pressed]\n    - button \"error\"\n    - button \"warn\"\n    - button \"info\"\n    - button \"debug\"\n    - button \"trace\"\n  - textbox \"메시지 검색…\"\n  - button \"실시간\"\n  - heading \"로그 발생량\" [level=3]\n  - text: 건 / 10분\n  - application: 08:00 10:00 13:00\n  - paragraph: 이 기간에 수집된 로그가 없습니다\n  - text: © 2026 EveryUp\n  - link \"GitHub\":\n    - /url: https://github.com/ai-turn/Monitoring\n  - link \"피드백 보내기\":\n    - /url: https://github.com/ai-turn/Monitoring/issues\n- navigation:\n  - link \"개요\":\n    - /url: /everyup/demo/\n  - link \"그룹\":\n    - /url: /everyup/demo/projects\n  - link \"알림\":\n    - /url: /everyup/demo/alerts\n  - link \"더보기\":\n    - /url: /everyup/demo/more",
+  "note": ""
+}

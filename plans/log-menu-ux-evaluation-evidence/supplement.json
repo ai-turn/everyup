@@ -1,0 +1,575 @@
+{
+  "phase": "supplement",
+  "startedAt": "2026-11-08T04:40:49.408Z",
+  "finishedAt": "2026-11-08T04:41:25.040Z",
+  "browser": "151.0.7922.34",
+  "records": [
+    {
+      "id": "supp-1440-light-patterns-bottom",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Scrolled the actual content scroll container."
+    },
+    {
+      "id": "supp-1440-light-search-before-enter",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Typed and waited 600ms without Enter."
+    },
+    {
+      "id": "supp-1440-light-range-1h",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-light-chart-keyboard",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-light-json-scrolled",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-light-pagination-bottom",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-light-existing-attached",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-dark-patterns-bottom",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Scrolled the actual content scroll container."
+    },
+    {
+      "id": "supp-1440-dark-search-before-enter",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Typed and waited 600ms without Enter."
+    },
+    {
+      "id": "supp-1440-dark-range-1h",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-dark-chart-keyboard",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-dark-json-scrolled",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-dark-pagination-bottom",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-1440-dark-existing-attached",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-light-patterns-bottom",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Scrolled the actual content scroll container."
+    },
+    {
+      "id": "supp-390-light-search-before-enter",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Typed and waited 600ms without Enter."
+    },
+    {
+      "id": "supp-390-light-range-1h",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-light-chart-keyboard",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-light-json-scrolled",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-light-pagination-bottom",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-light-existing-attached",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-dark-patterns-bottom",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Scrolled the actual content scroll container."
+    },
+    {
+      "id": "supp-390-dark-search-before-enter",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Typed and waited 600ms without Enter."
+    },
+    {
+      "id": "supp-390-dark-range-1h",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-dark-chart-keyboard",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-dark-json-scrolled",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-dark-pagination-bottom",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "supp-390-dark-existing-attached",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "scenario-1440-normal",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Scenario fixture selected through session storage at startup."
+    },
+    {
+      "id": "scenario-1440-empty",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Scenario fixture selected through session storage at startup."
+    },
+    {
+      "id": "scenario-1440-partial-failure",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Scenario fixture selected through session storage at startup."
+    },
+    {
+      "id": "scenario-390-normal",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Scenario fixture selected through session storage at startup."
+    },
+    {
+      "id": "scenario-390-empty",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Scenario fixture selected through session storage at startup."
+    },
+    {
+      "id": "scenario-390-partial-failure",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Scenario fixture selected through session storage at startup."
+    },
+    {
+      "id": "narrow-320-list",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=grid",
+      "theme": "light",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "note": "390px uses CSS root-font-size 200% simulation, not browser zoom."
+    },
+    {
+      "id": "narrow-320-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "narrow-320-json",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "narrow-320-setup",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "text-200-list",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=grid",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "390px uses CSS root-font-size 200% simulation, not browser zoom."
+    },
+    {
+      "id": "text-200-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "text-200-json",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "text-200-setup",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    }
+  ],
+  "checks": [
+    {
+      "id": "supp-1440-light-initial-positions",
+      "passed": true,
+      "positions": {
+        "firstLog": 705,
+        "chart": 469,
+        "main": {
+          "x": 240,
+          "y": 64,
+          "width": 1200,
+          "height": 836,
+          "top": 64,
+          "right": 1440,
+          "bottom": 900,
+          "left": 240
+        }
+      }
+    },
+    {
+      "id": "supp-1440-light-search-requires-enter",
+      "passed": true,
+      "rowsBefore": 21
+    },
+    {
+      "id": "supp-1440-light-time-range",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h"
+    },
+    {
+      "id": "supp-1440-light-chart-keyboard",
+      "passed": false
+    },
+    {
+      "id": "supp-1440-light-existing-attach",
+      "passed": true
+    },
+    {
+      "id": "supp-1440-dark-initial-positions",
+      "passed": true,
+      "positions": {
+        "firstLog": 705,
+        "chart": 469,
+        "main": {
+          "x": 240,
+          "y": 64,
+          "width": 1200,
+          "height": 836,
+          "top": 64,
+          "right": 1440,
+          "bottom": 900,
+          "left": 240
+        }
+      }
+    },
+    {
+      "id": "supp-1440-dark-search-requires-enter",
+      "passed": true,
+      "rowsBefore": 21
+    },
+    {
+      "id": "supp-1440-dark-time-range",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h"
+    },
+    {
+      "id": "supp-1440-dark-chart-keyboard",
+      "passed": false
+    },
+    {
+      "id": "supp-1440-dark-existing-attach",
+      "passed": true
+    },
+    {
+      "id": "supp-390-light-initial-positions",
+      "passed": true,
+      "positions": {
+        "firstLog": 1007,
+        "chart": 747,
+        "main": {
+          "x": 0,
+          "y": 153,
+          "width": 390,
+          "height": 691,
+          "top": 153,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        }
+      }
+    },
+    {
+      "id": "supp-390-light-search-requires-enter",
+      "passed": true,
+      "rowsBefore": 21
+    },
+    {
+      "id": "supp-390-light-time-range",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h"
+    },
+    {
+      "id": "supp-390-light-chart-keyboard",
+      "passed": false
+    },
+    {
+      "id": "supp-390-light-existing-attach",
+      "passed": true
+    },
+    {
+      "id": "supp-390-dark-initial-positions",
+      "passed": true,
+      "positions": {
+        "firstLog": 1007,
+        "chart": 747,
+        "main": {
+          "x": 0,
+          "y": 153,
+          "width": 390,
+          "height": 691,
+          "top": 153,
+          "right": 390,
+          "bottom": 844,
+          "left": 0
+        }
+      }
+    },
+    {
+      "id": "supp-390-dark-search-requires-enter",
+      "passed": true,
+      "rowsBefore": 21
+    },
+    {
+      "id": "supp-390-dark-time-range",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h"
+    },
+    {
+      "id": "supp-390-dark-chart-keyboard",
+      "passed": false
+    },
+    {
+      "id": "supp-390-dark-existing-attach",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,682 @@
+{
+  "violations": [
+    {
+      "id": "nested-interactive",
+      "impact": "serious",
+      "tags": [
+        "cat.keyboard",
+        "wcag2a",
+        "wcag412",
+        "TTv5",
+        "TT6.a",
+        "EN-301-549",
+        "EN-9.4.1.2",
+        "RGAAv4",
+        "RGAA-7.1.1"
+      ],
+      "description": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+      "help": "Interactive controls must not be nested",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/nested-interactive?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(4) > .items-start.sm\\:flex-nowrap.gap-y-1 > .gap-1.hover\\:bg-action\\/10.h-8"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(4)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(7) > .items-start.sm\\:flex-nowrap.gap-y-1 > .gap-1.hover\\:bg-action\\/10.h-8"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(7)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(8) > .items-start.sm\\:flex-nowrap.gap-y-1 > .gap-1.hover\\:bg-action\\/10.h-8"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(8)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(9) > .items-start.sm\\:flex-nowrap.gap-y-1 > .gap-1.hover\\:bg-action\\/10.h-8"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(9)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(11) > .items-start.sm\\:flex-nowrap.gap-y-1 > .gap-1.hover\\:bg-action\\/10.h-8"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(11)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(12) > .items-start.sm\\:flex-nowrap.gap-y-1 > .gap-1.hover\\:bg-action\\/10.h-8"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(12)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(14) > .items-start.sm\\:flex-nowrap.gap-y-1 > .gap-1.hover\\:bg-action\\/10.h-8"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(14)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(15) > .items-start.sm\\:flex-nowrap.gap-y-1 > .gap-1.hover\\:bg-action\\/10.h-8"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(15)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        }
+      ]
+    }
+  ],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "tags": [
+        "cat.color",
+        "wcag2aa",
+        "wcag143",
+        "TTv5",
+        "TT13.c",
+        "EN-301-549",
+        "EN-9.1.4.3",
+        "ACT",
+        "RGAAv4",
+        "RGAA-3.2.1"
+      ],
+      "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"103.58254883101851\" dy=\"0.71em\">15:00</tspan>",
+          "target": [
+            "tspan[x=\"103.58254883101851\"][dy=\"0.71em\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"232.45754883101853\" dy=\"0.71em\">18:00</tspan>",
+          "target": [
+            "tspan[x=\"232.45754883101853\"][dy=\"0.71em\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"361.3325488310185\" dy=\"0.71em\">21:00</tspan>",
+          "target": [
+            "tspan[x=\"361.3325488310185\"][dy=\"0.71em\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"490.2075488310185\" dy=\"0.71em\">00:00</tspan>",
+          "target": [
+            "tspan[x=\"490.2075488310185\"][dy=\"0.71em\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"619.0825488310185\" dy=\"0.71em\">03:00</tspan>",
+          "target": [
+            "tspan[x=\"619.0825488310185\"][dy=\"0.71em\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"747.9575488310185\" dy=\"0.71em\">06:00</tspan>",
+          "target": [
+            "tspan[x=\"747.9575488310185\"][dy=\"0.71em\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"876.8325488310185\" dy=\"0.71em\">09:00</tspan>",
+          "target": [
+            "tspan[x=\"876.8325488310185\"][dy=\"0.71em\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"1005.7075488310185\" dy=\"0.71em\">12:00</tspan>",
+          "target": [
+            "tspan[x=\"1005.7075488310185\"][dy=\"0.71em\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "shortTextContent",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element content is too short to determine if it is actual text content"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"28\" dy=\"0.355em\">0</tspan>",
+          "target": [
+            "text[y=\"90\"] > tspan[dy=\"0.355em\"][x=\"28\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "shortTextContent",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element content is too short to determine if it is actual text content"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"28\" dy=\"0.355em\">5</tspan>",
+          "target": [
+            "text[y=\"62.66666666666667\"] > tspan[dy=\"0.355em\"][x=\"28\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"28\" dy=\"0.355em\">10</tspan>",
+          "target": [
+            "text[y=\"35.333333333333336\"] > tspan[dy=\"0.355em\"][x=\"28\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "9.0pt (12px)",
+                "fontWeight": "normal",
+                "messageKey": "imgNode",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<svg role=\"application\" tabindex=\"0\" class=\"recharts-surface\" width=\"1087\" height=\"120\" viewBox=\"0 0 1087 120\" style=\"width: 100%; height: 100%; display: block;\">",
+                  "target": [
+                    ".recharts-surface"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because element contains an image node"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<tspan x=\"28\" dy=\"0.355em\">15</tspan>",
+          "target": [
+            ".recharts-cartesian-axis-tick-label.recharts-layer:nth-child(4) > text[width=\"36\"][orientation=\"left\"][text-anchor=\"end\"] > tspan[dy=\"0.355em\"][x=\"28\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+        }
+      ]
+    }
+  ],
+  "passes": [
+    "aria-allowed-attr",
+    "aria-command-name",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "avoid-inline-spacing",
+    "button-name",
+    "bypass",
+    "color-contrast",
+    "definition-list",
+    "dlitem",
+    "document-title",
+    "form-field-multiple-labels",
+    "html-has-lang",
+    "html-lang-valid",
+    "image-alt",
+    "label",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive",
+    "scrollable-region-focusable",
+    "target-size"
+  ],
+  "testEngine": {
+    "name": "axe-core",
+    "version": "4.14.0"
+  },
+  "testEnvironment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+    "windowWidth": 1440,
+    "windowHeight": 900,
+    "orientationAngle": 0,
+    "orientationType": "landscape-primary"
+  }
+}

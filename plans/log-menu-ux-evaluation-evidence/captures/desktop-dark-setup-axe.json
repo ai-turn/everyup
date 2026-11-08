@@ -1,0 +1,224 @@
+{
+  "violations": [
+    {
+      "id": "link-in-text-block",
+      "impact": "serious",
+      "tags": [
+        "cat.color",
+        "wcag2a",
+        "wcag141",
+        "TTv5",
+        "TT13.a",
+        "EN-301-549",
+        "EN-9.1.4.1",
+        "RGAAv4",
+        "RGAA-10.6.1"
+      ],
+      "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+      "help": "Links must be distinguishable without relying on color",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/link-in-text-block?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "link-in-text-block",
+              "data": {
+                "messageKey": "fgContrast",
+                "contrastRatio": 1.01,
+                "requiredContrastRatio": 3,
+                "nodeColor": "#9eb1ff",
+                "parentColor": "#b0b4ba"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<p class=\"mb-5 type-body text-text-muted\">Docker Collector가 수집한 데이터는 <a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>에서 확인합니다.</p>",
+                  "target": [
+                    ".mb-5.type-body.text-text-muted"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "The link has insufficient color contrast of 1.01:1 with the surrounding text. (Minimum contrast is 3:1, link text: #9eb1ff, surrounding text: #b0b4ba)"
+            },
+            {
+              "id": "link-in-text-block-style",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<p class=\"mb-5 type-body text-text-muted\">Docker Collector가 수집한 데이터는 <a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>에서 확인합니다.</p>",
+                  "target": [
+                    ".mb-5.type-body.text-text-muted"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "The link has no styling (such as underline) to distinguish it from the surrounding text"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>",
+          "target": [
+            ".mb-5.type-body.text-text-muted > .hover\\:underline.text-action[href$=\"environments\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  The link has insufficient color contrast of 1.01:1 with the surrounding text. (Minimum contrast is 3:1, link text: #9eb1ff, surrounding text: #b0b4ba)\n  The link has no styling (such as underline) to distinguish it from the surrounding text"
+        }
+      ]
+    }
+  ],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "tags": [
+        "cat.color",
+        "wcag2aa",
+        "wcag143",
+        "TTv5",
+        "TT13.c",
+        "EN-301-549",
+        "EN-9.1.4.3",
+        "ACT",
+        "RGAAv4",
+        "RGAA-3.2.1"
+      ],
+      "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "10.5pt (14px)",
+                "fontWeight": "normal",
+                "messageKey": "elmPartiallyObscuring",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because it partially overlaps other elements"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<p class=\"type-body text-text-muted\">컨테이너가 stdout으로 내보내는 로그는 <a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.</p>",
+          "target": [
+            "form > .type-body.text-text-muted"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it partially overlaps other elements"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "10.5pt (14px)",
+                "fontWeight": "normal",
+                "messageKey": "elmPartiallyObscuring",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because it partially overlaps other elements"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<p id=\"direct-logs-name-hint\" class=\"type-body text-text-muted\">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</p>",
+          "target": [
+            "#direct-logs-name-hint"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it partially overlaps other elements"
+        }
+      ]
+    },
+    {
+      "id": "link-in-text-block",
+      "impact": "serious",
+      "tags": [
+        "cat.color",
+        "wcag2a",
+        "wcag141",
+        "TTv5",
+        "TT13.a",
+        "EN-301-549",
+        "EN-9.1.4.1",
+        "RGAAv4",
+        "RGAA-10.6.1"
+      ],
+      "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+      "help": "Links must be distinguishable without relying on color",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/link-in-text-block?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "link-in-text-block",
+              "data": {
+                "messageKey": "elmPartiallyObscuring"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<p class=\"type-body text-text-muted\">컨테이너가 stdout으로 내보내는 로그는 <a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.</p>",
+                  "target": [
+                    "form > .type-body.text-text-muted"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element's foreground contrast ratio could not be determined"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>",
+          "target": [
+            "form > .type-body.text-text-muted > .hover\\:underline.text-action[href$=\"environments\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's foreground contrast ratio could not be determined"
+        }
+      ]
+    }
+  ],
+  "passes": [
+    "aria-allowed-attr",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "autocomplete-valid",
+    "button-name",
+    "color-contrast",
+    "duplicate-id-aria",
+    "form-field-multiple-labels",
+    "label",
+    "link-name",
+    "meta-viewport",
+    "nested-interactive",
+    "target-size"
+  ],
+  "testEngine": {
+    "name": "axe-core",
+    "version": "4.14.0"
+  },
+  "testEnvironment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+    "windowWidth": 1440,
+    "windowHeight": 900,
+    "orientationAngle": 0,
+    "orientationType": "landscape-primary"
+  }
+}

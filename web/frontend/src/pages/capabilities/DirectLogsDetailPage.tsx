@@ -142,6 +142,7 @@ export function DirectLogsDetailPage() {
             onSaveProject={() => void saveProject()}
             savingProject={savingProject}
             extraFields={[{ label: '수집 레벨', value: <LogIngestLevels observedServiceId={service.id} /> }]}
+            collapseOnMobile
           />
         }
       />

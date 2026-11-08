@@ -23,6 +23,8 @@ interface DirectConnectionMetaProps {
   onRetryProjects?: () => void;
   /** 기능별 설정 — 로그의 수집 레벨처럼 그 상세에만 있는 칸 */
   extraFields?: DetailMetaField[];
+  /** 좁은 화면에서 속성 목록을 접는다 — 본문(로그 목록)이 첫 화면 밖으로 밀리는 상세용 */
+  collapseOnMobile?: boolean;
 }
 
 export function DirectConnectionMeta({
@@ -42,12 +44,14 @@ export function DirectConnectionMeta({
   projectsError,
   onRetryProjects,
   extraFields = [],
+  collapseOnMobile = false,
 }: DirectConnectionMetaProps) {
   return (
     <DetailMeta
+      collapseOnMobile={collapseOnMobile}
       status={
         <>
-          <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '수집 가능' : '중지됨'} />
+          <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '연결 활성' : '중지됨'} />
           <span>마지막 수집 {lastSeenAt ? new Date(lastSeenAt).toLocaleString('ko-KR', { hour12: false }) : '아직 없음'}</span>
           {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 원리 */}
           {isActive && <Button variant="ghost" onClick={onRevoke}><MaterialIcon name="block" />연결 중지</Button>}
