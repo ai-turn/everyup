@@ -43,10 +43,46 @@ func (h *ServiceHandler) GetAll(c *fiber.Ctx) error {
 
 	// Fetch sparkline data for all services in one batch query
 	sparklines, _ := h.metricRepo.GetRecentResponseTimesBatch(24)
+	includeChecks := c.Query("include") == "checks"
+	var recentChecks map[string][]models.Metric
+	activeIncidents := make(map[string]models.Incident)
+	if includeChecks {
+		recentChecks, err = h.metricRepo.GetRecentChecksBatch(10)
+		if err != nil {
+			return internalError(c, "DATABASE_ERROR", err)
+		}
+		incidents, err := database.NewIncidentRepository().GetActive()
+		if err != nil {
+			return internalError(c, "DATABASE_ERROR", err)
+		}
+		for _, incident := range incidents {
+			if _, exists := activeIncidents[incident.ServiceID]; !exists {
+				activeIncidents[incident.ServiceID] = incident
+			}
+		}
+	}
 
 	// Enrich services with their latest check status and uptime/latency.
 	for i := range services {
-		h.enrichService(&services[i], sparklines[services[i].ID])
+		service := &services[i]
+		var checks []models.Metric
+		if includeChecks && (service.Type == models.ServiceTypeHTTP || service.Type == models.ServiceTypeTCP) {
+			checks = recentChecks[service.ID]
+			if checks == nil {
+				checks = []models.Metric{}
+			}
+			service.RecentChecks = &checks
+		}
+		h.enrichService(service, sparklines[service.ID], checks)
+		if service.IsActive && service.Status == models.StatusUnhealthy {
+			if incident, exists := activeIncidents[service.ID]; exists {
+				episode := uptimeEpisode(database.UptimeIncident{
+					ServiceID: service.ID, ServiceName: service.Name,
+					Message: incident.Message, StartedAt: incident.StartedAt,
+				}, time.Now())
+				service.ActiveIncident = &episode
+			}
+		}
 	}
 
 	// Clear hash from response — frontend uses apiKeyMasked instead
@@ -79,7 +115,7 @@ func (h *ServiceHandler) GetByID(c *fiber.Ctx) error {
 		})
 	}
 
-	h.enrichService(service, nil)
+	h.enrichService(service, nil, nil)
 
 	// Clear hash from response — frontend uses apiKeyMasked instead
 	service.ApiKey = ""
@@ -90,13 +126,15 @@ func (h *ServiceHandler) GetByID(c *fiber.Ctx) error {
 	})
 }
 
-func (h *ServiceHandler) enrichService(service *models.Service, history []int) {
+func (h *ServiceHandler) enrichService(service *models.Service, history []int, metrics []models.Metric) {
 	service.Status = models.StatusUnknown
 	if !service.IsActive || service.Type == models.ServiceTypeLog {
 		return
 	}
 	service.LatencyHistory = history
-	metrics, _ := h.metricRepo.GetByServiceID(service.ID, 1)
+	if metrics == nil {
+		metrics, _ = h.metricRepo.GetByServiceID(service.ID, 1)
+	}
 	if len(metrics) > 0 {
 		service.LastCheckAt = &metrics[0].CheckedAt
 		if metrics[0].Status == models.CheckStatusSuccess {

@@ -82,7 +82,7 @@ test('[16] mobile keyboard focus remains above bottom navigation and charts are 
   await uptimeFixture(page); await page.goto('./uptime/http-monitor');
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const history = page.getByRole('group', { name: /최근 90일/ });
-  const response = page.getByRole('group', { name: /체크별/ });
+  const response = page.getByRole('application', { name: /응답 시간 추이/ });
   // Each chart is one stop: the response chart, then the 90-day strip, then the outage history's three filters.
   await tabTo(page, response); await page.keyboard.press('Home'); await page.keyboard.press('End');
   await page.keyboard.press('Tab'); await expect(history).toBeFocused();

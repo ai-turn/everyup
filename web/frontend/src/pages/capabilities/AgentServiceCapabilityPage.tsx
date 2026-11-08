@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -9,13 +9,15 @@ import { DockerEnvironmentHint } from '../../features/services/components/Docker
 import { UptimeMonitorDialog } from '../../features/uptime/components/UptimeMonitorDialog';
 import { UPTIME_STATE_LIGHT, uptimeState, type UptimeState } from '../../features/uptime/uptimeState';
 import { UptimeTargets } from '../../features/uptime/components/UptimeTargets';
+import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRefreshControls';
+import { useUptimeMonitorList } from '../../features/uptime/useUptimeMonitorList';
 import { api, type UptimeMonitor, type UptimeMonitorInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { useListView } from '../../hooks/useListView';
 
 const UptimeListPrototype = import.meta.env.DEV ? lazy(() => import('./UptimeList.prototype').then((module) => ({ default: module.UptimeListPrototype }))) : null;
 
-const STATUS_FILTERS: UptimeState[] = ['up', 'down', 'waiting', 'paused'];
+const STATUS_FILTERS: UptimeState[] = ['down', 'up', 'waiting', 'paused'];
 const parseStatus = (value: string | null): UptimeState | null =>
   STATUS_FILTERS.includes(value as UptimeState) ? value as UptimeState : null;
 
@@ -37,7 +39,6 @@ function ServiceListSkeleton() {
 }
 
 export function AgentServiceCapabilityPage() {
-  const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
   const status = parseStatus(searchParams.get('status'));
@@ -45,35 +46,18 @@ export function AgentServiceCapabilityPage() {
   const setParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(searchParams);
     if (value) next.set(key, value); else next.delete(key);
+    next.delete('inspect');
     setSearchParams(next, { replace: true });
   };
   const setQuery = (value: string) => setParam('q', value);
   const setStatus = (value: UptimeState | null) => setParam('status', value);
   const returnTo = `/uptime${searchParams.size ? `?${searchParams}` : ''}`;
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [changingMonitor, setChangingMonitor] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      setMonitors(await api.getUptimeMonitors() ?? []);
-      setError(null);
-    } catch (loadError) {
-      setError(getErrorMessage(loadError));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const initialLoad = window.setTimeout(() => void load(), 0);
-    return () => window.clearTimeout(initialLoad);
-  }, [load]);
+  const { monitors, loading, refreshing, error, updatedAt, autoRefresh, changeAutoRefresh, load, reloadAfterChange } = useUptimeMonitorList(adding || bulkWorking || changingMonitor !== null || confirmingDelete);
 
   // 업타임은 직접 등록한 모니터만 담는다(ADR 0007). Docker Collector의 검사는 Docker 환경에서 본다.
   const normalizedQuery = query.trim().toLowerCase();
@@ -81,7 +65,7 @@ export function AgentServiceCapabilityPage() {
     || monitor.name.toLowerCase().includes(normalizedQuery)
     || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery))), [monitors, normalizedQuery, status]);
   // 검색·필터로 가려진 대상은 일괄 작업에서 빠진다 — 보이지 않는 것을 지우지 않게.
-  const selectedMonitors = filteredMonitors.filter((monitor) => selected.has(monitor.id));
+  const selectedMonitors = view === 'card' ? filteredMonitors.filter((monitor) => selected.has(monitor.id)) : [];
   const visibleSelection = new Set(selectedMonitors.map((monitor) => monitor.id));
   const select = (ids: string[], checked: boolean) => setSelected((current) => {
     const next = new Set(current);
@@ -91,7 +75,7 @@ export function AgentServiceCapabilityPage() {
 
   const saveMonitor = async (input: UptimeMonitorInput) => {
     await api.createUptimeMonitor(input);
-    await load();
+    await reloadAfterChange();
   };
 
   const setActive = async (monitor: UptimeMonitor) => {
@@ -99,7 +83,7 @@ export function AgentServiceCapabilityPage() {
     setChangingMonitor(monitor.id);
     try {
       await api.updateUptimeMonitor(monitor.id, withActive(monitor, !monitor.isActive));
-      await load();
+      await reloadAfterChange();
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -117,7 +101,7 @@ export function AgentServiceCapabilityPage() {
     setSelected(new Set(failed));
     setBulkWorking(false);
     if (failed.length > 0) toast.error(`${failed.length}개를 ${verb}하지 못했습니다. ${getErrorMessage(firstError)}`);
-    await load();
+    await reloadAfterChange();
   };
   const toPause = selectedMonitors.filter((monitor) => monitor.isActive);
   const toResume = selectedMonitors.filter((monitor) => !monitor.isActive);
@@ -136,32 +120,38 @@ export function AgentServiceCapabilityPage() {
 
   return (
     <div className={prototypeVariant ? 'pb-36' : ''}>
-      <PageHeader title="업타임" subtitle="서비스가 정상적으로 응답하는지 확인하고, 장애가 발생한 대상을 빠르게 찾습니다.">
+      <PageHeader compactActions title="업타임" subtitle="서비스가 정상적으로 응답하는지 확인하고, 장애가 발생한 대상을 빠르게 찾습니다.">
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>
 
-      {!loading && !error && hasTargets && (
-        <section aria-label="업타임 상태 요약" className="mb-5 border-b border-ui-border pb-4">
-          {/* 숫자를 누르면 그 상태만 본다(다시 누르면 해제). Uptime Kuma의 상태 필터를 요약에 겹쳤다. */}
-          <div role="group" aria-label="상태로 거르기" className="-ml-2 flex flex-wrap items-center gap-x-2 gap-y-2">
-            {STATUS_FILTERS.map((key) => {
-              const [tone, label] = UPTIME_STATE_LIGHT[key];
-              return (
-                <button key={key} type="button" aria-pressed={status === key} onClick={() => setStatus(status === key ? null : key)}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover">
-                  <StatusLight label={label} tone={key === 'down' && counts.down === 0 ? 'idle' : tone} />
-                  <span className="text-xl font-medium tabular-nums">{counts[key]}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-ui-border pb-4">
+        {!loading && !error && hasTargets && (
+          <section aria-label="업타임 상태 요약" className="w-full sm:w-auto">
+            {/* 숫자를 누르면 그 상태만 본다(다시 누르면 해제). Uptime Kuma의 상태 필터를 요약에 겹쳤다. */}
+            <div role="group" aria-label="상태로 거르기" className="-ml-2 grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
+              {STATUS_FILTERS.map((key) => {
+                const [tone, label] = UPTIME_STATE_LIGHT[key];
+                return (
+                  <button key={key} type="button" aria-pressed={status === key} onClick={() => setStatus(status === key ? null : key)}
+                    className="flex min-h-11 flex-col items-start gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">
+                    <StatusLight label={label} tone={key === 'down' && counts.down === 0 ? 'idle' : tone} />
+                    <span className="text-xl font-medium tabular-nums">{counts[key]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+        <div className="ml-auto">
+          <UptimeRefreshControls updatedAt={updatedAt} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh}
+            onRefresh={() => void load()} disabled={bulkWorking || changingMonitor !== null} />
+        </div>
+      </div>
 
-      <ListToolbar search={
+      <ListToolbar inline search={
         <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
       }>
-        <ListViewToggle view={view} onChange={setView} />
+        <ListViewToggle view={view} onChange={(next) => { setSelected(new Set()); setView(next); }} />
       </ListToolbar>
 
       {error && (
@@ -215,7 +205,7 @@ export function AgentServiceCapabilityPage() {
         <section aria-label="업타임 대상" aria-busy={loading || undefined}>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">모니터링 대상</h2>
-            <span className="text-xs text-text-dim">{filteredMonitors.length}</span>
+            <span className="type-caption text-text-muted"><span>{filteredMonitors.length}</span>개 · 장애 우선</span>
           </div>
           <UptimeTargets view={view} monitors={filteredMonitors} error={Boolean(error)}
             returnTo={returnTo} loading={loading || bulkWorking} changingMonitor={changingMonitor} onSetActive={(monitor) => void setActive(monitor)}

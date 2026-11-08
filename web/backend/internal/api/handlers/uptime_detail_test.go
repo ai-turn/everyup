@@ -36,6 +36,86 @@ func seedMonitors(t *testing.T, ids ...string) {
 	}
 }
 
+func TestUptimeListIncludesBoundedChecksAndCurrentOutages(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "uptime-list-details-1")
+	now := time.Now()
+	seedMonitors(t, "down", "healthy", "empty", "paused")
+	repo := database.NewMetricRepository()
+	for _, id := range []string{"down", "healthy"} {
+		for index := 0; index < 30; index++ {
+			status := models.CheckStatusSuccess
+			code, latency, message := 200, 120, ""
+			if id == "down" {
+				status, code, latency, message = models.CheckStatusFailure, 503, 5000, "upstream unavailable"
+			}
+			if err := repo.Create(&models.Metric{ServiceID: id, Status: status, StatusCode: code, ResponseTime: latency, ErrorMessage: message, CheckedAt: now.Add(-time.Duration(index) * time.Minute)}); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	if err := repo.Create(&models.Metric{ServiceID: "paused", Status: models.CheckStatusFailure, ResponseTime: 5000, CheckedAt: now.Add(-time.Hour)}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.DB.Exec(`UPDATE services SET is_active = 0 WHERE id = 'paused'`); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"down", "healthy", "paused"} {
+		if err := database.NewIncidentRepository().Create(&models.Incident{ServiceID: id, Type: models.IncidentTypeDown, Message: id + " outage", StartedAt: now.AddDate(0, 0, -120)}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	_, response := ts.doRequest(t, "GET", "/api/v1/services?type=http,tcp&include=checks", nil, authHeader(token)...)
+	if !response.Success {
+		t.Fatalf("list details: %+v", response.Error)
+	}
+	byID := make(map[string]models.Service)
+	for _, service := range decodeData[[]models.Service](t, response.Data) {
+		byID[service.ID] = service
+		if service.RecentChecks == nil {
+			t.Fatalf("%s: missing check details", service.ID)
+		}
+		checks := *service.RecentChecks
+		for index, check := range checks {
+			if check.ServiceID != service.ID || (index > 0 && check.CheckedAt.After(checks[index-1].CheckedAt)) {
+				t.Fatalf("wrong scope or order for %s: %+v", service.ID, checks)
+			}
+		}
+	}
+	down := byID["down"]
+	if len(*down.RecentChecks) != 10 || (*down.RecentChecks)[0].ErrorMessage != "upstream unavailable" || down.ActiveIncident == nil || !down.ActiveIncident.Active {
+		t.Fatalf("down details: %+v", down)
+	}
+	if down.ResponseTime != nil || down.ActiveIncident.DurationSec < 119*86400 {
+		t.Fatalf("timeout must not be latency; old active outages must remain visible: %+v", down)
+	}
+	if len(*byID["healthy"].RecentChecks) != 10 || byID["healthy"].ActiveIncident != nil || byID["paused"].ActiveIncident != nil {
+		t.Fatalf("healthy or paused monitor presented as an active outage: %+v", byID)
+	}
+	if len(*byID["empty"].RecentChecks) != 0 || len(*byID["paused"].RecentChecks) != 1 {
+		t.Fatalf("empty and paused histories: %+v", byID)
+	}
+	_, response = ts.doRequest(t, "GET", "/api/v1/services?type=http,tcp", nil, authHeader(token)...)
+	for _, service := range decodeData[[]models.Service](t, response.Data) {
+		if service.RecentChecks != nil || service.ActiveIncident != nil {
+			t.Fatalf("ordinary list must not fetch check details: %+v", service)
+		}
+	}
+}
+
+func TestUptimeListCheckDetailsFailureIsNotAnEmptyHistory(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "uptime-list-error-1")
+	seedMonitors(t, "monitor")
+	if _, err := database.DB.Exec(`DROP TABLE incidents`); err != nil {
+		t.Fatal(err)
+	}
+	status, response := ts.doRequest(t, "GET", "/api/v1/services?type=http,tcp&include=checks", nil, authHeader(token)...)
+	if status.StatusCode != 500 || response.Success {
+		t.Fatalf("missing incident data must be a visible failure, got %d: %+v", status.StatusCode, response)
+	}
+}
+
 // The monitor detail lists that monitor's outage episodes only — the
 // cross-target timeline already exists on the overview.
 func TestUptimeMonitorIncidentsAreScopedToTheMonitor(t *testing.T) {

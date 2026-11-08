@@ -62,8 +62,27 @@ export async function uptimeFixture(page: Page) {
       await route.fulfill({ status: 204 });
       return;
     } else if (path === '/agents/services/all') data = state.services;
-    else if (path === '/services') data = state.monitors;
+    else if (path === '/services') data = url.searchParams.get('include') === 'checks' ? state.monitors.map((item) => ({
+      ...item, recentChecks: item.recentChecks ?? state.metrics.filter((metric) => metric.serviceId === item.id).slice(0, 10),
+    })) : state.monitors;
     else if (/^\/services\/[^/]+\/metrics\/summary$/.test(path)) data = state.summary;
+    else if (/^\/services\/[^/]+\/metrics\/history$/.test(path)) {
+      const range = url.searchParams.get('range');
+      const hours = range === '1h' ? 1 : range === '6h' ? 6 : 24;
+      const step = range === '1h' ? 120_000 : range === '6h' ? 300_000 : 1_200_000;
+      const buckets = new Map<number, { total: number; success: number; sum: number }>();
+      for (const metric of state.metrics) {
+        const at = Date.parse(metric.checkedAt);
+        if (at < Date.now() - hours * 3_600_000) continue;
+        const t = Math.floor(at / step) * step;
+        const bucket = buckets.get(t) ?? { total: 0, success: 0, sum: 0 };
+        bucket.total++;
+        if (metric.status === 'success') { bucket.success++; bucket.sum += metric.responseTime; }
+        buckets.set(t, bucket);
+      }
+      data = [...buckets].map(([t, bucket]) => ({ time: new Date(t).toISOString(), total: bucket.total,
+        latencyMs: bucket.success ? bucket.sum / bucket.success : 0, uptimePct: bucket.success / bucket.total * 100 }));
+    }
     else if (/^\/services\/[^/]+\/metrics$/.test(path)) data = state.metrics;
     else if (/^\/services\/[^/]+\/uptime$/.test(path)) data = state.history;
     else if (/^\/services\/[^/]+$/.test(path)) {

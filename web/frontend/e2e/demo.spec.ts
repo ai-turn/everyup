@@ -115,7 +115,7 @@ test.describe('live demo', () => {
 
     // An ongoing Docker outage and a resolved uptime episode, newest first.
     await expect(timeline.getByRole('link', { name: /payment-worker/ })).toBeVisible();
-    await expect(timeline.getByText('HTTP 503 from origin')).toBeVisible();
+    await expect(timeline.getByText('upstream timeout')).toBeVisible();
 
     // The server builds targetPath; following it must land on the real target.
     await timeline.getByRole('link', { name: /payment-worker/ }).click();
