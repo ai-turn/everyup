@@ -1,0 +1,107 @@
+{
+  "violations": [
+    {
+      "id": "link-in-text-block",
+      "impact": "serious",
+      "tags": [
+        "cat.color",
+        "wcag2a",
+        "wcag141",
+        "TTv5",
+        "TT13.a",
+        "EN-301-549",
+        "EN-9.1.4.1",
+        "RGAAv4",
+        "RGAA-10.6.1"
+      ],
+      "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+      "help": "Links must be distinguishable without relying on color",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/link-in-text-block?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "link-in-text-block",
+              "data": {
+                "messageKey": "fgContrast",
+                "contrastRatio": 1.01,
+                "requiredContrastRatio": 3,
+                "nodeColor": "#9eb1ff",
+                "parentColor": "#b0b4ba"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<p class=\"mb-5 type-body text-text-muted\">Docker Collector가 수집한 데이터는 <a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>에서 확인합니다.</p>",
+                  "target": [
+                    ".mb-5.type-body.text-text-muted"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "The link has insufficient color contrast of 1.01:1 with the surrounding text. (Minimum contrast is 3:1, link text: #9eb1ff, surrounding text: #b0b4ba)"
+            },
+            {
+              "id": "link-in-text-block-style",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<p class=\"mb-5 type-body text-text-muted\">Docker Collector가 수집한 데이터는 <a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>에서 확인합니다.</p>",
+                  "target": [
+                    ".mb-5.type-body.text-text-muted"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "The link has no styling (such as underline) to distinguish it from the surrounding text"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<a class=\"text-action hover:underline\" href=\"/everyup/demo/environments\" data-discover=\"true\">Docker 환경</a>",
+          "target": [
+            ".hover\\:underline.text-action[href$=\"environments\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  The link has insufficient color contrast of 1.01:1 with the surrounding text. (Minimum contrast is 3:1, link text: #9eb1ff, surrounding text: #b0b4ba)\n  The link has no styling (such as underline) to distinguish it from the surrounding text"
+        }
+      ]
+    }
+  ],
+  "incomplete": [],
+  "passes": [
+    "aria-allowed-attr",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "button-name",
+    "color-contrast",
+    "duplicate-id-aria",
+    "form-field-multiple-labels",
+    "label",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive",
+    "scrollable-region-focusable",
+    "summary-name",
+    "target-size"
+  ],
+  "testEngine": {
+    "name": "axe-core",
+    "version": "4.14.0"
+  },
+  "testEnvironment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+    "windowWidth": 1440,
+    "windowHeight": 900,
+    "orientationAngle": 0,
+    "orientationType": "landscape-primary"
+  }
+}

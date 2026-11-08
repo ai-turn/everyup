@@ -1,0 +1,1211 @@
+{
+  "phase": "matrix",
+  "startedAt": "2026-11-08T04:33:45.236Z",
+  "finishedAt": "2026-11-08T04:34:30.102Z",
+  "browser": "151.0.7922.34",
+  "records": [
+    {
+      "id": "desktop-light-list-card",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Default attention fixture; card view."
+    },
+    {
+      "id": "desktop-light-patterns",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-pattern-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-list-grid",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=grid",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Default detail after list navigation."
+    },
+    {
+      "id": "desktop-light-search-error",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-search-empty",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-expanded",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-json",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-attribute",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-trace",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Trace opened with Enter."
+    },
+    {
+      "id": "desktop-light-chart-hover",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-bucket",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-pagination",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-ingest-editor",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-confirm-rotate",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-confirm-revoke",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-confirm-delete",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-rotated",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Demo key only. API key/configuration masked in screenshot."
+    },
+    {
+      "id": "desktop-light-setup",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "New service form."
+    },
+    {
+      "id": "desktop-light-setup-existing",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-light-setup-result",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Demo registration only. Keys masked."
+    },
+    {
+      "id": "desktop-light-new-service",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_1794112436251",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-list-card",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Default attention fixture; card view."
+    },
+    {
+      "id": "desktop-dark-patterns",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-pattern-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-list-grid",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=grid",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Default detail after list navigation."
+    },
+    {
+      "id": "desktop-dark-search-error",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-search-empty",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-expanded",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-json",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-attribute",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-trace",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Trace opened with Enter."
+    },
+    {
+      "id": "desktop-dark-chart-hover",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-bucket",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-pagination",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-ingest-editor",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-confirm-rotate",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-confirm-revoke",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-confirm-delete",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-rotated",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Demo key only. API key/configuration masked in screenshot."
+    },
+    {
+      "id": "desktop-dark-setup",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "New service form."
+    },
+    {
+      "id": "desktop-dark-setup-existing",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "desktop-dark-setup-result",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Demo registration only. Keys masked."
+    },
+    {
+      "id": "desktop-dark-new-service",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_1794112447813",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-list-card",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Default attention fixture; card view."
+    },
+    {
+      "id": "mobile-light-patterns",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-pattern-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-list-grid",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=grid",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Default detail after list navigation."
+    },
+    {
+      "id": "mobile-light-search-error",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-search-empty",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-expanded",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-json",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-attribute",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-trace",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Trace opened with Enter."
+    },
+    {
+      "id": "mobile-light-chart-hover",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-bucket",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-pagination",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-ingest-editor",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-confirm-rotate",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-confirm-revoke",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-confirm-delete",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-rotated",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Demo key only. API key/configuration masked in screenshot."
+    },
+    {
+      "id": "mobile-light-setup",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "New service form."
+    },
+    {
+      "id": "mobile-light-setup-existing",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-light-setup-result",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Demo registration only. Keys masked."
+    },
+    {
+      "id": "mobile-light-new-service",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_1794112458708",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-list-card",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Default attention fixture; card view."
+    },
+    {
+      "id": "mobile-dark-patterns",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=card",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-pattern-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-list-grid",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs?view=grid",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-detail",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Default detail after list navigation."
+    },
+    {
+      "id": "mobile-dark-search-error",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-search-empty",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-expanded",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-json",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-attribute",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-trace",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Trace opened with Enter."
+    },
+    {
+      "id": "mobile-dark-chart-hover",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-bucket",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-pagination",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-ingest-editor",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-confirm-rotate",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-confirm-revoke",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-confirm-delete",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-rotated",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Demo key only. API key/configuration masked in screenshot."
+    },
+    {
+      "id": "mobile-dark-setup",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "New service form."
+    },
+    {
+      "id": "mobile-dark-setup-existing",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "mobile-dark-setup-result",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Demo registration only. Keys masked."
+    },
+    {
+      "id": "mobile-dark-new-service",
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_1794112469524",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    }
+  ],
+  "checks": [
+    {
+      "id": "desktop-light-T2-pattern",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms"
+    },
+    {
+      "id": "desktop-light-T2-clear",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T1-navigation",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h"
+    },
+    {
+      "id": "desktop-light-T3-search",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T3-empty",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T5-attribute",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T5-trace-keyboard",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T5-focus-return",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T4-bucket",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T6-live-on",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T6-pagination-stops-live",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T8-save-ingest",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T8-confirm-키 재발급",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T8-confirm-연결 중지",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T8-confirm-삭제",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T7-receipt",
+      "passed": true
+    },
+    {
+      "id": "desktop-light-T7-open-created",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T2-pattern",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms"
+    },
+    {
+      "id": "desktop-dark-T2-clear",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T1-navigation",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h"
+    },
+    {
+      "id": "desktop-dark-T3-search",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T3-empty",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T5-attribute",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T5-trace-keyboard",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T5-focus-return",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T4-bucket",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T6-live-on",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T6-pagination-stops-live",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T8-save-ingest",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T8-confirm-키 재발급",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T8-confirm-연결 중지",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T8-confirm-삭제",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T7-receipt",
+      "passed": true
+    },
+    {
+      "id": "desktop-dark-T7-open-created",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T2-pattern",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms"
+    },
+    {
+      "id": "mobile-light-T2-clear",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T1-navigation",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h"
+    },
+    {
+      "id": "mobile-light-T3-search",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T3-empty",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T5-attribute",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T5-trace-keyboard",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T5-focus-return",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T4-bucket",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T6-live-on",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T6-pagination-stops-live",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T8-save-ingest",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T8-confirm-키 재발급",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T8-confirm-연결 중지",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T8-confirm-삭제",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T7-receipt",
+      "passed": true
+    },
+    {
+      "id": "mobile-light-T7-open-created",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T2-pattern",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms"
+    },
+    {
+      "id": "mobile-dark-T2-clear",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T1-navigation",
+      "passed": true,
+      "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h"
+    },
+    {
+      "id": "mobile-dark-T3-search",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T3-empty",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T5-attribute",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T5-trace-keyboard",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T5-focus-return",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T4-bucket",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T6-live-on",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T6-pagination-stops-live",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T8-save-ingest",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T8-confirm-키 재발급",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T8-confirm-연결 중지",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T8-confirm-삭제",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T7-receipt",
+      "passed": true
+    },
+    {
+      "id": "mobile-dark-T7-open-created",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

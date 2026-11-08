@@ -1,0 +1,325 @@
+{
+  "violations": [
+    {
+      "id": "nested-interactive",
+      "impact": "serious",
+      "tags": [
+        "cat.keyboard",
+        "wcag2a",
+        "wcag412",
+        "TTv5",
+        "TT6.a",
+        "EN-301-549",
+        "EN-9.4.1.2",
+        "RGAAv4",
+        "RGAA-7.1.1"
+      ],
+      "description": "Ensure interactive controls are not nested as they are not always announced by screen readers or can cause focus problems for assistive technologies",
+      "help": "Interactive controls must not be nested",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/nested-interactive?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(4) > .items-start.gap-y-1.gap-x-3 > .gap-1.aria-busy\\:\\[\\&\\>svg\\:not\\(\\:first-child\\)\\]\\:hidden.hover\\:bg-action\\/10"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(4)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(7) > .items-start.gap-y-1.gap-x-3 > .gap-1.aria-busy\\:\\[\\&\\>svg\\:not\\(\\:first-child\\)\\]\\:hidden.hover\\:bg-action\\/10"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(7)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(8) > .items-start.gap-y-1.gap-x-3 > .gap-1.aria-busy\\:\\[\\&\\>svg\\:not\\(\\:first-child\\)\\]\\:hidden.hover\\:bg-action\\/10"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(8)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(9) > .items-start.gap-y-1.gap-x-3 > .gap-1.aria-busy\\:\\[\\&\\>svg\\:not\\(\\:first-child\\)\\]\\:hidden.hover\\:bg-action\\/10"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(9)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(11) > .items-start.gap-y-1.gap-x-3 > .gap-1.aria-busy\\:\\[\\&\\>svg\\:not\\(\\:first-child\\)\\]\\:hidden.hover\\:bg-action\\/10"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(11)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(12) > .items-start.gap-y-1.gap-x-3 > .gap-1.aria-busy\\:\\[\\&\\>svg\\:not\\(\\:first-child\\)\\]\\:hidden.hover\\:bg-action\\/10"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(12)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(14) > .items-start.gap-y-1.gap-x-3 > .gap-1.aria-busy\\:\\[\\&\\>svg\\:not\\(\\:first-child\\)\\]\\:hidden.hover\\:bg-action\\/10"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(14)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        },
+        {
+          "any": [
+            {
+              "id": "no-focusable-content",
+              "data": null,
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"inline-flex items-ce...\">",
+                  "target": [
+                    ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(15) > .items-start.gap-y-1.gap-x-3 > .gap-1.aria-busy\\:\\[\\&\\>svg\\:not\\(\\:first-child\\)\\]\\:hidden.hover\\:bg-action\\/10"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has focusable descendants. Move them outside of the element, or remove them."
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<div class=\"px-4 py-3 bg-bg-surface transition-colors cursor-pointer hover:bg-ui-hover-soft\" role=\"button\" tabindex=\"0\" aria-expanded=\"false\">",
+          "target": [
+            ".hover\\:bg-ui-hover-soft.py-3[role=\"button\"]:nth-child(15)"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has focusable descendants. Move them outside of the element, or remove them."
+        }
+      ]
+    }
+  ],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "tags": [
+        "cat.color",
+        "wcag2aa",
+        "wcag143",
+        "TTv5",
+        "TT13.c",
+        "EN-301-549",
+        "EN-9.1.4.3",
+        "ACT",
+        "RGAAv4",
+        "RGAA-3.2.1"
+      ],
+      "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "contrastRatio": 0,
+                "fontSize": "10.5pt (14px)",
+                "fontWeight": "normal",
+                "messageKey": "elmPartiallyObscuring",
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element's background color could not be determined because it partially overlaps other elements"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<span class=\"text-text-secondary break-all flex-1 min-w-0\">checkout-api: retry queue above threshold — 20 pending jobs</span>",
+          "target": [
+            ".break-all.text-text-secondary.flex-1"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it partially overlaps other elements"
+        }
+      ]
+    }
+  ],
+  "passes": [
+    "aria-allowed-attr",
+    "aria-command-name",
+    "aria-conditional-attr",
+    "aria-deprecated-role",
+    "aria-hidden-body",
+    "aria-hidden-focus",
+    "aria-prohibited-attr",
+    "aria-required-attr",
+    "aria-roles",
+    "aria-tooltip-name",
+    "aria-valid-attr-value",
+    "aria-valid-attr",
+    "avoid-inline-spacing",
+    "button-name",
+    "bypass",
+    "color-contrast",
+    "definition-list",
+    "dlitem",
+    "document-title",
+    "duplicate-id-aria",
+    "form-field-multiple-labels",
+    "html-has-lang",
+    "html-lang-valid",
+    "image-alt",
+    "label",
+    "link-name",
+    "list",
+    "listitem",
+    "meta-viewport",
+    "nested-interactive",
+    "scrollable-region-focusable",
+    "target-size"
+  ],
+  "testEngine": {
+    "name": "axe-core",
+    "version": "4.14.0"
+  },
+  "testEnvironment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+    "windowWidth": 390,
+    "windowHeight": 844,
+    "orientationAngle": 0,
+    "orientationType": "portrait-primary"
+  }
+}

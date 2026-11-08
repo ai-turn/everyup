@@ -1,0 +1,185 @@
+{
+  "time": "2026-11-08T04:34:29.168Z",
+  "url": "http://127.0.0.1:5197/everyup/demo/logs",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "theme": "dark",
+  "scenario": "attention",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "documentWidth": 390,
+  "mainWidth": 390,
+  "text": "로그 직접 연결\n\n앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다.\n\n컨테이너가 stdout으로 내보내는 로그는 Docker 환경에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.\n\n새 서비스\n기존 서비스\n서비스 이름\n\n앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.\n\n그룹\n미분류\nProduction\nStaging\nBackoffice\n미분류\n취소\n추가",
+  "controls": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "닫기",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 317,
+        "y": 152,
+        "width": 32,
+        "height": 32
+      },
+      "fontSize": "16px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "Docker 환경",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 41,
+        "y": 243,
+        "width": 281.796875,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "새 서비스",
+      "title": null,
+      "pressed": "true",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 43,
+        "y": 327,
+        "width": 78.65625,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(46, 49, 53)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "기존 서비스",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 123.65625,
+        "y": 327,
+        "width": 91.546875,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "INPUT",
+      "role": null,
+      "label": "예: orders-api",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 41,
+        "y": 419,
+        "width": 308,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(33, 34, 37)"
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "label": "미분류\nProduction\nStaging\nBackoffice",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 40,
+        "y": 575,
+        "width": 1,
+        "height": 1
+      },
+      "fontSize": "16px",
+      "color": "rgb(0, 0, 0)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "label": "미분류",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 41,
+        "y": 576,
+        "width": 308,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(33, 34, 37)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "취소",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 197.46875,
+        "y": 657,
+        "width": 59.765625,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "추가",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": true,
+      "rect": {
+        "x": 265.234375,
+        "y": 657,
+        "width": 83.765625,
+        "height": 44
+      },
+      "fontSize": "14px",
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(62, 99, 221)"
+    }
+  ],
+  "overflows": [],
+  "focus": {
+    "tag": "BUTTON",
+    "label": "닫기"
+  },
+  "snapshot": "- link \"본문 바로가기\":\n  - /url: \"#main-content\"\n- text: Live Demo\n- paragraph: 예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.\n- text: 데모 상태\n- combobox \"데모 시나리오\": 확인 필요\n- navigation \"데모 안내\":\n  - link \"실제 사용 시작하기\":\n    - /url: https://ai-turn.github.io/everyup/guide/quickstart\n  - link \"서비스 소개\":\n    - /url: https://ai-turn.github.io/everyup/\n- banner:\n  - link \"EveryUp\":\n    - /url: /everyup/demo/\n  - button \"검색\"\n- main:\n  - heading \"로그\" [level=1]\n  - paragraph: OpenTelemetry로 직접 연결한 앱의 로그와 최근 오류·경고를 확인합니다.\n  - button \"로그 연결\"\n  - dialog \"로그 직접 연결\":\n    - heading \"로그 직접 연결\" [level=2]\n    - paragraph: 앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다.\n    - button \"닫기\"\n    - paragraph:\n      - text: 컨테이너가 stdout으로 내보내는 로그는\n      - link \"Docker 환경\":\n        - /url: /everyup/demo/environments\n      - text: 에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.\n    - group \"서비스 선택 방식\":\n      - button \"새 서비스\" [pressed]\n      - button \"기존 서비스\"\n    - text: 서비스 이름\n    - textbox \"서비스 이름\":\n      - /placeholder: \"예: orders-api\"\n    - paragraph: 앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.\n    - text: 그룹\n    - combobox \"그룹\": 미분류\n    - button \"취소\"\n    - button \"추가\" [disabled]\n  - paragraph:\n    - text: Docker Collector가 수집한 데이터는\n    - link \"Docker 환경\":\n      - /url: /everyup/demo/environments\n    - text: 에서 확인합니다.\n  - group \"대상 보기 방식\":\n    - button \"그리드\" [pressed]\n    - button \"카드\"\n  - heading \"로그 서비스\" [level=2]\n  - text: 최근 24시간 · 서비스 7개\n  - table \"로그 서비스 그리드\":\n    - rowgroup:\n      - row \"서비스 오류 경고\":\n        - columnheader \"서비스\"\n        - columnheader \"오류\"\n        - columnheader \"경고\"\n    - rowgroup:\n      - 'row \"checkout-api 수집 중 error Connection timeout to upstream service: auth.internal:8080 after 5000ms 1분 전 14 14\"':\n        - 'cell \"checkout-api 수집 중 error Connection timeout to upstream service: auth.internal:8080 after 5000ms 1분 전\"':\n          - link \"checkout-api\":\n            - /url: /everyup/demo/logs/observed_mock_checkout?range=24h\n          - text: \"수집 중 error Connection timeout to upstream service: auth.internal:8080 after 5000ms 1분 전\"\n        - cell \"14\"\n        - cell \"14\"\n      - 'row \"payments-api 수집 중 error payments-api: payments.partner.io deadline exceeded after 2568ms 8분 전 9 12\"':\n        - 'cell \"payments-api 수집 중 error payments-api: payments.partner.io deadline exceeded after 2568ms 8분 전\"':\n          - link \"payments-api\":\n            - /url: /everyup/demo/logs/observed_mock_payments?range=24h\n          - text: \"수집 중 error payments-api: payments.partner.io deadline exceeded after 2568ms 8분 전\"\n        - cell \"9\"\n        - cell \"12\"\n      - 'row \"orders-api 수집 중 error orders-api: inventory.internal deadline exceeded after 1032ms 8분 전 9 12\"':\n        - 'cell \"orders-api 수집 중 error orders-api: inventory.internal deadline exceeded after 1032ms 8분 전\"':\n          - link \"orders-api\":\n            - /url: /everyup/demo/logs/observed_mock_orders?range=24h\n          - text: \"수집 중 error orders-api: inventory.internal deadline exceeded after 1032ms 8분 전\"\n        - cell \"9\"\n        - cell \"12\"\n      - 'row \"inventory-api 수집 중 error inventory-api: inventory-db deadline exceeded after 384ms 8분 전 9 12\"':\n        - 'cell \"inventory-api 수집 중 error inventory-api: inventory-db deadline exceeded after 384ms 8분 전\"':\n          - link \"inventory-api\":\n            - /url: /everyup/demo/logs/observed_mock_inventory?range=24h\n          - text: \"수집 중 error inventory-api: inventory-db deadline exceeded after 384ms 8분 전\"\n        - cell \"9\"\n        - cell \"12\"\n      - 'row \"notification-worker 수집 중 error notification-worker: smtp.example.com deadline exceeded after 900ms 8분 전 9 12\"':\n        - 'cell \"notification-worker 수집 중 error notification-worker: smtp.example.com deadline exceeded after 900ms 8분 전\"':\n          - link \"notification-worker\":\n            - /url: /everyup/demo/logs/observed_mock_notifications?range=24h\n          - text: \"수집 중 error notification-worker: smtp.example.com deadline exceeded after 900ms 8분 전\"\n        - cell \"9\"\n        - cell \"12\"\n      - 'row \"search-api 수집 중 error search-api: opensearch:9200 deadline exceeded after 804ms 8분 전 9 12\"':\n        - 'cell \"search-api 수집 중 error search-api: opensearch:9200 deadline exceeded after 804ms 8분 전\"':\n          - link \"search-api\":\n            - /url: /everyup/demo/logs/observed_mock_search?range=24h\n          - text: \"수집 중 error search-api: opensearch:9200 deadline exceeded after 804ms 8분 전\"\n        - cell \"9\"\n        - cell \"12\"\n      - 'row \"billing-worker 수집 중 error billing-worker: billing-db deadline exceeded after 7680ms 8분 전 9 12\"':\n        - 'cell \"billing-worker 수집 중 error billing-worker: billing-db deadline exceeded after 7680ms 8분 전\"':\n          - link \"billing-worker\":\n            - /url: /everyup/demo/logs/observed_mock_billing?range=24h\n          - text: \"수집 중 error billing-worker: billing-db deadline exceeded after 7680ms 8분 전\"\n        - cell \"9\"\n        - cell \"12\"\n  - heading \"자주 발생한 오류·경고\" [level=2]\n  - text: 최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다\n  - list:\n    - listitem:\n      - 'link \"error checkout-api: auth.internal deadline exceeded after 1536ms checkout-api 마지막 8분 전 새로 발생 약 20시간 전 9회\"':\n        - /url: /everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3Acheckout-api%3A%20auth.internal%20deadline%20exceeded%20after%20%23ms\n        - text: error\n        - paragraph: \"checkout-api: auth.internal deadline exceeded after 1536ms\"\n        - paragraph:\n          - text: checkout-api 마지막 8분 전\n          - strong: 새로 발생 약 20시간 전\n        - text: 9회\n    - listitem:\n      - 'link \"error payments-api: payments.partner.io deadline exceeded after 2568ms payments-api 마지막 8분 전 새로 발생 약 20시간 전 9회\"':\n        - /url: /everyup/demo/logs/observed_mock_payments?range=24h&pattern=error%3Apayments-api%3A%20payments.partner.io%20deadline%20exceeded%20after%20%23ms\n        - text: error\n        - paragraph: \"payments-api: payments.partner.io deadline exceeded after 2568ms\"\n        - paragraph:\n          - text: payments-api 마지막 8분 전\n          - strong: 새로 발생 약 20시간 전\n        - text: 9회\n    - listitem:\n      - 'link \"error orders-api: inventory.internal deadline exceeded after 1032ms orders-api 마지막 8분 전 새로 발생 약 20시간 전 9회\"':\n        - /url: /everyup/demo/logs/observed_mock_orders?range=24h&pattern=error%3Aorders-api%3A%20inventory.internal%20deadline%20exceeded%20after%20%23ms\n        - text: error\n        - paragraph: \"orders-api: inventory.internal deadline exceeded after 1032ms\"\n        - paragraph:\n          - text: orders-api 마지막 8분 전\n          - strong: 새로 발생 약 20시간 전\n        - text: 9회\n    - listitem:\n      - 'link \"error inventory-api: inventory-db deadline exceeded after 384ms inventory-api 마지막 8분 전 새로 발생 약 20시간 전 9회\"':\n        - /url: /everyup/demo/logs/observed_mock_inventory?range=24h&pattern=error%3Ainventory-api%3A%20inventory-db%20deadline%20exceeded%20after%20%23ms\n        - text: error\n        - paragraph: \"inventory-api: inventory-db deadline exceeded after 384ms\"\n        - paragraph:\n          - text: inventory-api 마지막 8분 전\n          - strong: 새로 발생 약 20시간 전\n        - text: 9회\n    - listitem:\n      - 'link \"error notification-worker: smtp.example.com deadline exceeded after 900ms notification-worker 마지막 8분 전 새로 발생 약 20시간 전 9회\"':\n        - /url: /everyup/demo/logs/observed_mock_notifications?range=24h&pattern=error%3Anotification-worker%3A%20smtp.example.com%20deadline%20exceeded%20after%20%23ms\n        - text: error\n        - paragraph: \"notification-worker: smtp.example.com deadline exceeded after 900ms\"\n        - paragraph:\n          - text: notification-worker 마지막 8분 전\n          - strong: 새로 발생 약 20시간 전\n        - text: 9회\n    - listitem:\n      - 'link \"error search-api: opensearch:9200 deadline exceeded after 804ms search-api 마지막 8분 전 새로 발생 약 20시간 전 9회\"':\n        - /url: /everyup/demo/logs/observed_mock_search?range=24h&pattern=error%3Asearch-api%3A%20opensearch%3A%23%20deadline%20exceeded%20after%20%23ms\n        - text: error\n        - paragraph: \"search-api: opensearch:9200 deadline exceeded after 804ms\"\n        - paragraph:\n          - text: search-api 마지막 8분 전\n          - strong: 새로 발생 약 20시간 전\n        - text: 9회\n    - listitem:\n      - 'link \"error billing-worker: billing-db deadline exceeded after 7680ms billing-worker 마지막 8분 전 새로 발생 약 20시간 전 9회\"':\n        - /url: /everyup/demo/logs/observed_mock_billing?range=24h&pattern=error%3Abilling-worker%3A%20billing-db%20deadline%20exceeded%20after%20%23ms\n        - text: error\n        - paragraph: \"billing-worker: billing-db deadline exceeded after 7680ms\"\n        - paragraph:\n          - text: billing-worker 마지막 8분 전\n          - strong: 새로 발생 약 20시간 전\n        - text: 9회\n    - listitem:\n      - 'link \"error Connection timeout to upstream service: auth.internal:8080 after 5000ms checkout-api 마지막 1분 전 새로 발생 1분 전 3회\"':\n        - /url: /everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3AConnection%20timeout%20to%20upstream%20service%3A%20auth.internal%3A%23%20after%20%23ms\n        - text: error\n        - paragraph: \"Connection timeout to upstream service: auth.internal:8080 after 5000ms\"\n        - paragraph:\n          - text: checkout-api 마지막 1분 전\n          - strong: 새로 발생 1분 전\n        - text: 3회\n    - listitem:\n      - link \"error TLS certificate validation failed for host payments.partner.io checkout-api 마지막 12분 전 새로 발생 12분 전 1회\":\n        - /url: /everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3ATLS%20certificate%20validation%20failed%20for%20host%20payments.partner.io\n        - text: error\n        - paragraph: TLS certificate validation failed for host payments.partner.io\n        - paragraph:\n          - text: checkout-api 마지막 12분 전\n          - strong: 새로 발생 12분 전\n        - text: 1회\n    - listitem:\n      - 'link \"error Upstream returned HTTP 503: Service Unavailable — circuit breaker opened checkout-api 마지막 약 1시간 전 새로 발생 약 1시간 전 1회\"':\n        - /url: /everyup/demo/logs/observed_mock_checkout?range=24h&pattern=error%3AUpstream%20returned%20HTTP%20%23%3A%20Service%20Unavailable%20%E2%80%94%20circuit%20breaker%20opened\n        - text: error\n        - paragraph: \"Upstream returned HTTP 503: Service Unavailable — circuit breaker opened\"\n        - paragraph:\n          - text: checkout-api 마지막 약 1시간 전\n          - strong: 새로 발생 약 1시간 전\n        - text: 1회\n    - listitem:\n      - 'link \"warn checkout-api: retry queue above threshold — 20 pending jobs checkout-api 마지막 2분 전 새로 발생 약 21시간 전 12회\"':\n        - /url: /everyup/demo/logs/observed_mock_checkout?range=24h&pattern=warn%3Acheckout-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs\n        - text: warn\n        - paragraph: \"checkout-api: retry queue above threshold — 20 pending jobs\"\n        - paragraph:\n          - text: checkout-api 마지막 2분 전\n          - strong: 새로 발생 약 21시간 전\n        - text: 12회\n    - listitem:\n      - 'link \"warn payments-api: retry queue above threshold — 20 pending jobs payments-api 마지막 2분 전 새로 발생 약 21시간 전 12회\"':\n        - /url: /everyup/demo/logs/observed_mock_payments?range=24h&pattern=warn%3Apayments-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs\n        - text: warn\n        - paragraph: \"payments-api: retry queue above threshold — 20 pending jobs\"\n        - paragraph:\n          - text: payments-api 마지막 2분 전\n          - strong: 새로 발생 약 21시간 전\n        - text: 12회\n    - listitem:\n      - 'link \"warn orders-api: retry queue above threshold — 20 pending jobs orders-api 마지막 2분 전 새로 발생 약 21시간 전 12회\"':\n        - /url: /everyup/demo/logs/observed_mock_orders?range=24h&pattern=warn%3Aorders-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs\n        - text: warn\n        - paragraph: \"orders-api: retry queue above threshold — 20 pending jobs\"\n        - paragraph:\n          - text: orders-api 마지막 2분 전\n          - strong: 새로 발생 약 21시간 전\n        - text: 12회\n    - listitem:\n      - 'link \"warn inventory-api: retry queue above threshold — 20 pending jobs inventory-api 마지막 2분 전 새로 발생 약 21시간 전 12회\"':\n        - /url: /everyup/demo/logs/observed_mock_inventory?range=24h&pattern=warn%3Ainventory-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs\n        - text: warn\n        - paragraph: \"inventory-api: retry queue above threshold — 20 pending jobs\"\n        - paragraph:\n          - text: inventory-api 마지막 2분 전\n          - strong: 새로 발생 약 21시간 전\n        - text: 12회\n    - listitem:\n      - 'link \"warn notification-worker: retry queue above threshold — 20 pending jobs notification-worker 마지막 2분 전 새로 발생 약 21시간 전 12회\"':\n        - /url: /everyup/demo/logs/observed_mock_notifications?range=24h&pattern=warn%3Anotification-worker%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs\n        - text: warn\n        - paragraph: \"notification-worker: retry queue above threshold — 20 pending jobs\"\n        - paragraph:\n          - text: notification-worker 마지막 2분 전\n          - strong: 새로 발생 약 21시간 전\n        - text: 12회\n    - listitem:\n      - 'link \"warn search-api: retry queue above threshold — 20 pending jobs search-api 마지막 2분 전 새로 발생 약 21시간 전 12회\"':\n        - /url: /everyup/demo/logs/observed_mock_search?range=24h&pattern=warn%3Asearch-api%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs\n        - text: warn\n        - paragraph: \"search-api: retry queue above threshold — 20 pending jobs\"\n        - paragraph:\n          - text: search-api 마지막 2분 전\n          - strong: 새로 발생 약 21시간 전\n        - text: 12회\n    - listitem:\n      - 'link \"warn billing-worker: retry queue above threshold — 20 pending jobs billing-worker 마지막 2분 전 새로 발생 약 21시간 전 12회\"':\n        - /url: /everyup/demo/logs/observed_mock_billing?range=24h&pattern=warn%3Abilling-worker%3A%20retry%20queue%20above%20threshold%20%E2%80%94%20%23%20pending%20jobs\n        - text: warn\n        - paragraph: \"billing-worker: retry queue above threshold — 20 pending jobs\"\n        - paragraph:\n          - text: billing-worker 마지막 2분 전\n          - strong: 새로 발생 약 21시간 전\n        - text: 12회\n    - listitem:\n      - link \"warn Rate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s checkout-api 마지막 3분 전 새로 발생 3분 전 1회\":\n        - /url: /everyup/demo/logs/observed_mock_checkout?range=24h&pattern=warn%3ARate%20limit%20exceeded%20for%20client%20IP%20%23.%23.%23.%23%20%E2%80%94%20throttling%20to%20%23%20req%2Fs\n        - text: warn\n        - paragraph: Rate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s\n        - paragraph:\n          - text: checkout-api 마지막 3분 전\n          - strong: 새로 발생 3분 전\n        - text: 1회\n    - listitem:\n      - 'link \"warn Slow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms) checkout-api 마지막 18분 전 새로 발생 18분 전 1회\"':\n        - /url: /everyup/demo/logs/observed_mock_checkout?range=24h&pattern=warn%3ASlow%20upstream%20response%3A%20GET%20%2Fapi%2Fv%23%2Fusers%2Fsearch%20took%20%23ms%20(threshold%3A%20%23ms)\n        - text: warn\n        - paragraph: \"Slow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)\"\n        - paragraph:\n          - text: checkout-api 마지막 18분 전\n          - strong: 새로 발생 18분 전\n        - text: 1회\n  - text: © 2026 EveryUp\n  - link \"GitHub\":\n    - /url: https://github.com/ai-turn/Monitoring\n  - link \"피드백 보내기\":\n    - /url: https://github.com/ai-turn/Monitoring/issues\n- navigation:\n  - link \"개요\":\n    - /url: /everyup/demo/\n  - link \"그룹\":\n    - /url: /everyup/demo/projects\n  - link \"알림\":\n    - /url: /everyup/demo/alerts\n  - link \"더보기\":\n    - /url: /everyup/demo/more",
+  "note": "New service form."
+}

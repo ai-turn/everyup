@@ -1,0 +1,372 @@
+{
+  "phase": "faults",
+  "startedAt": "2026-11-08T04:41:21.267Z",
+  "finishedAt": "2026-11-08T04:42:10.898Z",
+  "browser": "151.0.7922.34",
+  "records": [
+    {
+      "id": "fault-list-loading",
+      "url": "http://127.0.0.1:5198/logs?view=card",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "HTTP fixture bridge: observed-services delayed by 1800ms."
+    },
+    {
+      "id": "fault-list-failure",
+      "url": "http://127.0.0.1:5198/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-patterns-failure",
+      "url": "http://127.0.0.1:5198/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-detail-failure",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-logs-initial-toast",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-logs-after-toast",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Initial logs request fails; waited 4.5 seconds after initial capture."
+    },
+    {
+      "id": "fault-logs-refresh-toast",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-logs-refresh-stale",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Old data retained after refresh failure; toast expired."
+    },
+    {
+      "id": "fault-histogram-failure",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-ingest-load-failure",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-ingest-save-failure",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-group-save-failure",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-setup-options-failure",
+      "url": "http://127.0.0.1:5198/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-setup-create-failure",
+      "url": "http://127.0.0.1:5198/logs",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-rotate-failure",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "fault-1440-dark-logs",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "fault-1440-dark-ingest",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "fault-1440-dark-histogram",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "fault-390-light-logs",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "fault-390-light-ingest",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "fault-390-light-histogram",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "fault-390-dark-logs",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "fault-390-dark-ingest",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "fault-390-dark-histogram",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected HTTP failure. Theme set before page reload."
+    },
+    {
+      "id": "boundary-1440-light-long-header",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Injected 200-character service name and long log/attribute values."
+    },
+    {
+      "id": "boundary-1440-light-long-attribute",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "boundary-1440-dark-long-header",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Injected 200-character service name and long log/attribute values."
+    },
+    {
+      "id": "boundary-1440-dark-long-attribute",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": ""
+    },
+    {
+      "id": "boundary-390-light-long-header",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected 200-character service name and long log/attribute values."
+    },
+    {
+      "id": "boundary-390-light-long-attribute",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    },
+    {
+      "id": "boundary-390-dark-long-header",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Injected 200-character service name and long log/attribute values."
+    },
+    {
+      "id": "boundary-390-dark-long-attribute",
+      "url": "http://127.0.0.1:5198/logs/observed_mock_checkout?range=24h",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": ""
+    }
+  ],
+  "checks": [
+    {
+      "id": "fault-list-retry",
+      "passed": true
+    },
+    {
+      "id": "fault-pattern-preserves-list",
+      "passed": true
+    },
+    {
+      "id": "fault-logs-shows-empty-copy",
+      "passed": true
+    },
+    {
+      "id": "fault-refresh-retains-old-rows",
+      "passed": true,
+      "before": 21
+    },
+    {
+      "id": "fault-histogram-disappears",
+      "passed": true
+    },
+    {
+      "id": "fault-ingest-disabled-no-retry",
+      "passed": true
+    },
+    {
+      "id": "fault-ingest-preserves-draft",
+      "passed": true
+    },
+    {
+      "id": "fault-options-retry",
+      "passed": true
+    },
+    {
+      "id": "fault-create-preserves-input",
+      "passed": true
+    },
+    {
+      "id": "fault-rotate-confirm-remains",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

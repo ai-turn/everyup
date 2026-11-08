@@ -1,0 +1,131 @@
+{
+  "time": "2026-11-08T04:41:22.962Z",
+  "url": "http://127.0.0.1:5198/logs?view=card",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "theme": "light",
+  "scenario": "attention",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "documentWidth": 1440,
+  "mainWidth": 1200,
+  "text": "로그\n\nOpenTelemetry로 직접 연결한 앱의 로그와 최근 오류·경고를 확인합니다.\n\n로그 연결\n\nDocker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.\n\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "controls": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "로그 연결",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1288.328125,
+        "y": 124,
+        "width": 112.671875,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(62, 99, 221)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "Docker 환경",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 484.875,
+        "y": 210,
+        "width": 75.046875,
+        "height": 19
+      },
+      "fontSize": "14px",
+      "color": "rgb(58, 91, 199)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "그리드",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1325,
+        "y": 252,
+        "width": 36,
+        "height": 36
+      },
+      "fontSize": "16px",
+      "color": "rgb(96, 100, 108)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "카드",
+      "title": null,
+      "pressed": "true",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1363,
+        "y": 252,
+        "width": 36,
+        "height": 36
+      },
+      "fontSize": "16px",
+      "color": "rgb(28, 32, 36)",
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "GitHub",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1256.9375,
+        "y": 872,
+        "width": 59.125,
+        "height": 16
+      },
+      "fontSize": "12px",
+      "color": "rgb(107, 111, 120)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "피드백 보내기",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1332.0625,
+        "y": 872,
+        "width": 68.9375,
+        "height": 16
+      },
+      "fontSize": "12px",
+      "color": "rgb(107, 111, 120)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  ],
+  "overflows": [],
+  "focus": {
+    "tag": "BODY",
+    "label": "본문 바로가기Live Demo예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.데모 상태확인 필요정상 운영첫 시작부분 수집 실패확인 필요실제 사용 시작하기서비스 소개E"
+  },
+  "snapshot": "- link \"본문 바로가기\":\n  - /url: \"#main-content\"\n- complementary:\n  - link \"EveryUp\":\n    - /url: /\n  - paragraph: Live Demo\n  - paragraph: 예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.\n  - text: 데모 상태\n  - combobox \"데모 시나리오\": 확인 필요\n  - navigation \"데모 안내\":\n    - link \"실제 사용 시작하기\":\n      - /url: https://ai-turn.github.io/everyup/guide/quickstart\n    - link \"서비스 소개\":\n      - /url: https://ai-turn.github.io/everyup/\n  - button \"검색 Ctrl K\"\n  - navigation \"주 메뉴\":\n    - link \"개요 장애 1 건\":\n      - /url: /#attention\n    - paragraph: 메뉴\n    - link \"업타임\":\n      - /url: /uptime\n    - link \"로그\":\n      - /url: /logs\n    - link \"인프라\":\n      - /url: /infrastructure\n    - link \"API 요청\":\n      - /url: /api\n    - link \"메트릭\":\n      - /url: /metrics\n    - paragraph: 모아 보기\n    - link \"Docker 환경\":\n      - /url: /environments\n    - link \"그룹\":\n      - /url: /projects\n    - paragraph: 관리\n    - link \"알림\":\n      - /url: /alerts\n    - link \"환경 설정\":\n      - /url: /settings\n  - button \"테마 전환\"\n- banner:\n  - navigation \"현재 위치\":\n    - list:\n      - listitem: 로그\n- main:\n  - heading \"로그\" [level=1]\n  - paragraph: OpenTelemetry로 직접 연결한 앱의 로그와 최근 오류·경고를 확인합니다.\n  - button \"로그 연결\"\n  - paragraph:\n    - text: Docker Collector가 수집한 데이터는\n    - link \"Docker 환경\":\n      - /url: /environments\n    - text: 에서 확인합니다.\n  - group \"대상 보기 방식\":\n    - button \"그리드\"\n    - button \"카드\" [pressed]\n  - text: © 2026 EveryUp\n  - link \"GitHub\":\n    - /url: https://github.com/ai-turn/Monitoring\n  - link \"피드백 보내기\":\n    - /url: https://github.com/ai-turn/Monitoring/issues",
+  "note": "HTTP fixture bridge: observed-services delayed by 1800ms."
+}

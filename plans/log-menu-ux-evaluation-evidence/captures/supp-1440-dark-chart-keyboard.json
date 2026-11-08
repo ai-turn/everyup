@@ -1,0 +1,1013 @@
+{
+  "time": "2026-11-08T04:41:00.974Z",
+  "url": "http://127.0.0.1:5197/everyup/demo/logs/observed_mock_checkout?range=24h",
+  "title": "EveryUp | Self-hosted Monitoring Platform",
+  "theme": "dark",
+  "scenario": "attention",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "documentWidth": 1440,
+  "mainWidth": 1200,
+  "text": "checkout-api\n수집 가능\n마지막 수집 2026. 11. 8. 13시 40분 32초\n연결 중지\nAPI Key\nevup_****9f2a\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nProduction\n수집 데이터\nlogs\n수집 레벨\nerror, warn, info\n변경\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\n전체\nerror\nwarn\ninfo\ndebug\ntrace\n실시간\n로그 발생량\n건 / 30분\nerror 9\nwarn 6\ninfo 37\n15:00\n18:00\n21:00\n00:00\n03:00\n06:00\n09:00\n12:00\n0\n2\n4\n6\n8\n\n154건 중 1~25\n\n11. 08. 13:39:57\nerror\n\nConnection timeout to upstream service: auth.internal:8080 after 5000ms\n\n11. 08. 13:39:57\nerror\n\nConnection timeout to upstream service: auth.internal:8080 after 5000ms\n\n11. 08. 13:39:57\nerror\n\nConnection timeout to upstream service: auth.internal:8080 after 5000ms\n\n11. 08. 13:38:57\nwarn\n\ncheckout-api: retry queue above threshold — 20 pending jobs\n\n트레이스\n11. 08. 13:37:57\nwarn\n\nRate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s\n\n11. 08. 13:35:57\ninfo\n\nRoute registered: POST /api/v2/webhooks/stripe\n\n11. 08. 13:35:57\ninfo\n\nCheckout session created — batch 1001\n\n트레이스\n11. 08. 13:32:57\nerror\n\ncheckout-api: auth.internal deadline exceeded after 1536ms\n\n트레이스\n11. 08. 13:29:57\ninfo\n\nCheckout session created — batch 1003\n\n트레이스\n11. 08. 13:28:57\nerror\n\nTLS certificate validation failed for host payments.partner.io\n\n11. 08. 13:26:57\ninfo\n\nCheckout session created — batch 1004\n\n트레이스\n11. 08. 13:23:57\ninfo\n\nCheckout session created — batch 1005\n\n트레이스\n11. 08. 13:22:57\nwarn\n\nSlow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)\n\n11. 08. 13:20:57\nerror\n\ncheckout-api: auth.internal deadline exceeded after 1536ms\n\n트레이스\n11. 08. 13:17:57\ninfo\n\nCheckout session created — batch 1007\n\n트레이스\n11. 08. 13:10:57\ninfo\n\nHealth check passed for all 3 upstream replicas\n\n11. 08. 12:55:57\nerror\n\nUpstream returned HTTP 503: Service Unavailable — circuit breaker opened\n\n11. 08. 12:40:57\ninfo\n\nConfiguration reload completed — 14 routes active\n\n11. 08. 12:27:57\ninfo\n\nCheckout session created — batch 1008\n\n11. 08. 12:18:57\ninfo\n\nCheckout session created — batch 1009\n\n11. 08. 12:09:57\ninfo\n\nCheckout session created — batch 1010\n\n11. 08. 12:00:57\ninfo\n\nCheckout session created — batch 1011\n\n11. 08. 11:51:57\ninfo\n\nCheckout session created — batch 1012\n\n11. 08. 11:42:57\nwarn\n\ncheckout-api: retry queue above threshold — 33 pending jobs\n\n11. 08. 11:33:57\ninfo\n\nCheckout session created — batch 1014\n\n‹\n1\n2\n…\n7\n›\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "controls": [
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "연결 중지",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 557.265625,
+        "y": 128,
+        "width": 112.65625,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "키 재발급",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 575.34375,
+        "y": 185,
+        "width": 112.65625,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "SELECT",
+      "role": null,
+      "label": "미분류\nProduction\nStaging\nBackoffice",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 847,
+        "y": 184,
+        "width": 1,
+        "height": 1
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": "combobox",
+      "label": "그룹 배정",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 848,
+        "y": 185,
+        "width": 192,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(33, 34, 37)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "변경",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1076.234375,
+        "y": 234,
+        "width": 83.765625,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "1H",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 266,
+        "y": 326,
+        "width": 42.71875,
+        "height": 36
+      },
+      "fontSize": "14px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "6H",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 310.71875,
+        "y": 326,
+        "width": 42.71875,
+        "height": 36
+      },
+      "fontSize": "14px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "24H",
+      "title": null,
+      "pressed": "true",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 355.4375,
+        "y": 326,
+        "width": 51.0625,
+        "height": 36
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(46, 49, 53)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "새로고침",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 416.5,
+        "y": 324,
+        "width": 111.53125,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "알림 규칙",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1192.578125,
+        "y": 324,
+        "width": 114.65625,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "삭제",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1315.234375,
+        "y": 324,
+        "width": 85.765625,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(255, 99, 105)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "전체",
+      "title": null,
+      "pressed": "true",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 266,
+        "y": 394,
+        "width": 46.09375,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(46, 49, 53)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "error",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 314.09375,
+        "y": 394,
+        "width": 52.875,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "warn",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 368.96875,
+        "y": 394,
+        "width": 53.234375,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "info",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 424.203125,
+        "y": 394,
+        "width": 46.09375,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "debug",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 472.296875,
+        "y": 394,
+        "width": 60.265625,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "trace",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 534.5625,
+        "y": 394,
+        "width": 53.546875,
+        "height": 28
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "INPUT",
+      "role": null,
+      "label": "메시지 검색…",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 602.109375,
+        "y": 388,
+        "width": 700.25,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "실시간",
+      "title": null,
+      "pressed": "false",
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1314.359375,
+        "y": 388,
+        "width": 86.640625,
+        "height": 40
+      },
+      "fontSize": "14px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:39:57\nerror\n\nConnection timeout to upstream service: auth.internal:8080 after 5000ms",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 705,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:39:57\nerror\n\nConnection timeout to upstream service: auth.internal:8080 after 5000ms",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 752,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:39:57\nerror\n\nConnection timeout to upstream service: auth.internal:8080 after 5000ms",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 799,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:38:57\nwarn\n\ncheckout-api: retry queue above threshold — 20 pending jobs\n\n트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 846,
+        "width": 1135,
+        "height": 57
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1259.828125,
+        "y": 858,
+        "width": 92.171875,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:35:57\ninfo\n\nCheckout session created — batch 1001\n\n트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 993,
+        "width": 1135,
+        "height": 57
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1259.828125,
+        "y": 1005,
+        "width": 92.171875,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:32:57\nerror\n\ncheckout-api: auth.internal deadline exceeded after 1536ms\n\n트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1050,
+        "width": 1135,
+        "height": 57
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1259.828125,
+        "y": 1062,
+        "width": 92.171875,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:29:57\ninfo\n\nCheckout session created — batch 1003\n\n트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1107,
+        "width": 1135,
+        "height": 57
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1259.828125,
+        "y": 1119,
+        "width": 92.171875,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:28:57\nerror\n\nTLS certificate validation failed for host payments.partner.io",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1164,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:26:57\ninfo\n\nCheckout session created — batch 1004\n\n트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1211,
+        "width": 1135,
+        "height": 57
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1259.828125,
+        "y": 1223,
+        "width": 92.171875,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:23:57\ninfo\n\nCheckout session created — batch 1005\n\n트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1268,
+        "width": 1135,
+        "height": 57
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1259.828125,
+        "y": 1280,
+        "width": 92.171875,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:22:57\nwarn\n\nSlow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1325,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:20:57\nerror\n\ncheckout-api: auth.internal deadline exceeded after 1536ms\n\n트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1372,
+        "width": 1135,
+        "height": 57
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1259.828125,
+        "y": 1384,
+        "width": 92.171875,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 13:17:57\ninfo\n\nCheckout session created — batch 1007\n\n트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1429,
+        "width": 1135,
+        "height": 57
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "트레이스",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1259.828125,
+        "y": 1441,
+        "width": 92.171875,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(158, 177, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 12:55:57\nerror\n\nUpstream returned HTTP 503: Service Unavailable — circuit breaker opened",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1531,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 12:27:57\ninfo\n\nCheckout session created — batch 1008",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1623,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 12:18:57\ninfo\n\nCheckout session created — batch 1009",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1670,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 12:09:57\ninfo\n\nCheckout session created — batch 1010",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1717,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 12:00:57\ninfo\n\nCheckout session created — batch 1011",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1764,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 11:51:57\ninfo\n\nCheckout session created — batch 1012",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1811,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 11:42:57\nwarn\n\ncheckout-api: retry queue above threshold — 33 pending jobs",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1858,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "DIV",
+      "role": "button",
+      "label": "11. 08. 11:33:57\ninfo\n\nCheckout session created — batch 1014",
+      "title": null,
+      "pressed": null,
+      "expanded": "false",
+      "disabled": false,
+      "rect": {
+        "x": 265,
+        "y": 1905,
+        "width": 1135,
+        "height": 47
+      },
+      "fontSize": "16px",
+      "color": "rgb(237, 238, 240)",
+      "background": "rgb(24, 25, 27)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "이전",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": true,
+      "rect": {
+        "x": 1182,
+        "y": 1962,
+        "width": 32,
+        "height": 32
+      },
+      "fontSize": "14px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "1",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1218,
+        "y": 1962,
+        "width": 32,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(62, 99, 221)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "2",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1254,
+        "y": 1962,
+        "width": 32,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "7",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1316,
+        "y": 1962,
+        "width": 32,
+        "height": 32
+      },
+      "fontSize": "12px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "BUTTON",
+      "role": null,
+      "label": "다음",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1352,
+        "y": 1962,
+        "width": 32,
+        "height": 32
+      },
+      "fontSize": "14px",
+      "color": "rgb(176, 180, 186)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "GitHub",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1256.9375,
+        "y": 2038,
+        "width": 59.125,
+        "height": 16
+      },
+      "fontSize": "12px",
+      "color": "rgb(139, 143, 151)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "tag": "A",
+      "role": null,
+      "label": "피드백 보내기",
+      "title": null,
+      "pressed": null,
+      "expanded": null,
+      "disabled": false,
+      "rect": {
+        "x": 1332.0625,
+        "y": 2038,
+        "width": 68.9375,
+        "height": 16
+      },
+      "fontSize": "12px",
+      "color": "rgb(139, 143, 151)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  ],
+  "overflows": [],
+  "focus": {
+    "tag": "svg",
+    "label": "15:0018:0021:0000:0003:0006:0009:0012:0002468"
+  },
+  "snapshot": "- link \"본문 바로가기\":\n  - /url: \"#main-content\"\n- complementary:\n  - link \"EveryUp\":\n    - /url: /everyup/demo/\n  - paragraph: Live Demo\n  - paragraph: 예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.\n  - text: 데모 상태\n  - combobox \"데모 시나리오\": 확인 필요\n  - navigation \"데모 안내\":\n    - link \"실제 사용 시작하기\":\n      - /url: https://ai-turn.github.io/everyup/guide/quickstart\n    - link \"서비스 소개\":\n      - /url: https://ai-turn.github.io/everyup/\n  - button \"검색 Ctrl K\"\n  - navigation \"주 메뉴\":\n    - link \"개요 장애 1 건\":\n      - /url: /everyup/demo/#attention\n    - paragraph: 메뉴\n    - link \"업타임\":\n      - /url: /everyup/demo/uptime\n    - link \"로그\":\n      - /url: /everyup/demo/logs\n    - link \"인프라\":\n      - /url: /everyup/demo/infrastructure\n    - link \"API 요청\":\n      - /url: /everyup/demo/api\n    - link \"메트릭\":\n      - /url: /everyup/demo/metrics\n    - paragraph: 모아 보기\n    - link \"Docker 환경\":\n      - /url: /everyup/demo/environments\n    - link \"그룹\":\n      - /url: /everyup/demo/projects\n    - paragraph: 관리\n    - link \"알림\":\n      - /url: /everyup/demo/alerts\n    - link \"환경 설정\":\n      - /url: /everyup/demo/settings\n  - button \"테마 전환\"\n- banner:\n  - navigation \"현재 위치\":\n    - list:\n      - listitem:\n        - link \"로그\":\n          - /url: /everyup/demo/logs\n      - listitem: checkout-api\n- main:\n  - heading \"checkout-api\" [level=1]\n  - text: 수집 가능 마지막 수집 2026. 11. 8. 13시 40분 32초\n  - button \"연결 중지\"\n  - term: API Key\n  - definition:\n    - text: evup_****9f2a\n    - button \"키 재발급\"\n  - term: 그룹\n  - definition:\n    - combobox \"그룹 배정\": Production\n  - term: 수집 데이터\n  - definition: logs\n  - term: 수집 레벨\n  - definition:\n    - text: error, warn, info\n    - button \"변경\"\n  - group \"시간 범위\":\n    - button \"1H\"\n    - button \"6H\"\n    - button \"24H\" [pressed]\n  - button \"새로고침\"\n  - link \"알림 규칙\":\n    - /url: /everyup/demo/alerts?tab=rules&target=direct&serviceId=observed_mock_checkout\n  - button \"삭제\"\n  - group \"로그 레벨\":\n    - button \"전체\" [pressed]\n    - button \"error\"\n    - button \"warn\"\n    - button \"info\"\n    - button \"debug\"\n    - button \"trace\"\n  - textbox \"메시지 검색…\"\n  - button \"실시간\"\n  - heading \"로그 발생량\" [level=3]\n  - text: 건 / 30분 error 9 warn 6 info 37\n  - application: 15:00 18:00 21:00 00:00 03:00 06:00 09:00 12:00 0 2 4 6 8\n  - paragraph: 154건 중 1~25\n  - 'button \"11. 08. 13:39:57 error Connection timeout to upstream service: auth.internal:8080 after 5000ms\"':\n    - time: 11. 08. 13:39:57\n    - text: error\n    - paragraph: \"Connection timeout to upstream service: auth.internal:8080 after 5000ms\"\n  - 'button \"11. 08. 13:39:57 error Connection timeout to upstream service: auth.internal:8080 after 5000ms\"':\n    - time: 11. 08. 13:39:57\n    - text: error\n    - paragraph: \"Connection timeout to upstream service: auth.internal:8080 after 5000ms\"\n  - 'button \"11. 08. 13:39:57 error Connection timeout to upstream service: auth.internal:8080 after 5000ms\"':\n    - time: 11. 08. 13:39:57\n    - text: error\n    - paragraph: \"Connection timeout to upstream service: auth.internal:8080 after 5000ms\"\n  - 'button \"11. 08. 13:38:57 warn checkout-api: retry queue above threshold — 20 pending jobs 트레이스\"':\n    - time: 11. 08. 13:38:57\n    - text: warn\n    - paragraph: \"checkout-api: retry queue above threshold — 20 pending jobs\"\n    - button \"트레이스\"\n  - time: 11. 08. 13:37:57\n  - text: warn\n  - paragraph: Rate limit exceeded for client IP 203.0.113.42 — throttling to 10 req/s\n  - time: 11. 08. 13:35:57\n  - text: info\n  - paragraph: \"Route registered: POST /api/v2/webhooks/stripe\"\n  - button \"11. 08. 13:35:57 info Checkout session created — batch 1001 트레이스\":\n    - time: 11. 08. 13:35:57\n    - text: info\n    - paragraph: Checkout session created — batch 1001\n    - button \"트레이스\"\n  - 'button \"11. 08. 13:32:57 error checkout-api: auth.internal deadline exceeded after 1536ms 트레이스\"':\n    - time: 11. 08. 13:32:57\n    - text: error\n    - paragraph: \"checkout-api: auth.internal deadline exceeded after 1536ms\"\n    - button \"트레이스\"\n  - button \"11. 08. 13:29:57 info Checkout session created — batch 1003 트레이스\":\n    - time: 11. 08. 13:29:57\n    - text: info\n    - paragraph: Checkout session created — batch 1003\n    - button \"트레이스\"\n  - button \"11. 08. 13:28:57 error TLS certificate validation failed for host payments.partner.io\":\n    - time: 11. 08. 13:28:57\n    - text: error\n    - paragraph: TLS certificate validation failed for host payments.partner.io\n  - button \"11. 08. 13:26:57 info Checkout session created — batch 1004 트레이스\":\n    - time: 11. 08. 13:26:57\n    - text: info\n    - paragraph: Checkout session created — batch 1004\n    - button \"트레이스\"\n  - button \"11. 08. 13:23:57 info Checkout session created — batch 1005 트레이스\":\n    - time: 11. 08. 13:23:57\n    - text: info\n    - paragraph: Checkout session created — batch 1005\n    - button \"트레이스\"\n  - 'button \"11. 08. 13:22:57 warn Slow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)\"':\n    - time: 11. 08. 13:22:57\n    - text: warn\n    - paragraph: \"Slow upstream response: GET /api/v1/users/search took 3240ms (threshold: 1000ms)\"\n  - 'button \"11. 08. 13:20:57 error checkout-api: auth.internal deadline exceeded after 1536ms 트레이스\"':\n    - time: 11. 08. 13:20:57\n    - text: error\n    - paragraph: \"checkout-api: auth.internal deadline exceeded after 1536ms\"\n    - button \"트레이스\"\n  - button \"11. 08. 13:17:57 info Checkout session created — batch 1007 트레이스\":\n    - time: 11. 08. 13:17:57\n    - text: info\n    - paragraph: Checkout session created — batch 1007\n    - button \"트레이스\"\n  - time: 11. 08. 13:10:57\n  - text: info\n  - paragraph: Health check passed for all 3 upstream replicas\n  - 'button \"11. 08. 12:55:57 error Upstream returned HTTP 503: Service Unavailable — circuit breaker opened\"':\n    - time: 11. 08. 12:55:57\n    - text: error\n    - paragraph: \"Upstream returned HTTP 503: Service Unavailable — circuit breaker opened\"\n  - time: 11. 08. 12:40:57\n  - text: info\n  - paragraph: Configuration reload completed — 14 routes active\n  - button \"11. 08. 12:27:57 info Checkout session created — batch 1008\":\n    - time: 11. 08. 12:27:57\n    - text: info\n    - paragraph: Checkout session created — batch 1008\n  - button \"11. 08. 12:18:57 info Checkout session created — batch 1009\":\n    - time: 11. 08. 12:18:57\n    - text: info\n    - paragraph: Checkout session created — batch 1009\n  - button \"11. 08. 12:09:57 info Checkout session created — batch 1010\":\n    - time: 11. 08. 12:09:57\n    - text: info\n    - paragraph: Checkout session created — batch 1010\n  - button \"11. 08. 12:00:57 info Checkout session created — batch 1011\":\n    - time: 11. 08. 12:00:57\n    - text: info\n    - paragraph: Checkout session created — batch 1011\n  - button \"11. 08. 11:51:57 info Checkout session created — batch 1012\":\n    - time: 11. 08. 11:51:57\n    - text: info\n    - paragraph: Checkout session created — batch 1012\n  - 'button \"11. 08. 11:42:57 warn checkout-api: retry queue above threshold — 33 pending jobs\"':\n    - time: 11. 08. 11:42:57\n    - text: warn\n    - paragraph: \"checkout-api: retry queue above threshold — 33 pending jobs\"\n  - button \"11. 08. 11:33:57 info Checkout session created — batch 1014\":\n    - time: 11. 08. 11:33:57\n    - text: info\n    - paragraph: Checkout session created — batch 1014\n  - button \"이전\" [disabled]: ‹\n  - button \"1\"\n  - button \"2\"\n  - text: …\n  - button \"7\"\n  - button \"다음\": ›\n  - text: © 2026 EveryUp\n  - link \"GitHub\":\n    - /url: https://github.com/ai-turn/Monitoring\n  - link \"피드백 보내기\":\n    - /url: https://github.com/ai-turn/Monitoring/issues",
+  "note": ""
+}

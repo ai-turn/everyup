@@ -1,0 +1,1928 @@
+[
+  {
+    "time": "2026-11-08T04:41:22.636Z",
+    "mode": "loading",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.637Z",
+    "mode": "loading",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.637Z",
+    "mode": "loading",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.637Z",
+    "mode": "loading",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.638Z",
+    "mode": "loading",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.639Z",
+    "mode": "loading",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.639Z",
+    "mode": "loading",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.639Z",
+    "mode": "loading",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.678Z",
+    "mode": "loading",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:22.678Z",
+    "mode": "loading",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.946Z",
+    "mode": "list-fail",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.947Z",
+    "mode": "list-fail",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.947Z",
+    "mode": "list-fail",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.948Z",
+    "mode": "list-fail",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.949Z",
+    "mode": "list-fail",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.949Z",
+    "mode": "list-fail",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.949Z",
+    "mode": "list-fail",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.949Z",
+    "mode": "list-fail",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.952Z",
+    "mode": "list-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:24.952Z",
+    "mode": "list-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:25.366Z",
+    "mode": "ok",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:25.367Z",
+    "mode": "ok",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:25.367Z",
+    "mode": "ok",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.076Z",
+    "mode": "patterns-fail",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.077Z",
+    "mode": "patterns-fail",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.077Z",
+    "mode": "patterns-fail",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.077Z",
+    "mode": "patterns-fail",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.077Z",
+    "mode": "patterns-fail",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.078Z",
+    "mode": "patterns-fail",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.078Z",
+    "mode": "patterns-fail",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.078Z",
+    "mode": "patterns-fail",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.080Z",
+    "mode": "patterns-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.080Z",
+    "mode": "patterns-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.954Z",
+    "mode": "detail-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.954Z",
+    "mode": "detail-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.954Z",
+    "mode": "detail-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.955Z",
+    "mode": "detail-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.958Z",
+    "mode": "detail-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:26.959Z",
+    "mode": "detail-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.728Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.729Z",
+    "mode": "logs-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.729Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.729Z",
+    "mode": "logs-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.731Z",
+    "mode": "logs-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.731Z",
+    "mode": "logs-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.749Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.749Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A27.739Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.749Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A27.740Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.750Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.750Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A27.741Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:27.750Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A27.741Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.066Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.066Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.066Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.067Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.069Z",
+    "mode": "ok",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.069Z",
+    "mode": "ok",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.088Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.088Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A33.076Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.089Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A33.077Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.090Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.090Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A33.078Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.090Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A33.078Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.558Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A33.488Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:33.558Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A33.488Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.849Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.850Z",
+    "mode": "histogram-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.850Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.850Z",
+    "mode": "histogram-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.854Z",
+    "mode": "histogram-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.855Z",
+    "mode": "histogram-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.878Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.880Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A38.864Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.880Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A38.865Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.881Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.882Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A38.866Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:38.882Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A38.867Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.662Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.662Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.662Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.663Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.669Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.670Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.698Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.698Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A39.681Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.699Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A39.681Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.699Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.699Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A39.682Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:39.699Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A39.683Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.494Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.495Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.495Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.495Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.498Z",
+    "mode": "ok",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.498Z",
+    "mode": "ok",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.515Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.516Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A40.506Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.516Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A40.506Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.516Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.517Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A40.507Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.517Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A40.508Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:40.964Z",
+    "mode": "filter-put-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "PUT"
+  },
+  {
+    "time": "2026-11-08T04:41:41.567Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.568Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.568Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.568Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.571Z",
+    "mode": "ok",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.571Z",
+    "mode": "ok",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.587Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.588Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A41.578Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.588Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A41.579Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.590Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.590Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A41.579Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:41.590Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A41.580Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.246Z",
+    "mode": "group-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "PUT"
+  },
+  {
+    "time": "2026-11-08T04:41:42.878Z",
+    "mode": "ok",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.879Z",
+    "mode": "ok",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.879Z",
+    "mode": "ok",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.879Z",
+    "mode": "ok",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.880Z",
+    "mode": "ok",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.880Z",
+    "mode": "ok",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.880Z",
+    "mode": "ok",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.880Z",
+    "mode": "ok",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.884Z",
+    "mode": "ok",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:42.884Z",
+    "mode": "ok",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.308Z",
+    "mode": "options-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.308Z",
+    "mode": "options-fail",
+    "endpoint": "/observed-services",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.309Z",
+    "mode": "options-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.310Z",
+    "mode": "options-fail",
+    "endpoint": "/observed-services",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.666Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.667Z",
+    "mode": "ok",
+    "endpoint": "/observed-services",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.988Z",
+    "mode": "ok",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.988Z",
+    "mode": "ok",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:43.989Z",
+    "mode": "ok",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.507Z",
+    "mode": "ok",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.508Z",
+    "mode": "ok",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.508Z",
+    "mode": "ok",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.508Z",
+    "mode": "ok",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.509Z",
+    "mode": "ok",
+    "endpoint": "/agents",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.509Z",
+    "mode": "ok",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.509Z",
+    "mode": "ok",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.509Z",
+    "mode": "ok",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.512Z",
+    "mode": "ok",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.512Z",
+    "mode": "ok",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.912Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.913Z",
+    "mode": "ok",
+    "endpoint": "/observed-services",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.913Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.914Z",
+    "mode": "ok",
+    "endpoint": "/observed-services",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:44.977Z",
+    "mode": "create-fail",
+    "endpoint": "/observed-services",
+    "method": "POST"
+  },
+  {
+    "time": "2026-11-08T04:41:45.323Z",
+    "mode": "create-fail",
+    "endpoint": "/observed-services?signal=logs",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.324Z",
+    "mode": "create-fail",
+    "endpoint": "/logs/summary",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.325Z",
+    "mode": "create-fail",
+    "endpoint": "/logs/patterns?limit=10",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.859Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.860Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.860Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.861Z",
+    "mode": "ok",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.863Z",
+    "mode": "ok",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.864Z",
+    "mode": "ok",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.881Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.883Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A45.871Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.883Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A45.871Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.883Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.884Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A45.872Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:45.884Z",
+    "mode": "ok",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A45.872Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:46.424Z",
+    "mode": "rotate-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/rotate-key",
+    "method": "POST"
+  },
+  {
+    "time": "2026-11-08T04:41:47.108Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.109Z",
+    "mode": "logs-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.109Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.110Z",
+    "mode": "logs-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.112Z",
+    "mode": "logs-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.112Z",
+    "mode": "logs-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.131Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.132Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A47.120Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.132Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A47.121Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.132Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.133Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A47.122Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:47.133Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A47.122Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.403Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.403Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.403Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.404Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.407Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.407Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.423Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.424Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A52.414Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.424Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A52.414Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.425Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.425Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A52.415Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:52.425Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A52.415Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.224Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.224Z",
+    "mode": "histogram-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.225Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.225Z",
+    "mode": "histogram-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.227Z",
+    "mode": "histogram-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.227Z",
+    "mode": "histogram-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.242Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.243Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A53.234Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.244Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A53.234Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.244Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.244Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A53.235Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:53.244Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A53.235Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.032Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.033Z",
+    "mode": "logs-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.033Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.033Z",
+    "mode": "logs-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.034Z",
+    "mode": "logs-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.034Z",
+    "mode": "logs-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.055Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.057Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A54.046Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.057Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A54.046Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.057Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.057Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A54.047Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:54.058Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A54.048Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.296Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.296Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.297Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.297Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.299Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.299Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.315Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.316Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A59.307Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.316Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A59.307Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.316Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.317Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A41%3A59.308Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:41:59.317Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A41%3A59.308Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.064Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.064Z",
+    "mode": "histogram-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.065Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.065Z",
+    "mode": "histogram-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.066Z",
+    "mode": "histogram-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.067Z",
+    "mode": "histogram-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.083Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.084Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A00.075Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.084Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A00.075Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.084Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.085Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A00.076Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.085Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A00.076Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.831Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.832Z",
+    "mode": "logs-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.832Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.832Z",
+    "mode": "logs-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.834Z",
+    "mode": "logs-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.834Z",
+    "mode": "logs-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.850Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.851Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A00.840Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.851Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A00.841Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.851Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.851Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A00.841Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:00.851Z",
+    "mode": "logs-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A00.842Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.109Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.110Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.110Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.111Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.113Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.113Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.128Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.128Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A06.120Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.128Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A06.120Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.129Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.129Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A06.121Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.130Z",
+    "mode": "filter-get-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A06.121Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.884Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.885Z",
+    "mode": "histogram-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.885Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.885Z",
+    "mode": "histogram-fail",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.887Z",
+    "mode": "histogram-fail",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.887Z",
+    "mode": "histogram-fail",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.902Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.902Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A06.894Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.902Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A06.894Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.903Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.903Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A06.895Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:06.903Z",
+    "mode": "histogram-fail",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A06.895Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.671Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.672Z",
+    "mode": "long",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.672Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.672Z",
+    "mode": "long",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.675Z",
+    "mode": "long",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.675Z",
+    "mode": "long",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.690Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.690Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A07.681Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.690Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A07.682Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.691Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.691Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A07.683Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:07.691Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A07.683Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.576Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.576Z",
+    "mode": "long",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.576Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.577Z",
+    "mode": "long",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.578Z",
+    "mode": "long",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.579Z",
+    "mode": "long",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.593Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.594Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A08.585Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.594Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A08.586Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.595Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.595Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A08.586Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:08.595Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A08.586Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.498Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.499Z",
+    "mode": "long",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.499Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.499Z",
+    "mode": "long",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.501Z",
+    "mode": "long",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.501Z",
+    "mode": "long",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.516Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.516Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A09.508Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.517Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A09.508Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.517Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.517Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A09.509Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:09.517Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A09.509Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.393Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.393Z",
+    "mode": "long",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.393Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.393Z",
+    "mode": "long",
+    "endpoint": "/projects",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.396Z",
+    "mode": "long",
+    "endpoint": "/agents/services/all",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.396Z",
+    "mode": "long",
+    "endpoint": "/services?type=http,tcp",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.410Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.411Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A10.402Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.411Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A10.403Z&bucketMins=30",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.411Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-filter",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.412Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/logs?limit=25&from=2026-11-07T04%3A42%3A10.403Z",
+    "method": "GET"
+  },
+  {
+    "time": "2026-11-08T04:42:10.412Z",
+    "mode": "long",
+    "endpoint": "/observed-services/observed_mock_checkout/log-histogram?from=2026-11-07T04%3A42%3A10.404Z&bucketMins=30",
+    "method": "GET"
+  }
+]
