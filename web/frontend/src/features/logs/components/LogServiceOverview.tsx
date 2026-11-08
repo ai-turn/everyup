@@ -106,6 +106,8 @@ function LogCard({ row, window: span, returnTo }: { row: StatusRow; window: [num
       </div>
       <div className="mt-3">
         <LogSparkline buckets={summary?.buckets ?? []} window={span} />
+        {/* 막대만으로는 시간 방향을 알 수 없었다 — 양 끝만 짧게 적는다. */}
+        <div aria-hidden="true" className="mt-1 flex justify-between type-caption text-text-dim"><span>24시간 전</span><span>지금</span></div>
       </div>
       <div className="mt-3 flex min-w-0 items-baseline gap-2 text-xs">
         <LatestLine summary={summary} known={known} />
@@ -129,7 +131,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
           <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-text-dim">
             <span>{row.name}</span><span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span>
             {isNew
-              ? <strong className="whitespace-nowrap font-medium text-text-secondary">새로 발생 {ago(pattern.firstSeen)}</strong>
+              ? <strong className="whitespace-nowrap font-medium text-text-secondary">신규 · 처음 {ago(pattern.firstSeen)}</strong>
               : <span className="whitespace-nowrap">처음 {ago(pattern.firstSeen)}</span>}
           </p>
         </div>

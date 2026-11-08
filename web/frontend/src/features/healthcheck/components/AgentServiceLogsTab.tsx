@@ -11,8 +11,6 @@ import {
 } from '../../../components/charts';
 import { api, type LogEntry, type LogHistogramBucket, type LogLevel } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
-import { activatable } from '../../../utils/a11y';
-import { toast } from 'react-hot-toast';
 import { TracePanel } from '../../traces/components/TracePanel';
 import { LEVEL_BASE, LEVEL_TEXT } from '../logLevelStyle';
 
@@ -102,6 +100,22 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
     (t) => ({ t, time: '', error: 0, warn: 0, info: 0, debug: 0, trace: 0 }),
   );
   const totals = LEVEL_BAR.map((l) => ({ ...l, count: data.reduce((sum, b) => sum + b[l.key], 0) }));
+  // Recharts의 accessibilityLayer는 숫자(시간) X축에서 현재 인덱스를 못 구해 화살표가 먹지 않고,
+  // Enter는 툴팁을 끄기만 했다 — 키보드 구간 이동을 직접 둔다. null = 키보드로 고르는 중 아님.
+  const [kbd, setKbd] = useState<number | null>(null);
+  const kbdBucket = kbd === null ? undefined : data[kbd];
+  const emphasized = kbdBucket ? kbdBucket.t : activeBucket;
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      const step = e.key === 'ArrowRight' ? 1 : -1;
+      setKbd((i) => i === null ? data.length - 1 : Math.min(data.length - 1, Math.max(0, i + step)));
+    } else if (e.key === 'Enter') {
+      if (kbdBucket) onPick(kbdBucket.t); else pick();
+    } else if (e.key === 'Escape') {
+      setKbd(null);
+    }
+  };
   const peak = Math.max(0, ...data.map((b) => LEVEL_BAR.reduce((sum, l) => sum + b[l.key], 0)));
 
   return (
@@ -110,10 +124,16 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
       unit={`건 / ${bucketMs / 60_000}분`}
       right={<ChartLegend items={totals.filter((l) => l.count > 0).map((l) => ({ label: `${l.name} ${l.count.toLocaleString()}`, color: l.color }))} />}
     >
-      {/* Recharts' accessibility layer lets arrow keys walk the bars; Enter picks one. */}
-      <div onKeyDown={(e) => { if (e.key === 'Enter') pick(); }}>
+      <div
+        tabIndex={0}
+        role="group"
+        aria-label="로그 발생량 차트. 좌우 화살표로 구간을 고르고 Enter로 그 구간 로그만 봅니다."
+        className="rounded-lg"
+        onKeyDown={onKeyDown}
+        onBlur={() => setKbd(null)}
+      >
         <ResponsiveContainer width="100%" height={CHART_STRIP_HEIGHT} initialDimension={CHART_INITIAL_DIMENSION}>
-          <BarChart data={data} margin={CHART_MARGIN} onClick={pick} style={{ cursor: 'pointer' }}>
+          <BarChart data={data} margin={CHART_MARGIN} onClick={pick} style={{ cursor: 'pointer' }} accessibilityLayer={false}>
             <CartesianGrid {...gridProps(theme)} />
             <XAxis {...timeXAxisProps(theme, span)} padding={{ left: 6, right: 6 }} />
             <YAxis {...yAxisProps(theme, 36)} {...niceYAxis(peak)} allowDecimals={false} />
@@ -134,13 +154,18 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
               // A surface-coloured stroke leaves a hairline between stacked segments.
               <Bar key={l.key} dataKey={l.key} stackId="lv" fill={l.color} stroke={theme.tooltipBg} strokeWidth={1} name={l.name} isAnimationActive={false}>
                 {data.map((b) => (
-                  <Cell key={b.t} fillOpacity={activeBucket === null || b.t === activeBucket ? 1 : 0.35} />
+                  <Cell key={b.t} fillOpacity={emphasized === null || b.t === emphasized ? 1 : 0.35} />
                 ))}
               </Bar>
             ))}
           </BarChart>
         </ResponsiveContainer>
       </div>
+      {/* 키보드로 고른 구간 — 보이는 사용자와 스크린리더 모두에게 같은 문장 */}
+      <p aria-live="polite" className="mt-1 type-caption text-text-dim tabular-nums">
+        {kbdBucket && `${formatTimeTick(kbdBucket.t)} ~ ${formatTimeTick(kbdBucket.t + bucketMs)} · ${
+          LEVEL_BAR.filter((l) => kbdBucket[l.key] > 0).map((l) => `${l.name} ${kbdBucket[l.key]}`).join(', ') || '0건'} · Enter로 이 구간만 보기`}
+      </p>
     </ChartCard>
   );
 }
@@ -174,11 +199,12 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
   const attributes = scalarEntries(log, 'attributes');
   const resource = scalarEntries(log, 'resource');
 
+  // 행 전체를 role=button으로 두면 안의 트레이스 버튼이 중첩 인터랙티브가 된다(axe nested-interactive).
+  // 마우스는 행 어디를 눌러도 펼치고, 키보드·스크린리더는 끝의 펼침 버튼을 쓴다.
   return (
     <div
       className={`px-4 py-3 bg-bg-surface transition-colors ${hasMeta ? 'cursor-pointer hover:bg-ui-hover-soft' : ''}`}
-      {...activatable(() => setExpanded(v => !v), hasMeta)}
-      aria-expanded={hasMeta ? expanded : undefined}
+      onClick={hasMeta ? () => setExpanded(v => !v) : undefined}
     >
       {/* Time leads so the list scans in time order; on phones it takes its own line. */}
       <div className="flex flex-wrap items-start gap-x-3 gap-y-1 sm:flex-nowrap">
@@ -200,10 +226,15 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
           </Button>
         )}
         {hasMeta && (
-          <MaterialIcon size={20}
-            name={expanded ? 'expand_less' : 'expand_more'}
-            className="text-text-dim shrink-0 mt-0.5"
-          />
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-label={expanded ? '로그 상세 접기' : '로그 상세 펼치기'}
+            onClick={(e) => { e.stopPropagation(); setExpanded(v => !v); }}
+            className="-my-1.5 -mr-1.5 inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-dim hover:bg-ui-hover max-sm:h-11 max-sm:w-11"
+          >
+            <MaterialIcon size={20} name={expanded ? 'expand_less' : 'expand_more'} />
+          </button>
         )}
       </div>
       {expanded && hasMeta && (
@@ -220,11 +251,11 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
                   size="sm"
                   onClick={() => onFilterAttribute(key, value)}
                   title={`${key}=${value} 로 필터`}
-                  className="font-mono"
+                  className="h-auto min-h-8 max-w-full py-1 text-left font-mono"
                 >
                   <span className="text-text-dim">{key}</span>
                   <span>=</span>
-                  <span>{value}</span>
+                  <span className="min-w-0 break-all">{value}</span>
                 </Button>
               ))}
             </div>
@@ -242,7 +273,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
           )}
           {/* The same fields again plus anything nested — closed, since the lists above already read it. */}
           <details className="mt-3">
-            <summary className="cursor-pointer type-caption text-text-dim">원본 JSON</summary>
+            <summary className="cursor-pointer py-1 type-caption text-text-dim max-sm:py-3">원본 JSON</summary>
             <pre className="mt-1.5 text-xs font-mono text-text-muted bg-ui-hover-soft rounded-lg px-3 py-2.5 overflow-x-auto whitespace-pre-wrap break-all">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>
@@ -282,6 +313,10 @@ function ServiceLogsPanel(props: Props) {
   const bucketMs = RANGE_BUCKET[range].bucketMins * 60_000;
   const [live, setLive] = useState(false);
   const [page, setPage] = useState(1);
+  // 조회 실패를 따로 둔다 — 실패 후 빈 목록이 '수집된 로그가 없습니다'로 읽혀 장애를 가렸다.
+  // stale = 실시간 갱신 실패: 이전 행은 남기되 최신이 아님을 표시한다.
+  const [loadError, setLoadError] = useState<{ message: string; stale: boolean } | null>(null);
+  const [histogramFailed, setHistogramFailed] = useState(false);
 
   // One filter set for the list and the histogram — built twice, traceId reached
   // only the list and the histogram counted every log.
@@ -317,8 +352,12 @@ function ServiceLogsPanel(props: Props) {
       }
       setLogs(res?.data ?? []);
       setTotal(res?.total ?? 0);
+      setLoadError(null);
     } catch (err) {
-      if (!silent) toast.error(getErrorMessage(err));
+      // 화면 안에 실패 상태를 그리므로 토스트는 쓰지 않는다. 조건·기간이 바뀐 조회가 실패하면
+      // 이전 행은 다른 조건의 결과라 비운다.
+      if (!silent) { setLogs([]); setTotal(0); }
+      setLoadError({ message: getErrorMessage(err), stale: silent });
     } finally {
       setLoading(false);
     }
@@ -341,8 +380,8 @@ function ServiceLogsPanel(props: Props) {
       ? api.getObservedServiceLogHistogram(directServiceId, params)
       : api.getAgentServiceLogHistogram(agentId!, serviceKey!, params);
     request
-      .then((b) => setHistogram({ buckets: b ?? [], window: [from, to] }))
-      .catch(() => setHistogram({ buckets: [], window: [from, to] }));
+      .then((b) => { setHistogram({ buckets: b ?? [], window: [from, to] }); setHistogramFailed(false); })
+      .catch(() => { setHistogram({ buckets: [], window: [from, to] }); setHistogramFailed(true); });
   }, [agentId, directServiceId, serviceKey, level, search, attrFilter, pattern, traceId, range, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { fetchHistogram(); }, [fetchHistogram]);
@@ -359,6 +398,12 @@ function ServiceLogsPanel(props: Props) {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const hasConditions = !!(search || level || attrFilter || pattern || traceId || activeBucket !== null);
+  const clearConditions = () => {
+    setSearch(''); setInputValue(''); setLevel(''); setAttrFilter(null); setPicked(null); setPage(1);
+    if (pattern || traceId) setSearchParams(params => { params.delete('pattern'); params.delete('traceId'); return params; }, { replace: true });
+  };
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSearch(inputValue);
@@ -370,7 +415,12 @@ function ServiceLogsPanel(props: Props) {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Level filter */}
-        <SegmentedControl options={LOG_LEVELS} value={level} onChange={v => { setLevel(v); setPage(1); }} ariaLabel="로그 레벨" />
+        {/* 보기 필터임을 라벨로 밝힌다 — 위 '수집 레벨'(저장 설정)과 같은 표기라 혼동됐다. */}
+        {/* 44px 높이를 지키면서 한 줄에 여섯 개가 들어가도록 좁은 화면에서만 좌우 여백을 줄인다 */}
+        <div className="flex flex-col items-start gap-1 max-sm:w-full max-sm:[&_button]:px-2 sm:flex-row sm:items-center sm:gap-2">
+          <span className="whitespace-nowrap type-caption text-text-dim">레벨 필터</span>
+          <SegmentedControl size="md" options={LOG_LEVELS} value={level} onChange={v => { setLevel(v); setPage(1); }} ariaLabel="레벨 필터" />
+        </div>
 
         {/* Search */}
         <form onSubmit={handleSearchSubmit} className="flex-1 min-w-48 flex gap-1.5">
@@ -378,7 +428,7 @@ function ServiceLogsPanel(props: Props) {
             wrapperClassName="flex-1"
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
-            placeholder="메시지 검색…"
+            placeholder="메시지 검색 후 Enter"
           />
           {search && (
             <IconButton icon="close" label="검색어 지우기" tone="quiet" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }} />
@@ -436,6 +486,12 @@ function ServiceLogsPanel(props: Props) {
       </div>
 
       {/* Volume histogram — stacked per-level counts over the header range */}
+      {histogramFailed && (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ui-border bg-bg-surface px-4 py-3">
+          <p className="type-body text-text-muted">로그 발생량을 불러오지 못했습니다</p>
+          <Button variant="ghost" size="sm" onClick={fetchHistogram}>다시 시도</Button>
+        </div>
+      )}
       {histogram.buckets.length > 0 && (
         <LogVolumeHistogram
           buckets={histogram.buckets}
@@ -453,6 +509,14 @@ function ServiceLogsPanel(props: Props) {
         </p>
       )}
 
+      {/* Live refresh failed — keep the rows, say they are no longer current */}
+      {loadError?.stale && logs.length > 0 && (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ui-border bg-bg-surface px-4 py-3">
+          <p className="type-body text-status-warn">최신 로그를 불러오지 못했습니다. 아래는 이전 조회 결과입니다.</p>
+          <Button variant="ghost" size="sm" onClick={() => void fetch()}>다시 시도</Button>
+        </div>
+      )}
+
       {/* List */}
       {loading ? (
         <div className="space-y-2">
@@ -460,12 +524,20 @@ function ServiceLogsPanel(props: Props) {
             <div key={i} className="h-12 rounded-xl bg-ui-hover animate-pulse" />
           ))}
         </div>
+      ) : logs.length === 0 && loadError ? (
+        <div role="alert" className="py-16 text-center">
+          <MaterialIcon size={36} name="error" className="text-status-error mb-2" />
+          <p className="type-body font-medium text-text-base">로그를 불러오지 못했습니다</p>
+          <p className="mt-1 text-sm text-text-dim">{loadError.message}</p>
+          <Button className="mt-4" onClick={() => void fetch()}>다시 시도</Button>
+        </div>
       ) : logs.length === 0 ? (
         <div className="py-16 text-center">
           <MaterialIcon size={36} name="article" className="text-text-dim mb-2" />
           <p className="text-sm text-text-dim">
-            {search || level || attrFilter || pattern || traceId ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
+            {hasConditions ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
           </p>
+          {hasConditions && <Button variant="secondary" className="mt-4" onClick={clearConditions}>조건 초기화</Button>}
         </div>
       ) : (
         <div className="divide-y divide-ui-border-soft border border-ui-border rounded-xl overflow-hidden">

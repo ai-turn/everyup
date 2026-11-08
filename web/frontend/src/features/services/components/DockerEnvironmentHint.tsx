@@ -13,7 +13,7 @@ export function DockerEnvironmentHint({ className = 'text-center' }: { className
   if (!hasEnvironment) return null;
   return (
     <p className={`${className} type-body text-text-muted`}>
-      Docker Collector가 수집한 데이터는 <Link to="/environments" className="text-action hover:underline">Docker 환경</Link>에서 확인합니다.
+      Docker Collector가 수집한 데이터는 <Link to="/environments" className="text-action underline underline-offset-2">Docker 환경</Link>에서 확인합니다.
     </p>
   );
 }

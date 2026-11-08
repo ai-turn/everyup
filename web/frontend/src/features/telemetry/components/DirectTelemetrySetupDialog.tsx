@@ -147,7 +147,7 @@ export function DirectTelemetrySetupDialog({
           </div>}
           {signal === 'logs' && (
             <p className="type-body text-text-muted">
-              컨테이너가 stdout으로 내보내는 로그는 <Link to="/environments" className="text-action hover:underline">Docker 환경</Link>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
+              컨테이너가 stdout으로 내보내는 로그는 <Link to="/environments" className="text-action underline underline-offset-2">Docker 환경</Link>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
             </p>
           )}
           {/* Offered only when some service can take this signal on. */}

@@ -33,7 +33,8 @@ test.describe('live demo', () => {
 
   test('trace jump keeps the Docker target and filters requests by trace ID', async ({ page }) => {
     await page.goto('./services/agent_demo_01/shop%3Aapi?tab=logs');
-    const timeoutLog = page.getByRole('button').filter({ has: page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms', { exact: true }) }).first();
+    // The row's summary line holds the message and its trace button (the row itself is not a button).
+    const timeoutLog = page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms', { exact: true }).first().locator('xpath=..');
     await expect(timeoutLog).toBeVisible();
     await timeoutLog.getByRole('button', { name: '트레이스', exact: true }).click();
 
