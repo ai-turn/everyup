@@ -1,0 +1,20 @@
+{
+  "dbText": "db-primary-01\n연결 활성\n마지막 수집 2026. 11. 11. 21시 46분 33초\n연결 중지\nAPI Key\nevup_****5200\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nProduction\n연결 방식\nOpenTelemetry Collector\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\n\nCPU\n\n67\n%\n\n코어 8개\n\n메모리\n\n73\n%\n\n11.7 GB / 16.0 GB\n\n디스크\n\n41\n%\n\n206.0 GB / 500.0 GB\n\n네트워크\n\n4.60\nMB/s\n\nIn 3.20 MB/s · Out 1.40 MB/s\n\n인프라 추세\n\n최근 6시간\n\nCPU\n%\n현재\n67.0%\n평균\n51.6%\n최대\n69.0%\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n25\n50\n75\n100\n알림 > 85%\n메모리\n%\n현재\n73.0%\n평균\n70.8%\n최대\n74.0%\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n25\n50\n75\n100\n디스크\n%\n현재\n41.0%\n평균\n40.6%\n최대\n41.0%\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n25\n50\n75\n100\n네트워크\nMB/s\nIn\nOut\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n2\n4\n6\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "focused": "svg  role=application",
+  "setupText": "OpenTelemetry Collector 연결\n\n표준 hostmetrics receiver로 CPU, 메모리, 디스크, 네트워크를 수집합니다.\n\nCollector 연결이 준비되었습니다\n\nCollector API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.\n\nEveryUp 외부 연결 주소\nCollector 또는 앱에서 접근할 수 있는 서버 주소입니다. localhost는 사용할 수 없습니다.\n\nCollector API Key\n\neveryup_[MASKED]\n\n실행 방법\n\nDocker\n바이너리\n\nLinux 호스트 기준입니다. 호스트의 /를 읽기 전용으로 마운트해 컨테이너가 아닌 호스트를 측정합니다.\n\notelcol-contrib.yaml\n\n복사\nreceivers:\n  hostmetrics:\n    root_path: /hostfs\n    collection_interval: 30s\n    scrapers:\n      cpu:\n        metrics:\n          system.cpu.utilization:\n            enabled: true\n      memory:\n      filesystem:\n      network:\nprocessors:\n  batch:\nexporters:\n  otlphttp/everyup:\n    endpoint: https://monitor.example.com/api/v1/otlp\n    headers:\n      Authorization: \"Bearer everyup_[MASKED]\"\nservice:\n  pipelines:\n    metrics:\n      receivers: [hostmetrics]\n      processors: [batch]\n      exporters: [otlphttp/everyup]\n\n실행 명령\n\n복사\ndocker run -d --name everyup-collector --restart unless-stopped \\\n  --network host \\\n  -v /:/hostfs:ro \\\n  -v \"$PWD/otelcol-contrib.yaml:/etc/otelcol-contrib/config.yaml:ro\" \\\n  otel/opentelemetry-collector-contrib:0.164.0\n데이터 수신 확인\n수신 대기\n인프라\n아직 수신 기록 없음\n\n설정을 적용한 뒤 로그 또는 요청을 발생시켜 주세요. 5초마다 수신 기록을 확인합니다. 권한 추가만으로 앱의 전송 설정이 변경되지는 않습니다.\n\n인프라 보기",
+  "dialogScroll": [
+    1274,
+    860
+  ],
+  "nodataText": "new-host-without-data-very-long-name-for-truncation-check-01\n연결 활성\n마지막 수집 아직 없음\n연결 중지\nAPI Key\neveryup_ab.....demo\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\n미분류\n연결 방식\nOpenTelemetry Collector\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\n\nCPU\n\n67\n%\n\n코어 8개\n\n메모리\n\n73\n%\n\n11.7 GB / 16.0 GB\n\n디스크\n\n41\n%\n\n206.0 GB / 500.0 GB\n\n네트워크\n\n4.60\nMB/s\n\nIn 3.20 MB/s · Out 1.40 MB/s\n\n인프라 추세\n\n최근 6시간\n\nCPU\n%\n현재\n67.0%\n평균\n51.8%\n최대\n69.0%\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n25\n50\n75\n100\n메모리\n%\n현재\n73.0%\n평균\n70.9%\n최대\n74.0%\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n25\n50\n75\n100\n디스크\n%\n현재\n41.0%\n평균\n40.6%\n최대\n41.0%\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n25\n50\n75\n100\n네트워크\nMB/s\nIn\nOut\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n2\n4\n6\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "mobilePos": [
+    "ARTICLE:CPU  67 %  코@565",
+    "DIV:@654",
+    "ARTICLE:메모리  73 %  1@565",
+    "ARTICLE:디스크  41 %  2@747",
+    "ARTICLE:네트워크  4.60 M@747",
+    "DIV:@836",
+    "H2:인프라 추세@933",
+    "DIV:16:00 18:00 @1088"
+  ]
+}
