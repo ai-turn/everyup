@@ -45,6 +45,8 @@ export interface ChartData {
   title: string;
   unit: string;
   yMax?: number;
+  /** 제목 아래 보조 줄 — 용량(11.7 GB / 16.0 GB)·코어 수처럼 현재 값을 읽는 단서. */
+  caption?: string;
   /** 행마다 `t`(epoch ms) + 시리즈 key별 값. */
   data: ({ t: number } & Record<string, number>)[];
   series: ChartSeries[];

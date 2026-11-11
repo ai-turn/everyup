@@ -5,9 +5,9 @@ import { toast } from 'react-hot-toast';
 import {
   Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, type GlobalTimeRange,
 } from '../../components/common';
-import { InfraGauges } from '../../features/infra/components/InfraGauges';
 import { InfraTrends } from '../../features/infra/components/InfraTrends';
 import { useInfraMetrics } from '../../hooks/useInfra';
+import { infraCollection } from '../../features/infra/usage';
 import { InfrastructureCollectorKeyDialog } from '../../features/infrastructure/components/InfrastructureCollectorKeyDialog';
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../services/api';
@@ -32,7 +32,8 @@ export function DirectInfrastructureDetailPage() {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<InfrastructureResourceSetup | null>(null);
-  const { data: metrics, loading: metricsLoading } = useInfraMetrics(resourceId, range, refreshKey);
+  const { data: metrics, loading: metricsLoading, error: metricsError } = useInfraMetrics(resourceId, range, refreshKey);
+  const refresh = () => setRefreshKey(value => value + 1);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,6 +112,9 @@ export function DirectInfrastructureDetailPage() {
         meta={
           <DirectConnectionMeta
             isActive={resource.isActive}
+            collection={infraCollection(resource)}
+            collapseOnMobile
+            collapseLabel="서버 정보"
             apiKeyMasked={resource.apiKeyMasked}
             lastSeenAt={resource.lastSeenAt}
             detail={{ label: '연결 방식', value: 'OpenTelemetry Collector' }}
@@ -129,7 +133,7 @@ export function DirectInfrastructureDetailPage() {
         controls={
           <>
           <TimeRangePicker value={range} onChange={setRange} />
-          <Button collapseLabel variant="secondary" onClick={() => setRefreshKey(value => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
+          <Button collapseLabel variant="secondary" onClick={refresh}><MaterialIcon name="refresh" />새로고침</Button>
           </>
         }
         actions={
@@ -140,10 +144,23 @@ export function DirectInfrastructureDetailPage() {
         }
       />
 
-      <div className="space-y-5">
-        <InfraGauges gauges={metrics?.gauges} loading={metricsLoading} />
-        <InfraTrends hostId={resource.id} charts={metrics?.charts} loading={metricsLoading} range={range} />
-      </div>
+      {/* 현재 값·위험 표시는 차트 머리에 있다 — 같은 지표를 게이지 줄로 한 번 더 그리지 않는다. */}
+      <InfraTrends
+        hostId={resource.id}
+        charts={metrics?.charts}
+        loading={metricsLoading}
+        range={range}
+        error={metricsError}
+        onRetry={refresh}
+        empty={resource.lastSeenAt ? undefined : (
+          <EmptyState
+            icon="schedule"
+            title="Collector 수신 대기"
+            description="Collector를 실행하면 30초 안에 첫 메트릭이 들어옵니다. 설정 파일이 없다면 API Key를 재발급해 새 설정을 받으세요."
+            action={{ label: '설정 다시 받기', onClick: () => setConfirmAction('rotate') }}
+          />
+        )}
+      />
 
       <ConfirmDialog
         isOpen={Boolean(selectedConfirm)}

@@ -2,10 +2,8 @@ import { StatusLight } from '../../../components/common';
 import { Sparkline } from '../../../components/charts';
 import { Skeleton } from '../../../components/skeleton';
 import type { GaugeData } from '../../../types/infra';
+import { CRITICAL_PCT } from '../usage';
 
-// 부하 임계값: 85% 이상이면 위험. 색은 이 선을 넘은 카드에만 싣는다 —
-// 정상 카드까지 초록·주황으로 칠하면 정작 넘은 카드가 묻힌다. 인프라 목록도 같은 선을 쓴다.
-export const CRITICAL_PCT = 85;
 
 interface InfraGaugesProps {
   /** useInfraMetrics().gauges */
@@ -37,7 +35,8 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
 
   const pct = clampPercent(gauge.percentage);
   const critical = pct >= CRITICAL_PCT;
-  const displayValue = gauge.displayValue ?? pct;
+  // 목록·차트와 같은 소수 한 자리 — 67.4%를 여기서만 67로 보여 주면 다른 값처럼 읽힌다.
+  const displayValue = gauge.displayValue ?? pct.toFixed(1);
   const displayUnit = gauge.displayUnit ?? '%';
 
   return (
@@ -73,5 +72,5 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
 }
 
 function clampPercent(value: number) {
-  return Math.max(0, Math.min(100, Math.round(value)));
+  return Math.max(0, Math.min(100, value));
 }

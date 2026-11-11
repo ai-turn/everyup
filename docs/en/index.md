@@ -32,7 +32,7 @@ carousel:
   - title: Infrastructure
     caption: Review host CPU, memory, disk, and network trends. Enable a CPU alert rule for that host to display its threshold on the CPU chart.
     image: infra
-    alt: The infrastructure screen for edge-host-01. Tiles for CPU 42%, memory 68%, disk 89% (critical), network 18 MB/s, and CPU, memory, disk I/O, and network trend charts.
+    alt: The infrastructure screen for edge-host-01. Usage trend charts for CPU 67.4%, memory 72.8% (warning) and disk 41.2%, plus network In and Out, with an 80% alert threshold line on the CPU chart.
   - title: API requests
     caption: Request count, error rate, and response time trends, with last-week comparisons when historical data exists. Docker environments also show deployment and restart events.
     image: api
