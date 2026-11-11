@@ -115,7 +115,11 @@ export function InfrastructureCollectorSetupResult({
         </div>
         <pre className="overflow-auto whitespace-pre rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{RUN_COMMAND[mode]}</pre>
       </div>
-      <TelemetryReceiptStatus path={`/infrastructure-resources/${setup.id}/setup-status`} expected={['infrastructure']} />
+      <TelemetryReceiptStatus
+        path={`/infrastructure-resources/${setup.id}/setup-status`}
+        expected={['infrastructure']}
+        note="Collector를 실행하면 30초 안에 첫 메트릭이 들어옵니다. 5초마다 수신 기록을 확인합니다."
+      />
       <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-ui-border bg-bg-surface px-6 py-4"><Button onClick={onDone}>인프라 보기</Button></div>
     </div>
   );

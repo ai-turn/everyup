@@ -7,6 +7,7 @@ import { mockMetricQuery } from '../mocks/metricQuery';
 
 import { mockLogEntries as allMockLogs, mockTraceIds } from '../mocks/logs/logs.mock';
 import { mockSystemInfo, mockSystemMetrics } from '../mocks/infra/resources.mock';
+import { ApiError } from '../utils/errors';
 import { mockChannels } from '../mocks/alerts/channels.mock';
 import { getDemoScenario, type MockScenario } from '../mocks/demoScenario';
 import { additionalProjects, additionalAgents, additionalDockerServices, additionalObservedServices, additionalInfrastructure, additionalMonitors } from '../mocks/demoTargets';
@@ -918,7 +919,11 @@ function mockRequestStatusSummary(endpoint: string) {
   };
 }
 
+// 방금 추가해 아직 수신하지 않은 Collector — 백엔드처럼 info는 NO_DATA, 이력은 빈 배열이다.
+const awaitingFirstMetric = (id: string) => mockInfrastructureResources.some(row => row.id === id && !row.lastSeenAt);
+
 function mockHostInfo(id: string) {
+  if (awaitingFirstMetric(id)) throw new ApiError('No metric data yet for this host.', 'NO_DATA', 503);
   const resource = mockInfrastructureResources.find(row => row.id === id);
   const agent = mockAgents.find(row => row.id === id);
   const index = resource ? mockInfrastructureResources.indexOf(resource) : Math.max(0, mockAgents.findIndex(row => row.id === id));
@@ -935,15 +940,17 @@ function mockHostInfo(id: string) {
 }
 
 function mockHostMetrics(id: string, endpoint: string) {
-  const info = mockHostInfo(id);
   const range = new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '6h';
+  if (awaitingFirstMetric(id)) return { range, points: [] };
+  const info = mockHostInfo(id);
   const hours = range === '1h' ? 1 : range === '24h' ? 24 : 6;
   return { range, points: mockSystemMetrics.points.map((point, i) => ({
     ...point, timestamp: new Date(nowAgent - (71 - i) * hours * 3_600_000 / 71).toISOString(),
     cpu: Math.max(0, Math.min(100, info.cpu.usage + Math.sin((i - 71) / 8) * 12)),
     memUsage: Math.max(0, Math.min(100, info.memory.usage + Math.sin((i - 71) / 10) * 4)),
     diskUsage: info.disk.usage - (71 - i) * 0.008,
-    netIn: 1.8 + Math.sin(i / 7), netOut: 0.8 + Math.cos(i / 9) * 0.4,
+    // 끝점이 현재 값(info)과 이어지게 — 차트는 마지막에 info를 덧붙인다.
+    netIn: info.network.in + Math.sin((i - 71) / 7), netOut: info.network.out + Math.sin((i - 71) / 9) * 0.4,
   })) };
 }
 

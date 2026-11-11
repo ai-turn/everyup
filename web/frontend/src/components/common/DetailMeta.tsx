@@ -15,9 +15,11 @@ interface DetailMetaProps {
   status: ReactNode;
   fields?: DetailMetaField[];
   collapseOnMobile?: boolean;
+  /** 접힌 속성 목록의 이름 — 대상이 서비스가 아니면(인프라 서버 등) 바꾼다 */
+  collapseLabel?: string;
 }
 
-export function DetailMeta({ status, fields = [], collapseOnMobile = false }: DetailMetaProps) {
+export function DetailMeta({ status, fields = [], collapseOnMobile = false, collapseLabel = '서비스 정보' }: DetailMetaProps) {
   const narrow = useMediaQuery('(max-width: 639px)');
   const fieldList = fields.length > 0 ? (
     <dl className="grid max-w-4xl border-t border-ui-border-soft sm:grid-cols-2 sm:gap-x-12">
@@ -34,7 +36,7 @@ export function DetailMeta({ status, fields = [], collapseOnMobile = false }: De
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 type-caption text-text-muted">{status}</div>
       {fieldList && (collapseOnMobile && narrow ? (
         <details>
-          <summary className="min-h-11 cursor-pointer content-center type-body text-action">서비스 정보</summary>
+          <summary className="min-h-11 cursor-pointer content-center type-body text-action">{collapseLabel}</summary>
           {fieldList}
         </details>
       ) : fieldList)}

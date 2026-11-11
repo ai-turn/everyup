@@ -1,5 +1,4 @@
 import type { GlobalTimeRange } from '../../../components/common';
-import { InfraGauges } from '../../infra/components/InfraGauges';
 import { InfraTrends } from '../../infra/components/InfraTrends';
 import { useInfraMetrics } from '../../../hooks/useInfra';
 
@@ -11,11 +10,7 @@ interface Props {
 }
 
 export function AgentServiceInfraTab({ agentId, refreshKey, range }: Props) {
-  const { data, loading } = useInfraMetrics(agentId, range, refreshKey);
-  return (
-    <div className="space-y-5">
-      <InfraGauges gauges={data?.gauges} loading={loading} />
-      <InfraTrends hostId={agentId} charts={data?.charts} loading={loading} range={range} />
-    </div>
-  );
+  const { data, loading, error } = useInfraMetrics(agentId, range, refreshKey);
+  // 현재 값은 차트 머리에 있다 — 인프라 상세와 같은 구성.
+  return <InfraTrends hostId={agentId} charts={data?.charts} loading={loading} range={range} error={error} />;
 }

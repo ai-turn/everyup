@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -8,10 +8,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceLine,
 } from 'recharts';
-import type { GlobalTimeRange } from '../../../components/common';
+import { EmptyState, StatusLight, type GlobalTimeRange } from '../../../components/common';
 import {
-  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
+  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, formatMetricValue, formatTimeLabel, ChartEmpty, ChartLegend, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
   gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
   type ChartTheme,
 } from '../../../components/charts';
@@ -19,6 +20,7 @@ import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import type { AlertRule } from '../../../services/api';
 import { Skeleton } from '../../../components/skeleton';
 import type { ChartData } from '../../../types/infra';
+import { usageLevel } from '../usage';
 
 interface InfraTrendsProps {
   /** For the alert rules drawn as threshold lines. */
@@ -28,11 +30,16 @@ interface InfraTrendsProps {
   loading: boolean;
   /** Shared chart range from the page-header picker. */
   range: GlobalTimeRange;
+  /** 조회 실패 — 빈 차트로 그리면 "데이터 없음"과 구분되지 않는다. */
+  error?: string | null;
+  onRetry?: () => void;
+  /** 한 번도 수신하지 않은 호스트처럼 보여 줄 차트가 없을 때. 없으면 기본 문구. */
+  empty?: ReactNode;
 }
 
 const RANGE_MS: Record<GlobalTimeRange, number> = { '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000 };
 
-export function InfraTrends({ hostId, charts, loading, range }: InfraTrendsProps) {
+export function InfraTrends({ hostId, charts, loading, range, error, onRetry, empty }: InfraTrendsProps) {
   // Charts share a crosshair (syncId); only the hovered one shows its tooltip box.
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -70,6 +77,10 @@ export function InfraTrends({ hostId, charts, loading, range }: InfraTrendsProps
             <Skeleton key={i} className="h-80 w-full rounded-xl" />
           ))}
         </div>
+      ) : error ? (
+        <EmptyState icon="error_outline" title="메트릭을 불러오지 못했습니다" description={error} action={onRetry && { label: '다시 시도', onClick: onRetry }} />
+      ) : !charts?.length ? (
+        empty ?? <EmptyState icon="monitoring" title="아직 수집된 메트릭이 없습니다" description="호스트 메트릭이 들어오면 여기에 사용률 추이가 표시됩니다." />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {(charts || []).map((chart) => (
@@ -113,22 +124,52 @@ function TrendCard({
   const { rows, gaps } = splitGaps(chart.data);
   const single = chart.series.length === 1 ? chart.series[0] : null;
   const gradientId = useId().replace(/[^\w-]/g, '');
+  // Recharts accessibilityLayer는 숫자(시간) X축에서 방향키가 먹지 않는다(로그 발생량 차트와 같은 문제) —
+  // 키보드로 고른 시점은 직접 들고, 값은 차트 아래 글로 읽어 준다. null = 키보드로 고르는 중 아님.
+  const [kbd, setKbd] = useState<number | null>(null);
+  const kbdPoint = kbd === null ? undefined : chart.data[kbd];
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const last = chart.data.length - 1;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      const step = e.key === 'ArrowRight' ? 1 : -1;
+      setKbd((i) => i === null ? last : Math.min(last, Math.max(0, i + step)));
+    } else if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      setKbd(e.key === 'Home' ? 0 : last);
+    } else if (e.key === 'Escape') {
+      setKbd(null);
+    }
+  };
 
   // One series: its numbers sit in the title row. Several: their names do, as chips.
+  // 상세의 게이지 줄을 없앤 대신, 주의·위험은 차트 머리에서 읽는다(사용률 차트만, 목록과 같은 선).
+  const current = single ? Number(chart.data[chart.data.length - 1]?.[single.key]) : NaN;
+  const level = chart.unit === '%' && Number.isFinite(current) ? usageLevel(current) : 'normal';
   const right = isEmpty
     ? null
     : single
-      ? <ChartSummary values={chart.data.map((p) => Number(p[single.key]))} unit={chart.unit} />
+      ? <div className="flex items-center gap-3">{level !== 'normal' && <StatusLight tone={level === 'critical' ? 'error' : 'warn'} label={level === 'critical' ? '위험' : '주의'} />}<ChartSummary values={chart.data.map((p) => Number(p[single.key]))} unit={chart.unit} /></div>
       : <ChartLegend items={chart.series.map((s) => ({ label: s.label, color: s.color }))} />;
 
   return (
     <ChartCard title={chart.title} unit={chart.unit} right={right}>
+      {chart.caption && <p className="-mt-2 mb-3 type-caption text-text-muted">{chart.caption}</p>}
       {isEmpty ? (
         <ChartEmpty />
       ) : (
-        <div onMouseEnter={() => onHover(chart.title)} onMouseLeave={() => onHover(null)}>
+        <div
+          tabIndex={0}
+          role="group"
+          aria-label={`${chart.title} 추이. 좌우 방향키로 시점별 값을 읽습니다.`}
+          className="rounded-lg"
+          onKeyDown={onKeyDown}
+          onBlur={() => setKbd(null)}
+          onMouseEnter={() => onHover(chart.title)}
+          onMouseLeave={() => onHover(null)}
+        >
           <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-            <ComposedChart data={rows} syncId="infra-trends" margin={CHART_MARGIN}>
+            <ComposedChart data={rows} syncId="infra-trends" margin={CHART_MARGIN} accessibilityLayer={false}>
               <CartesianGrid {...gridProps(theme)} />
               <XAxis {...timeXAxisProps(theme, domain)} />
               <YAxis
@@ -149,8 +190,13 @@ function TrendCard({
               {chart.series.map((s) => (
                 <Line key={`${s.key}-line`} {...lineProps(s.color, theme)} dataKey={s.key} name={s.label} />
               ))}
+              {kbdPoint && <ReferenceLine x={kbdPoint.t} stroke={theme.tickColor} strokeDasharray="3 3" />}
             </ComposedChart>
           </ResponsiveContainer>
+          {/* 마우스 사용자에게 빈 줄을 남기지 않게, 고르기 전에는 화면에서만 숨긴다(라이브 영역은 유지). */}
+          <p aria-live="polite" className={kbdPoint ? 'mt-2 px-2 pb-1 type-caption text-text-muted' : 'sr-only'}>
+            {kbdPoint && `${formatTimeLabel(kbdPoint.t)} · ${chart.series.map((s) => `${s.label} ${formatMetricValue(Number(kbdPoint[s.key]))} ${chart.unit}`).join(' · ')}`}
+          </p>
         </div>
       )}
     </ChartCard>

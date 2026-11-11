@@ -8,10 +8,11 @@ export default function SparklineChart({ values }: { values: number[] }) {
   const theme = useChartTheme();
   const gradientId = useId().replace(/[^\w-]/g, '');
   const data = values.map((v, i) => ({ i, v }));
+  // 장식이라 aria-hidden — Recharts 기본 accessibilityLayer가 svg에 tabIndex를 달면 숨긴 요소가 포커스를 받는다.
   return (
     <div className="h-8 w-full" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-        <ComposedChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+        <ComposedChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 2 }} accessibilityLayer={false}>
           {areaGradient(gradientId, theme.primaryColor)}
           <YAxis hide domain={[0, 'dataMax']} />
           <Area {...areaProps(gradientId)} dataKey="v" />

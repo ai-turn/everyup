@@ -1,10 +1,6 @@
-import type { GaugeData } from '../../types/infra';
 import type { SystemInfo, SystemMetricsHistory } from '../../services/api';
-import { systemInfoToGauges } from '../../utils/systemTransform';
 
-export type { GaugeData };
-
-// 데모 인프라의 원본 값. 게이지·추세는 실제 화면과 같은 변환을 거쳐 만든다 — 손으로 적으면
+// 데모 인프라의 원본 값. mockRouter가 호스트별 값으로 바꿔 실제 화면과 같은 변환을 거친다 — 손으로 적으면
 // 실제 Collector 호스트가 낼 수 없는 값(Cached 등)이 데모에만 남는다.
 export const mockSystemInfo: SystemInfo = {
   hostname: 'prod-server-01',
@@ -30,5 +26,3 @@ export const mockSystemMetrics: SystemMetricsHistory = {
     netOut: 1 + Math.random() * 1.5,
   })),
 };
-
-export const mockGauges: GaugeData[] = systemInfoToGauges(mockSystemInfo, mockSystemMetrics);

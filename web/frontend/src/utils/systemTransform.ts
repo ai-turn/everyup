@@ -80,16 +80,19 @@ export function formatThroughput(mbPerSec: number): { value: string; unit: strin
   return { value: (mbPerSec * 1024).toFixed(0), unit: 'KB/s' };
 }
 
+const oneDecimal = (value: number) => Math.round(value * 10) / 10;
+
 // --- SystemMetricsHistory → ChartData[] ---
 export function historyToCharts(history: SystemMetricsHistory, currentInfo?: SystemInfo | null): ChartData[] {
   const points = history.points ?? [];
   if (points.length === 0 && !currentInfo) return [];
 
+  // 소수 한 자리 — 목록(67.4%)과 차트의 "현재"가 같은 값으로 읽혀야 한다.
   const data: ChartData['data'] = points.map((p) => ({
     t: new Date(p.timestamp).getTime(),
-    cpu: Math.round(p.cpu),
-    memUsage: Math.round(p.memUsage),
-    diskUsage: Math.round(p.diskUsage),
+    cpu: oneDecimal(p.cpu),
+    memUsage: oneDecimal(p.memUsage),
+    diskUsage: oneDecimal(p.diskUsage),
     netIn: parseFloat((p.netIn || 0).toFixed(2)),
     netOut: parseFloat((p.netOut || 0).toFixed(2)),
   }));
@@ -97,9 +100,9 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
   if (currentInfo) {
     data.push({
       t: Date.now(),
-      cpu: Math.round(currentInfo.cpu.usage),
-      memUsage: Math.round(currentInfo.memory.usage),
-      diskUsage: Math.round(currentInfo.disk.usage),
+      cpu: oneDecimal(currentInfo.cpu.usage),
+      memUsage: oneDecimal(currentInfo.memory.usage),
+      diskUsage: oneDecimal(currentInfo.disk.usage),
       netIn: parseFloat((currentInfo.network?.in ?? 0).toFixed(2)),
       netOut: parseFloat((currentInfo.network?.out ?? 0).toFixed(2)),
     });
@@ -111,6 +114,8 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
       title: 'CPU',
       unit: '%',
       yMax: 100,
+      // Collector 경로는 코어 수를 모른다(0) — 빈 칸 대신 줄을 뺀다.
+      caption: currentInfo && currentInfo.cpu.cores > 0 ? `코어 ${currentInfo.cpu.cores}개` : undefined,
       data,
       series: [{ key: 'cpu', label: '사용률', color: SERIES_HEX.primary }],
     },
@@ -118,6 +123,7 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
       title: '메모리',
       unit: '%',
       yMax: 100,
+      caption: currentInfo ? capacity(currentInfo.memory) || undefined : undefined,
       data,
       series: [{ key: 'memUsage', label: '사용률', color: SERIES_HEX.primary }],
     },
@@ -125,6 +131,7 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
       title: '디스크',
       unit: '%',
       yMax: 100,
+      caption: currentInfo ? capacity(currentInfo.disk) || undefined : undefined,
       data,
       series: [{ key: 'diskUsage', label: '사용률', color: SERIES_HEX.primary }],
     },

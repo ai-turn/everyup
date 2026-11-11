@@ -27,7 +27,7 @@ const SLIDES = [
   { name: 'uptime', url: '/uptime' },
   { name: 'logs', url: '/logs' },
   // 상세 화면은 헤더를 넘기고 본문(게이지·탭 내용)부터 보여준다.
-  { name: 'infra', url: '/infrastructure/infra_mock_edge_01', scrollTo: '#main-content article' },
+  { name: 'infra', url: '/infrastructure/infra_mock_edge_01', scrollTo: '#main-content h2' },
   { name: 'api', url: '/services/agent_demo_01/shop%3Aapi?tab=requests', scrollTo: '[role="tabpanel"]' },
   { name: 'trace', url: '/services/agent_demo_01/shop%3Aapi?tab=traces', click: 'POST /api/v1/payments' },
   { name: 'alerts', url: '/alerts' },
