@@ -10,6 +10,7 @@ import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { DirectServiceTracesTab } from '../../features/healthcheck/components/AgentServiceTracesTab';
 import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/RotatedTelemetryKeyDialog';
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
+import { serviceRemoval, signalList } from '../../features/telemetry/signals';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { ApiExclusionsSettings } from '../../features/api-requests/ApiExclusionsSettings';
@@ -110,8 +111,13 @@ export function DirectApiDetailPage() {
         setService(await api.revokeObservedServiceKey(service.id));
         toast.success('직접 수집 연결을 중지했습니다.');
       } else {
-        await api.deleteObservedService(service.id);
-        toast.success('직접 API 서비스를 삭제했습니다.');
+        const removal = serviceRemoval(service, 'traces');
+        if (removal.kind === 'detach') {
+          await api.updateObservedService(service.id, { name: service.name, projectId: service.projectId ?? undefined, signals: removal.signals });
+        } else {
+          await api.deleteObservedService(service.id);
+        }
+        toast.success(removal.done);
         navigate('/api', { replace: true });
       }
       setConfirmAction(null);
@@ -127,6 +133,7 @@ export function DirectApiDetailPage() {
     return <EmptyState icon="error_outline" title="직접 API 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: 'API로 돌아가기', to: '/api' }} />;
   }
 
+  const removal = serviceRemoval(service, 'traces');
   const confirmCopy = {
     rotate: {
       title: 'API Key를 재발급할까요?',
@@ -140,12 +147,7 @@ export function DirectApiDetailPage() {
       label: '연결 중지',
       variant: 'danger' as const,
     },
-    delete: {
-      title: '이 Observed Service를 삭제할까요?',
-      message: '이 서비스의 traces와 연결된 다른 데이터, 직접 수집 연결, 대상별 알림 규칙을 함께 삭제합니다.',
-      label: '삭제',
-      variant: 'danger' as const,
-    },
+    delete: { title: removal.title, message: removal.message, label: removal.button, variant: 'danger' as const },
   };
   const selectedConfirm = confirmAction ? confirmCopy[confirmAction] : null;
 
@@ -158,7 +160,7 @@ export function DirectApiDetailPage() {
             isActive={service.isActive}
             apiKeyMasked={service.apiKeyMasked}
             lastSeenAt={service.lastSeenAt}
-            detail={{ label: '수집 데이터', value: service.signals.join(', ') }}
+            detail={{ label: '수집 데이터', value: signalList(service.signals) }}
             onRotateKey={() => setConfirmAction('rotate')}
             onRevoke={() => setConfirmAction('revoke')}
             projects={projects}
@@ -183,7 +185,7 @@ export function DirectApiDetailPage() {
         actions={
           <>
           <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-          <Button collapseLabel variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+          <Button collapseLabel variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />{removal.button}</Button>
           </>
         }
       />

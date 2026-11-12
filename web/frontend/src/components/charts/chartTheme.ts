@@ -18,6 +18,8 @@ export interface TooltipPayloadItem {
   value?: number | string;
   /** Overrides ChartTooltip's `unit` for this row. */
   unit?: string;
+  /** Series `tooltipType` — 'none' marks decoration (the fill Area) that must not get a row. */
+  type?: string;
 }
 
 // Recharts otherwise renders once with its -1×-1 sentinel before the first

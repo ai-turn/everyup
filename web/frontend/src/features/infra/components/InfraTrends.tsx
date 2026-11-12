@@ -13,7 +13,7 @@ import {
 import { EmptyState, StatusLight, type GlobalTimeRange } from '../../../components/common';
 import {
   CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, formatMetricValue, formatTimeLabel, ChartEmpty, ChartLegend, ChartSummary, ChartTooltip, areaGradient, areaProps, formatAxisValue,
-  gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  gridProps, lineProps, niceYAxis, rangeAreas, splitGaps, thresholdLines, timeXAxisProps, tooltipCursor, useChartKeyboard, useChartTheme, yAxisProps,
   type ChartTheme,
 } from '../../../components/charts';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
@@ -124,23 +124,8 @@ function TrendCard({
   const { rows, gaps } = splitGaps(chart.data);
   const single = chart.series.length === 1 ? chart.series[0] : null;
   const gradientId = useId().replace(/[^\w-]/g, '');
-  // Recharts accessibilityLayer는 숫자(시간) X축에서 방향키가 먹지 않는다(로그 발생량 차트와 같은 문제) —
-  // 키보드로 고른 시점은 직접 들고, 값은 차트 아래 글로 읽어 준다. null = 키보드로 고르는 중 아님.
-  const [kbd, setKbd] = useState<number | null>(null);
-  const kbdPoint = kbd === null ? undefined : chart.data[kbd];
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    const last = chart.data.length - 1;
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      const step = e.key === 'ArrowRight' ? 1 : -1;
-      setKbd((i) => i === null ? last : Math.min(last, Math.max(0, i + step)));
-    } else if (e.key === 'Home' || e.key === 'End') {
-      e.preventDefault();
-      setKbd(e.key === 'Home' ? 0 : last);
-    } else if (e.key === 'Escape') {
-      setKbd(null);
-    }
-  };
+  const kbd = useChartKeyboard(chart.data.length);
+  const kbdPoint = kbd.index === null ? undefined : chart.data[kbd.index];
 
   // One series: its numbers sit in the title row. Several: their names do, as chips.
   // 상세의 게이지 줄을 없앤 대신, 주의·위험은 차트 머리에서 읽는다(사용률 차트만, 목록과 같은 선).
@@ -163,8 +148,8 @@ function TrendCard({
           role="group"
           aria-label={`${chart.title} 추이. 좌우 방향키로 시점별 값을 읽습니다.`}
           className="rounded-lg"
-          onKeyDown={onKeyDown}
-          onBlur={() => setKbd(null)}
+          onKeyDown={kbd.onKeyDown}
+          onBlur={kbd.onBlur}
           onMouseEnter={() => onHover(chart.title)}
           onMouseLeave={() => onHover(null)}
         >

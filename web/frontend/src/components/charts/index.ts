@@ -10,3 +10,4 @@ export {
 } from './ChartElements';
 export { rangeAreas, thresholdLines, areaGradient, OPERATOR_LABEL } from './chartMarks';
 export { Sparkline } from './Sparkline';
+export { useChartKeyboard } from './useChartKeyboard';

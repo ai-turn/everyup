@@ -10,6 +10,7 @@ import { LogIngestLevels } from '../../features/logs/components/LogIngestLevels'
 import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/RotatedTelemetryKeyDialog';
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
+import { serviceRemoval, signalList } from '../../features/telemetry/signals';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -86,8 +87,13 @@ export function DirectLogsDetailPage() {
         setService(await api.revokeObservedServiceKey(service.id));
         toast.success('직접 수집 연결을 중지했습니다.');
       } else {
-        await api.deleteObservedService(service.id);
-        toast.success('직접 로그 서비스를 삭제했습니다.');
+        const removal = serviceRemoval(service, 'logs');
+        if (removal.kind === 'detach') {
+          await api.updateObservedService(service.id, { name: service.name, projectId: service.projectId ?? undefined, signals: removal.signals });
+        } else {
+          await api.deleteObservedService(service.id);
+        }
+        toast.success(removal.done);
         navigate('/logs', { replace: true });
       }
       setConfirmAction(null);
@@ -101,6 +107,7 @@ export function DirectLogsDetailPage() {
   if (loading) return <div className="h-96 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
   if (error || !service) return <EmptyState icon="error_outline" title="직접 로그 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: '로그로 돌아가기', to: '/logs' }} />;
 
+  const removal = serviceRemoval(service, 'logs');
   const confirmCopy = {
     rotate: {
       title: 'API Key를 재발급할까요?',
@@ -114,12 +121,7 @@ export function DirectLogsDetailPage() {
       label: '연결 중지',
       variant: 'danger' as const,
     },
-    delete: {
-      title: '직접 로그 서비스를 삭제할까요?',
-      message: '이 서비스의 로그, 직접 수집 연결, 대상별 알림 규칙이 함께 삭제됩니다.',
-      label: '삭제',
-      variant: 'danger' as const,
-    },
+    delete: { title: removal.title, message: removal.message, label: removal.button, variant: 'danger' as const },
   };
   const selectedConfirm = confirmAction ? confirmCopy[confirmAction] : null;
 
@@ -132,7 +134,7 @@ export function DirectLogsDetailPage() {
             isActive={service.isActive}
             apiKeyMasked={service.apiKeyMasked}
             lastSeenAt={service.lastSeenAt}
-            detail={{ label: '수집 데이터', value: service.signals.join(', ') }}
+            detail={{ label: '수집 데이터', value: signalList(service.signals) }}
             onRotateKey={() => setConfirmAction('rotate')}
             onRevoke={() => setConfirmAction('revoke')}
             projects={projects}
@@ -156,7 +158,7 @@ export function DirectLogsDetailPage() {
         actions={
           <>
           <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-          <Button collapseLabel variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+          <Button collapseLabel variant="destructive" onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />{removal.button}</Button>
           </>
         }
       />
