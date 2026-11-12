@@ -20,6 +20,21 @@ export function useRequestWindow(range: GlobalTimeRange, refreshKey: number = 0)
   }, [range, refreshKey]);
 }
 
+/** 분포 띠에서 고른 상태코드 대역. 목록 조회의 minStatus/maxStatus가 된다. */
+export type StatusClass = '2xx' | '3xx' | '4xx' | '5xx';
+const STATUS_CLASSES: StatusClass[] = ['2xx', '3xx', '4xx', '5xx'];
+
+/** 상태코드 글자색. 요청 목록과 트레이스 패널이 같은 422를 같은 색으로 보이게 한다. */
+export function statusClass(code: number) {
+  return code >= 500 ? 'text-status-error' : code >= 400 ? 'text-status-warn' : 'text-text-secondary';
+}
+
+export function statusRange(value: StatusClass | undefined) {
+  if (!value) return {};
+  const base = Number(value[0]) * 100;
+  return { minStatus: base, maxStatus: base + 99 };
+}
+
 export function useRequestQuery() {
   const [params, setParams] = useSearchParams();
   const update = useCallback((changes: Record<string, string | null>) => setParams(current => {
@@ -39,6 +54,10 @@ export function useRequestQuery() {
     traceId: params.get('traceId') || undefined,
     traceSort: params.get('traceSort') === 'slowest' ? 'slowest' as const : 'recent' as const,
     traceErrorsOnly: params.get('traceErrorsOnly') === 'true',
+    status: STATUS_CLASSES.find(value => value === params.get('status')),
+    // Endpoint 표에서 고른 한 endpoint. q(부분 일치)와 달리 정확히 그 method + template만.
+    method: params.get('method') || undefined,
+    pathTemplate: params.get('pathTemplate') || undefined,
     update,
   };
 }

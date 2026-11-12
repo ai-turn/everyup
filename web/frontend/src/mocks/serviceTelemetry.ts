@@ -8,15 +8,17 @@ const now = Date.now();
 const ago = (minutes: number) => new Date(now - minutes * 60_000).toISOString();
 
 // Each service has its own operations, log vocabulary and metric series.
-const profiles: Record<string, { routes: string[]; operation: string; dependency: string; latency: number }> = {
+// volume/failEvery: background request count and 1-in-N 500s, so the API list has a visible order
+// (defaults 64 and 17; 0 = no background 500s).
+const profiles: Record<string, { routes: string[]; operation: string; dependency: string; latency: number; volume?: number; failEvery?: number }> = {
   api: { routes: ['/api/v1/auth/login', '/api/v1/users/:id', '/api/v1/products'], operation: 'HTTP request completed', dependency: 'auth.internal', latency: 42 },
   postgres: { routes: [], operation: 'Checkpoint completed', dependency: 'replica-02', latency: 5 },
   'payment-worker': { routes: [], operation: 'Payment processed successfully', dependency: 'payments.partner.io', latency: 480 },
   'checkout-api': { routes: ['/checkout/sessions', '/checkout/cart/:id', '/checkout/confirm'], operation: 'Checkout session created', dependency: 'auth.internal', latency: 128 },
-  'payments-api': { routes: ['/v1/payments', '/v1/refunds', '/v1/payments/:id'], operation: 'Payment authorization completed', dependency: 'payments.partner.io', latency: 214 },
+  'payments-api': { routes: ['/v1/payments', '/v1/refunds', '/v1/payments/:id'], operation: 'Payment authorization completed', dependency: 'payments.partner.io', latency: 214, volume: 96, failEvery: 6 },
   'orders-api': { routes: ['/v1/orders', '/v1/orders/:id', '/v1/orders/:id/cancel'], operation: 'Order reservation completed', dependency: 'inventory.internal', latency: 86 },
-  'inventory-api': { routes: ['/v1/inventory/:id', '/v1/reservations', '/v1/stock/reconcile'], operation: 'Stock reservation committed', dependency: 'inventory-db', latency: 32 },
-  'search-api': { routes: ['/v1/search', '/v1/suggestions', '/v1/indexes/:id'], operation: 'Search query served', dependency: 'opensearch:9200', latency: 67 },
+  'inventory-api': { routes: ['/v1/inventory/:id', '/v1/reservations', '/v1/stock/reconcile'], operation: 'Stock reservation committed', dependency: 'inventory-db', latency: 32, volume: 40, failEvery: 0 },
+  'search-api': { routes: ['/v1/search', '/v1/suggestions', '/v1/indexes/:id'], operation: 'Search query served', dependency: 'opensearch:9200', latency: 67, volume: 140, failEvery: 45 },
   'catalog-worker': { routes: [], operation: 'Product catalog batch indexed', dependency: 'catalog-db', latency: 320 },
   'notification-worker': { routes: [], operation: 'Notification delivered', dependency: 'smtp.example.com', latency: 75 },
   'billing-worker': { routes: [], operation: 'Invoice reconciliation completed', dependency: 'billing-db', latency: 640 },
@@ -92,15 +94,17 @@ export function createServiceTelemetry(
       ],
     });
   }
-  for (let i = 0; profile.routes.length && i < 64; i += 1) {
+  const volume = profile.volume ?? 64;
+  const failEvery = profile.failEvery ?? 17;
+  for (let i = 0; profile.routes.length && i < volume; i += 1) {
     const route = profile.routes[i % profile.routes.length];
-    const statusCode = i % 17 === 0 ? 500 : i % 11 === 0 ? 422 : 200;
+    const statusCode = failEvery && i % failEvery === 0 ? 500 : i % 11 === 0 ? 422 : 200;
     requests.push({
       ...scope, id: baseId + 100 + i, requestId: `${serviceId}-request-${i}`, method: i % 3 ? 'GET' : 'POST',
       path: route.replace(':id', String(8000 + i)), pathTemplate: route, statusCode,
       durationMs: statusCode === 500 ? profile.latency * 8 : profile.latency + (i % 9) * 6,
       isError: statusCode >= 500, error: statusCode === 500 ? `${profile.dependency} unavailable` : undefined,
-      createdAt: ago(30 + i * 4),
+      createdAt: ago(30 + i * 256 / volume),
     });
   }
   const logs: LogEntry[] = seedLogs.map(log => ({ ...log, ...scope }));

@@ -1,27 +1,17 @@
 import { Tooltip } from '../../../components/common/Tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { CollectionStatusBadge, type CollectionStatus } from '../../../components/common';
+import { CollectionStatusBadge } from '../../../components/common';
 import type { SignalReceipt } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
-import { appReceiptNote } from '../../telemetry/signals';
+import { appReceiptNote, lastReceipt, receiptState } from '../../telemetry/signals';
 
 const labels: Record<string, string> = { logs: '로그', metrics: '메트릭', traces: 'API 트레이스', infrastructure: '인프라', uptime: '컨테이너 상태' };
-
-// Anything older than a collection interval plus slack is stale, not proof of
-// a working pipeline — a receipt from last week must not read like success.
-const DELAYED_AFTER_MS = 10 * 60 * 1000;
-
-function receiptState(last?: string): CollectionStatus {
-  if (!last) return 'waiting';
-  return Date.now() - new Date(last).getTime() > DELAYED_AFTER_MS ? 'delayed' : 'collecting';
-}
 
 export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; expected: string[] }) {
   return <ul className="space-y-1.5" aria-live="polite">
     {expected.map(signal => {
-      const times = signals.filter(item => item.signal === signal).map(item => item.lastReceivedAt).sort();
-      const last = times[times.length - 1];
+      const last = lastReceipt(signals, signal);
       return <li key={signal} className="flex flex-wrap items-center gap-2 type-body text-text-secondary">
         <CollectionStatusBadge status={receiptState(last)} />
         {labels[signal] ?? signal}

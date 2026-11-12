@@ -41,14 +41,21 @@ async function mockApi(page: Page, state: ApiState) {
     else if (path === '/observed-services') data = [{ ...service, name: state.serviceName ?? service.name }];
     else if (path === '/observed-services/api-test') data = { ...service, name: state.serviceName ?? service.name };
     else if (path.endsWith('/api-exclusions')) data = { paths: ['/health'] };
-    else if (path.endsWith('/request-status-summary')) data = { count2xx: 2, count3xx: 0, count4xx: 1, count5xx: 1, countOther: 0, top5xxMethod: 'GET', top5xxPath: '/orders/:id', top5xxCount: 1 };
-    else if (path.endsWith('/request-stats')) data = { buckets: [], truncated: state.truncated ?? false };
+    else if (path.endsWith('/request-status-summary')) data = { count2xx: 2, count3xx: 0, count4xx: 1, count5xx: 1, countOther: 0, top5xxMethod: 'GET', top5xxPath: '/orders/:id', top5xxCount: 1, errorCount: 1, p95: 20, timed: 4 };
+    else if (path.endsWith('/request-stats')) data = { buckets: state.requests?.length ? [{ time: new Date(Date.now() - 60_000).toISOString(), count: 4, errorCount: 2, p50: 20, p95: 20, p99: 20, timed: 4 }] : [], truncated: state.truncated ?? false };
+    else if (path.endsWith('/request-endpoints')) data = { truncated: false, endpoints: [
+      { method: 'GET', path: '/orders/:id', count: 35, errorCount: 2, p50: 20, p95: 20, p99: 20, timed: 34 },
+      { method: 'POST', path: '/orders', count: 1, errorCount: 0, p50: 9, p95: 9, p99: 9, timed: 1 },
+    ] };
     else if (path.startsWith('/traces/')) data = { traceId: path.split('/').at(-1), spans: [], logs: [], apiRequests: [] };
     else if (path.endsWith('/requests')) {
       await state.beforeRequests?.(url);
       const rows = (state.requests ?? []).filter(row => (!url.searchParams.get('errorsOnly') || row.isError)
         && (!url.searchParams.get('traceId') || row.traceId === url.searchParams.get('traceId'))
-        && (!url.searchParams.get('search') || row.path.includes(url.searchParams.get('search')!)));
+        && (!url.searchParams.get('search') || row.path.includes(url.searchParams.get('search')!))
+        && (!url.searchParams.get('pathTemplate') || (row.method === url.searchParams.get('method') && row.pathTemplate === url.searchParams.get('pathTemplate')))
+        && (!url.searchParams.get('minStatus') || row.statusCode >= Number(url.searchParams.get('minStatus')))
+        && (!url.searchParams.get('maxStatus') || row.statusCode <= Number(url.searchParams.get('maxStatus'))));
       const offset = Number(url.searchParams.get('offset') ?? 0);
       data = { data: rows.slice(offset, offset + 25), total: rows.length };
     }
@@ -77,7 +84,7 @@ test('limited statistics do not display a partial period as a complete chart', a
 });
 
 test('request failures remain distinct from zero results and recover on retry', async ({ page }) => {
-  const state: ApiState = { failRequests: true, queries: [] };
+  const state: ApiState = { failRequests: true, received: true, queries: [] };
   await mockApi(page, state);
   await page.goto('./api/api-test');
   const results = page.getByRole('region', { name: '요청 결과' });
@@ -232,7 +239,7 @@ test('an individual summary failure keeps its target visible and retries only th
   await page.goto('./api?range=24h');
   const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'orders-api', exact: true }) });
   await expect(row).toContainText('요약을 불러오지 못했습니다');
-  await expect(row.getByRole('cell').nth(2)).toHaveText('—');
+  await expect(row.getByRole('cell').nth(2)).toHaveText('-');
   const listRequests = state.queries.filter(url => url.pathname.endsWith('/observed-services')).length;
   state.failSummary = false;
   await row.getByRole('button', { name: '다시 시도', exact: true }).click();
@@ -275,7 +282,36 @@ test('long service names and request paths remain accessible on narrow screens',
     await expect(path).toBeVisible();
     await expect(path).not.toHaveAttribute('title');
     await path.focus();
-    await expect(page.getByRole('tooltip')).toHaveText(`${rows[0].path} — 트레이스 상세를 오른쪽 패널에서 열기`);
+    await expect(page.getByRole('tooltip')).toHaveText(`${rows[0].path}: 트레이스 상세를 오른쪽 패널에서 열기`);
     expect(await page.locator('#main-content').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   }
+});
+
+test('a service that never received traces says so in the list and opens setup guidance', async ({ page }) => {
+  await mockApi(page, { queries: [] });
+  await page.goto('./api');
+  const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'orders-api', exact: true }) });
+  await expect(row).toContainText('수신 대기');
+  await page.goto('./api/api-test');
+  await expect(page.getByText('아직 수신한 API 트레이스가 없습니다', { exact: true })).toBeVisible();
+  await expect(page.locator('details').filter({ hasText: '수집 설정 안내' })).toHaveAttribute('open', '');
+});
+
+test('endpoint rows and status classes filter the request list', async ({ page }) => {
+  const state: ApiState = { requests: requestRows(), received: true, queries: [] };
+  await mockApi(page, state);
+  await page.goto('./api/api-test');
+  const results = page.getByRole('region', { name: '요청 결과' });
+  await expect(results).toContainText('전체 35건');
+  const endpoint = page.getByRole('button', { name: 'POST /orders 요청만 보기', exact: true });
+  await endpoint.click();
+  await expect(endpoint).toHaveAttribute('aria-pressed', 'true');
+  expect(new URL(page.url()).searchParams.get('pathTemplate')).toBe('/orders');
+  await expect(results).toContainText('검색 결과 0건');
+  await page.getByRole('button', { name: 'GET /orders/:id 요청만 보기', exact: true }).click();
+  await expect(results).toContainText('검색 결과 35건');
+  await page.getByRole('button', { name: '필터 해제', exact: true }).click();
+  await page.getByRole('group', { name: '상태코드로 요청 목록 거르기' }).getByRole('button', { name: /^5xx/ }).click();
+  expect(new URL(page.url()).searchParams.get('status')).toBe('5xx');
+  await expect(results).toContainText('검색 결과 1건');
 });

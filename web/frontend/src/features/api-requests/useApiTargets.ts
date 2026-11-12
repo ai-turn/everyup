@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
+import type { CollectionStatus } from '../../components/common';
 import { api, type ApiRequestStatusSummary, type ObservedService } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { receiptCollection } from '../telemetry/signals';
 import type { RequestWindow } from './useRequestQuery';
 
 export interface ApiTarget {
   service: ObservedService;
   summary?: ApiRequestStatusSummary;
+  /** traces 수신 기준. 조회 실패면 없음 — 그때는 키 상태만 보인다. */
+  collection?: CollectionStatus;
   error?: string;
   loading?: boolean;
 }
@@ -23,11 +27,15 @@ export function useApiTargets(window: RequestWindow, refreshKey: number) {
       setError(null);
       try {
         const services = await api.getObservedServices('traces');
-        const results = await Promise.all(services.map(async service => {
+        // ponytail: 대상마다 요약·수신 상태 두 번 호출. 대상이 많아지면 목록용 일괄 엔드포인트로 바꾼다.
+        const results = await Promise.all(services.map(async (service): Promise<ApiTarget> => {
+          const collection = api.getObservedServiceSetupStatus(service.id)
+            .then(receipts => receiptCollection(receipts, 'traces'), () => undefined);
           try {
-            return { service, summary: await api.getObservedServiceRequestStatusSummary(service.id, window) };
+            const summary = await api.getObservedServiceRequestStatusSummary(service.id, window);
+            return { service, summary, collection: await collection };
           } catch (error) {
-            return { service, error: getErrorMessage(error) };
+            return { service, error: getErrorMessage(error), collection: await collection };
           }
         }));
         if (active) setRows(results);
@@ -45,9 +53,9 @@ export function useApiTargets(window: RequestWindow, refreshKey: number) {
     setRows(current => current.map(row => row.service.id === id ? { ...row, error: undefined, loading: true } : row));
     try {
       const summary = await api.getObservedServiceRequestStatusSummary(id, window);
-      if (generation.current === version) setRows(current => current.map(row => row.service.id === id ? { service: row.service, summary } : row));
+      if (generation.current === version) setRows(current => current.map(row => row.service.id === id ? { service: row.service, collection: row.collection, summary } : row));
     } catch (error) {
-      if (generation.current === version) setRows(current => current.map(row => row.service.id === id ? { service: row.service, error: getErrorMessage(error) } : row));
+      if (generation.current === version) setRows(current => current.map(row => row.service.id === id ? { service: row.service, collection: row.collection, error: getErrorMessage(error) } : row));
     }
   };
   return { rows, loading, error, retryTarget };

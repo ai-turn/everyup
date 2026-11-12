@@ -1,10 +1,7 @@
 import type { ReactNode } from 'react';
 import { Button, EmptyState, MaterialIcon, Pagination } from '../../components/common';
 import type { ApiRequest } from '../../services/api';
-
-function statusClass(code: number) {
-  return code >= 500 ? 'text-status-error' : code >= 400 ? 'text-status-warn' : 'text-text-secondary';
-}
+import { statusClass } from './useRequestQuery';
 
 function requestTime(time: string) {
   return new Date(time).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
@@ -21,7 +18,7 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
         {traceId ? <div className="min-w-0 flex-1"><Button type="button" variant="text" size="sm" onClick={() => onSelect(traceId)}
           aria-label={`${req.method.toUpperCase()} ${req.statusCode} ${req.path} 트레이스 상세 열기`}
           aria-haspopup="dialog"
-          title={`${req.path} — 트레이스 상세를 오른쪽 패널에서 열기`}
+          title={`${req.path}: 트레이스 상세를 오른쪽 패널에서 열기`}
           className="group -ml-3 min-w-0 max-w-full max-sm:h-11">
           <span className="truncate font-mono underline-offset-2 group-hover:underline group-focus-visible:underline">{req.path}</span>
           <MaterialIcon name="chevron_right" size={16} />
@@ -29,6 +26,8 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
           : <span className="min-w-0 break-all font-mono text-text-secondary">{req.path}</span>}
         {req.isError && <span className="shrink-0 text-status-error">오류</span>}
       </div>
+      {/* 실패 원인(span status message). 저장만 되고 어디에도 보이지 않았다. */}
+      {req.error && <p className="mt-1 line-clamp-2 break-all font-mono text-text-secondary">{req.error}</p>}
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 tabular-nums text-text-muted lg:hidden">
         <span className={`sm:hidden ${statusClass(req.statusCode)}`}>{req.statusCode}</span>
         <span className="sm:hidden">{duration ?? '소요 미측정'}</span>
@@ -36,13 +35,15 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
       </div>
     </td>
     <td className={`hidden px-4 py-3 text-right tabular-nums sm:table-cell ${statusClass(req.statusCode)}`}>{req.statusCode}</td>
-    <td className="hidden px-4 py-3 text-right tabular-nums text-text-secondary sm:table-cell">{duration ?? '—'}</td>
+    <td className="hidden px-4 py-3 text-right tabular-nums text-text-secondary sm:table-cell">{duration ?? '-'}</td>
     <td className="hidden whitespace-nowrap px-4 py-3 text-right tabular-nums text-text-muted lg:table-cell">{time}</td>
   </tr>;
 }
 
-export function ApiRequestResults({ requests, total, page, loading, error, filtered, onRetry, onClear, onPageChange, onSelect }: {
+export function ApiRequestResults({ requests, total, page, loading, error, filtered, waiting = false, onRetry, onClear, onPageChange, onSelect }: {
   requests: ApiRequest[]; total: number; page: number; loading: boolean; error: string | null; filtered: boolean;
+  /** traces를 한 번도 받지 않은 서비스. 한산한 서비스의 "이 기간에 없음"과 구분한다. */
+  waiting?: boolean;
   onRetry: () => void; onClear: () => void; onPageChange: (page: number) => void; onSelect: (traceId: string) => void;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / 25));
@@ -53,8 +54,8 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
     content = <div role="alert"><EmptyState icon="error_outline" title="API 요청을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: onRetry }} /></div>;
   } else if (requests.length === 0) {
     content = <EmptyState icon="http"
-          title={filtered ? '조건에 맞는 요청이 없습니다' : '이 기간에 수집된 HTTP 요청이 없습니다'}
-          description={filtered ? '적용한 필터를 해제하거나 기간을 바꿔 주세요.' : '기간을 바꾸거나 트레이스 탭에서 다른 span이 수신됐는지 확인해 주세요.'}
+          title={filtered ? '조건에 맞는 요청이 없습니다' : waiting ? '아직 수신한 API 트레이스가 없습니다' : '이 기간에 수집된 HTTP 요청이 없습니다'}
+          description={filtered ? '적용한 필터를 해제하거나 기간을 바꿔 주세요.' : waiting ? '아래 수집 설정 안내에 따라 앱의 OpenTelemetry 전송을 설정해 주세요.' : '기간을 바꾸거나 트레이스 탭에서 다른 span이 수신됐는지 확인해 주세요.'}
           action={filtered ? { label: '필터 해제', onClick: onClear } : undefined}
         />;
   } else {

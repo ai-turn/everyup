@@ -1,4 +1,5 @@
-import type { ObservedService, TelemetrySignal } from '../../services/api';
+import type { CollectionStatus } from '../../components/common';
+import type { ObservedService, SignalReceipt, TelemetrySignal } from '../../services/api';
 
 /** 화면에 쓰는 데이터 유형 이름 (DESIGN.md §9: signal → 데이터 유형). 메뉴 이름과 맞춘다. */
 const SIGNAL_LABELS: Record<string, string> = { logs: '로그', traces: 'API', metrics: '메트릭' };
@@ -47,3 +48,19 @@ export function appReceiptNote(signals: string[], attached = false) {
     ...(attached ? ['권한 추가만으로 앱의 전송 설정이 변경되지는 않습니다.'] : []),
   ].join(' ');
 }
+
+// Anything older than a collection interval plus slack is stale, not proof of
+// a working pipeline — a receipt from last week must not read like success.
+const DELAYED_AFTER_MS = 10 * 60 * 1000;
+
+export function receiptState(last?: string): CollectionStatus {
+  if (!last) return 'waiting';
+  return Date.now() - new Date(last).getTime() > DELAYED_AFTER_MS ? 'delayed' : 'collecting';
+}
+
+/** 한 데이터 유형의 마지막 수신 시각. 서비스의 lastSeenAt은 다른 유형(로그 등)으로도 갱신되므로 쓰지 않는다. */
+export function lastReceipt(receipts: SignalReceipt[], signal: string) {
+  return receipts.filter(item => item.signal === signal).map(item => item.lastReceivedAt).sort().pop();
+}
+
+export const receiptCollection = (receipts: SignalReceipt[], signal: string) => receiptState(lastReceipt(receipts, signal));

@@ -71,8 +71,11 @@ export type {
   AgentOverview,
   IncidentSource,
   TimelineIncident,
+  SignalReceipt,
 } from './agents';
 export type {
+  ApiEndpointStat,
+  ApiEndpointStats,
   ApiRequestStatBucket,
   ApiRequestStats,
   ApiRequestStatusSummary,

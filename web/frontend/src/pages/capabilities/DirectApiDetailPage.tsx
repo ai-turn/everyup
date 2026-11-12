@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
-  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker,
+  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, type CollectionStatus,
 } from '../../components/common';
 import { DirectServiceRequestsTab } from '../../features/healthcheck/components/AgentServiceRequestsTab';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
 import { DirectServiceTracesTab } from '../../features/healthcheck/components/AgentServiceTracesTab';
 import { RotatedTelemetryKeyDialog } from '../../features/telemetry/components/RotatedTelemetryKeyDialog';
 import { DirectConnectionMeta } from '../../features/telemetry/components/DirectConnectionMeta';
-import { serviceRemoval, signalList } from '../../features/telemetry/signals';
+import { receiptCollection, serviceRemoval, signalList } from '../../features/telemetry/signals';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { ApiExclusionsSettings } from '../../features/api-requests/ApiExclusionsSettings';
@@ -38,6 +38,8 @@ export function DirectApiDetailPage() {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<ObservedServiceSetup | null>(null);
+  // traces 수신 기준 상태. lastSeenAt은 로그 수신으로도 갱신돼서 API를 받은 적 없는 서비스도 "연결 활성"이었다.
+  const [collection, setCollection] = useState<CollectionStatus | undefined>();
 
   useEffect(() => {
     let active = true;
@@ -62,6 +64,13 @@ export function DirectApiDetailPage() {
     void load();
     return () => { active = false; };
   }, [serviceId]);
+
+  useEffect(() => {
+    let active = true;
+    api.getObservedServiceSetupStatus(serviceId)
+      .then(receipts => { if (active) setCollection(receiptCollection(receipts, 'traces')); }, () => { if (active) setCollection(undefined); });
+    return () => { active = false; };
+  }, [serviceId, refreshKey]);
 
   useEffect(() => {
     let active = true;
@@ -161,6 +170,9 @@ export function DirectApiDetailPage() {
             apiKeyMasked={service.apiKeyMasked}
             lastSeenAt={service.lastSeenAt}
             detail={{ label: '수집 데이터', value: signalList(service.signals) }}
+            collection={collection}
+            collapseOnMobile
+            collapseLabel="서비스 정보"
             onRotateKey={() => setConfirmAction('rotate')}
             onRevoke={() => setConfirmAction('revoke')}
             projects={projects}
@@ -207,7 +219,7 @@ export function DirectApiDetailPage() {
       </div>
       <div role="tabpanel" id="api-data-panel" aria-labelledby={`api-tab-${view}`}>
         {view === 'requests'
-          ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} window={window} traceId={traceId} />
+          ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} window={window} traceId={traceId} awaitingData={collection === 'waiting'} />
           : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={refreshKey} range={range} window={window} />}
       </div>
       <ApiExclusionsSettings key={service.id} serviceId={service.id} paths={service.apiExcludePaths ?? []} onSaved={paths => setService(current => current ? { ...current, apiExcludePaths: paths } : current)} />

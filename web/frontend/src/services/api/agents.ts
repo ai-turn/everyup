@@ -1,6 +1,8 @@
 import { metricQueryString, type MetricQuery, type MetricQueryResult } from './telemetry';
 import type { LogEntry, ApiRequest, LogHistogramBucket } from './services';
+import type { DirectApiRequestQuery } from './observedServices';
 import type {
+  ApiEndpointStats,
   ApiRequestStats,
   ApiRequestStatusSummary,
   TraceListQuery,
@@ -260,7 +262,7 @@ export const agentsApi = {
   },
   getAgentServiceRequests: (
     agentId: string, key: string,
-    params?: { search?: string; errorsOnly?: boolean; traceId?: string; from?: string; to?: string; limit?: number; offset?: number },
+    params?: Omit<DirectApiRequestQuery, 'limit'> & { limit?: number },
   ) => {
     const p = new URLSearchParams();
     p.set('limit', String(params?.limit ?? 100));
@@ -270,7 +272,17 @@ export const agentsApi = {
     if (params?.traceId) p.set('traceId', params.traceId);
     if (params?.from) p.set('from', params.from);
     if (params?.to) p.set('to', params.to);
+    if (params?.minStatus) p.set('minStatus', String(params.minStatus));
+    if (params?.maxStatus) p.set('maxStatus', String(params.maxStatus));
+    if (params?.method) p.set('method', params.method);
+    if (params?.pathTemplate) p.set('pathTemplate', params.pathTemplate);
     return request<{ data: ApiRequest[]; total: number }>(`/agents/${agentId}/services/${encodeURIComponent(key)}/requests?${p}`);
+  },
+  getAgentServiceRequestEndpoints: (agentId: string, key: string, params?: { from?: string; to?: string }) => {
+    const p = new URLSearchParams();
+    if (params?.from) p.set('from', params.from);
+    if (params?.to) p.set('to', params.to);
+    return request<ApiEndpointStats>(`/agents/${agentId}/services/${encodeURIComponent(key)}/request-endpoints?${p}`);
   },
   getAgentServiceRequestStats: (
     agentId: string, key: string,
