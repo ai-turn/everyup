@@ -1,0 +1,13 @@
+{
+  "text": "트레이스\n00000000000000000000000000038270\n탭에서 보기:\n로그 (1)\nAPI 요청 (1)\nSpan\n4\nSERVER\nPOST /v1/payments\npayments-api\nOK\n214ms\nCLIENT\nSELECT records\npayments-api\nOK\n53ms\nCLIENT\ncache.lookup\npayments-api\nOK\n105ms\nCLIENT\npayments.partner.io\npayments-api\nOK\n158ms\nAPI 요청\n1\nPOST\n/v1/payments\n200\n214ms\n로그\n1\nwarn\n22:01:53\npayments-api: retry queue above threshold — 20 pending jobs",
+  "docW": 390,
+  "vw": 390,
+  "wideTables": [
+    {
+      "label": "API 요청 목록",
+      "w": 356,
+      "box": 356
+    }
+  ],
+  "small": []
+}

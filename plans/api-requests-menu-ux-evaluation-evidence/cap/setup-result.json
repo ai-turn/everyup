@@ -1,0 +1,20 @@
+{
+  "text": "API 직접 연결\n\n앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다.\n\nAPI 연결이 준비되었습니다\n\n등록된 연결에 앱 설정을 적용한 뒤, 아래에서 실제 데이터 수신을 확인해 주세요.\n\nAPI Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.\n\nEveryUp 외부 연결 주소\nCollector 또는 앱에서 접근할 수 있는 서버 주소입니다. localhost는 사용할 수 없습니다.\n\nAPI Key\n\nevup_[MASKED]\nOpenTelemetry를 이미 사용하고 있나요?\n이미 사용 중\n처음 설정\n\n기존 전송 대상도 유지하려면 현재 Collector에 EveryUp용 OTLP/HTTP exporter를 추가하고, 선택한 데이터 유형의 pipeline에 함께 연결하세요. 앱의 공통 OTLP 주소를 바꾸면 기존 전송 대상이 대체될 수 있습니다.\n\nCollector exporter·pipeline 설정 예제\n앱에서 직접 전송할 때의 환경 변수\n선택한 데이터 유형의 exporter에 연결 주소와 키를 설정하세요. 기존 연결에 기능을 추가했다면 기존 앱 설정의 주소와 키를 계속 사용합니다.\n앱 또는 Collector의 설정 적용 방식에 따라 재시작·재배포하세요.\n요청이나 로그를 발생시키고, 메트릭은 수집 주기가 지난 뒤 확인하세요.\n데이터 수신 확인에서 선택한 데이터 유형의 수신 기록을 확인하세요.\n데이터 수신 확인\n수신 대기\nAPI 트레이스\n아직 수신 기록 없음\n\n설정을 적용한 뒤 로그 또는 요청을 발생시켜 주세요. 5초마다 수신 기록을 확인합니다. 권한 추가만으로 앱의 전송 설정이 변경되지는 않습니다.\n\nAPI 보기",
+  "docW": 1440,
+  "vw": 1440,
+  "wideTables": [
+    {
+      "label": "API 대상 그리드",
+      "w": 1135,
+      "box": 1135
+    }
+  ],
+  "small": [
+    {
+      "l": "Collector exporter·pipeline 설정",
+      "h": 21,
+      "w": 235
+    }
+  ],
+  "axe": []
+}

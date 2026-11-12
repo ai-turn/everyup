@@ -1,0 +1,28 @@
+{
+  "text": "checkout-api-without-data-very-long-name-for-truncation-check-01\n연결 활성\n마지막 수집 아직 없음\n연결 중지\nAPI Key\nevup_****demo\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\n미분류\n수집 데이터\ntraces\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\nAPI 요청\n트레이스\n에러만\n검색\n요청 결과\n\n전체 0건\n\n이 기간에 수집된 HTTP 요청이 없습니다\n\n기간을 바꾸거나 트레이스 탭에서 다른 span이 수신됐는지 확인해 주세요.\n\n수집 설정 안내\nAPI 제외 경로 0개\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "wideTables": [],
+  "small": [
+    {
+      "l": "미분류\nProduction\nStaging\nBackoff",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "",
+      "h": 21,
+      "w": 235
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

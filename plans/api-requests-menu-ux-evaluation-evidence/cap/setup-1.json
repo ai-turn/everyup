@@ -1,0 +1,20 @@
+{
+  "text": "API 직접 연결\n\n앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다.\n\n새 서비스\n기존 서비스\n서비스 이름\n\n앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.\n\n그룹\n미분류\nProduction\nStaging\nBackoffice\n미분류\n취소\n추가",
+  "docW": 1440,
+  "vw": 1440,
+  "wideTables": [
+    {
+      "label": "API 대상 그리드",
+      "w": 1135,
+      "box": 1135
+    }
+  ],
+  "small": [
+    {
+      "l": "미분류\nProduction\nStaging\nBackoff",
+      "h": 1,
+      "w": 1
+    }
+  ],
+  "axe": []
+}

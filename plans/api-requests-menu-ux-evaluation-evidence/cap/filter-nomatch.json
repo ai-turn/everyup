@@ -1,0 +1,23 @@
+{
+  "text": "orders-api\n연결 활성\n마지막 수집 2026. 11. 12. 22시 3분 45초\n연결 중지\nAPI Key\nevup_****4010\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nProduction\n수집 데이터\nlogs, traces, metrics\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\nAPI 요청\n트레이스\n서비스 전체 추이\n\n선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.\n\n2xx 84.7%\n4xx 6.9%\n5xx 8.3%\n5xx 최다: POST /v1/orders ×3\n요청 수\n72건\n에러율\n8.3%\n마지막 측정 구간 p95\n86ms\n22:00~22:04\n건 / 10분\n성공\n에러\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n1\n2\n3\n4\n에러만\n검색\n경로: zzz-no-match\n오류 요청만\n필터 해제\n요청 결과\n\n검색 결과 0건\n\n조건에 맞는 요청이 없습니다\n\n적용한 필터를 해제하거나 기간을 바꿔 주세요.\n\n필터 해제\nAPI 제외 경로 0개\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "wideTables": [],
+  "small": [
+    {
+      "l": "미분류\nProduction\nStaging\nBackoff",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

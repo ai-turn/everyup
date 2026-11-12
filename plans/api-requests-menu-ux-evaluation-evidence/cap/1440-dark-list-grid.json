@@ -1,0 +1,50 @@
+{
+  "text": "API 요청\n\nOpenTelemetry로 직접 연결한 앱의 HTTP 요청과 오류를 비교합니다.\n\nAPI 연결\n\nDocker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.\n\n1H\n6H\n24H\n새로고침\n\n최근 6시간의 수집 요청\n\nAPI 대상\n4개\n대상\t수집\t요청\t5xx\t5xx 최다 경로\n\npayments-api\n\t\n연결 활성\t72\t6\t\n\nPOST /v1/payments\n\n\n\norders-api\n\t\n연결 활성\t72\t6\t\n\nPOST /v1/orders\n\n\n\ninventory-api\n\t\n연결 활성\t72\t6\t\n\nPOST /v1/inventory/:id\n\n\n\nsearch-api\n\t\n연결 활성\t72\t6\t\n\nPOST /v1/search\n\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "wideTables": [
+    {
+      "label": "API 대상 그리드",
+      "w": 1135,
+      "box": 1135
+    }
+  ],
+  "small": [
+    {
+      "l": "Docker 환경",
+      "h": 19,
+      "w": 75
+    },
+    {
+      "l": "payments-api",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "orders-api",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "inventory-api",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "search-api",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ],
+  "axe": []
+}

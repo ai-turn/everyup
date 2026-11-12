@@ -1,0 +1,100 @@
+{
+  "grid": [
+    {
+      "key": "ArrowLeft",
+      "tooltip": [
+        "hidden:",
+        "visible:",
+        "visible:"
+      ],
+      "cursor": 6
+    },
+    {
+      "key": "ArrowLeft",
+      "tooltip": [
+        "hidden:",
+        "visible:",
+        "visible:"
+      ],
+      "cursor": 6
+    },
+    {
+      "key": "ArrowRight",
+      "tooltip": [
+        "hidden:",
+        "visible:",
+        "visible:"
+      ],
+      "cursor": 6
+    },
+    {
+      "key": "Home",
+      "tooltip": [
+        "hidden:",
+        "visible:",
+        "visible:"
+      ],
+      "cursor": 6
+    },
+    {
+      "key": "End",
+      "tooltip": [
+        "hidden:",
+        "visible:",
+        "visible:"
+      ],
+      "cursor": 6
+    },
+    {
+      "key": "mouse",
+      "tooltip": [
+        "hidden:",
+        "visible:",
+        "visible:11월 12일 (목) 21:36 series_0 88"
+      ]
+    }
+  ],
+  "expanded": [
+    {
+      "key": "ArrowLeft",
+      "tooltip": [
+        "visible:11월 12일 (목) 21:02 series_0 93"
+      ],
+      "cursor": 3
+    },
+    {
+      "key": "ArrowLeft",
+      "tooltip": [
+        "visible:11월 12일 (목) 21:02 series_0 93"
+      ],
+      "cursor": 3
+    },
+    {
+      "key": "ArrowRight",
+      "tooltip": [
+        "visible:11월 12일 (목) 21:03 series_0 94"
+      ],
+      "cursor": 3
+    },
+    {
+      "key": "Home",
+      "tooltip": [
+        "visible:11월 12일 (목) 21:03 series_0 94"
+      ],
+      "cursor": 3
+    },
+    {
+      "key": "End",
+      "tooltip": [
+        "visible:11월 12일 (목) 21:03 series_0 94"
+      ],
+      "cursor": 3
+    },
+    {
+      "key": "mouse",
+      "tooltip": [
+        "visible:11월 12일 (목) 21:35 series_0 87"
+      ]
+    }
+  ]
+}
