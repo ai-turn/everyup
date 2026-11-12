@@ -3,6 +3,7 @@ import { Button, MaterialIcon, SegmentedControl, type GlobalTimeRange } from '..
 import { api, type TraceSummary } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { TracePanel } from '../../traces/components/TracePanel';
+import { spanKindBadge } from '../../traces/spanKind';
 import { LEVEL_CHIP } from '../logLevelStyle';
 import { useRequestQuery, useRequestWindow, type RequestWindow } from '../../api-requests/useRequestQuery';
 
@@ -31,18 +32,6 @@ const SORTS = [
   { value: 'recent' as const, label: '최신순' },
   { value: 'slowest' as const, label: '느린순' },
 ];
-
-// 600단계는 자기 /10 틴트 위에서 2.84~3.70으로 AA 미달이었다(DESIGN.md §1.4와 같은 측정).
-// 상태 토큰과 같은 단계로 올린다 — amber-700은 행 hover 위에서 4.47이라 800.
-function spanKindBadge(kind: string): string {
-  switch (kind) {
-    case 'SERVER':   return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
-    case 'CLIENT':   return 'bg-sky-500/10 text-sky-700 dark:text-sky-400';
-    case 'PRODUCER':
-    case 'CONSUMER': return 'bg-amber-500/10 text-amber-800 dark:text-amber-400';
-    default:         return 'bg-slate-500/10 text-text-muted';
-  }
-}
 
 function formatDuration(ms: number): string {
   if (ms < 1) return '<1ms';
@@ -133,14 +122,15 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-ui-border">
-          <table className="w-full text-sm">
+          {/* 좁은 화면에서는 이름 열만 두고 소요·Span·시작을 이름 아래로 내린다(요청 표와 같은 방식). 537px 표가 잘렸다. */}
+          <table aria-label="트레이스 목록" className="w-full table-fixed text-sm">
             <thead>
               <tr className="border-b border-ui-border bg-ui-hover-soft text-left text-xs font-medium text-text-muted">
-                <th className="px-4 py-3 font-medium">트레이스</th>
-                <th className="px-4 py-3 font-medium">종류</th>
-                <th className="px-4 py-3 text-right font-medium">소요</th>
-                <th className="px-4 py-3 text-right font-medium">Span</th>
-                <th className="px-4 py-3 text-right font-medium">시작</th>
+                <th scope="col" className="px-4 py-3 font-medium">트레이스</th>
+                <th scope="col" className="hidden w-28 px-4 py-3 font-medium sm:table-cell">종류</th>
+                <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium sm:table-cell">소요</th>
+                <th scope="col" className="hidden w-16 px-4 py-3 text-right font-medium sm:table-cell">Span</th>
+                <th scope="col" className="hidden w-44 px-4 py-3 text-right font-medium lg:table-cell">시작</th>
               </tr>
             </thead>
             <tbody>
@@ -158,20 +148,26 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
                   }}
                   className="cursor-pointer border-b border-ui-border-soft bg-bg-surface transition-colors last:border-0 hover:bg-ui-hover-soft"
                 >
-                  <td className="px-4 py-2.5">
+                  <td className="min-w-0 px-4 py-2.5">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="truncate text-text-base">{trace.name}</span>
                       {trace.errorCount > 0 && (
                         <span className="shrink-0 text-xs text-status-error">오류 {trace.errorCount}</span>
                       )}
                     </div>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-text-muted lg:hidden">
+                      <span className="sm:hidden">{trace.kind}</span>
+                      <span className="sm:hidden">{formatDuration(trace.durationMs)}</span>
+                      <span className="sm:hidden">Span {trace.spanCount}</span>
+                      <span>{formatTime(trace.startTime)}</span>
+                    </div>
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="hidden px-4 py-2.5 sm:table-cell">
                     <span className={`badge ${spanKindBadge(trace.kind)}`}>{trace.kind}</span>
                   </td>
-                  <td className="px-4 py-2.5 text-right text-xs tabular-nums text-text-secondary">{formatDuration(trace.durationMs)}</td>
-                  <td className="px-4 py-2.5 text-right text-xs tabular-nums text-text-muted">{trace.spanCount}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-right text-xs tabular-nums text-text-dim">{formatTime(trace.startTime)}</td>
+                  <td className="hidden px-4 py-2.5 text-right text-xs tabular-nums text-text-secondary sm:table-cell">{formatDuration(trace.durationMs)}</td>
+                  <td className="hidden px-4 py-2.5 text-right text-xs tabular-nums text-text-muted sm:table-cell">{trace.spanCount}</td>
+                  <td className="hidden whitespace-nowrap px-4 py-2.5 text-right text-xs tabular-nums text-text-dim lg:table-cell">{formatTime(trace.startTime)}</td>
                 </tr>
               ))}
             </tbody>

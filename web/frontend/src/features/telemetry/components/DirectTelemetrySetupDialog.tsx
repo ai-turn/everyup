@@ -177,7 +177,7 @@ export function DirectTelemetrySetupDialog({
                 <option value="">서비스 선택</option>
                 {existingServices.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}
               </Select>
-              <span className="block type-body text-text-muted">{`기존 연결 키의 범위에 ${capabilityLabel}를 추가합니다.`}</span>
+              <span className="block type-body text-text-muted">{`기존 연결 키에 ${capabilityLabel} 권한을 추가합니다.`}</span>
             </label>
           )}
 

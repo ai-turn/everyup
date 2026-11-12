@@ -1,0 +1,32 @@
+{
+  "1440-light-detailUrl": "http://127.0.0.1:5211/everyup/demo/api/observed_mock_payments?range=6h",
+  "1440-dark-detailUrl": "http://127.0.0.1:5211/everyup/demo/api/observed_mock_payments?range=6h",
+  "390-light-detailUrl": "http://127.0.0.1:5211/everyup/demo/api/observed_mock_payments?range=6h",
+  "390-light-positions": [
+    "H1:payments-api@169",
+    "DIV:요청/트레이스 보기@565",
+    "DIV:17:00 19:00 22:0@1007",
+    "H2:요청 결과@1384",
+    "TABLE:API 요청 목록@1421"
+  ],
+  "390-dark-detailUrl": "http://127.0.0.1:5211/everyup/demo/api/observed_mock_payments?range=6h",
+  "390-dark-positions": [
+    "H1:payments-api@169",
+    "DIV:요청/트레이스 보기@565",
+    "DIV:17:00 19:00 22:0@1007",
+    "H2:요청 결과@1384",
+    "TABLE:API 요청 목록@1421"
+  ],
+  "detail-observed_mock_orders": "orders-api\n연결 활성\n마지막 수집 2026. 11. 12. 22시 3분 40초\n연결 중지\nAPI Key\nevup_****4010\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nProduction\n수집 데이터\nlogs, traces, metrics\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\nAPI 요청\n트레이스\n서비스 전체 추이\n\n선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.\n\n2xx 84.7%\n4xx 6.9%\n5xx 8.3%\n5xx 최다: POST /v1/orders ×3\n요청 수\n72건\n에러율\n8.3%\n마지막 측정 구간 p95\n86ms\n22:00~22:03\n건 / 10분\n성공\n에러\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n1\n2\n3\n4\n에러만\n검색\n요청 결과\n\n전체 72건\n\n요청\t상태\t소요\t시작\n\nPOST\n/v1/orders\n\t200\t86ms\t11월 12일 22:01:58\n\nPOST\n/v1/orders/4201\n\t200\t93ms\t11월 12일 21:58:58\n\nPOST\n/v1/orders/4202/cancel\n오류\n\t503\t1,032ms\t11월 12일 21:55:58\n\nPOST\n/v1/orders\n\t200\t107ms\t11월 12일 21:52:58\n\nPOST\n/v1/orders/4204\n\t200\t114ms\t11월 12일 21:49:58\n\nPOST\n/v1/orders/4205/cancel\n\t200\t121ms\t11월 12일 21:46:58\n\nPOST\n/v1/orders\n오류\n\t503\t1,032ms\t11월 12일 21:43:58\n\nPOST\n/v1/orders/4207\n\t200\t135ms\t11월 12일 21:40:58\n\nPOST\n/v1/orders\n오류\n\t500\t688ms\t",
+  "detail-observed_mock_inventory": "inventory-api\n연결 활성\n마지막 수집 2026. 11. 12. 22시 3분 35초\n연결 중지\nAPI Key\nevup_****4011\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nProduction\n수집 데이터\nlogs, traces, metrics\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\nAPI 요청\n트레이스\n서비스 전체 추이\n\n선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.\n\n2xx 84.7%\n4xx 6.9%\n5xx 8.3%\n5xx 최다: POST /v1/inventory/:id ×3\n요청 수\n72건\n에러율\n8.3%\n마지막 측정 구간 p95\n32ms\n22:00~22:03\n건 / 10분\n성공\n에러\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n1\n2\n3\n4\n에러만\n검색\n요청 결과\n\n전체 72건\n\n요청\t상태\t소요\t시작\n\nPOST\n/v1/inventory/4200\n\t200\t32ms\t11월 12일 22:01:59\n\nPOST\n/v1/reservations\n\t200\t39ms\t11월 12일 21:58:59\n\nPOST\n/v1/stock/reconcile\n오류\n\t503\t384ms\t11월 12일 21:55:59\n\nPOST\n/v1/inventory/4203\n\t200\t53ms\t11월 12일 21:52:59\n\nPOST\n/v1/reservations\n\t200\t60ms\t11월 12일 21:49:59\n\nPOST\n/v1/stock/reconcile\n\t200\t67ms\t11월 12일 21:46:59\n\nPOST\n/v1/inventory/4206\n오류\n\t503\t384ms\t11월 12일 21:43:59\n\nPOST\n/v1/reservations\n\t200\t81ms\t11월 12일 21:40:59\n\nPOST\n/v",
+  "detail-observed_mock_search": "search-api\n연결 활성\n마지막 수집 2026. 11. 12. 22시 3분 24초\n연결 중지\nAPI Key\nevup_****4013\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nStaging\n수집 데이터\nlogs, traces\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\nAPI 요청\n트레이스\n서비스 전체 추이\n\n선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.\n\n2xx 84.7%\n4xx 6.9%\n5xx 8.3%\n5xx 최다: POST /v1/search ×3\n요청 수\n72건\n에러율\n8.3%\n마지막 측정 구간 p95\n67ms\n22:00~22:04\n건 / 10분\n성공\n에러\n17:00\n18:00\n19:00\n20:00\n21:00\n22:00\n0\n1\n2\n3\n4\n에러만\n검색\n요청 결과\n\n전체 72건\n\n요청\t상태\t소요\t시작\n\nPOST\n/v1/search\n\t200\t67ms\t11월 12일 22:02:00\n\nPOST\n/v1/suggestions\n\t200\t74ms\t11월 12일 21:59:00\n\nPOST\n/v1/indexes/4202\n오류\n\t503\t804ms\t11월 12일 21:56:00\n\nPOST\n/v1/search\n\t200\t88ms\t11월 12일 21:53:00\n\nPOST\n/v1/suggestions\n\t200\t95ms\t11월 12일 21:50:00\n\nPOST\n/v1/indexes/4205\n\t200\t102ms\t11월 12일 21:47:00\n\nPOST\n/v1/search\n오류\n\t503\t804ms\t11월 12일 21:44:00\n\nPOST\n/v1/suggestions\n\t200\t116ms\t11월 12일 21:41:00\n\nPOST\n/v1/search\n오류\n\t500\t536ms\t11월 12일 21:34:00\n\nGET\n/v1/sugg",
+  "chartFocus": "svg role=application tabindex=0",
+  "chartTooltipAfterArrows": "hidden ",
+  "errorsOnlyUrl": "http://127.0.0.1:5211/everyup/demo/api/observed_mock_orders?errorsOnly=true",
+  "traceRowEnterOpensPanel": 1,
+  "setupDialogScroll": [
+    1073,
+    826
+  ],
+  "afterAddUrl": "http://127.0.0.1:5211/everyup/demo/api/observed_mock_1794488651877"
+}

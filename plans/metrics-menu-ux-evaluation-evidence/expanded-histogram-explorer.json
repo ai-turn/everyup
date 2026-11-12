@@ -1,0 +1,40 @@
+{
+  "url": "http://127.0.0.1:5212/everyup/demo/metrics/observed_mock_billing?metric=messaging.process.duration&metricType=histogram&metricUnit=s",
+  "text": "billing-worker\n연결 활성\n마지막 수집 2026. 11. 12. 21시 57분 55초\n연결 중지\nAPI Key\nevup_****4014\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nBackoffice\n수집 데이터\nlogs, metrics\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\n수집 중\n3개 지표\n마지막 수신 2026. 11. 12. 21시 58분 19초\n전체 메트릭\nAttribute 필터\n\n모든 조건에 정확히 일치하는 시리즈를 조회합니다. 문자열과 숫자를 구분합니다.\n\nAttribute key\n값\n값 타입\n문자열\n숫자\n참·거짓\nnull\n문자열\n필터 적용\n시리즈 선택 (2/2)\nmessaging.process.duration\nhistogram, 수신 평균, s\n2개 시리즈 · 최신 값은 범례에서 확인\n마지막 측정\n2026. 11. 12. 21시 58분 19초\n마지막 수신\n2026. 11. 12. 21시 58분 19초\n조회 구간\n11월 12일 (목) 15:58 ~ 11월 12일 (목) 21:58\n선택한 시리즈의 기간 분포\np50\n0.8s\np95\n1.16s\np99\n1.61s\n표본\n2,440건\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n0.50\n1\n1.5\n시리즈\n\t현재\t최소\t최대\t평균\n\noperation.name=\"batch.commit\"\t1.1s\t0.63s\t1.16s\t0.95s\n\noperation.name=\"batch.process\"\t0.78s\t0.45s\t0.83s\t0.68s\n수집 정보\n\n표시한 최신 포인트의 Resource와 Scope입니다.\n\nScope: 기록 없음\n\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "headings": [
+    [
+      "billing-worker",
+      -392
+    ],
+    [
+      "messaging.process.duration",
+      286
+    ]
+  ],
+  "firstChartTop": 457,
+  "small": [
+    {
+      "l": "미분류\nProduction\nStaging\nBackoff",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "문자열\n숫자\n참·거짓\nnull",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ],
+  "axe": []
+}

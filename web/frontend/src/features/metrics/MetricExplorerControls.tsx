@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Button, Input, MaterialIcon, SearchInput, Select, SegmentedControl } from '../../components/common';
+import { Tooltip } from '../../components/common/Tooltip';
 import type { MetricQueryResult } from '../../services/api';
 import { metricSeriesLabel } from './metricSeries';
 import { useMetricQuery } from './useMetricQuery';
@@ -21,16 +22,32 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
   const filters = readFilters(query.attributes);
   const setFilters = (next: Record<string, unknown>) => query.update({ metricAttributes: Object.keys(next).length ? JSON.stringify(next) : null, metricSeries: null });
   const selected = data?.selectedSeries ?? [];
+  const [open, setOpen] = useState<'filter' | 'series' | null>(null);
+  const panelId = useId();
+  const filterCount = Object.keys(filters).length;
+  const toggle = (panel: 'filter' | 'series') => ({
+    variant: open === panel ? 'secondary' as const : 'ghost' as const,
+    'aria-expanded': open === panel,
+    'aria-controls': open === panel ? panelId : undefined,
+    onClick: () => setOpen(current => current === panel ? null : panel),
+  });
   const visible = data?.series.filter(item => metricSeriesLabel(item.attributes, item.streamKey, item.streamLabel).toLowerCase().includes(search.toLowerCase())) ?? [];
 
-  return <div className="space-y-3 rounded-xl border border-ui-border bg-bg-surface p-4">
-    {sum && <div className="space-y-1.5">
-      <SegmentedControl size="md" ariaLabel="메트릭 값 표시" value={mode} options={[{ value: 'raw', label: '원값' }, { value: 'rate', label: '초당 증가량' }]} onChange={next => query.update({ metricMode: next })} />
-      {mode === 'rate' && <p className="type-body text-text-muted">단조 증가하는 sum만 계산합니다. 누적 시작 정보가 없거나 수집이 재시작된 지점은 비워 둡니다. 알림 임계값은 원값 기준입니다.</p>}
-    </div>}
-    <details className="group">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 type-label text-text-base"><MaterialIcon name="chevron_right" className="shrink-0 group-open:rotate-90" />Attribute 필터{Object.keys(filters).length ? ` (${Object.keys(filters).length})` : ''}</summary>
-      <div className="mt-3 space-y-3">
+  // 차트 제목 아래 한 줄: 값 표시 · 필터 · 시리즈 버튼과 적용한 필터 칩. 필터·시리즈 목록은 그 아래로 펼친다.
+  return <div className="mb-3 space-y-3">
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="탐색 조건">
+      {sum && <>
+        <SegmentedControl size="md" ariaLabel="메트릭 값 표시" value={mode} options={[{ value: 'raw', label: '원값' }, { value: 'rate', label: '초당 증가량' }]} onChange={next => query.update({ metricMode: next })} />
+        {mode === 'rate' && <Tooltip content="단조 증가하는 sum만 계산합니다. 누적 시작 정보가 없거나 수집이 재시작된 지점은 비워 둡니다. 알림 임계값은 원값 기준입니다." focusable>
+          <span role="img" aria-label="초당 증가량 계산 기준" className="inline-flex h-11 w-8 items-center justify-center rounded-md text-text-muted sm:h-9"><MaterialIcon name="info" /></span>
+        </Tooltip>}
+      </>}
+      <Button size="md" {...toggle('filter')}><MaterialIcon name="chevron_right" className={open === 'filter' ? 'rotate-90' : undefined} />Attribute 필터{filterCount ? ` (${filterCount})` : ''}</Button>
+      <Button size="md" {...toggle('series')}><MaterialIcon name="chevron_right" className={open === 'series' ? 'rotate-90' : undefined} />시리즈 선택 ({selected.length}/{data?.series.length ?? 0}{data?.seriesTruncated ? '+' : ''})</Button>
+      {Object.entries(filters).map(([name, val]) => <Button key={name} variant="secondary" size="md" className="max-w-full" aria-label={`${name} 필터 제거`} onClick={() => { const next = { ...filters }; delete next[name]; setFilters(next); }}><span className="min-w-0 truncate font-mono">{name}={JSON.stringify(val)}</span><MaterialIcon name="close" className="shrink-0" /></Button>)}
+      {(query.attributes || query.series || query.mode !== null) && <Button variant="ghost" size="md" onClick={() => query.update({ metricAttributes: null, metricSeries: null, metricMode: null })}>메트릭 조회 초기화</Button>}
+    </div>
+    {open === 'filter' && <div id={panelId} className="space-y-3 rounded-lg border border-ui-border p-4">
         <p className="type-body text-text-muted">모든 조건에 정확히 일치하는 시리즈를 조회합니다. 문자열과 숫자를 구분합니다.</p>
         <form onSubmit={event => {
           event.preventDefault();
@@ -56,14 +73,8 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
           <Button type="submit" variant="secondary">필터 적용</Button>
         </form>
         {error && <p role="alert" className="type-body text-status-error">{error}</p>}
-      </div>
-    </details>
-    {Object.keys(filters).length > 0 && <div className="flex flex-wrap gap-1.5" aria-label="적용한 Attribute 필터">
-      {Object.entries(filters).map(([name, val]) => <Button key={name} variant="secondary" size="md" className="max-w-full" aria-label={`${name} 필터 제거`} onClick={() => { const next = { ...filters }; delete next[name]; setFilters(next); }}><span className="min-w-0 truncate font-mono">{name}={JSON.stringify(val)}</span><MaterialIcon name="close" className="shrink-0" /></Button>)}
     </div>}
-    <details className="group">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 type-label text-text-base"><MaterialIcon name="chevron_right" className="shrink-0 group-open:rotate-90" />시리즈 선택 ({selected.length}/{data?.series.length ?? 0}{data?.seriesTruncated ? '+' : ''})</summary>
-      <div className="mt-3 space-y-3">
+    {open === 'series' && <div id={panelId} className="space-y-3 rounded-lg border border-ui-border p-4">
         <div className="flex flex-wrap items-center gap-3"><p className="type-body text-text-muted">차트와 분포에 최대 6개를 함께 표시합니다.</p><Button variant="ghost" size="sm" onClick={() => query.update({ metricSeries: null })}>기본 선택</Button></div>
         <SearchInput aria-label="Attribute 조합으로 시리즈 찾기" placeholder="Attribute 조합으로 찾기" value={search} onChange={event => setSearch(event.target.value)} />
         <div className="max-h-64 space-y-2 overflow-y-auto" aria-label="시리즈 목록" aria-busy={pending}>
@@ -75,8 +86,6 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
         </div>
         {selected.some(id => !data?.series.some(item => item.id === id)) && <p className="type-body text-text-muted">선택한 시리즈 일부가 현재 목록에 없습니다. 기본 선택으로 돌아가거나 Attribute 필터를 좁혀 주세요.</p>}
         {data?.seriesTruncated && <p className="type-body text-text-muted">시리즈 목록은 처음 200개까지 표시합니다. Attribute 필터를 좁혀 다른 시리즈를 찾아 주세요.</p>}
-      </div>
-    </details>
-    {(query.attributes || query.series || query.mode !== null) && <Button variant="ghost" size="sm" onClick={() => query.update({ metricAttributes: null, metricSeries: null, metricMode: null })}>메트릭 조회 초기화</Button>}
+    </div>}
   </div>;
 }

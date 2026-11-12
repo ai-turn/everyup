@@ -1,0 +1,29 @@
+{
+  "text": "payments-api\n연결 활성\n마지막 수집 2026. 11. 12. 22시 3분 30초\n연결 중지\nAPI Key\nevup_****a741\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nProduction\n수집 데이터\ntraces, logs\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\nAPI 요청\n트레이스\n서비스 전체 추이\n\n선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.\n\n2xx 84.7%\n4xx 6.9%\n5xx 8.3%\n5xx 최다: POST /v1/payments ×3\n요청 수\n72건\n에러율\n8.3%\n마지막 측정 구간 p95\n214ms\n22:00~22:03\n건 / 10분\n성공\n에러\n17:00\n19:00\n22:00\n0\n1\n2\n3\n4\n에러만\n검색\n요청 결과\n\n전체 72건\n\n요청\n\nPOST\n/v1/payments\n200\n214ms\n11월 12일 22:01:45\n\n\nPOST\n/v1/refunds\n200\n221ms\n11월 12일 21:58:45\n\n\nPOST\n/v1/payments/4202\n오류\n503\n2,568ms\n11월 12일 21:55:45\n\n\nPOST\n/v1/payments\n200\n235ms\n11월 12일 21:52:45\n\n\nPOST\n/v1/refunds\n200\n242ms\n11월 12일 21:49:45\n\n\nPOST\n/v1/payments/4205\n200\n249ms\n11월 12일 21:46:45\n\n\nPOST\n/v1/payments\n오류\n503\n2,568ms\n11월 12일 21:43:45\n\n\nPOST\n/v1/refunds\n200\n263ms\n11월 12일 21:40:45\n\n\nPOST\n/v1/payments\n오류\n500\n1,712ms\n11월 12일 21:33:45\n\n\nGET\n/v1/refunds\n200\n220ms\n11월 12일 21:29:45\n\n\nGET\n/v1/payments/8002\n200\n226ms\n11월 12일 21:25:45\n\n\nPOST\n/v1/payments\n200\n232ms\n11월 12일 21:21:45\n\n\nGET\n/v1/refunds\n200\n238ms\n11월 12일 21:17:45\n\n\nGET\n/v1/payments/8005\n200\n244ms\n11월 12일 21:13:45\n\n\nPOST\n/v1/payments\n200\n250ms\n11월 12일 21:09:45\n\n\nGET\n/v1/refunds\n200\n256ms\n11월 12일 21:05:45\n\n\nGET\n/v1/payments/8008\n200\n262ms\n11월 12일 21:01:45\n\n\nPOST\n/v1/payments\n200\n214ms\n11월 12일 20:57:45\n\n\nGET\n/v1/refunds\n200\n220ms\n11월 12일 20:53:45\n\n\nGET\n/v1/payments/8011\n422\n226ms\n11월 12일 20:49:45\n\n\nPOST\n/v1/payments\n200\n232ms\n11월 12일 20:45:45\n\n\nGET\n/v1/refunds\n200\n238ms\n11월 12일 20:41:45\n\n\nGET\n/v1/payments/8014\n200\n244ms\n11월 12일 20:37:45\n\n\nPOST\n/v1/payments\n200\n250ms\n11월 12일 20:33:45\n\n\nGET\n/v1/refunds\n200\n256ms\n11월 12일 20:29:45\n\n72건 중 1~25\n\n‹\n1\n2\n3\n›\nAPI 제외 경로 0개\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 390,
+  "vw": 390,
+  "wideTables": [
+    {
+      "label": "API 요청 목록",
+      "w": 356,
+      "box": 356
+    }
+  ],
+  "small": [
+    {
+      "l": "미분류\nProduction\nStaging\nBackoff",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

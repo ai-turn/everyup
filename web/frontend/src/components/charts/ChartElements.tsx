@@ -202,6 +202,8 @@ export function ChartTooltip({
 
   const seen = new Set<string>();
   const rows = payload.filter((item) => {
+    // 채움 Area(tooltipType 'none')가 같은 dataKey의 이름 있는 Line보다 먼저 오면 `series_0` 같은 키가 이름으로 보인다.
+    if (item.type === 'none') return false;
     const key = String(item.dataKey ?? item.name ?? '');
     if (!key || seen.has(key)) return false;
     seen.add(key);

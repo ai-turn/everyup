@@ -145,4 +145,27 @@ export interface ApiRequestStatusSummary {
   top5xxMethod?: string;
   top5xxPath?: string;
   top5xxCount?: number;
+  // Same definitions as the trends chart: 5xx or OTel ERROR, p95 over timed requests only.
+  errorCount: number;
+  p95: number;
+  timed: number;
+}
+
+// One method + path template over a window; path is the raw path when there is no template.
+export interface ApiEndpointStat {
+  method: string;
+  path: string;
+  count: number;
+  errorCount: number;
+  p50: number;
+  p95: number;
+  p99: number;
+  timed: number;
+  lastErrorAt?: string;
+}
+
+// Problem first (errors, then p95). Truncated = too many rows to aggregate, no partial table.
+export interface ApiEndpointStats {
+  endpoints: ApiEndpointStat[];
+  truncated: boolean;
 }

@@ -1,0 +1,18 @@
+{
+  "text": "API 요청\n\nOpenTelemetry로 직접 연결한 앱의 HTTP 요청과 오류를 비교합니다.\n\nAPI 연결\n1H\n6H\n24H\n새로고침\n\n최근 6시간의 수집 요청\n\n표시할 API 대상이 없습니다\n\n앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.\n\nAPI 연결\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "wideTables": [],
+  "small": [
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

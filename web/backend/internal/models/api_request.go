@@ -58,6 +58,31 @@ type ApiRequestStatusSummary struct {
 	Top5xxMethod string `json:"top5xxMethod,omitempty"`
 	Top5xxPath   string `json:"top5xxPath,omitempty"`
 	Top5xxCount  int    `json:"top5xxCount,omitempty"`
+	// Same definitions as the trends chart (WindowStats): errors are 5xx or an
+	// OTel ERROR status, p95 covers only requests with a known duration.
+	ErrorCount int `json:"errorCount"`
+	P95        int `json:"p95"`
+	Timed      int `json:"timed"`
+}
+
+// ApiEndpointStat aggregates one method + path template over a window.
+// Path is the raw path when the request had no template.
+type ApiEndpointStat struct {
+	Method      string     `json:"method"`
+	Path        string     `json:"path"`
+	Count       int        `json:"count"`
+	ErrorCount  int        `json:"errorCount"`
+	P50         int        `json:"p50"`
+	P95         int        `json:"p95"`
+	P99         int        `json:"p99"`
+	Timed       int        `json:"timed"`
+	LastErrorAt *time.Time `json:"lastErrorAt,omitempty"`
+}
+
+// ApiEndpointStats never returns a partial table as a complete window.
+type ApiEndpointStats struct {
+	Endpoints []ApiEndpointStat `json:"endpoints"`
+	Truncated bool              `json:"truncated"`
 }
 
 // ApiRequestFilter holds query parameters for listing captured requests.
@@ -76,4 +101,7 @@ type ApiRequestFilter struct {
 	To          time.Time
 	Limit       int
 	Offset      int
+
+	// Exact endpoint match: path_template, or path when the template is empty.
+	PathTemplate string
 }

@@ -24,16 +24,16 @@ test('metric list shows one card per service and the detail shows every metric a
   await expect(page.getByRole('heading', { level: 3, name: 'api', exact: true })).toHaveCount(0);
 
   await page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true }).click();
-  const panels = ['http.server.active_requests', 'http.server.request.duration', 'jvm.memory.used'];
+  const panels = ['처리 중인 요청', '응답 시간', 'JVM 메모리 사용량'];
   for (const name of panels) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   await expect(page.getByText('gauge, MB', { exact: true })).toBeVisible();
   await expect(page.getByText('histogram, 수신 평균, ms', { exact: true })).toBeVisible();
 
   // A panel's title opens that metric alone, with the histogram distribution.
-  await page.getByRole('button', { name: 'http.server.request.duration', exact: true }).click();
+  await page.getByRole('button', { name: '응답 시간', exact: true }).click();
   await expect(page).toHaveURL(/metric=http\.server\.request\.duration/);
   await expect(page.getByText('선택한 시리즈의 기간 분포', { exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'jvm.memory.used', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'JVM 메모리 사용량', exact: true })).toHaveCount(0);
 
   await page.goBack();
   for (const name of panels) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
@@ -83,7 +83,7 @@ test('metric names, chart and optional groups have independent HTTP failure stat
   await expect(page.getByText('수신한 메트릭이 없습니다', { exact: false })).toHaveCount(0);
   state.failures.delete('/observed-services/metrics-service/otel-metrics/health');
   await namesError.locator('..').getByRole('button', { name: '다시 시도' }).click();
-  const memory = page.locator('section').filter({ has: page.getByRole('heading', { name: 'jvm.memory.used', exact: true }) }).last();
+  const memory = page.locator('section').filter({ has: page.getByRole('heading', { name: 'JVM 메모리 사용량', exact: true }) }).last();
   await expect(memory.getByText('메트릭을 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(memory.getByText('이 기간에 데이터 없음', { exact: true })).toHaveCount(0);
   state.failures.delete('points:jvm.memory.used');
@@ -136,5 +136,5 @@ test('metrics connection creates setup instructions and waits for actual metric 
   await expect(dialog.getByRole('region', { name: '데이터 수신 확인' })).toContainText('수신 대기');
   await dialog.getByRole('button', { name: '메트릭 보기', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'new-metrics-service' })).toBeVisible();
-  await expect(page.getByText('수신한 메트릭이 없습니다', { exact: false })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '메트릭 수신 대기', exact: true })).toBeVisible();
 });

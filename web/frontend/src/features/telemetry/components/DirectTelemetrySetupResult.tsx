@@ -3,6 +3,7 @@ import { Button, COPY_ACTION_SUBTLE, CopyButton, ICON_ACTION } from '../../../co
 import { useConnectionAddress } from '../../services/useConnectionAddress';
 import { ConnectionAddressField } from '../../services/components/ConnectionAddressField';
 import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
+import { appReceiptNote } from '../signals';
 import { TelemetrySetupGuidance } from './TelemetrySetupGuidance';
 import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
 import type { ObservedService, ObservedServiceSetup, TelemetrySignal } from '../../../services/api';
@@ -61,7 +62,7 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
     </>}
     {connection.kind === 'attached' && <p className="type-body text-text-muted">{`앱 설정에 OTEL_${connection.signal.toUpperCase()}_EXPORTER=none이 있다면 지워 주세요. 그대로 두면 이 데이터는 전송되지 않습니다.`}</p>}
     <TelemetrySetupGuidance signals={signals} appConfiguration={appConfiguration} />
-    <TelemetryReceiptStatus path={`/observed-services/${service.id}/setup-status`} expected={signals} />
+    <TelemetryReceiptStatus path={`/observed-services/${service.id}/setup-status`} expected={signals} note={appReceiptNote(signals, connection.kind === 'attached')} />
     <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-ui-border bg-bg-surface px-6 py-4">
       <Button onClick={onDone}>{doneLabel ?? '완료'}</Button>
     </div>

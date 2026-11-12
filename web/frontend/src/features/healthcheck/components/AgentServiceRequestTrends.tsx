@@ -5,14 +5,14 @@ import {
 } from 'recharts';
 import {
   CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartLegend, ChartSkeleton, ChartTooltip, SERIES_HEX, areaGradient, areaProps, fillBuckets,
-  formatAxisValue, gridProps, lineProps, niceYAxis, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  formatAxisValue, formatTimeLabel, gridProps, lineProps, niceYAxis, timeXAxisProps, tooltipCursor, useChartKeyboard, useChartTheme, yAxisProps,
   type ChartTheme, type TooltipPayloadItem,
 } from '../../../components/charts';
 import { api, type AgentEvent, type ApiRequestStatBucket, type ApiRequestStatusSummary } from '../../../services/api';
 import { TimeRangePicker } from '../../../components/common/TimeRangePicker';
 import { Button } from '../../../components/common';
 import { getErrorMessage } from '../../../utils/errors';
-import { useRequestWindow, type RequestWindow } from '../../api-requests/useRequestQuery';
+import { useRequestWindow, type RequestWindow, type StatusClass } from '../../api-requests/useRequestQuery';
 
 type TimeRange = '1h' | '6h' | '24h';
 // Bucket width per range keeps ~30-60 points on the chart.
@@ -31,6 +31,9 @@ interface SharedProps {
   /** Controlled range from the page-header picker; when set, own buttons hide. */
   range?: TimeRange;
   window?: RequestWindow;
+  /** 분포 띠의 2xx~5xx를 아래 요청 목록의 필터로 쓴다. 없으면 띠는 읽기 전용. */
+  status?: StatusClass;
+  onStatusChange?: (status?: StatusClass) => void;
 }
 
 interface AgentProps extends SharedProps {
@@ -69,6 +72,8 @@ function ServiceRequestTrends({
   refreshKey,
   range: controlledRange,
   window: controlledWindow,
+  status: statusFilter,
+  onStatusChange,
 }: SharedProps & { source: RequestTrendSource }) {
   const [localRange, setLocalRange] = useState<TimeRange>('6h');
   const range = controlledRange ?? localRange;
@@ -167,6 +172,8 @@ function ServiceRequestTrends({
       };
     });
   }, [buckets, prevBuckets, timeWindow, bucketMs]);
+  const kbd = useChartKeyboard(data.length);
+  const kbdPoint = kbd.index === null ? undefined : data[kbd.index];
 
   if (loading) {
     return <ChartCard title="서비스 전체 추이"><ChartSkeleton /></ChartCard>;
@@ -242,13 +249,15 @@ function ServiceRequestTrends({
       {/* Status-class distribution + top 5xx endpoint (1a 콘솔 prototype) */}
       {summary && (summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther) > 0 && (() => {
         const total = summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther;
-        const classes = [
-          { label: '2xx', count: summary.count2xx, bar: 'bg-status-healthy', text: 'text-status-healthy' },
-          { label: '3xx', count: summary.count3xx, bar: 'bg-slate-400', text: 'text-text-muted' },
-          { label: '4xx', count: summary.count4xx, bar: 'bg-status-warn', text: 'text-status-warn' },
-          { label: '5xx', count: summary.count5xx, bar: 'bg-status-error', text: 'text-status-error' },
+        const classes: { label: string; status?: StatusClass; count: number; bar: string; text: string }[] = [
+          { label: '2xx', status: '2xx' as const, count: summary.count2xx, bar: 'bg-status-healthy', text: 'text-status-healthy' },
+          { label: '3xx', status: '3xx' as const, count: summary.count3xx, bar: 'bg-slate-400', text: 'text-text-muted' },
+          { label: '4xx', status: '4xx' as const, count: summary.count4xx, bar: 'bg-status-warn', text: 'text-status-warn' },
+          { label: '5xx', status: '5xx' as const, count: summary.count5xx, bar: 'bg-status-error', text: 'text-status-error' },
           { label: '기타', count: summary.countOther, bar: 'bg-status-idle', text: 'text-text-muted' },
         ].filter((c) => c.count > 0);
+        // 서비스 상세에서는 아래 Endpoint 표가 "5xx 최다" 한 줄을 대신한다. 표가 없는 Docker 환경 전체 추이에만 남긴다.
+        const rollup = sourceKind === 'agent' && !serviceKey;
         return (
           <div className="mb-4">
             <div className="flex h-2 rounded-full overflow-hidden bg-ui-hover">
@@ -256,13 +265,19 @@ function ServiceRequestTrends({
                 <div key={c.label} className={c.bar} style={{ width: `${(c.count / total) * 100}%` }} />
               ))}
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs">
-              {classes.map((c) => (
-                <span key={c.label} className={`${c.text}`}>
-                  {c.label} {((c.count / total) * 100).toFixed(1)}%
-                </span>
-              ))}
-              {summary.top5xxPath && (
+            <div role={onStatusChange ? 'group' : undefined} aria-label={onStatusChange ? '상태코드로 요청 목록 거르기' : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs">
+              {classes.map((c) => {
+                const text = `${c.label} ${((c.count / total) * 100).toFixed(1)}%`;
+                if (!onStatusChange || !c.status) return <span key={c.label} className={c.text}>{text}</span>;
+                const pressed = statusFilter === c.status;
+                return (
+                  <button key={c.label} type="button" aria-pressed={pressed} onClick={() => onStatusChange(pressed ? undefined : c.status)}
+                    className={`-mx-1.5 rounded px-1.5 py-0.5 tabular-nums underline-offset-2 transition-colors hover:underline aria-pressed:bg-ui-hover aria-pressed:underline ${c.text}`}>
+                    {text}
+                  </button>
+                );
+              })}
+              {rollup && summary.top5xxPath && (
                 <span className="text-text-muted truncate">
                   {'5xx 최다'}: <span className="font-mono text-status-error">{summary.top5xxMethod} {summary.top5xxPath}</span> ×{summary.top5xxCount}
                 </span>
@@ -303,8 +318,9 @@ function ServiceRequestTrends({
         <span className="type-caption text-text-dim">{view.caption}</span>
         {legend.length > 0 && <ChartLegend items={legend} />}
       </div>
+      <div tabIndex={0} role="group" aria-label="요청 추이. 좌우 방향키로 시점별 값을 읽습니다." className="rounded-lg" onKeyDown={kbd.onKeyDown} onBlur={kbd.onBlur}>
       <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-        <ComposedChart data={data} margin={CHART_MARGIN}>
+        <ComposedChart data={data} margin={CHART_MARGIN} accessibilityLayer={false}>
           {shown === 'error' && areaGradient(gradientId, SERIES_HEX.red)}
           <CartesianGrid {...gridProps(theme)} />
           <XAxis {...timeXAxisProps(theme, timeWindow)} />
@@ -343,8 +359,14 @@ function ServiceRequestTrends({
           {prevValues.length > 0 && (
             <Line {...lineProps(theme.tickColor, theme)} dataKey={view.prevKey} name={view.prevLabel} strokeDasharray="4 3" />
           )}
+          {kbdPoint && <ReferenceLine x={kbdPoint.t} stroke={theme.tickColor} strokeDasharray="3 3" />}
         </ComposedChart>
       </ResponsiveContainer>
+      {/* 마우스 사용자에게 빈 줄을 남기지 않게, 고르기 전에는 화면에서만 숨긴다(라이브 영역은 유지). */}
+      <p aria-live="polite" className={kbdPoint ? 'mt-2 px-2 pb-1 type-caption tabular-nums text-text-muted' : 'sr-only'}>
+        {kbdPoint && pointText(kbdPoint)}
+      </p>
+      </div>
     </ChartCard>
   );
 }
@@ -364,6 +386,12 @@ function deployFooter(row: ChartPoint | undefined, deploys: AgentEvent[], bucket
     const what = previous && previous !== d.message ? `배포 ${previous} → ${d.message}` : `재시작 ${d.message ?? ''}`;
     return <span key={d.id} className="block">{at} {withService && d.serviceName ? `${d.serviceName} · ` : ''}{what}</span>;
   });
+}
+
+/** 키보드로 고른 구간의 값. 가운뎃점 대신 쉼표로 잇는다(ADR 0009). */
+function pointText(p: ChartPoint) {
+  const latency = (['p50', 'p95', 'p99'] as const).flatMap((key) => (p[key] === null ? [] : [`${key} ${p[key]}ms`]));
+  return [`${formatTimeLabel(p.t)}: 요청 ${p.count}건`, `에러 ${p.errors}건${p.errorRate === null ? '' : ` (${p.errorRate}%)`}`, ...latency].join(', ');
 }
 
 function errorRatePct(b: ApiRequestStatBucket): number {

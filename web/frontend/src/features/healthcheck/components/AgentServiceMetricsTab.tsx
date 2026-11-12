@@ -1,22 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button, EmptyState, MaterialIcon, SearchInput, StatusLight, type GlobalTimeRange } from '../../../components/common';
 import { Skeleton } from '../../../components/skeleton';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
-import { api, type OtelMetricHealth, type OtelMetricName } from '../../../services/api';
-import { getErrorMessage } from '../../../utils/errors';
+import type { OtelMetricName } from '../../../services/api';
 import { MetricChart, type MetricSource } from '../../metrics/MetricChart';
 import { useMetricQuery, useMetricWindow } from '../../metrics/useMetricQuery';
-import { metricCollection, metricFlags, metricGroup, metricIdentity, metricTitle } from '../../metrics/metricPresentation';
+import { metricFlags, metricGroup, metricHealthCollection, metricIdentity, metricTitle } from '../../metrics/metricPresentation';
+import { useMetricHealth, type MetricHealthState } from '../../metrics/useMetricHealth';
 
 interface CommonProps { refreshKey?: number; range: GlobalTimeRange; active?: boolean }
 interface AgentProps extends CommonProps { agentId: string; serviceKey: string }
-interface DirectProps extends CommonProps { observedServiceId: string }
+interface DirectProps extends CommonProps {
+  observedServiceId: string;
+  /** 페이지가 헤더 수집 상태에 같은 응답을 쓰도록 health를 위에서 받는다. */
+  state: MetricHealthState;
+  /** 한 번도 받지 않았을 때의 본문(수신 대기 안내). 없으면 기본 문구. */
+  empty?: ReactNode;
+}
 
-function ServiceMetricsPanel({ source, refreshKey, range, active = true }: CommonProps & { source: MetricSource }) {
-  const [health, setHealth] = useState<OtelMetricHealth | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryKey, setRetryKey] = useState(0);
+const GROUPS = ['고정한 지표', '요청과 응답', '작업과 메시지', '런타임과 리소스', '사용자 정의 지표'];
+
+function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, empty, showCollection }: CommonProps & { source: MetricSource; state: MetricHealthState; empty?: ReactNode; showCollection: boolean }) {
+  const { health, loading, error, retry } = state;
   const query = useMetricQuery();
   const window = useMetricWindow(range, refreshKey);
   const [visibleLimit, setVisibleLimit] = useState(12);
@@ -36,40 +41,26 @@ function ServiceMetricsPanel({ source, refreshKey, range, active = true }: Commo
     try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* Session preferences still work without storage. */ }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    const current = JSON.parse(sourceKey) as MetricSource;
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const value = current.kind === 'agent' ? await api.getAgentServiceMetricHealth(current.agentId, current.serviceKey) : await api.getObservedServiceMetricHealth(current.observedServiceId);
-        if (!cancelled) setHealth(value);
-      } catch (cause) { if (!cancelled) setError(getErrorMessage(cause)); }
-      finally { if (!cancelled) setLoading(false); }
-    };
-    void load();
-    return () => { cancelled = true; };
-  }, [sourceKey, refreshKey, retryKey]);
-
   const rules = useAlertThresholds(source.kind === 'direct' ? { kind: 'direct', serviceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }, 'otel_metric');
   const openMetric = (meta: OtelMetricName) => query.update({ metric: meta.metricName, metricType: meta.metricType, metricUnit: meta.unit || null, metricAttributes: null, metricSeries: null, metricMode: null });
   const closeMetric = () => query.update({ metric: null, metricType: null, metricUnit: null, metricAttributes: null, metricSeries: null, metricMode: null }, true);
   if (!health) return loading
     ? <div aria-label="메트릭 상태 조회 중" className="grid grid-cols-1 gap-4 lg:grid-cols-2">{[1, 2, 3, 4].map(item => <Skeleton key={item} className="h-80 w-full rounded-xl" />)}</div>
-    : <EmptyState icon="error_outline" title="메트릭 목록을 불러오지 못했습니다" description={error ?? undefined} action={{ label: '다시 시도', onClick: () => setRetryKey(key => key + 1) }} />;
+    : <EmptyState icon="error_outline" title="메트릭 목록을 불러오지 못했습니다" description={error ?? undefined} action={{ label: '다시 시도', onClick: retry }} />;
 
-  const names = [...health.metrics].sort((a, b) => a.metricName.localeCompare(b.metricName) || metricIdentity(a).localeCompare(metricIdentity(b)));
-  const now = Date.parse(health.checkedAt);
-  const latest = (values: (string | undefined)[]) => values.filter((value): value is string => Boolean(value)).sort((a, b) => Date.parse(b) - Date.parse(a))[0];
-  const receivedAt = latest(names.map(item => item.lastReceivedAt));
-  const collection = metricCollection(active, receivedAt, latest(names.map(item => item.lastAt)), now);
-  const matches = names.filter(item => item.metricName === query.metric && (!query.metricType || item.metricType === query.metricType) && (!query.metricType || (item.unit ?? '') === (query.metricUnit ?? '')));
+  // 섹션 순서 → 이름순으로 정렬한 뒤 12개로 자른다. 이름순으로 먼저 자르면 앞 섹션이 뒤 섹션 이름에 밀려 빠진다.
+  const names = [...health.metrics].sort((a, b) => GROUPS.indexOf(metricGroup(a)) - GROUPS.indexOf(metricGroup(b)) || a.metricName.localeCompare(b.metricName) || metricIdentity(a).localeCompare(metricIdentity(b)));
+  const { now, receivedAt, collection } = metricHealthCollection(health, active);
+  // 앱이 만드는 링크는 단위가 있으면 항상 넣는다. 단위가 없는 링크는 단위 없는 지표를 먼저 고르고,
+  // 그런 지표가 없으면(손으로 쓴 링크) 단위를 비교하지 않는다.
+  const candidates = names.filter(item => item.metricName === query.metric && (!query.metricType || item.metricType === query.metricType));
+  const unitless = candidates.filter(item => !item.unit);
+  const matches = query.metricUnit !== null ? candidates.filter(item => (item.unit ?? '') === query.metricUnit)
+    : query.metricType && candidates.length > 1 && unitless.length > 0 ? unitless : candidates;
   const opened = matches.length === 1 ? matches[0] : null;
   const flagged = names.filter(item => metricFlags(item, now).length > 0);
   const search = query.search.trim().toLowerCase();
   const visible = names.filter(item => `${item.metricName} ${metricTitle(item)} ${item.description ?? ''}`.toLowerCase().includes(search));
-  const groups = ['고정한 지표', '요청과 응답', '작업과 메시지', '런타임과 리소스', '사용자 정의 지표'];
   const groupFor = (meta: OtelMetricName) => pins.includes(metricIdentity(meta)) ? '고정한 지표' : metricGroup(meta);
   const displayed = [...visible.filter(item => pins.includes(metricIdentity(item))), ...visible.slice(0, visibleLimit).filter(item => !pins.includes(metricIdentity(item)))];
   const chart = (meta: OtelMetricName, expanded = false) => <MetricChart key={metricIdentity(meta)} source={source} meta={meta} window={window} refreshKey={refreshKey}
@@ -78,11 +69,12 @@ function ServiceMetricsPanel({ source, refreshKey, range, active = true }: Commo
 
   return <div className="space-y-5">
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption text-text-muted" aria-label="메트릭 수집 현황">
-      <StatusLight {...collection} /><span>{names.length}개 지표</span>
-      <span>마지막 수신 {receivedAt ? <time dateTime={receivedAt}>{new Date(receivedAt).toLocaleString('ko-KR', { hour12: false })}</time> : '기록 없음'}</span>
+      {/* 직접 상세는 헤더가 같은 판정으로 수집 상태와 마지막 수신을 보인다. */}
+      {showCollection && <StatusLight {...collection} />}<span>{names.length}개 지표</span>
+      {showCollection && <span>마지막 수신 {receivedAt ? <time dateTime={receivedAt}>{new Date(receivedAt).toLocaleString('ko-KR', { hour12: false })}</time> : '기록 없음'}</span>}
       {loading && <span role="status">상태 갱신 중…</span>}
     </div>
-    {error && <div role="alert" className="flex flex-wrap items-center gap-3"><p className="type-body text-status-warn">메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.</p><Button variant="secondary" size="sm" onClick={() => setRetryKey(key => key + 1)}>목록 다시 시도</Button></div>}
+    {error && <div role="alert" className="flex flex-wrap items-center gap-3"><p className="type-body text-status-warn">메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.</p><Button variant="secondary" size="sm" onClick={retry}>목록 다시 시도</Button></div>}
     {query.metric !== null ? <>
       <Button variant="ghost" size="sm" onClick={closeMetric}><MaterialIcon name="arrow_back" />전체 메트릭</Button>
       {opened ? chart(opened, true) : matches.length > 1 ? <div className="space-y-3"><p className="type-body text-text-muted">같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.</p>{matches.map(meta => <Button key={metricIdentity(meta)} variant="secondary" onClick={() => openMetric(meta)} className="h-auto min-h-11 flex-wrap gap-x-3 py-2"><span className="min-w-0 break-all">{meta.metricName}</span><span>{meta.metricType}</span><span>{meta.unit || '단위 없음'}</span></Button>)}</div>
@@ -102,12 +94,12 @@ function ServiceMetricsPanel({ source, refreshKey, range, active = true }: Commo
           </button>)}
         </div>
       </details>}
-      {names.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3"><SearchInput value={query.search} onChange={event => query.update({ metricSearch: event.target.value }, true)} placeholder="이름 또는 설명으로 지표 찾기" aria-label="메트릭 이름으로 찾기" wrapperClassName="w-full sm:w-80" /><span className="type-caption text-text-muted">자주 보는 지표를 최대 4개 고정할 수 있습니다.</span></div>}
-      {groups.map(group => {
+      {names.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3"><SearchInput value={query.search} onChange={event => query.update({ metricSearch: event.target.value }, true)} placeholder="이름 또는 설명으로 지표 찾기" aria-label="이름 또는 설명으로 지표 찾기" wrapperClassName="w-full sm:w-80" /><span className="type-caption text-text-muted">자주 보는 지표를 최대 4개 고정할 수 있습니다.</span></div>}
+      {GROUPS.map(group => {
         const items = displayed.filter(meta => groupFor(meta) === group);
         return items.length > 0 && <section key={group} aria-label={group} className="space-y-3"><h2 className="type-card-title text-text-base">{group}<span className="ml-2 type-caption text-text-muted">{items.length}</span></h2><div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">{items.map(meta => chart(meta))}</div></section>;
       })}
-      {names.length === 0 ? <EmptyState icon="monitoring" title="수신한 메트릭이 없습니다" description="OpenTelemetry SDK가 메트릭을 보내면 여기에 표시됩니다." />
+      {names.length === 0 ? empty ?? <EmptyState icon="monitoring" title="수신한 메트릭이 없습니다" description="OpenTelemetry SDK가 메트릭을 보내면 여기에 표시됩니다." />
         : visible.length === 0 && <EmptyState icon="search" title="일치하는 메트릭이 없습니다" description={`'${query.search.trim()}'와 일치하는 메트릭이 없습니다.`} action={{ label: '검색 초기화', onClick: () => query.update({ metricSearch: null }, true) }} />}
       {visible.length > visibleLimit && <div className="flex flex-wrap items-center gap-3"><span className="type-caption text-text-muted">{visible.length}개 중 {displayed.length}개 표시</span><Button variant="secondary" onClick={() => setVisibleLimit(value => value + 12)}>메트릭 12개 더 보기</Button></div>}
     </>}
@@ -115,8 +107,10 @@ function ServiceMetricsPanel({ source, refreshKey, range, active = true }: Commo
 }
 
 export function AgentServiceMetricsTab({ agentId, serviceKey, ...common }: AgentProps) {
-  return <ServiceMetricsPanel key={`${agentId}:${serviceKey}`} {...common} source={{ kind: 'agent', agentId, serviceKey }} />;
+  const source: MetricSource = { kind: 'agent', agentId, serviceKey };
+  const state = useMetricHealth(source, common.refreshKey);
+  return <ServiceMetricsPanel key={`${agentId}:${serviceKey}`} {...common} source={source} state={state} showCollection />;
 }
 export function DirectServiceMetricsTab({ observedServiceId, ...common }: DirectProps) {
-  return <ServiceMetricsPanel key={observedServiceId} {...common} source={{ kind: 'direct', observedServiceId }} />;
+  return <ServiceMetricsPanel key={observedServiceId} {...common} source={{ kind: 'direct', observedServiceId }} showCollection={false} />;
 }

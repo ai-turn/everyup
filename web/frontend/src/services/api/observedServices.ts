@@ -1,7 +1,9 @@
 import { metricQueryString, type MetricQuery, type MetricQueryResult } from './telemetry';
 import { request } from './base';
 import type { ApiRequest, LogEntry, LogHistogramBucket, LogLevel } from './services';
+import type { SignalReceipt } from './agents';
 import type {
+  ApiEndpointStats,
   ApiRequestStats,
   ApiRequestStatusSummary,
   TraceListQuery,
@@ -70,6 +72,9 @@ export interface DirectApiRequestQuery {
   to?: string;
   minStatus?: number;
   maxStatus?: number;
+  /** One endpoint from the endpoint table: exact method + template match. */
+  method?: string;
+  pathTemplate?: string;
   limit?: number;
   offset?: number;
 }
@@ -99,6 +104,8 @@ function apiRequestQuery(params?: DirectApiRequestQuery): URLSearchParams {
   if (params?.to) query.set('to', params.to);
   if (params?.minStatus) query.set('minStatus', String(params.minStatus));
   if (params?.maxStatus) query.set('maxStatus', String(params.maxStatus));
+  if (params?.method) query.set('method', params.method);
+  if (params?.pathTemplate) query.set('pathTemplate', params.pathTemplate);
   return query;
 }
 
@@ -206,6 +213,17 @@ export const observedServicesApi = {
     if (params?.to) query.set('to', params.to);
     return request<ApiRequestStatusSummary>(`/observed-services/${id}/request-status-summary?${query}`);
   },
+
+  getObservedServiceRequestEndpoints: (id: string, params?: { from?: string; to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.from) query.set('from', params.from);
+    if (params?.to) query.set('to', params.to);
+    return request<ApiEndpointStats>(`/observed-services/${id}/request-endpoints?${query}`);
+  },
+
+  // Per data type receipts; the list and detail read 'traces' from it.
+  getObservedServiceSetupStatus: (id: string) =>
+    request<SignalReceipt[]>(`/observed-services/${id}/setup-status`),
 
   getObservedServiceApiExclusions: (id: string) =>
     request<{ paths: string[] }>(`/observed-services/${id}/api-exclusions`),

@@ -1,0 +1,47 @@
+{
+  "url": "http://127.0.0.1:5212/everyup/demo/metrics/observed_mock_billing",
+  "text": "billing-worker\n연결 활성\n마지막 수집 2026. 11. 12. 21시 57분 26초\n연결 중지\nAPI Key\nevup_****4014\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nBackoffice\n수집 데이터\nlogs, metrics\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\n수집 중\n3개 지표\n마지막 수신 2026. 11. 12. 21시 57분 49초\n자주 보는 지표를 최대 4개 고정할 수 있습니다.\n작업과 메시지3\n완료된 작업\n\nbilling.jobs.completed\n\nsum, 초당 증가량, /s\n6개 시리즈 · 최신 값은 범례에서 확인\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n0.25\n0.50\n0.75\n1\noperation.name=\"worker-1\"\n0.33/s\noperation.name=\"worker-2\"\n0.47/s\noperation.name=\"worker-3\"\n0.6/s\noperation.name=\"worker-4\"\n0.73/s\noperation.name=\"worker-5\"\n0.87/s\noperation.name=\"worker-6\"\n1/s\n시리즈 선택하기 (8개)\n메시지 처리 시간\n\nmessaging.process.duration\n\nhistogram, 수신 평균, s\n2개 시리즈 · 최신 값은 범례에서 확인\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n0.50\n1\n1.5\noperation.name=\"batch.commit\"\n1.1s\noperation.name=\"batch.process\"\n0.78s\n대기 중인 메시지\n\nqueue.messages.pending\n\ngauge\n현재\n89\n평균\n94.41\n최대\n101\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n50\n100\n150\n알림 > 100\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "headings": [
+    [
+      "billing-worker",
+      84
+    ],
+    [
+      "작업과 메시지3",
+      483
+    ],
+    [
+      "완료된 작업",
+      544
+    ],
+    [
+      "메시지 처리 시간",
+      544
+    ],
+    [
+      "대기 중인 메시지",
+      1092
+    ]
+  ],
+  "firstChartTop": 684,
+  "small": [
+    {
+      "l": "미분류\nProduction\nStaging\nBackoff",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ],
+  "axe": []
+}

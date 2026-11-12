@@ -1,0 +1,40 @@
+{
+  "url": "http://127.0.0.1:5212/everyup/demo/metrics/observed_mock_billing?metric=billing.jobs.completed&metricType=sum&metricUnit=%7Bjob%7D",
+  "text": "billing-worker\n연결 활성\n마지막 수집 2026. 11. 12. 21시 57분 34초\n연결 중지\nAPI Key\nevup_****4014\n키 재발급\n그룹\n미분류\nProduction\nStaging\nBackoffice\nBackoffice\n수집 데이터\nlogs, metrics\n1H\n6H\n24H\n새로고침\n알림 규칙\n삭제\n수집 중\n3개 지표\n마지막 수신 2026. 11. 12. 21시 57분 57초\n전체 메트릭\n원값\n초당 증가량\n\n단조 증가하는 sum만 계산합니다. 누적 시작 정보가 없거나 수집이 재시작된 지점은 비워 둡니다. 알림 임계값은 원값 기준입니다.\n\nAttribute 필터\n시리즈 선택 (6/8)\nbilling.jobs.completed\nsum, 초당 증가량, /s\n6개 시리즈 · 최신 값은 범례에서 확인\n마지막 측정\n2026. 11. 12. 21시 57분 57초\n마지막 수신\n2026. 11. 12. 21시 57분 57초\n조회 구간\n11월 12일 (목) 15:58 ~ 11월 12일 (목) 21:58\n16:00\n17:00\n18:00\n19:00\n20:00\n21:00\n0\n0.25\n0.50\n0.75\n1\n시리즈\n\t최근 계산값\t최소\t최대\t평균\n\noperation.name=\"worker-1\"\t0.33/s\t0.33/s\t0.33/s\t0.33/s\n\noperation.name=\"worker-2\"\t0.47/s\t0.47/s\t0.47/s\t0.47/s\n\noperation.name=\"worker-3\"\t0.6/s\t0.6/s\t0.6/s\t0.6/s\n\noperation.name=\"worker-4\"\t0.73/s\t0.73/s\t0.73/s\t0.73/s\n\noperation.name=\"worker-5\"\t0.87/s\t0.87/s\t0.87/s\t0.87/s\n\noperation.name=\"worker-6\"\t1/s\t1/s\t1/s\t1/s\n수집 정보\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "headings": [
+    [
+      "billing-worker",
+      84
+    ],
+    [
+      "billing.jobs.completed",
+      736
+    ]
+  ],
+  "firstChartTop": 861,
+  "small": [
+    {
+      "l": "미분류\nProduction\nStaging\nBackoff",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ],
+  "axe": []
+}

@@ -1,0 +1,65 @@
+{
+  "url": "http://127.0.0.1:5212/everyup/demo/metrics",
+  "text": "메트릭\n\nOpenTelemetry로 직접 연결한 앱의 성능 수치와 시간에 따른 변화를 확인합니다.\n\n메트릭 연결\n\nDocker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.\n\n새로고침\n확인 필요순\n이름순\n확인 필요순\n메트릭 서비스\n서비스 5개\n서비스\t수집\t확인 필요\t메트릭\t확인할 지표\n\nbilling-worker\n\t\n수집 중\t0\t3\t\n이상 없음\n마지막 수신 1분 미만 전\n\n\ncatalog-worker\n\t\n수집 중\t0\t3\t\n이상 없음\n마지막 수신 1분 미만 전\n\n\ninventory-api\n\t\n수집 중\t0\t2\t\n이상 없음\n마지막 수신 1분 미만 전\n\n\nnotification-worker\n\t\n수집 중\t0\t2\t\n이상 없음\n마지막 수신 1분 미만 전\n\n\norders-api\n\t\n수집 중\t0\t2\t\n이상 없음\n마지막 수신 1분 미만 전\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "headings": [
+    [
+      "메트릭",
+      84
+    ],
+    [
+      "메트릭 서비스",
+      314
+    ]
+  ],
+  "firstChartTop": -1,
+  "small": [
+    {
+      "l": "Docker 환경",
+      "h": 19,
+      "w": 75
+    },
+    {
+      "l": "확인 필요순\n이름순",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "billing-worker",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "catalog-worker",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "inventory-api",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "notification-worker",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "orders-api",
+      "h": 20,
+      "w": 376
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ],
+  "axe": []
+}
