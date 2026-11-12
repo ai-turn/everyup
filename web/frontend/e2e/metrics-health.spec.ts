@@ -27,7 +27,7 @@ test('duplicate names require an explicit type and unit and preserve them in the
   await page.getByRole('button', { name: 'jvm.memory.used gauge MB', exact: true }).click();
   await expect(page).toHaveURL(/metricUnit=MB/);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'jvm.memory.used', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'JVM 메모리 사용량', exact: true })).toBeVisible();
 });
 
 test('a new receipt does not disguise an old measurement and health failures stay visible', async ({ page }) => {

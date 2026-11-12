@@ -13,6 +13,8 @@ import { serviceRemoval, signalList } from '../../features/telemetry/signals';
 import { api, type ObservedService, type ObservedServiceSetup, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { useMetricQuery } from '../../features/metrics/useMetricQuery';
+import { useMetricHealth } from '../../features/metrics/useMetricHealth';
+import { metricHealthCollection } from '../../features/metrics/metricPresentation';
 
 type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
 
@@ -35,6 +37,8 @@ export function DirectMetricsDetailPage() {
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<ObservedServiceSetup | null>(null);
+  // 헤더 수집 상태와 본문 격자가 같은 health 응답을 쓴다 — 키가 살아 있어도 수신 전·지연일 수 있다.
+  const metricHealth = useMetricHealth({ kind: 'direct', observedServiceId: serviceId }, refreshKey);
 
   useEffect(() => {
     let active = true;
@@ -45,7 +49,7 @@ export function DirectMetricsDetailPage() {
         const serviceRow = await api.getObservedService(serviceId);
         if (!active) return;
         if (!serviceRow.signals.includes('metrics')) {
-          setError('이 서비스에는 Metrics 기능이 연결되어 있지 않습니다.');
+          setError('이 서비스에는 메트릭이 연결되어 있지 않습니다.');
           return;
         }
         setService(serviceRow);
@@ -127,10 +131,11 @@ export function DirectMetricsDetailPage() {
 
   if (loading) return <div className="h-96 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
   if (error || !service) {
-    return <EmptyState icon="error_outline" title="직접 Metrics 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: '메트릭으로 돌아가기', to: '/metrics' }} />;
+    return <EmptyState icon="error_outline" title="메트릭 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: '메트릭으로 돌아가기', to: '/metrics' }} />;
   }
 
   const removal = serviceRemoval(service, 'metrics');
+  const healthStatus = metricHealth.health && metricHealthCollection(metricHealth.health, service.isActive);
   const confirmCopy = {
     rotate: {
       title: 'API Key를 재발급할까요?',
@@ -155,8 +160,11 @@ export function DirectMetricsDetailPage() {
         meta={
           <DirectConnectionMeta
             isActive={service.isActive}
+            collection={healthStatus ? healthStatus.collection : undefined}
+            collapseOnMobile
+            collapseLabel="서비스 정보"
             apiKeyMasked={service.apiKeyMasked}
-            lastSeenAt={service.lastSeenAt}
+            lastSeenAt={healthStatus ? healthStatus.receivedAt ?? null : service.lastSeenAt}
             detail={{ label: '수집 데이터', value: signalList(service.signals) }}
             onRotateKey={() => setConfirmAction('rotate')}
             onRevoke={() => setConfirmAction('revoke')}
@@ -187,7 +195,21 @@ export function DirectMetricsDetailPage() {
         }
       />
 
-      <DirectServiceMetricsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} active={service.isActive} />
+      <DirectServiceMetricsTab
+        observedServiceId={service.id}
+        state={metricHealth}
+        refreshKey={refreshKey}
+        range={range}
+        active={service.isActive}
+        empty={service.isActive ? (
+          <EmptyState
+            icon="schedule"
+            title="메트릭 수신 대기"
+            description="앱을 다시 시작하면 1분 안에 첫 메트릭이 들어옵니다(내보내기 주기 기본 60초). 연결 설정이 없다면 API Key를 재발급해 새 설정을 받으세요."
+            action={{ label: '설정 다시 받기', onClick: () => setConfirmAction('rotate') }}
+          />
+        ) : undefined}
+      />
 
       <ConfirmDialog
         isOpen={Boolean(selectedConfirm)}

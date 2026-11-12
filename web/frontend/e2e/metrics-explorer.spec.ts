@@ -9,7 +9,7 @@ test('series beyond the default six can be selected and restored with the same d
   state.points.set(name, Array.from({ length: 8 }, (_, index) => ({ id: index, metricName: name, metricType: 'histogram', unit: 's', attributes: { instance: `worker-${index}`, code: index % 2 ? '1' : 1 }, value: index + 1, createdAt: state.service.createdAt })));
   await page.goto(`${detail}?metric=${name}&keep=value`);
   await expect(page.locator('.recharts-line')).toHaveCount(6);
-  await page.locator('summary').filter({ hasText: '시리즈 선택' }).click();
+  await page.getByRole('button', { name: /^시리즈 선택/ }).click();
   const choices = page.getByLabel('시리즈 목록').getByRole('button');
   await expect(choices).toHaveCount(8);
   const first = choices.filter({ hasText: 'worker-0' });
@@ -21,7 +21,7 @@ test('series beyond the default six can be selected and restored with the same d
   await expect(seventh).toHaveAttribute('aria-pressed', 'true');
   await expect(page).toHaveURL(/metricSeries=/);
   await page.reload();
-  await page.locator('summary').filter({ hasText: '시리즈 선택' }).click();
+  await page.getByRole('button', { name: /^시리즈 선택/ }).click();
   await expect(seventh).toHaveAttribute('aria-pressed', 'true');
   await expect(page).toHaveURL(/keep=value/);
   const query = state.reads.filter(read => read.path.endsWith('/query')).at(-1)!;
@@ -29,7 +29,7 @@ test('series beyond the default six can be selected and restored with the same d
   const distribution = state.reads.filter(read => read.path.endsWith('/quantiles')).at(-1)!;
   expect([distribution.from, distribution.to, distribution.attributes]).toEqual([query.from, query.to, query.attributes]);
 
-  await page.locator('summary').filter({ hasText: 'Attribute 필터' }).click();
+  await page.getByRole('button', { name: /^Attribute 필터/ }).click();
   await page.getByRole('textbox', { name: 'Attribute key' }).fill('code');
   await page.getByRole('textbox', { name: '값', exact: true }).fill('1');
   await page.getByRole('button', { name: '필터 적용', exact: true }).click();
@@ -80,11 +80,11 @@ test('filters and series controls fit a small viewport in both themes and suppor
   for (const theme of ['light', 'dark']) {
     await page.addInitScript(value => localStorage.setItem('theme', value), theme);
     await page.goto(`${detail}?metric=${name}`);
-    const summary = page.locator('summary').filter({ hasText: '시리즈 선택' });
-    await summary.focus();
+    const toggle = page.getByRole('button', { name: /^시리즈 선택/ });
+    await toggle.focus();
     await page.keyboard.press('Enter');
     await expect(page.getByLabel('시리즈 목록').getByRole('button')).toHaveCount(8);
-    await page.locator('summary').filter({ hasText: 'Attribute 필터' }).click();
+    await page.getByRole('button', { name: /^Attribute 필터/ }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });

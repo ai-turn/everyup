@@ -1,5 +1,5 @@
 import type { StatusTone } from '../../components/common';
-import type { OtelMetricName } from '../../services/api';
+import type { OtelMetricHealth, OtelMetricName } from '../../services/api';
 
 export const metricIdentity = (metric: OtelMetricName) => JSON.stringify([metric.metricName, metric.metricType, metric.unit ?? '']);
 
@@ -33,6 +33,15 @@ export function metricCollection(active: boolean, receivedAt?: string, measuredA
   if (measuredAt && Date.parse(measuredAt) > now + 60_000) return { tone: 'warn', label: '측정 시각 확인 필요' };
   if (measuredAt && now - Date.parse(measuredAt) > 300_000) return { tone: 'warn', label: '측정 지연' };
   return { tone: 'healthy', label: '수집 중' };
+}
+
+const latest = (values: (string | undefined)[]) => values.filter((value): value is string => Boolean(value)).sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+
+/** 서비스 전체의 수집 상태 — 직접 상세 헤더와 에이전트 탭 본문이 같은 판정을 쓴다. */
+export function metricHealthCollection(health: OtelMetricHealth, active: boolean) {
+  const now = Date.parse(health.checkedAt);
+  const receivedAt = latest(health.metrics.map(item => item.lastReceivedAt));
+  return { now, receivedAt, collection: metricCollection(active, receivedAt, latest(health.metrics.map(item => item.lastAt)), now) };
 }
 
 export function metricFlags(metric: OtelMetricName, now = Date.now()): MetricStatus[] {

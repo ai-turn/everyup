@@ -17,11 +17,11 @@ test('period, search and selected metric survive reload and browser history', as
   for (let index = 0; index < 8; index += 1) state.names.push({ metricName: `custom.metric.${index}`, metricType: 'gauge', lastAt: state.service.createdAt });
   await page.goto(`${detail}?range=24h&metricSearch=JVM&keep=value`);
   await expect(page.getByRole('button', { name: '24H', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  const search = page.getByRole('textbox', { name: '메트릭 이름으로 찾기' });
+  const search = page.getByRole('textbox', { name: '이름 또는 설명으로 지표 찾기' });
   await expect(search).toHaveValue('JVM');
-  await expect(page.getByRole('heading', { name: 'jvm.memory.used', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'http.server.request.duration', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'jvm.memory.used', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'JVM 메모리 사용량', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '응답 시간', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'JVM 메모리 사용량', exact: true }).click();
   await expect(page).toHaveURL(/metric=jvm\.memory\.used/);
   const metadata = page.locator('dl[aria-label="메트릭 정보"]');
   await expect(metadata.locator('time')).toHaveAttribute('datetime', '2026-10-01T00:00:00Z');
@@ -39,14 +39,14 @@ test('period, search and selected metric survive reload and browser history', as
   await search.fill('no-such-metric');
   await expect(page.getByRole('heading', { name: '일치하는 메트릭이 없습니다', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '검색 초기화', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'http.server.request.duration', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '응답 시간', exact: true })).toBeVisible();
 });
 
 test('all chart and histogram reads share the same exact window, including retries', async ({ page }) => {
   const state = await metricsFixture(page);
   await page.goto(`${detail}?range=24h`);
   await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
-  await page.getByRole('button', { name: 'http.server.request.duration', exact: true }).click();
+  await page.getByRole('button', { name: '응답 시간', exact: true }).click();
   await expect(page.getByText('선택한 시리즈의 기간 분포', { exact: true })).toBeVisible();
   const windows = state.reads.filter(read => read.path.endsWith('/query') || read.path.endsWith('/quantiles'));
   expect(windows.length).toBeGreaterThanOrEqual(3);
@@ -104,7 +104,7 @@ test('long names and attributes stay inside the mobile viewport in light and dar
 
 test('Docker metric search does not reuse the log or request search', async ({ page }) => {
   await page.goto('./services/agent_demo_03/jobs%3Acatalog-worker?tab=metrics&range=24h&q=log-only-filter');
-  await expect(page.getByRole('heading', { name: 'jvm.memory.used', exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'http.server.request.duration', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'JVM 메모리 사용량', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '응답 시간', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '24H', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });

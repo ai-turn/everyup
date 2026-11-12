@@ -1,11 +1,11 @@
 import { useId, useMemo, useState } from 'react';
-import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { Button, MaterialIcon, StatusLight } from '../../components/common';
 import { Tooltip as HintTooltip } from '../../components/common/Tooltip';
 import {
   CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartEmpty, ChartLegend, ChartSkeleton, ChartStats, ChartStatsLegend, ChartSummary, ChartTooltip,
   areaGradient, areaProps, formatAxisValue, formatTimeLabel, getSeriesPalette,
-  getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
+  getSeriesDash, gridProps, lineProps, niceYAxis, rangeAreas, thresholdLines, timeXAxisProps, tooltipCursor, useChartKeyboard, useChartTheme, yAxisProps,
 } from '../../components/charts';
 import type { AlertRule, OtelMetricName, OtelMetricPoint } from '../../services/api';
 import { TracePanel } from '../traces/components/TracePanel';
@@ -67,6 +67,11 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
   const { unit, factor } = display;
   const single = series.length === 1;
   const hasData = hasFinite(chartData, series);
+  const title = metricTitle(meta);
+  const nameId = useId();
+  // 격자 패널은 크로스헤어를 공유하지만 툴팁은 마우스가 있는 패널에만 뜬다 — 키보드로 고른 값은 이 패널 아래 줄로 읽는다.
+  const kbd = useChartKeyboard(chartData.length);
+  const kbdRow = kbd.index === null ? undefined : chartData[kbd.index];
 
   // The line may be a rate but rules are raw, so a breach is judged on each series' latest raw point.
   const latest = new Map<string, OtelMetricPoint>();
@@ -86,22 +91,28 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
 
   return (
     <div className="min-w-0 space-y-3">
-      {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
       <ChartCard
-        title={expanded ? name : (
-          <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} aria-label={name} className="block h-11 max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline sm:h-10">
-            {metricTitle(meta)}
+        // 격자와 단독 보기 모두 표시 이름이 제목이고 원본 이름은 아래 줄이다 — 패널을 눌러도 제목이 바뀌지 않는다.
+        title={expanded ? title : (
+          <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} aria-describedby={nameId} className="block h-11 max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline sm:h-10">
+            {title}
           </button></HintTooltip>
         )}
         // A metric name is an identifier, so it reads in mono like other code.
-        titleClassName={expanded || metricTitle(meta) === name ? "font-mono text-sm" : undefined}
+        titleClassName={title === name ? "font-mono text-sm" : undefined}
         wrapTitle={expanded}
         className="min-w-0"
-        // A histogram is stored as each export's average, so that is what the line is.
-        right={<Button variant={pinned ? 'secondary' : 'ghost'} size="sm" aria-label={`${name} ${pinned ? '고정 해제' : '고정'}`} aria-pressed={pinned} disabled={pinDisabled} onClick={onPin}><MaterialIcon name="push_pin" /></Button>}
+        // 격자를 훑을 때 어느 패널이 확인 필요인지 보이게 상태를 제목 줄에 둔다(단독 보기는 아래 줄).
+        right={<div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+          {!expanded && flags.map(flag => <StatusLight key={flag.label} {...flag} />)}
+          <Button variant={pinned ? 'secondary' : 'ghost'} size="sm" aria-label={`${title} ${pinned ? '고정 해제' : '고정'}`} aria-pressed={pinned} disabled={pinDisabled} onClick={onPin}><MaterialIcon name="push_pin" /></Button>
+        </div>}
       >
+        {expanded && title !== name && <p className="-mt-2 mb-3 break-all font-mono text-xs text-text-muted">{name}</p>}
+        {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
         <div className="mb-3 space-y-2">
-          {!expanded && <p className="truncate font-mono text-xs text-text-muted"><HintTooltip content={name} focusable><span>{name}</span></HintTooltip></p>}
+          {/* 원본 이름은 이미 보이는 글자라 따로 Tab 지점을 두지 않는다. 격자는 잘리므로 마우스 힌트만 남긴다. */}
+          {!expanded && <p id={nameId} className="truncate font-mono text-xs text-text-muted"><HintTooltip content={name}><span>{name}</span></HintTooltip></p>}
           <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-4 gap-y-1">
             <span className="type-caption text-text-muted">{[meta.metricType, histogram && '수신 평균', mode === 'rate' && '초당 증가량', unit].filter(Boolean).join(', ')}</span>
             {summary}
@@ -171,9 +182,18 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           mode === 'rate' && points.length > 0 ? <div className="flex items-center justify-center text-center type-body text-text-muted" style={{ height: CHART_HEIGHT }}>초당 증가량을 계산할 수 없습니다. 단조 증가하는 sum의 누적 시작 정보와 연속된 포인트가 필요합니다.</div> : <ChartEmpty />
         ) : (
           <>
-            <div onMouseEnter={() => onHover?.(metricIdentity(meta))} onMouseLeave={() => onHover?.(null)}>
+            <div
+              tabIndex={0}
+              role="group"
+              aria-label={`${title} 추이. 좌우 방향키로 시점별 값을 읽습니다.`}
+              className="rounded-lg"
+              onKeyDown={kbd.onKeyDown}
+              onBlur={kbd.onBlur}
+              onMouseEnter={() => onHover?.(metricIdentity(meta))}
+              onMouseLeave={() => onHover?.(null)}
+            >
               <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
-                <ComposedChart data={chartData} syncId={expanded ? undefined : SYNC_ID} syncMethod="value" margin={CHART_MARGIN}>
+                <ComposedChart data={chartData} syncId={expanded ? undefined : SYNC_ID} syncMethod="value" margin={CHART_MARGIN} accessibilityLayer={false}>
                   {single && areaGradient(gradientId, seriesColors[0])}
                   <CartesianGrid {...gridProps(theme)} />
                   <XAxis {...timeXAxisProps(theme, [Date.parse(displayedWindow.from), Date.parse(displayedWindow.to)])} />
@@ -197,10 +217,16 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
                   {series.map((item, index) => (
                     <Line key={item.key} {...lineProps(seriesColors[index % seriesColors.length], theme)} connectNulls={mode !== 'rate'} strokeDasharray={getSeriesDash(index)} dataKey={item.key} name={item.label} />
                   ))}
+                  {kbdRow && <ReferenceLine x={kbdRow.t} stroke={theme.tickColor} strokeDasharray="3 3" />}
                 </ComposedChart>
               </ResponsiveContainer>
+              {/* 마우스 사용자에게 빈 줄을 남기지 않게, 고르기 전에는 화면에서만 숨긴다(라이브 영역은 유지). */}
+              <p aria-live="polite" className={kbdRow ? 'mt-2 px-2 pb-1 type-caption text-text-muted' : 'sr-only'}>
+                {kbdRow && `${formatTimeLabel(kbdRow.t)} · ${series.map(item => `${single ? title : item.label} ${Number.isFinite(kbdRow[item.key]) ? `${formatValue(kbdRow[item.key])}${unit}` : '-'}`).join(' · ')}`}
+              </p>
             </div>
-            {!expanded && legend && <div className="mt-3 max-h-24 overflow-y-auto">{legend}</div>}
+            {/* 시리즈는 최대 6개라 범례를 줄바꿈으로 모두 보인다(높이를 제한하면 키보드로 스크롤할 수 없다). */}
+            {!expanded && legend && <div className="mt-3">{legend}</div>}
             {expanded && !single && (
               <div className="mt-2 overflow-x-auto">
                 <ChartStatsLegend
