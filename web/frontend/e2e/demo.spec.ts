@@ -42,8 +42,9 @@ test.describe('live demo', () => {
     await page.getByRole('dialog', { name: '트레이스 상세' }).getByRole('button', { name: /^API 요청 \(/ }).click();
 
     await expect(page).toHaveURL(/\/services\/agent_demo_01\/shop%3Aapi\?tab=requests&traceId=/);
-    await expect(page.getByText('/api/v1/auth/login', { exact: true })).toBeVisible();
-    await expect(page.getByText('/api/v1/payments', { exact: true })).toHaveCount(0);
+    // The endpoint table lists the same paths, so match the request rows (their buttons open the trace).
+    await expect(page.getByRole('button', { name: /^POST 200 \/api\/v1\/auth\/login/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^[A-Z]+ \d{3} \/api\/v1\/payments/ })).toHaveCount(0);
   });
 
   test('alert rules use exact target identifiers from the URL', async ({ page }) => {
