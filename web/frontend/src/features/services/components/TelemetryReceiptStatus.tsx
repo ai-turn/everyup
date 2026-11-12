@@ -4,6 +4,7 @@ import { ko } from 'date-fns/locale';
 import { CollectionStatusBadge, type CollectionStatus } from '../../../components/common';
 import type { SignalReceipt } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
+import { appReceiptNote } from '../../telemetry/signals';
 
 const labels: Record<string, string> = { logs: '로그', metrics: '메트릭', traces: 'API 트레이스', infrastructure: '인프라', uptime: '컨테이너 상태' };
 
@@ -41,10 +42,8 @@ export function ReceiptPanel({ signals, expected, error, note }: { signals: Sign
   </section>;
 }
 
-const APP_NOTE = '설정을 적용한 뒤 로그 또는 요청을 발생시켜 주세요. 5초마다 수신 기록을 확인합니다. 권한 추가만으로 앱의 전송 설정이 변경되지는 않습니다.';
-
-// note: 앱 SDK는 로그·요청이 생겨야 보내지만, Collector는 스스로 주기 전송한다 — 안내가 다르다.
-export function TelemetryReceiptStatus({ path, expected, note = APP_NOTE }: { path: string; expected: string[]; note?: string }) {
+// note: Collector는 스스로 주기 전송하므로 인프라는 note를 따로 준다.
+export function TelemetryReceiptStatus({ path, expected, note = appReceiptNote(expected) }: { path: string; expected: string[]; note?: string }) {
   const { data, error } = useSetupStatus<SignalReceipt[]>(path);
   return <ReceiptPanel
     signals={data ?? []}

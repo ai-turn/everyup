@@ -32,3 +32,18 @@ export function serviceRemoval(service: ObservedService, signal: TelemetrySignal
     done: '서비스를 삭제했습니다.',
   };
 }
+
+// 앱 SDK가 언제 보내는지는 데이터 유형마다 다르다. 로그·트레이스는 일이 생겨야 나가고, 메트릭은 주기적으로 나간다.
+const WAIT_HINT: Record<string, string> = {
+  logs: '설정을 적용한 뒤 앱에서 로그를 남겨 주세요.',
+  traces: 'HTTP 요청을 한 번 보내 주세요. API 요청 목록에는 method와 상태 코드가 있는 SERVER span만 표시됩니다.',
+  metrics: '앱을 다시 시작하면 1분 안에 첫 메트릭이 들어옵니다(내보내기 주기 기본 60초).',
+};
+
+export function appReceiptNote(signals: string[], attached = false) {
+  return [
+    ...signals.map(signal => WAIT_HINT[signal]).filter(Boolean),
+    '5초마다 수신 기록을 확인합니다.',
+    ...(attached ? ['권한 추가만으로 앱의 전송 설정이 변경되지는 않습니다.'] : []),
+  ].join(' ');
+}
