@@ -753,6 +753,11 @@ func (h *AgentHandler) GetServiceRequests(c *fiber.Ctx) error {
 		MaxStatus:   maxStatus,
 		Limit:       limit,
 		Offset:      offset,
+		// One endpoint from the endpoint table: exact template, not the search substring.
+		PathTemplate: c.Query("pathTemplate"),
+	}
+	if method := c.Query("method"); method != "" {
+		filter.Methods = []string{method}
 	}
 	if from := c.Query("from"); from != "" {
 		if t, err2 := time.Parse(time.RFC3339, from); err2 == nil {
@@ -883,6 +888,27 @@ func (h *AgentHandler) GetServiceRequestStatusSummary(c *fiber.Ctx) error {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
 	return c.JSON(fiber.Map{"success": true, "data": summary})
+}
+
+// GetServiceRequestEndpoints is the per-endpoint table for one service.
+// GET /agents/:agentId/services/:key/request-endpoints
+func (h *AgentHandler) GetServiceRequestEndpoints(c *fiber.Ctx) error {
+	agentID := c.Params("agentId")
+	service, err := h.repo.GetServiceByKey(agentID, c.Params("key"))
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	if service == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"success": false,
+			"error":   fiber.Map{"code": "NOT_FOUND", "message": "service not found"},
+		})
+	}
+	stats, err := h.reqRepo.EndpointStats(requestWindowFilter(c, models.ApiRequestFilter{AgentID: agentID, ServiceName: service.Name}))
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": stats})
 }
 
 // GetServiceOtelMetricNames returns the distinct OTLP metrics a service has

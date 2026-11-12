@@ -242,6 +242,10 @@ func (r *ApiRequestRepository) List(f *models.ApiRequestFilter) ([]models.ApiReq
 		where += " AND path LIKE ?"
 		args = append(args, f.PathPrefix+"%")
 	}
+	if f.PathTemplate != "" {
+		where += " AND COALESCE(NULLIF(path_template,''), path) = ?"
+		args = append(args, f.PathTemplate)
+	}
 	if f.Search != "" {
 		where += " AND path LIKE ?"
 		args = append(args, "%"+f.Search+"%")
@@ -318,6 +322,11 @@ func (r *ApiRequestRepository) List(f *models.ApiRequestFilter) ([]models.ApiReq
 	return items, total, nil
 }
 
+// requestStatsRowCap bounds the raw rows an aggregate scans for Go-side
+// percentiles. Over the cap the aggregate reports truncated instead of a
+// partial result.
+const requestStatsRowCap = 100000
+
 // RequestStats returns time-bucketed request aggregates (volume, errors, p50,
 // p95, p99) for the trends chart. Scoped by the same agent/service/time filter as
 // List; rows are fetched raw and bucketed in Go (SQLite has no percentile
@@ -331,7 +340,7 @@ func (r *ApiRequestRepository) RequestStats(f *models.ApiRequestFilter, bucketMi
 	}
 
 	where, args := requestScopeWhere(f)
-	const maxRows = 100000
+	const maxRows = requestStatsRowCap
 	args = append(args, maxRows+1)
 	rows, err := DB.Query(
 		"SELECT created_at, duration_ms, is_error FROM api_requests WHERE "+where+
@@ -452,7 +461,96 @@ func (r *ApiRequestRepository) StatusSummary(f *models.ApiRequestFilter) (*model
 			return nil, err
 		}
 	}
+	// Error rate and p95 for the target list, on the same definitions as the
+	// trends chart. Runs after the rows above are closed (single connection).
+	window, err := r.WindowStats(f)
+	if err != nil {
+		return nil, err
+	}
+	out.ErrorCount, out.P95, out.Timed = window.ErrorCount, window.P95, window.Timed
 	return out, nil
+}
+
+// EndpointStats groups the window by method + path template (the raw path when
+// there is no template) for the endpoint table. Percentiles are computed in Go
+// like RequestStats, with the same row cap: over the cap it returns no rows and
+// Truncated rather than a table built from part of the window.
+func (r *ApiRequestRepository) EndpointStats(f *models.ApiRequestFilter) (models.ApiEndpointStats, error) {
+	where, args := requestScopeWhere(f)
+	args = append(args, requestStatsRowCap+1)
+	rows, err := DB.Query(
+		"SELECT method, COALESCE(NULLIF(path_template,''), path), duration_ms, is_error, created_at FROM api_requests WHERE "+where+
+			" LIMIT ?", args...)
+	if err != nil {
+		return models.ApiEndpointStats{}, err
+	}
+	defer rows.Close()
+
+	type group struct {
+		stat      models.ApiEndpointStat
+		durations []int
+	}
+	groups := map[[2]string]*group{}
+	seen := 0
+	for rows.Next() {
+		seen++
+		if seen > requestStatsRowCap {
+			return models.ApiEndpointStats{Endpoints: []models.ApiEndpointStat{}, Truncated: true}, nil
+		}
+		var (
+			method, path string
+			duration     int
+			isError      bool
+			at           time.Time
+		)
+		if err := rows.Scan(&method, &path, &duration, &isError, &at); err != nil {
+			return models.ApiEndpointStats{}, err
+		}
+		key := [2]string{method, path}
+		g := groups[key]
+		if g == nil {
+			g = &group{stat: models.ApiEndpointStat{Method: method, Path: path}}
+			groups[key] = g
+		}
+		g.stat.Count++
+		if isError {
+			g.stat.ErrorCount++
+			if g.stat.LastErrorAt == nil || at.After(*g.stat.LastErrorAt) {
+				t := at
+				g.stat.LastErrorAt = &t
+			}
+		}
+		if duration > 0 {
+			g.durations = append(g.durations, duration)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return models.ApiEndpointStats{}, err
+	}
+
+	out := make([]models.ApiEndpointStat, 0, len(groups))
+	for _, g := range groups {
+		g.stat.Timed = len(g.durations)
+		g.stat.P50 = percentile(g.durations, 50)
+		g.stat.P95 = percentile(g.durations, 95)
+		g.stat.P99 = percentile(g.durations, 99)
+		out = append(out, g.stat)
+	}
+	// Problem first: most errors, then slowest p95, then busiest.
+	sort.Slice(out, func(i, j int) bool {
+		a, b := out[i], out[j]
+		if a.ErrorCount != b.ErrorCount {
+			return a.ErrorCount > b.ErrorCount
+		}
+		if a.P95 != b.P95 {
+			return a.P95 > b.P95
+		}
+		if a.Count != b.Count {
+			return a.Count > b.Count
+		}
+		return a.Method+" "+a.Path < b.Method+" "+b.Path
+	})
+	return models.ApiEndpointStats{Endpoints: out}, nil
 }
 
 // WindowStats aggregates the whole filter window into one bucket (volume,

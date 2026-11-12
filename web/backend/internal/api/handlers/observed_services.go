@@ -311,6 +311,11 @@ func directApiRequestFilter(c *fiber.Ctx) *models.ApiRequestFilter {
 		TraceID:    c.Query("traceId"),
 		Limit:      limit,
 		Offset:     offset,
+		// One endpoint from the endpoint table: exact template, not the q substring.
+		PathTemplate: c.Query("pathTemplate"),
+	}
+	if method := c.Query("method"); method != "" {
+		filter.Methods = []string{method}
 	}
 	filter.MinStatus, _ = strconv.Atoi(c.Query("minStatus", "0"))
 	filter.MaxStatus, _ = strconv.Atoi(c.Query("maxStatus", "0"))
@@ -362,6 +367,17 @@ func (h *ObservedServiceHandler) GetRequestStatusSummary(c *fiber.Ctx) error {
 		return internalError(c, ErrCodeDatabase, err)
 	}
 	return c.JSON(fiber.Map{"success": true, "data": summary})
+}
+
+func (h *ObservedServiceHandler) GetRequestEndpoints(c *fiber.Ctx) error {
+	if _, err := h.manager.RequireSignal(c.Params("id"), models.TelemetrySignalTraces); err != nil {
+		return observedServiceError(c, err)
+	}
+	stats, err := h.reqRepo.EndpointStats(directApiRequestFilter(c))
+	if err != nil {
+		return internalError(c, ErrCodeDatabase, err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": stats})
 }
 
 func (h *ObservedServiceHandler) GetApiExclusions(c *fiber.Ctx) error {
