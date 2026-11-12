@@ -46,6 +46,7 @@ import type {
   InfrastructureResourceInput,
   InfrastructureResourceSetup,
   TimelineIncident,
+  OtelMetricName,
 } from './api';
 
 // ?? Notifications ?????????????????????????????????????????????????????????????
@@ -566,8 +567,12 @@ function filterMockRequests(rows: ApiRequest[], endpoint: string): ApiRequest[] 
   const to = query.get('to');
   const minStatus = Number(query.get('minStatus') ?? 0);
   const maxStatus = Number(query.get('maxStatus') ?? 0);
+  const method = query.get('method');
+  const pathTemplate = query.get('pathTemplate');
   return rows.filter(request =>
     (!errorsOnly || request.isError)
+    && (!method || request.method === method)
+    && (!pathTemplate || (request.pathTemplate || request.path) === pathTemplate)
     && (!traceId || request.traceId === traceId)
     && (!search || request.path.toLowerCase().includes(search))
     && (!from || request.createdAt >= from)
@@ -916,7 +921,26 @@ function mockRequestStatusSummary(endpoint: string) {
     count4xx: rows.filter(row => row.statusCode >= 400 && row.statusCode < 500).length,
     count5xx: errors.length, countOther: rows.filter(row => row.statusCode < 200).length,
     top5xxMethod: top?.[0].method, top5xxPath: top?.[0].pathTemplate, top5xxCount: top?.length,
+    ...mockLatency(rows),
   };
+}
+
+// Same nearest-rank p95 as the backend; errors = 5xx or OTel ERROR (isError).
+function mockLatency(rows: ApiRequest[]) {
+  const values = rows.map(row => row.durationMs).filter(value => value > 0).sort((a, b) => a - b);
+  const pick = (p: number) => values[Math.max(0, Math.ceil(values.length * p) - 1)] ?? 0;
+  return { errorCount: rows.filter(row => row.isError).length, p50: pick(0.5), p95: pick(0.95), p99: pick(0.99), timed: values.length };
+}
+
+// Endpoint table: group by method + template, problem first (errors, then p95).
+function mockRequestEndpoints(endpoint: string) {
+  const groups = new Map<string, ApiRequest[]>();
+  endpointRequests(endpoint).forEach(row => { const key = `${row.method} ${row.pathTemplate || row.path}`; groups.set(key, [...(groups.get(key) ?? []), row]); });
+  const endpoints = [...groups.values()].map(rows => ({
+    method: rows[0].method, path: rows[0].pathTemplate || rows[0].path, count: rows.length, ...mockLatency(rows),
+    lastErrorAt: rows.filter(row => row.isError).map(row => row.createdAt).sort().pop(),
+  })).sort((a, b) => b.errorCount - a.errorCount || b.p95 - a.p95 || b.count - a.count);
+  return { endpoints, truncated: false };
 }
 
 // 방금 추가해 아직 수신하지 않은 Collector — 백엔드처럼 info는 NO_DATA, 이력은 빈 배열이다.
@@ -1099,6 +1123,16 @@ function scenarioObservedServices(scenario: MockScenario): ObservedService[] {
   return services.map(service => initialObservedIds.has(service.id) ? { ...service,
     lastSeenAt: scenario === 'normal' ? fresh : service.lastSeenAt ? fixtureTime(service.lastSeenAt) : undefined,
     updatedAt: fixtureTime(service.updatedAt) } : service);
+}
+
+// 확인 필요 시나리오: 첫 메트릭 서비스의 첫 지표는 임계값 초과, 둘째 지표는 7분째 수신 없음 — 목록의 확인 필요순과 상세의 확인 필요 목록을 데모로 보인다.
+function scenarioMetricHealth(scenario: MockScenario, serviceId: string, metrics: OtelMetricName[]): OtelMetricName[] {
+  const target = scenario === 'attention' && scenarioObservedServices(scenario).find(service => service.signals.includes('metrics'))?.id === serviceId;
+  const late = new Date(Date.now() - 7 * 60_000).toISOString();
+  return metrics.map((metric, index) => !target ? { ...metric, lastReceivedAt: metric.lastAt }
+    : index === 0 ? { ...metric, lastReceivedAt: metric.lastAt, breached: true }
+    : index === 1 ? { ...metric, lastAt: late, lastReceivedAt: late }
+    : { ...metric, lastReceivedAt: metric.lastAt });
 }
 
 function scenarioInfrastructureResources(scenario: MockScenario): InfrastructureResource[] {
@@ -1467,8 +1501,8 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (endpoint === '/observed-services/metric-catalog') {
     return scenarioObservedServices(scenario)
       .filter(service => service.signals.includes('metrics'))
-      .flatMap(service => (serviceTelemetry.get(service.id)?.metricNames ?? []).map(metric => ({
-        ...metric, lastReceivedAt: metric.lastAt, serviceId: service.id,
+      .flatMap(service => scenarioMetricHealth(scenario, service.id, serviceTelemetry.get(service.id)?.metricNames ?? []).map(metric => ({
+        ...metric, serviceId: service.id,
       }))) as T;
   }
   if (endpoint === '/observed-services/service-metrics') {
@@ -1493,7 +1527,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (observedFilterMatch) return { levels: mockDirectLogFilters.get(observedFilterMatch[1]) ?? [] } as T;
   if (/^\/observed-services\/[^/]+\/traces/.test(endpoint)) return scopedTraceList(endpoint) as T;
   if (/\/otel-metrics\/health$/.test(endpoint)) {
-    const metrics = (endpointTelemetry(endpoint)?.metricNames ?? []).map(metric => ({ ...metric, lastReceivedAt: metric.lastAt, freshSeries: 1 }));
+    const metrics = scenarioMetricHealth(scenario, endpoint.match(/^\/observed-services\/([^/]+)\//)?.[1] ?? '', endpointTelemetry(endpoint)?.metricNames ?? []).map(metric => ({ ...metric, freshSeries: 1 }));
     return { metrics, checkedAt: new Date().toISOString(), freshnessSeconds: 300 } as T;
   }
   if (/^\/observed-services\/[^/]+\/otel-metrics\/query/.test(endpoint)) return mockMetricQuery(endpointTelemetry(endpoint)?.metricPoints[new URLSearchParams(endpoint.split('?')[1]).get('name') ?? ''] ?? [], new URLSearchParams(endpoint.split('?')[1])) as T;
@@ -1506,6 +1540,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   }
   if (/^\/observed-services\/[^/]+\/request-stats/.test(endpoint)) return mockRequestStats(endpoint) as T;
   if (/^\/observed-services\/[^/]+\/request-status-summary/.test(endpoint)) return mockRequestStatusSummary(endpoint) as T;
+  if (/^\/(observed-services|agents\/[^/]+\/services)\/[^/]+\/request-endpoints/.test(endpoint)) return mockRequestEndpoints(endpoint) as T;
 
   const observedApiExclusionsMatch = endpoint.match(/^\/observed-services\/([^/]+)\/api-exclusions$/);
   if (observedApiExclusionsMatch) return { paths: mockDirectApiExclusions.get(observedApiExclusionsMatch[1]) ?? [] } as T;
