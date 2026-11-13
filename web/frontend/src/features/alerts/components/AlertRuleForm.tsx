@@ -18,6 +18,7 @@ import {
     type ConnectedAgent,
     type ObservedService,
     type InfrastructureResource,
+    type UptimeMonitor,
     type TelemetrySignal,
 } from '../../../services/api';
 
@@ -279,6 +280,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const [agents, setAgents] = useState<ConnectedAgent[]>([]);
     const [directServices, setDirectServices] = useState<ObservedService[]>([]);
     const [infrastructureResources, setInfrastructureResources] = useState<InfrastructureResource[]>([]);
+    const [uptimeMonitors, setUptimeMonitors] = useState<UptimeMonitor[]>([]);
     const [conditionPreset, setConditionPreset] = useState<ConditionPreset>(initial?.ruleCategory === 'metric' ? 'custom' : 'error');
     const [customMessage, setCustomMessage] = useState('');
     const [customThreshold, setCustomThreshold] = useState('');
@@ -321,6 +323,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
             if (category === 'metric') setConditionPreset('custom');
         }).catch(() => { });
         api.getInfrastructureResources().then(rows => setInfrastructureResources(rows ?? [])).catch(() => { });
+        // 헬스체크 규칙은 업타임 모니터 하나를 대상으로 할 수 있다(서버는 service_id로 평가한다).
+        api.getUptimeMonitors().then(rows => setUptimeMonitors(rows ?? [])).catch(() => { });
     }, [isEdit, initial?.ruleCategory, initial?.serviceId, setValue]);
 
     useEffect(() => {
@@ -366,7 +370,9 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
         // 대상 필터에서 넘어온 대상은 새 카테고리도 그 대상을 고를 수 있으면 유지한다.
         const signal = directSignalFor(cat, newMetric);
         const keepTarget = cat !== 'resource' && watchedCategory !== 'resource' && (watchedServiceId
-            ? !!signal && !!directServices.find(service => service.id === watchedServiceId)?.signals.includes(signal)
+            ? (cat === 'endpoint'
+                ? uptimeMonitors.some(monitor => monitor.id === watchedServiceId)
+                : !!signal && !!directServices.find(service => service.id === watchedServiceId)?.signals.includes(signal))
             : true);
         setValue('ruleCategory', cat);
         if (!keepTarget) {
@@ -476,7 +482,9 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const availableDirectServices = directSignal
         ? directServices.filter(service => service.signals.includes(directSignal))
         : [];
-    const selectedDirectService = directServices.find(service => service.id === watchedServiceId);
+    const selectedDirectService = isEndpoint
+        ? uptimeMonitors.find(monitor => monitor.id === watchedServiceId)
+        : directServices.find(service => service.id === watchedServiceId);
     const targetLabel = isEndpoint || isLog || isRequest || isMetric
         ? (selectedDirectService
             ? selectedDirectService.name
@@ -568,6 +576,11 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         {availableDirectServices.map(service => (
                                             <option key={`direct:::${service.id}`} value={`direct:::${service.id}`}>
                                                 Direct / {service.name}
+                                            </option>
+                                        ))}
+                                        {isEndpoint && uptimeMonitors.map(monitor => (
+                                            <option key={`direct:::${monitor.id}`} value={`direct:::${monitor.id}`}>
+                                                업타임 / {monitor.name}
                                             </option>
                                         ))}
                                     </Select>

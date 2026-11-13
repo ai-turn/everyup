@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Button, Input, MaterialIcon, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
-import type { UptimeMonitor, UptimeMonitorInput, UptimeMonitorType } from '../../../services/api';
+import { api, type UptimeMonitor, type UptimeMonitorInput, type UptimeMonitorType } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 
 type MonitorDraft = {
@@ -43,6 +43,16 @@ export function UptimeMonitorDialog({
     timeout: String(monitor.timeout / 1000),
   } : EMPTY_DRAFT);
   const [saving, setSaving] = useState(false);
+  // 추가할 때만 묻는다. 켜진 채널이 있으면 기본으로 켠다 — 모니터는 "다운되면 알려 달라"가 존재 이유다.
+  const [alertOnDown, setAlertOnDown] = useState(false);
+  useEffect(() => {
+    if (monitor) return;
+    let active = true;
+    api.getNotificationChannels()
+      .then(channels => { if (active) setAlertOnDown(channels.some(channel => channel.isEnabled)); })
+      .catch(() => { /* 채널을 못 읽으면 꺼 둔다. 사용자가 직접 켤 수 있다. */ });
+    return () => { active = false; };
+  }, [monitor]);
 
   useModalDialog(true, dialogRef);
 
@@ -62,6 +72,7 @@ export function UptimeMonitorDialog({
           : { host: draft.target.trim(), port: Number(draft.port) }),
         interval: Number(draft.interval),
         timeout: Math.round(Number(draft.timeout) * 1000),
+        ...(!monitor && alertOnDown ? { alertOnDown: true } : {}),
       });
       onClose();
     } catch (error) {
@@ -130,6 +141,15 @@ export function UptimeMonitorDialog({
               <Input required type="number" min={0.1} step="any" value={draft.timeout} onChange={(event) => update('timeout', event.target.value)} />
             </label>
           </div>
+          {!monitor && (
+            <label className="flex items-start gap-3">
+              <input type="checkbox" checked={alertOnDown} onChange={(event) => setAlertOnDown(event.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+              <span>
+                <span className="block text-sm font-medium text-text-secondary">다운되면 알림</span>
+                <span className="block type-caption text-text-muted">켜진 모든 채널로 보냅니다. 알림 규칙에서 바꿀 수 있습니다.</span>
+              </span>
+            </label>
+          )}
         </fieldset>
         <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button>

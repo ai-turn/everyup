@@ -20,6 +20,8 @@ type ServiceRuleEvaluator struct {
 
 	mu          sync.Mutex
 	wasAlerting map[string]bool // ruleKey → whether currently alerting (for recovery detection)
+
+	dispatch func(Notification, []string) // test seam; defaults to manager.DispatchToChannels
 }
 
 // NewServiceRuleEvaluator creates a new service rule evaluator.
@@ -30,6 +32,7 @@ func NewServiceRuleEvaluator(manager *Manager) *ServiceRuleEvaluator {
 		stateRepo:   database.NewAlertRuleStateRepository(),
 		wasAlerting: make(map[string]bool),
 	}
+	evaluator.dispatch = manager.DispatchToChannels
 
 	evaluator.loadState()
 
@@ -37,8 +40,9 @@ func NewServiceRuleEvaluator(manager *Manager) *ServiceRuleEvaluator {
 }
 
 // Evaluate checks all enabled service rules for a service against the given check result.
-// This is called by Scheduler after each service check.
-func (e *ServiceRuleEvaluator) Evaluate(serviceID, serviceName string, statusCode, responseTimeMs int) {
+// This is called by Scheduler after each service check. checkOK is the check's own
+// verdict; TCP checks have no HTTP status, so the status rule follows it instead.
+func (e *ServiceRuleEvaluator) Evaluate(serviceID, serviceName string, statusCode, responseTimeMs int, checkOK bool) {
 	rules, err := e.repo.GetEnabledByServiceID(serviceID)
 	if err != nil {
 		log.Printf("[ServiceEvaluator] Failed to get rules for service %s: %v", serviceID, err)
@@ -46,7 +50,7 @@ func (e *ServiceRuleEvaluator) Evaluate(serviceID, serviceName string, statusCod
 	}
 
 	for _, rule := range rules {
-		e.evaluateRule(rule, serviceID, serviceName, statusCode, responseTimeMs)
+		e.evaluateRule(rule, serviceID, serviceName, statusCode, responseTimeMs, checkOK)
 	}
 }
 
@@ -56,8 +60,9 @@ func (e *ServiceRuleEvaluator) evaluateRule(
 	rule models.AlertRule,
 	serviceID, serviceName string,
 	statusCode, responseTimeMs int,
+	checkOK bool,
 ) {
-	value := extractServiceMetricValue(rule.Metric, statusCode, responseTimeMs)
+	value := extractServiceMetricValue(rule.Metric, statusCode, responseTimeMs, checkOK)
 	breached := compareValue(value, rule.Operator, rule.Threshold)
 	ruleKey := e.ruleKey(rule.ID, serviceID)
 
@@ -120,7 +125,7 @@ func (e *ServiceRuleEvaluator) evaluateRule(
 			log.Printf("[ServiceEvaluator] ALERT %s: %s=%.0f > %.0f (service: %s, rule: %s)",
 				rule.Severity, rule.Metric, value, rule.Threshold, serviceName, rule.Name)
 		}
-		go e.manager.DispatchToChannels(*toDispatch, rule.ChannelIDs)
+		e.dispatch(*toDispatch, rule.ChannelIDs)
 	}
 
 	go e.saveState(rule.ID, serviceID)
@@ -135,7 +140,8 @@ func (e *ServiceRuleEvaluator) EvaluateAgent(agentID, serviceKey, serviceName st
 		return
 	}
 	for _, rule := range rules {
-		e.evaluateRule(rule, agentID+"/"+serviceKey, serviceName, statusCode, responseTimeMs)
+		// Agent syncs report only an HTTP status; 0 keeps meaning "no response".
+		e.evaluateRule(rule, agentID+"/"+serviceKey, serviceName, statusCode, responseTimeMs, false)
 	}
 }
 
@@ -169,12 +175,16 @@ func (e *ServiceRuleEvaluator) ruleKey(ruleID, serviceID string) string {
 }
 
 // extractServiceMetricValue extracts the relevant metric value from check result fields.
-// statusCode=0 means TCP connection failed (no HTTP response at all) — mapped to 999
-// so that any status-code threshold rule (>= 400, >= 500, etc.) triggers correctly.
-func extractServiceMetricValue(metric models.AlertMetric, statusCode, responseTimeMs int) float64 {
+// statusCode=0 means there was no HTTP response. A failed check maps to 999 so that any
+// status-code threshold rule (>= 400, >= 500, etc.) triggers; a successful one (a TCP
+// port that answered) maps to 200, so the same rule stays quiet while the port is up.
+func extractServiceMetricValue(metric models.AlertMetric, statusCode, responseTimeMs int, checkOK bool) float64 {
 	switch metric {
 	case models.AlertMetricHTTPStatus:
 		if statusCode == 0 {
+			if checkOK {
+				return 200
+			}
 			return 999
 		}
 		return float64(statusCode)

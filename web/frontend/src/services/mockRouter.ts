@@ -1392,6 +1392,11 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         status: 'unknown',
       };
       mockUptimeMonitors.push(monitor);
+      // 서버의 createMonitorDownRule과 같은 규칙을 만든다(다운되면 알림).
+      if (parsed.alertOnDown) {
+        const now = new Date().toISOString();
+        mockAlertRules.push({ id: `rule_${monitor.id}`, name: `${monitor.name} 다운`, type: 'service', serviceId: monitor.id, metric: 'http_status', operator: 'gte', threshold: 400, duration: mockAppSettings.alerts.consecutiveFailures, severity: 'critical', isEnabled: true, isSystem: false, cooldown: 0, channelIds: [], createdAt: now, updatedAt: now });
+      }
       return monitor as T;
     }
     if (method === 'PUT' && uptimeMatch) {

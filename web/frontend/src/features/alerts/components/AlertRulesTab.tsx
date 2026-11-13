@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
 import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
-import { api, type AlertRule, type NotificationChannel, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService } from '../../../services/api';
+import { api, type AlertRule, type NotificationChannel, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService, type UptimeMonitor } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
 import { AlertRuleForm, type AlertRuleFormInitial } from './AlertRuleForm';
 import { FormSidePanel } from './FormSidePanel';
@@ -42,9 +42,20 @@ function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
 // 대상 이름을 찾지 못하면 지워진 대상이다. 이름 목록을 받지 못했을 때는 id만 보인다(지워졌는지 모름).
 const missingTarget = (id: string) => `삭제된 대상 (${id})`;
 
-function targetLabel(rule: AlertRule, agentServices: AgentServiceFlat[], agents: ConnectedAgent[], directServices: ObservedService[], infrastructureResources: InfrastructureResource[]): string {
+/** 규칙 대상의 이름을 찾는 목록들. 헬스체크 규칙의 serviceId는 업타임 모니터일 수 있다. */
+interface TargetNames {
+  agentServices: AgentServiceFlat[];
+  agents: ConnectedAgent[];
+  directServices: ObservedService[];
+  infrastructureResources: InfrastructureResource[];
+  uptimeMonitors: UptimeMonitor[];
+}
+
+function targetLabel(rule: AlertRule, { agentServices, agents, directServices, infrastructureResources, uptimeMonitors }: TargetNames): string {
   if (rule.type === 'service' || rule.type === 'log' || rule.type === 'request') {
-    if (rule.serviceId) return directServices.find(service => service.id === rule.serviceId)?.name ?? missingTarget(rule.serviceId);
+    if (rule.serviceId) return directServices.find(service => service.id === rule.serviceId)?.name
+      ?? uptimeMonitors.find(monitor => monitor.id === rule.serviceId)?.name
+      ?? missingTarget(rule.serviceId);
     if (rule.agentId && rule.serviceKey) {
       const svc = agentServices.find(s => s.agentId === rule.agentId && s.key === rule.serviceKey);
       return svc ? `${svc.agentName} / ${svc.name}` : missingTarget(rule.serviceKey);
@@ -187,6 +198,8 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [directServices, setDirectServices] = useState<ObservedService[]>([]);
   const [infrastructureResources, setInfrastructureResources] = useState<InfrastructureResource[]>([]);
+  const [uptimeMonitors, setUptimeMonitors] = useState<UptimeMonitor[]>([]);
+  const names = useMemo<TargetNames>(() => ({ agentServices, agents, directServices, infrastructureResources, uptimeMonitors }), [agentServices, agents, directServices, infrastructureResources, uptimeMonitors]);
   const [isLoading, setIsLoading] = useState(true);
   const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -211,13 +224,14 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
 
   const loadData = async () => {
     try {
-      const [rulesData, channelsData, agentSvcs, agts, directRows, infrastructureRows] = await Promise.all([
+      const [rulesData, channelsData, agentSvcs, agts, directRows, infrastructureRows, monitorRows] = await Promise.all([
         api.getAlertRules(),
         api.getNotificationChannels(),
         api.getAllAgentServicesFlat(),
         api.getAgents(),
         api.getObservedServices(),
         api.getInfrastructureResources(),
+        api.getUptimeMonitors(),
       ]);
       setRules(rulesData);
       setChannels(channelsData);
@@ -225,6 +239,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
       setAgents(agts ?? []);
       setDirectServices(directRows ?? []);
       setInfrastructureResources(infrastructureRows ?? []);
+      setUptimeMonitors(monitorRows ?? []);
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -310,7 +325,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
       if (enabledFilter !== 'all' && (enabledFilter === 'on' ? !r.isEnabled : r.isEnabled)) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
-        const target = targetLabel(r, agentServices, agents, directServices, infrastructureResources).toLowerCase();
+        const target = targetLabel(r, names).toLowerCase();
         if (!r.name.toLowerCase().includes(q) && !target.includes(q)) return false;
       }
       return true;
@@ -320,14 +335,14 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
       let v = 0;
       if (sortKey === 'severity') v = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
       else if (sortKey === 'name') v = a.name.localeCompare(b.name);
-      else if (sortKey === 'target') v = targetLabel(a, agentServices, agents, directServices, infrastructureResources).localeCompare(targetLabel(b, agentServices, agents, directServices, infrastructureResources));
+      else if (sortKey === 'target') v = targetLabel(a, names).localeCompare(targetLabel(b, names));
       else if (sortKey === 'category') v = ruleCategory(a).localeCompare(ruleCategory(b));
       return sortDir === 'asc' ? v : -v;
     });
-  }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, agentServices, agents, directServices, infrastructureResources, target]);
+  }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, names, target]);
 
   const selectedTargetLabel = target?.kind === 'direct'
-    ? directServices.find((service) => service.id === target.serviceId)?.name ?? missingTarget(target.serviceId)
+    ? directServices.find((service) => service.id === target.serviceId)?.name ?? uptimeMonitors.find((monitor) => monitor.id === target.serviceId)?.name ?? missingTarget(target.serviceId)
     : target?.kind === 'infrastructure'
     ? infrastructureResources.find((resource) => resource.id === target.resourceId)?.name ?? missingTarget(target.resourceId)
     : target
@@ -479,7 +494,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
         {filteredRules.length === 0 ? <p className="rounded-xl border border-ui-border p-5 text-sm text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
-            <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words text-sm text-text-muted">{compactTrigger(rule)}</p></Tooltip>
+            <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, names)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words text-sm text-text-muted">{compactTrigger(rule)}</p></Tooltip>
             <div className="mt-3"><ChannelAvatars rule={rule} channels={channels} /></div><p className="mt-3 type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p>
             <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => handleToggle(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
@@ -542,10 +557,10 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
                         <SeverityBadge severity={rule.severity} />
                       </td>
                       <td className="px-4 py-2.5 align-middle">
-                        <Tooltip content={targetLabel(rule, agentServices, agents, directServices, infrastructureResources)} focusable><span
+                        <Tooltip content={targetLabel(rule, names)} focusable><span
                           className="inline-block max-w-full truncate rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-ui-hover-dark dark:text-text-base-dark"
                         >
-                          {targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}
+                          {targetLabel(rule, names)}
                         </span></Tooltip>
                       </td>
                       <td className="px-4 py-2.5 align-middle text-sm">
