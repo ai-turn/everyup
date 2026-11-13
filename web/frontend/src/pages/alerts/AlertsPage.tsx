@@ -7,10 +7,11 @@ import { AlertsDesktopView } from '../../features/alerts/components/AlertsDeskto
 import { AlertsMobileView } from '../../features/alerts/components/AlertsMobileView';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { Button, ConfirmDialog, MaterialIcon } from '../../components/common';
-import { parseAlertTarget } from '../../features/alerts/alertTarget';
+import { alertTargetInitial, parseAlertTarget } from '../../features/alerts/alertTarget';
 import { FormSidePanel } from '../../features/alerts/components/FormSidePanel';
 import { FormActions } from '../../features/alerts/components/FormLayout';
-import { AlertRuleForm } from '../../features/alerts/components/AlertRuleForm';
+import { AlertRuleForm, type AlertRuleFormInitial } from '../../features/alerts/components/AlertRuleForm';
+import type { RuleAddRequest } from '../../features/alerts/components/AlertRulesTab';
 
 type TabType = 'channels' | 'rules' | 'history';
 
@@ -44,7 +45,8 @@ export function AlertsPage() {
   const [channelsError, setChannelsError] = useState<string | null>(null);
   const [rulesError, setRulesError] = useState<string | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
-  const [rulesAddTrigger, setRulesAddTrigger] = useState(0);
+  const [ruleAddRequest, setRuleAddRequest] = useState<RuleAddRequest | null>(null);
+  const [mobileRuleInitial, setMobileRuleInitial] = useState<AlertRuleFormInitial | undefined>(undefined);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -116,6 +118,26 @@ export function AlertsPage() {
   useEffect(() => {
     setActiveTab(parseTabParam(searchParams.get('tab')));
   }, [searchParams]);
+
+  // `new=metric&metricName=…`(메트릭 단독 보기의 `알림 추가`)는 미리 채운 규칙 폼을 연다.
+  // 연 뒤에는 URL에서 지워 새로고침해도 다시 열리지 않게 한다. 대상(target…)은 목록 필터로 남긴다.
+  useEffect(() => {
+    if (searchParams.get('new') !== 'metric') return;
+    const initial: AlertRuleFormInitial = { ruleCategory: 'metric', metricName: searchParams.get('metricName') ?? '' };
+    if (isMobile) { setMobileRuleInitial({ ...alertTargetInitial(alertTarget), ...initial }); setMobileRuleFormOpen(true); }
+    else setRuleAddRequest({ initial });
+    const next = new URLSearchParams(searchParams);
+    next.delete('new');
+    next.delete('metricName');
+    next.set('tab', 'rules');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, isMobile, alertTarget]);
+
+  const clearTarget = () => {
+    const next = new URLSearchParams(searchParams);
+    for (const key of ['target', 'serviceId', 'agentId', 'serviceKey', 'resourceId']) next.delete(key);
+    setSearchParams(next);
+  };
 
   const handleSetActiveTab = (tab: TabType) => {
     setActiveTab(tab);
@@ -214,7 +236,7 @@ export function AlertsPage() {
   };
 
   const handleAddRule = () => {
-    setRulesAddTrigger(n => n + 1);
+    setRuleAddRequest({});
   };
   // --- Render ---
   const deleteDialog = (
@@ -260,7 +282,7 @@ export function AlertsPage() {
           activeTab={activeTab}
           setActiveTab={handleSetActiveTab}
           onAddChannel={handleAddChannel}
-          onAddRule={() => setMobileRuleFormOpen(true)}
+          onAddRule={() => { setMobileRuleInitial(alertTargetInitial(alertTarget)); setMobileRuleFormOpen(true); }}
           onEditChannel={handleEditChannel}
           onDeleteChannel={handleDeleteChannel}
           onToggleChannel={handleToggleChannel}
@@ -280,6 +302,7 @@ export function AlertsPage() {
         >
           <AlertRuleForm
             channels={channels}
+            initial={mobileRuleInitial}
             onSuccess={() => { setMobileRuleFormOpen(false); void loadRules(); }}
             onCancel={() => setMobileRuleFormOpen(false)}
             onSubmittingChange={setMobileRuleSubmitting}
@@ -303,8 +326,10 @@ export function AlertsPage() {
         activeTab={activeTab}
         setActiveTab={handleSetActiveTab}
         togglingIds={togglingIds}
-        rulesAddTrigger={rulesAddTrigger}
+        ruleAddRequest={ruleAddRequest}
+        onRuleAddRequestHandled={() => setRuleAddRequest(null)}
         alertTarget={alertTarget}
+        onClearTarget={clearTarget}
         onChannelsChanged={refreshChannels}
         onDeleteChannel={handleDeleteChannel}
         onToggleChannel={handleToggleChannel}

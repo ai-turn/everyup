@@ -18,6 +18,7 @@ import {
     type ConnectedAgent,
     type ObservedService,
     type InfrastructureResource,
+    type TelemetrySignal,
 } from '../../../services/api';
 
 const ruleSchema = z.object({
@@ -51,6 +52,33 @@ type RuleFormValues = z.infer<typeof ruleSchema>;
 type RuleCategory = RuleFormValues['ruleCategory'];
 type ConditionPreset = 'normal' | 'error' | 'custom';
 
+/** 새 규칙 폼의 초기값. 대상 필터 목록의 `추가`와 메트릭 단독 보기의 `알림 추가`가 같은 통로로 넘긴다. */
+export type AlertRuleFormInitial = Partial<Pick<RuleFormValues, 'ruleCategory' | 'metricName' | 'agentId' | 'serviceKey' | 'serviceId'>>;
+
+const CATEGORY_METRIC: Record<RuleCategory, RuleFormValues['metric']> = {
+    endpoint: 'http_status', request: 'error_rate', log: 'log_level', metric: 'otel_metric', resource: 'cpu',
+};
+
+// 직접 연결 서비스는 그 신호를 받는 경우에만 대상 목록에 나온다.
+function directSignalFor(category: RuleCategory, metric: RuleFormValues['metric']): TelemetrySignal | null {
+    if (category === 'metric') return 'metrics';
+    if (category === 'log') return metric === 'api_status_code' ? 'traces' : 'logs';
+    if (category === 'request') return 'traces';
+    return null;
+}
+
+function initialFormValues(initial?: AlertRuleFormInitial): RuleFormValues {
+    const ruleCategory = initial?.ruleCategory ?? 'endpoint';
+    const metric = CATEGORY_METRIC[ruleCategory];
+    const preset = getPresetValues(metric, 'error')!;
+    return {
+        name: '', ruleCategory, metric, metricName: '', agentId: '', serviceKey: '', serviceId: '',
+        operator: preset.operator, threshold: preset.threshold, duration: preset.duration ?? 1,
+        severity: 'warning', cooldown: 300, channelIds: [],
+        ...initial,
+    };
+}
+
 const OPERATOR_SYMBOLS: Record<string, string> = {
     gt: '>',
     gte: '>=',
@@ -75,7 +103,8 @@ function getPresetValues(metric: RuleFormValues['metric'], preset: ConditionPres
     if (metric === 'response_time') return { operator: 'gt', threshold: 3000 };
     if (metric === 'log_level') return { operator: 'gte', threshold: 3 };
     if (metric === 'api_status_code') return { operator: 'gte', threshold: 500 };
-    if (metric === 'otel_metric') return { operator: 'gt', threshold: 0 }; // no universal default — user sets it
+    // 메트릭은 공통 기본값이 없다 — 임계값을 비워 두고 사용자가 정하게 한다(빈 칸이면 NaN이라 검증에 걸린다).
+    if (metric === 'otel_metric') return { operator: 'gt', threshold: NaN };
     if (metric === 'error_rate') return { operator: 'gt', threshold: 5, duration: 5 };
     if (metric === 'latency_p95') return { operator: 'gt', threshold: 1000, duration: 5 };
     if (metric === 'latency_p99') return { operator: 'gt', threshold: 2000, duration: 5 };
@@ -116,17 +145,19 @@ interface AlertRuleFormProps {
     onSuccess: () => void;
     onCancel: () => void;
     rule?: AlertRule;
+    /** 새 규칙일 때만 쓴다. 수정은 `rule`이 값을 정한다. */
+    initial?: AlertRuleFormInitial;
     channels: NotificationChannel[];
     onSubmittingChange?: (v: boolean) => void;
 }
 
 // ─── Public export ────────────────────────────────────────────────────────────
 
-export function AlertRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange }: AlertRuleFormProps) {
+export function AlertRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmittingChange }: AlertRuleFormProps) {
     if (!!rule && rule.isSystem) {
         return <SystemRuleEditor rule={rule} channels={channels} onSuccess={onSuccess} onCancel={onCancel} onSubmittingChange={onSubmittingChange} />;
     }
-    return <FullRuleForm onSuccess={onSuccess} onCancel={onCancel} rule={rule} channels={channels} onSubmittingChange={onSubmittingChange} />;
+    return <FullRuleForm onSuccess={onSuccess} onCancel={onCancel} rule={rule} initial={initial} channels={channels} onSubmittingChange={onSubmittingChange} />;
 }
 
 // ─── System rule editor ───────────────────────────────────────────────────────
@@ -241,25 +272,21 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
 
 // ─── Full rule form ───────────────────────────────────────────────────────────
 
-function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange }: AlertRuleFormProps) {
+function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmittingChange }: AlertRuleFormProps) {
 
     const isEdit = !!rule;
     const [agentServices, setAgentServices] = useState<AgentServiceFlat[]>([]);
     const [agents, setAgents] = useState<ConnectedAgent[]>([]);
     const [directServices, setDirectServices] = useState<ObservedService[]>([]);
     const [infrastructureResources, setInfrastructureResources] = useState<InfrastructureResource[]>([]);
-    const [conditionPreset, setConditionPreset] = useState<ConditionPreset>('error');
+    const [conditionPreset, setConditionPreset] = useState<ConditionPreset>(initial?.ruleCategory === 'metric' ? 'custom' : 'error');
     const [customMessage, setCustomMessage] = useState('');
     const [customThreshold, setCustomThreshold] = useState('');
 
     const { register, handleSubmit, reset, setValue, watch } = useForm<RuleFormValues>({
         resolver: zodResolver(ruleSchema),
         mode: 'onBlur',
-        defaultValues: {
-            name: '', ruleCategory: 'endpoint', metric: 'http_status',
-            agentId: '', serviceKey: '', serviceId: '', operator: 'gte', threshold: 400,
-            duration: 1, severity: 'warning', cooldown: 300, channelIds: [],
-        },
+        defaultValues: initialFormValues(initial),
     });
 
     const watchedCategory  = watch('ruleCategory');
@@ -278,9 +305,23 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
     useEffect(() => {
         api.getAllAgentServicesFlat().then(svcs => setAgentServices(svcs ?? [])).catch(() => { });
         api.getAgents().then(agts => setAgents(agts ?? [])).catch(() => { });
-        api.getObservedServices().then(rows => setDirectServices(rows ?? [])).catch(() => { });
+        api.getObservedServices().then(rows => {
+            setDirectServices(rows ?? []);
+            // 대상만 넘어온 새 규칙은 그 서비스가 받는 신호로 카테고리를 고른다. 직접 연결 서비스가 아니면(업타임 모니터) 헬스체크 그대로다.
+            const signals = (rows ?? []).find(service => service.id === initial?.serviceId)?.signals;
+            if (isEdit || initial?.ruleCategory || !signals) return;
+            const category: RuleCategory = signals.includes('metrics') ? 'metric' : signals.includes('traces') ? 'request' : 'log';
+            const metric = CATEGORY_METRIC[category];
+            setValue('ruleCategory', category);
+            setValue('metric', metric);
+            const preset = getPresetValues(metric, 'error')!;
+            setValue('operator', preset.operator);
+            setValue('threshold', preset.threshold);
+            if (preset.duration != null) setValue('duration', preset.duration);
+            if (category === 'metric') setConditionPreset('custom');
+        }).catch(() => { });
         api.getInfrastructureResources().then(rows => setInfrastructureResources(rows ?? [])).catch(() => { });
-    }, []);
+    }, [isEdit, initial?.ruleCategory, initial?.serviceId, setValue]);
 
     useEffect(() => {
         if (rule) {
@@ -321,14 +362,23 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
     };
 
     const handleCategoryChange = (cat: RuleCategory) => {
+        const newMetric = CATEGORY_METRIC[cat];
+        // 대상 필터에서 넘어온 대상은 새 카테고리도 그 대상을 고를 수 있으면 유지한다.
+        const signal = directSignalFor(cat, newMetric);
+        const keepTarget = cat !== 'resource' && watchedCategory !== 'resource' && (watchedServiceId
+            ? !!signal && !!directServices.find(service => service.id === watchedServiceId)?.signals.includes(signal)
+            : true);
         setValue('ruleCategory', cat);
-        setValue('agentId', '');
-        setValue('serviceKey', '');
-        setValue('serviceId', '');
+        if (!keepTarget) {
+            setValue('agentId', '');
+            setValue('serviceKey', '');
+            setValue('serviceId', '');
+        }
         setValue('metricName', '');
-        const newMetric: RuleFormValues['metric'] = cat === 'resource' ? 'cpu' : cat === 'log' ? 'log_level' : cat === 'metric' ? 'otel_metric' : cat === 'request' ? 'error_rate' : 'http_status';
         setValue('metric', newMetric);
-        applyPreset(cat === 'metric' ? 'custom' : 'error', newMetric);
+        applyPreset('error', newMetric);
+        // 메트릭은 권장값이 없다 — 임계값 칸을 비운 채 직접 입력하게 한다.
+        if (cat === 'metric') { setConditionPreset('custom'); setCustomThreshold(''); }
     };
 
     const handleMetricChange = (m: RuleFormValues['metric']) => {
@@ -408,27 +458,31 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
     // OTLP metrics. Free text still allowed when no service is selected.
     const [metricNameOptions, setMetricNameOptions] = useState<string[]>([]);
     useEffect(() => {
-        if (!isMetric || !watchedAgentId || !watchedServiceKey) { setMetricNameOptions([]); return; }
-        api.getAgentServiceOtelMetricNames(watchedAgentId, watchedServiceKey)
-            .then(names => setMetricNameOptions((names ?? []).map(n => n.metricName)))
-            .catch(() => setMetricNameOptions([]));
-    }, [isMetric, watchedAgentId, watchedServiceKey]);
+        const request = !isMetric ? null
+            : watchedServiceId ? api.getObservedServiceOtelMetricNames(watchedServiceId)
+            : watchedAgentId && watchedServiceKey ? api.getAgentServiceOtelMetricNames(watchedAgentId, watchedServiceKey)
+            : null;
+        if (!request) { setMetricNameOptions([]); return; }
+        let active = true;
+        request
+            .then(names => { if (active) setMetricNameOptions([...new Set((names ?? []).map(n => n.metricName))]); })
+            .catch(() => { if (active) setMetricNameOptions([]); });
+        return () => { active = false; };
+    }, [isMetric, watchedAgentId, watchedServiceKey, watchedServiceId]);
     const selectedAgentService = agentServices.find(s => s.agentId === watchedAgentId && s.key === watchedServiceKey);
     const selectedAgent = agents.find(a => a.id === watchedAgentId);
     const selectedInfrastructureResource = infrastructureResources.find(resource => resource.id === watchedAgentId);
-    const directSignal = isMetric ? 'metrics' : isLog ? (isApiStatus ? 'traces' : 'logs') : isRequest ? 'traces' : null;
+    const directSignal = directSignalFor(watchedCategory, watchedMetric);
     const availableDirectServices = directSignal
         ? directServices.filter(service => service.signals.includes(directSignal))
         : [];
     const selectedDirectService = directServices.find(service => service.id === watchedServiceId);
-    const targetLabel = isEndpoint || isLog || isRequest
+    const targetLabel = isEndpoint || isLog || isRequest || isMetric
         ? (selectedDirectService
             ? selectedDirectService.name
             : watchedAgentId && watchedServiceKey
             ? (selectedAgentService ? `${selectedAgentService.agentName} / ${selectedAgentService.name}` : watchedServiceKey)
-            : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : '전체 헬스체크'))
-        : isMetric && selectedDirectService
-            ? selectedDirectService.name
+            : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'))
         : watchedCategory === 'resource' && watchedAgentId
             ? (selectedInfrastructureResource?.name ?? selectedAgent?.name ?? watchedAgentId)
             : (watchedAgentId ? (selectedAgent?.name ?? watchedAgentId) : '전체 인프라');
@@ -488,7 +542,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                 htmlFor="rule-target"
                                 label="대상"
                                 required={isRequest}
-                                hint={isRequest ? null : !watchedAgentId ? '미선택 시 모든 대상에 적용됩니다' : null}
+                                hint={isRequest ? null : !watchedAgentId && !watchedServiceId ? '미선택 시 모든 대상에 적용됩니다' : null}
                             >
                                 {isEndpoint || isLog || isMetric || isRequest ? (
                                     <Select
@@ -534,7 +588,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                 )}
                             </Field>
 
-                            <Field htmlFor={isMetric ? 'rule-metric' : undefined} label="지표" hint={isMetric && !watchedServiceKey ? '서비스를 선택하면 수집된 메트릭이 제안됩니다' : null}>
+                            <Field htmlFor={isMetric ? 'rule-metric' : undefined} label="지표" hint={isMetric && !watchedServiceKey && !watchedServiceId ? '서비스를 선택하면 수집된 메트릭이 제안됩니다' : null}>
                                 {isMetric ? (
                                     <>
                                         <Input
@@ -653,8 +707,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                             value={customThreshold}
                                             onChange={e => {
                                                 setCustomThreshold(e.target.value);
-                                                const n = parseFloat(e.target.value);
-                                                if (!isNaN(n)) setValue('threshold', n);
+                                                // 빈 칸은 NaN으로 둬서 이전 값이 몰래 저장되지 않게 한다.
+                                                setValue('threshold', parseFloat(e.target.value));
                                             }}
                                             className={thresholdUnit ? "rounded-r-none" : ""}
                                         />
@@ -675,7 +729,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
 
                                         />
                                     </Field>
-                                ) : !isLog ? (
+                                ) : !isLog && !isMetric ? (
                                     <Field htmlFor="rule-duration" label={isRequest ? '평가 구간 (분)' : '지속 시간 (분)'}>
                                         <Input
                                             id="rule-duration"
@@ -686,10 +740,16 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                     </Field>
                                 ) : (
                                     <Field label="평가 방식">
-                                        <p className="text-sm text-text-muted py-2.5">이벤트당 즉시 평가</p>
+                                        <p className="text-sm text-text-muted py-2.5">{isMetric ? '수신 즉시' : '이벤트당 즉시 평가'}</p>
                                     </Field>
                                 )}
                             </div>
+                        )}
+
+                        {/* 메트릭 규칙은 수신 시점에 바로 비교하고 시리즈별 중복 억제로만 거른다(otlp_ingest evaluateOtelMetricAlerts).
+                            지속 시간·쿨다운은 서버가 쓰지 않으므로 받지 않는다. */}
+                        {isMetric && (
+                            <p className="text-sm text-text-muted">수신할 때마다 평가합니다. 같은 시리즈는 일정 시간(기본 5분)에 한 번만 보냅니다.</p>
                         )}
 
                         {conditionPreset !== 'custom' && isEndpoint && (
@@ -706,7 +766,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                             </div>
                         )}
 
-                        {!isEndpoint && !isLog && (
+                        {!isEndpoint && !isLog && !isMetric && (
                             <Field
                                 htmlFor="rule-cooldown"
                                 label="쿨다운 (초)"
@@ -825,7 +885,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                             <span className="text-sky-300">IF </span>
                                             <span className="text-amber-300">{metricName} </span>
                                             <span className="text-text-dim">{OPERATOR_SYMBOLS[watchedOperator] ?? watchedOperator} </span>
-                                            <span className="text-red-300">{watchedThreshold}{thresholdUnit}</span>
+                                            <span className="text-red-300">{Number.isNaN(watchedThreshold) ? '?' : `${watchedThreshold}${thresholdUnit}`}</span>
                                         </div>
                                         {isEndpoint && (
                                             <div className="pl-4">
@@ -833,13 +893,13 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                                 <span className="text-violet-300">{watchedDuration}×</span>
                                             </div>
                                         )}
-                                        {!isEndpoint && !isLog && (
+                                        {!isEndpoint && !isLog && !isMetric && (
                                             <div className="pl-4">
                                                 <span className="text-sky-300">{isRequest ? 'OVER ' : 'FOR '}</span>
                                                 <span className="text-violet-300">{isRequest ? `last ${watchedDuration} min` : `${watchedDuration} min`}</span>
                                             </div>
                                         )}
-                                        {isLog && (
+                                        {(isLog || isMetric) && (
                                             <div className="pl-4">
                                                 <span className="text-sky-300">PER </span>
                                                 <span className="text-violet-300">event (immediate)</span>
@@ -849,7 +909,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, channels, onSubmittingChange 
                                             <span className="text-sky-300">ON </span>
                                             <span className="text-emerald-300 truncate">{targetLabel}</span>
                                         </div>
-                                        {!isEndpoint && !isLog && (
+                                        {!isEndpoint && !isLog && !isMetric && (
                                             <div>
                                                 <span className="text-sky-300">COOLDOWN </span>
                                                 <span className="text-text-dim">{watchedCooldown}s</span>

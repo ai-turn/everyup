@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Button, EmptyState, MaterialIcon, SearchInput, StatusLight, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, EmptyState, MaterialIcon, SearchInput, StatusLight, type GlobalTimeRange } from '../../../components/common';
+import { alertRuleNewPath, type AlertTarget } from '../../alerts/alertTarget';
 import { Skeleton } from '../../../components/skeleton';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import type { OtelMetricName } from '../../../services/api';
@@ -41,7 +42,8 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
     try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* Session preferences still work without storage. */ }
   };
 
-  const rules = useAlertThresholds(source.kind === 'direct' ? { kind: 'direct', serviceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }, 'otel_metric');
+  const alertTarget: AlertTarget = source.kind === 'direct' ? { kind: 'direct', serviceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey };
+  const rules = useAlertThresholds(alertTarget, 'otel_metric');
   const openMetric = (meta: OtelMetricName) => query.update({ metric: meta.metricName, metricType: meta.metricType, metricUnit: meta.unit || null, metricAttributes: null, metricSeries: null, metricMode: null });
   const closeMetric = () => query.update({ metric: null, metricType: null, metricUnit: null, metricAttributes: null, metricSeries: null, metricMode: null }, true);
   if (!health) return loading
@@ -76,7 +78,11 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
     </div>
     {error && <div role="alert" className="flex flex-wrap items-center gap-3"><p className="type-body text-status-warn">메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.</p><Button variant="secondary" size="sm" onClick={retry}>목록 다시 시도</Button></div>}
     {query.metric !== null ? <>
-      <Button variant="ghost" size="sm" onClick={closeMetric}><MaterialIcon name="arrow_back" />전체 메트릭</Button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Button variant="ghost" size="sm" onClick={closeMetric}><MaterialIcon name="arrow_back" />전체 메트릭</Button>
+        {/* 이 메트릭과 대상을 채운 규칙 폼을 연다. 임계값은 비워 두고 사용자가 정한다. */}
+        {opened && <ButtonLink variant="secondary" size="sm" to={alertRuleNewPath(alertTarget, { category: 'metric', metricName: opened.metricName })}><MaterialIcon name="notifications" />알림 추가</ButtonLink>}
+      </div>
       {opened ? chart(opened, true) : matches.length > 1 ? <div className="space-y-3"><p className="type-body text-text-muted">같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.</p>{matches.map(meta => <Button key={metricIdentity(meta)} variant="secondary" onClick={() => openMetric(meta)} className="h-auto min-h-11 flex-wrap gap-x-3 py-2"><span className="min-w-0 break-all">{meta.metricName}</span><span>{meta.metricType}</span><span>{meta.unit || '단위 없음'}</span></Button>)}</div>
         : <EmptyState icon="search" title="메트릭을 찾을 수 없습니다" description="선택한 메트릭이 이 서비스의 저장된 목록에 없습니다." action={{ label: '전체 메트릭', onClick: closeMetric }} />}
     </> : <>

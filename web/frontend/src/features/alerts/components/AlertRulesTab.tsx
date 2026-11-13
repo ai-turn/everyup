@@ -6,13 +6,13 @@ import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, Se
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { api, type AlertRule, type NotificationChannel, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
-import { AlertRuleForm } from './AlertRuleForm';
+import { AlertRuleForm, type AlertRuleFormInitial } from './AlertRuleForm';
 import { FormSidePanel } from './FormSidePanel';
 import { FormActions } from './FormLayout';
 import { SeverityBadge } from './SeverityBadge';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
+import { alertTargetInitial, matchesAlertTarget, type AlertTarget } from '../alertTarget';
 import { useListView } from '../../../hooks/useListView';
 
 const SEVERITY_ORDER: Record<string, number> = { critical: 0, warning: 1, info: 2 };
@@ -27,28 +27,33 @@ const OPERATOR_SYMBOLS: Record<string, string> = {
   eq: '=',
 };
 
-type CategoryKey = 'all' | 'endpoint' | 'request' | 'log' | 'resource' | 'system';
+type CategoryKey = 'all' | 'endpoint' | 'request' | 'log' | 'metric' | 'resource' | 'system';
 
 function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
   if (rule.isSystem) return 'system';
+  // 메트릭 규칙은 type이 service지만 헬스체크가 아니다 — metric으로 가른다.
+  if (rule.metric === 'otel_metric') return 'metric';
   if (rule.type === 'service') return 'endpoint';
   if (rule.type === 'request') return 'request';
   if (rule.type === 'log') return 'log';
   return 'resource';
 }
 
+// 대상 이름을 찾지 못하면 지워진 대상이다. 이름 목록을 받지 못했을 때는 id만 보인다(지워졌는지 모름).
+const missingTarget = (id: string) => `삭제된 대상 (${id})`;
+
 function targetLabel(rule: AlertRule, agentServices: AgentServiceFlat[], agents: ConnectedAgent[], directServices: ObservedService[], infrastructureResources: InfrastructureResource[]): string {
   if (rule.type === 'service' || rule.type === 'log' || rule.type === 'request') {
-    if (rule.serviceId) return directServices.find(service => service.id === rule.serviceId)?.name ?? rule.serviceId;
+    if (rule.serviceId) return directServices.find(service => service.id === rule.serviceId)?.name ?? missingTarget(rule.serviceId);
     if (rule.agentId && rule.serviceKey) {
       const svc = agentServices.find(s => s.agentId === rule.agentId && s.key === rule.serviceKey);
-      return svc ? `${svc.agentName} / ${svc.name}` : rule.serviceKey;
+      return svc ? `${svc.agentName} / ${svc.name}` : missingTarget(rule.serviceKey);
     }
     // Request rules can also watch a whole Docker environment (API-created).
-    if (rule.type === 'request' && rule.agentId) return agents.find(a => a.id === rule.agentId)?.name ?? rule.agentId;
-    return rule.type === 'log' ? '전체 로그 서비스' : '전체 헬스체크';
+    if (rule.type === 'request' && rule.agentId) return agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId);
+    return rule.type === 'log' ? '전체 로그 서비스' : rule.metric === 'otel_metric' ? '모든 서비스' : '전체 헬스체크';
   }
-  if (rule.agentId) return infrastructureResources.find(resource => resource.id === rule.agentId)?.name ?? agents.find(a => a.id === rule.agentId)?.name ?? rule.agentId;
+  if (rule.agentId) return infrastructureResources.find(resource => resource.id === rule.agentId)?.name ?? agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId);
   return '전체 인프라';
 }
 
@@ -56,6 +61,7 @@ const CATEGORY_LABELS: Record<Exclude<CategoryKey, 'all'>, string> = {
   endpoint: '헬스체크',
   request: 'API 요청',
   log: '로그',
+  metric: '메트릭',
   resource: '인프라',
   system: '시스템',
 };
@@ -122,6 +128,9 @@ function formatSeconds(seconds: number): string {
 }
 
 function evaluationSummary(rule: AlertRule): string {
+  if (rule.metric === 'otel_metric') {
+    return '메트릭을 수신할 때마다 평가 · 같은 시리즈는 일정 시간에 한 번만 발송';
+  }
   if (rule.type === 'service') {
     return '헬스체크 결과가 조건에 맞을 때마다 평가';
   }
@@ -141,6 +150,10 @@ function compactTrigger(rule: AlertRule): string {
   if (rule.isSystem) {
     return '시스템에서 자동 평가';
   }
+  // OTel 메트릭은 단위를 모르므로 붙이지 않는다.
+  if (rule.metric === 'otel_metric') {
+    return `${rule.metricName || '메트릭'} ${OPERATOR_SYMBOLS[rule.operator] ?? rule.operator} ${rule.threshold} · 수신 즉시`;
+  }
   if (rule.type === 'log') {
     return `${conditionExpr(rule)} · 즉시`;
   }
@@ -156,12 +169,17 @@ function compactTrigger(rule: AlertRule): string {
 type SortKey = 'severity' | 'name' | 'target' | 'category';
 type SortDir = 'asc' | 'desc';
 
+/** 상단 `추가`나 URL(`new=metric`)이 규칙 폼을 열 때 보내는 요청. 탭이 받아 폼을 연 뒤 onAddRequestHandled로 비운다. */
+export interface RuleAddRequest { initial?: AlertRuleFormInitial }
+
 interface AlertRulesTabProps {
-  addTrigger?: number;
+  addRequest?: RuleAddRequest | null;
+  onAddRequestHandled?: () => void;
   target?: AlertTarget | null;
+  onClearTarget?: () => void;
 }
 
-export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
+export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClearTarget }: AlertRulesTabProps) {
   const { view } = useListView();
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [channels, setChannels] = useState<NotificationChannel[]>([]);
@@ -177,6 +195,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
   // Rule form — right slide-over panel
   const [formOpen, setFormOpen] = useState(false);
   const [formRule, setFormRule] = useState<AlertRule | undefined>(undefined);
+  const [formInitial, setFormInitial] = useState<AlertRuleFormInitial | undefined>(undefined);
   const [formLoading, setFormLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -217,9 +236,13 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
     loadData();
   }, []);
 
+  // 요청을 비워 두면 탭을 다시 열 때 폼이 또 열리지 않는다.
   useEffect(() => {
-    if (addTrigger) handleAddRule();
-  }, [addTrigger]);
+    if (!addRequest) return;
+    onAddRequestHandled?.();
+    handleAddRule(addRequest.initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 요청이 올 때 한 번만 연다. 대상 등은 그 시점의 값을 쓴다.
+  }, [addRequest]);
 
   const handleToggle = async (id: string) => {
     setTogglingIds(prev => new Set(prev).add(id));
@@ -256,7 +279,13 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
   const closeForm = () => { setFormOpen(false); setFormRule(undefined); };
   const onFormSuccess = () => { closeForm(); loadData(); };
 
-  const handleAddRule = () => { setFormRule(undefined); setFormLoading(false); setFormOpen(true); };
+  // 대상 필터가 걸린 목록에서 추가하면 그 대상을 폼에 채운다(A-09).
+  const handleAddRule = (initial?: AlertRuleFormInitial) => {
+    setFormRule(undefined);
+    setFormInitial({ ...alertTargetInitial(target ?? null), ...initial });
+    setFormLoading(false);
+    setFormOpen(true);
+  };
 
   // Edit fetches the full rule (list rows may omit channelIds) — same as the old page.
   const handleEdit = async (rule: AlertRule) => {
@@ -298,19 +327,20 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
   }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, agentServices, agents, directServices, infrastructureResources, target]);
 
   const selectedTargetLabel = target?.kind === 'direct'
-    ? directServices.find((service) => service.id === target.serviceId)?.name ?? target.serviceId
+    ? directServices.find((service) => service.id === target.serviceId)?.name ?? missingTarget(target.serviceId)
     : target?.kind === 'infrastructure'
-    ? infrastructureResources.find((resource) => resource.id === target.resourceId)?.name ?? target.resourceId
+    ? infrastructureResources.find((resource) => resource.id === target.resourceId)?.name ?? missingTarget(target.resourceId)
     : target
       ? (() => {
           const service = agentServices.find((item) => item.agentId === target.agentId && item.key === target.serviceKey);
-          return service ? `${service.agentName} / ${service.name}` : target.serviceKey;
+          return service ? `${service.agentName} / ${service.name}` : missingTarget(target.serviceKey);
         })()
       : null;
   const targetNotice = selectedTargetLabel && (
     <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status">
       <MaterialIcon size={20} name="filter_alt" className="text-action" />
-      <span className="truncate">대상: {selectedTargetLabel}</span>
+      <span className="min-w-0 flex-1 truncate">대상: {selectedTargetLabel}</span>
+      {onClearTarget && <Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button>}
     </div>
   );
 
@@ -349,6 +379,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
       ) : (
         <AlertRuleForm
           rule={formRule}
+          initial={formInitial}
           channels={channels}
           onSuccess={onFormSuccess}
           onCancel={closeForm}
@@ -376,7 +407,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
           <EmptyState
             icon="rule"
             title="구성된 알림 규칙이 없습니다"
-            action={{ label: '추가', onClick: handleAddRule }}
+            action={{ label: '추가', onClick: () => handleAddRule() }}
           />
         </div>
       </>
@@ -412,6 +443,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
             { value: 'endpoint', label: '헬스체크' },
             { value: 'request', label: 'API 요청' },
             { value: 'log', label: '로그' },
+            { value: 'metric', label: '메트릭' },
             { value: 'resource', label: '인프라' },
             { value: 'system', label: '시스템 규칙' },
           ]}

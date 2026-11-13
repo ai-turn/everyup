@@ -3,7 +3,7 @@ import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, EmptyStat
 import { useListView } from '../../../hooks/useListView';
 import { ChannelHealthMeta } from './ChannelHealthMeta';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
-import { AlertRulesTab } from './AlertRulesTab';
+import { AlertRulesTab, type RuleAddRequest } from './AlertRulesTab';
 import { ChannelForm } from './ChannelForm';
 import { FormSidePanel } from './FormSidePanel';
 import { FormActions } from './FormLayout';
@@ -32,8 +32,10 @@ interface AlertsDesktopViewProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   togglingIds: Set<string>;
-  rulesAddTrigger: number;
+  ruleAddRequest: RuleAddRequest | null;
+  onRuleAddRequestHandled: () => void;
   alertTarget: AlertTarget | null;
+  onClearTarget: () => void;
   onChannelsChanged: () => void;
   onDeleteChannel: (id: string) => void;
   onToggleChannel: (id: string) => void;
@@ -50,8 +52,10 @@ export function AlertsDesktopView({
   activeTab,
   setActiveTab,
   togglingIds,
-  rulesAddTrigger,
+  ruleAddRequest,
+  onRuleAddRequestHandled,
   alertTarget,
+  onClearTarget,
   onChannelsChanged,
   onDeleteChannel,
   onToggleChannel,
@@ -214,7 +218,7 @@ export function AlertsDesktopView({
           />
         </>
       ) : (
-        <AlertRulesTab addTrigger={rulesAddTrigger} target={alertTarget} />
+        <AlertRulesTab addRequest={ruleAddRequest} onAddRequestHandled={onRuleAddRequestHandled} target={alertTarget} onClearTarget={onClearTarget} />
       )}
     </>
   );
