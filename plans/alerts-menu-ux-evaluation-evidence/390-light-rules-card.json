@@ -1,0 +1,61 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=rules&view=card",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n추가\n\n성공률\n\n91%\n\n발송\n\n29\n\n실패\n\n3\n\n알림 채널\n4\n알림 규칙\n8\n알림 로그\nCPU\n\nEdge Collector CPU\n\n경고 · Cpu Gt 80\n\n활성화됨\n\nlat\n\nAPI p99 latency\n\n심각 · Latency_p99 Gt 800\n\n활성화됨\n\nCPU\n\nHigh CPU Usage\n\n경고 · Cpu Gt 85\n\n활성화됨\n\nsta\n\nService Down\n\n심각 · Status_change Eq 0\n\n활성화됨\n\nmem\n\nMemory Pressure\n\n심각 · Memory Gt 90\n\n활성화됨\n\nerr\n\nOrder API error rate\n\n심각 · Error_rate Gt 5\n\n활성화됨\n\note\n\nBilling queue backlog\n\n경고 · Otel_metric Gt 100\n\n활성화됨\n\nlog\n\nSearch indexing errors\n\n경고 · Log_level Gte 1\n\n비활성화됨\n\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 390,
+  "vw": 390,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "Edge Collector CPU",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "API p99 latency",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "High CPU Usage",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Service Down",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Memory Pressure",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Order API error rate",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Billing queue backlog",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Search indexing errors",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

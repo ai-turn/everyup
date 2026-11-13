@@ -1,0 +1,42 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n추가\n\n성공률\n\n91%\n\n발송\n\n29\n\n실패\n\n3\n\n알림 채널\n4\n알림 규칙\n8\n알림 로그\n채널\t상태\n\n\nOps Telegram\n\ntelegram\n\n발송 이력 없음\n활동 없음\n규칙 0개\n테스트\n\t\n\n\n\n#alerts Discord\n\ndiscord\n\n발송 이력 없음\n활동 없음\n규칙 0개\n테스트\n\t\n\n\n\n#incidents Slack\n\nslack\n\n발송 이력 없음\n활동 없음\n규칙 0개\n테스트\n\t\n\n\n\n#backoffice Slack\n\nslack\n\n발송 이력 없음\n활동 없음\n규칙 0개\n테스트\n\t\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 390,
+  "vw": 390,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "Ops Telegram",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "#alerts Discord",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "#incidents Slack",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "#backoffice Slack",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ],
+  "axe": []
+}

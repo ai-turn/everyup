@@ -1,0 +1,32 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=rules",
+  "text": "알림 규칙 수정\n1\n\n시스템 규칙\n\n시스템이 관리하는 규칙입니다. 메시지와 알림 채널만 수정할 수 있습니다.\n\nService Down\n\n시스템이 관리하는 규칙입니다. 메시지와 알림 채널만 수정할 수 있습니다.\n\n2\n\n알림 메시지\n\n알림 발송 시 사용될 메시지\n\n3\n\n알림 채널\n\n발송할 채널 선택\n\nOps Telegram\n#alerts Discord\n#incidents Slack\n#backoffice Slack\n\n시스템 규칙\n\n발동 시:\n\n규칙 이름\n\nService Down\n\n알림 채널\n\n3개 선택\n\n알림 메시지\n\nServer has been started\n\n취소\n저장",
+  "docW": 1440,
+  "vw": 1440,
+  "toasts": [],
+  "pressable": [
+    {
+      "t": "Ops Telegram",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "#alerts Discord",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "#incidents Slack",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "#backoffice Slack",
+      "pressed": null,
+      "checked": null
+    }
+  ],
+  "invalid": [],
+  "small": [],
+  "axe": []
+}

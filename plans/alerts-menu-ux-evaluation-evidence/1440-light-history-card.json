@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=history&view=card",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n발송 (7일)\n29\n실패 (7일)\n3\n실패 로그 보기\n성공률\n91%\n알림 채널\n4\n알림 규칙\n8\n알림 로그\n32\n전체 32\n성공 29\n실패 3\n전체 타입\n리소스\n헬스체크\nEndpoint\n로그\n스케줄\n시스템\n전체 타입\n전체 채널\nOps Telegram\n#alerts Discord\n#incidents Slack\n#backoffice Slack\n전체 채널\n최근 24시간\n최근 7일\n최근 30일\n최근 7일\n오늘 · 11월 13일\nfailed\n경고\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\nOps Telegram\ntelegram\n리소스\n\nWebhook delivery timeout · 3회 재시도\n\n약 1시간 전 · 11월 13일 20:27\n\nsent\n심각\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n#alerts Discord\ndiscord\nEndpoint\n\n약 2시간 전 · 11월 13일 19:42\n\nsent\n경고\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n#incidents Slack\nslack\n리소스\n\n약 2시간 전 · 11월 13일 18:57\n\nsent\n심각\n\nService Down: status_change eq 0 — 60분 지속\n\n#backoffice Slack\nslack\n헬스체크\n\n약 3시간 전 · 11월 13일 18:12\n\nsent\n심각\n\nMemory Pressure: memory gt 90 — 3분 지속\n\nOps Telegram\ntelegram\n리소스\n\n약 4시간 전 · 11월 13일 17:27\n\nsent\n심각\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n#alerts Discord\ndiscord\nEndpoint\n\n약 5시간 전 · 11월 13일 16:42\n\nsent\n경고\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\n#incidents Slack\nslack\nEndpoint\n\n약 5시간 전 · 11월 13일 15:57\n\nsent\n경고\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n#backoffice Slack\nslack\n로그\n\n약 6시간 전 · 11월 13일 15:12\n\nsent\n경고\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\nOps Telegram\ntelegram\n리소스\n\n약 7시간 전 · 11월 13일 14:27\n\nsent\n심각\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n#alerts Discord\ndiscord\nEndpoint\n\n약 8시간 전 · 11월 13일 13:42\n\nsent\n경고\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n#incidents Slack\nslack\n리소스\n\n약 8시간 전 · 11월 13일 12:57\n\nfailed\n심각\n\nService Down: status_change eq 0 — 60분 지속\n\n#backoffice Slack\nslack\n헬스체크\n\nWebhook delivery timeout · 3회 재시도\n\n약 9시간 전 · 11월 13일 12:12\n\nsent\n심각\n\nMemory Pressure: memory gt 90 — 3분 지속\n\nOps Telegram\ntelegram\n리소스\n\n약 10시간 전 · 11월 13일 11:27\n\nsent\n심각\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n#alerts Discord\ndiscord\nEndpoint\n\n약 11시간 전 · 11월 13일 10:42\n\nsent\n경고\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\n#incidents Slack\nslack\nEndpoint\n\n약 11시간 전 · 11월 13일 09:57\n\nsent\n경고\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n#backoffice Slack\nslack\n로그\n\n약 12시간 전 · 11월 13일 09:12\n\nsent\n경고\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\nOps Telegram\ntelegram\n리소스\n\n약 13시간 전 · 11월 13일 08:27\n\nsent\n심각\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n#alerts Discord\ndiscord\nEndpoint\n\n약 14시간 전 · 11월 13일 07:42\n\nsent\n경고\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n#incidents Slack\nslack\n리소스\n\n약 14시간 전 · 11월 13일 06:57\n\nsent\n심각\n\nService Down: status_change eq 0 — 60분 지속\n\n#backoffice Slack\nslack\n헬스체크\n\n약 15시간 전 · 11월 13일 06:12\n\nsent\n심각\n\nMemory Pressure: memory gt 90 — 3분 지속\n\nOps Telegram\ntelegram\n리소스\n\n약 16시간 전 · 11월 13일 05:27\n\nsent\n심각\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n#alerts Discord\ndiscord\nEndpoint\n\n약 17시간 전 · 11월 13일 04:42\n\nfailed\n경고\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\n#incidents Slack\nslack\nEndpoint\n\nWebhook delivery timeout · 3회 재시도\n\n약 17시간 전 · 11월 13일 03:57\n\nsent\n경고\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n#backoffice Slack\nslack\n로그\n\n약 18시간 전 · 11월 13일 03:12\n\nsent\n경고\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\nOps Telegram\ntelegram\n리소스\n\n약 19시간 전 · 11월 13일 02:27\n\n총 32건 중 1~25\n\n‹\n1\n2\n›\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "전체 타입\n리소스\n헬스체크\nEndpoint\n로그\n스케줄",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "전체 채널\nOps Telegram\n#alerts Dis",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "최근 24시간\n최근 7일\n최근 30일",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

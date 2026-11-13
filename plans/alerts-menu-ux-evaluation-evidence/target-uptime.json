@@ -1,0 +1,48 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=rules&target=direct&serviceId=uptime_mock_payments",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n추가\n발송 (7일)\n29\n실패 (7일)\n3\n실패 로그 보기\n성공률\n91%\n알림 채널\n4\n알림 규칙\n8\n알림 로그\n32\n대상: uptime_mock_payments\n전체\n헬스체크\nAPI 요청\n로그\n인프라\n시스템 규칙\n전체 심각도\n심각\n경고\n정보\n전체 심각도\n전체 상태\n활성\n비활성\n전체 상태\n규칙\n↑\n\t심각도\n↑\n\t대상\n↑\n\t발생 조건\t채널\t최근 발동\t작업\n조건에 맞는 규칙이 없습니다 · 필터 초기화\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "toasts": [
+    "대상: uptime_mock_payments"
+  ],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "전체 심각도\n심각\n경고\n정보",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "전체 상태\n활성\n비활성",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "규칙\n↑",
+      "h": 16,
+      "w": 38
+    },
+    {
+      "l": "심각도\n↑",
+      "h": 16,
+      "w": 49
+    },
+    {
+      "l": "대상\n↑",
+      "h": 16,
+      "w": 38
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}
