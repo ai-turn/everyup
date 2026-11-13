@@ -99,3 +99,36 @@ func createTCPMonitor(t *testing.T, ts *testServer, auth []string, extra map[str
 	}
 	return created.ID
 }
+
+// Deleting a monitor deletes the rules that target only that monitor, so the
+// rule list never shows "삭제된 대상". Global rules and other monitors' rules stay.
+func TestUptimeMonitorDelete_RemovesItsRules(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	gone := createTCPMonitor(t, ts, auth, map[string]interface{}{"name": "db", "alertOnDown": true})
+	kept := createTCPMonitor(t, ts, auth, map[string]interface{}{"name": "cache", "alertOnDown": true})
+	ts.doRequest(t, "POST", "/api/v1/alert-rules", map[string]interface{}{"name": "all down", "type": "service",
+		"metric": "http_status", "operator": "gte", "threshold": 400, "duration": 1, "severity": "warning"}, auth...)
+
+	resp, _ := ts.doRequest(t, "DELETE", "/api/v1/services/"+gone, nil, auth...)
+	if resp.StatusCode != 204 {
+		t.Fatalf("delete monitor: status %d", resp.StatusCode)
+	}
+
+	_, result := ts.doRequest(t, "GET", "/api/v1/alert-rules", nil, auth...)
+	var rules []struct {
+		Name      string  `json:"name"`
+		ServiceID *string `json:"serviceId"`
+	}
+	json.Unmarshal(result.Data, &rules)
+	names := map[string]bool{}
+	for _, r := range rules {
+		if r.ServiceID != nil && *r.ServiceID == gone {
+			t.Errorf("rule %q still targets the deleted monitor", r.Name)
+		}
+		names[r.Name] = true
+	}
+	if !names["cache 다운"] || !names["all down"] {
+		t.Fatalf("unrelated rules were deleted: %v (kept monitor %s)", names, kept)
+	}
+}

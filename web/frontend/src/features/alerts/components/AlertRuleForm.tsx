@@ -691,6 +691,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                     htmlFor="rule-duration"
                                     label={isEndpoint ? '연속 체크 횟수' : isRequest ? '평가 구간 (분)' : '지속 시간 (분)'}
                                     error={errors.duration?.message}
+                                    hint={isEndpoint ? '이 횟수만큼 연속으로 맞으면 한 번 보내고, 복구되면 한 번 더 보냅니다' : undefined}
                                 >
                                     <Input
                                         id="rule-duration"

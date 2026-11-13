@@ -141,7 +141,8 @@ func (ts *testServer) doRequest(t *testing.T, method, path string, body interfac
 	}
 
 	var result apiResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	// 204 No Content has no body to decode.
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil && err != io.EOF {
 		t.Fatalf("decode response: %v", err)
 	}
 	resp.Body.Close()

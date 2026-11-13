@@ -146,7 +146,7 @@ export function UptimeMonitorDialog({
               <input type="checkbox" checked={alertOnDown} onChange={(event) => setAlertOnDown(event.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary" />
               <span>
                 <span className="block text-sm font-medium text-text-secondary">다운되면 알림</span>
-                <span className="block type-caption text-text-muted">켜진 모든 채널로 보냅니다. 알림 규칙에서 바꿀 수 있습니다.</span>
+                <span className="block type-caption text-text-muted">연속으로 실패하면 한 번, 복구되면 한 번 켜진 모든 채널로 보냅니다. 알림 규칙에서 바꿀 수 있습니다.</span>
               </span>
             </label>
           )}

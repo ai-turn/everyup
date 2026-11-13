@@ -319,7 +319,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
         onClose={() => setDeleting(false)}
         onConfirm={() => void deleteMonitor()}
         title="업타임을 삭제할까요?"
-        message={<><strong className="break-all font-medium text-text-base">{monitor.name}</strong>을 삭제하면 수집된 상태와 체크 기록도 함께 삭제됩니다.</>}
+        message={<><strong className="break-all font-medium text-text-base">{monitor.name}</strong>을 삭제하면 수집된 상태와 체크 기록, 이 모니터만 대상으로 하는 알림 규칙도 함께 삭제됩니다.</>}
         confirmLabel="삭제"
         isProcessing={processing}
       />

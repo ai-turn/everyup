@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -240,6 +241,10 @@ func (h *ServiceHandler) Delete(c *fiber.Ctx) error {
 	}
 	if h.scheduler != nil {
 		h.scheduler.RemoveService(id)
+	}
+	// The monitor is gone either way; a failed cleanup only leaves orphaned rules.
+	if err := database.NewAlertRuleRepository().DeleteHealthRulesForMonitor(id); err != nil {
+		log.Printf("[Services] delete rules for monitor %s: %v", id, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
