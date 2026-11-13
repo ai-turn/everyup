@@ -29,7 +29,8 @@ export function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: 
   const names = ruleChannels.map(c => c.name).join(', ');
 
   return (
-    <Tooltip content={names} focusable><div className="flex items-center">
+    // 아바타는 아이콘뿐이라 채널 이름을 접근 이름으로 준다(A-15).
+    <Tooltip content={names} focusable><div role="img" aria-label={`알림 채널: ${names}`} className="flex items-center">
       {visible.map((ch, i) => {
         const style = getChannelStyle(ch.type);
         return (

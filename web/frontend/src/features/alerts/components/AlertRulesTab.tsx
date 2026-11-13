@@ -345,7 +345,8 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                         <SeverityBadge severity={rule.severity} />
                       </td>
                       <td className="px-4 py-2.5 align-middle">
-                        <Tooltip content={targetLabel(rule, names)} focusable><span
+                        {/* 잘린 이름을 마우스로 볼 수 있게만 한다. 글자는 DOM에 있어 낭독되므로 Tab 정지점을 만들지 않는다(A-15). */}
+                        <Tooltip content={targetLabel(rule, names)}><span
                           className="inline-block max-w-full truncate rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-ui-hover-dark dark:text-text-base-dark"
                         >
                           {targetLabel(rule, names)}
