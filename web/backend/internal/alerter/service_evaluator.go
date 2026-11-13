@@ -32,7 +32,8 @@ func NewServiceRuleEvaluator(manager *Manager) *ServiceRuleEvaluator {
 		stateRepo:   database.NewAlertRuleStateRepository(),
 		wasAlerting: make(map[string]bool),
 	}
-	evaluator.dispatch = manager.DispatchToChannels
+	// Sending must not hold up the checker loop on a slow channel (Telegram, Slack).
+	evaluator.dispatch = func(n Notification, channelIDs []string) { go manager.DispatchToChannels(n, channelIDs) }
 
 	evaluator.loadState()
 
