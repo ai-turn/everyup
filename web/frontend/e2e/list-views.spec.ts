@@ -9,7 +9,7 @@ const menus = [
   ['metrics', '메트릭', '메트릭 서비스 그리드'],
   ['alerts?tab=channels', '알림', '알림 채널 그리드'],
   ['alerts?tab=rules', '알림', '알림 규칙 그리드'],
-  ['alerts?tab=history', '알림', '알림 로그 그리드'],
+  ['alerts?tab=history', '알림', '발송 이력 그리드'],
   ['agents/agent_demo_01', 'prod-server', 'Docker 서비스 그리드'],
   ['projects/project_mock_production', 'Production', '그룹 구성 그리드'],
 ] as const;
@@ -159,7 +159,7 @@ test('notification cards preserve the current page and filter without fetching a
     await route.fulfill({ json: { success: true, data } });
   });
   await page.goto('http://127.0.0.1:4174/alerts?tab=history');
-  const table = page.getByRole('table', { name: '알림 로그 그리드', exact: true });
+  const table = page.getByRole('table', { name: '발송 이력 그리드', exact: true });
   await expect(table.getByText('Record #1', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '다음', exact: true }).click();
   await expect(table.getByText('Record #26', { exact: true })).toBeVisible();

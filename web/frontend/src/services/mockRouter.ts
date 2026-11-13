@@ -116,14 +116,14 @@ const mockAlertRules: AlertRule[] = [
     type: 'service',
     agentId: 'agent_demo_01',
     serviceKey: 'shop:api',
-    metric: 'status_change',
-    operator: 'eq',
-    threshold: 0,
-    duration: 60,
+    metric: 'http_status',
+    operator: 'gte',
+    threshold: 400,
+    duration: 3,
     severity: 'critical',
     isEnabled: true,
-    isSystem: true,
-    cooldown: 300,
+    isSystem: false,
+    cooldown: 0,
     channelIds: ['1', '2', '3'],
     createdAt: new Date(Date.now() - 30 * 86_400_000).toISOString(),
     updatedAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
@@ -146,7 +146,8 @@ const mockAlertRules: AlertRule[] = [
     updatedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
   },
   { id: 'orders-errors', name: 'Order API error rate', type: 'request', serviceId: 'observed_mock_orders', metric: 'error_rate', operator: 'gt', threshold: 5, duration: 5, severity: 'critical', isEnabled: true, isSystem: false, cooldown: 600, channelIds: ['3'], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'billing-queue', name: 'Billing queue backlog', type: 'request', serviceId: 'observed_mock_billing', metric: 'otel_metric', metricName: 'queue.messages.pending', operator: 'gt', threshold: 100, duration: 10, severity: 'warning', isEnabled: true, isSystem: false, cooldown: 900, channelIds: ['4'], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'billing-queue', name: 'Billing queue backlog', type: 'service', serviceId: 'observed_mock_billing', metric: 'otel_metric', metricName: 'queue.messages.pending', operator: 'gt', threshold: 100, duration: 1, severity: 'warning', isEnabled: true, isSystem: false, cooldown: 0, channelIds: ['4'], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'system-boot', name: 'Server Boot Notification', type: 'system', metric: 'status_change', operator: 'gt', threshold: 0, duration: 0, severity: 'info', isEnabled: true, isSystem: true, cooldown: 0, message: 'Server has been started', channelIds: [], createdAt: new Date(Date.now() - 30 * 86_400_000).toISOString(), updatedAt: new Date(Date.now() - 30 * 86_400_000).toISOString() },
   { id: 'search-logs', name: 'Search indexing errors', type: 'log', serviceId: 'observed_mock_search', metric: 'log_level', operator: 'gte', threshold: 1, duration: 5, severity: 'warning', isEnabled: false, isSystem: false, cooldown: 300, channelIds: ['2'], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
@@ -160,7 +161,7 @@ const mockNotificationHistory: NotificationHistoryResponse = {
     const createdAt = new Date(Date.now() - (i + 1) * 45 * 60_000).toISOString();
     return {
       id: i + 1, ruleId: rule.id, channelId: channel.id, channelName: channel.name, channelType: channel.type,
-      alertType: rule.type === 'request' ? 'endpoint' : rule.type === 'resource' ? 'resource' : rule.type === 'log' ? 'log' : 'healthcheck',
+      alertType: rule.metric === 'otel_metric' ? 'otel_metric' : rule.type === 'request' ? 'api_request' : rule.type === 'resource' ? 'resource' : rule.type === 'log' ? 'log' : rule.type === 'system' ? 'system' : 'endpoint',
       severity: rule.severity, serviceId: rule.serviceId ?? undefined,
       message: `${rule.name}: ${rule.metric} ${rule.operator} ${rule.threshold} — ${rule.duration}분 지속`,
       status: failed ? 'failed' : 'sent', retryCount: failed ? 3 : 0,
@@ -175,10 +176,24 @@ const mockNotificationStats: NotificationStats = {
   totalFailed: mockNotificationHistory.items.filter(row => row.status === 'failed').length,
   successRate: mockNotificationHistory.items.filter(row => row.status === 'sent').length / mockNotificationHistory.total * 100,
   byChannel: Object.fromEntries(mockChannels.map(channel => [channel.name, mockNotificationHistory.items.filter(row => row.channelId === channel.id && row.status === 'sent').length])),
-  byAlertType: Object.fromEntries(['resource', 'healthcheck', 'endpoint', 'log'].map(type => [type, mockNotificationHistory.items.filter(row => row.alertType === type && row.status === 'sent').length])),
+  byAlertType: Object.fromEntries(['resource', 'endpoint', 'api_request', 'otel_metric', 'log', 'system'].map(type => [type, mockNotificationHistory.items.filter(row => row.alertType === type && row.status === 'sent').length])),
 };
 
 // ?? API Requests ??????????????????????????????????????????????????????????????
+
+// 채널별 7일 발송·실패·최근 발송과 연결 규칙 수 — 서버의 /notifications/health와 같은 모양.
+function mockChannelHealth() {
+  return mockChannels.map(channel => {
+    const rows = mockNotificationHistory.items.filter(row => row.channelId === channel.id);
+    return {
+      channelId: channel.id,
+      lastSentAt: rows.find(row => row.status === 'sent')?.createdAt,
+      successCount: rows.filter(row => row.status === 'sent').length,
+      failedCount: rows.filter(row => row.status === 'failed').length,
+      ruleCount: mockAlertRules.filter(rule => rule.isEnabled && rule.channelIds.includes(channel.id)).length,
+    };
+  });
+}
 
 const now2 = Date.now();
 const s = (secondsAgo: number) => new Date(now2 - secondsAgo * 1000).toISOString();
@@ -1664,7 +1679,9 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   // /agents
   if (endpoint.startsWith('/agents')) return scenarioAgents(scenario) as T;
 
-  if (endpoint.startsWith('/notifications')) return mockChannels as T;
+  // 첫 시작(empty)은 채널·이력이 없고 규칙은 시드되는 시스템 규칙 하나다(A-20).
+  if (endpoint.startsWith('/notifications/health')) return (scenario === 'empty' ? [] : mockChannelHealth()) as T;
+  if (endpoint.startsWith('/notifications')) return (scenario === 'empty' ? [] : mockChannels) as T;
 
   // /hosts/:id/system/info
   if (/^\/hosts\/[^/]+\/system\/info$/.test(endpoint)) return mockHostInfo(endpoint.split('/')[2]) as T;
@@ -1676,9 +1693,10 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const id = decodeURIComponent(alertRuleMatch[1]);
     return (mockAlertRules.find(rule => rule.id === id) ?? null) as T;
   }
-  if (endpoint === '/alert-rules') return mockAlertRules as T;
+  if (endpoint === '/alert-rules') return (scenario === 'empty' ? mockAlertRules.filter(rule => rule.isSystem) : mockAlertRules) as T;
 
-  if (endpoint.startsWith('/notification-history/stats')) return mockNotificationStats as T;
+  if (endpoint.startsWith('/notification-history/stats')) return (scenario === 'empty' ? { totalSent: 0, totalFailed: 0, successRate: 0, byChannel: {}, byAlertType: {} } : mockNotificationStats) as T;
+  if (endpoint.startsWith('/notification-history') && scenario === 'empty') return { items: [], total: 0, limit: 25, offset: 0 } as T;
   if (endpoint.startsWith('/notification-history')) {
     const query = new URLSearchParams(endpoint.split('?')[1]);
     const rows = mockNotificationHistory.items.filter(row =>

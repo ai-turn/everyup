@@ -243,7 +243,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 글자 역할을 단색 채움에 쓰는 것(`bg-status-error` 단독)은 `pnpm lint`가 막는다. 고대비 모드 규칙(§8)도 `-fill`이라는 이름에 기대므로 이름을 지켜야 한다.
 
-`info` 역할은 아직 소비처가 없어 토큰을 만들지 않았다 — Tailwind v4는 미사용 `@theme` 변수를 트리셰이킹하므로 죽은 토큰이 된다. 첫 소비처가 생길 때 추가한다.
+`info` 역할은 아직 토큰으로 만들지 않았다. Tailwind v4는 미사용 `@theme` 변수를 트리셰이킹하므로 소비처 없는 토큰은 죽은 토큰이 된다. 2026-11-13 기준 소비처는 둘이다. 로그 레벨 info(§1.5)와 알림 severity info(`SEVERITY_TONE`, §1.5 아래)가 같은 sky 쌍(`text-sky-700 dark:text-sky-400`, 채움 `sky-600`)을 쓴다. 두 곳이 한 쌍을 공유하는 동안은 primitive로 두고, 세 번째 소비처가 생기거나 값이 갈라질 때 `status-info`(글자·`-fill`)를 만든다.
 
 ### 1.5 로그 레벨 — 상태색과 별개 축
 
@@ -258,6 +258,8 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | trace | slate | `#64748b` | `text-text-muted` |
 
 info가 sky인 이유: primary(#3e63dd)와 붙어 있으면 "선택된 항목"으로 오독된다.
+
+**알림 severity도 같은 규칙을 따른다** (2026-11-13). severity(critical·warning·info)는 규칙을 만든 사람이 정한 중요도라 상태와 별개 축이지만, 발송 이력 한 행에 `실패`(상태)와 `심각`(severity)이 나란히 서서 빨강이 둘이면 뜻이 둘로 읽힌다. critical·warning은 상태 글자 토큰·`/10` 틴트·`-fill` 점을, info는 위 표의 sky를 쓴다. SSOT는 `features/alerts/utils/severityLabel.ts`의 `SEVERITY_TONE`이고 `SeverityBadge`·규칙 폼·모바일 카드가 모두 이것을 쓴다.
 
 **error·warn은 상태색을 쓴다** (2026-11-13). 레벨은 상태와 별개 축이지만 `error`·`warn`의 뜻은 상태의 장애·주의와 같다. 같은 화면에서 로그 행의 error와 서비스 상태의 장애가 서로 다른 빨강이면 뜻이 둘로 읽힌다. 행 글자·필터 칩은 `status-*`, 막대는 `status-*-fill`(§1.4)이다. 상태에 없는 info·debug·trace만 이 절의 고유 색을 쓴다.
 
@@ -844,7 +846,7 @@ inline-flex items-center gap-1.5  type-caption  text-text-secondary
 
 `badge`는 `index.css`의 공통 형태다: **12px / 16px, 500, 최소 높이 24px, 좌우 6px 패딩, 4px radius**.
 
-**남은 소비처는 둘뿐이고 전부 "표 컬럼에 반복되는 고정 어휘"다** — 알림 severity(`SeverityBadge`), span kind(`AgentServiceTracesTab`). 로그 레벨은 2026-09-20에 배지를 떠나 mono 텍스트 토큰이 됐다(§1.5). 여기서는 박스가 제 값을 한다: 좁은 컬럼에서 severity·span kind 값이 같은 폭의 덩어리로 보여야 세로 스캔이 된다. 대상 상태처럼 카드마다 하나씩 흩어지는 자리와 다르다.
+**남은 소비처는 둘뿐이고 전부 "표 컬럼에 반복되는 고정 어휘"다** — 알림 severity(`SeverityBadge`, 색은 `SEVERITY_TONE`: critical·warning은 `status-*/10` 틴트, info는 sky, §1.5), span kind(`AgentServiceTracesTab`). 로그 레벨은 2026-09-20에 배지를 떠나 mono 텍스트 토큰이 됐다(§1.5). 여기서는 박스가 제 값을 한다: 좁은 컬럼에서 severity·span kind 값이 같은 폭의 덩어리로 보여야 세로 스캔이 된다. 대상 상태처럼 카드마다 하나씩 흩어지는 자리와 다르다.
 
 **강조 수단은 하나만 쓴다 — 틴트 배경·보더·단색 채움 중 택1.** Radix Themes·shadcn의 배지 variant가 `soft`(틴트+텍스트) / `outline`(보더+텍스트) / `solid`(단색+흰 텍스트)로 갈리는 것과 같은 규칙이다. 셋을 겹치는 `surface` 변형은 배경이 복잡해 배지가 자기 경계를 만들어야 할 때만 쓰는데, 우리 배지는 아래 제약대로 평면 표면 위에만 놓이므로 해당 없다.
 
@@ -1101,7 +1103,8 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 | 액션 의미 | 복사 완료 피드백 | primitive |
 | 채움 없는 파괴 액션 | `destructive` 버튼·`IconButton tone="danger"` | **`status-error` ✓** — 다크에서 red-600은 표면 대비 3.0이라 primitive로는 AA를 못 맞춘다 |
 | 카테고리 분류 | HTTP 메서드, span kind(SERVER/CLIENT), 이벤트 타입 | primitive |
-| 별도 축 | 로그 레벨 info·debug·trace(§1.5), 알림 severity(critical/warning/info) | primitive |
+| 별도 축 | 로그 레벨 info·debug·trace(§1.5), 알림 severity info | primitive |
+| 별도 축이지만 뜻이 상태와 같음 | 로그 레벨 error·warn(§1.5), 알림 severity critical·warning(`SEVERITY_TONE`) | **`status-*` ✓** |
 | 폼 | 필수 표시 `*`, 로그인 에러 | primitive (입력 검증 보더는 `status-*-fill` ✓) |
 | 3rd-party 재현 | `ChannelForm`의 Slack/Discord/Telegram 미리보기 | 리터럴 hex |
 
@@ -1117,7 +1120,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 ~~읽기 전용 배지가 `text-2xs`(상태칩·테이블)와 `text-xs`(로그 레벨·span kind) 두 계열이다.~~ **11px 등급을 폐지하면서 배지가 `text-xs` 한 계열로 통일됐다.** 아래는 당시 판단 기록이다. 크기 차이가 밀도(테이블 셀 vs 목록 스캔) 때문이라 강제로 맞추면 로그 레벨 배지가 작아지는 손해만 확실하다.
 
-> 이전에 "같은 severity 배지가 폼과 테이블에서 등급이 다르다"고 적었던 것은 **오진이었다.** 폼 쪽은 배지가 아니라 알림이 어떻게 보일지 보여주는 미리보기 카드(틴트 배경 + 점 + 보더)로, 목적과 형태가 다른 물건이다. 실제 중복이던 `SEVERITY_BADGE` 상수는 `SeverityBadge` 컴포넌트로 통합했다.
+> 이전에 "같은 severity 배지가 폼과 테이블에서 등급이 다르다"고 적었던 것은 **오진이었다.** 폼 쪽은 배지가 아니라 알림이 어떻게 보일지 보여주는 미리보기 카드(틴트 배경 + 점 + 보더)로, 목적과 형태가 다른 물건이다. 실제 중복이던 `SEVERITY_BADGE` 상수는 `SeverityBadge` 컴포넌트로 통합했다. (2026-11-13: 미리보기 카드도 중립 표면 위에 `SeverityBadge`를 놓는 형태로 바뀌어 severity 색은 한 벌만 남았다.)
 
 ### D. 카드 서브블록 radius 미전환 — 27건 (2026-09-20)
 

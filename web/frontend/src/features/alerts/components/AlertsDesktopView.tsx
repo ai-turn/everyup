@@ -111,15 +111,16 @@ export function AlertsDesktopView({
   const totalFailed = stats?.totalFailed ?? 0;
   const successRate = stats ? Math.round(stats.successRate) : null;
   const totalNotifications = totalSent + totalFailed;
-  const rateBarColor = successRate == null ? 'bg-slate-300'
+  // 막대는 성공률이 있을 때만 그린다.
+  const rateBarColor = successRate == null ? ''
     : successRate >= 95 ? 'bg-status-healthy-fill'
     : successRate >= 80 ? 'bg-status-warn-fill'
     : 'bg-status-error-fill';
 
   const tabs: { key: TabType; label: string; count?: number }[] = [
+    { key: 'rules',    label: '알림 규칙', count: rules.length },
+    { key: 'history',  label: '발송 이력', count: totalNotifications || undefined },
     { key: 'channels', label: '알림 채널', count: channels.length },
-    { key: 'rules',    label: '알림 규칙',    count: rules.length },
-    { key: 'history',  label: '알림 로그', count: totalNotifications || undefined },
   ];
 
   return (

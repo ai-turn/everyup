@@ -153,7 +153,14 @@ function thresholdValue(rule: AlertRule): string {
   return `${rule.threshold}${unit}`;
 }
 
+// 로그 레벨은 숫자로 저장된다(0 TRACE … 4 ERROR). 목록에는 이름으로 쓴다(A-18).
+const LOG_LEVEL_NAMES = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR'];
+
 function conditionExpr(rule: AlertRule): string {
+  if (rule.metric === 'log_level') {
+    const level = LOG_LEVEL_NAMES[rule.threshold] ?? String(rule.threshold);
+    return rule.operator === 'eq' ? `${level} 로그` : `${level} ${OPERATOR_WORDS[rule.operator] ?? rule.operator}`;
+  }
   const metric = metricLabel(rule.metric);
   const value = thresholdValue(rule);
   const word = OPERATOR_WORDS[rule.operator];

@@ -91,9 +91,9 @@ export function AlertsMobileView({
   </>;
 
   const tabs: { key: MobileTab; label: string; icon: string; count?: number }[] = [
-    { key: 'channels', label: '알림 채널', icon: 'notifications', count: channels.length },
     { key: 'rules', label: '알림 규칙', icon: 'rule', count: visibleRules.length },
-    { key: 'history', label: '알림 로그', icon: 'history' },
+    { key: 'history', label: '발송 이력', icon: 'history' },
+    { key: 'channels', label: '알림 채널', icon: 'notifications', count: channels.length },
   ];
 
   return (
@@ -119,16 +119,16 @@ export function AlertsMobileView({
             <p className="text-xl text-text-base">{stats.successRate.toFixed(0)}%</p>
           </div>
           <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
-            <p className="text-sm text-status-healthy truncate">
+            <p className="text-sm text-text-muted truncate">
               발송
             </p>
-            <p className="text-xl text-status-healthy">{stats.totalSent}</p>
+            <p className="text-xl text-text-base">{stats.totalSent}</p>
           </div>
           <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
-            <p className="text-sm text-status-error truncate">
+            <p className="text-sm text-text-muted truncate">
               실패
             </p>
-            <p className="text-xl text-status-error">{stats.totalFailed}</p>
+            <p className={`text-xl ${stats.totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>{stats.totalFailed}</p>
           </div>
         </div>
       )}
@@ -285,7 +285,7 @@ export function AlertsMobileView({
               </p>
             </div>
           ) : (
-            view === 'grid' ? <ResourceTable rows={history} rowKey={row => row.id} ariaLabel="알림 로그 그리드" columns={[
+            view === 'grid' ? <ResourceTable rows={history} rowKey={row => row.id} ariaLabel="발송 이력 그리드" columns={[
               { key: 'message', label: '메시지', render: item => <><p className="break-words text-sm">{item.message}</p><p className="mt-2 type-caption text-text-muted">{item.channelName} · {item.channelType}</p>{item.errorMessage && <p className="mt-1 break-words type-caption text-status-error">{item.errorMessage}</p>}<p className="mt-1 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}</p></> },
               { key: 'status', label: '상태', className: 'w-24', render: item => <StatusLight {...historyStatus(item.status)} /> },
             ]} /> : history.map(item => {

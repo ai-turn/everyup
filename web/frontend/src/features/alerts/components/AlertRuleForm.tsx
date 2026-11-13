@@ -9,7 +9,8 @@ import { Button, MaterialIcon, Input, Select } from '../../../components/common'
 import { FIELD_SHELL } from '../../../components/common/Input';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { getChannelName, getChannelStyle } from '../utils/channelMeta';
-import { SEVERITY_LABELS } from '../utils/severityLabel';
+import { SEVERITY_LABELS, severityTone } from '../utils/severityLabel';
+import { SeverityBadge } from './SeverityBadge';
 import {
     api,
     type AlertRule,
@@ -271,7 +272,6 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const watchedOperator  = watch('operator');
     const watchedThreshold = watch('threshold');
     const watchedDuration  = watch('duration');
-    const watchedCooldown  = watch('cooldown');
     const watchedAgentId   = watch('agentId') ?? '';
     const watchedServiceKey = watch('serviceKey') ?? '';
     const watchedServiceId = watch('serviceId') ?? '';
@@ -418,7 +418,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const isRequest = watchedCategory === 'request';
     const isApiStatus = watchedMetric === 'api_status_code';
     const watchedMetricName = watch('metricName') ?? '';
-    const metricName = { cpu: 'CPU', memory: 'Memory', disk: 'Disk', http_status: 'HTTP Status', response_time: 'Response Time', log_level: 'Log Level', api_status_code: 'API Status', otel_metric: 'Metric', error_rate: 'Error Rate', latency_p95: 'p95', latency_p99: 'p99' }[watchedMetric] ?? watchedMetric;
+    const metricLabel = isMetric ? (watchedMetricName || '메트릭') : ({ cpu: 'CPU', memory: '메모리', disk: '디스크', http_status: 'HTTP 상태', response_time: '응답 시간', log_level: '로그 레벨', api_status_code: 'API 상태 코드', otel_metric: '메트릭', error_rate: '에러율', latency_p95: 'p95 지연', latency_p99: 'p99 지연' }[watchedMetric] ?? watchedMetric);
     const thresholdUnit = watchedMetric === 'response_time' || watchedMetric === 'latency_p95' || watchedMetric === 'latency_p99' ? 'ms' : (watchedMetric === 'http_status' || watchedMetric === 'log_level' || isApiStatus || isMetric) ? '' : '%';
 
     // Metric-name suggestions for the datalist: the selected service's exported
@@ -456,15 +456,25 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
             ? (selectedInfrastructureResource?.name ?? selectedAgent?.name ?? watchedAgentId)
             : (watchedAgentId ? (selectedAgent?.name ?? watchedAgentId) : '전체 인프라');
 
-    const previewChannels = watchedChannelIds.length === 0
+    // 서버는 채널을 고르지 않으면 켜진 채널 전부로, 고른 채널도 켜진 것에만 보낸다.
+    const previewChannels = (watchedChannelIds.length === 0
         ? channels
-        : channels.filter(c => watchedChannelIds.includes(c.id));
+        : channels.filter(c => watchedChannelIds.includes(c.id))).filter(c => c.isEnabled);
 
-    const severityClasses = {
-        critical: { border: 'border-red-500',  bg: 'bg-red-500/5',   badge: 'bg-red-500/10 text-red-500',   dot: 'bg-red-500' },
-        warning:  { border: 'border-amber-500', bg: 'bg-amber-500/5', badge: 'bg-amber-500/10 text-amber-500', dot: 'bg-amber-500' },
-        info:     { border: 'border-sky-500',   bg: 'bg-sky-500/5',   badge: 'bg-sky-500/10 text-sky-500',   dot: 'bg-sky-500' },
-    }[watchedSeverity];
+    // 미리보기 문장(§3 대안 B). 평가 방식은 카테고리의 서버 평가기를 따른다.
+    const operatorWord = { gt: '초과', gte: '이상', lt: '미만', lte: '이하', eq: '' }[watchedOperator];
+    const thresholdText = Number.isNaN(watchedThreshold) ? '?'
+        : watchedMetric === 'log_level' ? (['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR'][watchedThreshold] ?? String(watchedThreshold))
+        : `${watchedThreshold}${thresholdUnit}`;
+    const conditionText = `${metricLabel} ${thresholdText}${operatorWord ? ` ${operatorWord}` : ''}`;
+    const evaluationText = isEndpoint ? `${conditionText}인 체크가 ${watchedDuration}회 연속이면`
+        : isRequest ? `최근 ${watchedDuration}분 ${conditionText}이면`
+        : watchedCategory === 'resource' ? `${conditionText} 상태로 ${watchedDuration}분 지속되면`
+        : `${conditionText}이면 수신 즉시`;
+    const channelText = channels.length === 0 ? '등록된 채널이 없어 보내지 않습니다'
+        : previewChannels.length === 0 ? '켜진 채널이 없어 보내지 않습니다'
+        : `${watchedChannelIds.length === 0 ? '켜진 채널 전체' : previewChannels.length === 1 ? previewChannels[0].name : `채널 ${previewChannels.length}개`}로 ${SEVERITY_LABELS[watchedSeverity]} 알림을 보냅니다`;
+    const previewSentence = `${targetLabel}에서 ${evaluationText} ${channelText}.`;
 
     return (
         <form
@@ -541,7 +551,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         ))}
                                         {availableDirectServices.map(service => (
                                             <option key={`direct:::${service.id}`} value={`direct:::${service.id}`}>
-                                                Direct / {service.name}
+                                                직접 연결 / {service.name}
                                             </option>
                                         ))}
                                         {isEndpoint && uptimeMonitors.map(monitor => (
@@ -731,11 +741,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                     <FormStep n={3} title="알림">
                         <Field label="심각도">
                             <div role="group" aria-label="심각도" className="grid grid-cols-3 gap-2">
-                                {([
-                                    { value: 'critical' as const, active: 'border-red-500 bg-red-500/10 text-red-600 dark:text-red-400', dot: 'bg-red-500' },
-                                    { value: 'warning'  as const, active: 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
-                                    { value: 'info'     as const, active: 'border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400', dot: 'bg-sky-500' },
-                                ]).map(s => (
+                                {(['critical', 'warning', 'info'] as const).map(value => ({ value, ...severityTone(value) })).map(s => (
                                     <button
                                         key={s.value}
                                         type="button"
@@ -743,7 +749,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         aria-pressed={watchedSeverity === s.value}
                                         className={`py-2.5 text-sm rounded-xl border-2 transition-colors flex items-center justify-center gap-2 ${
                                             watchedSeverity === s.value
-                                                ? s.active
+                                                ? `border-primary ${s.badge}`
                                                 : 'border-ui-border-soft text-text-muted hover:border-ui-border'
                                         }`}
                                     >
@@ -807,72 +813,32 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                     </FormStep>
                 </div>
 
-                {/* ── Right: sticky live preview (lg+) ─────────────────── */}
-                <div className="hidden lg:block">
+                {/* ── Right: 미리보기. lg에서는 옆에 고정, 좁으면 폼 아래(모든 폭) ── */}
+                <div>
                     {/* top-0: 패널 스크롤 영역 기준이라 0이어야 좌측 카드 시작선과 정렬 (실측 검증) */}
-                    <div className="sticky top-0 space-y-4">
+                    <div className="lg:sticky lg:top-0 space-y-4">
 
-                        {/* Live preview card */}
+                        {/* Preview card */}
                         <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
-                                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                 <div>
-                                    <p className="text-sm font-medium text-text-base">라이브 미리보기</p>
-                                    <p className="text-sm text-text-muted mt-0.5">입력값 변경 시 자동 갱신</p>
+                                    <p className="text-sm font-medium text-text-base">미리보기</p>
+                                    <p className="text-sm text-text-muted mt-0.5">저장하면 이렇게 동작합니다</p>
                                 </div>
                             </div>
                             <div className="p-5 space-y-5">
 
-                                {/* IF block */}
                                 <div>
                                     <p className="text-xs font-medium text-text-muted mb-2">조건</p>
-                                    <div className="bg-slate-900 dark:bg-slate-950 rounded-lg px-4 py-3 font-mono text-xs leading-7">
-                                        <div>
-                                            <span className="text-sky-300">IF </span>
-                                            <span className="text-amber-300">{metricName} </span>
-                                            <span className="text-text-dim">{OPERATOR_SYMBOLS[watchedOperator] ?? watchedOperator} </span>
-                                            <span className="text-red-300">{Number.isNaN(watchedThreshold) ? '?' : `${watchedThreshold}${thresholdUnit}`}</span>
-                                        </div>
-                                        {isEndpoint && (
-                                            <div className="pl-4">
-                                                <span className="text-sky-300">FAILS </span>
-                                                <span className="text-violet-300">{watchedDuration}×</span>
-                                            </div>
-                                        )}
-                                        {!isEndpoint && !isLog && !isMetric && (
-                                            <div className="pl-4">
-                                                <span className="text-sky-300">{isRequest ? 'OVER ' : 'FOR '}</span>
-                                                <span className="text-violet-300">{isRequest ? `last ${watchedDuration} min` : `${watchedDuration} min`}</span>
-                                            </div>
-                                        )}
-                                        {(isLog || isMetric) && (
-                                            <div className="pl-4">
-                                                <span className="text-sky-300">PER </span>
-                                                <span className="text-violet-300">event (immediate)</span>
-                                            </div>
-                                        )}
-                                        <div>
-                                            <span className="text-sky-300">ON </span>
-                                            <span className="text-emerald-300 truncate">{targetLabel}</span>
-                                        </div>
-                                        {!isEndpoint && !isLog && !isMetric && (
-                                            <div>
-                                                <span className="text-sky-300">COOLDOWN </span>
-                                                <span className="text-text-dim">{watchedCooldown}s</span>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <p className="text-sm leading-relaxed text-text-base">{previewSentence}</p>
                                 </div>
 
                                 {/* THEN block */}
                                 <div>
                                     <p className="text-xs font-medium text-text-muted mb-2">메시지</p>
-                                    <div className={`rounded-xl px-3 py-3 ${severityClasses.bg}`}>
+                                    <div className="rounded-xl bg-ui-hover-soft/50 px-3 py-3">
                                         <div className="flex items-center gap-2 mb-1.5">
-                                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs ${severityClasses.badge}`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${severityClasses.dot}`} />
-                                                {watchedSeverity}
-                                            </span>
+                                            <SeverityBadge severity={watchedSeverity} />
                                             <span className="text-sm text-text-muted truncate">{watchedName || '<규칙 이름>'}</span>
                                         </div>
                                         <p className="text-sm text-text-secondary leading-relaxed">
@@ -885,8 +851,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                 <div>
                                     <p className="text-xs font-medium text-text-muted mb-2">
                                         {watchedChannelIds.length === 0
-                                            ? `발송 → 전체 ${channels.length}개 채널`
-                                            : `발송 → ${watchedChannelIds.length}개 선택`}
+                                            ? `받는 채널 · 켜진 채널 전체 ${previewChannels.length}개`
+                                            : `받는 채널 · ${previewChannels.length}개`}
                                     </p>
                                     <div className="space-y-1.5">
                                         {channels.length === 0 ? (

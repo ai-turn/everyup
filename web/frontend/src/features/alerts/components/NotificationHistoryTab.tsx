@@ -245,7 +245,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
       {!error && <div className={view === 'card' ? 'space-y-3' : 'bg-bg-surface rounded-xl border border-ui-border overflow-hidden'}>
         {view === 'card' ? <HistoryCards rows={groupedRows} loading={loading} rules={rules} /> : (
         <div className="overflow-x-auto">
-          <table aria-label="알림 로그 그리드" className="w-full min-w-[960px] table-fixed">
+          <table aria-label="발송 이력 그리드" className="w-full min-w-[960px] table-fixed">
             <thead className="bg-ui-table-header">
               <tr className="border-b border-ui-border">
                 <th className={`${thClass} w-[110px]`}>상태</th>

@@ -17,9 +17,10 @@ import type { RuleAddRequest } from '../../features/alerts/components/AlertRules
 type TabType = 'channels' | 'rules' | 'history';
 
 function parseTabParam(value: string | null): TabType {
+  // 메뉴에 들어온 이유(무엇을 감시하고 무엇이 발동했는가)가 첫 화면에 오도록 규칙이 기본이다(A-18).
   return value === 'rules' || value === 'history' || value === 'channels'
     ? value
-    : 'channels';
+    : 'rules';
 }
 
 export function AlertsPage() {
