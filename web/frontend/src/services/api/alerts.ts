@@ -236,8 +236,9 @@ export const alertsApi = {
       method: 'POST',
     }),
 
-  testNotificationChannelConfig: (data: CreateNotificationChannelData) =>
-    request<{ message: string }>('/notifications/test', {
+  /** `channelId`: 편집 중인 채널 — 비워 둔 비밀값을 서버가 저장된 값으로 채운다. */
+  testNotificationChannelConfig: (data: CreateNotificationChannelData, channelId?: string) =>
+    request<{ message: string }>(`/notifications/test${channelId ? `?channelId=${encodeURIComponent(channelId)}` : ''}`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,15 +19,33 @@ import { SetupGuide } from './SetupGuide';
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
-const channelSchema = z.object({
+// 서버(webhook_validator.go)와 같은 규칙: HTTPS이고 서비스 도메인이어야 한다.
+const WEBHOOK_HOSTS: Record<'discord' | 'slack', string[]> = {
+    discord: ['discord.com', 'discordapp.com', 'canary.discord.com', 'ptb.discord.com'],
+    slack: ['hooks.slack.com'],
+};
+
+function webhookUrlError(type: 'discord' | 'slack', value: string): string | null {
+    let url: URL;
+    try { url = new URL(value); } catch { return 'URL 형식이 아닙니다'; }
+    if (url.protocol !== 'https:') return 'Webhook URL은 https://로 시작해야 합니다';
+    if (!WEBHOOK_HOSTS[type].includes(url.hostname)) {
+        return type === 'slack' ? 'Slack Webhook은 hooks.slack.com 주소입니다' : 'Discord Webhook은 discord.com 주소입니다';
+    }
+    return null;
+}
+
+/** 편집 중인 채널과 같은 유형이면 비밀값 칸을 비워 둬도 된다 — 서버가 저장된 값을 유지한다. */
+const channelSchema = (storedType?: ChannelType) => z.object({
     name: z.string().trim().min(2, '이름이 너무 짧습니다 (2자 이상)'),
     type: z.enum(['telegram', 'discord', 'slack']),
     botToken: z.string().optional(),
     chatId: z.string().optional(),
     webhookUrl: z.string().optional(),
 }).superRefine((data, ctx) => {
+    const keepsSecret = data.type === storedType;
     if (data.type === 'telegram') {
-        if (!data.botToken?.trim()) {
+        if (!keepsSecret && !data.botToken?.trim()) {
             ctx.addIssue({ code: 'custom', path: ['botToken'], message: 'Bot Token을 입력하세요' });
         }
         if (!data.chatId?.trim()) {
@@ -36,16 +54,18 @@ const channelSchema = z.object({
     }
 
     if (data.type === 'discord' || data.type === 'slack') {
-        if (!data.webhookUrl?.trim()) {
-            ctx.addIssue({ code: 'custom', path: ['webhookUrl'], message: 'Webhook URL을 입력하세요' });
-        } else if (!/^https?:\/\/.+/.test(data.webhookUrl)) {
-            ctx.addIssue({ code: 'custom', path: ['webhookUrl'], message: 'Webhook URL은 http:// 또는 https://로 시작해야 합니다' });
+        const url = data.webhookUrl?.trim();
+        if (!url) {
+            if (!keepsSecret) ctx.addIssue({ code: 'custom', path: ['webhookUrl'], message: 'Webhook URL을 입력하세요' });
+        } else {
+            const message = webhookUrlError(data.type, url);
+            if (message) ctx.addIssue({ code: 'custom', path: ['webhookUrl'], message });
         }
     }
 });
 
-type ChannelFormValues = z.infer<typeof channelSchema>;
 type ChannelType = 'telegram' | 'discord' | 'slack';
+type ChannelFormValues = z.infer<ReturnType<typeof channelSchema>>;
 
 // ─── Channel type metadata ────────────────────────────────────────────────────
 
@@ -222,6 +242,8 @@ const PREVIEW_BY_TYPE: Record<ChannelType, React.FC<{ name: string }>> = {
     slack: SlackPreview,
 };
 
+const SECRET_KEPT_HINT = '저장된 값을 유지합니다. 바꿀 때만 입력하세요.';
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface ChannelFormProps {
@@ -236,13 +258,15 @@ interface ChannelFormProps {
 export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }: ChannelFormProps) {
 
     const isEdit = !!channel;
+    const storedType = channel?.type as ChannelType | undefined;
+    const schema = useMemo(() => channelSchema(storedType), [storedType]);
 
     const [testState, setTestState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [testError, setTestError] = useState('');
     const [testTime, setTestTime] = useState('');
 
     const { register, handleSubmit, watch, reset, getValues, trigger, formState: { errors } } = useForm<ChannelFormValues>({
-        resolver: zodResolver(channelSchema),
+        resolver: zodResolver(schema),
         defaultValues: { type: 'telegram' },
     });
 
@@ -255,13 +279,14 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                     : channel.config;
             } catch { config = null; }
 
+            // 비밀값(Bot Token·Webhook URL)은 서버가 `***`로 가려 보낸다. 칸에 넣으면 그대로 저장돼
+            // 실제 값을 덮어썼다 — 비워 두고, 비운 채 저장하면 서버가 기존 값을 유지한다.
             reset({
                 name: channel.name,
                 type: channel.type as ChannelType,
-                botToken: channel.type === 'telegram' && config ? (config as TelegramConfig).botToken : '',
+                botToken: '',
                 chatId: channel.type === 'telegram' && config ? (config as TelegramConfig).chatId : '',
-                webhookUrl: (channel.type === 'discord' || channel.type === 'slack') && config
-                    ? (config as DiscordConfig).webhookUrl : '',
+                webhookUrl: '',
             });
         } else {
             reset({ type: 'telegram', name: '', botToken: '', chatId: '', webhookUrl: '' });
@@ -274,6 +299,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
     const watchedChatId = watch('chatId') ?? '';
     const watchedWebhook = watch('webhookUrl') ?? '';
 
+    const keepsSecret = isEdit && watchedType === storedType;
     const meta = CHANNEL_META[watchedType];
     const PreviewComponent = PREVIEW_BY_TYPE[watchedType];
 
@@ -322,7 +348,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
         setTestError('');
         onSubmittingChange?.(true);
         try {
-            await api.testNotificationChannelConfig(buildPayload(getValues()));
+            await api.testNotificationChannelConfig(buildPayload(getValues()), channel?.id);
             setTestState('success');
             setTestTime(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         } catch (error) {
@@ -384,14 +410,14 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 <Field
                                     htmlFor="channel-bot-token"
                                     label="Bot Token"
-                                    required
+                                    required={!keepsSecret}
                                     error={errors.botToken?.message}
-                                    hint="BotFather에서 발급받은 Bot Token"
+                                    hint={keepsSecret ? SECRET_KEPT_HINT : 'BotFather에서 발급받은 Bot Token'}
                                 >
                                     <Input
                                         id="channel-bot-token"
                                         {...register('botToken')}
-                                        placeholder="123456:ABC-DEF1234ghIkl…"
+                                        placeholder={keepsSecret ? '저장된 값 유지' : '123456:ABC-DEF1234ghIkl…'}
                                         mono invalid={!!errors.botToken}
                                     />
                                 </Field>
@@ -416,14 +442,14 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 <Field
                                     htmlFor="channel-webhook-url"
                                     label="Webhook URL"
-                                    required
+                                    required={!keepsSecret}
                                     error={errors.webhookUrl?.message}
-                                    hint={watchedType === 'slack' ? 'Slack Incoming Webhooks URL' : 'Discord Channel Webhook URL'}
+                                    hint={keepsSecret ? SECRET_KEPT_HINT : watchedType === 'slack' ? 'Slack Incoming Webhooks URL' : 'Discord Channel Webhook URL'}
                                 >
                                     <Input
                                         id="channel-webhook-url"
                                         {...register('webhookUrl')}
-                                        placeholder={watchedType === 'slack'
+                                        placeholder={keepsSecret ? '저장된 값 유지' : watchedType === 'slack'
                                             ? 'https://hooks.slack.com/services/…'
                                             : 'https://discord.com/api/webhooks/…'}
                                         mono invalid={!!errors.webhookUrl}
@@ -468,7 +494,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
                                                 <span className="text-text-dim text-xs">Bot Token</span>
                                                 <span className="font-mono text-text-muted">
-                                                    {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim">미입력</span>}
+                                                    {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim">{keepsSecret ? '저장된 값' : '미입력'}</span>}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
@@ -484,7 +510,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                             <span className="font-mono text-text-muted truncate text-right">
                                                 {watchedWebhook
                                                     ? watchedWebhook.replace(/^https?:\/\//, '').slice(0, 32) + (watchedWebhook.length > 40 ? '…' : '')
-                                                    : <span className="text-text-dim">미입력</span>}
+                                                    : <span className="text-text-dim">{keepsSecret ? '저장된 값' : '미입력'}</span>}
                                             </span>
                                         </div>
                                     )}

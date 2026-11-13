@@ -47,41 +47,52 @@ type NotificationChannelCreateRequest struct {
 	Config map[string]interface{} `json:"config"`
 }
 
+// secretConfigKey is the config field that holds each channel type's secret.
+// MaskConfig redacts it and KeepStoredSecret restores it, so they share one list.
+var secretConfigKey = map[string]string{
+	"telegram": "botToken",
+	"discord":  "webhookUrl",
+	"slack":    "webhookUrl",
+}
+
+const maskedSecret = "***"
+
 // MaskConfig returns a copy of the channel with sensitive config fields redacted.
 // Use this before returning channels in API responses.
 func (ch *NotificationChannel) MaskConfig() NotificationChannel {
 	masked := *ch
-	switch ch.Type {
-	case "telegram":
-		var cfg TelegramConfig
-		if err := json.Unmarshal([]byte(ch.Config), &cfg); err == nil {
-			if cfg.BotToken != "" {
-				cfg.BotToken = "***"
-			}
-			if b, err := json.Marshal(cfg); err == nil {
-				masked.Config = string(b)
-			}
-		}
-	case "discord":
-		var cfg DiscordConfig
-		if err := json.Unmarshal([]byte(ch.Config), &cfg); err == nil {
-			if cfg.WebhookURL != "" {
-				cfg.WebhookURL = "***"
-			}
-			if b, err := json.Marshal(cfg); err == nil {
-				masked.Config = string(b)
-			}
-		}
-	case "slack":
-		var cfg SlackConfig
-		if err := json.Unmarshal([]byte(ch.Config), &cfg); err == nil {
-			if cfg.WebhookURL != "" {
-				cfg.WebhookURL = "***"
-			}
-			if b, err := json.Marshal(cfg); err == nil {
-				masked.Config = string(b)
-			}
-		}
+	key := secretConfigKey[ch.Type]
+	var cfg map[string]interface{}
+	if key == "" || json.Unmarshal([]byte(ch.Config), &cfg) != nil {
+		return masked
+	}
+	if v, _ := cfg[key].(string); v != "" {
+		cfg[key] = maskedSecret
+	}
+	if b, err := json.Marshal(cfg); err == nil {
+		masked.Config = string(b)
 	}
 	return masked
+}
+
+// KeepStoredSecret fills the request's secret from the stored channel when the
+// client sent it back empty or masked. The edit form never sees the real secret,
+// so saving without retyping it must not overwrite it. A type change has nothing
+// to fall back on and is left for validation to reject.
+func (ch *NotificationChannel) KeepStoredSecret(req *NotificationChannelCreateRequest) {
+	key := secretConfigKey[req.Type]
+	if key == "" || req.Type != ch.Type {
+		return
+	}
+	if v, _ := req.Config[key].(string); v != "" && v != maskedSecret {
+		return
+	}
+	var stored map[string]interface{}
+	if json.Unmarshal([]byte(ch.Config), &stored) != nil {
+		return
+	}
+	if req.Config == nil {
+		req.Config = map[string]interface{}{}
+	}
+	req.Config[key] = stored[key]
 }
