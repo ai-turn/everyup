@@ -56,7 +56,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
 # -----------------------------------------------------------------------------
 # Stage 3: Final minimal image
 # -----------------------------------------------------------------------------
-FROM alpine:3.23@sha256:f3d55900449227ae9e237ede521e7b665d53a253b42065ba90b9db9275e198ad
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 
 # Essential packages only
 RUN apk add --no-cache ca-certificates tzdata

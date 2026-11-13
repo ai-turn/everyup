@@ -22,14 +22,14 @@ RUN npm ci --omit=dev --no-audit --no-fund
 COPY instrumentation/node/register.js ./
 
 # OTel Java agent: JAVA_TOOL_OPTIONS=-javaagent:... needs only this jar.
-FROM --platform=$BUILDPLATFORM alpine:3.23@sha256:f3d55900449227ae9e237ede521e7b665d53a253b42065ba90b9db9275e198ad AS instrumentation-java
+FROM --platform=$BUILDPLATFORM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS instrumentation-java
 ARG OTEL_JAVAAGENT_VERSION=2.28.1
 ARG OTEL_JAVAAGENT_SHA256=faa89bdeebf9b1f52be4a4374689176717b02a59df2d8f8b6eb9aa39f9292589
 RUN wget -q -O /opentelemetry-javaagent.jar \
     "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_JAVAAGENT_VERSION}/opentelemetry-javaagent.jar" \
     && echo "${OTEL_JAVAAGENT_SHA256}  /opentelemetry-javaagent.jar" | sha256sum -c -
 
-FROM alpine:3.23@sha256:f3d55900449227ae9e237ede521e7b665d53a253b42065ba90b9db9275e198ad
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 
 RUN adduser -D -H everyup \
     && mkdir -p /data /etc/everyup/generated /everyup-instrumentation \
