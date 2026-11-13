@@ -141,7 +141,8 @@ func (ts *testServer) doRequest(t *testing.T, method, path string, body interfac
 	}
 
 	var result apiResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	// 204 No Content has no body to decode.
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil && err != io.EOF {
 		t.Fatalf("decode response: %v", err)
 	}
 	resp.Body.Close()
@@ -450,6 +451,63 @@ func TestNotificationChannel_CRUD(t *testing.T) {
 	_, deleteResult := ts.doRequest(t, "DELETE", "/api/v1/notifications/"+channel.ID, nil, auth...)
 	if !deleteResult.Success {
 		t.Fatalf("delete failed: %v", deleteResult.Error)
+	}
+}
+
+// The list API masks secrets as "***" and the edit form used to send that back,
+// overwriting the real token. Masked or empty secrets must keep the stored value.
+func TestNotificationChannel_UpdateKeepsMaskedSecret(t *testing.T) {
+	ts := setupTestServer(t)
+	token := ts.setupAdmin(t, "admin", "testpass123")
+	auth := authHeader(token)
+
+	_, created := ts.doRequest(t, "POST", "/api/v1/notifications", map[string]interface{}{
+		"name": "Ops Telegram", "type": "telegram",
+		"config": map[string]string{"botToken": "123:real-token", "chatId": "-100"},
+	}, auth...)
+	if !created.Success {
+		t.Fatalf("create failed: %v", created.Error)
+	}
+	var ch struct{ ID string `json:"id"` }
+	json.Unmarshal(created.Data, &ch)
+
+	for _, sent := range []string{"***", ""} {
+		_, updated := ts.doRequest(t, "PUT", "/api/v1/notifications/"+ch.ID, map[string]interface{}{
+			"name": "Ops Telegram renamed", "type": "telegram",
+			"config": map[string]string{"botToken": sent, "chatId": "-200"},
+		}, auth...)
+		if !updated.Success {
+			t.Fatalf("update with botToken %q failed: %v", sent, updated.Error)
+		}
+		stored, err := database.NewNotificationRepository().GetByID(ch.ID)
+		if err != nil || stored == nil {
+			t.Fatalf("read back: %v", err)
+		}
+		var cfg models.TelegramConfig
+		json.Unmarshal([]byte(stored.Config), &cfg)
+		if cfg.BotToken != "123:real-token" || cfg.ChatID != "-200" {
+			t.Fatalf("after sending %q: stored config = %+v, want real token kept and chat id updated", sent, cfg)
+		}
+	}
+
+	// A new value still replaces the stored one.
+	ts.doRequest(t, "PUT", "/api/v1/notifications/"+ch.ID, map[string]interface{}{
+		"name": "Ops Telegram", "type": "telegram",
+		"config": map[string]string{"botToken": "456:new-token", "chatId": "-200"},
+	}, auth...)
+	stored, _ := database.NewNotificationRepository().GetByID(ch.ID)
+	var cfg models.TelegramConfig
+	json.Unmarshal([]byte(stored.Config), &cfg)
+	if cfg.BotToken != "456:new-token" {
+		t.Fatalf("new token not saved: %+v", cfg)
+	}
+
+	// Switching type has no stored secret to fall back on.
+	resp, _ := ts.doRequest(t, "PUT", "/api/v1/notifications/"+ch.ID, map[string]interface{}{
+		"name": "Ops", "type": "discord", "config": map[string]string{"webhookUrl": "***"},
+	}, auth...)
+	if resp.StatusCode != 400 {
+		t.Fatalf("type switch with masked secret: status %d, want 400", resp.StatusCode)
 	}
 }
 

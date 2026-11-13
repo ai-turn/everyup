@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=history",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n발송 (7일)\n29\n실패 (7일)\n3\n실패 로그 보기\n성공률\n91%\n알림 채널\n4\n알림 규칙\n8\n알림 로그\n32\n전체 32\n성공 29\n실패 3\n전체 타입\n리소스\n헬스체크\nEndpoint\n로그\n스케줄\n시스템\n전체 타입\n전체 채널\nOps Telegram\n#alerts Discord\n#incidents Slack\n#backoffice Slack\n전체 채널\n최근 24시간\n최근 7일\n최근 30일\n최근 7일\n상태\t알림 타입\t채널\t메시지\t심각도\t시간\n오늘 · 11월 13일\n\nFailed\t리소스\t\nOps Telegram\n\t\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\nWebhook delivery timeout · 3회 재시도\n\n\t경고\t약 1시간 전 · 20:27\n\nFailed\t헬스체크\t\n#backoffice Slack\n\t\n\nService Down: status_change eq 0 — 60분 지속\n\nWebhook delivery timeout · 3회 재시도\n\n\t심각\t약 9시간 전 · 12:12\n\nFailed\tEndpoint\t\n#incidents Slack\n\t\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\nWebhook delivery timeout · 3회 재시도\n\n\t경고\t약 17시간 전 · 03:57\n\n총 3건 중 1~3\n\n‹\n1\n›\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "전체 타입\n리소스\n헬스체크\nEndpoint\n로그\n스케줄",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "전체 채널\nOps Telegram\n#alerts Dis",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "최근 24시간\n최근 7일\n최근 30일",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

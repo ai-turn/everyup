@@ -1,0 +1,122 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=rules",
+  "text": "새 알림 규칙\n1\n\n대상\n\n카테고리\n헬스체크\nAPI 요청\n로그\n메트릭\n인프라\n대상\n전체 헬스체크\nprod-server / api\nprod-server / postgres\nprod-server / payment-worker\nworker-cluster / catalog-worker\nworker-cluster / notification-worker\nworker-cluster / redis\nedge-node / nginx\nedge-node / search-api\nedge-node / inventory-api\n전체 헬스체크\n\n미선택 시 모든 대상에 적용됩니다\n\n지표\nhttp status\nresponse time\n규칙 이름\n*\n2\n\n조건\n\n프리셋\n정상\n에러 및 오류\n직접 설정\n\n연속 체크 횟수\n\n알림 발생 전 연속 실패 횟수\n\n3\n\n알림\n\n심각도\n심각\n경고\n정보\n알림 채널\nOps Telegram\nTelegram\n#alerts Discord\nDiscord\n#incidents Slack\nSlack\n#backoffice Slack\nSlack\n\n미선택 시 모든 활성 채널로 발송됩니다\n\n알림 메시지\n\n선택 사항입니다. 입력하면 자동 생성 메시지 대신 보냅니다. 사용 가능한 변수: {service_name} {value} {threshold} {metric}\n\n취소\n추가",
+  "docW": 390,
+  "vw": 390,
+  "toasts": [],
+  "pressable": [
+    {
+      "t": "헬스체크",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "API 요청",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "로그",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "메트릭",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "인프라",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "http status",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "response time",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "정상",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "에러 및 오류",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "직접 설정",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "심각",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "경고",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "정보",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "Ops Telegram\nTelegra",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "#alerts Discord\nDisc",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "#incidents Slack\nSla",
+      "pressed": null,
+      "checked": null
+    },
+    {
+      "t": "#backoffice Slack\nSl",
+      "pressed": null,
+      "checked": null
+    }
+  ],
+  "invalid": [],
+  "small": [
+    {
+      "l": "전체 헬스체크\nprod-server / api\nprod",
+      "h": 1,
+      "w": 1
+    }
+  ],
+  "axe": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "n": 3,
+      "targets": [
+        ".flex-wrap.gap-2.flex > .text-slate-500.border-ui-border-soft.hover\\:border-slate-200 | Element has insufficient color contrast of 3.69 (foreground color: #62748e, background color: #18191b, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1",
+        ".p-3.text-slate-500.gap-1\\.5:nth-child(1) | Element has insufficient color contrast of 3.69 (foreground color: #62748e, background color: #18191b, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1",
+        ".p-3.text-slate-500.gap-1\\.5:nth-child(3) | Element has insufficient color contrast of 3.69 (foreground color: #62748e, background color: #18191b, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+      ]
+    },
+    {
+      "id": "label",
+      "impact": "critical",
+      "n": 1,
+      "targets": [
+        ".text-right | Element does not have an implicit (wrapped) <label>"
+      ]
+    }
+  ]
+}

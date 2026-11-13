@@ -1,0 +1,21 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts/channels/1/edit",
+  "text": "채널 편집\n\nOps Telegram · 채널 설정을 수정합니다\n\n1\n\n채널 유형\n\n유형\nTelegram\nBot API\nDiscord\nWebhook\nSlack\nWebhook\n표시 이름\n*\n2\n\n연결 설정\n\nBot Token\n*\n\nBotFather에서 발급받은 Bot Token\n\n채팅 ID\n*\n\n채팅방 또는 채널의 Chat ID\n\nAPI Key는 어떻게 발급받나요?\n취소\n저장\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 390,
+  "vw": 390,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

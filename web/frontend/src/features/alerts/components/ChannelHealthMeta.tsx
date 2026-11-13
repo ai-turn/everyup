@@ -1,8 +1,22 @@
 import { Tooltip } from '../../../components/common/Tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { MaterialIcon } from '../../../components/common';
+import { MaterialIcon, StatusLight } from '../../../components/common';
 import type { NotificationChannelHealth } from '../../../services/api';
+
+/** 저장된 채널의 `테스트` 결과. 테스트는 이력에 남지 않으므로 이 화면에 있는 동안 채널 행에 남긴다(A-12). */
+export interface ChannelTestOutcome { ok: boolean; at: string; message?: string }
+
+export function ChannelTestResult({ result }: { result?: ChannelTestOutcome }) {
+  if (!result) return null;
+  const when = formatDistanceToNow(new Date(result.at), { addSuffix: true, locale: ko });
+  return (
+    <span className="inline-flex min-w-0 flex-wrap items-center gap-x-1.5">
+      <StatusLight tone={result.ok ? 'healthy' : 'error'} label={result.ok ? `테스트 성공 · ${when}` : `테스트 실패 · ${when}`} />
+      {!result.ok && result.message && <span className="break-words type-caption text-text-muted">{result.message}</span>}
+    </span>
+  );
+}
 
 interface Props {
   health?: NotificationChannelHealth;

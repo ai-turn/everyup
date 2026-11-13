@@ -1,0 +1,10 @@
+[
+  "API p99 latency\n\nAPI 요청\n\n\t심각\tprod-server / api\t\n\np99 지연 800ms 초과 · 최근 5분\n\n\t\n\t-\t",
+  "Service Down\n\n시스템 기본 규칙 · 삭제 불가, 채널만 변경 가능\n\n\t심각\tprod-server / api\t\n\n시스템에서 자동 평가\n\n\t\n\t-\t",
+  "Memory Pressure\n\n인프라\n\n\t심각\tworker-cluster\t\n\n메모리 90% 초과 · 3분 지속\n\n\t\n\t-\t",
+  "Order API error rate\n\nAPI 요청\n\n\t심각\torders-api\t\n\n에러율 5% 초과 · 최근 5분\n\n\t\n\t-\t",
+  "Edge Collector CPU\n\n인프라\n\n\t경고\tedge-host-01\t\n\nCPU 80% 초과 · 5분 지속\n\n\t\n\t-\t",
+  "High CPU Usage\n\n인프라\n\n\t경고\tdb-primary-01\t\n\nCPU 85% 초과 · 5분 지속\n\n\t\n\t-\t",
+  "Billing queue backlog\n\nAPI 요청\n\n\t경고\tbilling-worker\t\n\notel_metric 100% 초과 · 최근 10분\n\n\t\n\t-\t",
+  "Search indexing errors\n\n로그\n\n\t경고\tsearch-api\t\n\n로그 레벨 1 이상 · 즉시\n\n\t\n\t-\t"
+]

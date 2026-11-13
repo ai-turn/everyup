@@ -1,0 +1,11 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts",
+  "text": "채널 추가\n1\n\n채널 유형\n\n유형\nTelegram\nBot API\nDiscord\nWebhook\nSlack\nWebhook\n표시 이름\n*\n2\n\n연결 설정\n\nBot Token\n*\n\nBotFather에서 발급받은 Bot Token\n\n채팅 ID\n*\n\n채팅방 또는 채널의 Chat ID\n\nAPI Key는 어떻게 발급받나요?\n\n채널 미리보기\n\n실제 전송 메시지 형식\n\n채널 이름 미입력\n\nTelegram\n\nBot Token\n미입력\nChat ID\n미입력\n\n테스트 메시지 미리보기\n\nEveryUp Bot\n\nbot\n\n✅ Service Recovered\n\nService: Notification Test\n\nTime: 2026-11-13 12:11:27\n\nMessage: This is a test notification. Your EVERYUP notification channel is connected correctly.\n\n오후 09:11\n\n테스트 전송\n\n실제 채널로 테스트 메시지 발송\n\n현재 입력값으로 테스트 메시지를 보냅니다. 채널은 저장되지 않습니다.\n\n테스트 전송\n취소\n추가",
+  "docW": 1440,
+  "vw": 1440,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [],
+  "axe": []
+}

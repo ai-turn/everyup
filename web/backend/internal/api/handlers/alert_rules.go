@@ -14,6 +14,7 @@ import (
 type AlertRuleHandler struct {
 	repo          *database.AlertRuleRepository
 	directManager *directtelemetry.Manager
+	services      *database.ServiceRepository
 }
 
 // NewAlertRuleHandler creates a new alert rule handler
@@ -21,6 +22,7 @@ func NewAlertRuleHandler() *AlertRuleHandler {
 	return &AlertRuleHandler{
 		repo:          database.NewAlertRuleRepository(),
 		directManager: directtelemetry.NewManager(),
+		services:      database.NewServiceRepository(),
 	}
 }
 
@@ -39,6 +41,18 @@ func alertMetricSignal(metric models.AlertMetric) models.TelemetrySignal {
 
 func (h *AlertRuleHandler) validateDirectTarget(serviceID *string, metric models.AlertMetric) error {
 	if serviceID == nil || *serviceID == "" {
+		return nil
+	}
+	// Health-check metrics target an uptime monitor (services table), which the
+	// scheduler evaluates by service_id. Every other metric targets an observed service.
+	if metric == models.AlertMetricHTTPStatus || metric == models.AlertMetricResponseTime {
+		monitor, err := h.services.GetByID(*serviceID)
+		if err != nil {
+			return err
+		}
+		if monitor == nil || (monitor.Type != models.ServiceTypeHTTP && monitor.Type != models.ServiceTypeTCP) {
+			return errUptimeMonitorNotFound
+		}
 		return nil
 	}
 	signal := alertMetricSignal(metric)
@@ -67,7 +81,12 @@ func hasAlertTarget(value *string) bool {
 	return value != nil && *value != ""
 }
 
+var errUptimeMonitorNotFound = errors.New("uptime monitor not found")
+
 func directAlertTargetError(c *fiber.Ctx, err error) error {
+	if errors.Is(err, errUptimeMonitorNotFound) {
+		return agentBadRequest(c, ErrCodeValidation, "uptime monitor not found")
+	}
 	if errors.Is(err, directtelemetry.ErrNotFound) {
 		return agentBadRequest(c, ErrCodeObservedServiceNotFound, "observed service not found")
 	}

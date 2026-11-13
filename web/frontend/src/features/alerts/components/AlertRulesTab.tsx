@@ -3,180 +3,50 @@ import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
 import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
-import { ChannelIcon } from '../../../components/icons/ChannelIcons';
-import { api, type AlertRule, type NotificationChannel, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService } from '../../../services/api';
-import { getChannelStyle } from '../utils/channelMeta';
-import { AlertRuleForm } from './AlertRuleForm';
+import { api, type AlertRule, type NotificationChannel } from '../../../services/api';
+import { alertTargetName, categoryLabel, compactTrigger, evaluationSummary, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames, type CategoryKey } from '../ruleDisplay';
+import { ChannelAvatars } from './ChannelAvatars';
+import { LoadErrorBanner } from './LoadErrorBanner';
+import { AlertRuleForm, type AlertRuleFormInitial } from './AlertRuleForm';
 import { FormSidePanel } from './FormSidePanel';
 import { FormActions } from './FormLayout';
 import { SeverityBadge } from './SeverityBadge';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
+import { alertTargetInitial, matchesAlertTarget, type AlertTarget } from '../alertTarget';
 import { useListView } from '../../../hooks/useListView';
-
-const SEVERITY_ORDER: Record<string, number> = { critical: 0, warning: 1, info: 2 };
-
-const ENDPOINT_METRICS = new Set(['http_status', 'response_time']);
-
-const OPERATOR_SYMBOLS: Record<string, string> = {
-  gt: '>',
-  gte: '>=',
-  lt: '<',
-  lte: '<=',
-  eq: '=',
-};
-
-type CategoryKey = 'all' | 'endpoint' | 'request' | 'log' | 'resource' | 'system';
-
-function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
-  if (rule.isSystem) return 'system';
-  if (rule.type === 'service') return 'endpoint';
-  if (rule.type === 'request') return 'request';
-  if (rule.type === 'log') return 'log';
-  return 'resource';
-}
-
-function targetLabel(rule: AlertRule, agentServices: AgentServiceFlat[], agents: ConnectedAgent[], directServices: ObservedService[], infrastructureResources: InfrastructureResource[]): string {
-  if (rule.type === 'service' || rule.type === 'log' || rule.type === 'request') {
-    if (rule.serviceId) return directServices.find(service => service.id === rule.serviceId)?.name ?? rule.serviceId;
-    if (rule.agentId && rule.serviceKey) {
-      const svc = agentServices.find(s => s.agentId === rule.agentId && s.key === rule.serviceKey);
-      return svc ? `${svc.agentName} / ${svc.name}` : rule.serviceKey;
-    }
-    // Request rules can also watch a whole Docker environment (API-created).
-    if (rule.type === 'request' && rule.agentId) return agents.find(a => a.id === rule.agentId)?.name ?? rule.agentId;
-    return rule.type === 'log' ? '전체 로그 서비스' : '전체 헬스체크';
-  }
-  if (rule.agentId) return infrastructureResources.find(resource => resource.id === rule.agentId)?.name ?? agents.find(a => a.id === rule.agentId)?.name ?? rule.agentId;
-  return '전체 인프라';
-}
-
-const CATEGORY_LABELS: Record<Exclude<CategoryKey, 'all'>, string> = {
-  endpoint: '헬스체크',
-  request: 'API 요청',
-  log: '로그',
-  resource: '인프라',
-  system: '시스템',
-};
-
-const METRIC_LABELS: Record<string, string> = {
-  cpu: 'CPU',
-  memory: '메모리',
-  disk: '디스크',
-  status_change: '상태 변경',
-  http_status: 'HTTP 상태',
-  response_time: '응답 시간',
-  log_level: '로그 레벨',
-  api_status_code: 'API 상태',
-  error_rate: '에러율',
-  latency_p95: 'p95 지연',
-  latency_p99: 'p99 지연',
-};
-
-// 연산자별 서술어. 없는 연산자는 기호 표기로 폴백한다.
-const OPERATOR_WORDS: Record<string, string> = {
-  gt: '초과',
-  gte: '이상',
-  lt: '미만',
-  lte: '이하',
-  eq: '같음',
-};
-
-function categoryLabel(category: Exclude<CategoryKey, 'all'>): string {
-  return CATEGORY_LABELS[category];
-}
-
-function metricLabel(metric: string): string {
-  return METRIC_LABELS[metric] ?? metric;
-}
-
-function thresholdValue(rule: AlertRule): string {
-  const unit = rule.metric === 'response_time' || rule.metric === 'latency_p95' || rule.metric === 'latency_p99' ? 'ms' : ENDPOINT_METRICS.has(rule.metric) || rule.metric === 'log_level' || rule.metric === 'api_status_code' ? '' : '%';
-  return `${rule.threshold}${unit}`;
-}
-
-function conditionExpr(rule: AlertRule): string {
-  const metric = metricLabel(rule.metric);
-  const value = thresholdValue(rule);
-  const word = OPERATOR_WORDS[rule.operator];
-  if (word) return `${metric} ${value} ${word}`;
-  return `${metric} ${OPERATOR_SYMBOLS[rule.operator] ?? rule.operator} ${value}`;
-}
-
-function formatMinutes(minutes: number): string {
-  if (minutes >= 60 && minutes % 60 === 0) {
-    return `${minutes / 60}시간`;
-  }
-  return `${minutes}분`;
-}
-
-function formatSeconds(seconds: number): string {
-  if (seconds >= 3600 && seconds % 3600 === 0) {
-    return `${seconds / 3600}시간`;
-  }
-  if (seconds >= 60 && seconds % 60 === 0) {
-    return `${seconds / 60}분`;
-  }
-  return `${seconds}초`;
-}
-
-function evaluationSummary(rule: AlertRule): string {
-  if (rule.type === 'service') {
-    return '헬스체크 결과가 조건에 맞을 때마다 평가';
-  }
-  if (rule.type === 'log') {
-    return '로그/API 이벤트마다 평가';
-  }
-  if (rule.type === 'request') {
-    return `최근 ${formatMinutes(rule.duration)} 구간을 1분마다 평가 · ${formatSeconds(rule.cooldown)} 쿨다운`;
-  }
-  if (rule.isSystem) {
-    return '시스템에서 자동 평가';
-  }
-  return `${formatMinutes(rule.duration)} 동안 지속 · ${formatSeconds(rule.cooldown)} 쿨다운`;
-}
-
-function compactTrigger(rule: AlertRule): string {
-  if (rule.isSystem) {
-    return '시스템에서 자동 평가';
-  }
-  if (rule.type === 'log') {
-    return `${conditionExpr(rule)} · 즉시`;
-  }
-  if (rule.type === 'request') {
-    return `${conditionExpr(rule)} · 최근 ${formatMinutes(rule.duration)}`;
-  }
-  if (rule.type === 'service') {
-    return `${conditionExpr(rule)} · ${rule.duration}회 연속`;
-  }
-  return `${conditionExpr(rule)} · ${formatMinutes(rule.duration)} 지속`;
-}
 
 type SortKey = 'severity' | 'name' | 'target' | 'category';
 type SortDir = 'asc' | 'desc';
 
+/** 상단 `추가`나 URL(`new=metric`)이 규칙 폼을 열 때 보내는 요청. 탭이 받아 폼을 연 뒤 onAddRequestHandled로 비운다. */
+export interface RuleAddRequest { initial?: AlertRuleFormInitial }
+
 interface AlertRulesTabProps {
-  addTrigger?: number;
+  /** 규칙·채널은 AlertsPage 한 곳이 갖는다 — 탭 숫자와 목록이 같은 값을 본다(A-14). */
+  rules: AlertRule[];
+  channels: NotificationChannel[];
+  rulesLoading: boolean;
+  rulesError: string | null;
+  onReloadRules: () => void;
+  onToggleRule: (id: string) => void;
+  togglingIds: Set<string>;
+  addRequest?: RuleAddRequest | null;
+  onAddRequestHandled?: () => void;
   target?: AlertTarget | null;
+  onClearTarget?: () => void;
 }
 
-export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
+export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onReloadRules, onToggleRule, togglingIds, addRequest, onAddRequestHandled, target, onClearTarget }: AlertRulesTabProps) {
   const { view } = useListView();
-  const [rules, setRules] = useState<AlertRule[]>([]);
-  const [channels, setChannels] = useState<NotificationChannel[]>([]);
-  const [agentServices, setAgentServices] = useState<AgentServiceFlat[]>([]);
-  const [agents, setAgents] = useState<ConnectedAgent[]>([]);
-  const [directServices, setDirectServices] = useState<ObservedService[]>([]);
-  const [infrastructureResources, setInfrastructureResources] = useState<InfrastructureResource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  const names = useTargetNames();
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Rule form — right slide-over panel
   const [formOpen, setFormOpen] = useState(false);
   const [formRule, setFormRule] = useState<AlertRule | undefined>(undefined);
+  const [formInitial, setFormInitial] = useState<AlertRuleFormInitial | undefined>(undefined);
   const [formLoading, setFormLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -190,53 +60,13 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
   const [sortKey, setSortKey] = useState<SortKey>('severity');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
-  const loadData = async () => {
-    try {
-      const [rulesData, channelsData, agentSvcs, agts, directRows, infrastructureRows] = await Promise.all([
-        api.getAlertRules(),
-        api.getNotificationChannels(),
-        api.getAllAgentServicesFlat(),
-        api.getAgents(),
-        api.getObservedServices(),
-        api.getInfrastructureResources(),
-      ]);
-      setRules(rulesData);
-      setChannels(channelsData);
-      setAgentServices(agentSvcs ?? []);
-      setAgents(agts ?? []);
-      setDirectServices(directRows ?? []);
-      setInfrastructureResources(infrastructureRows ?? []);
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // 요청을 비워 두면 탭을 다시 열 때 폼이 또 열리지 않는다.
   useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    if (addTrigger) handleAddRule();
-  }, [addTrigger]);
-
-  const handleToggle = async (id: string) => {
-    setTogglingIds(prev => new Set(prev).add(id));
-    try {
-      const result = await api.toggleAlertRule(id);
-      setRules(prev => prev.map(r => r.id === id ? { ...r, isEnabled: result.isEnabled } : r));
-      toast.success(result.isEnabled ? '규칙이 활성화되었습니다' : '규칙이 비활성화되었습니다');
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setTogglingIds(prev => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    }
-  };
+    if (!addRequest) return;
+    onAddRequestHandled?.();
+    handleAddRule(addRequest.initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 요청이 올 때 한 번만 연다. 대상 등은 그 시점의 값을 쓴다.
+  }, [addRequest]);
 
   const handleDeleteConfirm = async () => {
     if (!deleteTargetId) return;
@@ -245,7 +75,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
       await api.deleteAlertRule(deleteTargetId);
       toast.success('규칙이 삭제되었습니다');
       setDeleteTargetId(null);
-      loadData();
+      onReloadRules();
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -254,9 +84,15 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
   };
 
   const closeForm = () => { setFormOpen(false); setFormRule(undefined); };
-  const onFormSuccess = () => { closeForm(); loadData(); };
+  const onFormSuccess = () => { closeForm(); onReloadRules(); };
 
-  const handleAddRule = () => { setFormRule(undefined); setFormLoading(false); setFormOpen(true); };
+  // 대상 필터가 걸린 목록에서 추가하면 그 대상을 폼에 채운다(A-09).
+  const handleAddRule = (initial?: AlertRuleFormInitial) => {
+    setFormRule(undefined);
+    setFormInitial({ ...alertTargetInitial(target ?? null), ...initial });
+    setFormLoading(false);
+    setFormOpen(true);
+  };
 
   // Edit fetches the full rule (list rows may omit channelIds) — same as the old page.
   const handleEdit = async (rule: AlertRule) => {
@@ -281,7 +117,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
       if (enabledFilter !== 'all' && (enabledFilter === 'on' ? !r.isEnabled : r.isEnabled)) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
-        const target = targetLabel(r, agentServices, agents, directServices, infrastructureResources).toLowerCase();
+        const target = targetLabel(r, names).toLowerCase();
         if (!r.name.toLowerCase().includes(q) && !target.includes(q)) return false;
       }
       return true;
@@ -291,26 +127,18 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
       let v = 0;
       if (sortKey === 'severity') v = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
       else if (sortKey === 'name') v = a.name.localeCompare(b.name);
-      else if (sortKey === 'target') v = targetLabel(a, agentServices, agents, directServices, infrastructureResources).localeCompare(targetLabel(b, agentServices, agents, directServices, infrastructureResources));
+      else if (sortKey === 'target') v = targetLabel(a, names).localeCompare(targetLabel(b, names));
       else if (sortKey === 'category') v = ruleCategory(a).localeCompare(ruleCategory(b));
       return sortDir === 'asc' ? v : -v;
     });
-  }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, agentServices, agents, directServices, infrastructureResources, target]);
+  }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, names, target]);
 
-  const selectedTargetLabel = target?.kind === 'direct'
-    ? directServices.find((service) => service.id === target.serviceId)?.name ?? target.serviceId
-    : target?.kind === 'infrastructure'
-    ? infrastructureResources.find((resource) => resource.id === target.resourceId)?.name ?? target.resourceId
-    : target
-      ? (() => {
-          const service = agentServices.find((item) => item.agentId === target.agentId && item.key === target.serviceKey);
-          return service ? `${service.agentName} / ${service.name}` : target.serviceKey;
-        })()
-      : null;
+  const selectedTargetLabel = target ? alertTargetName(target, names) : null;
   const targetNotice = selectedTargetLabel && (
     <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status">
       <MaterialIcon size={20} name="filter_alt" className="text-action" />
-      <span className="truncate">대상: {selectedTargetLabel}</span>
+      <span className="min-w-0 flex-1 truncate">대상: {selectedTargetLabel}</span>
+      {onClearTarget && <Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button>}
     </div>
   );
 
@@ -349,6 +177,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
       ) : (
         <AlertRuleForm
           rule={formRule}
+          initial={formInitial}
           channels={channels}
           onSuccess={onFormSuccess}
           onCancel={closeForm}
@@ -358,27 +187,31 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
     </FormSidePanel>
   );
 
-  if (isLoading) {
+  if (rulesLoading) {
     return (
-      <div className="p-8 text-center text-slate-500">
+      <div className="p-8 text-center text-text-muted">
         <MaterialIcon size={32} name="sync" className="text-action animate-spin mx-auto mb-2 block" />
         로딩 중…
       </div>
     );
   }
 
+  const errorBanner = rulesError && <LoadErrorBanner title="알림 규칙을 불러오지 못했습니다" message={rulesError} onRetry={onReloadRules} />;
+
+  // 조회에 실패했으면 빈 상태 대신 배너만 보인다 — "규칙이 없다"고 말하지 않는다.
   if (rules.length === 0) {
     return (
       <>
         {formPanel}
         {targetNotice}
-        <div className="bg-bg-surface border border-ui-border rounded-xl">
+        {errorBanner}
+        {!rulesError && <div className="bg-bg-surface border border-ui-border rounded-xl">
           <EmptyState
             icon="rule"
             title="구성된 알림 규칙이 없습니다"
-            action={{ label: '추가', onClick: handleAddRule }}
+            action={{ label: '추가', onClick: () => handleAddRule() }}
           />
-        </div>
+        </div>}
       </>
     );
   }
@@ -387,6 +220,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
     <>
       {formPanel}
       {targetNotice}
+      {errorBanner}
       {/* Filter bar — category pills + severity/enabled + search */}
       <ListToolbar search={
         <div className="relative">
@@ -412,6 +246,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
             { value: 'endpoint', label: '헬스체크' },
             { value: 'request', label: 'API 요청' },
             { value: 'log', label: '로그' },
+            { value: 'metric', label: '메트릭' },
             { value: 'resource', label: '인프라' },
             { value: 'system', label: '시스템 규칙' },
           ]}
@@ -447,9 +282,9 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
         {filteredRules.length === 0 ? <p className="rounded-xl border border-ui-border p-5 text-sm text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
-            <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words text-sm text-text-muted">{compactTrigger(rule)}</p></Tooltip>
+            <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, names)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words text-sm text-text-muted">{compactTrigger(rule)}</p></Tooltip>
             <div className="mt-3"><ChannelAvatars rule={rule} channels={channels} /></div><p className="mt-3 type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p>
-            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => handleToggle(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
+            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
       </div> : (
       <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
@@ -497,7 +332,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                             {rule.name}
                           </span>
                           {rule.isSystem && (
-                            <MaterialIcon size={20} name="lock" className="shrink-0 text-slate-400" />
+                            <MaterialIcon size={20} name="lock" className="shrink-0 text-text-dim" />
                           )}
                         </div>
                         <p className="truncate text-xs text-text-dim">
@@ -510,10 +345,12 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                         <SeverityBadge severity={rule.severity} />
                       </td>
                       <td className="px-4 py-2.5 align-middle">
-                        <Tooltip content={targetLabel(rule, agentServices, agents, directServices, infrastructureResources)} focusable><span
-                          className="inline-block max-w-full truncate rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-ui-hover-dark dark:text-text-base-dark"
+                        {/* 잘린 이름을 마우스로 볼 수 있게만 한다. 글자는 DOM에 있어 낭독되므로 Tab 정지점을 만들지 않는다(A-15). */}
+                        {/* 대상은 분류라 칩이 아니라 맨 텍스트다(§5.3 칩은 상태 전용). */}
+                        <Tooltip content={targetLabel(rule, names)}><span
+                          className="block max-w-full truncate text-sm text-text-secondary"
                         >
-                          {targetLabel(rule, agentServices, agents, directServices, infrastructureResources)}
+                          {targetLabel(rule, names)}
                         </span></Tooltip>
                       </td>
                       <td className="px-4 py-2.5 align-middle text-sm">
@@ -533,7 +370,7 @@ export function AlertRulesTab({ addTrigger, target }: AlertRulesTabProps) {
                         <div className="inline-flex items-center justify-end gap-1">
                           <Toggle
                             checked={rule.isEnabled}
-                            onChange={() => handleToggle(rule.id)}
+                            onChange={() => onToggleRule(rule.id)}
                             disabled={togglingIds.has(rule.id)}
                             title={rule.isEnabled ? '비활성화' : '활성화'}
                             ariaLabel={rule.name}
@@ -590,51 +427,5 @@ function SortableTH({ label, active, dir, onClick, className = '' }: { label: st
         <span className={active ? 'opacity-100' : 'opacity-30'}>{active && dir === 'desc' ? '↓' : '↑'}</span>
       </button>
     </th>
-  );
-}
-
-const MAX_CHANNEL_AVATARS = 4;
-
-function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: NotificationChannel[] }) {
-
-  // Empty channelIds = the rule notifies all channels
-  const ruleChannels = !rule.channelIds || rule.channelIds.length === 0
-    ? channels
-    : rule.channelIds
-        .map(cid => channels.find(c => c.id === cid))
-        .filter((c): c is NotificationChannel => !!c);
-
-  if (ruleChannels.length === 0) {
-    return (
-      <span className="inline-flex max-w-full items-center gap-1.5 text-sm text-text-dim">
-        <MaterialIcon size={20} name="notifications_off" className="shrink-0" />
-        <span className="truncate">등록된 알림 채널이 없습니다</span>
-      </span>
-    );
-  }
-
-  const visible = ruleChannels.slice(0, MAX_CHANNEL_AVATARS);
-  const overflow = ruleChannels.length - visible.length;
-  const names = ruleChannels.map(c => c.name).join(', ');
-
-  return (
-    <Tooltip content={names} focusable><div className="flex items-center">
-      {visible.map((ch, i) => {
-        const style = getChannelStyle(ch.type);
-        return (
-          <div
-            key={ch.id}
-            className={`flex h-6 w-6 items-center justify-center rounded-md ring-2 ring-white dark:ring-bg-surface-dark ${style.bg} ${i > 0 ? '-ml-1.5' : ''}`}
-          >
-            <ChannelIcon type={ch.type} size={13} className={style.text} />
-          </div>
-        );
-      })}
-      {overflow > 0 && (
-        <span className="-ml-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs text-slate-500 ring-2 ring-white dark:bg-ui-hover-dark dark:text-text-muted-dark dark:ring-bg-surface-dark">
-          +{overflow}
-        </span>
-      )}
-    </div></Tooltip>
   );
 }

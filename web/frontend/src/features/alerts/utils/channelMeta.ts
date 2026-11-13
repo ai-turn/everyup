@@ -6,7 +6,7 @@ const channelStyles: Record<string, ChannelStyle> = {
   slack: { bg: 'bg-purple-500/10', text: 'text-purple-500' },
 };
 
-const fallbackStyle: ChannelStyle = { bg: 'bg-slate-500/10', text: 'text-slate-500' };
+const fallbackStyle: ChannelStyle = { bg: 'bg-ui-hover', text: 'text-text-muted' };
 
 export function getChannelStyle(type: string): ChannelStyle {
   return channelStyles[type] ?? fallbackStyle;

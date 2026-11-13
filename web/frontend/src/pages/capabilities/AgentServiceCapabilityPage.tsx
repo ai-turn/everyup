@@ -221,7 +221,7 @@ export function AgentServiceCapabilityPage() {
         title={`업타임 ${selectedMonitors.length}개를 삭제할까요?`}
         message={<>
           <strong className="break-all font-medium text-text-base">{selectedMonitors.slice(0, 3).map((monitor) => monitor.name).join(', ')}</strong>
-          {selectedMonitors.length > 3 && ` 외 ${selectedMonitors.length - 3}개`}를 삭제하면 수집된 상태와 체크 기록도 함께 삭제됩니다.
+          {selectedMonitors.length > 3 && ` 외 ${selectedMonitors.length - 3}개`}를 삭제하면 수집된 상태와 체크 기록, 각 모니터만 대상으로 하는 알림 규칙도 함께 삭제됩니다.
         </>}
         confirmLabel="삭제"
         isProcessing={bulkWorking}

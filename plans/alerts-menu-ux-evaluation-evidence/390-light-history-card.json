@@ -1,0 +1,21 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=history&view=card",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n성공률\n\n91%\n\n발송\n\n29\n\n실패\n\n3\n\n알림 채널\n4\n알림 규칙\n8\n알림 로그\n\nOps Telegram\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\n약 1시간 전\nTelegram\n\n#alerts Discord\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n약 2시간 전\nDiscord\n\n#incidents Slack\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n약 2시간 전\nSlack\n\n#backoffice Slack\n\nService Down: status_change eq 0 — 60분 지속\n\n약 3시간 전\nSlack\n\nOps Telegram\n\nMemory Pressure: memory gt 90 — 3분 지속\n\n약 4시간 전\nTelegram\n\n#alerts Discord\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n약 5시간 전\nDiscord\n\n#incidents Slack\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\n약 5시간 전\nSlack\n\n#backoffice Slack\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n약 6시간 전\nSlack\n\nOps Telegram\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\n약 7시간 전\nTelegram\n\n#alerts Discord\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n약 8시간 전\nDiscord\n\n#incidents Slack\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n약 8시간 전\nSlack\n\n#backoffice Slack\n\nService Down: status_change eq 0 — 60분 지속\n\n약 9시간 전\nSlack\n\nOps Telegram\n\nMemory Pressure: memory gt 90 — 3분 지속\n\n약 10시간 전\nTelegram\n\n#alerts Discord\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n약 11시간 전\nDiscord\n\n#incidents Slack\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\n약 11시간 전\nSlack\n\n#backoffice Slack\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n약 12시간 전\nSlack\n\nOps Telegram\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\n약 13시간 전\nTelegram\n\n#alerts Discord\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n약 14시간 전\nDiscord\n\n#incidents Slack\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n약 14시간 전\nSlack\n\n#backoffice Slack\n\nService Down: status_change eq 0 — 60분 지속\n\n약 15시간 전\nSlack\n\nOps Telegram\n\nMemory Pressure: memory gt 90 — 3분 지속\n\n약 16시간 전\nTelegram\n\n#alerts Discord\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n약 17시간 전\nDiscord\n\n#incidents Slack\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\n약 17시간 전\nSlack\n\n#backoffice Slack\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n약 18시간 전\nSlack\n\nOps Telegram\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\n약 19시간 전\nTelegram\n\n#alerts Discord\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n약 20시간 전\nDiscord\n\n#incidents Slack\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n약 20시간 전\nSlack\n\n#backoffice Slack\n\nService Down: status_change eq 0 — 60분 지속\n\n약 21시간 전\nSlack\n\nOps Telegram\n\nMemory Pressure: memory gt 90 — 3분 지속\n\n약 22시간 전\nTelegram\n\n#alerts Discord\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n약 23시간 전\nDiscord\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 390,
+  "vw": 390,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

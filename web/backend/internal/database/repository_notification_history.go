@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/aiturn/everyup/internal/models"
@@ -169,8 +170,9 @@ func (r *NotificationHistoryRepository) GetAll(filter *models.NotificationHistor
 			args = append(args, *filter.ChannelID)
 		}
 		if filter.AlertType != nil {
-			query += " AND alert_type = ?"
-			args = append(args, *filter.AlertType)
+			clause, typeArgs := alertTypeClause(*filter.AlertType)
+			query += clause
+			args = append(args, typeArgs...)
 		}
 		if filter.Status != nil {
 			query += " AND status = ?"
@@ -282,8 +284,9 @@ func (r *NotificationHistoryRepository) GetCount(filter *models.NotificationHist
 			args = append(args, *filter.ChannelID)
 		}
 		if filter.AlertType != nil {
-			query += " AND alert_type = ?"
-			args = append(args, *filter.AlertType)
+			clause, typeArgs := alertTypeClause(*filter.AlertType)
+			query += clause
+			args = append(args, typeArgs...)
 		}
 		if filter.Status != nil {
 			query += " AND status = ?"
@@ -395,4 +398,19 @@ func (r *NotificationHistoryRepository) DeleteOlderThan(days int) (int64, error)
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+// alertTypeClause matches one stored alert type or a comma list of them, so a
+// UI category can span several types (헬스체크 = endpoint + healthcheck).
+func alertTypeClause(value string) (string, []interface{}) {
+	var args []interface{}
+	for _, t := range strings.Split(value, ",") {
+		if t = strings.TrimSpace(t); t != "" {
+			args = append(args, t)
+		}
+	}
+	if len(args) == 0 {
+		return "", nil
+	}
+	return " AND alert_type IN (?" + strings.Repeat(", ?", len(args)-1) + ")", args
 }
