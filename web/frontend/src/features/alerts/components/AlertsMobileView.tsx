@@ -4,10 +4,10 @@ import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, ResourceT
 import { useListView } from '../../../hooks/useListView';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { getChannelStyle } from '../utils/channelMeta';
-import { ChannelHealthMeta } from './ChannelHealthMeta';
+import { ChannelHealthMeta, ChannelTestResult, type ChannelTestOutcome } from './ChannelHealthMeta';
 import type { NotificationChannel, NotificationChannelHealth, AlertRule, NotificationHistory, NotificationStats } from '../../../services/api';
 import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
-import { alertTargetName, categoryLabel, compactTrigger, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames } from '../ruleDisplay';
+import { alertTargetName, categoryLabel, compactTrigger, historyStatus, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames } from '../ruleDisplay';
 import { ChannelAvatars } from './ChannelAvatars';
 import { LoadErrorBanner } from './LoadErrorBanner';
 import { SeverityBadge } from './SeverityBadge';
@@ -38,6 +38,7 @@ interface AlertsMobileViewProps {
   onClearTarget: () => void;
   togglingIds: Set<string>;
   testingIds: Set<string>;
+  testResults: Record<string, ChannelTestOutcome>;
   errors: { channels: string | null; rules: string | null; history: string | null };
   onRetry: { channels: () => void; rules: () => void; history: () => void };
 }
@@ -72,6 +73,7 @@ export function AlertsMobileView({
   onClearTarget,
   togglingIds,
   testingIds,
+  testResults,
   errors,
   onRetry,
 }: AlertsMobileViewProps) {
@@ -173,7 +175,7 @@ export function AlertsMobileView({
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={channels} rowKey={row => row.id} ariaLabel="알림 채널 그리드" columns={[
-              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3"><ChannelHealthMeta health={channelHealth[channel.id]} compact /></div><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
+              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3"><ChannelHealthMeta health={channelHealth[channel.id]} compact /></div>{testResults[channel.id] && <div className="mt-2"><ChannelTestResult result={testResults[channel.id]} /></div>}<div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
               { key: 'enabled', label: '상태', className: 'w-16', render: channel => <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /> },
             ]} /> : channels.map(channel => {
               const meta = getChannelStyle(channel.type);
@@ -201,6 +203,7 @@ export function AlertsMobileView({
                   </div>
                   <div className="mb-3 pb-3 border-b border-ui-border-soft/50">
                     <ChannelHealthMeta health={channelHealth[channel.id]} compact />
+                    {testResults[channel.id] && <div className="mt-2"><ChannelTestResult result={testResults[channel.id]} /></div>}
                   </div>
                   <div className="flex gap-2">
                     <Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)} className="flex-1">
@@ -283,8 +286,8 @@ export function AlertsMobileView({
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={history} rowKey={row => row.id} ariaLabel="알림 로그 그리드" columns={[
-              { key: 'message', label: '메시지', render: item => <><p className="break-words text-sm">{item.message}</p><p className="mt-2 type-caption text-text-muted">{item.channelName} · {item.channelType}</p><p className="mt-1 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}</p></> },
-              { key: 'status', label: '상태', className: 'w-24', render: item => <StatusLight tone={item.status === 'sent' ? 'healthy' : item.status === 'failed' ? 'error' : 'warn'} label={item.status} /> },
+              { key: 'message', label: '메시지', render: item => <><p className="break-words text-sm">{item.message}</p><p className="mt-2 type-caption text-text-muted">{item.channelName} · {item.channelType}</p>{item.errorMessage && <p className="mt-1 break-words type-caption text-status-error">{item.errorMessage}</p>}<p className="mt-1 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}</p></> },
+              { key: 'status', label: '상태', className: 'w-24', render: item => <StatusLight {...historyStatus(item.status)} /> },
             ]} /> : history.map(item => {
               const statusConf = historyStatusConfig[item.status] ?? historyStatusConfig.pending;
               return (
@@ -294,6 +297,7 @@ export function AlertsMobileView({
                 >
                   <div className="flex items-start gap-3">
                     <MaterialIcon size={20} name={statusConf.icon} className={`mt-0.5 shrink-0 ${statusConf.color}`} />
+                    <span className="sr-only">{historyStatus(item.status).label}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-text-base truncate">
                         {item.hostName || item.serviceName || item.channelName}
@@ -301,6 +305,8 @@ export function AlertsMobileView({
                       <p className="text-sm text-text-muted truncate mt-0.5">
                         {item.message}
                       </p>
+                      {/* 실패 사유는 모바일에서도 보인다(A-10). */}
+                      {item.errorMessage && <p className="mt-1 break-words type-caption text-status-error">{item.errorMessage}</p>}
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-sm text-text-dim">
                           {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}

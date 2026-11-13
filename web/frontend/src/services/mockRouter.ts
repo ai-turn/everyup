@@ -1683,7 +1683,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const query = new URLSearchParams(endpoint.split('?')[1]);
     const rows = mockNotificationHistory.items.filter(row =>
       (!query.get('channel_id') || row.channelId === query.get('channel_id'))
-      && (!query.get('alert_type') || row.alertType === query.get('alert_type'))
+      && (!query.get('alert_type') || query.get('alert_type')!.split(',').includes(row.alertType))
       && (!query.get('status') || row.status === query.get('status'))
       && (!query.get('q') || row.message.toLowerCase().includes(query.get('q')!.toLowerCase()))
       && (!query.get('from') || row.createdAt >= query.get('from')!)

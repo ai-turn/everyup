@@ -9,6 +9,7 @@ import { useIsMobile } from '../../hooks/useMediaQuery';
 import { ConfirmDialog } from '../../components/common';
 import { alertTargetInitial, parseAlertTarget } from '../../features/alerts/alertTarget';
 import { FormSidePanel } from '../../features/alerts/components/FormSidePanel';
+import type { ChannelTestOutcome } from '../../features/alerts/components/ChannelHealthMeta';
 import { FormActions } from '../../features/alerts/components/FormLayout';
 import { AlertRuleForm, type AlertRuleFormInitial } from '../../features/alerts/components/AlertRuleForm';
 import type { RuleAddRequest } from '../../features/alerts/components/AlertRulesTab';
@@ -42,6 +43,7 @@ export function AlertsPage() {
   const [mobileRuleSubmitting, setMobileRuleSubmitting] = useState(false);
   const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
   const [testingIds, setTestingIds] = useState<Set<string>>(new Set());
+  const [testResults, setTestResults] = useState<Record<string, ChannelTestOutcome>>({});
   const [channelsError, setChannelsError] = useState<string | null>(null);
   const [rulesError, setRulesError] = useState<string | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
@@ -196,9 +198,12 @@ export function AlertsPage() {
     setTestingIds(prev => new Set(prev).add(id));
     try {
       await api.testNotificationChannel(id);
-      toast.success('테스트 알림이 전송되었습니다!');
+      setTestResults(prev => ({ ...prev, [id]: { ok: true, at: new Date().toISOString() } }));
+      toast.success('테스트 알림을 보냈습니다');
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      setTestResults(prev => ({ ...prev, [id]: { ok: false, at: new Date().toISOString(), message } }));
+      toast.error(message);
     } finally {
       setTestingIds(prev => {
         const next = new Set(prev);
@@ -318,6 +323,7 @@ export function AlertsPage() {
           onToggleRule={handleToggleRule}
           togglingIds={togglingIds}
           testingIds={testingIds}
+          testResults={testResults}
           errors={{ channels: channelsError, rules: rulesError, history: historyError }}
           onRetry={{ channels: refreshChannels, rules: loadRules, history: loadHistory }}
         />
@@ -370,6 +376,8 @@ export function AlertsPage() {
         activeTab={activeTab}
         setActiveTab={handleSetActiveTab}
         togglingIds={togglingIds}
+        testingIds={testingIds}
+        testResults={testResults}
         ruleAddRequest={ruleAddRequest}
         onRuleAddRequestHandled={() => setRuleAddRequest(null)}
         alertTarget={alertTarget}

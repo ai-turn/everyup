@@ -1,6 +1,7 @@
 // 규칙 목록(데스크톱 표·카드, 모바일 카드)이 같이 쓰는 표시 규칙.
 import { useEffect, useState } from 'react';
 import type { AlertTarget } from './alertTarget';
+import type { StatusTone } from '../../components/common';
 import { api, type AlertRule, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService, type UptimeMonitor } from '../../services/api';
 
 /** 규칙 대상의 이름을 찾는 목록들. 헬스체크 규칙의 serviceId는 업타임 모니터일 수 있다. */
@@ -214,4 +215,17 @@ export function compactTrigger(rule: AlertRule): string {
     return `${conditionExpr(rule)} · ${rule.duration}회 연속`;
   }
   return `${conditionExpr(rule)} · ${formatMinutes(rule.duration)} 지속`;
+}
+
+// ─── 발송 이력 ──────────────────────────────────────────────────────────────
+
+// 발송 상태는 StatusLight로 보인다. 라벨은 상태색으로 칠하지 않는다(DESIGN §5.1).
+const HISTORY_STATUS: Record<string, { tone: StatusTone; label: string }> = {
+  sent: { tone: 'healthy', label: '발송' },
+  failed: { tone: 'error', label: '실패' },
+  pending: { tone: 'warn', label: '대기' },
+};
+
+export function historyStatus(status: string): { tone: StatusTone; label: string } {
+  return HISTORY_STATUS[status] ?? { tone: 'idle', label: status };
 }

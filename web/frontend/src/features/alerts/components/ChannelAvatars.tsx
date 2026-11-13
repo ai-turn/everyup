@@ -8,7 +8,7 @@ const MAX_CHANNEL_AVATARS = 4;
 
 export function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: NotificationChannel[] }) {
 
-  // Empty channelIds = the rule notifies all channels
+  // 채널을 고르지 않은 규칙은 켜진 채널 전부로 보낸다. 고른 채널도 꺼져 있으면 서버가 건너뛴다(alerter/manager.go).
   const ruleChannels = !rule.channelIds || rule.channelIds.length === 0
     ? channels
     : rule.channelIds
@@ -24,9 +24,19 @@ export function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: 
     );
   }
 
+  // 실제로 보낼 곳이 없으면 정상 규칙과 똑같이 보이지 않게 말한다(A-13).
+  if (!ruleChannels.some(c => c.isEnabled)) {
+    return (
+      <span className="inline-flex max-w-full items-center gap-1.5 text-sm text-status-warn">
+        <MaterialIcon size={20} name="notifications_off" className="shrink-0" />
+        <span className="truncate">보낼 채널 없음</span>
+      </span>
+    );
+  }
+
   const visible = ruleChannels.slice(0, MAX_CHANNEL_AVATARS);
   const overflow = ruleChannels.length - visible.length;
-  const names = ruleChannels.map(c => c.name).join(', ');
+  const names = ruleChannels.map(c => c.isEnabled ? c.name : `${c.name} (꺼짐)`).join(', ');
 
   return (
     // 아바타는 아이콘뿐이라 채널 이름을 접근 이름으로 준다(A-15).
@@ -36,14 +46,14 @@ export function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: 
         return (
           <div
             key={ch.id}
-            className={`flex h-6 w-6 items-center justify-center rounded-md ring-2 ring-white dark:ring-bg-surface-dark ${style.bg} ${i > 0 ? '-ml-1.5' : ''}`}
+            className={`flex h-6 w-6 items-center justify-center rounded-md ring-2 ring-bg-surface ${style.bg} ${i > 0 ? '-ml-1.5' : ''} ${ch.isEnabled ? '' : 'opacity-40'}`}
           >
             <ChannelIcon type={ch.type} size={13} className={style.text} />
           </div>
         );
       })}
       {overflow > 0 && (
-        <span className="-ml-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs text-slate-500 ring-2 ring-white dark:bg-ui-hover-dark dark:text-text-muted-dark dark:ring-bg-surface-dark">
+        <span className="-ml-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-ui-hover text-xs text-text-muted ring-2 ring-bg-surface">
           +{overflow}
         </span>
       )}

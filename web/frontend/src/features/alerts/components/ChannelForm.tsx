@@ -338,9 +338,9 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
     const handleTest = async () => {
         const valid = await trigger();
         if (!valid) {
+            // 필드 아래 인라인 오류가 정본이다. 결과 상자에 이유만 남긴다(DESIGN §7).
             setTestState('error');
             setTestError('필수 항목을 먼저 입력하세요');
-            toast.error('필수 항목을 먼저 입력하세요');
             return;
         }
 
@@ -380,7 +380,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                             className={`flex flex-col items-center gap-2 p-4 border-2 rounded-xl cursor-pointer transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary ${
                                                 active
                                                     ? m.colorBg
-                                                    : 'border-ui-border-soft hover:border-slate-200 dark:hover:border-slate-600'
+                                                    : 'border-ui-border-soft hover:border-ui-border'
                                             }`}
                                         >
                                             <input {...register('type')} type="radio" value={type} className="sr-only" />
@@ -461,12 +461,12 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                     </FormStep>
                 </div>
 
-                {/* ── Right: sticky preview + test ─────────────────────── */}
-                <div className="hidden lg:block">
-                    <div className="sticky top-6 space-y-4">
+                {/* ── Right: preview (lg+) + test (모든 폭, 좁으면 폼 아래) ──────── */}
+                <div>
+                    <div className="lg:sticky lg:top-6 space-y-4">
 
                         {/* Channel preview card */}
-                        <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
+                        <div className="hidden lg:block bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
                                 <div>
                                     <p className="text-sm font-medium text-text-base">채널 미리보기</p>
@@ -551,9 +551,9 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                                 {testState === 'success' && (
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">
-                                        <MaterialIcon size={20} name="check_circle" className="text-emerald-500 mt-0.5 shrink-0" />
+                                        <MaterialIcon size={20} name="check_circle" className="text-status-healthy mt-0.5 shrink-0" />
                                         <div>
-                                            <p className="text-sm text-emerald-600 dark:text-emerald-400">발송 성공</p>
+                                            <p className="text-sm text-text-base">발송 성공</p>
                                             <p className="text-sm text-text-muted mt-0.5">{`${testTime}에 전송되었습니다`}</p>
                                         </div>
                                     </div>
@@ -561,9 +561,9 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                                 {testState === 'error' && (
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">
-                                        <MaterialIcon size={20} name="error" className="text-red-500 mt-0.5 shrink-0" />
+                                        <MaterialIcon size={20} name="error" className="text-status-error mt-0.5 shrink-0" />
                                         <div>
-                                            <p className="text-sm text-red-600 dark:text-red-400">발송 실패</p>
+                                            <p className="text-sm text-text-base">발송 실패</p>
                                             <p className="text-sm text-text-muted mt-0.5">{testError}</p>
                                         </div>
                                     </div>

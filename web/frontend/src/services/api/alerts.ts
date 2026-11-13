@@ -106,7 +106,7 @@ export interface NotificationChannelHealth {
 }
 
 export type NotificationStatus = 'sent' | 'failed' | 'pending';
-export type NotificationAlertType = 'resource' | 'healthcheck' | 'log' | 'scheduled' | 'endpoint';
+export type NotificationAlertType = 'resource' | 'healthcheck' | 'log' | 'endpoint' | 'api_request' | 'otel_metric' | 'system';
 
 export interface NotificationHistory {
   id: number;

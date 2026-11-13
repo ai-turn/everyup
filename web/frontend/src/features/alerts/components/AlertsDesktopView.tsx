@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, EmptyState, Toggle } from '../../../components/common';
 import { useListView } from '../../../hooks/useListView';
-import { ChannelHealthMeta } from './ChannelHealthMeta';
+import { ChannelHealthMeta, ChannelTestResult, type ChannelTestOutcome } from './ChannelHealthMeta';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { AlertRulesTab, type RuleAddRequest } from './AlertRulesTab';
 import { ChannelForm } from './ChannelForm';
@@ -39,6 +39,8 @@ interface AlertsDesktopViewProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   togglingIds: Set<string>;
+  testingIds: Set<string>;
+  testResults: Record<string, ChannelTestOutcome>;
   ruleAddRequest: RuleAddRequest | null;
   onRuleAddRequestHandled: () => void;
   alertTarget: AlertTarget | null;
@@ -65,6 +67,8 @@ export function AlertsDesktopView({
   activeTab,
   setActiveTab,
   togglingIds,
+  testingIds,
+  testResults,
   ruleAddRequest,
   onRuleAddRequestHandled,
   alertTarget,
@@ -197,7 +201,7 @@ export function AlertsDesktopView({
 
       {/* Tab Content */}
       {activeTab === 'history' ? (
-        <NotificationHistoryTab key={historyStatus ?? 'default'} channels={channels} initialStatus={historyStatus} />
+        <NotificationHistoryTab key={historyStatus ?? 'default'} channels={channels} rules={rules} initialStatus={historyStatus} />
       ) : activeTab === 'channels' ? (
         <>
           <FormSidePanel
@@ -225,6 +229,8 @@ export function AlertsDesktopView({
             channelHealth={channelHealth}
             isLoading={isLoading}
             togglingIds={togglingIds}
+            testingIds={testingIds}
+            testResults={testResults}
             onAdd={() => openChannelForm()}
             onEdit={openChannelForm}
             onDelete={onDeleteChannel}
@@ -248,6 +254,8 @@ interface ChannelsGridProps {
   /** 조회에 실패했으면 빈 상태를 보이지 않는다 — 위의 배너가 말한다. */
   failed: boolean;
   togglingIds: Set<string>;
+  testingIds: Set<string>;
+  testResults: Record<string, ChannelTestOutcome>;
   onAdd: () => void;
   onEdit: (channel: NotificationChannel) => void;
   onDelete: (id: string) => void;
@@ -255,7 +263,7 @@ interface ChannelsGridProps {
   onTest: (id: string) => void;
 }
 
-function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds, onAdd, onEdit, onDelete, onToggle, onTest }: ChannelsGridProps) {
+function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds, testingIds, testResults, onAdd, onEdit, onDelete, onToggle, onTest }: ChannelsGridProps) {
   const { view } = useListView();
 
   if (isLoading) {
@@ -300,19 +308,20 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
   if (view === 'card') return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{channels.map(channel => <article key={channel.id} aria-label={channel.name} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
     <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{channel.name}</h2><p className="mt-1 type-caption text-text-muted">{getChannelSubtitle(channel.type)}</p></div><Toggle checked={channel.isEnabled} onChange={() => onToggle(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /></div>
     <div className="mt-4"><ChannelHealthMeta health={channelHealth[channel.id]} compact /></div>
-    <div className="mt-4 flex items-center justify-end gap-2"><Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled}><MaterialIcon name="send" size={20} />테스트</Button><IconButton icon="edit" label="수정" onClick={() => onEdit(channel)} /><IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => onDelete(channel.id)} /></div>
+    {testResults[channel.id] && <div className="mt-3"><ChannelTestResult result={testResults[channel.id]} /></div>}
+    <div className="mt-4 flex items-center justify-end gap-2"><Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />테스트</Button><IconButton icon="edit" label="수정" onClick={() => onEdit(channel)} /><IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => onDelete(channel.id)} /></div>
   </article>)}</div>;
 
   return (
     <div className="overflow-x-auto rounded-xl border border-ui-border bg-bg-surface">
-      <table aria-label="알림 채널 그리드" className="w-full min-w-[960px] table-fixed">
+      <table aria-label="알림 채널 그리드" className="w-full min-w-[1000px] table-fixed">
         <thead className="bg-ui-table-header">
           <tr className="border-b border-ui-border">
             <th className="w-[280px] px-4 py-3 text-left text-xs font-medium text-text-muted">채널</th>
             <th className="w-[90px] px-4 py-3 text-left text-xs font-medium text-text-muted">상태</th>
             <th className="w-[150px] px-4 py-3 text-left text-xs font-medium text-text-muted">7일 발송 / 실패</th>
             <th className="w-[110px] px-4 py-3 text-left text-xs font-medium text-text-muted">연결 규칙</th>
-            <th className="w-[160px] px-4 py-3 text-left text-xs font-medium text-text-muted">최근 발송</th>
+            <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-text-muted">최근 발송</th>
             <th className="sticky right-0 w-[180px] border-l border-ui-border-soft bg-ui-table-header px-4 py-3 text-right text-xs font-medium text-text-muted">작업</th>
           </tr>
         </thead>
@@ -369,12 +378,13 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                 </td>
                 <td className="px-4 py-2.5 text-sm text-text-muted">
                   {lastSent
-                    ? formatDistanceToNow(lastSent, { addSuffix: true, locale: ko })
-                    : <span className="text-text-dim">테스트로 확인</span>}
+                    ? <p>{formatDistanceToNow(lastSent, { addSuffix: true, locale: ko })}</p>
+                    : !testResults[channel.id] && <span className="text-text-dim">테스트로 확인</span>}
+                  <ChannelTestResult result={testResults[channel.id]} />
                 </td>
                 <td className="sticky right-0 border-l border-ui-border-soft bg-bg-surface px-4 py-2.5 transition-colors group-hover:bg-ui-hover-soft">
                   <div className="flex items-center justify-end gap-1">
-                    <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} className="whitespace-nowrap">
+                    <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)} className="whitespace-nowrap">
                       <MaterialIcon size={20} name="send" />
                       테스트
                     </Button>

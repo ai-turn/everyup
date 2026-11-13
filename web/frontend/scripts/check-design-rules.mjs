@@ -31,8 +31,8 @@ const RULES = [
   // 글자 역할 토큰을 단색 채움에 쓰지 않는다. /10 틴트는 허용. 고대비 모드 규칙도 -fill 이름에 기댄다.
   { name: '§1.4 상태 채움은 bg-status-*-fill', re: /\bbg-status-(?:healthy|warn|error|idle)(?![-\w/])/g },
   // 부채 — 현재 건수가 상한 (§10.A·§10.F)
-  { name: '§1.1 *-dark 토큰 직접 사용', re: /\b(?:text|bg|border|ring|fill|stroke|outline|divide|placeholder)-[a-z-]+-dark\b/g, max: 17 },
-  { name: '§10.A slate-* 하드코딩', re: /-slate-\d{2,3}\b/g, max: 47 },
+  { name: '§1.1 *-dark 토큰 직접 사용', re: /\b(?:text|bg|border|ring|fill|stroke|outline|divide|placeholder)-[a-z-]+-dark\b/g, max: 13 },
+  { name: '§10.A slate-* 하드코딩', re: /-slate-\d{2,3}\b/g, max: 43 },
   { name: '§10.A bg-white', re: /\bbg-white\b/g, max: 5 },
 ];
 
