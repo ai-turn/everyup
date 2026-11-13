@@ -47,6 +47,9 @@ export function AlertsPage() {
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [ruleAddRequest, setRuleAddRequest] = useState<RuleAddRequest | null>(null);
   const [mobileRuleInitial, setMobileRuleInitial] = useState<AlertRuleFormInitial | undefined>(undefined);
+  // 모바일 규칙 카드의 수정·삭제(A-06). 수정은 목록 행에 없는 channelIds까지 받으려고 규칙을 다시 읽는다.
+  const [mobileEditRule, setMobileEditRule] = useState<AlertRule | null>(null);
+  const [pendingDeleteRuleId, setPendingDeleteRuleId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -238,6 +241,35 @@ export function AlertsPage() {
   const handleAddRule = () => {
     setRuleAddRequest({});
   };
+
+  const openMobileRuleEdit = async (rule: AlertRule) => {
+    try {
+      setMobileEditRule(await api.getAlertRuleById(rule.id));
+      setMobileRuleFormOpen(true);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const closeMobileRuleForm = () => {
+    setMobileRuleFormOpen(false);
+    setMobileEditRule(null);
+  };
+
+  const confirmDeleteRule = async () => {
+    if (!pendingDeleteRuleId) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteAlertRule(pendingDeleteRuleId);
+      toast.success('규칙이 삭제되었습니다');
+      setPendingDeleteRuleId(null);
+      void loadRules();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
   // --- Render ---
   const deleteDialog = (
     <ConfirmDialog
@@ -275,7 +307,10 @@ export function AlertsPage() {
           activeTab={activeTab}
           setActiveTab={handleSetActiveTab}
           onAddChannel={handleAddChannel}
-          onAddRule={() => { setMobileRuleInitial(alertTargetInitial(alertTarget)); setMobileRuleFormOpen(true); }}
+          onAddRule={() => { setMobileEditRule(null); setMobileRuleInitial(alertTargetInitial(alertTarget)); setMobileRuleFormOpen(true); }}
+          onEditRule={(rule) => void openMobileRuleEdit(rule)}
+          onDeleteRule={setPendingDeleteRuleId}
+          onClearTarget={clearTarget}
           onEditChannel={handleEditChannel}
           onDeleteChannel={handleDeleteChannel}
           onToggleChannel={handleToggleChannel}
@@ -289,18 +324,29 @@ export function AlertsPage() {
         <FormSidePanel
           open={mobileRuleFormOpen}
           icon="rule"
-          title="새 알림 규칙"
-          onClose={() => setMobileRuleFormOpen(false)}
-          footer={<FormActions formId="alert-rule-form" isEdit={false} isSubmitting={mobileRuleSubmitting} onCancel={() => setMobileRuleFormOpen(false)} />}
+          title={mobileEditRule ? '알림 규칙 수정' : '새 알림 규칙'}
+          onClose={closeMobileRuleForm}
+          footer={<FormActions formId="alert-rule-form" isEdit={!!mobileEditRule} isSubmitting={mobileRuleSubmitting} onCancel={closeMobileRuleForm} />}
         >
           <AlertRuleForm
+            rule={mobileEditRule ?? undefined}
             channels={channels}
             initial={mobileRuleInitial}
-            onSuccess={() => { setMobileRuleFormOpen(false); void loadRules(); }}
-            onCancel={() => setMobileRuleFormOpen(false)}
+            onSuccess={() => { closeMobileRuleForm(); void loadRules(); }}
+            onCancel={closeMobileRuleForm}
             onSubmittingChange={setMobileRuleSubmitting}
           />
         </FormSidePanel>
+        <ConfirmDialog
+          isOpen={pendingDeleteRuleId !== null}
+          onClose={() => setPendingDeleteRuleId(null)}
+          onConfirm={confirmDeleteRule}
+          title="알림 규칙 삭제"
+          message={`"${rules.find(rule => rule.id === pendingDeleteRuleId)?.name ?? pendingDeleteRuleId}" 규칙을 삭제하시겠습니까?`}
+          description="이 작업은 되돌릴 수 없습니다."
+          variant="danger"
+          isProcessing={isDeleting}
+        />
         {deleteDialog}
       </>
     );

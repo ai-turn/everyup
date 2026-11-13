@@ -80,3 +80,138 @@ export function alertTargetName(target: AlertTarget, names: TargetNames): string
   const service = names.agentServices.find(item => item.agentId === target.agentId && item.key === target.serviceKey);
   return service ? `${service.agentName} / ${service.name}` : missingTarget(target.serviceKey, names);
 }
+
+// ─── 조건 문구 ──────────────────────────────────────────────────────────────
+
+export const SEVERITY_ORDER: Record<string, number> = { critical: 0, warning: 1, info: 2 };
+
+const ENDPOINT_METRICS = new Set(['http_status', 'response_time']);
+
+const OPERATOR_SYMBOLS: Record<string, string> = {
+  gt: '>',
+  gte: '>=',
+  lt: '<',
+  lte: '<=',
+  eq: '=',
+};
+
+export type CategoryKey = 'all' | 'endpoint' | 'request' | 'log' | 'metric' | 'resource' | 'system';
+
+export function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
+  if (rule.isSystem) return 'system';
+  // 메트릭 규칙은 type이 service지만 헬스체크가 아니다 — metric으로 가른다.
+  if (rule.metric === 'otel_metric') return 'metric';
+  if (rule.type === 'service') return 'endpoint';
+  if (rule.type === 'request') return 'request';
+  if (rule.type === 'log') return 'log';
+  return 'resource';
+}
+
+const CATEGORY_LABELS: Record<Exclude<CategoryKey, 'all'>, string> = {
+  endpoint: '헬스체크',
+  request: 'API 요청',
+  log: '로그',
+  metric: '메트릭',
+  resource: '인프라',
+  system: '시스템',
+};
+
+const METRIC_LABELS: Record<string, string> = {
+  cpu: 'CPU',
+  memory: '메모리',
+  disk: '디스크',
+  status_change: '상태 변경',
+  http_status: 'HTTP 상태',
+  response_time: '응답 시간',
+  log_level: '로그 레벨',
+  api_status_code: 'API 상태',
+  error_rate: '에러율',
+  latency_p95: 'p95 지연',
+  latency_p99: 'p99 지연',
+};
+
+// 연산자별 서술어. 없는 연산자는 기호 표기로 폴백한다.
+const OPERATOR_WORDS: Record<string, string> = {
+  gt: '초과',
+  gte: '이상',
+  lt: '미만',
+  lte: '이하',
+  eq: '같음',
+};
+
+export function categoryLabel(category: Exclude<CategoryKey, 'all'>): string {
+  return CATEGORY_LABELS[category];
+}
+
+function metricLabel(metric: string): string {
+  return METRIC_LABELS[metric] ?? metric;
+}
+
+function thresholdValue(rule: AlertRule): string {
+  const unit = rule.metric === 'response_time' || rule.metric === 'latency_p95' || rule.metric === 'latency_p99' ? 'ms' : ENDPOINT_METRICS.has(rule.metric) || rule.metric === 'log_level' || rule.metric === 'api_status_code' ? '' : '%';
+  return `${rule.threshold}${unit}`;
+}
+
+function conditionExpr(rule: AlertRule): string {
+  const metric = metricLabel(rule.metric);
+  const value = thresholdValue(rule);
+  const word = OPERATOR_WORDS[rule.operator];
+  if (word) return `${metric} ${value} ${word}`;
+  return `${metric} ${OPERATOR_SYMBOLS[rule.operator] ?? rule.operator} ${value}`;
+}
+
+function formatMinutes(minutes: number): string {
+  if (minutes >= 60 && minutes % 60 === 0) {
+    return `${minutes / 60}시간`;
+  }
+  return `${minutes}분`;
+}
+
+function formatSeconds(seconds: number): string {
+  if (seconds >= 3600 && seconds % 3600 === 0) {
+    return `${seconds / 3600}시간`;
+  }
+  if (seconds >= 60 && seconds % 60 === 0) {
+    return `${seconds / 60}분`;
+  }
+  return `${seconds}초`;
+}
+
+export function evaluationSummary(rule: AlertRule): string {
+  if (rule.metric === 'otel_metric') {
+    return '메트릭을 수신할 때마다 평가 · 같은 시리즈는 일정 시간에 한 번만 발송';
+  }
+  if (rule.type === 'service') {
+    return '헬스체크 결과가 조건에 맞을 때마다 평가';
+  }
+  if (rule.type === 'log') {
+    return '로그/API 이벤트마다 평가';
+  }
+  if (rule.type === 'request') {
+    return `최근 ${formatMinutes(rule.duration)} 구간을 1분마다 평가 · ${formatSeconds(rule.cooldown)} 쿨다운`;
+  }
+  if (rule.isSystem) {
+    return '시스템에서 자동 평가';
+  }
+  return `${formatMinutes(rule.duration)} 동안 지속 · ${formatSeconds(rule.cooldown)} 쿨다운`;
+}
+
+export function compactTrigger(rule: AlertRule): string {
+  if (rule.isSystem) {
+    return '시스템에서 자동 평가';
+  }
+  // OTel 메트릭은 단위를 모르므로 붙이지 않는다.
+  if (rule.metric === 'otel_metric') {
+    return `${rule.metricName || '메트릭'} ${OPERATOR_SYMBOLS[rule.operator] ?? rule.operator} ${rule.threshold} · 수신 즉시`;
+  }
+  if (rule.type === 'log') {
+    return `${conditionExpr(rule)} · 즉시`;
+  }
+  if (rule.type === 'request') {
+    return `${conditionExpr(rule)} · 최근 ${formatMinutes(rule.duration)}`;
+  }
+  if (rule.type === 'service') {
+    return `${conditionExpr(rule)} · ${rule.duration}회 연속`;
+  }
+  return `${conditionExpr(rule)} · ${formatMinutes(rule.duration)} 지속`;
+}

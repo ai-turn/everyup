@@ -6,8 +6,11 @@ import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { getChannelStyle } from '../utils/channelMeta';
 import { ChannelHealthMeta } from './ChannelHealthMeta';
 import type { NotificationChannel, NotificationChannelHealth, AlertRule, NotificationHistory, NotificationStats } from '../../../services/api';
-import { severityLabel } from '../utils/severityLabel';
 import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
+import { alertTargetName, categoryLabel, compactTrigger, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames } from '../ruleDisplay';
+import { ChannelAvatars } from './ChannelAvatars';
+import { LoadErrorBanner } from './LoadErrorBanner';
+import { SeverityBadge } from './SeverityBadge';
 
 type MobileTab = 'channels' | 'rules' | 'history';
 
@@ -30,17 +33,14 @@ interface AlertsMobileViewProps {
   onToggleChannel: (id: string) => void;
   onTestChannel: (id: string) => void;
   onToggleRule: (id: string) => void;
+  onEditRule: (rule: AlertRule) => void;
+  onDeleteRule: (id: string) => void;
+  onClearTarget: () => void;
   togglingIds: Set<string>;
   testingIds: Set<string>;
   errors: { channels: string | null; rules: string | null; history: string | null };
   onRetry: { channels: () => void; rules: () => void; history: () => void };
 }
-
-const severityColors: Record<string, { text: string; bg: string }> = {
-  critical: { text: 'text-red-600 dark:text-red-400', bg: 'bg-red-500/10' },
-  warning: { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10' },
-  info: { text: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-500/10' },
-};
 
 const historyStatusConfig: Record<string, { icon: string; color: string }> = {
   sent: { icon: 'check_circle', color: 'text-status-healthy' },
@@ -67,6 +67,9 @@ export function AlertsMobileView({
   onToggleChannel,
   onTestChannel,
   onToggleRule,
+  onEditRule,
+  onDeleteRule,
+  onClearTarget,
   togglingIds,
   testingIds,
   errors,
@@ -74,12 +77,16 @@ export function AlertsMobileView({
 }: AlertsMobileViewProps) {
   const { view, setView } = useListView();
 
-  const visibleRules = alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules;
-  const targetDescription = alertTarget?.kind === 'direct'
-    ? `직접 서비스 ${alertTarget.serviceId}`
-    : alertTarget?.kind === 'infrastructure'
-    ? `인프라 ${alertTarget.resourceId}`
-    : alertTarget ? `Docker 서비스 ${alertTarget.serviceKey}` : undefined;
+  const names = useTargetNames();
+  // 데스크톱 표의 기본 정렬과 같게 심각도 순으로 둔다.
+  const visibleRules = (alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules)
+    .slice().sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 3) - (SEVERITY_ORDER[b.severity] ?? 3));
+  const targetDescription = alertTarget ? alertTargetName(alertTarget, names) : undefined;
+  const ruleMeta = (rule: AlertRule) => `${rule.isSystem ? '시스템 규칙' : categoryLabel(ruleCategory(rule))} · ${targetLabel(rule, names)}`;
+  const ruleActions = (rule: AlertRule) => <>
+    <IconButton icon="edit" label="규칙 수정" onClick={() => onEditRule(rule)} />
+    <IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '규칙 삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} onClick={() => { if (!rule.isSystem) onDeleteRule(rule.id); }} />
+  </>;
 
   const tabs: { key: MobileTab; label: string; icon: string; count?: number }[] = [
     { key: 'channels', label: '알림 채널', icon: 'notifications', count: channels.length },
@@ -151,12 +158,12 @@ export function AlertsMobileView({
       {/* Channels Tab */}
       {activeTab === 'channels' && (
         <div id="alerts-mobile-panel-channels" role="tabpanel" className="space-y-3">
-          {errors.channels && <InlineError message={errors.channels} onRetry={onRetry.channels} />}
+          {errors.channels && <LoadErrorBanner title="알림 채널을 불러오지 못했습니다" message={errors.channels} onRetry={onRetry.channels} />}
           {isLoading ? (
             [1, 2].map(i => (
               <div key={i} className="h-20 rounded-xl bg-ui-hover animate-pulse" />
             ))
-          ) : channels.length === 0 ? (
+          ) : channels.length === 0 ? errors.channels ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="notifications_off" className="text-text-dim" />
               <p className="text-sm text-text-dim mt-2">
@@ -213,13 +220,13 @@ export function AlertsMobileView({
       {/* Rules Tab */}
       {activeTab === 'rules' && (
         <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-2">
-          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="truncate">대상: {targetDescription}</span></div>}
-          {errors.rules && <InlineError message={errors.rules} onRetry={onRetry.rules} />}
+          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
+          {errors.rules && <LoadErrorBanner title="알림 규칙을 불러오지 못했습니다" message={errors.rules} onRetry={onRetry.rules} />}
           {rulesLoading ? (
             [1, 2].map(i => (
               <div key={i} className="h-16 rounded-xl bg-ui-hover animate-pulse" />
             ))
-          ) : visibleRules.length === 0 ? (
+          ) : visibleRules.length === 0 ? errors.rules ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="rule" className="text-text-dim" />
               <p className="text-sm text-text-dim mt-2">
@@ -229,33 +236,32 @@ export function AlertsMobileView({
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={visibleRules} rowKey={row => row.id} ariaLabel="알림 규칙 그리드" columns={[
-              { key: 'name', label: '규칙', render: rule => <><p className="truncate font-medium">{rule.name}</p><p className="mt-2 break-words type-caption text-text-muted">{severityLabel(rule.severity)} · {rule.metric} {rule.operator} {rule.threshold}</p><p className="mt-1 type-caption text-text-muted">{rule.isEnabled ? '활성화됨' : '비활성화됨'}</p></> },
+              { key: 'name', label: '규칙', render: rule => <><p className="truncate font-medium">{rule.name}</p><p className="mt-1 break-words type-caption text-text-muted">{ruleMeta(rule)}</p><p className="mt-2 break-words text-sm text-text-secondary">{compactTrigger(rule)}</p><div className="mt-2 flex flex-wrap items-center gap-2"><SeverityBadge severity={rule.severity} /><ChannelAvatars rule={rule} channels={channels} /></div><div className="mt-2 flex gap-1">{ruleActions(rule)}</div></> },
               { key: 'enabled', label: '상태', className: 'w-16', render: rule => <Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /> },
-            ]} /> : visibleRules.map(rule => {
-              const sev = severityColors[rule.severity] ?? severityColors.info;
-              return (
-                <div
-                  key={rule.id}
-                  className={`bg-bg-surface border border-ui-border rounded-xl p-4 ${!rule.isEnabled ? 'opacity-50' : ''}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-lg ${sev.bg} flex items-center justify-center shrink-0`}>
-                      <span className={`text-xs ${sev.text}`}>
-                        {rule.metric === 'cpu' ? 'CPU' : rule.metric?.slice(0, 3)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-text-base truncate">{rule.name}</p>
-                      <p className="text-sm text-text-muted capitalize">
-                        {severityLabel(rule.severity)} · {rule.metric} {rule.operator} {rule.threshold}
-                      </p>
-                    </div>
-                    <Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} />
+            ]} /> : visibleRules.map(rule => (
+              <article
+                key={rule.id}
+                aria-label={rule.name}
+                className="bg-bg-surface border border-ui-border rounded-xl p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className={`text-sm truncate ${rule.isEnabled ? 'text-text-base' : 'text-text-muted'}`}>{rule.name}</p>
+                    <p className="mt-0.5 break-words type-caption text-text-muted">{ruleMeta(rule)}</p>
                   </div>
-                  <p className="mt-2 text-xs text-text-muted">{rule.isEnabled ? '활성화됨' : '비활성화됨'}</p>
+                  <SeverityBadge severity={rule.severity} />
                 </div>
-              );
-            })
+                <p className="mt-2 break-words text-sm text-text-secondary">{compactTrigger(rule)}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <ChannelAvatars rule={rule} channels={channels} />
+                  <span className="type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</span>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-ui-border-soft pt-3">
+                  <Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} />
+                  <div className="flex gap-1">{ruleActions(rule)}</div>
+                </div>
+              </article>
+            ))
           )}
         </div>
       )}
@@ -263,12 +269,12 @@ export function AlertsMobileView({
       {/* History Tab */}
       {activeTab === 'history' && (
         <div id="alerts-mobile-panel-history" role="tabpanel" className="space-y-2">
-          {errors.history && <InlineError message={errors.history} onRetry={onRetry.history} />}
+          {errors.history && <LoadErrorBanner title="발송 이력을 불러오지 못했습니다" message={errors.history} onRetry={onRetry.history} />}
           {historyLoading ? (
             [1, 2, 3].map(i => (
               <div key={i} className="h-16 rounded-xl bg-ui-hover animate-pulse" />
             ))
-          ) : history.length === 0 ? (
+          ) : history.length === 0 ? errors.history ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="history" className="text-text-dim" />
               <p className="text-sm text-text-dim mt-2">
@@ -311,16 +317,6 @@ export function AlertsMobileView({
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-function InlineError({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3" role="alert">
-      <MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" />
-      <div className="min-w-0 flex-1"><p className="text-sm font-medium text-text-base">불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{message}</p></div>
-      <Button size="sm" variant="secondary" onClick={onRetry}>다시 시도</Button>
     </div>
   );
 }

@@ -3,11 +3,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
 import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
-import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { api, type AlertRule, type NotificationChannel } from '../../../services/api';
-import { alertTargetName, targetLabel, useTargetNames } from '../ruleDisplay';
+import { alertTargetName, categoryLabel, compactTrigger, evaluationSummary, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames, type CategoryKey } from '../ruleDisplay';
+import { ChannelAvatars } from './ChannelAvatars';
 import { LoadErrorBanner } from './LoadErrorBanner';
-import { getChannelStyle } from '../utils/channelMeta';
 import { AlertRuleForm, type AlertRuleFormInitial } from './AlertRuleForm';
 import { FormSidePanel } from './FormSidePanel';
 import { FormActions } from './FormLayout';
@@ -16,139 +15,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { alertTargetInitial, matchesAlertTarget, type AlertTarget } from '../alertTarget';
 import { useListView } from '../../../hooks/useListView';
-
-const SEVERITY_ORDER: Record<string, number> = { critical: 0, warning: 1, info: 2 };
-
-const ENDPOINT_METRICS = new Set(['http_status', 'response_time']);
-
-const OPERATOR_SYMBOLS: Record<string, string> = {
-  gt: '>',
-  gte: '>=',
-  lt: '<',
-  lte: '<=',
-  eq: '=',
-};
-
-type CategoryKey = 'all' | 'endpoint' | 'request' | 'log' | 'metric' | 'resource' | 'system';
-
-function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
-  if (rule.isSystem) return 'system';
-  // 메트릭 규칙은 type이 service지만 헬스체크가 아니다 — metric으로 가른다.
-  if (rule.metric === 'otel_metric') return 'metric';
-  if (rule.type === 'service') return 'endpoint';
-  if (rule.type === 'request') return 'request';
-  if (rule.type === 'log') return 'log';
-  return 'resource';
-}
-
-const CATEGORY_LABELS: Record<Exclude<CategoryKey, 'all'>, string> = {
-  endpoint: '헬스체크',
-  request: 'API 요청',
-  log: '로그',
-  metric: '메트릭',
-  resource: '인프라',
-  system: '시스템',
-};
-
-const METRIC_LABELS: Record<string, string> = {
-  cpu: 'CPU',
-  memory: '메모리',
-  disk: '디스크',
-  status_change: '상태 변경',
-  http_status: 'HTTP 상태',
-  response_time: '응답 시간',
-  log_level: '로그 레벨',
-  api_status_code: 'API 상태',
-  error_rate: '에러율',
-  latency_p95: 'p95 지연',
-  latency_p99: 'p99 지연',
-};
-
-// 연산자별 서술어. 없는 연산자는 기호 표기로 폴백한다.
-const OPERATOR_WORDS: Record<string, string> = {
-  gt: '초과',
-  gte: '이상',
-  lt: '미만',
-  lte: '이하',
-  eq: '같음',
-};
-
-function categoryLabel(category: Exclude<CategoryKey, 'all'>): string {
-  return CATEGORY_LABELS[category];
-}
-
-function metricLabel(metric: string): string {
-  return METRIC_LABELS[metric] ?? metric;
-}
-
-function thresholdValue(rule: AlertRule): string {
-  const unit = rule.metric === 'response_time' || rule.metric === 'latency_p95' || rule.metric === 'latency_p99' ? 'ms' : ENDPOINT_METRICS.has(rule.metric) || rule.metric === 'log_level' || rule.metric === 'api_status_code' ? '' : '%';
-  return `${rule.threshold}${unit}`;
-}
-
-function conditionExpr(rule: AlertRule): string {
-  const metric = metricLabel(rule.metric);
-  const value = thresholdValue(rule);
-  const word = OPERATOR_WORDS[rule.operator];
-  if (word) return `${metric} ${value} ${word}`;
-  return `${metric} ${OPERATOR_SYMBOLS[rule.operator] ?? rule.operator} ${value}`;
-}
-
-function formatMinutes(minutes: number): string {
-  if (minutes >= 60 && minutes % 60 === 0) {
-    return `${minutes / 60}시간`;
-  }
-  return `${minutes}분`;
-}
-
-function formatSeconds(seconds: number): string {
-  if (seconds >= 3600 && seconds % 3600 === 0) {
-    return `${seconds / 3600}시간`;
-  }
-  if (seconds >= 60 && seconds % 60 === 0) {
-    return `${seconds / 60}분`;
-  }
-  return `${seconds}초`;
-}
-
-function evaluationSummary(rule: AlertRule): string {
-  if (rule.metric === 'otel_metric') {
-    return '메트릭을 수신할 때마다 평가 · 같은 시리즈는 일정 시간에 한 번만 발송';
-  }
-  if (rule.type === 'service') {
-    return '헬스체크 결과가 조건에 맞을 때마다 평가';
-  }
-  if (rule.type === 'log') {
-    return '로그/API 이벤트마다 평가';
-  }
-  if (rule.type === 'request') {
-    return `최근 ${formatMinutes(rule.duration)} 구간을 1분마다 평가 · ${formatSeconds(rule.cooldown)} 쿨다운`;
-  }
-  if (rule.isSystem) {
-    return '시스템에서 자동 평가';
-  }
-  return `${formatMinutes(rule.duration)} 동안 지속 · ${formatSeconds(rule.cooldown)} 쿨다운`;
-}
-
-function compactTrigger(rule: AlertRule): string {
-  if (rule.isSystem) {
-    return '시스템에서 자동 평가';
-  }
-  // OTel 메트릭은 단위를 모르므로 붙이지 않는다.
-  if (rule.metric === 'otel_metric') {
-    return `${rule.metricName || '메트릭'} ${OPERATOR_SYMBOLS[rule.operator] ?? rule.operator} ${rule.threshold} · 수신 즉시`;
-  }
-  if (rule.type === 'log') {
-    return `${conditionExpr(rule)} · 즉시`;
-  }
-  if (rule.type === 'request') {
-    return `${conditionExpr(rule)} · 최근 ${formatMinutes(rule.duration)}`;
-  }
-  if (rule.type === 'service') {
-    return `${conditionExpr(rule)} · ${rule.duration}회 연속`;
-  }
-  return `${conditionExpr(rule)} · ${formatMinutes(rule.duration)} 지속`;
-}
 
 type SortKey = 'severity' | 'name' | 'target' | 'category';
 type SortDir = 'asc' | 'desc';
@@ -559,51 +425,5 @@ function SortableTH({ label, active, dir, onClick, className = '' }: { label: st
         <span className={active ? 'opacity-100' : 'opacity-30'}>{active && dir === 'desc' ? '↓' : '↑'}</span>
       </button>
     </th>
-  );
-}
-
-const MAX_CHANNEL_AVATARS = 4;
-
-function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: NotificationChannel[] }) {
-
-  // Empty channelIds = the rule notifies all channels
-  const ruleChannels = !rule.channelIds || rule.channelIds.length === 0
-    ? channels
-    : rule.channelIds
-        .map(cid => channels.find(c => c.id === cid))
-        .filter((c): c is NotificationChannel => !!c);
-
-  if (ruleChannels.length === 0) {
-    return (
-      <span className="inline-flex max-w-full items-center gap-1.5 text-sm text-text-dim">
-        <MaterialIcon size={20} name="notifications_off" className="shrink-0" />
-        <span className="truncate">등록된 알림 채널이 없습니다</span>
-      </span>
-    );
-  }
-
-  const visible = ruleChannels.slice(0, MAX_CHANNEL_AVATARS);
-  const overflow = ruleChannels.length - visible.length;
-  const names = ruleChannels.map(c => c.name).join(', ');
-
-  return (
-    <Tooltip content={names} focusable><div className="flex items-center">
-      {visible.map((ch, i) => {
-        const style = getChannelStyle(ch.type);
-        return (
-          <div
-            key={ch.id}
-            className={`flex h-6 w-6 items-center justify-center rounded-md ring-2 ring-white dark:ring-bg-surface-dark ${style.bg} ${i > 0 ? '-ml-1.5' : ''}`}
-          >
-            <ChannelIcon type={ch.type} size={13} className={style.text} />
-          </div>
-        );
-      })}
-      {overflow > 0 && (
-        <span className="-ml-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs text-slate-500 ring-2 ring-white dark:bg-ui-hover-dark dark:text-text-muted-dark dark:ring-bg-surface-dark">
-          +{overflow}
-        </span>
-      )}
-    </div></Tooltip>
   );
 }
