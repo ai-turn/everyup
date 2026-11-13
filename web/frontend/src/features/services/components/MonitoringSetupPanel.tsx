@@ -104,7 +104,7 @@ function SetupStep({
   const appearance = {
     ready: {
       icon: 'check',
-      circle: 'bg-status-healthy text-white',
+      circle: 'bg-status-healthy-fill text-bg-surface',
       badge: 'bg-status-healthy/10 text-status-healthy',
     },
     waiting: {

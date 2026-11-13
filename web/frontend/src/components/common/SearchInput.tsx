@@ -22,7 +22,7 @@ export function SearchInput({ wrapperClassName = '', className = '', ...props }:
         type="text"
         className={
           'h-11 sm:h-10 w-full rounded-lg border border-ui-control-border bg-bg-surface pl-8 pr-3 ' +
-          `text-sm text-text-base placeholder:text-text-dim transition-colors ${className}`
+          `text-sm max-sm:text-base text-text-base placeholder:text-text-dim transition-colors ${className}`
         }
         {...props}
       />

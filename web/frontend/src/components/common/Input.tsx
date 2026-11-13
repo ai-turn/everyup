@@ -12,14 +12,18 @@ import { Tooltip } from './Tooltip';
  *
  * Button과 같은 이유로 **높이를 고정**한다(py 조합 금지): `<select>`는 line-height를
  * `normal`로 강제해 `leading-*`이 먹지 않아, py 기반으로 맞추면 input보다 2px 낮게 렌더된다.
- * 높이가 자유로워야 하는 textarea는 이 셸에 자기 py를 덧붙여 쓴다. */
+ * 높이가 자유로워야 하는 textarea는 이 셸에 자기 py를 덧붙여 쓴다.
+ *
+ * 실제 입력(input·textarea)은 sm 미만에서 `max-sm:text-base`(16px)를 덧붙인다. iOS Safari는 16px 미만
+ * 입력에 포커스하면 화면을 확대한다. 셸에 넣지 않는 이유: Select 트리거는 버튼이라 확대와 무관하고,
+ * 호출부가 넘기는 `text-xs`를 sm 이상에서 덮어쓰게 된다. */
 export const FIELD_SHELL =
   'w-full rounded-lg border bg-ui-hover-soft px-3 text-sm text-text-base transition-colors';
 
 // 터치 화면(sm 미만)에서 44px — Button md와 같은 규칙이라 나란히 놓여도 밑변이 맞는다.
 export const FIELD_HEIGHT = 'h-11 sm:h-10';
 
-const BASE = `${FIELD_SHELL} ${FIELD_HEIGHT} placeholder:text-text-dim disabled:opacity-50 disabled:cursor-not-allowed`;
+const BASE = `${FIELD_SHELL} ${FIELD_HEIGHT} max-sm:text-base placeholder:text-text-dim disabled:opacity-50 disabled:cursor-not-allowed`;
 
 interface InputProps extends ComponentPropsWithRef<'input'> {
   /** 검증 실패 — 보더를 붉게 하고 aria-invalid를 세운다. */
@@ -33,7 +37,7 @@ interface InputProps extends ComponentPropsWithRef<'input'> {
 // 보더 색은 컴포넌트가 정한다. className으로 넘기면 BASE의 border-ui-border와 특이도가 같아
 // 생성된 CSS 순서로 승패가 갈린다 — 호출부가 이길 거라 가정하면 안 된다.
 export function Input({ invalid = false, warn = false, mono = false, className = '', title, ...props }: InputProps) {
-  const border = invalid ? 'border-red-500' : warn ? 'border-amber-400' : 'border-ui-control-border';
+  const border = invalid ? 'border-status-error-fill' : warn ? 'border-status-warn-fill' : 'border-ui-control-border';
   return (
     <Tooltip content={title}><input
       aria-invalid={invalid || undefined}

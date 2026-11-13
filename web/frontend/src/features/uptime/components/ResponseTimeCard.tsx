@@ -89,7 +89,7 @@ function responseAxis(values: number[]) {
 function ResponseTooltip({ point, color, messages }: { point?: ResponsePoint; color: string; messages: string[] }) {
   if (!point) return null;
   return (
-    <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-chart-border bg-bg-surface px-3.5 py-3 text-sm shadow-lg">
+    <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-ui-border bg-ui-raised px-3.5 py-3 text-sm shadow-lg">
       <p className="mb-2 type-caption text-text-muted">{formatTimeLabel(point.t)} – {formatTimeTick(point.end)}</p>
       {point.missing ? <p className="text-text-secondary">수집 데이터 없음</p> : (
         <>

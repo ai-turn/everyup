@@ -215,7 +215,7 @@ function ServiceRequestTrends({
   const view = {
     count: {
       caption: `건 / ${bucketMs / 60_000}분`,
-      legend: [{ label: '성공', color: theme.primaryColor }, { label: '에러', color: SERIES_HEX.red }],
+      legend: [{ label: '성공', color: theme.primaryColor }, { label: '에러', color: theme.errorColor }],
       prevKey: 'prevCount' as const,
       prevLabel: '지난주',
       max: Math.max(0, ...values('count')),
@@ -250,11 +250,11 @@ function ServiceRequestTrends({
       {summary && (summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther) > 0 && (() => {
         const total = summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther;
         const classes: { label: string; status?: StatusClass; count: number; bar: string; text: string }[] = [
-          { label: '2xx', status: '2xx' as const, count: summary.count2xx, bar: 'bg-status-healthy', text: 'text-status-healthy' },
+          { label: '2xx', status: '2xx' as const, count: summary.count2xx, bar: 'bg-status-healthy-fill', text: 'text-status-healthy' },
           { label: '3xx', status: '3xx' as const, count: summary.count3xx, bar: 'bg-slate-400', text: 'text-text-muted' },
-          { label: '4xx', status: '4xx' as const, count: summary.count4xx, bar: 'bg-status-warn', text: 'text-status-warn' },
-          { label: '5xx', status: '5xx' as const, count: summary.count5xx, bar: 'bg-status-error', text: 'text-status-error' },
-          { label: '기타', count: summary.countOther, bar: 'bg-status-idle', text: 'text-text-muted' },
+          { label: '4xx', status: '4xx' as const, count: summary.count4xx, bar: 'bg-status-warn-fill', text: 'text-status-warn' },
+          { label: '5xx', status: '5xx' as const, count: summary.count5xx, bar: 'bg-status-error-fill', text: 'text-status-error' },
+          { label: '기타', count: summary.countOther, bar: 'bg-status-idle-fill', text: 'text-text-muted' },
         ].filter((c) => c.count > 0);
         // 서비스 상세에서는 아래 Endpoint 표가 "5xx 최다" 한 줄을 대신한다. 표가 없는 Docker 환경 전체 추이에만 남긴다.
         const rollup = sourceKind === 'agent' && !serviceKey;
@@ -321,7 +321,7 @@ function ServiceRequestTrends({
       <div tabIndex={0} role="group" aria-label="요청 추이. 좌우 방향키로 시점별 값을 읽습니다." className="rounded-lg" onKeyDown={kbd.onKeyDown} onBlur={kbd.onBlur}>
       <ResponsiveContainer width="100%" height={CHART_HEIGHT} minWidth={0} initialDimension={CHART_INITIAL_DIMENSION}>
         <ComposedChart data={data} margin={CHART_MARGIN} accessibilityLayer={false}>
-          {shown === 'error' && areaGradient(gradientId, SERIES_HEX.red)}
+          {shown === 'error' && areaGradient(gradientId, theme.errorColor)}
           <CartesianGrid {...gridProps(theme)} />
           <XAxis {...timeXAxisProps(theme, timeWindow)} />
           <YAxis {...yAxisProps(theme, 52)} {...niceYAxis(Math.max(view.max, ...prevValues))} tickFormatter={(v) => formatAxisValue(v)} />
@@ -341,12 +341,12 @@ function ServiceRequestTrends({
           />
           {shown === 'count' && [
             // A surface-coloured stroke leaves a hairline between the stacked segments.
-            <Bar key="success" dataKey="success" stackId="requests" name="성공" fill={theme.primaryColor} fillOpacity={0.5} stroke={theme.tooltipBg} strokeWidth={1} isAnimationActive={false} />,
-            <Bar key="errors" dataKey="errors" stackId="requests" name="에러" fill={SERIES_HEX.red} stroke={theme.tooltipBg} strokeWidth={1} isAnimationActive={false} />,
+            <Bar key="success" dataKey="success" stackId="requests" name="성공" fill={theme.primaryColor} fillOpacity={0.5} stroke={theme.surfaceColor} strokeWidth={1} isAnimationActive={false} />,
+            <Bar key="errors" dataKey="errors" stackId="requests" name="에러" fill={theme.errorColor} stroke={theme.surfaceColor} strokeWidth={1} isAnimationActive={false} />,
           ]}
           {shown === 'error' && [
             <Area key="fill" {...areaProps(gradientId)} dataKey="errorRate" />,
-            <Line key="line" {...lineProps(SERIES_HEX.red, theme)} dataKey="errorRate" name="에러율" />,
+            <Line key="line" {...lineProps(theme.errorColor, theme)} dataKey="errorRate" name="에러율" />,
           ]}
           {shown === 'latency' && [
             <Line key="p50" {...lineProps(theme.primaryColor, theme)} dataKey="p50" name="p50" />,
@@ -403,7 +403,7 @@ function bucketRows(row: ChartPoint | undefined, theme: ChartTheme, shown: Metri
   if (!row) return [];
   const rows: TooltipPayloadItem[] = [
     { name: '요청', value: row.count, unit: '건', color: theme.primaryColor },
-    { name: '에러', value: row.errors, unit: row.errorRate === null ? '건' : `건 · ${row.errorRate}%`, color: SERIES_HEX.red },
+    { name: '에러', value: row.errors, unit: row.errorRate === null ? '건' : `건 · ${row.errorRate}%`, color: theme.errorColor },
   ];
   if (row.p50 !== null) rows.push({ name: 'p50', value: row.p50, unit: 'ms', color: theme.primaryColor });
   if (row.p95 !== null) rows.push({ name: 'p95', value: row.p95, unit: 'ms', color: SERIES_HEX.emerald });

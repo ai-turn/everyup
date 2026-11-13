@@ -106,6 +106,25 @@
   --color-status-idle: #60646c;         /* slate-11 — offline·paused·unknown */
   --color-status-idle-dark: #b0b4ba;
 
+  /* 5a. Status fill: 점·게이지·막대·임계선처럼 글자가 아닌 상태 표시(ADR 0010).
+     위 status-*는 글자 역할(4.5:1)이라 라이트에서 진하다 — 채움에 쓰면 warn이 갈색으로 보였다.
+     채움은 3:1(WCAG 1.4.11)만 넘으면 되므로 더 밝게 둔다. 흰 카드·bg-main·ui-hover 위 3:1 이상.
+     적록색각이상(Machado 2009) ΔE: healthy↔error 41.2(라이트, 이전 39.8) / 42.8(다크),
+     healthy↔idle 17.1 / 21.0(이전 8.9 / 4.5 — 회색과 정상이 거의 같았다), warn↔error 13.3 / 49.2. */
+  --color-status-healthy-fill: #059669;
+  --color-status-healthy-fill-dark: #3dd6c6;
+  --color-status-warn-fill: #c77700;
+  --color-status-warn-fill-dark: #ffca16;
+  --color-status-error-fill: #dc2626;
+  --color-status-error-fill-dark: #ff6369;
+  --color-status-idle-fill: #80838d;    /* slate-10 — text-muted와 같은 값이던 것을 갈랐다 */
+  --color-status-idle-fill-dark: #80838d;
+
+  /* 5b. Danger: 파괴 확정 버튼의 채움. primary처럼 라이트·다크 같은 값 — 흰 글자 4.83 / hover 6.47.
+     다크 status-error(#ff6369)는 밝아서 흰 글자를 올릴 수 없다. */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+
   /* 6. Chart tokens — 다크 그리드/툴팁 보더 전용. chartTheme.ts가 getCssVar로 읽는다.
      chart-bg(#131920)는 당시 bg-surface-dark와 대비 1.02로 사실상 같은 색이라 제거하고
      bg-bg-surface로 통합했다. 쓰이지 않던 chart-surface/chart-hover/text-chart-dim도 함께 제거. */
@@ -199,10 +218,13 @@
   --card-bg: var(--color-bg-surface);
   --border-color: var(--color-ui-border);
 
-  /* Toast Light */
-  --toast-bg: #ffffff;
+  /* 토스트는 스크림 없이 본문 위에 뜨는 표면이라 ui-raised다(DESIGN.md §3.5). 토큰이 자가 전환한다. */
+  --toast-bg: var(--color-ui-raised);
   --toast-color: var(--color-text-base);
   --toast-border: var(--color-ui-border);
+
+  /* 네이티브 컨트롤(체크박스·스크롤바·자동완성)도 테마를 따르게 한다. */
+  color-scheme: light;
 }
 
 .dark {
@@ -233,12 +255,13 @@
   --color-status-warn: var(--color-status-warn-dark);
   --color-status-error: var(--color-status-error-dark);
   --color-status-idle: var(--color-status-idle-dark);
+  --color-status-healthy-fill: var(--color-status-healthy-fill-dark);
+  --color-status-warn-fill: var(--color-status-warn-fill-dark);
+  --color-status-error-fill: var(--color-status-error-fill-dark);
+  --color-status-idle-fill: var(--color-status-idle-fill-dark);
   --color-chart-border: #2e3135;
 
-  /* Toast Dark */
-  --toast-bg: #18191b;
-  --toast-color: var(--color-text-base-dark);
-  --toast-border: var(--color-ui-border-dark);
+  color-scheme: dark;
 }
 
 /* Reset & Base Styles */
@@ -264,8 +287,10 @@ body {
 
 /* Global Focus Ring: 사용자 경험(UX) 개선 */
 @layer base {
+  /* 링은 action 색이다. primary는 다크 배경에서 3.38~3.62로 3:1 하한에 붙어 있었다.
+     action은 라이트 5.27~6.00 / 다크 6.34~9.15(ui-raised 포함). */
   :focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--color-action);
     outline-offset: 2px;
   }
 
@@ -284,6 +309,15 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* 강제 색상 모드(Windows 고대비): 브라우저가 배경색을 지워 상태 점·게이지가 사라진다.
+   상태 채움만 원래 색을 유지한다 — 라벨 없는 점(§5.2)은 그게 유일한 시각 정보다.
+   ponytail: 클래스 이름 매칭. 상태 채움이 bg-status-*-fill 밖으로 새면 여기서 빠진다. */
+@media (forced-colors: active) {
+  [class*='bg-status-'][class*='-fill'] {
+    forced-color-adjust: none;
   }
 }
 

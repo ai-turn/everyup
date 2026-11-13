@@ -379,7 +379,7 @@ function PanelSectionHeader({ icon, title, count }: { icon: string; title: strin
 
 // Solid bar color for the waterfall track — error wins, else by span kind.
 function spanBarColor(span: TraceSpan): string {
-  if (span.statusCode === 'ERROR') return 'bg-status-error';
+  if (span.statusCode === 'ERROR') return 'bg-status-error-fill';
   switch (span.kind) {
     case 'SERVER':   return 'bg-emerald-500';
     case 'CLIENT':   return 'bg-sky-500';

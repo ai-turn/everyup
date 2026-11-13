@@ -212,11 +212,7 @@ export function ChartTooltip({
 
   return (
     <div
-      className="min-w-36 rounded-lg px-3 py-2 text-sm shadow-lg"
-      style={{
-        background: theme.tooltipBg,
-        border: `1px solid ${theme.tooltipBorder}`,
-      }}
+      className="min-w-36 rounded-lg border border-ui-border bg-ui-raised px-3 py-2 text-sm shadow-lg"
     >
       <p className="mb-2 text-xs" style={{ color: theme.tickColor }}>
         {labelFormatter ? labelFormatter(label) : typeof label === 'number' ? formatTimeLabel(label) : label}

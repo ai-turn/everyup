@@ -115,10 +115,10 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
                 day === null
                   ? 'bg-ui-hover'
                   : day.uptime >= 99.5
-                    ? 'bg-status-healthy'
+                    ? 'bg-status-healthy-fill'
                     : day.uptime >= 50
-                      ? 'bg-status-warn'
-                      : 'bg-status-error'
+                      ? 'bg-status-warn-fill'
+                      : 'bg-status-error-fill'
               }`}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}

@@ -61,7 +61,7 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
           <Sparkline values={gauge.spark} />
         ) : (
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-ui-hover">
-            <div className={`h-full rounded-full ${critical ? 'bg-status-error' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+            <div className={`h-full rounded-full ${critical ? 'bg-status-error-fill' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
           </div>
         )}
       </div>

@@ -145,7 +145,7 @@ export function Select({
         <MaterialIcon size={20} name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-text-muted" />
       </button></Tooltip>
       {open && createPortal(
-        <div ref={menuRef} id={menuId} role="listbox" aria-label={ariaLabel} style={{ top: position.top, left: position.left, width: position.width }} className="fixed z-[60] max-h-64 overflow-y-auto rounded-lg border border-ui-border bg-bg-surface p-1 shadow-lg">
+        <div ref={menuRef} id={menuId} role="listbox" aria-label={ariaLabel} style={{ top: position.top, left: position.left, width: position.width }} className="fixed z-[60] max-h-64 overflow-y-auto rounded-lg border border-ui-border bg-ui-raised p-1 shadow-lg">
           {options.map((option) => {
             const isSelected = option.value === selectedValue;
             return (
