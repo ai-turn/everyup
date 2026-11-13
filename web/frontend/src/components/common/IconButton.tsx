@@ -7,9 +7,9 @@ import { Tooltip } from './Tooltip';
 // `text-slate-400 hover:text-primary` 문자열을 대체한다.
 
 const TONES = {
-  action: 'text-action hover:bg-action/10',
-  danger: 'text-status-error hover:bg-status-error/10',
-  quiet: 'text-text-muted hover:text-text-base hover:bg-ui-hover',
+  action: 'text-action not-aria-disabled:hover:bg-action/10 not-aria-disabled:active:bg-action/15',
+  danger: 'text-status-error not-aria-disabled:hover:bg-status-error/10 not-aria-disabled:active:bg-status-error/15',
+  quiet: 'text-text-muted not-aria-disabled:hover:text-text-base not-aria-disabled:hover:bg-ui-hover not-aria-disabled:active:bg-ui-active',
 } as const;
 
 // md는 터치 화면(sm 미만)에서 44px — Button md와 같은 규칙.
@@ -19,7 +19,8 @@ const BASE =
   'inline-flex shrink-0 items-center justify-center rounded-lg transition-colors cursor-pointer ' +
   'disabled:opacity-50 disabled:cursor-not-allowed ' +
   // 비활성 이유를 키보드로도 확인해야 하면 aria-disabled를 쓴다.
-  'aria-disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:hover:bg-transparent';
+  // hover·누름 반응은 TONES가 not-aria-disabled:로만 건다.
+  'aria-disabled:opacity-50 aria-disabled:cursor-not-allowed';
 
 /** className을 받는 자리(CopyButton 등)에서 쓰는 조합. */
 export const ICON_ACTION = `${BASE} ${TONES.action} ${SIZES.md}`;

@@ -40,7 +40,7 @@ carousel:
   - title: 트레이스
     caption: 요청 처리 과정과 관련 API 요청·로그를 한 패널에서 확인합니다. 같은 trace ID로 수집된 데이터를 연결하며, 별도로 수집한 요청·응답 바디는 관리자만 볼 수 있습니다.
     image: trace
-    alt: 결제 요청 트레이스 패널. SERVER·CLIENT span 오류, 마스킹된 요청 JSON과 upstream_timeout 응답, 503 API 요청, 관련 오류 로그 2건.
+    alt: 결제 요청 트레이스 패널. SERVER·CLIENT span 오류, 마스킹된 요청 JSON과 upstream_timeout 응답, 503 API 요청, 관련 로그.
   - title: 알림
     caption: Telegram·Discord·Slack 채널과 알림 규칙을 관리하고, 발송 성공률과 실패 이력을 확인합니다.
     image: alerts

@@ -34,9 +34,9 @@ type StatusFilter = 'all' | 'sent' | 'failed';
 type PeriodDays = 1 | 7 | 30;
 
 const STATUS_META: Record<string, { dot: string; text: string }> = {
-  sent: { dot: 'bg-status-healthy', text: 'text-status-healthy' },
-  failed: { dot: 'bg-status-error', text: 'text-status-error' },
-  pending: { dot: 'bg-status-warn', text: 'text-status-warn' },
+  sent: { dot: 'bg-status-healthy-fill', text: 'text-status-healthy' },
+  failed: { dot: 'bg-status-error-fill', text: 'text-status-error' },
+  pending: { dot: 'bg-status-warn-fill', text: 'text-status-warn' },
 };
 
 

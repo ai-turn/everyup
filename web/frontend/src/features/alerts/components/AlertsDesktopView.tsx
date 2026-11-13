@@ -91,9 +91,9 @@ export function AlertsDesktopView({
   const successRate = stats ? Math.round(stats.successRate) : null;
   const totalNotifications = totalSent + totalFailed;
   const rateBarColor = successRate == null ? 'bg-slate-300'
-    : successRate >= 95 ? 'bg-status-healthy'
-    : successRate >= 80 ? 'bg-status-warn'
-    : 'bg-status-error';
+    : successRate >= 95 ? 'bg-status-healthy-fill'
+    : successRate >= 80 ? 'bg-status-warn-fill'
+    : 'bg-status-error-fill';
 
   const tabs: { key: TabType; label: string; count?: number }[] = [
     { key: 'channels', label: '알림 채널', count: channels.length },

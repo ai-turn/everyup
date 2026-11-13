@@ -24,6 +24,12 @@ colors:
   status-warn: "#925500"
   status-error: "#c4282d"
   status-idle: "#60646c"
+  status-healthy-fill: "#059669"
+  status-warn-fill: "#c77700"
+  status-error-fill: "#dc2626"
+  status-idle-fill: "#80838d"
+  danger: "#dc2626"
+  danger-hover: "#b91c1c"
   chart-border: "#e0e1e6"
   primary-dark: "#3e63dd"
   primary-hover-dark: "#3358d4"
@@ -46,14 +52,16 @@ colors:
   status-warn-dark: "#ffca16"
   status-error-dark: "#ff6369"
   status-idle-dark: "#b0b4ba"
+  status-healthy-fill-dark: "#3dd6c6"
+  status-warn-fill-dark: "#ffca16"
+  status-error-fill-dark: "#ff6369"
+  status-idle-fill-dark: "#80838d"
   chart-border-dark: "#2e3135"
   series-emerald: "#059669"
   series-amber: "#d97706"
   series-violet: "#7c3aed"
   series-red: "#dc2626"
   series-teal: "#0d9488"
-  level-error: "#dc2626"
-  level-warn: "#d97706"
   level-info: "#0284c7"
   level-debug: "#7c3aed"
   level-trace: "#64748b"
@@ -220,32 +228,49 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 - **라이트가 Radix 11단계보다 한 칸 진하다.** 11단계 그대로(`#218358`·`#ab6400`·`#ce2c31`)면 배지가 자기 `/10` 틴트 위에서 healthy 4.16 / warn 4.08 / error 4.47로 AA(4.5) 미달이었다. 지금 값은 `ui-hover-soft` 위 틴트에서도 4.63 이상이다. 11px bold는 WCAG large text(18.66px bold)가 아니라 4.5:1이 적용된다. 이전 Tailwind 팔레트에서 700~800단계를 쓴 것과 같은 이유다.
 - **다크 healthy는 green이 아니라 teal이고, error는 Radix red-11보다 붉다.** Radix 다크 green-11(`#3dd68c`)과 red-11(`#ff9592`)은 적록색각이상(Machado 2009 deuteranopia) 시뮬레이션에서 ΔE 2.3으로 **사실상 같은 색**이 됐다. 모니터링 도구에서 정상/장애를 구분 못 하는 건 기능 실패라 healthy를 teal로, error를 채도가 높은 `#ff6369`로 옮겨 42.8까지 벌렸다(라이트는 39.8). 같은 방식으로 잰 이전 팔레트는 다크 38.2 / 라이트 39.5였고, 그 전의 emerald-400 / red-400 조합은 18.5였다.
 
+**글자와 채움은 다른 토큰이다** (2026-11-13, [ADR 0010](../../docs/adr/0010-status-color-roles-and-floating-surfaces.md)). 위 표의 `status-*`는 **글자 역할**이다. 상태 점·게이지·막대·체크 띠·임계선·입력 검증 보더처럼 글자가 아닌 표시는 `status-*-fill`을 쓴다.
+
+| 역할 | 클래스 | 기준 | light | dark |
+|---|---|---|---|---|
+| 글자·아이콘 | `text-status-{tone}` | 4.5:1 | 위 표 | 위 표 |
+| 채움·선 | `bg-status-{tone}-fill` · `border-status-{tone}-fill` · 차트 `theme.errorColor`/`warnColor` | 3:1 (WCAG 1.4.11) | healthy `#059669` · warn `#c77700` · error `#dc2626` · idle `#80838d` | 글자와 같은 값 · idle `#80838d` |
+| 옅은 틴트 | `bg-status-{tone}/10` | 틴트 위 글자 4.5:1 | 글자 토큰에 알파 | 같음 |
+| 파괴 확정 채움 | `bg-danger` · `hover:bg-danger-hover` | 흰 글자 4.5:1 | `#dc2626` / `#b91c1c` | 같은 값 |
+
+하나의 토큰이 두 역할을 맡던 때 생긴 문제가 셋이다. 라이트 warn `#925500`은 글자 대비를 맞추려 진하게 잡은 값이라 점·게이지에서 갈색으로 보였다. 다크 error `#ff6369`는 밝아서 흰 글자를 올릴 수 없어 `danger` 버튼만 primitive `bg-red-600`을 썼다. 그리고 에러 하나가 status `#c4282d`, 로그 레벨 `red-600`/`red-700`, danger `red-600`으로 네 가지 빨강이 됐다. 채움은 3:1만 넘으면 되므로 더 밝게 둘 수 있다. 채움 값은 흰 카드·`bg-main`·`ui-hover` 위에서 3:1 이상이다(warn은 `ui-hover`에서 3.04로 가장 낮다).
+
+채움 값은 색각이상 거리도 다시 쟀다(위 근거와 같은 Machado 2009 deuteranopia ΔE). **이전 팔레트는 정상과 회색(idle)이 붙어 있었다**: 라이트 8.9, 다크 4.5다. idle 채움을 slate-11에서 slate-10(`#80838d`)으로 옮겨 17.1 / 21.0까지 벌렸다. healthy↔error는 41.2 / 42.8, warn↔error는 13.3 / 49.2다. 라이트 healthy를 teal(`#0d9488`)로 두면 error와의 거리는 58.4로 더 벌어지지만 idle과의 거리가 1.5로 무너져 emerald를 골랐다.
+
+글자 역할을 단색 채움에 쓰는 것(`bg-status-error` 단독)은 `pnpm lint`가 막는다. 고대비 모드 규칙(§8)도 `-fill`이라는 이름에 기대므로 이름을 지켜야 한다.
+
 `info` 역할은 아직 소비처가 없어 토큰을 만들지 않았다 — Tailwind v4는 미사용 `@theme` 변수를 트리셰이킹하므로 죽은 토큰이 된다. 첫 소비처가 생길 때 추가한다.
 
 ### 1.5 로그 레벨 — 상태색과 별개 축
 
 [`logLevelStyle.ts`](src/features/healthcheck/logLevelStyle.ts)의 `LEVEL_BASE`·`LEVEL_TEXT`(로그 행) / `LEVEL_CHIP`(필터 칩 선택 상태) / `LEVEL_FILL`(로그 카드 추이 막대), `AgentServiceLogsTab`의 `LEVEL_BAR`(히스토그램)가 SSOT.
 
-| 레벨 | 색 | 바 hex | 행 토큰 라이트 텍스트 |
+| 레벨 | 색 | 바 | 행 토큰 |
 |------|-----|--------|------------------|
-| error | red | `#dc2626` | `text-red-700` |
-| warn | amber | `#d97706` | `text-amber-700` |
+| error | 상태색 | `status-error-fill` | `text-status-error` |
+| warn | 상태색 | `status-warn-fill` | `text-status-warn` |
 | info | **sky** | `#0284c7` | `text-sky-700` |
 | debug | violet | `#7c3aed` | `text-violet-700` |
 | trace | slate | `#64748b` | `text-text-muted` |
 
 info가 sky인 이유: primary(#3e63dd)와 붙어 있으면 "선택된 항목"으로 오독된다.
 
+**error·warn은 상태색을 쓴다** (2026-11-13). 레벨은 상태와 별개 축이지만 `error`·`warn`의 뜻은 상태의 장애·주의와 같다. 같은 화면에서 로그 행의 error와 서비스 상태의 장애가 서로 다른 빨강이면 뜻이 둘로 읽힌다. 행 글자·필터 칩은 `status-*`, 막대는 `status-*-fill`(§1.4)이다. 상태에 없는 info·debug·trace만 이 절의 고유 색을 쓴다.
+
 **로그 행의 레벨은 채움 없는 mono 텍스트다** (`LEVEL_BASE` = `inline-block shrink-0 w-12 font-mono text-xs font-medium`). 레벨은 서버가 보내는 값 그대로 소문자(`error`·`warn`)로 쓴다 — 2026-10-27까지는 `uppercase`로 `ERROR`를 만들었다(§2.5). 2026-09-20까지는 `bg-red-100` 계열 불투명 파스텔 틴트를 깐 배지였는데, 사용자 피드백은 *"색상이 너무 AI스럽다"*였다. 두 가지가 겹쳐 있었다:
 
 1. **`-100` 틴트는 부트스트랩 alert 팔레트 그대로다.** §9.3이 다른 자리에서는 이미 금지하던 패턴인데 배지만 예외였고, 로그 표는 행마다 색 블록이 찍혀 그 예외가 가장 크게 드러나는 자리였다.
 2. **기계 토큰에 가변폭 sans를 썼다.** 같은 표의 메시지 컬럼이 `font-mono`인데 레벨만 Spoqa였다(시간 컬럼은 2026-09-23부터 Spoqa — §2.1). `ERROR`/`WARN`/`INFO`는 글자폭이 제각각이라 컬럼이 들쭉날쭉했고, **틴트가 그 들쭉날쭉함을 덮는 역할도 하고 있었다.** mono 고정폭 + `w-12`로 컬럼 모양을 잡으면 채움이 필요 없어진다.
 
-틴트를 빼서 대비가 같이 올랐다 — 실측 라이트 error 6.42 / warn 5.03 / info 5.86 (행 hover 위에서도 4.81 이상), 다크 error 5.99 / warn 10.04 / info 7.94.
+틴트를 빼서 대비가 같이 올랐다. 실측 라이트 error 5.69 / warn 5.96 / info 5.86(행 hover 위에서도 4.81 이상), 다크 error 5.48 / warn 10.39 / info 7.94(행 hover 기준)다. error·warn은 2026-11-13부터 상태 글자 토큰 값이다.
 
 **필터 칩의 선택 상태(`LEVEL_CHIP`)는 틴트를 유지한다.** 거기 채움은 장식이 아니라 토글이 켜졌음을 말한다 — 읽기 전용 토큰과 달리 선택/비선택을 구분할 수단이 필요하다. 같은 색을 쓰지만 역할이 다르므로 상수를 나눠 뒀다.
 
-바 색이 600단계인 이유: 500단계는 흰 배경에서 warn 2.15 / info 2.77 / trace 2.56으로 WCAG 1.4.11(3:1) 미달이었다. 배지 텍스트가 700단계인 이유: 600은 자기 `-100` 배경 위에서 red 3.95 / sky 3.57로 AA 미달이었다.
+info·debug·trace 바 색이 600단계인 이유: 500단계는 흰 배경에서 warn 2.15 / info 2.77 / trace 2.56으로 WCAG 1.4.11(3:1) 미달이었다. 배지 텍스트가 700단계인 이유: 600은 자기 `-100` 배경 위에서 red 3.95 / sky 3.57로 AA 미달이었다.
 
 ### 1.6 차트 시리즈 팔레트
 
@@ -415,6 +440,17 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 `shadow-sm`(선택된 세그먼트) / `shadow-lg`(오버레이·툴팁)만. 카드에는 그림자를 쓰지 않는다 — 경계는 보더가 담당한다.
 
+**떠 있는 표면은 둘로 나뉜다** (2026-11-13, [ADR 0010](../../docs/adr/0010-status-color-roles-and-floating-surfaces.md)).
+
+| 종류 | 예 | 표면 |
+|---|---|---|
+| 스크림 없이 본문 위에 뜨는 것 | 툴팁, 차트 툴팁, `Select` 목록, 카드 안 더보기 메뉴, 토스트 | `bg-ui-raised border border-ui-border shadow-lg` |
+| 스크림 위에 뜨는 것 | 모달, `ConfirmDialog`, 사이드 패널, 명령 팔레트 | `bg-bg-surface border border-ui-border shadow-lg` |
+
+다크 모드에서 `shadow-lg`는 거의 보이지 않고 카드와 페이지의 대비도 1.07이다. 스크림이 없는 요소가 `bg-surface`면 카드 안에서 연 드롭다운이 카드와 같은 색이 되어 보더(1.54)로만 구분됐다. `ui-raised`(다크 `#2e3135`)는 카드보다 밝아서 그림자 없이도 위에 있다고 읽힌다. 스크림 위의 요소는 스크림이 이미 배경을 가라앉히므로 `bg-surface`로 둔다. 라이트에서는 두 값이 같은 흰색이다.
+
+`ui-raised` 위의 글자는 §1.3의 제약을 따른다. 다크에서 `dim`은 4.03으로 미달이니 `muted` 이상을 쓴다. 목록 항목의 hover는 `ui-hover`다. 다크에서 표면보다 어두워지는 방향이지만 선택 항목(`bg-primary/10`)과 구분된다.
+
 ### 3.6 클릭 가능한 카드 hover
 
 `.card-interactive` **하나만** 쓴다 (`index.css` 정의). 2px 들어올림 + 보더 `primary/40` + 배경 `ui-hover-soft`, 150ms. 터치 기기 제외(`hover: hover`), `:active`에서 원위치, 모션 최소화 설정에서는 들어올림 생략.
@@ -512,7 +548,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | `text` | 경로처럼 본문 안에 놓는 액션. hover 채움 없음 | `text-action` |
 | `destructive` | 삭제·비활성화 — secondary와 **같은 모양**에 글자만 빨강 | `border border-ui-border text-status-error hover:bg-status-error/10` |
 | `quiet` | 정보만 보여주는 다이얼로그의 `닫기` — 눈에 띄지 않아야 하는 이탈 | `text-text-muted hover:bg-ui-hover` |
-| `danger` | 확인 다이얼로그의 파괴 확정 | `bg-red-600 text-white` |
+| `danger` | 확인 다이얼로그의 파괴 확정 | `bg-danger text-white hover:bg-danger-hover` (§1.4) |
 
 **액션에는 색을 싣는다 (§5.3).** 채움도 보더도 없는 버튼이 본문과 같은 회색이면 hover 전까지 버튼으로 읽히지 않는다 — *"기본값으로 색상이 달라야 한다."* 그래서 `ghost`는 라벨·아이콘 전부 `action`, `secondary`는 라벨을 `text-base`로 올리고 아이콘만 `action`을 싣는다(보더가 이미 버튼임을 말하므로 라벨까지 칠할 이유가 없다). **예외는 이탈 액션뿐이다** — 닫기를 색으로 강조하면 정작 그 화면의 주 액션보다 먼저 눈에 들어온다. `quiet`가 그 자리다. 폼 푸터의 `취소`는 주 액션과 짝을 이루므로 `secondary`다(§7 푸터 규칙).
 
@@ -531,8 +567,8 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 
 **상태**
 - **진행 중** — `loading` prop. 라벨은 그대로 두고 스피너가 앞에 붙는다(호출부의 아이콘은 숨김), `aria-busy`, 클릭 불가. `저장 중…`처럼 라벨을 바꾸지 않는다 — 버튼 폭이 흔들리고 화면마다 문구가 갈렸다.
-- **비활성** — `disabled`에서도 공통 툴팁의 hover는 유지한다. **키보드로도 이유를 확인해야 하면 `aria-disabled`** 를 쓰고 핸들러에서 실행을 막는다. 네이티브 `disabled`는 Tab 순서에서 제외된다.
-- **누름** — 색 변화만. `active:scale-95` 같은 축소 애니메이션은 쓰지 않는다(주요 디자인 시스템 공통, `transition-colors`로 충분).
+- **비활성** — `opacity-50` 하나다(버튼·아이콘 버튼·입력·`Select`·`Toggle`·`Pagination`·`CopyButton`, 비활성 채널·규칙 카드까지). 40·60이 섞여 있던 것을 2026-11-13에 맞췄다. `disabled`에서도 공통 툴팁의 hover는 유지한다. **키보드로도 이유를 확인해야 하면 `aria-disabled`** 를 쓰고 핸들러에서 실행을 막는다. 네이티브 `disabled`는 Tab 순서에서 제외된다.
+- **누름** — 색 변화만. `active:scale-95` 같은 축소 애니메이션은 쓰지 않는다(주요 디자인 시스템 공통, `transition-colors`로 충분). 누름은 hover보다 한 단계 진하다: 채움은 `-hover` 값, 보더·투명 버튼은 `ui-active`·`/15`다. **터치에는 hover가 없다** — Tailwind v4의 `hover:`는 `@media (hover: hover)` 안에서만 걸리므로, `active:`가 없으면 터치 화면에서 버튼을 눌러도 아무 변화가 없었다(2026-11-13까지 코드 전체에 `active:` 0건). `aria-disabled`는 hover와 같이 누름도 막는다.
 
 **이동은 링크다.** 다른 화면으로 가는 버튼은 `<ButtonLink to>`(같은 모양의 `<a href>`)를 쓴다. `<Button onClick={() => navigate(…)}>`은 새 탭 열기·주소 미리보기가 안 되고 스크린리더가 "링크"로 읽지 않는다. `EmptyState`의 `action`도 `{ label, to }`를 받는다. 같은 화면 안에서 상태만 바꾸는 것(탭 전환 등)은 버튼이다.
 
@@ -623,7 +659,7 @@ API 대상 목록은 기본 6시간의 요청 수·5xx를 비교하며, 기간�
 
 | export | 역할 |
 |--------|------|
-| `useChartTheme()` | CSS var를 읽어 `{gridColor, tickColor, tooltipBg, tooltipBorder, primaryColor, errorColor}`. `<html>.dark` 변경을 구독한다 — 렌더 시점에 한 번 읽는 방식은 테마를 바꿔도 라이트 색이 남았다 |
+| `useChartTheme()` | CSS var를 읽어 `{gridColor, tickColor, surfaceColor, primaryColor, errorColor, warnColor}`(`surfaceColor`는 누적 막대 사이 헤어라인과 활성 점 테두리, `errorColor`·`warnColor`는 상태 채움 §1.4). `<html>.dark` 변경을 구독한다 — 렌더 시점에 한 번 읽는 방식은 테마를 바꿔도 라이트 색이 남았다 |
 | `gridProps` `xAxisProps` `yAxisProps` `tooltipCursor` | 축·그리드 |
 | `timeXAxisProps` `timeTicks` `formatTimeTick` `formatTimeLabel` | 숫자 시간축 — 정시 눈금, 24시간제, 툴팁 제목에 날짜 |
 | `niceYAxis` `niceTicks` | Y축 눈금 1·2·2.5·5×10ⁿ (0·25·50·75·100) |
@@ -780,7 +816,7 @@ API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 
 
 ```
 inline-flex items-center gap-1.5  type-caption  text-text-secondary
-└ 점: h-2 w-2 rounded-full bg-status-{tone}   (aria-hidden)
+└ 점: h-2 w-2 rounded-full bg-status-{tone}-fill   (aria-hidden)
 ```
 
 **대상의 상태는 배지가 아니다.** [Adobe Spectrum](https://spectrum.adobe.com/page/status-light/)이 두 컴포넌트를 이렇게 가른다:
@@ -836,13 +872,13 @@ Tailwind v4는 `/10` 같은 투명도 수식자를 `oklab()` `color-mix`로 컴�
 **라벨이 같이 붙는 자리는 §5.1 `StatusLight`를 쓴다.** 이 절은 라벨 없이 점만 놓는 자리 — 배너 앞머리, 타임라인 행, 셋업 다이얼로그의 단계 표시처럼 인접 문장이 이미 상태를 말하고 있는 경우다.
 
 ```
-h-2.5 w-2.5 rounded-full bg-status-{role}
+h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 ```
 목록 안의 조밀한 자리는 `h-1.5 w-1.5`. `StatusLight`의 점은 `h-2 w-2`다. 진행 중인 장애는 `animate-pulse`를 더한다(`prefers-reduced-motion`에서 전역 규칙이 정지시킨다) — `StatusLight`는 `pulse` prop으로 같은 동작을 낸다.
 
 **점이 유일한 정보원이면 이름을 준다** — 점 옆에 같은 뜻의 텍스트(배지·라벨)가 없으면 색만으로 상태를 전달하는 것이라 WCAG 1.4.1 위반이다:
 ```tsx
-<span role="img" aria-label={healthy ? '정상' : '장애'} className="h-1.5 w-1.5 rounded-full bg-status-healthy" />
+<span role="img" aria-label={healthy ? '정상' : '장애'} className="h-1.5 w-1.5 rounded-full bg-status-healthy-fill" />
 ```
 인접 텍스트가 이미 상태를 말하고 있으면(장애 배너, 온라인/오프라인 라벨) 점은 장식이므로 그대로 둔다.
 
@@ -873,12 +909,16 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 셸은 `Input.tsx`가 `FIELD_SHELL`·`FIELD_HEIGHT`로 export한다 — `Select`와 텍스트영역이 같은 상수를 쓴다. **높이는 `h-11 sm:h-10`(터치 44 / 그 외 40)으로 고정**한다(Button과 같은 이유, `px/py` 조합 금지). `Select`는 보이는 trigger + portal listbox를 렌더하고, 네이티브 `<select>`는 폼 값과 기존 `onChange` 계약을 유지하는 숨김 요소다. 따라서 브라우저의 기본 option 메뉴가 노출되지 않는다. 높이가 자유로워야 하는 텍스트영역만 `FIELD_SHELL`에 자기 `py`를 덧붙인다.
 
 **상태 표현**
-- `invalid` — 검증 실패. 붉은 보더 + `aria-invalid`. 메시지는 필드 아래 `type-body text-status-error` — 경고문이므로 14px(§2.2)이고, `red-500`은 흰 배경 3.8:1로 AA 미달이다
-- `warn` — 제출은 막지 않는 주의(예: 원격에서 안 통할 주소). 앰버 보더
+- `invalid` — 검증 실패. `border-status-error-fill` 보더 + `aria-invalid`. 메시지는 필드 아래 `type-body text-status-error` — 경고문이므로 14px(§2.2)이고, `red-500`은 흰 배경 3.8:1로 AA 미달이다
+- `warn` — 제출은 막지 않는 주의(예: 원격에서 안 통할 주소). `border-status-warn-fill` 보더
+
+보더는 선이라 채움 역할(§1.4)이다. 2026-11-13까지 `border-red-500`·`border-amber-400` primitive였고, `Textarea`의 기본 보더는 `ui-control-border`가 아니라 장식용 `ui-border`(1.40:1)였다.
+
+**입력의 글자는 `sm` 미만에서 16px다** (`Input`·`Textarea`·`SearchInput`·명령 팔레트, `max-sm:text-base`). 버튼인 `Select` 트리거는 확대와 무관해서 `FIELD_SHELL`에는 넣지 않는다. iOS Safari는 글자가 16px 미만인 입력에 포커스하면 화면을 확대하고, 입력을 마쳐도 원래 배율로 돌아오지 않는다. 뷰포트에 `maximum-scale=1`을 거는 우회는 사용자의 확대 자체를 막으므로 쓰지 않는다(WCAG 1.4.4).
 
 보더 색은 컴포넌트 내부에서 결정한다. `className`으로 넘기면 base의 `border-ui-control-border`와 **특이도가 같아** 생성된 CSS 순서로 승패가 갈린다 — 호출부가 이길 거라 가정하면 안 된다.
 
-**포커스 링** — `index.css`의 전역 `:focus-visible { outline: 2px solid var(--color-primary) }`가 처리한다. `focus:outline-none` + 개별 `focus:ring-*`으로 덮어쓰지 않는다.
+**포커스 링** — `index.css`의 전역 `:focus-visible { outline: 2px solid var(--color-action) }`가 처리한다. `focus:outline-none` + 개별 `focus:ring-*`으로 덮어쓰지 않는다.
 
 > 대비를 스크립트로 잴 때 주의: Tailwind v4의 `transition-colors`는 **`outline-color`를 포함**한다. `.focus()` 직후 `getComputedStyle`을 읽으면 트랜지션 첫 프레임(`currentColor`)이 잡혀 링이 검게 보인다. `transitionProperty='none'`으로 끄고 재야 실제 값이 나온다.
 
@@ -907,7 +947,20 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | **모달** | 짧은 단일 작업 (API Key, 서비스 추가) | `features/services/*Modal` |
 | **사이드 패널** | 긴 폼·상세 (알림 규칙, 트레이스) | `FormSidePanel` / `TracePanel` |
 
-**공통 규약** — z-index `z-50`, 배경 클릭 닫기.
+**공통 규약** — z-index `z-50`, 배경 클릭 닫기. 표면 색은 §3.5(스크림 위 = `bg-surface`).
+
+**z-index 단계** (2026-11-13 기록). 새 값을 만들지 않고 이 중에서 고른다. 위 단계일수록 아래 단계를 덮어야 하는 이유가 있다.
+
+| 값 | 자리 |
+|---|---|
+| `z-10` | 컴포넌트 안의 국소 겹침: 카드 안 더보기 메뉴, 헤더 내부, 폼 페이지 하단 고정 제출 바 |
+| `z-30` | 모바일 하단 내비(`BottomNavMobile`) |
+| `z-50` | 오버레이: 모달·사이드 패널·명령 팔레트, 네트워크 상태 배너, 설계안 비교 막대 |
+| `z-[60]` | `Select` 목록 — 모달 안에서 열리므로 모달보다 위 |
+| `z-[70]` | 공통 툴팁 — 목록·모달 위에서도 보여야 한다 |
+| `z-100` | 스킵 링크(포커스됐을 때만 보임) |
+
+토스트는 react-hot-toast의 기본값(9999)을 그대로 둔다. 어떤 오버레이가 열려 있어도 작업 결과가 보여야 한다.
 
 **푸터 규칙 (2026-09-23)** — 모달·다이얼로그·사이드 패널·폼 페이지가 전부 같다.
 
@@ -942,11 +995,29 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 
 스크롤 잠금은 넣지 않았다. 이 앱은 `body`가 아니라 `MainLayout` 내부 컨테이너가 스크롤하는 구조라 `body` overflow를 잠가도 효과가 없고, 브라우저에서 실제 스크롤 누출이 재현되지 않았다. 누출이 확인되면 그때 잠글 대상을 정한다.
 
+### 토스트 (2026-11-13)
+
+토스트는 **방금 한 작업의 결과**를 알리는 일시 피드백이다. 저장·삭제·복사의 성공, 서버가 거절한 작업의 실패가 여기에 해당한다. 설정은 `main.tsx`의 `Toaster` 한 곳에 있다.
+
+| 항목 | 규칙 |
+|---|---|
+| 위치 | 우측 상단 |
+| 표면 | `--toast-bg` = `ui-raised`, 보더 `ui-border`(§3.5, 스크림 없이 뜨는 표면) |
+| 아이콘 | 성공 `status-healthy-fill`, 실패 `status-error-fill`. 아이콘 안 체크는 표면색으로 뚫는다 |
+| 시간 | 성공 3초, 실패 5초. 마우스를 올리면 멈춘다(라이브러리 기본) |
+
+- **지속되는 상태는 토스트가 아니다.** 네트워크 끊김, 수집 중단, 조회 실패처럼 사용자가 떠나 있다 돌아와도 알아야 하는 것은 그 자리의 배너다(`NetworkStatusBanner`, §4.1 `다시 시도` 배너).
+- **검증 실패를 토스트로만 알리지 않는다.** 필드 아래의 인라인 메시지(§6 `invalid`)가 정본이고, 토스트는 화면 밖 필드를 알리는 요약이다.
+- **나중에 다시 봐야 할 정보를 담지 않는다.** API Key, 설치 명령처럼 복사해 쓸 값은 사라지면 다시 볼 수 없으므로 다이얼로그나 결과 화면에 둔다. 복사 실패 토스트는 "직접 선택해 복사"를 안내하되 값 자체는 화면에 남아 있어야 한다.
+
 ---
 
 ## 8. 접근성
 
-- **전역 포커스 링** `:focus-visible` 2px primary + 2px offset. 개별 컴포넌트에서 재정의 금지
+- **전역 포커스 링** `:focus-visible` 2px `action` + 2px offset. 개별 컴포넌트에서 재정의 금지. 2026-11-13까지 primary였는데, 다크 배경에서 3.38~3.62로 3:1 하한에 붙어 있었고 `ui-raised` 위에서는 2.51로 미달이었다. `action`은 라이트 5.27~6.00, 다크 6.34~9.15다
+- **네이티브 컨트롤도 테마를 따른다** — `:root`는 `color-scheme: light`, `.dark`는 `color-scheme: dark`다. 선언이 없던 때는 다크 모드에서도 체크박스(`accent-primary`)의 빈 칸, 자동완성 배경, 기본 스크롤바가 라이트로 그려졌다
+- **강제 색상 모드(Windows 고대비)** — 브라우저가 배경색을 지워 상태 점·게이지·체크 띠가 사라진다. `index.css`가 `bg-status-*-fill`을 쓰는 요소에만 `forced-color-adjust: none`을 걸어 색을 남긴다. 라벨 없는 점(§5.2)은 그 색이 유일한 시각 정보다. 새 상태 채움이 이 이름을 벗어나면 고대비 모드에서 사라진다
+- **문장 안의 링크는 밑줄을 긋는다** — `action`과 본문 글자의 대비는 라이트 1.91, 다크 1.27로 3:1에 못 미친다. 색만으로는 링크와 주변 글자를 구분하지 못한다(WCAG 1.4.1). 표 셀 제목, 내비, 아이콘이 붙은 독립 링크처럼 자리가 링크임을 말하는 곳은 예외다. 2026-11-13 기준 문장 안 링크(`DockerEnvironmentHint`, 연결 다이얼로그의 안내문 등)는 이미 `underline underline-offset-2`를 쓰고 있었고, 이 규칙은 그 관례를 명문화한 것이다
 - **Skip link** `MainLayout`의 `#main-content` 스킵 링크
 - **아이콘 전용 버튼**은 `aria-label` 필수 — `MaterialIcon`이 `aria-hidden="true"`라 아이콘만으로는 스크린리더에 아무것도 읽히지 않는다. 공통 툴팁은 이름을 대체하지 않는다. `IconButton`은 `label`로 접근 가능한 이름과 힌트를 함께 제공한다. `<span className="sr-only">`로 라벨을 넣는 것도 동등하게 유효하다
 - **색만으로 정보를 전달하지 않는다** (WCAG 1.4.1) — 상태 점은 §5.2, 4개 초과 차트 시리즈는 §1.6 참조
@@ -967,7 +1038,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 2. **danger zone 스타일 금지** — 붉은 카드 보더, 붉은 섹션 제목, 앰버 경고 박스. 파괴적 액션은 **중립 카드 + `<Button variant="destructive">`**(채움 없는 `status-error` 텍스트). `text-red-600` 텍스트 링크는 다크에서 표면 대비 3.0이라 쓰지 않는다(§10 경계표). 주의문은 앰버 박스 대신 muted 본문.
 3. **파스텔 틴트 박스 금지** — `bg-emerald-50` / `bg-amber-50` / `bg-red-50` 계열 공지 박스. `bg-ui-hover-soft + border-ui-border` + 상태색 아이콘 악센트로 대체. (배지·게이지 채움·hover는 데이터 시맨틱이라 예외)
 4. **`dark:` 이중 작성 금지** (§1.1) — `text-slate-500 dark:text-text-muted-dark` → `text-text-muted`
-5. **상태색 primitive 직접 사용 금지** — `text-emerald-600 dark:text-emerald-400` → `text-status-healthy` (§1.4). 대비·색각 조정이 index.css 한 곳에서 끝나야 한다
+5. **상태색 primitive 직접 사용 금지** — `text-emerald-600 dark:text-emerald-400` → `text-status-healthy` (§1.4). 대비·색각 조정이 index.css 한 곳에서 끝나야 한다. 점·막대·보더처럼 글자가 아닌 표시는 `bg-status-*-fill`이다 — 글자 토큰을 단색 채움에 쓰지 않는다(`pnpm lint`가 센다)
 6. **`text-[Npx]` 임의값 금지** (§2.2) — 스케일 토큰만
 7. **버튼 클래스 직접 작성 금지** — `<button className="px-4 py-2 bg-primary …">` → `<Button>` (§4.1). 높이·radius·굵기가 화면마다 어긋나는 것을 막는다. 아이콘만 있는 액션은 `IconButton`이다 — `text-slate-400 hover:text-primary` 문자열을 손으로 쓰지 않는다
 7a. **버튼 색을 `className`으로 덮어쓰기 금지** (§4.1) — variant로 고른다. Tailwind 유틸리티 순서 때문에 override가 조용히 무시된다
@@ -1026,11 +1097,12 @@ h-2.5 w-2.5 rounded-full bg-status-{role}
 | 축 | 예 | 토큰 |
 |----|-----|------|
 | **대상의 정상/장애 여부** | 서비스 정상/장애, 체크 결과, HTTP 2xx/4xx/5xx, 게이지 임계, 알림 전송 성공/실패, 진단 ok/issue | **`status-*` ✓** |
-| 액션 의미 | 채움 `danger` 버튼, 복사 완료 피드백 | primitive |
+| 액션 의미 | 채움 `danger` 버튼 | **`danger` ✓** (§1.4) |
+| 액션 의미 | 복사 완료 피드백 | primitive |
 | 채움 없는 파괴 액션 | `destructive` 버튼·`IconButton tone="danger"` | **`status-error` ✓** — 다크에서 red-600은 표면 대비 3.0이라 primitive로는 AA를 못 맞춘다 |
 | 카테고리 분류 | HTTP 메서드, span kind(SERVER/CLIENT), 이벤트 타입 | primitive |
-| 별도 축 | 로그 레벨(§1.5), 알림 severity(critical/warning/info) | primitive |
-| 폼 | 필수 표시 `*`, 검증 경고, 로그인 에러 | primitive |
+| 별도 축 | 로그 레벨 info·debug·trace(§1.5), 알림 severity(critical/warning/info) | primitive |
+| 폼 | 필수 표시 `*`, 로그인 에러 | primitive (입력 검증 보더는 `status-*-fill` ✓) |
 | 3rd-party 재현 | `ChannelForm`의 Slack/Discord/Telegram 미리보기 | 리터럴 hex |
 
 새 코드에서 판단이 서지 않으면 **"이 색이 사라지면 사용자가 대상의 정상/장애를 오판하는가?"** 로 가른다. 그렇다면 `status-*`다.
@@ -1093,6 +1165,17 @@ Carbon·Primer·Polaris·Material 3의 공통 원칙과 대조해 어긋난 것�
 - 이어서(같은 날): 툴바 버튼 모양 통일 — `destructive`에 테두리, 상세 툴바의 `ghost`(`일시정지`·`연결 중지`) → `secondary`, `일시정지`에 아이콘 복원, 모바일에서 `collapseLabel`로 아이콘만
 - 보고서 후속: 파란 틴트 링크칩 6·텍스트 링크 버튼 4 → ghost sm, 계정 초기화 → `destructive`, 업타임 일시정지 목록·상세 → ghost 무아이콘, 남은 X 6·테마 토글 2 → `IconButton`(모바일 `Toggle theme` 영어 라벨 해소), 일회성 스타일 5(검정 테스트 전송·rounded-xl 복사/재발급·px/py 다시 시도·34px 재설치) → `Button`/`CopyButton`, `ApiKeyModal`의 `confirm()` → `ConfirmDialog`
 - 남은 결정: 툴바 높이 혼재(조회 제어 sm 32), 토글 켜짐 표현 5종, 장애 배너 `로그 확인`의 danger
+
+### 해결됨 (2026-11-13) — 상태색 역할 분리 · 떠 있는 표면 · 기본 상태
+
+[ADR 0010](../../docs/adr/0010-status-color-roles-and-floating-surfaces.md). Meta가 공개한 [Astryx](https://github.com/meta/astryx)의 `docs/design/`(색 강조·시스템 상태·사용자 상태·elevation)와 `theme-tokens.md`의 상태 역할 규칙(INV11)을 체크리스트로 대조했다.
+- ~~상태색 토큰 하나가 글자·채움을 겸함~~ → `status-*-fill`·`danger` 추가(§1.4). 에러 빨강 네 벌 → 글자·채움 두 벌, 정상↔idle 색각 거리 8.9/4.5 → 17.1/21.0
+- ~~스크림 없는 오버레이의 표면이 제각각~~ → `ui-raised`로 통일(§3.5). `Select` 목록·차트 툴팁·업타임 응답 툴팁·토스트
+- ~~누름 상태 0건(터치에서 피드백 없음)~~ → Button·IconButton·CopyButton·Pagination에 `active:`(§4.1)
+- ~~비활성 opacity 40·50·60 혼재~~ → 50(§4.1)
+- ~~`color-scheme` 미선언, 고대비 모드에서 상태 점 소실, 모바일 입력 14px(iOS 확대)~~ → §8·§6
+- ~~포커스 링 다크 3.38~3.62~~ → `action`(§8)
+- 토스트 규칙·z-index 단계·문장 안 링크 밑줄 규칙을 문서화(§7·§8)
 
 ### 해결됨 (2026-10-08~09) — 개요 critique · 전체 audit
 

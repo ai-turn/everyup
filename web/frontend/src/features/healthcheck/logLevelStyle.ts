@@ -16,8 +16,8 @@
 export const LEVEL_BASE = 'inline-block shrink-0 w-12 font-mono text-xs font-medium';
 
 export const LEVEL_TEXT: Record<string, string> = {
-  error: 'text-red-700 dark:text-red-400',
-  warn:  'text-amber-700 dark:text-amber-400',
+  error: 'text-status-error',
+  warn:  'text-status-warn',
   info:  'text-sky-700 dark:text-sky-400',
   debug: 'text-violet-700 dark:text-violet-400',
   trace: 'text-text-muted',
@@ -28,8 +28,8 @@ export const LEVEL_TEXT: Record<string, string> = {
  * (500단계는 흰 배경에서 warn 2.15로 1.4.11의 3:1 미달).
  */
 export const LEVEL_FILL: Record<string, string> = {
-  error: 'bg-red-600',
-  warn:  'bg-amber-600',
+  error: 'bg-status-error-fill',
+  warn:  'bg-status-warn-fill',
 };
 
 /**
@@ -37,8 +37,8 @@ export const LEVEL_FILL: Record<string, string> = {
  * 남긴다 — 읽기 전용 토큰과 달리 선택/비선택을 구분할 수단이 필요하다.
  */
 export const LEVEL_CHIP: Record<string, string> = {
-  error: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
-  warn:  'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+  error: 'bg-status-error/10 text-status-error',
+  warn:  'bg-status-warn/10 text-status-warn',
   info:  'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400',
   debug: 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400',
   trace: 'bg-ui-hover text-text-muted',

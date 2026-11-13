@@ -3,12 +3,14 @@ import { useSyncExternalStore } from 'react';
 export interface ChartTheme {
   gridColor: string;
   tickColor: string;
-  tooltipBg: string;
-  tooltipBorder: string;
+  /** Card surface — hairline strokes between stacked bars and active-dot rings. */
+  surfaceColor: string;
   /** Brand primary for chart series — follows the light/dark CSS token. */
   primaryColor: string;
-  /** status-error — failed-check ranges and alert thresholds. */
+  /** status-error-fill — error bars, failed-check ranges and alert thresholds. */
   errorColor: string;
+  /** status-warn-fill — warn bars. */
+  warnColor: string;
 }
 
 export interface TooltipPayloadItem {
@@ -122,7 +124,7 @@ export function lineProps(color: string, theme: ChartTheme) {
     strokeLinejoin: 'round',
     dot: false,
     // 링은 표면색 — 흰색 고정이면 다크 카드 위에서 흰 테가 번쩍인다.
-    activeDot: { r: 4, stroke: theme.tooltipBg, strokeWidth: 2, fill: color },
+    activeDot: { r: 4, stroke: theme.surfaceColor, strokeWidth: 2, fill: color },
     connectNulls: false,
     isAnimationActive: false,
   } as const;
@@ -149,10 +151,10 @@ export function getChartTheme(): ChartTheme {
     // text-muted is the AA-safe chart label token in both themes. Never read
     // the implementation-only *-dark variables here.
     tickColor: getCssVar('--color-text-muted') || '#60646c',
-    tooltipBg: getCssVar('--color-bg-surface') || '#ffffff',
-    tooltipBorder: getCssVar('--color-chart-border') || '#e0e1e6',
+    surfaceColor: getCssVar('--color-bg-surface') || '#ffffff',
     primaryColor: getCssVar('--color-primary') || SERIES_HEX.primary,
-    errorColor: getCssVar('--color-status-error') || '#c4282d',
+    errorColor: getCssVar('--color-status-error-fill') || '#dc2626',
+    warnColor: getCssVar('--color-status-warn-fill') || '#c77700',
   };
 }
 

@@ -179,7 +179,7 @@ export function AlertsMobileView({
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${meta.bg} ${!channel.isEnabled ? 'opacity-50' : ''}`}>
                       <ChannelIcon type={channel.type} size={20} className={meta.text} />
                     </div>
-                    <div className={`flex-1 min-w-0 ${!channel.isEnabled ? 'opacity-60' : ''}`}>
+                    <div className={`flex-1 min-w-0 ${!channel.isEnabled ? 'opacity-50' : ''}`}>
                       <div className="flex items-center gap-2">
                         <p className="text-sm text-text-base truncate">{channel.name}</p>
                         {!channel.isEnabled && (

@@ -46,8 +46,9 @@ const RANGE_BUCKET: Record<GlobalTimeRange, { hours: number; bucketMins: number 
 // lowercase level tokens, as on every log row (DESIGN.md §1.5).
 // 600단계: 500단계는 흰 배경에서 warn 2.15 / info 2.77 / trace 2.56으로 WCAG 1.4.11(3:1) 미달이었다.
 const LEVEL_BAR: { key: keyof Omit<LogHistogramBucket, 'time'>; color: string; name: string }[] = [
-  { key: 'error', color: '#dc2626', name: 'error' },
-  { key: 'warn',  color: '#d97706', name: 'warn' },
+  // error·warn은 상태 채움 토큰을 테마에서 읽는다(barColor) — 여기 값은 쓰지 않는다.
+  { key: 'error', color: '', name: 'error' },
+  { key: 'warn',  color: '', name: 'warn' },
   { key: 'info',  color: '#0284c7', name: 'info' },
   { key: 'debug', color: '#7c3aed', name: 'debug' },
   { key: 'trace', color: '#64748b', name: 'trace' },
@@ -99,7 +100,8 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
     bucketMs,
     (t) => ({ t, time: '', error: 0, warn: 0, info: 0, debug: 0, trace: 0 }),
   );
-  const totals = LEVEL_BAR.map((l) => ({ ...l, count: data.reduce((sum, b) => sum + b[l.key], 0) }));
+  const barColor = (key: string, color: string) => (key === 'error' ? theme.errorColor : key === 'warn' ? theme.warnColor : color);
+  const totals = LEVEL_BAR.map((l) => ({ ...l, color: barColor(l.key, l.color), count: data.reduce((sum, b) => sum + b[l.key], 0) }));
   // Recharts의 accessibilityLayer는 숫자(시간) X축에서 현재 인덱스를 못 구해 화살표가 먹지 않고,
   // Enter는 툴팁을 끄기만 했다 — 키보드 구간 이동을 직접 둔다. null = 키보드로 고르는 중 아님.
   const [kbd, setKbd] = useState<number | null>(null);
@@ -152,7 +154,7 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
             <ActiveBucketSync onChange={syncHovered} />
             {LEVEL_BAR.map((l) => (
               // A surface-coloured stroke leaves a hairline between stacked segments.
-              <Bar key={l.key} dataKey={l.key} stackId="lv" fill={l.color} stroke={theme.tooltipBg} strokeWidth={1} name={l.name} isAnimationActive={false}>
+              <Bar key={l.key} dataKey={l.key} stackId="lv" fill={barColor(l.key, l.color)} stroke={theme.surfaceColor} strokeWidth={1} name={l.name} isAnimationActive={false}>
                 {data.map((b) => (
                   <Cell key={b.t} fillOpacity={emphasized === null || b.t === emphasized ? 1 : 0.35} />
                 ))}
@@ -480,7 +482,7 @@ function ServiceLogsPanel(props: Props) {
 
         {/* Live tail: 5s silent polling while on. Healthy green, not red — on is not an error. */}
         <Button variant="secondary" aria-pressed={live} onClick={() => { setLive(v => !v); setPage(1); }} title="5초마다 자동 갱신">
-          <span aria-hidden="true" className={`h-2 w-2 rounded-full ${live ? 'bg-status-healthy animate-pulse' : 'bg-text-dim'}`} />
+          <span aria-hidden="true" className={`h-2 w-2 rounded-full ${live ? 'bg-status-healthy-fill animate-pulse' : 'bg-text-dim'}`} />
           실시간
         </Button>
       </div>

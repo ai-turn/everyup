@@ -292,7 +292,7 @@ export function ProjectDetailPage() {
           to={`/services/${agentId}/${encodeURIComponent(banner.key)}`}
           className="w-full flex items-center gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3 text-left hover:bg-ui-hover-soft transition-colors"
         >
-          <span className="h-2.5 w-2.5 rounded-full bg-status-error animate-pulse shrink-0" />
+          <span className="h-2.5 w-2.5 rounded-full bg-status-error-fill animate-pulse shrink-0" />
           <span className="text-sm font-medium text-text-base truncate">
             진행 중 장애: {banner.serviceName}
           </span>
@@ -370,7 +370,7 @@ export function ProjectDetailPage() {
                       to={`/services/${agentId}/${encodeURIComponent(inc.key)}`}
                       className="w-full flex items-start gap-3 rounded-lg border border-ui-border px-3 py-2 text-left transition-colors hover:bg-ui-hover-soft"
                     >
-                      <span className={`h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 ${inc.active ? 'bg-status-error' : 'bg-status-healthy'}`} />
+                      <span className={`h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 ${inc.active ? 'bg-status-error-fill' : 'bg-status-healthy-fill'}`} />
                       <span className="min-w-0 flex-1">
                         <span className="block text-xs font-medium text-text-base truncate">{inc.serviceName}</span>
                         <span className="block text-xs text-text-dim mt-0.5">

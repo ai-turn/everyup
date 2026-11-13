@@ -22,7 +22,7 @@ createRoot(document.getElementById('root')!).render(
             },
             success: {
               iconTheme: {
-                primary: 'var(--color-status-healthy)',
+                primary: 'var(--color-status-healthy-fill)',
                 // 다크의 밝은 상태색 위 흰 체크는 1.5:1 — 표면색으로 뚫어야 두 테마 모두 보인다.
                 secondary: 'var(--color-bg-surface)',
               },
@@ -30,7 +30,7 @@ createRoot(document.getElementById('root')!).render(
             error: {
               duration: 5000,
               iconTheme: {
-                primary: 'var(--color-status-error)',
+                primary: 'var(--color-status-error-fill)',
                 secondary: 'var(--color-bg-surface)',
               },
             },

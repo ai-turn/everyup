@@ -391,7 +391,7 @@ export function OverviewPage() {
                   <li key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}>
                     <Link to={episode.targetPath} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
                       <span
-                        className={`h-2 w-2 shrink-0 rounded-full ${episode.active ? 'bg-status-error animate-pulse' : 'bg-status-idle'}`}
+                        className={`h-2 w-2 shrink-0 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`}
                         aria-hidden="true"
                       />
                       <span className="min-w-0 flex-1">

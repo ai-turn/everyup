@@ -25,7 +25,7 @@ function pageItems(current: number, totalPages: number): (number | null)[] {
 }
 
 // 모바일은 44px 터치 타깃, sm 이상은 촘촘하게.
-const STEP = 'flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-md border border-ui-border text-sm text-text-muted hover:bg-ui-hover disabled:opacity-40 disabled:cursor-not-allowed';
+const STEP = 'flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-md border border-ui-border text-sm text-text-muted hover:bg-ui-hover active:bg-ui-active disabled:opacity-50 disabled:cursor-not-allowed';
 
 export function Pagination({
   page,

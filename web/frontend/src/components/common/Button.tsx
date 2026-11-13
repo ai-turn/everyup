@@ -16,14 +16,15 @@ import { Tooltip } from './Tooltip';
 // 알파벳 순으로 내보내서 `text-status-error`가 `text-text-muted`에 밀렸다.
 // 파괴적 액션은 variant로 고른다.
 const VARIANTS = {
-  primary: 'bg-primary text-white hover:bg-primary-hover',
-  secondary: 'bg-bg-surface border border-ui-border text-text-base hover:bg-ui-hover [&_svg]:text-action',
-  ghost: 'text-action hover:bg-action/10',
+  // 투명 테두리: 강제 색상 모드는 채움을 지우고 테두리만 그린다 — 없으면 글자만 남아 버튼으로 안 보인다.
+  primary: 'border border-transparent bg-primary text-white not-aria-disabled:hover:bg-primary-hover not-aria-disabled:active:bg-primary-hover',
+  secondary: 'bg-bg-surface border border-ui-border text-text-base not-aria-disabled:hover:bg-ui-hover not-aria-disabled:active:bg-ui-active [&_svg]:text-action',
+  ghost: 'text-action not-aria-disabled:hover:bg-action/10 not-aria-disabled:active:bg-action/15',
   text: 'text-action',
   // secondary와 같은 모양에 글자·아이콘만 빨갛게 — 툴바에 나란히 놓였을 때 모양으로 튀지 않는다.
-  destructive: 'bg-bg-surface border border-ui-border text-status-error hover:bg-status-error/10',
-  quiet: 'text-text-muted hover:text-text-base hover:bg-ui-hover',
-  danger: 'bg-red-600 text-white hover:bg-red-700',
+  destructive: 'bg-bg-surface border border-ui-border text-status-error not-aria-disabled:hover:bg-status-error/10 not-aria-disabled:active:bg-status-error/15',
+  quiet: 'text-text-muted not-aria-disabled:hover:text-text-base not-aria-disabled:hover:bg-ui-hover not-aria-disabled:active:bg-ui-active',
+  danger: 'border border-transparent bg-danger text-white not-aria-disabled:hover:bg-danger-hover not-aria-disabled:active:bg-danger-hover',
 } as const;
 
 // md는 터치 화면(sm 미만)에서 44px — Apple 44pt·Material 48dp 권장 터치 영역에 맞춘다.
@@ -39,7 +40,9 @@ const SIZES = {
 const BASE =
   'inline-flex items-center justify-center shrink-0 rounded-lg font-medium transition-colors cursor-pointer ' +
   'disabled:opacity-50 disabled:cursor-not-allowed ' +
-  'aria-disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:hover:bg-transparent ' +
+  // aria-disabled에는 hover·누름 반응을 걸지 않는다(variant의 not-aria-disabled:). 예전처럼 투명으로
+  // 덮어쓰면 primary는 hover 때 채움이 사라져 흰 글자만 남았다.
+  'aria-disabled:opacity-50 aria-disabled:cursor-not-allowed ' +
   // loading 중엔 스피너만 남기고 호출부의 아이콘은 숨긴다
   'aria-busy:[&>svg:not(:first-child)]:hidden';
 

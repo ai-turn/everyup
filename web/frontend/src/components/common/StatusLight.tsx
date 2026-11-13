@@ -14,10 +14,10 @@
 export type StatusTone = 'healthy' | 'warn' | 'error' | 'idle';
 
 const DOT: Record<StatusTone, string> = {
-  healthy: 'bg-status-healthy',
-  warn: 'bg-status-warn',
-  error: 'bg-status-error',
-  idle: 'bg-status-idle',
+  healthy: 'bg-status-healthy-fill',
+  warn: 'bg-status-warn-fill',
+  error: 'bg-status-error-fill',
+  idle: 'bg-status-idle-fill',
 };
 
 interface StatusLightProps {

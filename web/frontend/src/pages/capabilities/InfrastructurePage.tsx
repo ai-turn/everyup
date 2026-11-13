@@ -19,8 +19,8 @@ function resourceCollectionStatus(resource: InfrastructureResource) {
 }
 
 const LEVEL_STYLE: Record<UsageLevel, { text: string; bar: string; label?: string }> = {
-  critical: { text: 'text-status-error', bar: 'bg-status-error', label: '위험' },
-  warning: { text: 'text-status-warn', bar: 'bg-status-warn', label: '주의' },
+  critical: { text: 'text-status-error', bar: 'bg-status-error-fill', label: '위험' },
+  warning: { text: 'text-status-warn', bar: 'bg-status-warn-fill', label: '주의' },
   normal: { text: 'text-text-base', bar: 'bg-primary' },
 };
 

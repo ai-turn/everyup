@@ -150,7 +150,7 @@ export function CommandPalette() {
             aria-controls="command-palette-results"
             aria-activedescendant={filtered[index] ? `command-palette-option-${filtered[index].id}` : undefined}
             placeholder="Docker 환경, 서비스, 페이지 검색…"
-            className="flex-1 bg-transparent py-3.5 text-sm text-text-base outline-none placeholder:text-text-dim"
+            className="flex-1 bg-transparent py-3.5 text-sm max-sm:text-base text-text-base outline-none placeholder:text-text-dim"
           />
           <kbd className="shrink-0 font-sans px-1.5 py-0.5 rounded border border-ui-border text-xs font-medium text-text-dim">
             Esc
@@ -182,7 +182,7 @@ export function CommandPalette() {
                   <span
                     role="img"
                     aria-label={item.healthy ? '정상' : '장애'}
-                    className={`ml-1 mr-1 h-1.5 w-1.5 rounded-full shrink-0 ${item.healthy ? 'bg-status-healthy' : 'bg-status-error'}`}
+                    className={`ml-1 mr-1 h-1.5 w-1.5 rounded-full shrink-0 ${item.healthy ? 'bg-status-healthy-fill' : 'bg-status-error-fill'}`}
                   />
                 )}
                 <span className="text-sm truncate">{item.label}</span>

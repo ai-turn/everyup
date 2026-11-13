@@ -108,7 +108,7 @@ function buildDefaultMessage(metric: RuleFormValues['metric'], operator: RuleFor
 // ─── Layout primitives ────────────────────────────────────────────────────────
 
 // 텍스트영역 전용 셸 — Input과 같은 규격을 공유한다 (포커스 링은 전역 :focus-visible).
-const textareaCls = `${FIELD_SHELL} py-2.5 border-ui-border placeholder:text-text-dim`;
+const textareaCls = `${FIELD_SHELL} py-2.5 max-sm:text-base border-ui-control-border placeholder:text-text-dim`;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
