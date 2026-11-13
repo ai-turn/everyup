@@ -8,6 +8,7 @@ import { ChannelForm } from './ChannelForm';
 import { FormSidePanel } from './FormSidePanel';
 import { FormActions } from './FormLayout';
 import { NotificationHistoryTab } from './NotificationHistoryTab';
+import { LoadErrorBanner } from './LoadErrorBanner';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import type {
@@ -29,6 +30,12 @@ interface AlertsDesktopViewProps {
   history: NotificationHistory[];
   stats: NotificationStats | null;
   isLoading: boolean;
+  rulesLoading: boolean;
+  channelsError: string | null;
+  rulesError: string | null;
+  onRetryChannels: () => void;
+  onReloadRules: () => void;
+  onToggleRule: (id: string) => void;
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   togglingIds: Set<string>;
@@ -49,6 +56,12 @@ export function AlertsDesktopView({
   rules,
   stats,
   isLoading,
+  rulesLoading,
+  channelsError,
+  rulesError,
+  onRetryChannels,
+  onReloadRules,
+  onToggleRule,
   activeTab,
   setActiveTab,
   togglingIds,
@@ -205,8 +218,10 @@ export function AlertsDesktopView({
               onSubmittingChange={setChannelSubmitting}
             />
           </FormSidePanel>
+          {channelsError && <div className="mb-3"><LoadErrorBanner title="알림 채널을 불러오지 못했습니다" message={channelsError} onRetry={onRetryChannels} /></div>}
           <ChannelsTable
             channels={channels}
+            failed={!!channelsError}
             channelHealth={channelHealth}
             isLoading={isLoading}
             togglingIds={togglingIds}
@@ -218,7 +233,7 @@ export function AlertsDesktopView({
           />
         </>
       ) : (
-        <AlertRulesTab addRequest={ruleAddRequest} onAddRequestHandled={onRuleAddRequestHandled} target={alertTarget} onClearTarget={onClearTarget} />
+        <AlertRulesTab rules={rules} channels={channels} rulesLoading={rulesLoading} rulesError={rulesError} onReloadRules={onReloadRules} onToggleRule={onToggleRule} togglingIds={togglingIds} addRequest={ruleAddRequest} onAddRequestHandled={onRuleAddRequestHandled} target={alertTarget} onClearTarget={onClearTarget} />
       )}
     </>
   );
@@ -230,6 +245,8 @@ interface ChannelsGridProps {
   channels: NotificationChannel[];
   channelHealth: Record<string, NotificationChannelHealth>;
   isLoading: boolean;
+  /** 조회에 실패했으면 빈 상태를 보이지 않는다 — 위의 배너가 말한다. */
+  failed: boolean;
   togglingIds: Set<string>;
   onAdd: () => void;
   onEdit: (channel: NotificationChannel) => void;
@@ -238,7 +255,7 @@ interface ChannelsGridProps {
   onTest: (id: string) => void;
 }
 
-function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd, onEdit, onDelete, onToggle, onTest }: ChannelsGridProps) {
+function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds, onAdd, onEdit, onDelete, onToggle, onTest }: ChannelsGridProps) {
   const { view } = useListView();
 
   if (isLoading) {
@@ -267,6 +284,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, togglingIds, onAdd,
   }
 
   if (channels.length === 0) {
+    if (failed) return null;
     return (
       <div className="rounded-xl border border-ui-border bg-bg-surface">
         <EmptyState

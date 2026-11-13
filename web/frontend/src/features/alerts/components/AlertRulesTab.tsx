@@ -4,7 +4,9 @@ import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
 import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
-import { api, type AlertRule, type NotificationChannel, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService, type UptimeMonitor } from '../../../services/api';
+import { api, type AlertRule, type NotificationChannel } from '../../../services/api';
+import { alertTargetName, targetLabel, useTargetNames } from '../ruleDisplay';
+import { LoadErrorBanner } from './LoadErrorBanner';
 import { getChannelStyle } from '../utils/channelMeta';
 import { AlertRuleForm, type AlertRuleFormInitial } from './AlertRuleForm';
 import { FormSidePanel } from './FormSidePanel';
@@ -37,35 +39,6 @@ function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
   if (rule.type === 'request') return 'request';
   if (rule.type === 'log') return 'log';
   return 'resource';
-}
-
-// 대상 이름을 찾지 못하면 지워진 대상이다. 이름 목록을 받지 못했을 때는 id만 보인다(지워졌는지 모름).
-const missingTarget = (id: string) => `삭제된 대상 (${id})`;
-
-/** 규칙 대상의 이름을 찾는 목록들. 헬스체크 규칙의 serviceId는 업타임 모니터일 수 있다. */
-interface TargetNames {
-  agentServices: AgentServiceFlat[];
-  agents: ConnectedAgent[];
-  directServices: ObservedService[];
-  infrastructureResources: InfrastructureResource[];
-  uptimeMonitors: UptimeMonitor[];
-}
-
-function targetLabel(rule: AlertRule, { agentServices, agents, directServices, infrastructureResources, uptimeMonitors }: TargetNames): string {
-  if (rule.type === 'service' || rule.type === 'log' || rule.type === 'request') {
-    if (rule.serviceId) return directServices.find(service => service.id === rule.serviceId)?.name
-      ?? uptimeMonitors.find(monitor => monitor.id === rule.serviceId)?.name
-      ?? missingTarget(rule.serviceId);
-    if (rule.agentId && rule.serviceKey) {
-      const svc = agentServices.find(s => s.agentId === rule.agentId && s.key === rule.serviceKey);
-      return svc ? `${svc.agentName} / ${svc.name}` : missingTarget(rule.serviceKey);
-    }
-    // Request rules can also watch a whole Docker environment (API-created).
-    if (rule.type === 'request' && rule.agentId) return agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId);
-    return rule.type === 'log' ? '전체 로그 서비스' : rule.metric === 'otel_metric' ? '모든 서비스' : '전체 헬스체크';
-  }
-  if (rule.agentId) return infrastructureResources.find(resource => resource.id === rule.agentId)?.name ?? agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId);
-  return '전체 인프라';
 }
 
 const CATEGORY_LABELS: Record<Exclude<CategoryKey, 'all'>, string> = {
@@ -184,24 +157,23 @@ type SortDir = 'asc' | 'desc';
 export interface RuleAddRequest { initial?: AlertRuleFormInitial }
 
 interface AlertRulesTabProps {
+  /** 규칙·채널은 AlertsPage 한 곳이 갖는다 — 탭 숫자와 목록이 같은 값을 본다(A-14). */
+  rules: AlertRule[];
+  channels: NotificationChannel[];
+  rulesLoading: boolean;
+  rulesError: string | null;
+  onReloadRules: () => void;
+  onToggleRule: (id: string) => void;
+  togglingIds: Set<string>;
   addRequest?: RuleAddRequest | null;
   onAddRequestHandled?: () => void;
   target?: AlertTarget | null;
   onClearTarget?: () => void;
 }
 
-export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClearTarget }: AlertRulesTabProps) {
+export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onReloadRules, onToggleRule, togglingIds, addRequest, onAddRequestHandled, target, onClearTarget }: AlertRulesTabProps) {
   const { view } = useListView();
-  const [rules, setRules] = useState<AlertRule[]>([]);
-  const [channels, setChannels] = useState<NotificationChannel[]>([]);
-  const [agentServices, setAgentServices] = useState<AgentServiceFlat[]>([]);
-  const [agents, setAgents] = useState<ConnectedAgent[]>([]);
-  const [directServices, setDirectServices] = useState<ObservedService[]>([]);
-  const [infrastructureResources, setInfrastructureResources] = useState<InfrastructureResource[]>([]);
-  const [uptimeMonitors, setUptimeMonitors] = useState<UptimeMonitor[]>([]);
-  const names = useMemo<TargetNames>(() => ({ agentServices, agents, directServices, infrastructureResources, uptimeMonitors }), [agentServices, agents, directServices, infrastructureResources, uptimeMonitors]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
+  const names = useTargetNames();
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -222,35 +194,6 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
   const [sortKey, setSortKey] = useState<SortKey>('severity');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
-  const loadData = async () => {
-    try {
-      const [rulesData, channelsData, agentSvcs, agts, directRows, infrastructureRows, monitorRows] = await Promise.all([
-        api.getAlertRules(),
-        api.getNotificationChannels(),
-        api.getAllAgentServicesFlat(),
-        api.getAgents(),
-        api.getObservedServices(),
-        api.getInfrastructureResources(),
-        api.getUptimeMonitors(),
-      ]);
-      setRules(rulesData);
-      setChannels(channelsData);
-      setAgentServices(agentSvcs ?? []);
-      setAgents(agts ?? []);
-      setDirectServices(directRows ?? []);
-      setInfrastructureResources(infrastructureRows ?? []);
-      setUptimeMonitors(monitorRows ?? []);
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
   // 요청을 비워 두면 탭을 다시 열 때 폼이 또 열리지 않는다.
   useEffect(() => {
     if (!addRequest) return;
@@ -259,23 +202,6 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 요청이 올 때 한 번만 연다. 대상 등은 그 시점의 값을 쓴다.
   }, [addRequest]);
 
-  const handleToggle = async (id: string) => {
-    setTogglingIds(prev => new Set(prev).add(id));
-    try {
-      const result = await api.toggleAlertRule(id);
-      setRules(prev => prev.map(r => r.id === id ? { ...r, isEnabled: result.isEnabled } : r));
-      toast.success(result.isEnabled ? '규칙이 활성화되었습니다' : '규칙이 비활성화되었습니다');
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setTogglingIds(prev => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    }
-  };
-
   const handleDeleteConfirm = async () => {
     if (!deleteTargetId) return;
     setIsDeleting(true);
@@ -283,7 +209,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
       await api.deleteAlertRule(deleteTargetId);
       toast.success('규칙이 삭제되었습니다');
       setDeleteTargetId(null);
-      loadData();
+      onReloadRules();
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -292,7 +218,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
   };
 
   const closeForm = () => { setFormOpen(false); setFormRule(undefined); };
-  const onFormSuccess = () => { closeForm(); loadData(); };
+  const onFormSuccess = () => { closeForm(); onReloadRules(); };
 
   // 대상 필터가 걸린 목록에서 추가하면 그 대상을 폼에 채운다(A-09).
   const handleAddRule = (initial?: AlertRuleFormInitial) => {
@@ -341,16 +267,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
     });
   }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, names, target]);
 
-  const selectedTargetLabel = target?.kind === 'direct'
-    ? directServices.find((service) => service.id === target.serviceId)?.name ?? uptimeMonitors.find((monitor) => monitor.id === target.serviceId)?.name ?? missingTarget(target.serviceId)
-    : target?.kind === 'infrastructure'
-    ? infrastructureResources.find((resource) => resource.id === target.resourceId)?.name ?? missingTarget(target.resourceId)
-    : target
-      ? (() => {
-          const service = agentServices.find((item) => item.agentId === target.agentId && item.key === target.serviceKey);
-          return service ? `${service.agentName} / ${service.name}` : missingTarget(target.serviceKey);
-        })()
-      : null;
+  const selectedTargetLabel = target ? alertTargetName(target, names) : null;
   const targetNotice = selectedTargetLabel && (
     <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status">
       <MaterialIcon size={20} name="filter_alt" className="text-action" />
@@ -404,27 +321,31 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
     </FormSidePanel>
   );
 
-  if (isLoading) {
+  if (rulesLoading) {
     return (
-      <div className="p-8 text-center text-slate-500">
+      <div className="p-8 text-center text-text-muted">
         <MaterialIcon size={32} name="sync" className="text-action animate-spin mx-auto mb-2 block" />
         로딩 중…
       </div>
     );
   }
 
+  const errorBanner = rulesError && <LoadErrorBanner title="알림 규칙을 불러오지 못했습니다" message={rulesError} onRetry={onReloadRules} />;
+
+  // 조회에 실패했으면 빈 상태 대신 배너만 보인다 — "규칙이 없다"고 말하지 않는다.
   if (rules.length === 0) {
     return (
       <>
         {formPanel}
         {targetNotice}
-        <div className="bg-bg-surface border border-ui-border rounded-xl">
+        {errorBanner}
+        {!rulesError && <div className="bg-bg-surface border border-ui-border rounded-xl">
           <EmptyState
             icon="rule"
             title="구성된 알림 규칙이 없습니다"
             action={{ label: '추가', onClick: () => handleAddRule() }}
           />
-        </div>
+        </div>}
       </>
     );
   }
@@ -433,6 +354,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
     <>
       {formPanel}
       {targetNotice}
+      {errorBanner}
       {/* Filter bar — category pills + severity/enabled + search */}
       <ListToolbar search={
         <div className="relative">
@@ -496,7 +418,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
             <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, names)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words text-sm text-text-muted">{compactTrigger(rule)}</p></Tooltip>
             <div className="mt-3"><ChannelAvatars rule={rule} channels={channels} /></div><p className="mt-3 type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p>
-            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => handleToggle(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
+            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
       </div> : (
       <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
@@ -580,7 +502,7 @@ export function AlertRulesTab({ addRequest, onAddRequestHandled, target, onClear
                         <div className="inline-flex items-center justify-end gap-1">
                           <Toggle
                             checked={rule.isEnabled}
-                            onChange={() => handleToggle(rule.id)}
+                            onChange={() => onToggleRule(rule.id)}
                             disabled={togglingIds.has(rule.id)}
                             title={rule.isEnabled ? '비활성화' : '활성화'}
                             ariaLabel={rule.name}

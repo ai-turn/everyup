@@ -6,7 +6,7 @@ import { api, type NotificationChannel, type AlertRule, type NotificationHistory
 import { AlertsDesktopView } from '../../features/alerts/components/AlertsDesktopView';
 import { AlertsMobileView } from '../../features/alerts/components/AlertsMobileView';
 import { useIsMobile } from '../../hooks/useMediaQuery';
-import { Button, ConfirmDialog, MaterialIcon } from '../../components/common';
+import { ConfirmDialog } from '../../components/common';
 import { alertTargetInitial, parseAlertTarget } from '../../features/alerts/alertTarget';
 import { FormSidePanel } from '../../features/alerts/components/FormSidePanel';
 import { FormActions } from '../../features/alerts/components/FormLayout';
@@ -259,13 +259,6 @@ export function AlertsPage() {
     />
   );
 
-  const loadWarning = (channelsError || rulesError || historyError) ? (
-    <section className="mb-5 flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
-      <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="text-sm font-medium text-text-base">일부 알림 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">성공한 정보는 계속 표시합니다. 탭별 오류 영역에서 다시 시도할 수 있습니다.</p></div></div>
-      <Button size="sm" variant="secondary" onClick={() => { void loadChannels(); void loadRules(); void loadHistory(); }}>모두 다시 시도</Button>
-    </section>
-  ) : null;
-
   if (isMobile) {
     return (
       <>
@@ -315,7 +308,6 @@ export function AlertsPage() {
 
   return (
     <>
-      {loadWarning}
       <AlertsDesktopView
         channels={channels}
         channelHealth={channelHealth}
@@ -323,6 +315,12 @@ export function AlertsPage() {
         history={history}
         stats={stats}
         isLoading={isLoading}
+        rulesLoading={rulesLoading}
+        channelsError={channelsError}
+        rulesError={rulesError}
+        onRetryChannels={refreshChannels}
+        onReloadRules={() => void loadRules()}
+        onToggleRule={handleToggleRule}
         activeTab={activeTab}
         setActiveTab={handleSetActiveTab}
         togglingIds={togglingIds}

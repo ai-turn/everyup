@@ -7,6 +7,8 @@ import { SeverityBadge } from './SeverityBadge';
 import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useListView } from '../../../hooks/useListView';
+import { getErrorMessage } from '../../../utils/errors';
+import { LoadErrorBanner } from './LoadErrorBanner';
 
 const HISTORY_TYPE_LABELS: Record<string, string> = {
   resource: '리소스',
@@ -69,6 +71,8 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
   const [stats, setStats] = useState<NotificationStats | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus ?? 'all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -108,11 +112,13 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
         if (cancelled) return;
         setHistory(response.items || []);
         setTotal(response.total || 0);
+        setError(null);
       })
-      .catch(error => console.error('Failed to load notification history:', error))
+      // 실패를 빈 이력으로 보이지 않는다 — 그 자리에 다시 시도 배너를 띄운다(A-05).
+      .catch(requestError => { if (!cancelled) setError(getErrorMessage(requestError)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [statusFilter, typeFilter, channelFilter, periodDays, debouncedSearch, page]);
+  }, [statusFilter, typeFilter, channelFilter, periodDays, debouncedSearch, page, reloadKey]);
 
   useEffect(() => {
     api.getNotificationHistoryStats(periodDays)
@@ -209,8 +215,9 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
         </Select>
       </ListToolbar>
 
+      {error && <LoadErrorBanner title="발송 이력을 불러오지 못했습니다" message={error} onRetry={() => setReloadKey(key => key + 1)} />}
       {/* History Table */}
-      <div className={view === 'card' ? 'space-y-3' : 'bg-bg-surface rounded-xl border border-ui-border overflow-hidden'}>
+      {!error && <div className={view === 'card' ? 'space-y-3' : 'bg-bg-surface rounded-xl border border-ui-border overflow-hidden'}>
         {view === 'card' ? <HistoryCards rows={groupedRows} loading={loading} /> : (
         <div className="overflow-x-auto">
           <table aria-label="알림 로그 그리드" className="w-full min-w-[960px] table-fixed">
@@ -319,7 +326,7 @@ export function NotificationHistoryTab({ channels, initialStatus }: Notification
             />
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }
