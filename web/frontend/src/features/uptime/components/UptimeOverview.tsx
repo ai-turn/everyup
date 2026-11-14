@@ -37,7 +37,7 @@ export function UptimeStats({ stats }: { stats: UptimeOverviewStat[] }) {
       {stats.map((stat, index) => (
         <div key={stat.label} className={`pr-7 ${index > 0 ? 'sm:border-l sm:border-ui-border sm:pl-7' : ''}`}>
           <dt className="type-caption text-text-muted">{stat.label}</dt>
-          <dd className={`mt-1 text-2xl font-medium tabular-nums ${stat.tone === 'error' ? 'text-status-error' : stat.tone === 'warn' ? 'text-status-warn' : 'text-text-base'}`}>{stat.value}</dd>
+          <dd className={`mt-1 type-kpi ${stat.tone === 'error' ? 'text-status-error' : stat.tone === 'warn' ? 'text-status-warn' : 'text-text-base'}`}>{stat.value}</dd>
         </div>
       ))}
     </dl>
@@ -92,7 +92,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
         <span>지난 90일{historyUptime !== undefined && !loading && !error && <> · <span className="font-medium tabular-nums text-text-base">{historyUptime.toFixed(2)}%</span></>}</span>
         {!loading && !error && <><span>기록 {recordedDays}/90일</span><span>일부 실패 {partialDays}일, 전체 실패 {downDays}일</span></>}
       </div>
-      {error ? <p className="py-3 text-sm text-text-muted">90일 이력을 불러오지 못했습니다. {error}</p> : loading ? (
+      {error ? <p className="py-3 type-body text-text-muted">90일 이력을 불러오지 못했습니다. {error}</p> : loading ? (
         <div className="h-7 animate-pulse rounded bg-ui-hover" />
       ) : (
         <div

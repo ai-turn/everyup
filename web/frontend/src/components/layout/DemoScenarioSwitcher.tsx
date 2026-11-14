@@ -19,7 +19,7 @@ export function DemoScenarioSwitcher({ tone }: DemoScenarioSwitcherProps) {
   };
 
   return (
-    <label className={`flex items-center gap-2 text-xs font-medium ${dark ? 'text-slate-200' : 'text-text-secondary'}`}>
+    <label className={`flex items-center gap-2 type-label-sm ${dark ? 'text-slate-200' : 'text-text-secondary'}`}>
       <span className="shrink-0">데모 상태</span>
       <Select
         aria-label="데모 시나리오"

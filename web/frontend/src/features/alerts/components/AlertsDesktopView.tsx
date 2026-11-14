@@ -8,7 +8,7 @@ import { ChannelForm } from './ChannelForm';
 import { FormSidePanel } from './FormSidePanel';
 import { FormActions } from './FormLayout';
 import { NotificationHistoryTab } from './NotificationHistoryTab';
-import { LoadErrorBanner } from './LoadErrorBanner';
+import { LoadErrorBanner } from '../../../components/common';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import type {
@@ -143,12 +143,12 @@ export function AlertsDesktopView({
       <div className="mb-5 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border bg-bg-surface py-3.5">
         <div className="flex flex-col gap-0.5 px-5">
           <span className="text-xs text-text-muted">발송 (7일)</span>
-          <span className="text-xl tabular-nums text-text-base">{totalSent}</span>
+          <span className="type-kpi text-text-base">{totalSent}</span>
         </div>
         <div className="flex flex-col gap-0.5 px-5">
           <span className="text-xs text-text-muted">실패 (7일)</span>
           <span className="flex items-baseline gap-2">
-            <span className={`text-xl tabular-nums ${totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>
+            <span className={`type-kpi ${totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>
               {totalFailed}
             </span>
             {totalFailed > 0 && (
@@ -162,7 +162,7 @@ export function AlertsDesktopView({
         <div className="flex flex-col gap-0.5 px-5">
           <span className="text-xs text-text-muted">성공률</span>
           <span className="flex items-center gap-2">
-            <span className="text-xl tabular-nums text-text-base">
+            <span className="type-kpi text-text-base">
               {successRate != null ? `${successRate}%` : '-'}
             </span>
             {successRate != null && (
@@ -183,7 +183,7 @@ export function AlertsDesktopView({
               role="tab"
               aria-selected={activeTab === tab.key}
               onClick={() => selectTab(tab.key)}
-              className={`relative px-4 py-2.5 text-sm font-medium transition-colors -mb-px border-b-2 ${
+              className={`relative px-4 py-2.5 type-label transition-colors -mb-px border-b-2 ${
                 activeTab === tab.key
                   ? 'text-text-base border-primary'
                   : 'text-text-muted border-transparent hover:text-text-base'
@@ -318,12 +318,12 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
       <table aria-label="알림 채널 그리드" className="w-full min-w-[1000px] table-fixed">
         <thead className="bg-ui-table-header">
           <tr className="border-b border-ui-border">
-            <th className="w-[280px] px-4 py-3 text-left text-xs font-medium text-text-muted">채널</th>
-            <th className="w-[90px] px-4 py-3 text-left text-xs font-medium text-text-muted">상태</th>
-            <th className="w-[150px] px-4 py-3 text-left text-xs font-medium text-text-muted">7일 발송 / 실패</th>
-            <th className="w-[110px] px-4 py-3 text-left text-xs font-medium text-text-muted">연결 규칙</th>
-            <th className="w-[200px] px-4 py-3 text-left text-xs font-medium text-text-muted">최근 발송</th>
-            <th className="sticky right-0 w-[180px] border-l border-ui-border-soft bg-ui-table-header px-4 py-3 text-right text-xs font-medium text-text-muted">작업</th>
+            <th className="w-[280px] px-4 py-3 text-left type-label-sm text-text-muted">채널</th>
+            <th className="w-[90px] px-4 py-3 text-left type-label-sm text-text-muted">상태</th>
+            <th className="w-[150px] px-4 py-3 text-left type-label-sm text-text-muted">7일 발송 / 실패</th>
+            <th className="w-[110px] px-4 py-3 text-left type-label-sm text-text-muted">연결 규칙</th>
+            <th className="w-[200px] px-4 py-3 text-left type-label-sm text-text-muted">최근 발송</th>
+            <th className="sticky right-0 w-[180px] border-l border-ui-border-soft bg-ui-table-header px-4 py-3 text-right type-label-sm text-text-muted">작업</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-ui-border-soft">
@@ -346,7 +346,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                       <ChannelIcon type={channel.type} size={18} className={style.text} />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm text-text-base">{channel.name}</p>
+                      <p className="truncate type-body text-text-base">{channel.name}</p>
                       <p className="truncate text-xs text-text-dim">
                         {getChannelSubtitle(channel.type)}
                       </p>

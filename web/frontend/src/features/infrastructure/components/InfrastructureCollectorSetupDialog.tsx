@@ -53,7 +53,7 @@ export function InfrastructureCollectorSetupDialog({
       <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
         <div>
           <h2 id="infrastructure-collector-dialog-title" className="type-card-title text-text-base">OpenTelemetry Collector 연결</h2>
-          <p className="mt-0.5 text-sm text-text-muted">표준 hostmetrics receiver로 CPU, 메모리, 디스크, 네트워크를 수집합니다.</p>
+          <p className="mt-0.5 type-body text-text-muted">표준 hostmetrics receiver로 CPU, 메모리, 디스크, 네트워크를 수집합니다.</p>
         </div>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
       </div>
@@ -62,11 +62,11 @@ export function InfrastructureCollectorSetupDialog({
       ) : (
         <form onSubmit={submit} className="space-y-5 p-6">
           <label className="block space-y-1.5" htmlFor="collector-resource-name">
-            <span className="text-sm font-medium text-text-secondary">인프라 이름</span>
+            <span className="type-label text-text-secondary">인프라 이름</span>
             <Input id="collector-resource-name" required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="edge-host-01" />
           </label>
           <label className="block space-y-1.5" htmlFor="collector-project">
-            <span className="text-sm font-medium text-text-secondary">그룹</span>
+            <span className="type-label text-text-secondary">그룹</span>
             <Select id="collector-project" value={projectId} onChange={event => setProjectId(event.target.value)}>
               <option value="">미분류</option>
               {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}

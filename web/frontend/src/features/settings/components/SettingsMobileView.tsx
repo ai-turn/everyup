@@ -57,7 +57,7 @@ export function SettingsMobileView({
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-text-base">환경 설정</h1>
-        <p className="text-sm text-text-muted mt-0.5">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
+        <p className="type-body text-text-muted mt-0.5">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
       </div>
       {settingsError && (
         <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3 type-body text-text-secondary">
@@ -74,8 +74,8 @@ export function SettingsMobileView({
       <SectionCard title="인터페이스" subtitle="테마 설정">
         {/* Theme */}
         <div className="space-y-2">
-          <p className="text-sm text-text-base">테마</p>
-          <p className="text-sm text-text-muted">라이트 또는 다크 모드를 선택합니다</p>
+          <p className="type-body text-text-base">테마</p>
+          <p className="type-body text-text-muted">라이트 또는 다크 모드를 선택합니다</p>
           <SegmentedControl
             size="md"
             ariaLabel="테마"
@@ -97,8 +97,8 @@ export function SettingsMobileView({
           <>
             {/* Collect interval */}
             <div className="space-y-2">
-              <p className="text-sm text-text-base">수집 주기</p>
-              <p className="text-sm text-text-muted">시스템 메트릭을 수집하는 간격 · 다음 시작 시 적용됩니다</p>
+              <p className="type-body text-text-base">수집 주기</p>
+              <p className="type-body text-text-muted">시스템 메트릭을 수집하는 간격 · 다음 시작 시 적용됩니다</p>
               <SegmentedControl
                 size="md"
                 ariaLabel="수집 주기"
@@ -115,8 +115,8 @@ export function SettingsMobileView({
 
             {/* Metrics */}
             <div className="space-y-2">
-              <p className="text-sm text-text-base">메트릭 보존 기간</p>
-              <p className="text-sm text-text-muted">수집된 시스템 메트릭 데이터 보존 기간</p>
+              <p className="type-body text-text-base">메트릭 보존 기간</p>
+              <p className="type-body text-text-muted">수집된 시스템 메트릭 데이터 보존 기간</p>
               <SegmentedControl
                 size="md"
                 ariaLabel="메트릭 보존 기간"
@@ -130,8 +130,8 @@ export function SettingsMobileView({
 
             {/* Logs */}
             <div className="space-y-2">
-              <p className="text-sm text-text-base">로그 보존 기간</p>
-              <p className="text-sm text-text-muted">에러 로그 데이터 보존 기간</p>
+              <p className="type-body text-text-base">로그 보존 기간</p>
+              <p className="type-body text-text-muted">에러 로그 데이터 보존 기간</p>
               <SegmentedControl
                 size="md"
                 ariaLabel="로그 보존 기간"

@@ -70,7 +70,7 @@ function CommandRow({
   return (
     <div className="rounded-lg border border-ui-border bg-ui-hover-soft px-3 py-2">
       <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-text-muted">{label}</span>
+        <span className="type-label-sm text-text-muted">{label}</span>
         <CopyButton
           onCopy={() => onCopy(command)}
           title={`${label} 복사`}
@@ -161,7 +161,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="type-card-title text-text-base">상세 수집 설정</h3>
-            <p className="mt-0.5 text-sm text-text-muted">
+            <p className="mt-0.5 type-body text-text-muted">
               감지된 Java·Node.js 서비스에 OpenTelemetry를 안전하게 적용합니다.
             </p>
           </div>
@@ -174,7 +174,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
           ) : candidates.length === 0 ? (
             <div className="space-y-2 py-10 text-center">
               <MaterialIcon size={32} name="info" className="text-text-dim" />
-              <p className="text-sm text-text-muted">자동 적용할 수 있는 서비스가 없습니다.</p>
+              <p className="type-body text-text-muted">자동 적용할 수 있는 서비스가 없습니다.</p>
               <p className="mx-auto max-w-sm type-body text-text-muted">
                 Compose로 실행 중인 Java 또는 Node.js 서비스가 대상입니다. 나머지 서비스는 eBPF 기본 모니터링을 계속 사용할 수 있습니다.
               </p>
@@ -202,7 +202,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                     return (
                       <label
                         key={target.composeService}
-                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${checked ? 'border-primary/20 bg-primary/10 text-action' : 'border-ui-border text-text-secondary hover:bg-ui-hover'}`}
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 type-label-sm ${checked ? 'border-primary/20 bg-primary/10 text-action' : 'border-ui-border text-text-secondary hover:bg-ui-hover'}`}
                       >
                         <input type="checkbox" aria-label={`${target.name} 상세 수집`} checked={checked} onChange={event => {
                           setSelectedKeys(current => event.target.checked ? [...current, key] : current.filter(item => item !== key));
@@ -258,7 +258,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                   className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
                 />
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-text-base">요청·응답 바디도 수집</span>
+                  <span className="block type-label text-text-base">요청·응답 바디도 수집</span>
                   <span className="mt-0.5 block type-body text-text-muted">
                     Node.js만 지원하며 민감 필드를 마스킹하고 크기를 제한합니다.
                     {hasJava && captureBodies && ' Java 서비스에는 헤더 수집만 적용됩니다.'}

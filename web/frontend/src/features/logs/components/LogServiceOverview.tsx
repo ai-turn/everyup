@@ -60,8 +60,8 @@ function LevelCount({ label, value, tone, known }: { label: string; value: numbe
     <div>
       <p className="text-xs text-text-dim">{label}</p>
       {known
-        ? <p className={`text-lg tabular-nums ${value > 0 ? tone : 'text-text-base'}`}>{value.toLocaleString()}</p>
-        : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><p className="text-lg text-text-dim">-</p></Tooltip>}
+        ? <p className={`type-stat ${value > 0 ? tone : 'text-text-base'}`}>{value.toLocaleString()}</p>
+        : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><p className="type-stat text-text-dim">-</p></Tooltip>}
     </div>
   );
 }
@@ -172,10 +172,10 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
         <section>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
             <h2 className="type-section-title text-text-base">자주 발생한 오류·경고</h2>
-            <span className="text-xs text-text-dim">최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다</span>
+            <span className="type-body text-text-muted">최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다</span>
           </div>
           {patterns === null ? (
-            <p className="rounded-xl border border-ui-border bg-bg-surface px-4 py-3 text-sm text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
+            <p className="rounded-xl border border-ui-border bg-bg-surface px-4 py-3 type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
           ) : (
             <ul className="divide-y divide-ui-border-soft overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
               {patterns.map(({ pattern, row }) => (

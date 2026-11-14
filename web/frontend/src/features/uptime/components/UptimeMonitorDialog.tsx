@@ -98,45 +98,45 @@ export function UptimeMonitorDialog({
             <h2 id="uptime-monitor-dialog-title" className="type-card-title text-text-base">
               {monitor ? '업타임 수정' : '업타임 추가'}
             </h2>
-            <p className="mt-0.5 text-sm text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
+            <p className="mt-0.5 type-body text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
         </div>
         <fieldset disabled={saving} className="space-y-4 p-6">
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-text-secondary">이름</span>
+            <span className="type-label text-text-secondary">이름</span>
             <Input required pattern={'.*\\S.*'} title="공백 이외의 이름을 입력하세요." value={draft.name} onChange={(event) => update('name', event.target.value)} placeholder="예: 공개 API" />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-text-secondary">체크 방식</span>
+            <span className="type-label text-text-secondary">체크 방식</span>
             <Select aria-label="체크 방식" value={draft.type} onChange={(event) => update('type', event.target.value as UptimeMonitorType)} disabled={Boolean(monitor)}>
               <option value="http">HTTP</option>
               <option value="tcp">TCP</option>
             </Select>
           </label>
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-text-secondary">{draft.type === 'http' ? 'URL' : '호스트'}</span>
+            <span className="type-label text-text-secondary">{draft.type === 'http' ? 'URL' : '호스트'}</span>
             <Input required mono type={draft.type === 'http' ? 'url' : 'text'} pattern={draft.type === 'http' ? '[Hh][Tt][Tt][Pp][Ss]?://.+' : '.*\\S.*'} title={draft.type === 'http' ? 'http:// 또는 https://로 시작하는 주소를 입력하세요.' : undefined} value={draft.target} onChange={(event) => update('target', event.target.value)} placeholder={draft.type === 'http' ? 'https://api.example.com/health' : 'db.example.com'} />
           </label>
           {draft.type === 'tcp' ? (
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-text-secondary">포트</span>
+              <span className="type-label text-text-secondary">포트</span>
               <Input required type="number" min={1} max={65535} value={draft.port} onChange={(event) => update('port', event.target.value)} />
             </label>
           ) : (
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-text-secondary">기대 상태 코드</span>
+              <span className="type-label text-text-secondary">기대 상태 코드</span>
               <Input required type="number" min={100} max={599} value={draft.expectedStatus} onChange={(event) => update('expectedStatus', event.target.value)} />
               <span className="block type-caption text-text-muted">응답 코드가 이 값과 다르면 실패로 기록합니다.</span>
             </label>
           )}
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-text-secondary">주기 (초)</span>
+              <span className="type-label text-text-secondary">주기 (초)</span>
               <Input required type="number" min={5} value={draft.interval} onChange={(event) => update('interval', event.target.value)} />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-text-secondary">타임아웃 (초)</span>
+              <span className="type-label text-text-secondary">타임아웃 (초)</span>
               {/* step="any": ms로 저장된 기존 값(예: 2550 → 2.55)을 그대로 열고 저장할 수 있어야 한다. */}
               <Input required type="number" min={0.1} step="any" value={draft.timeout} onChange={(event) => update('timeout', event.target.value)} />
             </label>
@@ -145,7 +145,7 @@ export function UptimeMonitorDialog({
             <label className="flex items-start gap-3">
               <input type="checkbox" checked={alertOnDown} onChange={(event) => setAlertOnDown(event.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary" />
               <span>
-                <span className="block text-sm font-medium text-text-secondary">다운되면 알림</span>
+                <span className="block type-label text-text-secondary">다운되면 알림</span>
                 <span className="block type-caption text-text-muted">연속으로 실패하면 한 번, 복구되면 한 번 켜진 모든 채널로 보냅니다. 알림 규칙에서 바꿀 수 있습니다.</span>
               </span>
             </label>

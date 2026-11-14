@@ -9,7 +9,7 @@ import type { NotificationChannel, NotificationChannelHealth, AlertRule, Notific
 import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
 import { alertTargetName, categoryLabel, compactTrigger, historyStatus, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames } from '../ruleDisplay';
 import { ChannelAvatars } from './ChannelAvatars';
-import { LoadErrorBanner } from './LoadErrorBanner';
+import { LoadErrorBanner } from '../../../components/common';
 import { SeverityBadge } from './SeverityBadge';
 
 type MobileTab = 'channels' | 'rules' | 'history';
@@ -113,22 +113,22 @@ export function AlertsMobileView({
       {stats && (
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
-            <p className="text-sm text-text-muted truncate">
+            <p className="type-body text-text-muted truncate">
               성공률
             </p>
-            <p className="text-xl text-text-base">{stats.successRate.toFixed(0)}%</p>
+            <p className="type-kpi text-text-base">{stats.successRate.toFixed(0)}%</p>
           </div>
           <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
-            <p className="text-sm text-text-muted truncate">
+            <p className="type-body text-text-muted truncate">
               발송
             </p>
-            <p className="text-xl text-text-base">{stats.totalSent}</p>
+            <p className="type-kpi text-text-base">{stats.totalSent}</p>
           </div>
           <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
-            <p className="text-sm text-text-muted truncate">
+            <p className="type-body text-text-muted truncate">
               실패
             </p>
-            <p className={`text-xl ${stats.totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>{stats.totalFailed}</p>
+            <p className={`type-kpi ${stats.totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>{stats.totalFailed}</p>
           </div>
         </div>
       )}
@@ -168,7 +168,7 @@ export function AlertsMobileView({
           ) : channels.length === 0 ? errors.channels ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="notifications_off" className="text-text-dim" />
-              <p className="text-sm text-text-dim mt-2">
+              <p className="type-body text-text-muted mt-2">
                 구성된 알림 채널이 없습니다
               </p>
               <Button variant="ghost" className="mt-3" onClick={onAddChannel}>추가</Button>
@@ -190,14 +190,14 @@ export function AlertsMobileView({
                     </div>
                     <div className={`flex-1 min-w-0 ${!channel.isEnabled ? 'opacity-50' : ''}`}>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm text-text-base truncate">{channel.name}</p>
+                        <p className="type-body text-text-base truncate">{channel.name}</p>
                         {!channel.isEnabled && (
                           <span className="px-1.5 py-0.5 text-xs bg-ui-active text-text-secondary rounded-full shrink-0">
                             비활성
                           </span>
                         )}
                       </div>
-                      <p className={`text-sm ${meta.text}`}>{channel.type}</p>
+                      <p className={`type-body ${meta.text}`}>{channel.type}</p>
                     </div>
                     <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} />
                   </div>
@@ -232,14 +232,14 @@ export function AlertsMobileView({
           ) : visibleRules.length === 0 ? errors.rules ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="rule" className="text-text-dim" />
-              <p className="text-sm text-text-dim mt-2">
+              <p className="type-body text-text-muted mt-2">
                 등록된 알림 규칙이 없습니다
               </p>
               <Button variant="ghost" className="mt-3" onClick={onAddRule}>추가</Button>
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={visibleRules} rowKey={row => row.id} ariaLabel="알림 규칙 그리드" columns={[
-              { key: 'name', label: '규칙', render: rule => <><p className="truncate font-medium">{rule.name}</p><p className="mt-1 break-words type-caption text-text-muted">{ruleMeta(rule)}</p><p className="mt-2 break-words text-sm text-text-secondary">{compactTrigger(rule)}</p><div className="mt-2 flex flex-wrap items-center gap-2"><SeverityBadge severity={rule.severity} /><ChannelAvatars rule={rule} channels={channels} /></div><div className="mt-2 flex gap-1">{ruleActions(rule)}</div></> },
+              { key: 'name', label: '규칙', render: rule => <><p className="truncate font-medium">{rule.name}</p><p className="mt-1 break-words type-caption text-text-muted">{ruleMeta(rule)}</p><p className="mt-2 break-words type-body text-text-secondary">{compactTrigger(rule)}</p><div className="mt-2 flex flex-wrap items-center gap-2"><SeverityBadge severity={rule.severity} /><ChannelAvatars rule={rule} channels={channels} /></div><div className="mt-2 flex gap-1">{ruleActions(rule)}</div></> },
               { key: 'enabled', label: '상태', className: 'w-16', render: rule => <Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /> },
             ]} /> : visibleRules.map(rule => (
               <article
@@ -249,12 +249,12 @@ export function AlertsMobileView({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className={`text-sm truncate ${rule.isEnabled ? 'text-text-base' : 'text-text-muted'}`}>{rule.name}</p>
+                    <p className={`type-body truncate ${rule.isEnabled ? 'text-text-base' : 'text-text-muted'}`}>{rule.name}</p>
                     <p className="mt-0.5 break-words type-caption text-text-muted">{ruleMeta(rule)}</p>
                   </div>
                   <SeverityBadge severity={rule.severity} />
                 </div>
-                <p className="mt-2 break-words text-sm text-text-secondary">{compactTrigger(rule)}</p>
+                <p className="mt-2 break-words type-body text-text-secondary">{compactTrigger(rule)}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
                   <ChannelAvatars rule={rule} channels={channels} />
                   <span className="type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</span>
@@ -280,13 +280,13 @@ export function AlertsMobileView({
           ) : history.length === 0 ? errors.history ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="history" className="text-text-dim" />
-              <p className="text-sm text-text-dim mt-2">
+              <p className="type-body text-text-muted mt-2">
                 알림 히스토리가 없습니다
               </p>
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={history} rowKey={row => row.id} ariaLabel="발송 이력 그리드" columns={[
-              { key: 'message', label: '메시지', render: item => <><p className="break-words text-sm">{item.message}</p><p className="mt-2 type-caption text-text-muted">{item.channelName} · {item.channelType}</p>{item.errorMessage && <p className="mt-1 break-words type-caption text-status-error">{item.errorMessage}</p>}<p className="mt-1 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}</p></> },
+              { key: 'message', label: '메시지', render: item => <><p className="break-words type-body">{item.message}</p><p className="mt-2 type-caption text-text-muted">{item.channelName} · {item.channelType}</p>{item.errorMessage && <p className="mt-1 break-words type-caption text-status-error">{item.errorMessage}</p>}<p className="mt-1 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}</p></> },
               { key: 'status', label: '상태', className: 'w-24', render: item => <StatusLight {...historyStatus(item.status)} /> },
             ]} /> : history.map(item => {
               const statusConf = historyStatusConfig[item.status] ?? historyStatusConfig.pending;
@@ -299,10 +299,10 @@ export function AlertsMobileView({
                     <MaterialIcon size={20} name={statusConf.icon} className={`mt-0.5 shrink-0 ${statusConf.color}`} />
                     <span className="sr-only">{historyStatus(item.status).label}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-text-base truncate">
+                      <p className="type-label text-text-base truncate">
                         {item.hostName || item.serviceName || item.channelName}
                       </p>
-                      <p className="text-sm text-text-muted truncate mt-0.5">
+                      <p className="type-body text-text-muted truncate mt-0.5">
                         {item.message}
                       </p>
                       {/* 실패 사유는 모바일에서도 보인다(A-10). */}

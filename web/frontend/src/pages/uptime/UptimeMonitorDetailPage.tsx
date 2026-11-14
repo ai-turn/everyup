@@ -230,7 +230,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4 text-center">
         <MaterialIcon size={32} name="error_outline" className="text-status-error" />
-        <div><p className="font-medium text-text-base">{notFound ? '업타임 모니터를 찾을 수 없습니다' : '업타임 모니터를 불러오지 못했습니다'}</p>{errors.monitor && <p className="mt-1 text-sm text-text-muted">{errors.monitor}</p>}</div>
+        <div><p className="font-medium text-text-base">{notFound ? '업타임 모니터를 찾을 수 없습니다' : '업타임 모니터를 불러오지 못했습니다'}</p>{errors.monitor && <p className="mt-1 type-body text-text-muted">{errors.monitor}</p>}</div>
         <Button variant="secondary" loading={refreshing} onClick={() => void load()}>다시 시도</Button>
         <ButtonLink variant="secondary" to={returnTo}>업타임으로 돌아가기</ButtonLink>
       </div>
@@ -295,7 +295,7 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
         <UptimeStats stats={[
           { label: '24시간 업타임', value: monitor.uptime === undefined ? '-' : `${monitor.uptime.toFixed(2)}%` },
           { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '-' },
-          { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '-' : `${monitor.responseTime.toLocaleString()}ms` },
+          { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '-' : `${Math.round(monitor.responseTime).toLocaleString()}ms` },
           ...(monitor.certExpiresAt ? [certStat(monitor.certExpiresAt)] : []),
         ]} />
       </section>

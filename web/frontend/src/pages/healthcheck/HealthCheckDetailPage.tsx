@@ -79,7 +79,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <MaterialIcon size={32} name="sync_problem" className="text-status-warn" />
-        <div className="text-center"><p className="text-sm font-medium text-text-base">서비스를 불러오지 못했습니다</p><p className="mt-1 type-body text-text-muted">{loadError}</p></div>
+        <div className="text-center"><p className="type-label text-text-base">서비스를 불러오지 못했습니다</p><p className="mt-1 type-body text-text-muted">{loadError}</p></div>
         <div className="flex gap-2"><ButtonLink variant="secondary" to="/environments">Docker 환경</ButtonLink><Button loading={refreshing} onClick={() => void fetchService()}>다시 시도</Button></div>
       </div>
     );

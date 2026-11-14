@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Button, ButtonLink, EmptyState, MaterialIcon, SearchInput, StatusLight, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, EmptyState, LoadErrorBanner, MaterialIcon, SearchInput, StatusLight, type GlobalTimeRange } from '../../../components/common';
 import { alertRuleNewPath, type AlertTarget } from '../../alerts/alertTarget';
 import { Skeleton } from '../../../components/skeleton';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
@@ -76,7 +76,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
       {showCollection && <span>마지막 수신 {receivedAt ? <time dateTime={receivedAt}>{new Date(receivedAt).toLocaleString('ko-KR', { hour12: false })}</time> : '기록 없음'}</span>}
       {loading && <span role="status">상태 갱신 중…</span>}
     </div>
-    {error && <div role="alert" className="flex flex-wrap items-center gap-3"><p className="type-body text-status-warn">메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.</p><Button variant="secondary" size="sm" onClick={retry}>목록 다시 시도</Button></div>}
+    {error && <LoadErrorBanner title="메트릭 상태를 새로고침하지 못했습니다" message="이전 상태를 표시합니다." onRetry={retry} retryLabel="목록 다시 시도" />}
     {query.metric !== null ? <>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="ghost" size="sm" onClick={closeMetric}><MaterialIcon name="arrow_back" />전체 메트릭</Button>

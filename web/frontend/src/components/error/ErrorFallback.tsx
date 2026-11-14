@@ -19,7 +19,7 @@ export function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
           className="text-8xl text-red-500 mb-4"
         />
 
-        <h1 className="text-2xl font-bold text-text-base mb-2">
+        <h1 className="type-page-title text-text-base mb-2">
           문제가 발생했습니다
         </h1>
 

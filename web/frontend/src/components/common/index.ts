@@ -18,6 +18,7 @@ export { StatusBadge } from './StatusBadge';
 export { CollectionStatusBadge, type CollectionStatus } from './CollectionStatusBadge';
 export { Toggle } from './Toggle';
 export { EmptyState } from './EmptyState';
+export { LoadErrorBanner } from './LoadErrorBanner';
 export { ConfirmDialog } from './ConfirmDialog';
 export { TimeRangePicker, type GlobalTimeRange } from './TimeRangePicker';
 export { parseTimeRange } from './timeRange';

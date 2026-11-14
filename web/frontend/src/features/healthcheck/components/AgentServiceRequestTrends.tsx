@@ -10,7 +10,7 @@ import {
 } from '../../../components/charts';
 import { api, type AgentEvent, type ApiRequestStatBucket, type ApiRequestStatusSummary } from '../../../services/api';
 import { TimeRangePicker } from '../../../components/common/TimeRangePicker';
-import { Button } from '../../../components/common';
+import { LoadErrorBanner } from '../../../components/common';
 import { getErrorMessage } from '../../../utils/errors';
 import { useRequestWindow, type RequestWindow, type StatusClass } from '../../api-requests/useRequestQuery';
 
@@ -179,18 +179,14 @@ function ServiceRequestTrends({
     return <ChartCard title="서비스 전체 추이"><ChartSkeleton /></ChartCard>;
   }
   if (error) {
-    return <ChartCard title="서비스 전체 추이"><div role="alert" className="space-y-3">
-      <p className="type-body text-status-warn">요청 추이를 불러오지 못했습니다</p>
-      <p className="type-body text-text-muted">{error}</p>
-      <Button variant="secondary" size="sm" onClick={() => { setLoading(true); setRetryKey(key => key + 1); }}>다시 시도</Button>
-    </div></ChartCard>;
+    return <ChartCard title="서비스 전체 추이"><LoadErrorBanner inline title="요청 추이를 불러오지 못했습니다" message={error}
+      onRetry={() => { setLoading(true); setRetryKey(key => key + 1); }} /></ChartCard>;
   }
   if (truncated) {
-    return <ChartCard title="서비스 전체 추이"><div role="status" className="space-y-2">
-      <p className="type-body text-status-warn">조회 범위의 요청이 많아 추이를 표시하지 못했습니다</p>
-      <p className="type-body text-text-muted">기간을 줄여 다시 확인해 주세요. 일부 요청만으로 전체 기간의 통계를 표시하지 않습니다.</p>
+    return <ChartCard title="서비스 전체 추이"><LoadErrorBanner inline role="status" title="조회 범위의 요청이 많아 추이를 표시하지 못했습니다"
+      message="기간을 줄여 다시 확인해 주세요. 일부 요청만으로 전체 기간의 통계를 표시하지 않습니다.">
       {!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}
-    </div></ChartCard>;
+    </LoadErrorBanner></ChartCard>;
   }
   if (buckets.length === 0) {
     return null; // empty state is handled by the request list below
@@ -243,8 +239,8 @@ function ServiceRequestTrends({
   return (
     <ChartCard title="서비스 전체 추이" right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
 
-      <p className="mb-3 type-caption text-text-muted">선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
-      {summaryError && <div role="status" className="mb-3 flex flex-wrap items-center gap-2"><p className="type-caption text-status-warn">상태코드 분포를 불러오지 못했습니다</p><Button variant="ghost" size="sm" onClick={() => setRetryKey(key => key + 1)}>다시 시도</Button></div>}
+      <p className="mb-3 type-body text-text-muted">선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
+      {summaryError && <div className="mb-3"><LoadErrorBanner inline role="status" title="상태코드 분포를 불러오지 못했습니다" onRetry={() => setRetryKey(key => key + 1)} /></div>}
 
       {/* Status-class distribution + top 5xx endpoint (1a 콘솔 prototype) */}
       {summary && (summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther) > 0 && (() => {
@@ -304,7 +300,7 @@ function ServiceRequestTrends({
               }`}
             >
               <span className={`truncate type-caption ${active ? 'text-text-secondary' : 'text-text-muted'}`}>{tile.label}</span>
-              <span className="text-xl tabular-nums text-text-base">
+              <span className="type-kpi text-text-base">
                 {tile.value}
                 <span className="ml-0.5 type-caption text-text-dim">{tile.unit}</span>
               </span>

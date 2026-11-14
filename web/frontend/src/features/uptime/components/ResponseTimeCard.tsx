@@ -95,7 +95,7 @@ function ResponseTooltip({ point, color, messages }: { point?: ResponsePoint; co
         <>
           <div className="flex items-center justify-between gap-8">
             <span className="inline-flex items-center gap-2 text-text-muted"><span className="h-2 w-2 rounded-full" style={{ background: color }} />평균 응답</span>
-            <span className="font-bold tabular-nums text-text-base">{point.latencyMs === null ? '응답 없음' : `${number(point.latencyMs)} ms`}</span>
+            <span className="font-medium tabular-nums text-text-base">{point.latencyMs === null ? '응답 없음' : `${number(point.latencyMs)} ms`}</span>
           </div>
           <p className={`mt-2 type-caption ${point.failedChecks ? 'text-status-error' : 'text-text-muted'}`}>
             체크 {number(point.totalChecks)}회 중 실패 {number(point.failedChecks)}회
@@ -158,7 +158,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
           <div className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
             <dl aria-label="응답 시간 요약">
               <dt className="mb-1.5 type-caption text-text-muted">선택 기간 평균</dt>
-              <dd data-response-average className="text-3xl font-bold leading-none tracking-tight tabular-nums text-text-base">
+              <dd data-response-average className="type-kpi text-text-base">
                 {average === null ? '—' : number(average)}{average !== null && <span className="ml-1.5 text-sm font-normal tracking-normal text-text-muted">ms</span>}
               </dd>
             </dl>
@@ -202,13 +202,13 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
           </div>
           {events.length > 0 && (
             <div className="mt-4 border-t border-ui-border pt-3">
-              <h3 className="mb-1 type-caption font-medium text-text-secondary">이 기간의 실패 {events.length}건</h3>
+              <h3 className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</h3>
               <ul aria-label="이 기간의 실패" className="max-h-48 overflow-y-auto">
                 {events.map((event) => (
                   <li key={event.key} data-response-event={event.kind} tabIndex={0}
                     onMouseEnter={() => setFocused(event.key)} onMouseLeave={() => setFocused(null)} onFocus={() => setFocused(event.key)} onBlur={() => setFocused(null)}
                     className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-x-3 rounded-md px-2 py-1.5 outline-none hover:bg-bg-subtle focus-visible:bg-bg-subtle focus-visible:ring-2 focus-visible:ring-primary sm:grid-cols-[5.5rem_12rem_minmax(0,1fr)]">
-                    <span className={`type-caption font-medium ${event.kind === 'outage' ? 'text-status-error' : 'text-status-warn'}`}>
+                    <span className={`type-label-sm ${event.kind === 'outage' ? 'text-status-error' : 'text-status-warn'}`}>
                       {event.kind === 'outage' ? (event.active ? '장애 진행 중' : '장애') : '단발 실패'}
                     </span>
                     <span className="type-caption tabular-nums text-text-base">

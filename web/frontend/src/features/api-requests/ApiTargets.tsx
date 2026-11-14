@@ -1,6 +1,6 @@
 import { Tooltip } from '../../components/common/Tooltip';
 import { Link } from 'react-router-dom';
-import { Button, CollectionStatusBadge, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { CollectionStatusBadge, LoadErrorBanner, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
 import { TelemetryCollectionStatus } from '../telemetry/components/TelemetryCollectionStatus';
 import type { ApiRequestStatusSummary } from '../../services/api';
 import type { ApiTarget } from './useApiTargets';
@@ -50,9 +50,9 @@ export function ApiTargets({ rows: unsorted, view, range, returnTo, onRetry }: {
 }) {
   const rows = [...unsorted].sort(compareTargets);
   const to = (row: ApiTarget) => `/api/${row.service.id}?range=${range}`;
-  const error = (row: ApiTarget) => (row.error || row.loading) && <div className="mt-2 space-y-2" role="status">
-    <p className="type-caption text-status-warn">{row.loading ? '요약을 다시 확인하고 있습니다…' : '요약을 불러오지 못했습니다'}</p>
-    <Button size="sm" variant="secondary" loading={row.loading} onClick={() => onRetry(row.service.id)}>다시 시도</Button>
+  const error = (row: ApiTarget) => (row.error || row.loading) && <div className="mt-2">
+    <LoadErrorBanner inline role="status" title={row.loading ? '요약을 다시 확인하고 있습니다…' : '요약을 불러오지 못했습니다'}
+      retrying={row.loading} onRetry={() => onRetry(row.service.id)} />
   </div>;
   return <section aria-label="API 대상">
     <div className="mb-3 flex items-center justify-between gap-3">
@@ -67,9 +67,9 @@ export function ApiTargets({ rows: unsorted, view, range, returnTo, onRetry }: {
           status={status(row)}
         />
         <div className="mt-5 grid grid-cols-3 gap-3">
-          <div><p className="type-caption text-text-dim">요청</p><p className="text-lg tabular-nums text-text-base">{count(row)}</p></div>
-          <div><p className="type-caption text-text-dim">에러율</p><p className="text-lg tabular-nums text-text-base">{rate(row)}</p></div>
-          <div><p className="type-caption text-text-dim">p95</p><p className="text-lg tabular-nums text-text-base">{p95(row)}</p></div>
+          <div><p className="type-caption text-text-dim">요청</p><p className="type-stat text-text-base">{count(row)}</p></div>
+          <div><p className="type-caption text-text-dim">에러율</p><p className="type-stat text-text-base">{rate(row)}</p></div>
+          <div><p className="type-caption text-text-dim">p95</p><p className="type-stat text-text-base">{p95(row)}</p></div>
         </div>
         {row.summary && <p className={`mt-4 break-all type-caption text-text-muted ${row.summary.top5xxPath ? 'font-mono' : ''}`}>{row.summary.top5xxPath && <span className="font-sans">5xx 최다 경로 </span>}{summaryText(row)}</p>}
         </Link>

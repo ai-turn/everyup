@@ -6,7 +6,7 @@ import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, Se
 import { api, type AlertRule, type NotificationChannel } from '../../../services/api';
 import { alertTargetName, categoryLabel, compactTrigger, evaluationSummary, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames, type CategoryKey } from '../ruleDisplay';
 import { ChannelAvatars } from './ChannelAvatars';
-import { LoadErrorBanner } from './LoadErrorBanner';
+import { LoadErrorBanner } from '../../../components/common';
 import { AlertRuleForm, type AlertRuleFormInitial } from './AlertRuleForm';
 import { FormSidePanel } from './FormSidePanel';
 import { FormActions } from './FormLayout';
@@ -279,10 +279,10 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       {/* Table */}
       {view === 'card' ? <div className="space-y-3">
         <div className="flex flex-wrap gap-2" role="group" aria-label="규칙 정렬">{([{ key: 'name', label: '이름' }, { key: 'severity', label: '심각도' }, { key: 'target', label: '대상' }] as const).map(({ key, label }) => <Button key={key} variant={sortKey === key ? 'secondary' : 'ghost'} size="sm" aria-pressed={sortKey === key} onClick={() => onSort(key)}>{label}{sortKey === key ? sortDir === 'asc' ? ' ↑' : ' ↓' : ''}</Button>)}</div>
-        {filteredRules.length === 0 ? <p className="rounded-xl border border-ui-border p-5 text-sm text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
+        {filteredRules.length === 0 ? <p className="rounded-xl border border-ui-border p-5 type-body text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
-            <p className="mt-4 break-words text-sm text-text-secondary">{targetLabel(rule, names)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words text-sm text-text-muted">{compactTrigger(rule)}</p></Tooltip>
+            <p className="mt-4 break-words type-body text-text-secondary">{targetLabel(rule, names)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
             <div className="mt-3"><ChannelAvatars rule={rule} channels={channels} /></div><p className="mt-3 type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p>
             <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
@@ -295,17 +295,17 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                 <SortableTH className="w-[260px]" label="규칙" active={sortKey === 'name'} dir={sortDir} onClick={() => onSort('name')} />
                 <SortableTH className="w-[110px]" label="심각도" active={sortKey === 'severity'} dir={sortDir} onClick={() => onSort('severity')} />
                 <SortableTH className="w-[200px]" label="대상" active={sortKey === 'target'} dir={sortDir} onClick={() => onSort('target')} />
-                <th className="w-[250px] px-4 py-3 text-left text-xs font-medium text-text-muted">
+                <th className="w-[250px] px-4 py-3 text-left type-label-sm text-text-muted">
                   발생 조건
                 </th>
-                <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-text-muted">
+                <th className="w-[120px] px-4 py-3 text-left type-label-sm text-text-muted">
                   채널
                 </th>
-                <th className="w-[120px] px-4 py-3 text-left text-xs font-medium text-text-muted">
+                <th className="w-[120px] px-4 py-3 text-left type-label-sm text-text-muted">
                   최근 발동
                 </th>
                 {/* 1180px 테이블이 노트북 폭에서 가로 스크롤될 때도 작업 열은 보이게 오른쪽에 고정한다. */}
-                <th className="sticky right-0 w-[120px] border-l border-ui-border-soft bg-ui-table-header px-4 py-3 text-right text-xs font-medium text-text-muted">
+                <th className="sticky right-0 w-[120px] border-l border-ui-border-soft bg-ui-table-header px-4 py-3 text-right type-label-sm text-text-muted">
                   작업
                 </th>
               </tr>
@@ -416,7 +416,7 @@ function SortableTH({ label, active, dir, onClick, className = '' }: { label: st
   return (
     <th
       aria-sort={active ? (dir === 'desc' ? 'descending' : 'ascending') : 'none'}
-      className={`select-none px-4 py-3 text-left text-xs font-medium text-text-muted ${className}`}
+      className={`select-none px-4 py-3 text-left type-label-sm text-text-muted ${className}`}
     >
       <button
         type="button"

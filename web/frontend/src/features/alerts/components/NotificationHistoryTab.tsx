@@ -9,7 +9,7 @@ import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useListView } from '../../../hooks/useListView';
 import { getErrorMessage } from '../../../utils/errors';
-import { LoadErrorBanner } from './LoadErrorBanner';
+import { LoadErrorBanner } from '../../../components/common';
 
 // 유형 이름은 규칙 탭의 카테고리와 같은 말을 쓴다(A-11). 헬스체크는 저장값 두 개(endpoint·healthcheck)를 묶는다.
 const HISTORY_TYPE_LABELS: Record<string, string> = {
@@ -79,8 +79,8 @@ function ruleName(item: NotificationHistory, rules: AlertRule[]): string | null 
 type HistoryRow = { kind: 'group'; label: string; key: string } | { kind: 'item'; item: NotificationHistory };
 
 function HistoryCards({ rows, loading, rules }: { rows: HistoryRow[]; loading: boolean; rules: AlertRule[] }) {
-  if (loading) return <p className="p-6 text-sm text-text-muted">로딩 중…</p>;
-  if (rows.length === 0) return <p className="p-6 text-sm text-text-muted">알림 히스토리가 없습니다</p>;
+  if (loading) return <p className="p-6 type-body text-text-muted">로딩 중…</p>;
+  if (rows.length === 0) return <p className="p-6 type-body text-text-muted">알림 히스토리가 없습니다</p>;
   return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{rows.map(row => row.kind === 'group' ? <h2 key={`g-${row.key}`} className="col-span-full type-label text-text-muted">{row.label}</h2> : <HistoryCard key={row.item.id} item={row.item} rules={rules} />)}</div>;
 }
 
@@ -88,7 +88,7 @@ function HistoryCard({ item, rules }: { item: NotificationHistory; rules: AlertR
   const rule = ruleName(item, rules);
   return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><StatusLight {...historyStatus(item.status)} />{item.severity && <SeverityBadge severity={item.severity} />}</div>
-    <p className="mt-3 break-words text-sm text-text-base">{item.message}</p><p className="mt-2 flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
+    <p className="mt-3 break-words type-body text-text-base">{item.message}</p><p className="mt-2 flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
     <div className="mt-2"><FailureReason item={item} /></div>
     <p className="mt-3 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })} · {format(new Date(item.createdAt), 'M월 d일 HH:mm')}</p>
   </article>;
@@ -176,7 +176,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
     return rows;
   }, [history]);
 
-  const thClass = 'px-4 py-3 text-left text-xs font-medium text-text-muted';
+  const thClass = 'px-4 py-3 text-left type-label-sm text-text-muted';
 
   return (
     <div className="space-y-3">
@@ -268,7 +268,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-text-dim">
                     <MaterialIcon size={36} name="inbox" className="mx-auto mb-2" />
-                    <p className="text-sm">알림 히스토리가 없습니다</p>
+                    <p className="type-body">알림 히스토리가 없습니다</p>
                   </td>
                 </tr>
               ) : (
@@ -296,7 +296,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                         <StatusLight {...historyStatus(item.status)} />
                       </td>
                       <td className="px-4 py-2.5">
-                        <p className="truncate text-sm text-text-secondary">{rule ?? typeLabel(item.alertType)}</p>
+                        <p className="truncate type-body text-text-secondary">{rule ?? typeLabel(item.alertType)}</p>
                         {rule && <p className="truncate type-caption text-text-muted">{typeLabel(item.alertType)}</p>}
                       </td>
                       <td className="px-4 py-2.5">
@@ -308,7 +308,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                         </div>
                       </td>
                       <td className="px-4 py-2.5">
-                        <p className="truncate text-sm text-text-base">{item.message}</p>
+                        <p className="truncate type-body text-text-base">{item.message}</p>
                         <FailureReason item={item} />
                       </td>
                       <td className="px-4 py-2.5">

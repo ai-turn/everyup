@@ -114,7 +114,7 @@ function TelegramPreview({ name }: { name: string }) {
                     <IconTelegram size={14} className="text-white" />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-white font-medium text-xs leading-tight truncate">{name || 'EveryUp Bot'}</p>
+                    <p className="text-white type-label-sm leading-tight truncate">{name || 'EveryUp Bot'}</p>
                     <p className="text-[#7C91A7] text-xs">bot</p>
                 </div>
             </div>
@@ -386,7 +386,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                             <input {...register('type')} type="radio" value={type} className="sr-only" />
                                             <m.Icon size={26} className={active ? m.color : 'text-text-dim'} />
                                             <span className={`text-sm ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
-                                            <span className="text-sm font-medium text-text-dim">{m.sub}</span>
+                                            <span className="type-label text-text-dim">{m.sub}</span>
                                         </label>
                                     );
                                 })}
@@ -469,8 +469,8 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                         <div className="hidden lg:block bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
                                 <div>
-                                    <p className="text-sm font-medium text-text-base">채널 미리보기</p>
-                                    <p className="text-sm text-text-muted mt-0.5">실제 전송 메시지 형식</p>
+                                    <p className="type-label text-text-base">채널 미리보기</p>
+                                    <p className="type-body text-text-muted mt-0.5">실제 전송 메시지 형식</p>
                                 </div>
                             </div>
                             <div className="p-5 space-y-4">
@@ -480,10 +480,10 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         <meta.Icon size={20} className={meta.color} />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-sm text-text-base truncate">
+                                        <p className="type-body text-text-base truncate">
                                             {watchedName || <span className="text-text-muted font-normal">채널 이름 미입력</span>}
                                         </p>
-                                        <p className="text-sm text-text-muted">{meta.label}</p>
+                                        <p className="type-body text-text-muted">{meta.label}</p>
                                     </div>
                                 </div>
 
@@ -518,7 +518,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                                 {/* Actual message preview */}
                                 <div>
-                                    <p className="text-sm font-medium text-text-muted mb-2">테스트 메시지 미리보기</p>
+                                    <p className="type-label text-text-muted mb-2">테스트 메시지 미리보기</p>
                                     <PreviewComponent name={watchedName} />
                                 </div>
                             </div>
@@ -529,12 +529,12 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
                                 <MaterialIcon size={20} name="send" className="text-text-dim" />
                                 <div>
-                                    <p className="text-sm font-medium text-text-base">테스트 전송</p>
-                                    <p className="text-sm text-text-muted mt-0.5">실제 채널로 테스트 메시지 발송</p>
+                                    <p className="type-label text-text-base">테스트 전송</p>
+                                    <p className="type-body text-text-muted mt-0.5">실제 채널로 테스트 메시지 발송</p>
                                 </div>
                             </div>
                             <div className="p-5 space-y-3">
-                                <p className="text-sm text-text-muted leading-relaxed">
+                                <p className="type-body text-text-muted leading-relaxed">
                                     현재 입력값으로 테스트 메시지를 보냅니다. 채널은 저장되지 않습니다.
                                 </p>
 
@@ -553,8 +553,8 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">
                                         <MaterialIcon size={20} name="check_circle" className="text-status-healthy mt-0.5 shrink-0" />
                                         <div>
-                                            <p className="text-sm text-text-base">발송 성공</p>
-                                            <p className="text-sm text-text-muted mt-0.5">{`${testTime}에 전송되었습니다`}</p>
+                                            <p className="type-body text-text-base">발송 성공</p>
+                                            <p className="type-body text-text-muted mt-0.5">{`${testTime}에 전송되었습니다`}</p>
                                         </div>
                                     </div>
                                 )}
@@ -563,8 +563,8 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">
                                         <MaterialIcon size={20} name="error" className="text-status-error mt-0.5 shrink-0" />
                                         <div>
-                                            <p className="text-sm text-text-base">발송 실패</p>
-                                            <p className="text-sm text-text-muted mt-0.5">{testError}</p>
+                                            <p className="type-body text-text-base">발송 실패</p>
+                                            <p className="type-body text-text-muted mt-0.5">{testError}</p>
                                         </div>
                                     </div>
                                 )}

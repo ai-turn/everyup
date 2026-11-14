@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, BarChart, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, useActiveTooltipLabel,
 } from 'recharts';
-import { Button, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange, IconButton } from '../../../components/common';
+import { Button, LoadErrorBanner, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange, IconButton } from '../../../components/common';
 import {
   CHART_INITIAL_DIMENSION, CHART_MARGIN, CHART_STRIP_HEIGHT, ChartCard, ChartLegend, ChartTooltip, fillBuckets, formatTimeTick, gridProps,
   niceYAxis, timeXAxisProps, useChartTheme, yAxisProps, type TooltipPayloadItem,
@@ -513,10 +513,7 @@ function ServiceLogsPanel(props: Props) {
 
       {/* Live refresh failed — keep the rows, say they are no longer current */}
       {loadError?.stale && logs.length > 0 && (
-        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ui-border bg-bg-surface px-4 py-3">
-          <p className="type-body text-status-warn">최신 로그를 불러오지 못했습니다. 아래는 이전 조회 결과입니다.</p>
-          <Button variant="ghost" size="sm" onClick={() => void fetch()}>다시 시도</Button>
-        </div>
+        <LoadErrorBanner role="status" title="최신 로그를 불러오지 못했습니다" message="아래는 이전 조회 결과입니다." onRetry={() => void fetch()} />
       )}
 
       {/* List */}
@@ -529,14 +526,14 @@ function ServiceLogsPanel(props: Props) {
       ) : logs.length === 0 && loadError ? (
         <div role="alert" className="py-16 text-center">
           <MaterialIcon size={36} name="error" className="text-status-error mb-2" />
-          <p className="type-body font-medium text-text-base">로그를 불러오지 못했습니다</p>
-          <p className="mt-1 text-sm text-text-dim">{loadError.message}</p>
+          <p className="type-label text-text-base">로그를 불러오지 못했습니다</p>
+          <p className="mt-1 type-body text-text-muted">{loadError.message}</p>
           <Button className="mt-4" onClick={() => void fetch()}>다시 시도</Button>
         </div>
       ) : logs.length === 0 ? (
         <div className="py-16 text-center">
           <MaterialIcon size={36} name="article" className="text-text-dim mb-2" />
-          <p className="text-sm text-text-dim">
+          <p className="type-body text-text-muted">
             {hasConditions ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
           </p>
           {hasConditions && <Button variant="secondary" className="mt-4" onClick={clearConditions}>조건 초기화</Button>}

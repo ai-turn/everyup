@@ -117,7 +117,7 @@ export function LoginPage() {
 
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div>
-                  <label htmlFor="login-username" className="block text-sm font-medium text-text-muted mb-1.5">사용자 이름</label>
+                  <label htmlFor="login-username" className="block type-label text-text-muted mb-1.5">사용자 이름</label>
                   <Input
                     id="login-username"
                     type="text"
@@ -130,7 +130,7 @@ export function LoginPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="login-password" className="block text-sm font-medium text-text-muted mb-1.5">
+                  <label htmlFor="login-password" className="block type-label text-text-muted mb-1.5">
                     비밀번호{isSetup && ' (최소 8자 이상)'}
                   </label>
                   <Input
@@ -225,7 +225,7 @@ docker compose up -d`}
             )}
           </div>{/* end relative wrapper */}
 
-          <p className="text-center type-body text-text-dim mt-4">
+          <p className="text-center type-body text-text-muted mt-4">
             이 계정으로 모니터링 시스템에 접근합니다
           </p>
         </div>

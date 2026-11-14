@@ -48,7 +48,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                     name="help_outline"
                     className="text-action shrink-0"
                 />
-                <span className="text-sm font-medium text-text-secondary flex-1">
+                <span className="type-label text-text-secondary flex-1">
                     API Key는 어떻게 발급받나요?
                 </span>
                 <MaterialIcon size={20}
@@ -73,7 +73,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                     {tip && (
                         <div className="flex gap-2 px-2.5 py-2 rounded-md bg-ui-hover-soft border border-ui-border">
                             <MaterialIcon size={20} name="lightbulb" className="text-amber-500 shrink-0 mt-0.5" />
-                            <p className="text-sm text-text-secondary">{tip}</p>
+                            <p className="type-body text-text-secondary">{tip}</p>
                         </div>
                     )}
 
@@ -81,7 +81,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                         href="https://ai-turn.github.io/everyup/guide/notifications"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm font-medium text-action hover:underline"
+                        className="flex items-center gap-1.5 type-label text-action hover:underline"
                     >
                         <MaterialIcon size={20} name="open_in_new" />
                         상세 가이드 보기
