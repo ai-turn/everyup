@@ -1,8 +1,9 @@
+import { useState, type ReactNode } from 'react';
 import { Tooltip } from '../../../components/common/Tooltip';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { CollectionStatusBadge, ResourceCardHeader, ResourceTable, StatusLight, type CollectionStatus } from '../../../components/common';
+import { Button, CollectionStatusBadge, ResourceCardHeader, ResourceTable, StatusLight, type CollectionStatus } from '../../../components/common';
 import { fillBuckets, formatTimeTick } from '../../../components/charts';
 import { LEVEL_BASE, LEVEL_FILL, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import type { LogHistogramBucket, LogPattern, LogServiceSummary } from '../../../services/api';
@@ -141,7 +142,9 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
   );
 }
 
-export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스' }: {
+const PATTERN_PREVIEW = 5;
+
+export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스', viewToggle }: {
   rows: LogServiceRow[];
   /** null이면 패턴만 불러오지 못한 상태 — 서비스 목록은 그대로 그린다. */
   patterns: LogPatternRow[] | null;
@@ -149,14 +152,22 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
   view: 'card' | 'grid';
   returnTo: string;
   title?: string;
+  /** 보기 전환 — 섹션 제목 줄 오른쪽에 둔다. */
+  viewToggle?: ReactNode;
 }) {
   const statusRows = rows.map(row => ({ ...row, collection: collectionOf(row.summary, span[0]) }));
+  // 패턴은 상위 몇 개만 먼저 — 20행이 이어지면 페이지 대부분을 차지해 위의 서비스 목록이 묻혔다.
+  const [showAllPatterns, setShowAllPatterns] = useState(false);
+  const shownPatterns = patterns && !showAllPatterns ? patterns.slice(0, PATTERN_PREVIEW) : patterns;
   return (
     <div className="space-y-5">
       <section>
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="type-section-title text-text-base">{title}</h2>
-          <span className="text-xs text-text-dim">{`최근 24시간 · 서비스 ${rows.length}개`}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-text-dim">{`최근 24시간 · 서비스 ${rows.length}개`}</span>
+            {viewToggle}
+          </div>
         </div>
         {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{statusRows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
           <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
@@ -178,10 +189,15 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
             <p className="rounded-xl border border-ui-border bg-bg-surface px-4 py-3 type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
           ) : (
             <ul className="divide-y divide-ui-border-soft overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
-              {patterns.map(({ pattern, row }) => (
+              {shownPatterns!.map(({ pattern, row }) => (
                 <PatternRow key={`${row.key}|${pattern.fingerprint}`} pattern={pattern} row={row} windowStart={span[0]} />
               ))}
             </ul>
+          )}
+          {patterns && patterns.length > PATTERN_PREVIEW && (
+            <Button variant="ghost" size="sm" className="mt-2" aria-expanded={showAllPatterns} onClick={() => setShowAllPatterns(value => !value)}>
+              {showAllPatterns ? '접기' : `전체 보기 (${patterns.length})`}
+            </Button>
           )}
         </section>
       )}

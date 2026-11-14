@@ -158,7 +158,8 @@ test('mobile opens full detail with current check context and range controls bes
   await page.goto('./uptime');
   await expect(page.getByRole('button', { name: /빠른 확인/ })).toHaveCount(0);
   await page.getByRole('link', { name: 'Public API', exact: true }).click();
-  const current = page.getByRole('region', { name: '현재 체크 상태' });
+  // 최근 체크는 상세 헤더 상태 줄에 있다 — 모바일에서 속성 목록을 접어도 상태 줄은 보인다.
+  const current = page.getByRole('group', { name: '최근 체크' });
   await expect(current).toContainText('Connection timed out');
   await expect(current).not.toContainText('5000ms');
   const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });

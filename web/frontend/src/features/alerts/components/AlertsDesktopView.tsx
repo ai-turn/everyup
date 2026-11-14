@@ -136,7 +136,6 @@ export function AlertsDesktopView({
           </Button>
         )}
       </PageHeader>
-      <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
 
       {/* 7-day delivery summary — one card, divider-separated cells. Active rule/channel
           counts were dropped: the channel table's toggles and the rules tab already say them. */}
@@ -198,6 +197,8 @@ export function AlertsDesktopView({
             </button>
           ))}
         </div>
+        {/* 보기 전환은 바꾸는 대상(탭 내용) 바로 위에 둔다 — 헤더 아래 혼자 한 줄을 차지하지 않게 */}
+        <div className="ml-auto pb-2"><ListViewToggle view={view} onChange={setView} /></div>
       </div>
 
       {/* Tab Content */}

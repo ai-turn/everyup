@@ -10,6 +10,9 @@ test.describe('logs page', () => {
     // Docker Collector logs stay in their Docker Environment (ADR 0007).
     await expect(cards.filter({ hasText: 'payment-worker' })).toHaveCount(0);
 
+    // 반복 패턴은 상위 5개만 먼저 보인다 — 이 패턴은 그 아래라 펼친다.
+    await expect(page.getByRole('link', { name: /Connection timeout to upstream service.*3회/ })).toHaveCount(0);
+    await page.getByRole('button', { name: /^전체 보기/ }).click();
     await page.getByRole('link', { name: /Connection timeout to upstream service.*3회/ }).click();
     await expect(page).toHaveURL(/\/logs\/observed_mock_checkout\?range=24h&pattern=/);
     await expect(page.getByRole('button', { name: '같은 패턴만' })).toBeVisible();

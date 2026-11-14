@@ -12,8 +12,9 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
   const time = requestTime(req.createdAt);
   const duration = req.durationMs > 0 ? `${req.durationMs.toLocaleString()}ms` : null;
   return <tr className="transition-colors hover:bg-ui-hover-soft">
-    <td className="min-w-0 px-4 py-3">
-      <div className="flex min-w-0 items-center gap-2">
+    <td className="min-w-0 px-4 py-2">
+      {/* 트레이스 링크(버튼 높이)가 없는 행도 같은 높이 — 행마다 높이가 달라 목록이 들쭉날쭉했다. */}
+      <div className="flex min-h-8 min-w-0 items-center gap-2 max-sm:min-h-11">
         <span className="shrink-0 font-mono text-text-muted">{req.method.toUpperCase()}</span>
         {traceId ? <div className="min-w-0 flex-1"><Button type="button" variant="text" size="sm" onClick={() => onSelect(traceId)}
           aria-label={`${req.method.toUpperCase()} ${req.statusCode} ${req.path} 트레이스 상세 열기`}
@@ -34,16 +35,18 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
         <span>{time}</span>
       </div>
     </td>
-    <td className={`hidden px-4 py-3 text-right tabular-nums sm:table-cell ${statusClass(req.statusCode)}`}>{req.statusCode}</td>
-    <td className="hidden px-4 py-3 text-right tabular-nums text-text-secondary sm:table-cell">{duration ?? '-'}</td>
-    <td className="hidden whitespace-nowrap px-4 py-3 text-right tabular-nums text-text-muted lg:table-cell">{time}</td>
+    <td className={`hidden px-4 py-2 text-right tabular-nums sm:table-cell ${statusClass(req.statusCode)}`}>{req.statusCode}</td>
+    <td className="hidden px-4 py-2 text-right tabular-nums text-text-secondary sm:table-cell">{duration ?? '-'}</td>
+    <td className="hidden whitespace-nowrap px-4 py-2 text-right tabular-nums text-text-muted lg:table-cell">{time}</td>
   </tr>;
 }
 
-export function ApiRequestResults({ requests, total, page, loading, error, filtered, waiting = false, onRetry, onClear, onPageChange, onSelect }: {
+export function ApiRequestResults({ requests, total, page, loading, error, filtered, waiting = false, toolbar, onRetry, onClear, onPageChange, onSelect }: {
   requests: ApiRequest[]; total: number; page: number; loading: boolean; error: string | null; filtered: boolean;
   /** traces를 한 번도 받지 않은 서비스. 한산한 서비스의 "이 기간에 없음"과 구분한다. */
   waiting?: boolean;
+  /** 이 목록을 거르는 검색·필터 — 제목 아래, 표 위에 놓인다. */
+  toolbar?: ReactNode;
   onRetry: () => void; onClear: () => void; onPageChange: (page: number) => void; onSelect: (traceId: string) => void;
 }) {
   const totalPages = Math.max(1, Math.ceil(total / 25));
@@ -80,6 +83,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
       <h2 className="type-card-title text-text-base">요청 결과</h2>
       {!loading && !error && <p className="type-caption tabular-nums text-text-muted">{filtered ? '검색 결과' : '전체'} {total.toLocaleString()}건</p>}
     </div>
+    {toolbar}
     {content}
   </section>;
 }

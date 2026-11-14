@@ -222,6 +222,8 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
             size="sm"
             onClick={(e) => { e.stopPropagation(); onOpenTrace(log.traceId!); }}
             title="트레이스 보기"
+            // 펼침 버튼처럼 행 높이를 키우지 않는다 — 트레이스가 있는 행만 높아져 목록이 들쭉날쭉했다.
+            className="-my-1.5"
           >
             <MaterialIcon name="timeline" />
             트레이스
