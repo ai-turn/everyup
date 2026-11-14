@@ -1,0 +1,14 @@
+{
+  "healthcheckTargetOptions": [
+    "전체 헬스체크",
+    "prod-server / api",
+    "prod-server / postgres",
+    "prod-server / payment-worker",
+    "worker-cluster / catalog-worker",
+    "worker-cluster / notification-worker",
+    "worker-cluster / redis",
+    "edge-node / nginx",
+    "edge-node / search-api",
+    "edge-node / inventory-api"
+  ]
+}

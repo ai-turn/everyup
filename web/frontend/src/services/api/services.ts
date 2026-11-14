@@ -177,6 +177,8 @@ export interface UptimeMonitorInput {
   timeout?: number;
   interval?: number;
   isActive?: boolean;
+  /** 추가할 때만. true면 서버가 이 모니터의 다운 알림 규칙을 함께 만든다. */
+  alertOnDown?: boolean;
 }
 
 export interface UptimeMonitorMetric {

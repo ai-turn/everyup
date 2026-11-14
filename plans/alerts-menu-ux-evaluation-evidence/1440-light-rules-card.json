@@ -1,0 +1,71 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=rules&view=card",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n추가\n발송 (7일)\n29\n실패 (7일)\n3\n실패 로그 보기\n성공률\n91%\n알림 채널\n4\n알림 규칙\n8\n알림 로그\n32\n전체\n헬스체크\nAPI 요청\n로그\n인프라\n시스템 규칙\n전체 심각도\n심각\n경고\n정보\n전체 심각도\n전체 상태\n활성\n비활성\n전체 상태\n이름\n심각도 ↑\n대상\nAPI p99 latency\n\nAPI 요청\n\n심각\n\nprod-server / api\n\np99 지연 800ms 초과 · 최근 5분\n\n최근 발동 없음\n\nService Down\n\n시스템 기본 규칙 · 삭제 불가\n\n심각\n\nprod-server / api\n\n시스템에서 자동 평가\n\n최근 발동 없음\n\nMemory Pressure\n\n인프라\n\n심각\n\nworker-cluster\n\n메모리 90% 초과 · 3분 지속\n\n최근 발동 없음\n\nOrder API error rate\n\nAPI 요청\n\n심각\n\norders-api\n\n에러율 5% 초과 · 최근 5분\n\n최근 발동 없음\n\nEdge Collector CPU\n\n인프라\n\n경고\n\nedge-host-01\n\nCPU 80% 초과 · 5분 지속\n\n최근 발동 없음\n\nHigh CPU Usage\n\n인프라\n\n경고\n\ndb-primary-01\n\nCPU 85% 초과 · 5분 지속\n\n최근 발동 없음\n\nBilling queue backlog\n\nAPI 요청\n\n경고\n\nbilling-worker\n\notel_metric 100% 초과 · 최근 10분\n\n최근 발동 없음\n\nSearch indexing errors\n\n로그\n\n경고\n\nsearch-api\n\n로그 레벨 1 이상 · 즉시\n\n최근 발동 없음\n\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "전체 심각도\n심각\n경고\n정보",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "전체 상태\n활성\n비활성",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "API p99 latency",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Service Down",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Memory Pressure",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Order API error rate",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Edge Collector CPU",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "High CPU Usage",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Billing queue backlog",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "Search indexing errors",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

@@ -546,6 +546,15 @@ func (r *AlertRuleRepository) Delete(id string) error {
 	return err
 }
 
+// DeleteHealthRulesForMonitor deletes the health-check rules that target one uptime
+// monitor. alert_rules.service_id has no foreign key, so deleting a monitor would
+// otherwise leave rules pointing at nothing.
+func (r *AlertRuleRepository) DeleteHealthRulesForMonitor(monitorID string) error {
+	_, err := DB.Exec(`DELETE FROM alert_rules WHERE service_id = ? AND metric IN (?, ?)`,
+		monitorID, models.AlertMetricHTTPStatus, models.AlertMetricResponseTime)
+	return err
+}
+
 // SetEnabled updates the is_enabled flag for an alert rule.
 func (r *AlertRuleRepository) SetEnabled(id string, isEnabled bool) error {
 	enabled := 0

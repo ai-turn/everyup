@@ -1,0 +1,28 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=rules&target=direct&serviceId=observed_mock_billing",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n추가\n\n성공률\n\n91%\n\n발송\n\n29\n\n실패\n\n3\n\n알림 채널\n4\n알림 규칙\n1\n알림 로그\n대상: 직접 서비스 observed_mock_billing\n규칙\t상태\n\n\nBilling queue backlog\n\n경고 · otel_metric gt 100\n\n활성화됨\n\n\t\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 390,
+  "vw": 390,
+  "toasts": [
+    "대상: 직접 서비스 observed_mock_billing"
+  ],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "Billing queue backlog",
+      "h": 20,
+      "w": 36
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ]
+}

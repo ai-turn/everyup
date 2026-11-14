@@ -20,6 +20,9 @@ type ServiceRuleEvaluator struct {
 
 	mu          sync.Mutex
 	wasAlerting map[string]bool // ruleKey → whether currently alerting (for recovery detection)
+	breachCount map[string]int  // ruleKey → consecutive breaching checks
+
+	dispatch func(Notification, []string) // test seam; defaults to manager.DispatchToChannels
 }
 
 // NewServiceRuleEvaluator creates a new service rule evaluator.
@@ -29,7 +32,10 @@ func NewServiceRuleEvaluator(manager *Manager) *ServiceRuleEvaluator {
 		repo:        database.NewAlertRuleRepository(),
 		stateRepo:   database.NewAlertRuleStateRepository(),
 		wasAlerting: make(map[string]bool),
+		breachCount: make(map[string]int),
 	}
+	// Sending must not hold up the checker loop on a slow channel (Telegram, Slack).
+	evaluator.dispatch = func(n Notification, channelIDs []string) { go manager.DispatchToChannels(n, channelIDs) }
 
 	evaluator.loadState()
 
@@ -37,16 +43,25 @@ func NewServiceRuleEvaluator(manager *Manager) *ServiceRuleEvaluator {
 }
 
 // Evaluate checks all enabled service rules for a service against the given check result.
-// This is called by Scheduler after each service check.
-func (e *ServiceRuleEvaluator) Evaluate(serviceID, serviceName string, statusCode, responseTimeMs int) {
+// This is called by Scheduler after each service check. checkOK is the check's own
+// verdict, and HTTP status rules follow it: the uptime screen's "down" and the alert
+// must agree even when the code alone would not say so (a TCP port has no status, a
+// 301 can fail a monitor that expects 200, a 404 can pass one that expects it).
+// The rule sees 999 for a failed check and 200 for a passing one; the notification
+// keeps the real code.
+func (e *ServiceRuleEvaluator) Evaluate(serviceID, serviceName string, statusCode, responseTimeMs int, checkOK bool) {
 	rules, err := e.repo.GetEnabledByServiceID(serviceID)
 	if err != nil {
 		log.Printf("[ServiceEvaluator] Failed to get rules for service %s: %v", serviceID, err)
 		return
 	}
 
+	ruleStatus := 200
+	if !checkOK {
+		ruleStatus = 999
+	}
 	for _, rule := range rules {
-		e.evaluateRule(rule, serviceID, serviceName, statusCode, responseTimeMs)
+		e.evaluateRule(rule, serviceID, serviceName, statusCode, ruleStatus, responseTimeMs)
 	}
 }
 
@@ -55,11 +70,21 @@ func (e *ServiceRuleEvaluator) Evaluate(serviceID, serviceName string, statusCod
 func (e *ServiceRuleEvaluator) evaluateRule(
 	rule models.AlertRule,
 	serviceID, serviceName string,
-	statusCode, responseTimeMs int,
+	statusCode, ruleStatus, responseTimeMs int,
 ) {
-	value := extractServiceMetricValue(rule.Metric, statusCode, responseTimeMs)
+	value := extractServiceMetricValue(rule.Metric, ruleStatus, responseTimeMs)
 	breached := compareValue(value, rule.Operator, rule.Threshold)
 	ruleKey := e.ruleKey(rule.ID, serviceID)
+	// Report the real status code, not the normalized value the rule compared.
+	reported := value
+	if rule.Metric == models.AlertMetricHTTPStatus && statusCode != 0 {
+		reported = float64(statusCode)
+	}
+	// Duration is the rule's consecutive check count ("N회 연속").
+	need := rule.Duration
+	if need < 1 {
+		need = 1
+	}
 
 	// ── critical section: read/write in-memory state ───────────────────────
 	e.mu.Lock()
@@ -70,8 +95,11 @@ func (e *ServiceRuleEvaluator) evaluateRule(
 	var toDispatch *Notification
 
 	if breached {
-		// Alert on every check that meets the condition.
-		// The service check interval is the natural rate limiter — no cooldown applied.
+		// Alert once when the breach has lasted the consecutive count, then stay quiet
+		// until recovery. Paging on every check of a down monitor was noise.
+		e.breachCount[ruleKey]++
+	}
+	if breached && !e.wasAlerting[ruleKey] && e.breachCount[ruleKey] >= need {
 		e.wasAlerting[ruleKey] = true
 
 		n := Notification{
@@ -80,15 +108,16 @@ func (e *ServiceRuleEvaluator) evaluateRule(
 			ServiceID:   serviceID,
 			ServiceName: serviceName,
 			Metric:      string(rule.Metric),
-			Value:       value,
+			Value:       reported,
 			Threshold:   rule.Threshold,
 			Severity:    string(rule.Severity),
 			StatusCode:  statusCode,
-			Message:     buildEndpointAlertMessage(rule, serviceName, value),
+			Message:     buildEndpointAlertMessage(rule, serviceName, reported),
 			Time:        time.Now(),
 		}
 		toDispatch = &n
-	} else {
+	} else if !breached {
+		e.breachCount[ruleKey] = 0
 		if e.wasAlerting[ruleKey] {
 			e.wasAlerting[ruleKey] = false
 
@@ -98,11 +127,11 @@ func (e *ServiceRuleEvaluator) evaluateRule(
 				ServiceID:   serviceID,
 				ServiceName: serviceName,
 				Metric:      string(rule.Metric),
-				Value:       value,
+				Value:       reported,
 				Threshold:   rule.Threshold,
 				Severity:    "info",
 				StatusCode:  statusCode,
-				Message:     buildEndpointRecoveryMessage(rule, serviceName, value),
+				Message:     buildEndpointRecoveryMessage(rule, serviceName, reported),
 				Time:        time.Now(),
 			}
 			toDispatch = &n
@@ -120,7 +149,7 @@ func (e *ServiceRuleEvaluator) evaluateRule(
 			log.Printf("[ServiceEvaluator] ALERT %s: %s=%.0f > %.0f (service: %s, rule: %s)",
 				rule.Severity, rule.Metric, value, rule.Threshold, serviceName, rule.Name)
 		}
-		go e.manager.DispatchToChannels(*toDispatch, rule.ChannelIDs)
+		e.dispatch(*toDispatch, rule.ChannelIDs)
 	}
 
 	go e.saveState(rule.ID, serviceID)
@@ -135,7 +164,8 @@ func (e *ServiceRuleEvaluator) EvaluateAgent(agentID, serviceKey, serviceName st
 		return
 	}
 	for _, rule := range rules {
-		e.evaluateRule(rule, agentID+"/"+serviceKey, serviceName, statusCode, responseTimeMs)
+		// Agent syncs report only an HTTP status; the rule compares it as is (0 = no response).
+		e.evaluateRule(rule, agentID+"/"+serviceKey, serviceName, statusCode, statusCode, responseTimeMs)
 	}
 }
 
@@ -169,8 +199,8 @@ func (e *ServiceRuleEvaluator) ruleKey(ruleID, serviceID string) string {
 }
 
 // extractServiceMetricValue extracts the relevant metric value from check result fields.
-// statusCode=0 means TCP connection failed (no HTTP response at all) — mapped to 999
-// so that any status-code threshold rule (>= 400, >= 500, etc.) triggers correctly.
+// statusCode=0 means there was no HTTP response; it maps to 999 so that any status-code
+// threshold rule (>= 400, >= 500, etc.) triggers.
 func extractServiceMetricValue(metric models.AlertMetric, statusCode, responseTimeMs int) float64 {
 	switch metric {
 	case models.AlertMetricHTTPStatus:

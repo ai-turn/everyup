@@ -291,6 +291,14 @@ func (h *NotificationHandler) TestConfig(c *fiber.Ctx) error {
 		})
 	}
 
+	// Testing an edit before saving: the form leaves the secret empty, so fill it
+	// from the stored channel the same way Update does.
+	if id := c.Query("channelId"); id != "" {
+		if stored, err := h.repo.GetByID(id); err == nil && stored != nil {
+			stored.KeepStoredSecret(&req)
+		}
+	}
+
 	if err := validateNotificationChannelRequest(req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
@@ -361,6 +369,8 @@ func (h *NotificationHandler) Update(c *fiber.Ctx) error {
 			},
 		})
 	}
+
+	channel.KeepStoredSecret(&req)
 
 	if err := validateNotificationChannelRequest(req); err != nil {
 		return c.Status(400).JSON(fiber.Map{

@@ -3,10 +3,12 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/aiturn/everyup/internal/checker"
+	"github.com/aiturn/everyup/internal/config"
 	"github.com/aiturn/everyup/internal/database"
 	"github.com/aiturn/everyup/internal/models"
 	"github.com/gofiber/fiber/v2"
@@ -160,13 +162,50 @@ func (h *ServiceHandler) Create(c *fiber.Ctx) error {
 	if err != nil {
 		return agentBadRequest(c, "VALIDATION_ERROR", err.Error())
 	}
+	var opts struct {
+		AlertOnDown bool `json:"alertOnDown"`
+	}
+	_ = c.BodyParser(&opts) // the body already parsed above; this only reads the extra flag
 	if err := h.repo.Create(service); err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
+	}
+	if opts.AlertOnDown {
+		if err := createMonitorDownRule(service); err != nil {
+			_ = h.repo.Delete(service.ID) // keep add-with-alert all or nothing
+			return internalError(c, "DATABASE_ERROR", err)
+		}
 	}
 	if h.scheduler != nil {
 		h.scheduler.AddService(service)
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"success": true, "data": service})
+}
+
+// createMonitorDownRule adds the health-check rule behind the add dialog's
+// "다운되면 알림" box: any failed check (HTTP status >= 400, or a TCP port that
+// does not answer) alerts every enabled channel. The consecutive count starts at
+// the incident threshold so the rule and the incident agree on "down".
+func createMonitorDownRule(service *models.Service) error {
+	consecutive := 3
+	if cfg := config.Get(); cfg != nil && cfg.Alerts.ConsecutiveFailures > 0 {
+		consecutive = cfg.Alerts.ConsecutiveFailures
+	}
+	now := time.Now()
+	serviceID := service.ID
+	return database.NewAlertRuleRepository().Create(&models.AlertRule{
+		ID:        uuid.NewString(),
+		Name:      service.Name + " 다운",
+		Type:      models.AlertRuleTypeService,
+		ServiceID: &serviceID,
+		Metric:    models.AlertMetricHTTPStatus,
+		Operator:  models.AlertOperatorGTE,
+		Threshold: 400,
+		Duration:  consecutive,
+		Severity:  models.AlertSeverityCritical,
+		IsEnabled: true,
+		CreatedAt: now,
+		UpdatedAt: now,
+	})
 }
 
 // Update replaces an independently configured HTTP or TCP uptime monitor and
@@ -202,6 +241,10 @@ func (h *ServiceHandler) Delete(c *fiber.Ctx) error {
 	}
 	if h.scheduler != nil {
 		h.scheduler.RemoveService(id)
+	}
+	// The monitor is gone either way; a failed cleanup only leaves orphaned rules.
+	if err := database.NewAlertRuleRepository().DeleteHealthRulesForMonitor(id); err != nil {
+		log.Printf("[Services] delete rules for monitor %s: %v", id, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }

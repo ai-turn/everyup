@@ -6,18 +6,21 @@ import { api, type NotificationChannel, type AlertRule, type NotificationHistory
 import { AlertsDesktopView } from '../../features/alerts/components/AlertsDesktopView';
 import { AlertsMobileView } from '../../features/alerts/components/AlertsMobileView';
 import { useIsMobile } from '../../hooks/useMediaQuery';
-import { Button, ConfirmDialog, MaterialIcon } from '../../components/common';
-import { parseAlertTarget } from '../../features/alerts/alertTarget';
+import { ConfirmDialog } from '../../components/common';
+import { alertTargetInitial, parseAlertTarget } from '../../features/alerts/alertTarget';
 import { FormSidePanel } from '../../features/alerts/components/FormSidePanel';
+import type { ChannelTestOutcome } from '../../features/alerts/components/ChannelHealthMeta';
 import { FormActions } from '../../features/alerts/components/FormLayout';
-import { AlertRuleForm } from '../../features/alerts/components/AlertRuleForm';
+import { AlertRuleForm, type AlertRuleFormInitial } from '../../features/alerts/components/AlertRuleForm';
+import type { RuleAddRequest } from '../../features/alerts/components/AlertRulesTab';
 
 type TabType = 'channels' | 'rules' | 'history';
 
 function parseTabParam(value: string | null): TabType {
+  // 메뉴에 들어온 이유(무엇을 감시하고 무엇이 발동했는가)가 첫 화면에 오도록 규칙이 기본이다(A-18).
   return value === 'rules' || value === 'history' || value === 'channels'
     ? value
-    : 'channels';
+    : 'rules';
 }
 
 export function AlertsPage() {
@@ -41,10 +44,15 @@ export function AlertsPage() {
   const [mobileRuleSubmitting, setMobileRuleSubmitting] = useState(false);
   const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
   const [testingIds, setTestingIds] = useState<Set<string>>(new Set());
+  const [testResults, setTestResults] = useState<Record<string, ChannelTestOutcome>>({});
   const [channelsError, setChannelsError] = useState<string | null>(null);
   const [rulesError, setRulesError] = useState<string | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
-  const [rulesAddTrigger, setRulesAddTrigger] = useState(0);
+  const [ruleAddRequest, setRuleAddRequest] = useState<RuleAddRequest | null>(null);
+  const [mobileRuleInitial, setMobileRuleInitial] = useState<AlertRuleFormInitial | undefined>(undefined);
+  // 모바일 규칙 카드의 수정·삭제(A-06). 수정은 목록 행에 없는 channelIds까지 받으려고 규칙을 다시 읽는다.
+  const [mobileEditRule, setMobileEditRule] = useState<AlertRule | null>(null);
+  const [pendingDeleteRuleId, setPendingDeleteRuleId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -117,6 +125,26 @@ export function AlertsPage() {
     setActiveTab(parseTabParam(searchParams.get('tab')));
   }, [searchParams]);
 
+  // `new=metric&metricName=…`(메트릭 단독 보기의 `알림 추가`)는 미리 채운 규칙 폼을 연다.
+  // 연 뒤에는 URL에서 지워 새로고침해도 다시 열리지 않게 한다. 대상(target…)은 목록 필터로 남긴다.
+  useEffect(() => {
+    if (searchParams.get('new') !== 'metric') return;
+    const initial: AlertRuleFormInitial = { ruleCategory: 'metric', metricName: searchParams.get('metricName') ?? '' };
+    if (isMobile) { setMobileRuleInitial({ ...alertTargetInitial(alertTarget), ...initial }); setMobileRuleFormOpen(true); }
+    else setRuleAddRequest({ initial });
+    const next = new URLSearchParams(searchParams);
+    next.delete('new');
+    next.delete('metricName');
+    next.set('tab', 'rules');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, isMobile, alertTarget]);
+
+  const clearTarget = () => {
+    const next = new URLSearchParams(searchParams);
+    for (const key of ['target', 'serviceId', 'agentId', 'serviceKey', 'resourceId']) next.delete(key);
+    setSearchParams(next);
+  };
+
   const handleSetActiveTab = (tab: TabType) => {
     setActiveTab(tab);
     const next = new URLSearchParams(searchParams);
@@ -171,9 +199,12 @@ export function AlertsPage() {
     setTestingIds(prev => new Set(prev).add(id));
     try {
       await api.testNotificationChannel(id);
-      toast.success('테스트 알림이 전송되었습니다!');
+      setTestResults(prev => ({ ...prev, [id]: { ok: true, at: new Date().toISOString() } }));
+      toast.success('테스트 알림을 보냈습니다');
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      setTestResults(prev => ({ ...prev, [id]: { ok: false, at: new Date().toISOString(), message } }));
+      toast.error(message);
     } finally {
       setTestingIds(prev => {
         const next = new Set(prev);
@@ -214,7 +245,36 @@ export function AlertsPage() {
   };
 
   const handleAddRule = () => {
-    setRulesAddTrigger(n => n + 1);
+    setRuleAddRequest({});
+  };
+
+  const openMobileRuleEdit = async (rule: AlertRule) => {
+    try {
+      setMobileEditRule(await api.getAlertRuleById(rule.id));
+      setMobileRuleFormOpen(true);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const closeMobileRuleForm = () => {
+    setMobileRuleFormOpen(false);
+    setMobileEditRule(null);
+  };
+
+  const confirmDeleteRule = async () => {
+    if (!pendingDeleteRuleId) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteAlertRule(pendingDeleteRuleId);
+      toast.success('규칙이 삭제되었습니다');
+      setPendingDeleteRuleId(null);
+      void loadRules();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setIsDeleting(false);
+    }
   };
   // --- Render ---
   const deleteDialog = (
@@ -237,13 +297,6 @@ export function AlertsPage() {
     />
   );
 
-  const loadWarning = (channelsError || rulesError || historyError) ? (
-    <section className="mb-5 flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
-      <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="text-sm font-medium text-text-base">일부 알림 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">성공한 정보는 계속 표시합니다. 탭별 오류 영역에서 다시 시도할 수 있습니다.</p></div></div>
-      <Button size="sm" variant="secondary" onClick={() => { void loadChannels(); void loadRules(); void loadHistory(); }}>모두 다시 시도</Button>
-    </section>
-  ) : null;
-
   if (isMobile) {
     return (
       <>
@@ -260,7 +313,10 @@ export function AlertsPage() {
           activeTab={activeTab}
           setActiveTab={handleSetActiveTab}
           onAddChannel={handleAddChannel}
-          onAddRule={() => setMobileRuleFormOpen(true)}
+          onAddRule={() => { setMobileEditRule(null); setMobileRuleInitial(alertTargetInitial(alertTarget)); setMobileRuleFormOpen(true); }}
+          onEditRule={(rule) => void openMobileRuleEdit(rule)}
+          onDeleteRule={setPendingDeleteRuleId}
+          onClearTarget={clearTarget}
           onEditChannel={handleEditChannel}
           onDeleteChannel={handleDeleteChannel}
           onToggleChannel={handleToggleChannel}
@@ -268,23 +324,36 @@ export function AlertsPage() {
           onToggleRule={handleToggleRule}
           togglingIds={togglingIds}
           testingIds={testingIds}
+          testResults={testResults}
           errors={{ channels: channelsError, rules: rulesError, history: historyError }}
           onRetry={{ channels: refreshChannels, rules: loadRules, history: loadHistory }}
         />
         <FormSidePanel
           open={mobileRuleFormOpen}
           icon="rule"
-          title="새 알림 규칙"
-          onClose={() => setMobileRuleFormOpen(false)}
-          footer={<FormActions formId="alert-rule-form" isEdit={false} isSubmitting={mobileRuleSubmitting} onCancel={() => setMobileRuleFormOpen(false)} />}
+          title={mobileEditRule ? '알림 규칙 수정' : '새 알림 규칙'}
+          onClose={closeMobileRuleForm}
+          footer={<FormActions formId="alert-rule-form" isEdit={!!mobileEditRule} isSubmitting={mobileRuleSubmitting} onCancel={closeMobileRuleForm} />}
         >
           <AlertRuleForm
+            rule={mobileEditRule ?? undefined}
             channels={channels}
-            onSuccess={() => { setMobileRuleFormOpen(false); void loadRules(); }}
-            onCancel={() => setMobileRuleFormOpen(false)}
+            initial={mobileRuleInitial}
+            onSuccess={() => { closeMobileRuleForm(); void loadRules(); }}
+            onCancel={closeMobileRuleForm}
             onSubmittingChange={setMobileRuleSubmitting}
           />
         </FormSidePanel>
+        <ConfirmDialog
+          isOpen={pendingDeleteRuleId !== null}
+          onClose={() => setPendingDeleteRuleId(null)}
+          onConfirm={confirmDeleteRule}
+          title="알림 규칙 삭제"
+          message={`"${rules.find(rule => rule.id === pendingDeleteRuleId)?.name ?? pendingDeleteRuleId}" 규칙을 삭제하시겠습니까?`}
+          description="이 작업은 되돌릴 수 없습니다."
+          variant="danger"
+          isProcessing={isDeleting}
+        />
         {deleteDialog}
       </>
     );
@@ -292,7 +361,6 @@ export function AlertsPage() {
 
   return (
     <>
-      {loadWarning}
       <AlertsDesktopView
         channels={channels}
         channelHealth={channelHealth}
@@ -300,11 +368,21 @@ export function AlertsPage() {
         history={history}
         stats={stats}
         isLoading={isLoading}
+        rulesLoading={rulesLoading}
+        channelsError={channelsError}
+        rulesError={rulesError}
+        onRetryChannels={refreshChannels}
+        onReloadRules={() => void loadRules()}
+        onToggleRule={handleToggleRule}
         activeTab={activeTab}
         setActiveTab={handleSetActiveTab}
         togglingIds={togglingIds}
-        rulesAddTrigger={rulesAddTrigger}
+        testingIds={testingIds}
+        testResults={testResults}
+        ruleAddRequest={ruleAddRequest}
+        onRuleAddRequestHandled={() => setRuleAddRequest(null)}
         alertTarget={alertTarget}
+        onClearTarget={clearTarget}
         onChannelsChanged={refreshChannels}
         onDeleteChannel={handleDeleteChannel}
         onToggleChannel={handleToggleChannel}

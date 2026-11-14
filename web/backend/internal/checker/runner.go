@@ -49,7 +49,7 @@ func (s *Scheduler) checkService(svc *models.Service) {
 
 	// Evaluate endpoint alert rules
 	if s.serviceEvaluator != nil {
-		s.serviceEvaluator.Evaluate(service.ID, service.Name, result.StatusCode, result.ResponseTime)
+		s.serviceEvaluator.Evaluate(service.ID, service.Name, result.StatusCode, result.ResponseTime, result.Status == models.CheckStatusSuccess)
 	}
 
 	// Determine status for incident handling and broadcast

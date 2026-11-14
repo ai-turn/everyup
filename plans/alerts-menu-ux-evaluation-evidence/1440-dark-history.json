@@ -1,0 +1,37 @@
+{
+  "url": "http://127.0.0.1:5180/everyup/demo/alerts?tab=history",
+  "text": "알림\n\n이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.\n\n발송 (7일)\n29\n실패 (7일)\n3\n실패 로그 보기\n성공률\n91%\n알림 채널\n4\n알림 규칙\n8\n알림 로그\n32\n전체 32\n성공 29\n실패 3\n전체 타입\n리소스\n헬스체크\nEndpoint\n로그\n스케줄\n시스템\n전체 타입\n전체 채널\nOps Telegram\n#alerts Discord\n#incidents Slack\n#backoffice Slack\n전체 채널\n최근 24시간\n최근 7일\n최근 30일\n최근 7일\n상태\t알림 타입\t채널\t메시지\t심각도\t시간\n오늘 · 11월 13일\n\nFailed\t리소스\t\nOps Telegram\n\t\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\nWebhook delivery timeout · 3회 재시도\n\n\t경고\t약 1시간 전 · 20:26\n\nSent\tEndpoint\t\n#alerts Discord\n\t\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n\t심각\t약 2시간 전 · 19:41\n\nSent\t리소스\t\n#incidents Slack\n\t\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n\t경고\t약 2시간 전 · 18:56\n\nSent\t헬스체크\t\n#backoffice Slack\n\t\n\nService Down: status_change eq 0 — 60분 지속\n\n\t심각\t약 3시간 전 · 18:11\n\nSent\t리소스\t\nOps Telegram\n\t\n\nMemory Pressure: memory gt 90 — 3분 지속\n\n\t심각\t약 4시간 전 · 17:26\n\nSent\tEndpoint\t\n#alerts Discord\n\t\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n\t심각\t약 5시간 전 · 16:41\n\nSent\tEndpoint\t\n#incidents Slack\n\t\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\n\t경고\t약 5시간 전 · 15:56\n\nSent\t로그\t\n#backoffice Slack\n\t\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n\t경고\t약 6시간 전 · 15:11\n\nSent\t리소스\t\nOps Telegram\n\t\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\n\t경고\t약 7시간 전 · 14:26\n\nSent\tEndpoint\t\n#alerts Discord\n\t\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n\t심각\t약 8시간 전 · 13:41\n\nSent\t리소스\t\n#incidents Slack\n\t\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n\t경고\t약 8시간 전 · 12:56\n\nFailed\t헬스체크\t\n#backoffice Slack\n\t\n\nService Down: status_change eq 0 — 60분 지속\n\nWebhook delivery timeout · 3회 재시도\n\n\t심각\t약 9시간 전 · 12:11\n\nSent\t리소스\t\nOps Telegram\n\t\n\nMemory Pressure: memory gt 90 — 3분 지속\n\n\t심각\t약 10시간 전 · 11:26\n\nSent\tEndpoint\t\n#alerts Discord\n\t\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n\t심각\t약 11시간 전 · 10:41\n\nSent\tEndpoint\t\n#incidents Slack\n\t\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\n\t경고\t약 11시간 전 · 09:56\n\nSent\t로그\t\n#backoffice Slack\n\t\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n\t경고\t약 12시간 전 · 09:11\n\nSent\t리소스\t\nOps Telegram\n\t\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\n\t경고\t약 13시간 전 · 08:26\n\nSent\tEndpoint\t\n#alerts Discord\n\t\n\nAPI p99 latency: latency_p99 gt 800 — 5분 지속\n\n\t심각\t약 14시간 전 · 07:41\n\nSent\t리소스\t\n#incidents Slack\n\t\n\nHigh CPU Usage: cpu gt 85 — 5분 지속\n\n\t경고\t약 14시간 전 · 06:56\n\nSent\t헬스체크\t\n#backoffice Slack\n\t\n\nService Down: status_change eq 0 — 60분 지속\n\n\t심각\t약 15시간 전 · 06:11\n\nSent\t리소스\t\nOps Telegram\n\t\n\nMemory Pressure: memory gt 90 — 3분 지속\n\n\t심각\t약 16시간 전 · 05:26\n\nSent\tEndpoint\t\n#alerts Discord\n\t\n\nOrder API error rate: error_rate gt 5 — 5분 지속\n\n\t심각\t약 17시간 전 · 04:41\n\nFailed\tEndpoint\t\n#incidents Slack\n\t\n\nBilling queue backlog: otel_metric gt 100 — 10분 지속\n\nWebhook delivery timeout · 3회 재시도\n\n\t경고\t약 17시간 전 · 03:56\n\nSent\t로그\t\n#backoffice Slack\n\t\n\nSearch indexing errors: log_level gte 1 — 5분 지속\n\n\t경고\t약 18시간 전 · 03:11\n\nSent\t리소스\t\nOps Telegram\n\t\n\nEdge Collector CPU: cpu gt 80 — 5분 지속\n\n\t경고\t약 19시간 전 · 02:26\n\n총 32건 중 1~25\n\n‹\n1\n2\n›\n© 2026 EveryUp\nGitHub\n피드백 보내기",
+  "docW": 1440,
+  "vw": 1440,
+  "toasts": [],
+  "pressable": [],
+  "invalid": [],
+  "small": [
+    {
+      "l": "전체 타입\n리소스\n헬스체크\nEndpoint\n로그\n스케줄",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "전체 채널\nOps Telegram\n#alerts Dis",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "최근 24시간\n최근 7일\n최근 30일",
+      "h": 1,
+      "w": 1
+    },
+    {
+      "l": "GitHub",
+      "h": 16,
+      "w": 59
+    },
+    {
+      "l": "피드백 보내기",
+      "h": 16,
+      "w": 69
+    }
+  ],
+  "axe": []
+}

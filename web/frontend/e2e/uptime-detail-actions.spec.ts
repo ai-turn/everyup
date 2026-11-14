@@ -41,7 +41,8 @@ test('[11] deleting identifies the monitor, cancels safely, and retries a failed
   await open.click();
   const dialog = page.getByRole('dialog', { name: '업타임을 삭제할까요?' });
   await expect(dialog).toContainText('Public API');
-  await expect(dialog).toContainText('체크 기록도 함께 삭제');
+  await expect(dialog).toContainText('체크 기록');
+  await expect(dialog).toContainText('알림 규칙도 함께 삭제');
   await dialog.getByRole('button', { name: '취소', exact: true }).click();
   await expect(dialog).toHaveCount(0);
   expect(state.requests.filter((request) => request.method === 'DELETE')).toHaveLength(0);
