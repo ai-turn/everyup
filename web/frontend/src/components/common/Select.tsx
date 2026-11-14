@@ -25,13 +25,24 @@ function optionsFromChildren(children: ReactNode): SelectOption[] {
   });
 }
 
-type SelectProps = ComponentPropsWithoutRef<'select'> & { wrapperClassName?: string };
+type SelectProps = Omit<ComponentPropsWithoutRef<'select'>, 'size'> & {
+  wrapperClassName?: string;
+  /** sm: 마우스 전용의 조밀한 자리(사이드바 데모 카드 등) 32px·12px. 기본 md는 입력과 같은 높이(터치 44 / 그 외 40). */
+  size?: 'sm' | 'md';
+};
+
+// FIELD_SHELL의 text-sm·sm:h-10은 className으로 덮이지 않는다(같은 속성은 CSS 순서로 승패가 갈린다) — 크기는 여기서 고른다.
+const TRIGGER_SIZE = {
+  md: `${FIELD_SHELL} ${FIELD_HEIGHT}`,
+  sm: 'w-full rounded-lg border bg-ui-hover-soft px-2.5 h-8 text-xs text-text-base transition-colors',
+} as const;
 
 /** App-styled listbox that preserves native option and change-event semantics. */
 export function Select({
   children,
   className = '',
   wrapperClassName = 'w-full',
+  size = 'md',
   value,
   defaultValue,
   onChange,
@@ -139,7 +150,7 @@ export function Select({
         aria-controls={open ? menuId : undefined}
         onClick={toggle}
         onKeyDown={onKeyDown}
-        className={`${FIELD_SHELL} ${FIELD_HEIGHT} inline-flex items-center justify-between gap-2 border-ui-control-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`${TRIGGER_SIZE[size]} inline-flex items-center justify-between gap-2 border-ui-control-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         <span className="min-w-0 flex-1 truncate">{selected?.label}</span>
         <MaterialIcon size={20} name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-text-muted" />
