@@ -307,8 +307,15 @@ export function ProjectDetailPage() {
         </Link>
       )}
 
-      {/* Service health grid */}
-      <div className="flex"><ListViewToggle view={view} onChange={setView} /></div>
+      {/* Service health grid — 다른 섹션(인프라·로그)처럼 제목을 둔다. 보기 전환은 아래 로그 섹션에도 적용된다. */}
+      <section>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="type-section-title text-text-base">서비스</h2>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-text-dim">{`${services.length}개`}</span>
+          <ListViewToggle view={view} onChange={setView} />
+        </div>
+      </div>
       {services.length === 0 && !loadError ? (
         <EmptyState icon="inventory_2" title="수집된 서비스가 없습니다" />
       ) : (
@@ -331,6 +338,7 @@ export function ProjectDetailPage() {
           ))}
         </div>
       )}
+      </section>
 
       {/* 인프라 메뉴는 직접 연결한 호스트만 보여 준다(ADR 0007) — 이 Collector의 호스트 지표는 여기서 본다. */}
       {agentId && collects('infrastructure') && (

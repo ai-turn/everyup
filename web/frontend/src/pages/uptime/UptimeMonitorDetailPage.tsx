@@ -21,7 +21,7 @@ import { listReturnTo } from '../../utils/listReturnTo';
 import { useGroupTrail } from '../../hooks/useGroupTrail';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRefreshControls';
-import { UptimeCheckSummary } from '../../features/uptime/components/UptimeCheckSummary';
+import { UptimeLatestCheck } from '../../features/uptime/components/UptimeLatestCheck';
 
 type ResponseRange = '1h' | '6h' | '24h';
 const RESPONSE_RANGES = [{ label: '1H', value: '1h' }, { label: '6H', value: '6h' }, { label: '24H', value: '24h' }] as const;
@@ -137,13 +137,12 @@ function certStat(iso: string): UptimeOverviewStat {
   return { label: '인증서 만료', value: days < 0 ? '만료됨' : `D-${days}`, tone: days < 0 ? 'error' : days <= CERT_WARN_DAYS ? 'warn' : undefined };
 }
 
-function metaFields(monitor: UptimeMonitor, target: string, lastCheck: string) {
+function metaFields(monitor: UptimeMonitor, target: string) {
   return [
     { label: monitor.type === 'tcp' ? 'Host' : 'URL', value: <span className="truncate font-mono">{target}</span> },
     { label: 'Protocol', value: monitor.type.toUpperCase() },
     { label: 'Interval', value: `${monitor.interval}초` },
     ...(monitor.type === 'http' ? [{ label: '기대 상태 코드', value: <span className="tabular-nums">{monitor.expectedStatus}</span> }] : []),
-    { label: '마지막 확인', value: <span className="tabular-nums">{lastCheck}</span> },
   ];
 }
 
@@ -238,9 +237,6 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
   }
 
   const target = monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url;
-  const lastCheck = monitor.lastCheckAt
-    ? new Date(monitor.lastCheckAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-    : '-';
   const failedSources = [errors.monitor && '모니터', errors.metrics && '최근 체크', errors.summary && '30일 요약', errors.history && '90일 이력', (errors.incidents || errors.failures) && '장애 이력'].filter(Boolean);
   const actionsDisabled = processing || refreshing || Boolean(errors.monitor);
 
@@ -258,10 +254,13 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
               <>
                 {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 자리 (§4.1) */}
                 {errors.monitor ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
+                <UptimeLatestCheck monitor={monitor} metrics={metrics} incidents={incidents}
+                  incidentsError={errors.monitor ? '모니터 상태를 갱신한 뒤 다시 확인하세요.' : errors.incidents} />
                 <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
               </>
             }
-            fields={metaFields(monitor, target, lastCheck)}
+            fields={metaFields(monitor, target)}
+            collapseOnMobile collapseLabel="모니터 정보"
           />
         }
       />
@@ -282,12 +281,6 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
           <Button size="sm" variant="secondary" loading={refreshing} disabled={processing} onClick={() => void load()}>다시 시도</Button>
         </div>
       )}
-
-      <section aria-label="현재 체크 상태" className="rounded-xl border border-ui-border bg-bg-surface p-6">
-        <h2 className="mb-4 type-card-title text-text-base">현재 상태</h2>
-        <UptimeCheckSummary monitor={monitor} metrics={metrics} incidents={incidents} metricsError={errors.metrics}
-          incidentsError={errors.monitor ? '모니터 상태를 갱신한 뒤 다시 확인하세요.' : errors.incidents} />
-      </section>
 
       {/* 현재 실패 → 기간별 수치 → 응답 추이 → 장기 이력 순서. */}
       <section className="rounded-xl border border-ui-border bg-bg-surface p-6">

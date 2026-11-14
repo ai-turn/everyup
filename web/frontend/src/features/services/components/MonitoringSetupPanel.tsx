@@ -2,7 +2,9 @@ import { MaterialIcon } from '../../../components/common/MaterialIcon';
 import { Button } from '../../../components/common/Button';
 import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
+import { useState } from 'react';
 import { ReceiptPanel } from './TelemetryReceiptStatus';
+import { lastReceipt, receiptState } from '../../telemetry/signals';
 import type {
 	AgentCollectionCapability,
 	AgentCapabilityState,
@@ -192,6 +194,13 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
   const requiredTotal = 1 + Number(containerCollectionEnabled || infrastructureEnabled) + Number(apiEnabled) + Number(metricsEnabled);
   const requiredReady = Number(connected && status?.configApplied) + Number(basicState === 'ready') + Number(tracingState === 'ready') + Number(metricsEnabled && connected && received('metrics'));
   const requiredComplete = requiredReady === requiredTotal;
+  // 설정이 끝나고 기대한 데이터가 모두 들어오면 단계 카드·수신 목록을 접는다 — 완료된 환경에서도
+  // 첫 화면 절반(약 430px)을 차지했다. 문제가 하나라도 있으면 펼친 채로 둔다. 모달(compact)은 설정 과정 자체라 접지 않는다.
+  const expectedSignals = enabledCapabilities.map(capability => capability === 'api' ? 'traces' : capability);
+  const receiving = expectedSignals.filter(signal => receiptState(lastReceipt(status?.signals ?? [], signal)) === 'collecting').length;
+  const settled = !compact && requiredComplete && !statusRequest.error && receiving === expectedSignals.length;
+  const [expandedByUser, setExpandedByUser] = useState<boolean | null>(null);
+  const expanded = expandedByUser ?? !settled;
   const basicProblem = [
     ...(containerCollectionEnabled ? [report?.containerMonitoring] : []),
     ...(infrastructureEnabled ? [report?.hostMetrics] : []),
@@ -260,6 +269,15 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
         )}
       </div>
 
+      {settled && (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="type-body text-text-muted">{`데이터 수신 ${receiving}/${expectedSignals.length}`}</span>
+          <Button variant="ghost" size="sm" aria-expanded={expanded} onClick={() => setExpandedByUser(!expanded)}>
+            <MaterialIcon name={expanded ? 'expand_less' : 'expand_more'} />{expanded ? '설정 단계 접기' : '설정 단계 보기'}
+          </Button>
+        </div>
+      )}
+      {expanded && <>
       <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${compact ? '' : 'xl:grid-cols-4'}`}>
         <SetupStep
           number={1}
@@ -308,6 +326,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           note={!connected ? '최근 Collector 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
         />
       </div>
+      </>}
     </section>
   );
 }

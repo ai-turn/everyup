@@ -49,7 +49,6 @@ export function LogsPage() {
         <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
       <DockerEnvironmentHint className="mb-5" />
-      <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map(item => <div key={item} className="h-48 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}
@@ -63,7 +62,7 @@ export function LogsPage() {
           </div>
         </EmptyState>
       ) : (
-        <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} />
+        <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} viewToggle={<ListViewToggle view={view} onChange={setView} />} />
       )}
     </div>
   );

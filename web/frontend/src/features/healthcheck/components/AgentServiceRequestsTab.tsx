@@ -69,6 +69,8 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
       selected={method && pathTemplate ? { method, path: pathTemplate } : undefined}
       onSelect={endpoint => update({ method: endpoint?.method ?? null, pathTemplate: endpoint?.path ?? null, page: null })} />
 
+    {/* 검색·필터는 그것이 거르는 "요청 결과" 제목 아래에 둔다 — 제목 위에 있으면 위의 Endpoint 표를 거르는 것처럼 읽혔다. */}
+    <ApiRequestResults toolbar={<>
     <div className="flex flex-wrap items-center gap-3">
       <Button variant={errorsOnly ? 'destructive' : 'secondary'} aria-pressed={errorsOnly}
         title="5xx 또는 OpenTelemetry에서 오류로 기록한 요청" onClick={() => update({ errorsOnly: errorsOnly ? null : 'true', page: null })}>
@@ -90,7 +92,7 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
       {traceId && <span className="break-all font-mono">traceId: {traceId}</span>}
       <Button variant="ghost" size="sm" onClick={clear}>필터 해제</Button>
     </div>}
-    <ApiRequestResults requests={result.rows} total={result.total} page={page} loading={result.loading} error={result.error}
+    </>} requests={result.rows} total={result.total} page={page} loading={result.loading} error={result.error}
       filtered={filtered} waiting={awaitingData} onClear={clear} onRetry={() => setRetryKey(key => key + 1)}
       onPageChange={value => update({ page: value === 1 ? null : String(value) })} onSelect={setActiveTraceId} />
     {!result.loading && !result.error && !filtered && result.rows.length === 0 && <details open={awaitingData} className="rounded-xl border border-ui-border bg-bg-surface p-4">

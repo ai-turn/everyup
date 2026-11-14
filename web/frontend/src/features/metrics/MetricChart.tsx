@@ -112,9 +112,12 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
         <div className="mb-3 space-y-2">
           {/* 원본 이름은 이미 보이는 글자라 따로 Tab 지점을 두지 않는다. 격자는 잘리므로 마우스 힌트만 남긴다. */}
-          {!expanded && <p id={nameId} className="truncate font-mono text-xs text-text-muted"><HintTooltip content={name}><span>{name}</span></HintTooltip></p>}
+          {/* 격자는 원본 이름과 종류·단위를 왼쪽 두 줄로 묶고 요약을 같은 행에 둔다 — 세 줄이 따로 쌓여 차트가 밀렸다. */}
           <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-4 gap-y-1">
-            <span className="type-caption text-text-muted">{[meta.metricType, histogram && '수신 평균', mode === 'rate' && '초당 증가량', unit].filter(Boolean).join(', ')}</span>
+            <div className="min-w-0">
+              {!expanded && <p id={nameId} className="truncate font-mono text-xs text-text-muted"><HintTooltip content={name}><span>{name}</span></HintTooltip></p>}
+              <p className="type-caption text-text-muted">{[meta.metricType, histogram && '수신 평균', mode === 'rate' && '초당 증가량', unit].filter(Boolean).join(', ')}</p>
+            </div>
             {summary}
           </div>
           {expanded && meta.description && <p className="type-body text-text-muted">{meta.description}</p>}

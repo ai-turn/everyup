@@ -95,7 +95,6 @@ export function InfrastructurePage() {
         <MonitoringConnection capability="infrastructure" onConnected={reload} />
       </PageHeader>
       <DockerEnvironmentHint className="mb-5" />
-      <div className="mb-5 flex"><ListViewToggle view={view} onChange={setView} /></div>
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>
       ) : error ? (
@@ -110,7 +109,10 @@ export function InfrastructurePage() {
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="type-section-title text-text-base">인프라 대상</h2>
-            <span className="text-xs text-text-dim">{`서버 ${resources.length}개 · 사용률 높은 순`}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-text-dim">{`서버 ${resources.length}개 · 사용률 높은 순`}</span>
+              <ListViewToggle view={view} onChange={setView} />
+            </div>
           </div>
           {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{resources.map(resource => <ResourceCard key={resource.id} resource={resource} returnTo={returnTo} />)}</div> :
             <ResourceTable rows={resources} rowKey={row => row.id} ariaLabel="인프라 대상 그리드" columns={[

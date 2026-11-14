@@ -266,7 +266,8 @@ export function OverviewPage() {
         </section>
       ) : (
         <>
-          <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+          {/* items-start: 항목이 하나뿐인 "현재 확인 필요"가 옆 카드 높이로 늘어나 아래가 비어 보였다. */}
+          <section className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
             <article id="attention" className="scroll-mt-5 rounded-xl border border-ui-border bg-bg-surface">
               <div className="flex items-center justify-between gap-3 border-b border-ui-border px-4 py-3.5">
                 <div>

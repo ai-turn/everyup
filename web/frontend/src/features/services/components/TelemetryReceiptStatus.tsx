@@ -1,7 +1,7 @@
 import { Tooltip } from '../../../components/common/Tooltip';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { CollectionStatusBadge } from '../../../components/common';
+import { CollectionStatusBadge, LoadErrorBanner } from '../../../components/common';
 import type { SignalReceipt } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
 import { appReceiptNote, lastReceipt, receiptState } from '../../telemetry/signals';
@@ -27,7 +27,7 @@ export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; e
 export function ReceiptPanel({ signals, expected, error, note }: { signals: SignalReceipt[]; expected: string[]; error?: string; note?: string }) {
   return <section aria-label="데이터 수신 확인" className="space-y-2 rounded-xl border border-ui-border bg-ui-hover-soft p-4">
     <h4 className="type-label text-text-base">데이터 수신 확인</h4>
-    {error ? <p role="alert" className="type-body text-status-warn">{error}</p> : <ReceiptList signals={signals} expected={expected} />}
+    {error ? <LoadErrorBanner inline title="수신 상태를 확인하지 못했습니다" message={error} /> : <ReceiptList signals={signals} expected={expected} />}
     {note && <p className="type-body text-text-muted">{note}</p>}
   </section>;
 }
