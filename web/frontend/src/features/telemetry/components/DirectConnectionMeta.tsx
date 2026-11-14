@@ -1,4 +1,4 @@
-import { Button, CollectionStatusBadge, DetailMeta, MaterialIcon, Select, StatusLight, type CollectionStatus, type DetailMetaField, type StatusTone } from '../../../components/common';
+import { Button, CollectionStatusBadge, LoadErrorBanner, DetailMeta, MaterialIcon, Select, StatusLight, type CollectionStatus, type DetailMetaField, type StatusTone } from '../../../components/common';
 import type { Project } from '../../../services/api';
 
 // 직접 연결(Logs·Metrics·API·Collector) 상세의 연결 메타데이터. 수집 키·마지막 수집·그룹은
@@ -77,10 +77,7 @@ export function DirectConnectionMeta({
         {
           label: '그룹',
           value: (
-            projectsLoading ? <span>그룹 목록 확인 중…</span> : projectsError ? <div role="status" className="space-y-2">
-              <p className="type-body text-status-warn">그룹 목록을 불러오지 못했습니다</p>
-              {onRetryProjects && <Button variant="ghost" size="sm" onClick={onRetryProjects}>다시 시도</Button>}
-            </div> : <>
+            projectsLoading ? <span>그룹 목록 확인 중…</span> : projectsError ? <LoadErrorBanner inline role="status" title="그룹 목록을 불러오지 못했습니다" onRetry={onRetryProjects} /> : <>
               <Select wrapperClassName="w-48" value={projectId} onChange={event => onProjectChange(event.target.value)} aria-label="그룹 배정">
                 <option value="">미분류</option>
                 {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}

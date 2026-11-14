@@ -91,11 +91,26 @@ typography:
     fontSize: 14px
     fontWeight: 500
     lineHeight: 20px
+  label-sm:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 12px
+    fontWeight: 500
+    lineHeight: 16px
   caption:
     fontFamily: "Spoqa Han Sans Neo"
     fontSize: 12px
     fontWeight: 400
     lineHeight: 16px
+  kpi:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 24px
+    fontWeight: 500
+    lineHeight: 32px
+  stat:
+    fontFamily: "Spoqa Han Sans Neo"
+    fontSize: 18px
+    fontWeight: 500
+    lineHeight: 28px
   code:
     fontFamily: "JetBrains Mono Variable"
     fontSize: 12px
@@ -323,9 +338,16 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 | 카드·차트·모달 제목 | `type-card-title` | 16 / 24px | 500 |
 | 본문·설명·도움말 | `type-body` | 14 / 21px | 400 |
 | 버튼·폼 라벨·조밀한 항목 제목 | `type-label` | 14 / 20px | 500 |
+| 표 헤더·배지·작은 버튼·키 표시 | `type-label-sm` | 12 / 16px | 500 |
 | 메타·시간·짧은 보조 값 | `type-caption` | 12 / 16px | 400 |
+| KPI 카드·요약 줄의 대표 수치 | `type-kpi` | 24 / 32px | 500, 고정폭 숫자 |
+| 목록 카드 안의 작은 통계 | `type-stat` | 18 / 28px | 500, 고정폭 숫자 |
 
-페이지 헤더는 [PageHeader](src/components/common/PageHeader.tsx)를 쓴다. 모바일 전용 화면의 h1은 기존 `text-xl font-bold`(20px)을 허용한다. KPI 수치는 24~30px, `tabular-nums`를 사용한다(본문 폰트 — §2.1). 404 같은 디스플레이 숫자는 별도 크기를 허용한다.
+페이지 헤더는 [PageHeader](src/components/common/PageHeader.tsx)를 쓴다. 모바일 전용 화면의 h1은 기존 `text-xl font-bold`(20px)을 허용한다. 404 같은 디스플레이 숫자와 로고 워드마크는 별도 크기를 허용한다. 그 밖에 18px 이상 원시 크기(`text-lg`~)는 `pnpm lint`가 센다.
+
+**숫자는 두 역할뿐이다** (2026-11-14). 대표 수치(KPI 카드, 업타임 상태 요약, 요청 추이 타일, 알림 발송 요약, 인프라 게이지, 응답 시간)는 `type-kpi`, 목록 카드 안에 나란히 놓인 작은 통계(API·로그·메트릭·인프라·그룹 카드)는 `type-stat`이다. 둘 다 500이고 고정폭 숫자를 역할이 건다. 이전에는 숫자가 11곳에서 16·18·20·24·30px, 400·500·700의 일곱 조합으로 갈려 있었다(같은 업타임 상세 안에서 24px/500과 30px/700). 400은 24px에서 가늘게 보이고 700은 페이지 제목과 겨룬다. 숫자 색은 상태가 있을 때만 싣는다(§4.1 KPI 설명문과 같은 규칙).
+
+**역할 유틸리티와 같은 모양을 손으로 조합하지 않는다.** `text-sm font-medium`은 `type-label`, `text-xs font-medium`은 `type-label-sm`이다. 역할 위에 굵기를 덧씌우지 않는다(`type-body font-medium` → `type-label`). 둘 다 `pnpm lint`가 막는다. 여러 줄이 될 수 있는 문단(`<p>`)은 `text-sm`(행간 20px)이 아니라 `type-body`(21px)다. 한국어 산문은 행간 1.5에서 읽기 편하다.
 
 크기 토큰은 `text-xs`(12), `text-sm`(14), `text-base`(16), `text-lg`(18), `text-xl`(20), `text-2xl`(24), `text-3xl`(30)이다. `text-[Npx]`로 임의 크기를 추가하지 않는다. 역할 유틸리티 위에 다른 크기·굵기·행간을 중복 지정하지 않는다.
 
@@ -599,7 +621,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 - 아이콘 전용 액션은 `IconButton md`(`h-11 w-11 sm:h-10 sm:w-10`)다. `sm`(32px)은 테이블 행·다이얼로그 헤더·입력 안의 지우기처럼 조밀한 맥락에서만 쓴다.
 - **인라인 액션**(문장 속 `필터 초기화`, 카드 안 `트레이스`·`로그 보기` 이동, `새 코드`)은 `Button variant="ghost" size="sm"`이다. 파란 밑줄 텍스트 링크 버튼이나 `primary/5` 틴트 칩(배경·보더·글자 3중)을 손으로 만들지 않는다. 외부 문서로 가는 진짜 `<a>`는 링크 모양을 유지한다.
 - **행·카드 액션은 우측 끝**, 순서는 상태 토글 → 보조(`테스트` 등) → 수정 → 삭제다. 표 행은 `IconButton size="sm"`, 카드는 `ResourceCardHeader`의 `status` 슬롯(우측 상단)에 둔다.
-- **다시 시도**: 화면 일부가 실패하면 그 자리의 중립 배너(`bg-bg-surface border-ui-border` + `status-warn` 아이콘) 안에 `Button variant="secondary" size="sm"`, 화면 전체가 실패하면 `EmptyState`의 `action`.
+- **다시 시도**: 화면 일부가 실패하면 [`LoadErrorBanner`](src/components/common/LoadErrorBanner.tsx)를 쓴다. 중립 배너(`bg-bg-surface border-ui-border`)에 `status-warn` 아이콘, 제목은 `type-label text-text-base`, 원인은 `type-body text-text-muted`, `Button variant="secondary" size="sm"` `다시 시도`다. 표 칸·카드·차트 카드 안처럼 상자를 하나 더 두면 카드 속 카드가 되는 자리는 `inline`(상자 없이 아이콘 + 글자 + 버튼)이다. 화면 전체가 실패하면 `EmptyState`의 `action`. **실패 문장을 경고색으로 칠하지 않는다** — 2026-11-14까지 10곳이 `text-status-warn` 문장이었다. 색은 아이콘 하나에 싣는다(§5.3). 일회성 주의문(`API Key는 지금 한 번만 표시됩니다`)도 같다: 경고 아이콘 + 기본 글자색.
 
 **아이콘 크기** — `MaterialIcon`은 `size`로 SVG 크기를 정한다. 기본이자 본문 크기는 20px다 — 인라인·버튼·내비게이션·섹션이 전부 같은 20px를 쓴다(2026-09-22, 16px 층 폐지). 24px는 주요 상태용이다. 스피너·빈 상태에는 32/36/48px를 허용한다. `text-*`는 색에만 사용하고 폰트 크기를 아이콘 크기로 사용하지 않는다. 아이콘 획은 SVG 도형이 결정하므로 `font-*`로 두께를 조절하지 않는다. 같은 영역에서는 같은 아이콘 계열을 사용한다. 삭제는 `delete_outline` 하나다(`delete` 채움형과 섞지 않는다). 제출 버튼 아이콘은 생성(`add`)에만 붙인다.
 
@@ -928,7 +950,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 **텍스트영역**은 `Textarea`(`components/common/Textarea.tsx`)다. `FIELD_SHELL`에 자기 `py`만 덧붙인다.
 
-**`Field`** (`features/alerts/components/FormLayout.tsx`) — 라벨 + 입력 + 에러/힌트 한 묶음. `htmlFor`를 줄 때만 `<label>`로, 없으면 `<span>` 캡션으로 렌더한다(자식이 버튼 그리드면 `<label>`이 첫 버튼을 눌러버린다). 한글 라벨·힌트에 `uppercase`·`italic`을 걸지 않는다 — 한글에는 대문자가 없어 자간만 벌어지고, 기울임 글리프가 없어 브라우저가 가짜 기울임을 만든다.
+**`Field`** (`features/alerts/components/FormLayout.tsx`) — 라벨 + 입력 + 에러/힌트 한 묶음. 도움말(`hint`)은 읽는 문장이라 `type-body text-text-muted`다 — `dim`은 메타·placeholder 전용(§1.3)이고, 2026-11-14까지 모든 폼의 도움말이 `dim`이었다. `htmlFor`를 줄 때만 `<label>`로, 없으면 `<span>` 캡션으로 렌더한다(자식이 버튼 그리드면 `<label>`이 첫 버튼을 눌러버린다). 한글 라벨·힌트에 `uppercase`·`italic`을 걸지 않는다 — 한글에는 대문자가 없어 자간만 벌어지고, 기울임 글리프가 없어 브라우저가 가짜 기울임을 만든다.
 
 ---
 
@@ -1168,6 +1190,17 @@ Carbon·Primer·Polaris·Material 3의 공통 원칙과 대조해 어긋난 것�
 - 이어서(같은 날): 툴바 버튼 모양 통일 — `destructive`에 테두리, 상세 툴바의 `ghost`(`일시정지`·`연결 중지`) → `secondary`, `일시정지`에 아이콘 복원, 모바일에서 `collapseLabel`로 아이콘만
 - 보고서 후속: 파란 틴트 링크칩 6·텍스트 링크 버튼 4 → ghost sm, 계정 초기화 → `destructive`, 업타임 일시정지 목록·상세 → ghost 무아이콘, 남은 X 6·테마 토글 2 → `IconButton`(모바일 `Toggle theme` 영어 라벨 해소), 일회성 스타일 5(검정 테스트 전송·rounded-xl 복사/재발급·px/py 다시 시도·34px 재설치) → `Button`/`CopyButton`, `ApiKeyModal`의 `confirm()` → `ConfirmDialog`
 - 남은 결정: 툴바 높이 혼재(조회 제어 sm 32), 토글 켜짐 표현 5종, 장애 배너 `로그 확인`의 danger
+
+### 해결됨 (2026-11-14) — 크기·굵기·색 재점검
+
+실제 화면 23개(라이트·다크, 1440·390)에서 글자 요소 10,296개의 계산된 크기·굵기·행간·색을 모으고 axe 대비 검사를 돌렸다. 굵기는 400·500·700만, 대비 위반은 0건이었다. 고친 것:
+- ~~숫자 일곱 조합~~ → `type-kpi`·`type-stat`(§2.2)
+- ~~12px 500·`text-sm font-medium` 역할 없음/우회~~ → `type-label-sm` 신설, `type-label`로 87곳 치환, 문단 `text-sm` 90곳 → `type-body`
+- ~~`Field` 도움말 `dim`, 설명 문장 12px, 빈 상태·확인창 설명·오류 원인 문장 `dim` 8곳~~ → `type-body text-text-muted`(§1.3). `DetailMeta` 속성 라벨은 메타라 `dim` 유지
+- ~~업타임 상세 평균 응답 `320.009ms`~~ → 정수 ms(§4.5, 목록과 같게)
+- ~~조회 실패 문장 경고색 10곳~~ → `LoadErrorBanner`(§4.1)
+- ~~`선택 기능` 보라색 칩~~ → 중립(§5.3)
+- 남김: 로고 워드마크(사이드바 18px 기본색, 로그인 24px primary), API 요청 표 본문 12px(기계 문자열 표로 본다, §4.5), 12px이 전체 글자의 약 절반이라는 밀도
 
 ### 해결됨 (2026-11-13) — 상태색 역할 분리 · 떠 있는 표면 · 기본 상태
 

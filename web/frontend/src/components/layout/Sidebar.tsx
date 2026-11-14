@@ -32,7 +32,7 @@ function NavItem({ to, icon, label, active, badge }: NavItemProps) {
       <span className="truncate">{label}</span>
       {/* 배지 박스는 표 컬럼 전용(DESIGN §5.1b) — 여기서는 색 있는 숫자로 충분하다. 링크 이름은 "개요 장애 1건". */}
       {badge != null && badge > 0 && (
-        <span className="ml-auto shrink-0 text-xs font-medium tabular-nums text-status-error">
+        <span className="ml-auto shrink-0 type-label-sm tabular-nums text-status-error">
           <span className="sr-only">장애 </span>{badge}<span className="sr-only">건</span>
         </span>
       )}
@@ -77,7 +77,7 @@ export function Sidebar() {
 
       {env.isDemoMode && (
         <div data-demo-chrome className="mx-3 mb-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2">
-          <p className="text-xs font-medium text-action">Live Demo</p>
+          <p className="type-label-sm text-action">Live Demo</p>
           <p className="mt-2 type-caption text-text-muted">예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.</p>
           <div className="mt-2"><DemoScenarioSwitcher tone="light" /></div>
           <DemoHelpLinks />
@@ -90,14 +90,14 @@ export function Sidebar() {
       >
         <MaterialIcon size={20} name="search" className="shrink-0" />
         <span className="flex-1 text-left text-xs">검색</span>
-        <kbd className="font-sans rounded border border-ui-border px-1 py-0.5 text-xs font-medium">{navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl K'}</kbd>
+        <kbd className="font-sans rounded border border-ui-border px-1 py-0.5 type-label-sm">{navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl K'}</kbd>
       </button>
 
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3" aria-label="주 메뉴">
         {NAV_SECTIONS.map((section, i) => (
           <Fragment key={section.to}>
             {section.group && section.group !== NAV_SECTIONS[i - 1]?.group && (
-              <p className="px-3 pt-4 pb-1 text-xs font-medium text-text-dim">{section.group}</p>
+              <p className="px-3 pt-4 pb-1 type-label-sm text-text-dim">{section.group}</p>
             )}
             <NavItem
               // 개요는 장애 목록으로 바로 내린다 — 배지가 가리키는 곳이다.

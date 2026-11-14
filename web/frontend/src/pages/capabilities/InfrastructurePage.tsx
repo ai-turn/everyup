@@ -59,7 +59,7 @@ function ResourceCard({ resource, returnTo }: { resource: InfrastructureResource
           {USAGE.map(([key, label]) => (
             <div key={key}>
               <p className="text-xs text-text-dim">{label}</p>
-              <div className="text-base"><UsageValue value={resource[key]} bar /></div>
+              <div className="type-stat"><UsageValue value={resource[key]} bar /></div>
             </div>
           ))}
         </div>

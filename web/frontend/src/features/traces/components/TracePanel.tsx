@@ -311,7 +311,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           {error && (
             <div className="flex items-start gap-3 px-3 py-2 bg-ui-hover-soft rounded-lg border border-ui-border">
               <MaterialIcon size={20} name="error" className="text-status-error shrink-0 mt-0.5" />
-              <p className="text-sm text-text-secondary">{error}</p>
+              <p className="type-body text-text-secondary">{error}</p>
             </div>
           )}
 
@@ -323,7 +323,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
 
           {!loading && !error && (logs.length > 0 || apiRequests.length > 0) && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-text-muted mr-1">
+              <span className="type-label text-text-muted mr-1">
                 탭에서 보기:
               </span>
               {logs.length > 0 && (
@@ -370,7 +370,7 @@ function PanelSectionHeader({ icon, title, count }: { icon: string; title: strin
     <div className="flex items-center gap-2 mb-2">
       <MaterialIcon size={20} name={icon} className="text-action" />
       <h4 className="type-label text-text-base">{title}</h4>
-      <span className="text-xs font-medium text-text-secondary bg-ui-active px-2 py-0.5 rounded-md">
+      <span className="type-label-sm text-text-secondary bg-ui-active px-2 py-0.5 rounded-md">
         {count}
       </span>
     </div>
@@ -433,19 +433,19 @@ function SpanDetail({ span }: { span: TraceSpan }) {
     <div className="mt-2 space-y-3 border-t border-ui-border-soft pt-2">
       {span.statusMessage && (
         <div>
-          <p className="mb-1 text-xs font-medium text-text-dim">실패 원인</p>
+          <p className="mb-1 type-label-sm text-text-dim">실패 원인</p>
           <p className="break-all font-mono text-xs text-status-error">{span.statusMessage}</p>
         </div>
       )}
       {Object.keys(attrs).length > 0 && (
         <div>
-          <p className="mb-1 text-xs font-medium text-text-dim">Attribute</p>
+          <p className="mb-1 type-label-sm text-text-dim">Attribute</p>
           <AttributeRows attrs={attrs} />
         </div>
       )}
       {events.length > 0 && (
         <div>
-          <p className="mb-1 text-xs font-medium text-text-dim">Event</p>
+          <p className="mb-1 type-label-sm text-text-dim">Event</p>
           <ul className="space-y-1.5">
             {events.map((event, index) => (
               <li key={`${event.name}-${event.timeUnixNano ?? index}`}>
@@ -509,7 +509,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                   </span>
                 )}
                 {span.statusCode && span.statusCode !== 'UNSET' && (
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium shrink-0 ${statusBadge(span.statusCode)}`}>
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded type-label-sm shrink-0 ${statusBadge(span.statusCode)}`}>
                     {span.statusCode}
                   </span>
                 )}
@@ -538,7 +538,7 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
   if (headers.length === 0) return null;
   return (
     <div>
-      <p className="mb-1 text-xs font-medium text-text-dim">{label}</p>
+      <p className="mb-1 type-label-sm text-text-dim">{label}</p>
       <dl className="space-y-0.5">
         {headers.map((h) => (
           <div key={h.name} className="flex gap-2 font-mono text-xs">

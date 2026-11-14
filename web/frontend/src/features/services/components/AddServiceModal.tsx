@@ -55,7 +55,7 @@ function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: 
             }`}>
               {item.complete ? <MaterialIcon size={20} name="check" /> : index + 1}
             </span>
-            <span className={`truncate text-xs font-medium ${item.active ? 'text-action' : item.complete ? 'text-text-secondary' : 'text-text-dim'}`}>
+            <span className={`truncate type-label-sm ${item.active ? 'text-action' : item.complete ? 'text-text-secondary' : 'text-text-dim'}`}>
               {item.label}
             </span>
             {index < steps.length - 1 && <span className="hidden h-px flex-1 bg-ui-border sm:block" />}
@@ -184,7 +184,7 @@ function AgentForm({
                     title={disabled ? '로그 또는 API 요청 수집에 필요합니다' : undefined}
                   />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-text-base">{option.label}</p>
+                    <p className="type-label text-text-base">{option.label}</p>
                     <p className="type-body text-text-muted">{option.description}</p>
                   </div>
                 </div>
@@ -477,13 +477,13 @@ export function AddServiceModal({
                 <a href={QUICKSTART_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center type-body text-action hover:underline">실제 설치 방법 보기</a>
               </div>
             )}
-            {setupError && <p role="alert" className="text-sm text-status-warn">{setupError}</p>}
-            {codeExpired && !connected && <p role="alert" className="text-sm text-status-warn">설치 명령이 만료됐습니다. 아래에서 새 코드를 발급해 주세요.</p>}
+            {setupError && <p role="alert" className="type-body text-status-warn">{setupError}</p>}
+            {codeExpired && !connected && <p role="alert" className="type-body text-status-warn">설치 명령이 만료됐습니다. 아래에서 새 코드를 발급해 주세요.</p>}
             {connected ? (
               <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-ui-hover-soft p-4">
                 <MaterialIcon size={20} name="check_circle" className="mt-0.5 shrink-0 text-status-healthy" />
                 <div>
-                  <p className="text-sm text-text-base">Docker Collector 연결을 확인했습니다</p>
+                  <p className="type-body text-text-base">Docker Collector 연결을 확인했습니다</p>
                   <p className="mt-1 type-body text-text-muted">
                     기능 호환성과 발견된 서비스를 자동으로 확인했습니다. 이 화면에서 상세 수집까지 이어서 설정할 수 있습니다.
                   </p>
@@ -496,7 +496,7 @@ export function AddServiceModal({
                   <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm text-text-base">Docker Collector 연결을 기다리는 중</p>
+                  <p className="type-body text-text-base">Docker Collector 연결을 기다리는 중</p>
                   <p className="mt-0.5 type-body text-text-muted">명령을 실행하면 최대 5초 간격으로 자동 확인합니다.</p>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => void refreshConnection(true)} loading={checkingConnection}>

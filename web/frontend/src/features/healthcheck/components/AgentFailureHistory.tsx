@@ -53,7 +53,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
           <h2 className="type-section-title text-text-base tracking-tight">
             최근 알림 기록
           </h2>
-          <p className="text-text-muted text-sm">
+          <p className="text-text-muted type-body">
             Docker 서비스 알림 이벤트
           </p>
         </div>
@@ -65,7 +65,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-ui-hover">
             <MaterialIcon size={24} name="history" className="text-text-muted" />
           </div>
-          <p className="text-text-muted text-sm">알림 기록이 없습니다</p>
+          <p className="text-text-muted type-body">알림 기록이 없습니다</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -81,7 +81,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
                   className={`shrink-0 mt-0.5 ${isAlert ? 'text-status-error' : 'text-status-healthy'}`}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-text-base truncate">
+                  <p className="type-label text-text-base truncate">
                     {event.message || (isAlert ? '장애 감지' : '복구 감지')}
                   </p>
                   <p className="text-xs text-text-muted mt-0.5">

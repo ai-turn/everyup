@@ -46,7 +46,7 @@ export function ChartCard({
 /** 빈 상태 — 차트와 같은 높이, 문구 하나. */
 export function ChartEmpty({ height = CHART_HEIGHT }: { height?: number }) {
   return (
-    <div className="flex items-center justify-center rounded-lg bg-ui-hover-soft type-body text-text-dim" style={{ height }}>
+    <div className="flex items-center justify-center rounded-lg bg-ui-hover-soft type-body text-text-muted" style={{ height }}>
       이 기간에 데이터 없음
     </div>
   );
@@ -177,7 +177,7 @@ export function ChartLegend({ items, className = '' }: { items: { label: string;
       {items.map((it) => (
         <span
           key={it.label}
-          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-ui-border bg-ui-hover-soft px-2 py-0.5 text-xs font-medium text-text-muted"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-ui-border bg-ui-hover-soft px-2 py-0.5 type-label-sm text-text-muted"
         >
           <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: it.color }} />
           <span className="min-w-0 break-all">{it.label}</span>
@@ -226,7 +226,7 @@ export function ChartTooltip({
             </span>
             <span className="tabular-nums text-text-base">
               {valueFormatter(Number(item.value) || 0)}
-              <span className="ml-0.5 text-xs font-medium text-text-dim">{item.unit ?? unit}</span>
+              <span className="ml-0.5 type-label-sm text-text-dim">{item.unit ?? unit}</span>
             </span>
           </div>
         ))}

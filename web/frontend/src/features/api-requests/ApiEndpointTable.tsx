@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button } from '../../components/common';
+import { Button, LoadErrorBanner } from '../../components/common';
 import { api, type ApiEndpointStat, type ApiEndpointStats } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import type { TraceTarget } from '../traces/components/TracePanel';
@@ -49,10 +49,7 @@ export function ApiEndpointTable({ source, window, refreshKey, selected, onSelec
   const rows = result.data?.endpoints ?? [];
   if (result.loading && !result.data) return <div aria-label="Endpoint 조회 중" className="h-32 animate-pulse rounded-xl bg-ui-hover" />;
   if (result.error) {
-    return <div role="alert" className="flex flex-wrap items-center gap-2">
-      <p className="type-caption text-status-warn">Endpoint 요약을 불러오지 못했습니다</p>
-      <Button variant="ghost" size="sm" onClick={() => setRetryKey(key => key + 1)}>다시 시도</Button>
-    </div>;
+    return <LoadErrorBanner inline title="Endpoint 요약을 불러오지 못했습니다" onRetry={() => setRetryKey(key => key + 1)} />;
   }
   if (result.data?.truncated) {
     return <p role="status" className="type-caption text-text-muted">조회 범위의 요청이 많아 Endpoint 요약을 표시하지 못했습니다. 기간을 줄여 주세요.</p>;

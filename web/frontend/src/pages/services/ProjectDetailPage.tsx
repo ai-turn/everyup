@@ -293,14 +293,14 @@ export function ProjectDetailPage() {
           className="w-full flex items-center gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3 text-left hover:bg-ui-hover-soft transition-colors"
         >
           <span className="h-2.5 w-2.5 rounded-full bg-status-error-fill animate-pulse shrink-0" />
-          <span className="text-sm font-medium text-text-base truncate">
+          <span className="type-label text-text-base truncate">
             진행 중 장애: {banner.serviceName}
           </span>
           <span className="text-xs text-text-muted shrink-0">
             {formatDuration(banner.durationSec)} {'경과'}
             {activeIncidents.length > 1 && ` · +${activeIncidents.length - 1}`}
           </span>
-          <span className="ml-auto text-xs font-medium text-action shrink-0 flex items-center">
+          <span className="ml-auto type-label-sm text-action shrink-0 flex items-center">
             서비스 열기
             <MaterialIcon size={20} name="chevron_right" />
           </span>
@@ -372,7 +372,7 @@ export function ProjectDetailPage() {
                     >
                       <span className={`h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 ${inc.active ? 'bg-status-error-fill' : 'bg-status-healthy-fill'}`} />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-xs font-medium text-text-base truncate">{inc.serviceName}</span>
+                        <span className="block type-label-sm text-text-base truncate">{inc.serviceName}</span>
                         <span className="block text-xs text-text-dim mt-0.5">
                           {formatIncidentTime(inc.startedAt)} {'시작'} · {formatDuration(inc.durationSec)}
                         </span>

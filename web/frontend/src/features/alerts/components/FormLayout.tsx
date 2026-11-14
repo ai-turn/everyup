@@ -19,8 +19,8 @@ export function FormStep({ n, title, subtitle, children }: {
                     {n}
                 </span>
                 <div>
-                    <p className="text-sm font-medium text-text-base">{title}</p>
-                    {subtitle && <p className="text-sm text-text-muted mt-0.5">{subtitle}</p>}
+                    <p className="type-label text-text-base">{title}</p>
+                    {subtitle && <p className="type-body text-text-muted mt-0.5">{subtitle}</p>}
                 </div>
             </div>
             <div className="p-5 space-y-5">{children}</div>
@@ -55,7 +55,7 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
             <div className="flex items-center gap-1 mb-1.5">
                 <LabelTag
                     {...(htmlFor ? { htmlFor } : {})}
-                    className="text-sm font-medium text-text-muted"
+                    className="type-label text-text-muted"
                 >
                     {label}
                 </LabelTag>
@@ -63,7 +63,7 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
             </div>
             {control}
             {error && <p id={errorId} className="mt-1 type-body text-status-error">{error}</p>}
-            {hint && !error && <p id={hintId} className="text-sm text-text-dim mt-1.5">{hint}</p>}
+            {hint && !error && <p id={hintId} className="type-body text-text-muted mt-1.5">{hint}</p>}
         </div>
     );
 }

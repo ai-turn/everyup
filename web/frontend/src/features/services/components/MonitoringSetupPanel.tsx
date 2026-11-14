@@ -119,8 +119,9 @@ function SetupStep({
     },
     optional: {
       icon: String(number),
-      circle: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
-      badge: 'bg-violet-500/10 text-violet-700 dark:text-violet-400',
+      // 선택 기능은 상태가 아니라 분류다 — 색 칩 대신 중립(DESIGN §5.3).
+      circle: 'bg-ui-hover text-text-muted',
+      badge: 'text-text-muted',
     },
   }[state];
 

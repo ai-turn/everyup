@@ -1,5 +1,5 @@
 import { toast } from 'react-hot-toast';
-import { Button, COPY_ACTION_SUBTLE, CopyButton, ICON_ACTION } from '../../../components/common';
+import { Button, COPY_ACTION_SUBTLE, CopyButton, ICON_ACTION, MaterialIcon } from '../../../components/common';
 import { useConnectionAddress } from '../../services/useConnectionAddress';
 import { ConnectionAddressField } from '../../services/components/ConnectionAddressField';
 import { TelemetryReceiptStatus } from '../../services/components/TelemetryReceiptStatus';
@@ -47,7 +47,7 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
     <div className="space-y-2">
       <h3 className="type-card-title text-text-base">{title}</h3>
       <p className="type-body text-text-muted">등록된 연결에 앱 설정을 적용한 뒤, 아래에서 실제 데이터 수신을 확인해 주세요.</p>
-      {setup ? <p className="type-body font-medium text-status-warn">API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
+      {setup ? <p className="flex items-start gap-1.5 type-label text-text-base"><MaterialIcon size={20} name="warning" className="shrink-0 text-status-warn" />API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
         : <p className="type-body text-text-muted">기존 API Key에 권한을 추가했습니다. 실행 중인 OpenTelemetry 설정은 같은 주소와 키를 계속 사용합니다.</p>}
     </div>
     {setup && <>

@@ -18,7 +18,7 @@ export function NotFoundPage() {
       </h1>
 
       {/* 설명 */}
-      <p className="text-xl text-text-muted mb-8">
+      <p className="type-body text-text-muted mb-8">
         페이지를 찾을 수 없습니다.
       </p>
 

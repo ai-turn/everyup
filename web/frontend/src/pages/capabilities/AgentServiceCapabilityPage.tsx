@@ -135,7 +135,7 @@ export function AgentServiceCapabilityPage() {
                   <button key={key} type="button" aria-pressed={status === key} onClick={() => setStatus(status === key ? null : key)}
                     className="flex min-h-11 flex-col items-start gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">
                     <StatusLight label={label} tone={key === 'down' && counts.down === 0 ? 'idle' : tone} />
-                    <span className="text-xl font-medium tabular-nums">{counts[key]}</span>
+                    <span className="type-kpi">{counts[key]}</span>
                   </button>
                 );
               })}
@@ -172,7 +172,7 @@ export function AgentServiceCapabilityPage() {
 
       {selectedMonitors.length > 0 && (
         <div role="region" aria-label="선택한 대상 작업" className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-4 py-2">
-          <p className="mr-auto text-sm text-text-base"><span className="font-medium tabular-nums">{selectedMonitors.length}</span>개 선택</p>
+          <p className="mr-auto type-body text-text-base"><span className="font-medium tabular-nums">{selectedMonitors.length}</span>개 선택</p>
           <Button size="sm" variant="secondary" disabled={bulkDisabled || toPause.length === 0} loading={bulkWorking}
             onClick={() => void runBulk(toPause, (monitor) => api.updateUptimeMonitor(monitor.id, withActive(monitor, false)), '일시정지')}>
             <MaterialIcon name="pause" />일시정지

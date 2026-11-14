@@ -13,7 +13,7 @@
  * 컬럼이 들쭉날쭉했다. 틴트는 그 들쭉날쭉함을 덮는 역할도 하고 있었다 — mono 고정폭
  * + `w-12`로 컬럼 모양을 잡으면 채움이 필요 없어진다.
  */
-export const LEVEL_BASE = 'inline-block shrink-0 w-12 font-mono text-xs font-medium';
+export const LEVEL_BASE = 'inline-block shrink-0 w-12 font-mono type-label-sm';
 
 export const LEVEL_TEXT: Record<string, string> = {
   error: 'text-status-error',

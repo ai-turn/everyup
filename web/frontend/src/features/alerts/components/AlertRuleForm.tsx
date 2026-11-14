@@ -173,7 +173,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                     <FormStep n={1} title="시스템 규칙" subtitle="시스템이 관리하는 규칙입니다. 메시지와 알림 채널만 수정할 수 있습니다.">
                         <div className="p-4 bg-ui-hover-soft/50 rounded-xl">
                             <h3 className="type-card-title text-text-base">{rule.name}</h3>
-                            <p className="mt-1 text-sm text-text-muted">발동: {systemTrigger}</p>
+                            <p className="mt-1 type-body text-text-muted">발동: {systemTrigger}</p>
                         </div>
                     </FormStep>
 
@@ -191,7 +191,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                     <FormStep n={3} title="알림 채널" subtitle="발송할 채널 선택">
                         <div role="group" aria-label="알림 채널" className="space-y-2">
                             {channels.length === 0 ? (
-                                <p className="text-sm text-text-muted">등록된 알림 채널이 없습니다</p>
+                                <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                             ) : channels.map(ch => (
                                 <button key={ch.id} type="button" onClick={() => handleToggleChannel(ch.id)} aria-pressed={selectedChannels.includes(ch.id)}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-colors ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-action' : 'border-ui-border-soft text-text-muted'}`}>
@@ -200,7 +200,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                 </button>
                             ))}
                             {selectedChannels.length === 0 && channels.length > 0 && (
-                                <p className="text-sm text-text-muted">비우면 전체 채널</p>
+                                <p className="type-body text-text-muted">비우면 전체 채널</p>
                             )}
                         </div>
                     </FormStep>
@@ -213,30 +213,30 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
                                 <MaterialIcon size={20} name="lock" className="text-text-dim" />
                                 <div>
-                                    <p className="text-sm font-medium text-text-base">
+                                    <p className="type-label text-text-base">
                                         시스템 규칙
                                     </p>
-                                    <p className="text-sm text-text-muted mt-0.5">
+                                    <p className="type-body text-text-muted mt-0.5">
                                         발동: {systemTrigger}
                                     </p>
                                 </div>
                             </div>
                             <div className="p-5 space-y-4">
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
-                                    <p className="text-xs font-medium text-text-muted">규칙 이름</p>
-                                    <p className="mt-1 truncate text-sm text-text-base">{rule.name}</p>
+                                    <p className="type-label-sm text-text-muted">규칙 이름</p>
+                                    <p className="mt-1 truncate type-body text-text-base">{rule.name}</p>
                                 </div>
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
-                                    <p className="text-xs font-medium text-text-muted">알림 채널</p>
-                                    <p className="mt-1 text-sm text-text-base">
+                                    <p className="type-label-sm text-text-muted">알림 채널</p>
+                                    <p className="mt-1 type-body text-text-base">
                                         {selectedChannels.length === 0
                                             ? `전체 ${effectiveChannelCount}개`
                                             : `${effectiveChannelCount}개 선택`}
                                     </p>
                                 </div>
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
-                                    <p className="text-xs font-medium text-text-muted">알림 메시지</p>
-                                    <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+                                    <p className="type-label-sm text-text-muted">알림 메시지</p>
+                                    <p className="mt-2 type-body leading-relaxed text-text-secondary">
                                         {message || 'Server has been started'}
                                     </p>
                                 </div>
@@ -679,7 +679,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                             className={thresholdUnit ? 'rounded-r-none' : ''}
                                         />
                                         {thresholdUnit && (
-                                            <span className="px-3 py-2.5 bg-ui-hover border border-l-0 border-ui-border rounded-r-lg text-sm font-medium text-text-muted">
+                                            <span className="px-3 py-2.5 bg-ui-hover border border-l-0 border-ui-border rounded-r-lg type-label text-text-muted">
                                                 {thresholdUnit}
                                             </span>
                                         )}
@@ -702,7 +702,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                 </Field>
                             ) : (
                                 <Field label="평가 방식">
-                                    <p className="text-sm text-text-muted py-2.5">수신 즉시</p>
+                                    <p className="type-body text-text-muted py-2.5">수신 즉시</p>
                                 </Field>
                             )}
                         </div>
@@ -710,7 +710,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                         {/* 메트릭 규칙은 수신 시점에 바로 비교하고 시리즈별 중복 억제로만 거른다(otlp_ingest evaluateOtelMetricAlerts).
                             지속 시간·쿨다운은 서버가 쓰지 않으므로 받지 않는다. */}
                         {isMetric ? (
-                            <p className="text-sm text-text-muted">수신할 때마다 평가합니다. 같은 시리즈는 일정 시간(기본 5분)에 한 번만 보냅니다.</p>
+                            <p className="type-body text-text-muted">수신할 때마다 평가합니다. 같은 시리즈는 일정 시간(기본 5분)에 한 번만 보냅니다.</p>
                         ) : (
                             <div>
                                 <Button type="button" variant="ghost" size="sm" onClick={() => applyRecommended(watchedMetric)}>
@@ -767,7 +767,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                         >
                             <div role="group" aria-label="알림 채널" className="space-y-2">
                                 {channels.length === 0 ? (
-                                    <p className="text-sm text-text-muted">등록된 알림 채널이 없습니다</p>
+                                    <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                                 ) : channels.map(ch => (
                                     <button
                                         key={ch.id}
@@ -823,26 +823,26 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                         <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
                             <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
                                 <div>
-                                    <p className="text-sm font-medium text-text-base">미리보기</p>
-                                    <p className="text-sm text-text-muted mt-0.5">저장하면 이렇게 동작합니다</p>
+                                    <p className="type-label text-text-base">미리보기</p>
+                                    <p className="type-body text-text-muted mt-0.5">저장하면 이렇게 동작합니다</p>
                                 </div>
                             </div>
                             <div className="p-5 space-y-5">
 
                                 <div>
-                                    <p className="text-xs font-medium text-text-muted mb-2">조건</p>
-                                    <p className="text-sm leading-relaxed text-text-base">{previewSentence}</p>
+                                    <p className="type-label-sm text-text-muted mb-2">조건</p>
+                                    <p className="type-body leading-relaxed text-text-base">{previewSentence}</p>
                                 </div>
 
                                 {/* THEN block */}
                                 <div>
-                                    <p className="text-xs font-medium text-text-muted mb-2">메시지</p>
+                                    <p className="type-label-sm text-text-muted mb-2">메시지</p>
                                     <div className="rounded-xl bg-ui-hover-soft/50 px-3 py-3">
                                         <div className="flex items-center gap-2 mb-1.5">
                                             <SeverityBadge severity={watchedSeverity} />
                                             <span className="text-sm text-text-muted truncate">{watchedName || '<규칙 이름>'}</span>
                                         </div>
-                                        <p className="text-sm text-text-secondary leading-relaxed">
+                                        <p className="type-body text-text-secondary leading-relaxed">
                                             {customMessage || buildDefaultMessage(watchedMetric, watchedOperator, watchedThreshold, watchedDuration)}
                                         </p>
                                     </div>
@@ -850,23 +850,23 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
 
                                 {/* Channels */}
                                 <div>
-                                    <p className="text-xs font-medium text-text-muted mb-2">
+                                    <p className="type-label-sm text-text-muted mb-2">
                                         {watchedChannelIds.length === 0
                                             ? `받는 채널 · 켜진 채널 전체 ${previewChannels.length}개`
                                             : `받는 채널 · ${previewChannels.length}개`}
                                     </p>
                                     <div className="space-y-1.5">
                                         {channels.length === 0 ? (
-                                            <p className="text-sm text-text-muted">등록된 알림 채널이 없습니다</p>
+                                            <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                                         ) : previewChannels.slice(0, 5).map(ch => (
                                             <div key={ch.id} className="flex items-center gap-2 px-3 py-1.5 bg-ui-hover-soft/50 rounded-lg">
                                                 <ChannelIcon type={ch.type} size={14} className={getChannelStyle(ch.type).text} />
-                                                <span className="text-sm font-medium text-text-secondary flex-1 truncate">{ch.name}</span>
+                                                <span className="type-label text-text-secondary flex-1 truncate">{ch.name}</span>
                                                 <span className="text-xs text-text-dim">{getChannelName(ch.type)}</span>
                                             </div>
                                         ))}
                                         {previewChannels.length > 5 && (
-                                            <p className="text-sm text-text-muted pl-1">{`+${previewChannels.length - 5}개 더`}</p>
+                                            <p className="type-body text-text-muted pl-1">{`+${previewChannels.length - 5}개 더`}</p>
                                         )}
                                     </div>
                                 </div>

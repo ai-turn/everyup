@@ -236,7 +236,7 @@ export function ServiceGridPage() {
       {/* Content */}
       {error && (
         <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
-          <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="text-sm font-medium text-text-base">Docker 환경을 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{error}</p></div></div>
+          <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">Docker 환경을 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{error}</p></div></div>
           <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
         </section>
       )}

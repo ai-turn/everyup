@@ -213,7 +213,7 @@ export function DirectApiDetailPage() {
             update({ tab: next === 0 ? 'requests' : 'traces' });
             event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
           }}
-          className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${view === tab ? 'border-primary text-text-base' : 'border-transparent text-text-muted hover:text-text-base'}`}>
+          className={`border-b-2 px-4 py-2.5 type-label transition-colors ${view === tab ? 'border-primary text-text-base' : 'border-transparent text-text-muted hover:text-text-base'}`}>
           {tab === 'requests' ? 'API 요청' : '트레이스'}
         </button>)}
       </div>

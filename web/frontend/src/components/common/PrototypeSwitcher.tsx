@@ -35,7 +35,7 @@ export function PrototypeSwitcher() {
   return (
     <aside aria-label="설계안 비교" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] left-1/2 z-50 flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-xl border-2 border-action bg-bg-surface p-2 shadow-lg lg:bottom-5">
       <Button size="sm" variant="secondary" aria-label="이전 설계안" onClick={() => move(-1)}><MaterialIcon name="arrow_back" /></Button>
-      <div className="min-w-0 px-1 text-center"><p className="type-caption font-medium text-action">설계 실험 · {variants[index]}</p><p className="text-sm text-text-base">{names[pathname === '/' ? 'overview' : 'uptime'][index]}</p></div>
+      <div className="min-w-0 px-1 text-center"><p className="type-label-sm text-action">설계 실험 · {variants[index]}</p><p className="type-body text-text-base">{names[pathname === '/' ? 'overview' : 'uptime'][index]}</p></div>
       <Button size="sm" variant="secondary" aria-label="다음 설계안" onClick={() => move(1)}><MaterialIcon name="arrow_forward" /></Button>
       <div className="flex gap-1 border-l border-ui-border pl-2">
         <ButtonLink size="sm" variant="ghost" to={`/?variant=${variants[index]}`}>개요</ButtonLink>

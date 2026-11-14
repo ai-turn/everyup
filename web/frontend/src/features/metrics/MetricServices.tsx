@@ -40,7 +40,7 @@ function Status({ row }: { row: Row }) {
 }
 
 function Count({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div role="group" aria-label={label}><p className="text-xs text-text-dim">{label}</p><p className="text-lg">{children}</p></div>;
+  return <div role="group" aria-label={label}><p className="text-xs text-text-dim">{label}</p><p className="type-stat">{children}</p></div>;
 }
 
 export function MetricServices({ rows, now, view, returnTo, query }: {

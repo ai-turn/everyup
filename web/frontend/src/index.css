@@ -186,10 +186,33 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* 12px 500: 표 헤더·배지·작은 버튼·키 표시처럼 조밀한 자리의 라벨. type-label의 12px판이다. */
+@utility type-label-sm {
+  font-size: var(--text-xs);
+  line-height: 1rem;
+  font-weight: var(--font-weight-medium);
+}
+
 @utility type-caption {
   font-size: var(--text-xs);
   line-height: 1rem;
   font-weight: var(--font-weight-normal);
+}
+
+/* 숫자 표시(DESIGN.md §2.2). KPI 카드·요약 줄의 대표 수치는 kpi, 목록 카드 안의 작은 통계는 stat.
+   둘 다 500 + 고정폭 숫자 — 화면마다 16~30px, 400~700으로 갈라져 있던 것을 둘로 모았다. */
+@utility type-kpi {
+  font-size: var(--text-2xl);
+  line-height: 2rem;
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility type-stat {
+  font-size: var(--text-lg);
+  line-height: 1.75rem;
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
 }
 
 /* 읽기 전용 배지의 공통 형태. 상태·로그 레벨·severity 색은 각 도메인이 정한다. */

@@ -81,7 +81,7 @@ export function ConfirmDialog({
       <div className="p-6">
         <div className="text-text-muted mb-2">{message}</div>
         {description && (
-          <p className="text-sm text-text-dim">{description}</p>
+          <p className="type-body text-text-muted">{description}</p>
         )}
       </div>
 

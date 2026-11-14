@@ -91,7 +91,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
           type="button"
           aria-pressed={errorsOnly}
           onClick={() => update({ traceErrorsOnly: errorsOnly ? null : 'true' })}
-          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 type-label-sm transition-colors ${
             errorsOnly ? LEVEL_CHIP.error : 'bg-ui-hover text-text-muted hover:bg-ui-active'
           }`}
         >
@@ -116,7 +116,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
         </section>
       ) : traces.length === 0 ? (
         <div className="rounded-xl border border-ui-border bg-bg-surface p-8 text-center">
-          <p className="text-sm text-text-muted">
+          <p className="type-body text-text-muted">
             {errorsOnly ? '이 기간에 실패한 트레이스가 없습니다' : '이 기간에 수신한 트레이스가 없습니다. 기간을 바꾸거나 수집 설정을 확인해 주세요.'}
           </p>
         </div>
@@ -125,7 +125,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
           {/* 좁은 화면에서는 이름 열만 두고 소요·Span·시작을 이름 아래로 내린다(요청 표와 같은 방식). 537px 표가 잘렸다. */}
           <table aria-label="트레이스 목록" className="w-full table-fixed text-sm">
             <thead>
-              <tr className="border-b border-ui-border bg-ui-hover-soft text-left text-xs font-medium text-text-muted">
+              <tr className="border-b border-ui-border bg-ui-hover-soft text-left type-label-sm text-text-muted">
                 <th scope="col" className="px-4 py-3 font-medium">트레이스</th>
                 <th scope="col" className="hidden w-28 px-4 py-3 font-medium sm:table-cell">종류</th>
                 <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium sm:table-cell">소요</th>
