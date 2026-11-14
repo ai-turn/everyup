@@ -35,7 +35,7 @@ const RULES = [
   { name: '§2.2 역할 유틸리티 위에 굵기 덧씌움', re: /\btype-[a-z-]+\b[^"'`]*\bfont-(?:normal|medium|semibold|bold)\b/g },
   // 부채 — 현재 건수가 상한 (§10.A·§10.F)
   { name: '§1.1 *-dark 토큰 직접 사용', re: /\b(?:text|bg|border|ring|fill|stroke|outline|divide|placeholder)-[a-z-]+-dark\b/g, max: 11 },
-  { name: '§10.A slate-* 하드코딩', re: /-slate-\d{2,3}\b/g, max: 35 },
+  { name: '§10.A slate-* 하드코딩', re: /-slate-\d{2,3}\b/g, max: 31 },
   { name: '§10.A bg-white', re: /\bbg-white\b/g, max: 5 },
   // 18px 이상 원시 크기: 로고 워드마크 둘·로그인 워드마크·모바일 설정 h1·404 숫자만. 숫자는 type-kpi/stat(§2.2)
   { name: '§2.2 text-lg 이상 원시 크기', re: /\btext-(?:lg|xl|[2-6]xl)\b/g, max: 5 },
