@@ -1,5 +1,5 @@
 import { Tooltip } from '../../components/common/Tooltip';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
 import {
@@ -194,16 +194,13 @@ export function OverviewPage() {
   const totalTargets = agents.length + monitors.length + observedServices.length + infrastructure.length;
 
   // 첫 로드에만 스켈레톤을 보인다 — 대상이 0개인 상태에서 30초마다 다시 깜빡이지 않게.
-  // 모양은 실제 배치(확인 필요 + 범위 카드, 그 아래 이력)를 따른다.
+  // 모양은 실제 배치(범위 스트립, 그 아래 확인 필요·이력 패널)를 따른다.
   if (!updatedAt) {
     return (
       <div className="space-y-5" aria-busy="true">
         <PageHeader title="모니터링 개요" subtitle="수집 상태와 현재 이상을 먼저 확인하세요." />
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
-          <div className="h-56 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
-          <div className="h-56 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
-        </div>
-        <div className="h-48 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
+        <div className="h-8 w-96 max-w-full animate-pulse rounded-md bg-ui-hover-soft" />
+        <div className="h-80 animate-pulse rounded-lg border border-ui-border bg-bg-surface" />
       </div>
     );
   }
@@ -266,156 +263,151 @@ export function OverviewPage() {
         </section>
       ) : (
         <>
-          {/* items-start: 항목이 하나뿐인 "현재 확인 필요"가 옆 카드 높이로 늘어나 아래가 비어 보였다. */}
-          <section className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
-            <article id="attention" className="scroll-mt-5 rounded-xl border border-ui-border bg-bg-surface">
-              <div className="flex items-center justify-between gap-3 border-b border-ui-border px-4 py-3.5">
-                <div>
-                  <h2 className="type-card-title text-text-base">현재 확인 필요</h2>
-                  <p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p>
-                </div>
-                <span className="text-sm tabular-nums text-text-muted" aria-label={`확인 필요 ${attention.length}건`}>{attention.length}</span>
-              </div>
-              {attention.length === 0 && statusUnknown ? (
-                <div className="flex min-h-44 flex-col items-center justify-center p-5 text-center">
-                  <MaterialIcon size={32} name="sync_problem" className="text-status-warn" />
-                  <p className="mt-3 type-label text-text-base">일부 상태를 확인하지 못했습니다</p>
-                  <p className="mt-2 type-body text-text-muted">불러온 영역에서는 이상이 없지만, 전체가 정상인지는 아직 알 수 없습니다.</p>
-                </div>
-              ) : attention.length === 0 ? (
-                <div className="flex min-h-44 flex-col items-center justify-center p-5 text-center">
-                  <MaterialIcon size={32} name="check_circle" className="text-status-healthy" />
-                  <p className="mt-3 type-label text-text-base">현재 확인이 필요한 이상이 없습니다</p>
-                  <p className="mt-2 type-body text-text-muted">수집 연결과 서비스 상태 모두 정상입니다.</p>
+          {/* 모니터링 범위 — 카드 대신 한 줄. 숫자보다 "무엇을 보고 있나"를 한눈에 주는 자리라 크게 키우지 않는다. */}
+          <nav aria-label="모니터링 범위" className="-mx-2 flex flex-wrap items-center gap-x-1 gap-y-1">
+            {([
+              ['Docker 환경', agents.length, '/environments', 'agents'],
+              ['업타임 모니터', monitors.length, '/uptime', 'monitors'],
+              ['직접 연결 서비스', observedServices.length, '/logs', 'observed'],
+              ['인프라 리소스', infrastructure.length, '/infrastructure', 'infrastructure'],
+            ] as const).map(([label, count, to, source]) => (
+              failedSources.includes(source) ? (
+                <span key={label} className="inline-flex h-8 items-center gap-1.5 px-2">
+                  <span className="type-body text-text-muted">{label}</span>
+                  <Tooltip content="불러오지 못했습니다" focusable><span className="type-label text-text-muted" aria-label="확인 불가">-</span></Tooltip>
+                </span>
+              ) : (
+                <Link key={label} to={to} className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 transition-colors hover:bg-ui-hover">
+                  <span className="type-body text-text-muted">{label}</span>
+                  <span className="type-label tabular-nums text-text-base">{count}</span>
+                </Link>
+              )
+            ))}
+            <Link to="/projects" className="ml-auto inline-flex h-8 items-center gap-1 rounded-md px-2 type-body text-action transition-colors hover:bg-ui-hover">
+              그룹으로 정리 <MaterialIcon size={16} name="arrow_forward" />
+            </Link>
+          </nav>
+
+          {/* Linear식 목록: 카드·테두리·구분선·배경 띠 없이 그룹 제목과 간격만으로 나눈다. 행은 Triage 인박스처럼 두 줄. */}
+          <div className="space-y-8">
+            <section id="attention" aria-label="현재 확인 필요" className="scroll-mt-5">
+              <GroupHeader title="현재 확인 필요" count={attention.length} countLabel={`확인 필요 ${attention.length}건`} />
+              {attention.length === 0 ? (
+                <div className="flex items-center gap-3 px-3 py-3">
+                  <MaterialIcon size={16} name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
+                  <p className="type-body text-text-muted">
+                    {statusUnknown ? '불러온 영역에서는 이상이 없지만, 전체가 정상인지는 아직 알 수 없습니다.' : '현재 확인이 필요한 이상이 없습니다'}
+                  </p>
                 </div>
               ) : (
-                <>
-                <ul className="divide-y divide-ui-border-soft">
+                <ul className="mt-1">
                   {(showAllAttention ? attention : attention.slice(0, 6)).map((item) => {
                     const episode = item.tone === 'error' ? activeEpisodes.get(item.to.split('?')[0]) : undefined;
                     return (
-                    <li key={item.id}>
-                      <Link to={item.to} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
-                        <MaterialIcon size={20} name={item.icon} className={`shrink-0 ${item.tone === 'error' ? 'text-status-error' : 'text-status-warn'}`} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate type-label text-text-base">{item.title}</span>
-                          <span className="mt-0.5 line-clamp-2 type-body text-text-muted">{episode?.message || item.detail}</span>
-                        </span>
-                        {episode ? (
-                          <span className="shrink-0 text-right">
-                            <span className="block type-caption text-text-muted">{formatIncidentTime(episode.startedAt)} 시작</span>
-                            <span className="mt-0.5 block type-caption text-status-error">{formatDuration(episode.durationSec)} 경과</span>
-                          </span>
-                        ) : item.timeLabel && (
-                          <span className="shrink-0 type-caption text-text-muted">{item.timeLabel}</span>
-                        )}
-                        <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
-                      </Link>
-                    </li>
+                      <li key={item.id}>
+                        <ListRow
+                          to={item.to}
+                          marker={<MaterialIcon size={16} name={item.icon} className={item.tone === 'error' ? 'text-status-error' : 'text-status-warn'} />}
+                          title={item.title}
+                          detail={episode?.message || item.detail}
+                          start={episode && formatIncidentTime(episode.startedAt)}
+                          duration={episode ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span> : item.timeLabel}
+                        />
+                      </li>
                     );
                   })}
+                  {attention.length > 6 && (
+                    <li className="px-1 py-1">
+                      <Button variant="ghost" size="sm" onClick={() => setShowAllAttention((value) => !value)}>{showAllAttention ? '우선 항목만 보기' : `전체 ${attention.length}건 보기`}</Button>
+                    </li>
+                  )}
                 </ul>
-                {attention.length > 6 && <div className="border-t border-ui-border px-4 py-3"><Button variant="secondary" size="sm" onClick={() => setShowAllAttention((value) => !value)}>{showAllAttention ? '우선 항목만 보기' : `전체 ${attention.length}건 보기`}</Button></div>}
-                </>
               )}
-            </article>
+            </section>
 
-            <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
-              <h2 className="type-card-title text-text-base">모니터링 범위</h2>
-              <p className="mt-0.5 type-body text-text-muted">연결 방식별로 수집 범위를 확인하세요.</p>
-              <ul className="-mx-2 mt-3">
-                {([
-                  ['Docker 환경', agents.length, '/environments', 'agents'],
-                  ['업타임 모니터', monitors.length, '/uptime', 'monitors'],
-                  ['직접 연결 서비스', observedServices.length, '/logs', 'observed'],
-                  ['인프라 리소스', infrastructure.length, '/infrastructure', 'infrastructure'],
-                ] as const).map(([label, count, to, source]) => (
-                  <li key={label}>
-                    {failedSources.includes(source) ? (
-                      <div className="flex min-h-10 items-center justify-between gap-3 px-2">
-                        <span className="text-sm text-text-secondary">{label}</span>
-                        <Tooltip content="불러오지 못했습니다" focusable><span className="text-sm text-text-muted" aria-label="확인 불가">-</span></Tooltip>
-                      </div>
-                    ) : (
-                      // 숫자만 링크였던 8px 타깃 대신 행 전체를 링크로 — 이름도 "Docker 환경 2"로 읽힌다.
-                      <Link to={to} className="flex min-h-10 items-center justify-between gap-3 rounded-md px-2 transition-colors hover:bg-ui-hover-soft">
-                        <span className="text-sm text-text-secondary">{label}</span>
-                        <span className="text-sm tabular-nums text-action">{count}</span>
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              <ButtonLink variant="ghost" size="sm" to="/projects" className="mt-3">
-                그룹으로 대상 정리하기 <MaterialIcon size={20} name="arrow_forward" />
-              </ButtonLink>
-            </article>
-          </section>
-
-          {/* 최근 장애 이력 — 위의 '현재 확인 필요'가 지금을 말한다면 이쪽은 시간축이다.
-              "지금 문제 없음"과 "닷새째 조용함"은 다른 정보고, 신뢰를 주는 건 후자다. */}
-          <section aria-label="최근 장애 이력" className="rounded-xl border border-ui-border bg-bg-surface">
-            <div className="flex items-center justify-between gap-3 border-b border-ui-border px-4 py-3.5">
-              <div>
-                <h2 className="type-card-title text-text-base">최근 장애 이력</h2>
-                {/* 직접 연결 서비스는 이력 테이블이 없어 도출할 에피소드가 없다.
-                    범위를 밝히지 않으면 "전부 조용하다"로 오독된다. */}
-                <p className="mt-0.5 type-body text-text-muted">업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.</p>
-              </div>
-              <span className="text-sm tabular-nums text-text-muted" aria-label={timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}>
-                {timelineFailed ? '-' : timeline.length}
-              </span>
-            </div>
-            {timelineFailed && (
-              <div role="status" className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-3">
-                  <MaterialIcon name="sync_problem" size={20} className="mt-0.5 shrink-0 text-status-warn" />
-                  <div>
-                    <p className="type-label text-text-base">장애 이력을 불러오지 못했습니다</p>
-                    <p className="mt-0.5 type-body text-text-muted">
+            {/* 최근 장애 이력 — 위가 지금을 말한다면 이쪽은 시간축이다.
+                "지금 문제 없음"과 "닷새째 조용함"은 다른 정보고, 신뢰를 주는 건 후자다.
+                직접 연결 서비스는 이력 테이블이 없어 범위를 헤더에 밝힌다(안 밝히면 "전부 조용하다"로 오독된다). */}
+            <section aria-label="최근 장애 이력">
+              <GroupHeader
+                title="최근 장애 이력"
+                count={timelineFailed ? undefined : timeline.length}
+                countLabel={timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}
+                note="업타임 모니터·Docker 서비스, 최근 7일"
+              />
+              {timelineFailed && (
+                <div role="status" className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <MaterialIcon name="sync_problem" size={16} className="shrink-0 text-status-warn" />
+                    <p className="type-body text-text-muted">
+                      <span className="type-label text-text-base">장애 이력을 불러오지 못했습니다</span>{' '}
                       {timeline.length > 0 ? '이전에 불러온 기록입니다. 최신 기록은 확인할 수 없습니다.' : '최근 7일간의 장애 기록을 확인할 수 없습니다.'}
                     </p>
                   </div>
+                  <Button variant="secondary" size="sm" className="min-w-28" loading={retrying} onClick={() => void retry()}>다시 시도</Button>
                 </div>
-                <Button variant="secondary" size="sm" className="min-w-28" loading={retrying} onClick={() => void retry()}>다시 시도</Button>
-              </div>
-            )}
-            {timeline.length === 0 ? (
-              !timelineFailed && (
-                <div className="flex min-h-32 flex-col items-center justify-center p-5 text-center">
-                  <p className="type-label text-text-base">최근 7일간 기록된 장애가 없습니다</p>
-                </div>
-              )
-            ) : (
-              <ul className="divide-y divide-ui-border-soft">
-                {timeline.map((episode) => (
-                  <li key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}>
-                    <Link to={episode.targetPath} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
-                      <span
-                        className={`h-2 w-2 shrink-0 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`}
-                        aria-hidden="true"
+              )}
+              {timeline.length === 0 ? (
+                !timelineFailed && <p className="px-3 py-3 type-body text-text-muted">최근 7일간 기록된 장애가 없습니다</p>
+              ) : (
+                <ul className="mt-1">
+                  {timeline.map((episode) => (
+                    <li key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}>
+                      <ListRow
+                        to={episode.targetPath}
+                        marker={<span className={`h-2 w-2 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`} aria-hidden="true" />}
+                        title={episode.targetName}
+                        detail={episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상')}
+                        start={formatIncidentTime(episode.startedAt)}
+                        duration={episode.active
+                          ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>
+                          : `${formatDuration(episode.durationSec)} 지속`}
                       />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate type-label text-text-base">{episode.targetName}</span>
-                        <span className="mt-0.5 block type-body text-text-muted">
-                          {episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상')}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-right">
-                        <span className="block type-caption text-text-muted">{formatIncidentTime(episode.startedAt)} 시작</span>
-                        <span className={`mt-0.5 block type-caption ${episode.active ? 'text-status-error' : 'text-text-dim'}`}>
-                          {formatDuration(episode.durationSec)}{episode.active ? ' 경과' : ' 지속'}
-                        </span>
-                      </span>
-                      <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
         </>
       )}
     </div>
+  );
+}
+
+function GroupHeader({ title, count, countLabel, note }: { title: string; count?: number; countLabel: string; note?: string }) {
+  return (
+    <div className="flex h-8 items-center gap-2 px-3">
+      <h2 className="type-label-sm text-text-base">{title}</h2>
+      <span className="type-caption tabular-nums text-text-muted" aria-label={countLabel}>{count ?? '-'}</span>
+      {note && <span className="ml-auto min-w-0 truncate type-caption text-text-muted">{note}</span>}
+    </div>
+  );
+}
+
+// Triage식 두 줄 행: 윗줄은 대상과 시작 시각, 아랫줄은 원인과 경과. 선 없이 hover 배경으로만 행을 드러낸다.
+// 시작 시각이 없는 항목(수집 지연 등)은 timeLabel 하나를 윗줄 오른쪽에 둔다.
+function ListRow({ to, marker, title, detail, start, duration }: {
+  to: string;
+  marker: ReactNode;
+  title: string;
+  detail: string;
+  start?: string;
+  duration?: ReactNode;
+}) {
+  return (
+    <Link to={to} className="flex gap-3 rounded-md px-3 py-2 transition-colors hover:bg-ui-hover">
+      <span className="flex h-5 w-4 shrink-0 items-center justify-center">{marker}</span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline gap-3">
+          <span className="min-w-0 truncate type-label text-text-base">{title}</span>
+          <span className="ml-auto shrink-0 whitespace-nowrap type-caption tabular-nums text-text-muted">{start ?? duration}</span>
+        </span>
+        <span className="flex items-baseline gap-3">
+          <span className="min-w-0 truncate type-body text-text-muted">{detail}</span>
+          {start && <span className="ml-auto shrink-0 whitespace-nowrap type-caption tabular-nums text-text-muted">{duration}</span>}
+        </span>
+      </span>
+    </Link>
   );
 }
