@@ -74,7 +74,7 @@ export function UptimeTargets(props: Props) {
             <div><dt>체크 방식</dt><dd className="mt-1"><CheckMethod monitor={monitor} /></dd></div>
             <div><dt>수집 간격</dt><dd className="mt-1 tabular-nums text-text-base">{monitor.interval}초</dd></div>
           </dl>
-          <div className="space-y-2 border-t border-ui-border-soft pt-3">
+          <div className="space-y-2">
             <p className="type-caption text-text-muted">최근 체크{monitor.recentChecks?.length ? ` ${Math.min(monitor.recentChecks.length, 10)}회` : ''}</p>
             <CheckHistory monitor={monitor} error={error} />
           </div>
@@ -89,10 +89,10 @@ export function UptimeTargets(props: Props) {
     </div></div>;
   }
 
-  return <div className="@container overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
+  return <div className="@container">
     <table aria-label="업타임 그리드" className="w-full table-fixed text-left text-sm">
       <caption className="sr-only">장애 우선 목록입니다. 최근 체크 결과와 장애 지속 시간을 목록에서 확인하고, 이름을 눌러 상세로 이동합니다.</caption>
-      <thead className="border-b border-ui-border bg-ui-table-header text-xs text-text-muted"><tr>
+      <thead className="border-b border-ui-border-soft text-xs text-text-muted"><tr>
         <th scope="col" className="w-24 px-3 py-3 font-medium @3xl:w-28">상태</th>
         <th scope="col" className="px-3 py-3 font-medium">대상 · 체크 주소</th>
         <th scope="col" className="hidden w-16 px-3 py-3 font-medium @3xl:table-cell">방식</th>
@@ -102,7 +102,7 @@ export function UptimeTargets(props: Props) {
         <th scope="col" className="hidden w-52 px-3 py-3 font-medium @3xl:table-cell @5xl:w-56">최근 체크</th>
         <th scope="col" className="w-14 px-1 py-3 font-medium @5xl:w-28"><span className="sr-only">모니터 상태 변경</span></th>
       </tr></thead>
-      <tbody className="divide-y divide-ui-border-soft">{targets.map((monitor) => (
+      <tbody>{targets.map((monitor) => (
         <tr key={monitor.id} {...tableRowLinkHandlers} className="table-row-link align-middle transition-colors hover:bg-ui-hover-soft">
           <td className="px-3 py-3"><MonitorStatus monitor={monitor} error={error} /></td>
           <td className="min-w-0 px-3 py-3">

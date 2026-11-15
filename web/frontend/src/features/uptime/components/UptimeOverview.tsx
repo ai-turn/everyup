@@ -35,7 +35,7 @@ export function UptimeStats({ stats }: { stats: UptimeOverviewStat[] }) {
   return (
     <dl className="grid grid-cols-2 gap-y-4 sm:flex">
       {stats.map((stat, index) => (
-        <div key={stat.label} className={`pr-7 ${index > 0 ? 'sm:border-l sm:border-ui-border sm:pl-7' : ''}`}>
+        <div key={stat.label} className={`pr-7 ${index > 0 ? 'sm:pl-7' : ''}`}>
           <dt className="type-caption text-text-muted">{stat.label}</dt>
           <dd className={`mt-1 type-kpi ${stat.tone === 'error' ? 'text-status-error' : stat.tone === 'warn' ? 'text-status-warn' : 'text-text-base'}`}>{stat.value}</dd>
         </div>
@@ -84,7 +84,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
 
   // Datadog-style header: the numbers read first, large, with no title above them.
   return (
-    <section className={`rounded-xl border border-ui-border bg-bg-surface p-6 ${className}`}>
+    <section className={className}>
       <h2 className="sr-only">업타임 현황</h2>
       {stats.length > 0 && <UptimeStats stats={stats} />}
 
@@ -111,7 +111,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
               onClick={onSelectDate ? () => select(index) : undefined}
               className={`h-7 flex-1 rounded-sm transition-opacity hover:opacity-75 ${onSelectDate ? 'cursor-pointer' : 'cursor-default'} ${
                 index === hoveredIndex ? 'opacity-75' : ''
-              } ${date === selectedDate ? 'ring-2 ring-text-base ring-offset-1 ring-offset-bg-surface' : ''} ${
+              } ${date === selectedDate ? 'ring-2 ring-text-base ring-offset-1 ring-offset-bg-main' : ''} ${
                 day === null
                   ? 'bg-ui-hover'
                   : day.uptime >= 99.5

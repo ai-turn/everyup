@@ -18,7 +18,7 @@ export function UptimeTargetCard({
 }: UptimeTargetCardProps) {
   return (
     // ponytail: stretched link — 카드 전체가 링크지만 상태 토글은 <a> 밖에 둔다
-    <article className="card-interactive relative flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4">
+    <article className="card-interactive relative flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
       <ResourceCardHeader
         title={
           <h3 className="truncate type-card-title text-text-base">
