@@ -91,7 +91,7 @@ export function InfrastructurePage() {
 
   return (
     <div>
-      <PageHeader title="인프라" subtitle="인프라 Collector로 직접 연결한 서버의 CPU, 메모리, 디스크 상태입니다.">
+      <PageHeader menu title="인프라" subtitle="인프라 Collector로 직접 연결한 서버의 CPU, 메모리, 디스크 상태입니다.">
         <MonitoringConnection capability="infrastructure" onConnected={reload} />
       </PageHeader>
       <DockerEnvironmentHint className="mb-5" />

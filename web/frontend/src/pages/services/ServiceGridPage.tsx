@@ -238,7 +238,7 @@ export function ServiceGridPage() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader menu
         title="Docker 환경"
         subtitle="연결된 Docker 환경과 모니터링 서비스 현황"
       >
@@ -255,6 +255,8 @@ export function ServiceGridPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="서비스 또는 Docker 환경 이름으로 검색"
           aria-label="서비스 또는 Docker 환경 검색"
+          onClear={() => setSearch('')}
+          shortcut
         />
       }><ListViewToggle view={view} onChange={setView} /></ListToolbar>
 

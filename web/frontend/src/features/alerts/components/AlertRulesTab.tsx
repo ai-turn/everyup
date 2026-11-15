@@ -221,18 +221,14 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       {errorBanner}
       {/* Filter bar — category pills + severity/enabled + search */}
       <ListToolbar search={
-        <div className="relative">
-          <SearchInput
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            aria-label="규칙 이름 또는 대상 검색"
-            placeholder="규칙 이름 · 대상 검색"
-            className="pr-10"
-          />
-          {searchQuery && (
-            <IconButton icon="close" label="검색어 지우기" tone="quiet" size="sm" onClick={() => setSearchQuery('')} className="absolute right-1 top-1/2 -translate-y-1/2" />
-          )}
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          onClear={() => setSearchQuery('')}
+          shortcut
+          aria-label="규칙 이름 또는 대상 검색"
+          placeholder="규칙 이름 · 대상 검색"
+        />
       }>
         <SegmentedControl
           size="md"

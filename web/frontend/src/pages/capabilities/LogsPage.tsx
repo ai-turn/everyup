@@ -45,7 +45,7 @@ export function LogsPage() {
 
   return (
     <div>
-      <PageHeader title="로그" subtitle="OpenTelemetry로 직접 연결한 앱의 로그와 최근 오류·경고를 확인합니다.">
+      <PageHeader menu title="로그" subtitle="OpenTelemetry로 직접 연결한 앱의 로그와 최근 오류·경고를 확인합니다.">
         <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
       <DockerEnvironmentHint className="mb-5" />
