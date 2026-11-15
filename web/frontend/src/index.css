@@ -36,22 +36,24 @@
 @theme {
   /* 팔레트 출처: Radix Colors slate + indigo (2026-10-25 교체). 단계 번호는 Radix 12단계 스케일. */
 
-  /* 1. Primary: indigo-9. 라이트·다크 같은 값 — 흰 글자 5.21 */
-  --color-primary: #3e63dd;
-  --color-primary-dark: #3e63dd;
-  /* primary 채움의 hover·누름. 채움 위 흰 글자라 **더 진하게** 간다 — 이전 `primary/90`은
-     배경과 섞여 밝아지면서 흰 글자 대비가 AA 아래로 떨어졌다. indigo-10, 흰 글자 6.02. */
-  --color-primary-hover: #3358d4;
-  --color-primary-hover-dark: #3358d4;
+  /* 1. Primary: 무채색 (2026-11-15, Linear Docs 레퍼런스). 브랜드 색을 따로 두지 않고 글자 최고 단계를
+     채움으로 쓴다 — 화면에서 유채색은 상태색만 남는다. 라이트는 검정 채움 + 흰 글자(16.39),
+     다크는 밝은 채움 + 어두운 글자라 채움 위 글자색을 on-primary로 분리했다. */
+  --color-primary: #1c2024;          /* slate-12 */
+  --color-primary-dark: #edeef0;
+  /* hover는 채움과 글자 대비를 유지한 채 한 단계 옅어진다(라이트 흰 글자 11.45). */
+  --color-primary-hover: #363a3f;
+  --color-primary-hover-dark: #c8cbd0;
+  --color-on-primary: #ffffff;
+  --color-on-primary-dark: #111113;
 
-  /* 액션 어포던스 전용 primary 변주 — 채움 없는 버튼의 라벨·아이콘 색 (indigo-11).
-     primary 자체는 표면 위 텍스트로 쓰면 다크에서 AA 미달이다(hover 배경 3.06).
-     이 값은 표면·hover 배경 모두에서 4.5를 넘는다(라이트 5.27~6.00 / 다크 7.72~8.53). */
-  --color-action: #3a5bc7;
-  --color-action-dark: #9eb1ff;
+  /* 채움 없는 액션(버튼 라벨·아이콘·링크) 색. 파랑을 빼고 제목 글자와 같은 값 — 링크는 색이 아니라
+     밑줄·화살표·hover 배경으로 구분한다. */
+  --color-action: #1c2024;
+  --color-action-dark: #edeef0;
 
   /* 2. Backgrounds */
-  --color-bg-main: #f9f9fb;         /* slate-2 */
+  --color-bg-main: #ffffff;         /* 라이트는 페이지·카드 한 톤 (2026-11-15) */
   --color-bg-main-dark: #111113;    /* slate-1 */
   --color-bg-surface: #ffffff;      /* 라이트 카드 표면 = 흰색 */
   --color-bg-surface-dark: #18191b; /* slate-2 */
@@ -255,6 +257,7 @@
      모든 Tailwind 유틸리티에 자동 반영 → 컴포넌트에 dark: 접두 불필요 */
   --color-primary: var(--color-primary-dark);
   --color-primary-hover: var(--color-primary-hover-dark);
+  --color-on-primary: var(--color-on-primary-dark);
   --color-action: var(--color-action-dark);
 
   --color-bg-main: var(--color-bg-main-dark);

@@ -1,12 +1,13 @@
 ---
 version: alpha
 name: EveryUp
-description: 개발자용 모니터링 대시보드. 중립 slate 표면에 primary 파랑 하나, 색은 데이터와 액션에만 싣는다.
+description: 개발자용 모니터링 대시보드. 흰 표면 한 톤에 무채색 액션, 유채색은 상태와 데이터에만 싣는다.
 colors:
-  primary: "#3e63dd"
-  primary-hover: "#3358d4"
-  action: "#3a5bc7"
-  bg-main: "#f9f9fb"
+  primary: "#1c2024"
+  primary-hover: "#363a3f"
+  on-primary: "#ffffff"
+  action: "#1c2024"
+  bg-main: "#ffffff"
   bg-surface: "#ffffff"
   ui-border: "#d9d9e0"
   ui-control-border: "#80838d"
@@ -31,9 +32,10 @@ colors:
   danger: "#dc2626"
   danger-hover: "#b91c1c"
   chart-border: "#e0e1e6"
-  primary-dark: "#3e63dd"
-  primary-hover-dark: "#3358d4"
-  action-dark: "#9eb1ff"
+  primary-dark: "#edeef0"
+  primary-hover-dark: "#c8cbd0"
+  on-primary-dark: "#111113"
+  action-dark: "#edeef0"
   bg-main-dark: "#111113"
   bg-surface-dark: "#18191b"
   ui-border-dark: "#363a3f"
@@ -185,7 +187,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 | 역할 | 클래스 | light | dark |
 |------|--------|-------|------|
-| 페이지 배경 | `bg-bg-main` | `#f9f9fb` (2) | `#111113` (1) |
+| 페이지 배경 | `bg-bg-main` | `#ffffff` | `#111113` (1) |
 | 카드 표면 | `bg-bg-surface` | `#ffffff` | `#18191b` (2) |
 | 헤어라인 | `border-ui-border` | `#d9d9e0` (6) | `#363a3f` (6) |
 | 입력 컨트롤 경계 | `border-ui-control-border` | `#80838d` (10) | `#6b6f78` |
@@ -197,6 +199,8 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | **떠오른 표면** | `bg-ui-raised` | `#ffffff` | `#2e3135` (5) |
 
 `ui-active`와 `ui-raised`는 **다크값이 같지만 역할이 반대다.** `ui-active`(라이트 `#e8e8ec`)는 스켈레톤·칩·hover처럼 트랙보다 **눌려** 보여야 하는 자리, `ui-raised`(라이트 흰색)는 세그먼티드 컨트롤의 선택된 칸처럼 `ui-hover` 트랙 **위로 솟아** 보여야 하는 자리다. 라이트에서 흰색이어야 하므로 `bg-bg-surface`로 대체할 수 없다 — 다크값(`#18191b`)이 트랙(`#212225`)보다 어두워 방향이 뒤집힌다.
+
+**라이트의 페이지 배경은 카드와 같은 흰색이다**(2026-11-15, Linear Docs 레퍼런스). 회색 페이지 위에 흰 카드를 띄우는 구성이 위젯을 모아 놓은 화면처럼 보여서, 라이트는 한 톤으로 두고 구분은 간격·헤어라인·hover 채움으로 한다. 다크는 main/surface 2단을 유지한다.
 
 다크에서 `soft` 계열은 상위 토큰과 동일하다 — **다크 모드의 명도 계층은 2단(main/surface)뿐**이고, 이는 의도된 설계다.
 
@@ -223,11 +227,20 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 ### 1.4 브랜드 · 상태
 
-**primary** `#3e63dd` indigo-9 (dark 같은 값) — 주 액션, 링크, 선택 상태, 차트 첫 시리즈. 흰 글자 5.21
+**브랜드 색은 무채색이다** (2026-11-15). 이전의 indigo(`#3e63dd`)를 뺐고, 화면에서 유채색은 상태색(§1.4 아래 표)만 남는다. 레퍼런스는 Linear Docs다: 주 버튼은 검정, 링크·선택 상태는 글자색과 hover 채움으로 구분한다.
 
-**primary-hover** `#3358d4` indigo-10 (dark 같은 값) — primary 채움의 hover. 흰 글자가 얹히므로 **더 진하게** 간다(6.02). Radix 다크 indigo-10(`#5472e4`)은 밝아지는 쪽이라 쓰지 않는다. 이전 `hover:bg-primary/90`은 배경과 섞여 밝아지면서 흰 글자 대비가 AA 아래로 떨어졌다. 채움 버튼의 hover·누름은 어두워지는 쪽이 보편 규칙이다(Carbon·Primer·Polaris).
+| 역할 | 클래스 | light | dark | 근거 |
+|---|---|---|---|---|
+| 주 액션 채움 | `bg-primary` | `#1c2024` (slate-12) | `#edeef0` | 글자 최고 단계를 채움으로 쓴다 |
+| 채움 hover | `bg-primary-hover` | `#363a3f` | `#c8cbd0` | 한 단계 옅어진다. 채움 위 글자 대비는 라이트 11.45로 AA를 넘는다 |
+| 채움 위 글자 | `text-on-primary` | `#ffffff` | `#111113` | 다크의 채움이 밝아서 `text-white`를 쓰면 글자가 사라진다. **`bg-primary` 위에 `text-white`를 쓰지 않는다** |
+| 채움 없는 액션 | `text-action` | `#1c2024` | `#edeef0` | 제목 글자와 같은 값. 링크는 색이 아니라 밑줄·화살표·hover 배경으로 드러낸다 |
 
-**action** `#3a5bc7` indigo-11 (dark `#9eb1ff`) — 채움 없는 액션(버튼 라벨·아이콘)의 색. primary를 그대로 텍스트로 쓰면 다크의 hover 배경(`ui-hover`) 위에서 3.06으로 AA 미달이라 명도만 옮긴 변주를 둔다. 표면·hover·페이지 배경에서 라이트 5.27~6.00, 다크 7.72~9.15다. **채움에는 쓰지 않는다** — `bg-primary`는 그대로 primary다.
+`bg-primary/10` 같은 옅은 틴트(사이드바 현재 위치, 선택된 옵션)는 그대로 쓴다. 무채색이 되면서 회색 선택 배경이 된다.
+
+**차트 첫 시리즈는 UI primary와 분리했다.** `chartTheme.ts`의 `primaryColor`는 CSS 변수를 읽지 않고 indigo `#3e63dd` 상수를 쓴다. 검정 선은 축·격자·글자와 구분되지 않기 때문이다.
+
+Toggle의 켜진 손잡이도 `bg-on-primary`다. 다크에서 켜진 트랙이 밝아지므로 흰 손잡이가 묻힌다.
 
 **상태색도 시맨틱 토큰이다.** `emerald-600 dark:emerald-400` 같은 primitive 직접 사용 금지 — 토큰이 `.dark`에서 자가 전환하므로 `dark:` 짝이 필요 없다.
 
@@ -272,7 +285,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | debug | violet | `#7c3aed` | `text-violet-700` |
 | trace | slate | `#64748b` | `text-text-muted` |
 
-info가 sky인 이유: primary(#3e63dd)와 붙어 있으면 "선택된 항목"으로 오독된다.
+info가 sky인 이유: 이전 primary였던 indigo(#3e63dd, 지금은 차트 첫 시리즈)와 붙어 있으면 "선택된 항목"으로 오독됐다.
 
 **알림 severity도 같은 규칙을 따른다** (2026-11-13). severity(critical·warning·info)는 규칙을 만든 사람이 정한 중요도라 상태와 별개 축이지만, 발송 이력 한 행에 `실패`(상태)와 `심각`(severity)이 나란히 서서 빨강이 둘이면 뜻이 둘로 읽힌다. critical·warning은 상태 글자 토큰·`/10` 틴트·`-fill` 점을, info는 위 표의 sky를 쓴다. SSOT는 `features/alerts/utils/severityLabel.ts`의 `SEVERITY_TONE`이고 `SeverityBadge`·규칙 폼·모바일 카드가 모두 이것을 쓴다.
 

@@ -152,7 +152,8 @@ export function getChartTheme(): ChartTheme {
     // the implementation-only *-dark variables here.
     tickColor: getCssVar('--color-text-muted') || '#60646c',
     surfaceColor: getCssVar('--color-bg-surface') || '#ffffff',
-    primaryColor: getCssVar('--color-primary') || SERIES_HEX.primary,
+    // 차트 첫 시리즈는 UI primary(무채색)와 분리해 indigo로 둔다 — 검정 선은 축·격자와 구분되지 않는다.
+    primaryColor: SERIES_HEX.primary,
     errorColor: getCssVar('--color-status-error-fill') || '#dc2626',
     warnColor: getCssVar('--color-status-warn-fill') || '#c77700',
   };
