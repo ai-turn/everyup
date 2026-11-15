@@ -288,8 +288,8 @@ export function OverviewPage() {
             </Link>
           </nav>
 
-          {/* Linear식 목록: 카드·테두리·구분선·배경 띠 없이 그룹 제목과 간격만으로 나눈다. 행은 Triage 인박스처럼 두 줄. */}
-          <div className="space-y-8">
+          {/* Linear식 목록: 카드·행 구분선·배경 띠 없이 그룹 제목과 간격으로 나누고, 두 그룹 사이에만 옅은 선을 둔다. 행은 Triage 인박스처럼 두 줄. */}
+          <div className="section-stack">
             <section id="attention" aria-label="현재 확인 필요" className="scroll-mt-5">
               <GroupHeader title="현재 확인 필요" count={attention.length} countLabel={`확인 필요 ${attention.length}건`} />
               {attention.length === 0 ? (

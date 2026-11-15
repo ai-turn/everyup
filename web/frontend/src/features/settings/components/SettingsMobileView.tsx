@@ -53,7 +53,7 @@ export function SettingsMobileView({
 }: SettingsMobileViewProps) {
 
   return (
-    <div className="space-y-6">
+    <div className="section-stack">
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-text-base">환경 설정</h1>

@@ -77,7 +77,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
     && (!selectedDate || new Date(row.at).toLocaleDateString('sv-SE') === selectedDate));
   const shown = expanded ? visible : visible.slice(0, HISTORY_ROWS);
   return (
-    <div className="mt-8">
+    <div className="mt-8 border-t border-ui-border-soft pt-8">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h3 className="type-card-title text-text-base">장애 이력</h3>
         {selectedDate && (
