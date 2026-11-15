@@ -385,9 +385,10 @@ func (h *AgentHandler) GetAll(c *fiber.Ctx) error {
 }
 
 // GetOverview returns per-agent KPI rollups (30d uptime, active incidents,
-// 24h requests, latest p95) in one call for the home project cards.
-// ponytail: sequential per-agent aggregation — fine for self-hosted agent
-// counts; switch to grouped SQL if a deployment ever has dozens of agents.
+// 24h requests, latest p95) in one call for the home project cards, plus the
+// same uptime/request rollup per service for the environment tree rows.
+// ponytail: sequential per-agent and per-service aggregation — fine for
+// self-hosted counts; switch to grouped SQL if a deployment has hundreds of services.
 func (h *AgentHandler) GetOverview(c *fiber.Ctx) error {
 	agents, err := h.repo.GetAllAgents()
 	if err != nil {
@@ -395,21 +396,13 @@ func (h *AgentHandler) GetOverview(c *fiber.Ctx) error {
 	}
 	out := make([]models.AgentOverview, 0, len(agents))
 	for _, a := range agents {
-		ov := models.AgentOverview{AgentID: a.ID}
+		ov := models.AgentOverview{AgentID: a.ID, Services: []models.ServiceOverview{}}
 
 		days, err := h.repo.GetAgentUptimeByDay(a.ID, 30)
 		if err != nil {
 			return internalError(c, "DATABASE_ERROR", err)
 		}
-		healthy, total := 0, 0
-		for _, d := range days {
-			healthy += d.HealthyChecks
-			total += d.TotalChecks
-		}
-		if total > 0 {
-			pct := float64(healthy) * 100.0 / float64(total)
-			ov.UptimePct = &pct
-		}
+		ov.UptimePct = weightedUptime(days)
 
 		incidents, err := h.repo.GetAgentIncidents(a.ID, 30, 100)
 		if err != nil {
@@ -421,36 +414,76 @@ func (h *AgentHandler) GetOverview(c *fiber.Ctx) error {
 			}
 		}
 
-		requestFilter := &models.ApiRequestFilter{
-			AgentID: a.ID,
-			From:    time.Now().Add(-24 * time.Hour),
+		if ov.Requests24h, ov.P95Ms, err = h.requestRollup24h(&models.ApiRequestFilter{AgentID: a.ID}); err != nil {
+			return internalError(c, "DATABASE_ERROR", err)
 		}
-		stats, err := h.reqRepo.RequestStats(requestFilter, 60)
+
+		// The service list is read fully before the per-service queries
+		// (SetMaxOpenConns(1): never query inside an open rows loop).
+		services, err := h.repo.GetServices(a.ID)
 		if err != nil {
 			return internalError(c, "DATABASE_ERROR", err)
 		}
-		buckets := stats.Buckets
-		for _, b := range buckets {
-			ov.Requests24h += b.Count
-		}
-		if stats.Truncated {
-			summary, err := h.reqRepo.StatusSummary(requestFilter)
+		for _, svc := range services {
+			so := models.ServiceOverview{Key: svc.Key}
+			svcDays, err := h.repo.GetServiceUptimeByDay(a.ID, svc.Key, 30)
 			if err != nil {
 				return internalError(c, "DATABASE_ERROR", err)
 			}
-			ov.Requests24h = summary.Count2xx + summary.Count3xx + summary.Count4xx + summary.Count5xx + summary.CountOther
-		}
-		for i := len(buckets) - 1; i >= 0; i-- {
-			if buckets[i].Timed > 0 {
-				p95 := buckets[i].P95
-				ov.P95Ms = &p95
-				break
+			so.UptimePct = weightedUptime(svcDays)
+			// Same service filter as GetServiceRequestStats (requests carry the service name).
+			if so.Requests24h, so.P95Ms, err = h.requestRollup24h(&models.ApiRequestFilter{AgentID: a.ID, ServiceName: svc.Name}); err != nil {
+				return internalError(c, "DATABASE_ERROR", err)
 			}
+			ov.Services = append(ov.Services, so)
 		}
 
 		out = append(out, ov)
 	}
 	return c.JSON(fiber.Map{"success": true, "data": out})
+}
+
+// weightedUptime is the check-weighted uptime over the given days, nil when
+// there were no checks (unknown, not 0%).
+func weightedUptime(days []models.ServiceUptimeDay) *float64 {
+	healthy, total := 0, 0
+	for _, d := range days {
+		healthy += d.HealthyChecks
+		total += d.TotalChecks
+	}
+	if total == 0 {
+		return nil
+	}
+	pct := float64(healthy) * 100.0 / float64(total)
+	return &pct
+}
+
+// requestRollup24h counts the last 24h of requests matching the filter and
+// returns the p95 of the latest hourly bucket that has latency, nil if none.
+func (h *AgentHandler) requestRollup24h(filter *models.ApiRequestFilter) (int, *int, error) {
+	filter.From = time.Now().Add(-24 * time.Hour)
+	stats, err := h.reqRepo.RequestStats(filter, 60)
+	if err != nil {
+		return 0, nil, err
+	}
+	count := 0
+	for _, b := range stats.Buckets {
+		count += b.Count
+	}
+	if stats.Truncated {
+		summary, err := h.reqRepo.StatusSummary(filter)
+		if err != nil {
+			return 0, nil, err
+		}
+		count = summary.Count2xx + summary.Count3xx + summary.Count4xx + summary.Count5xx + summary.CountOther
+	}
+	for i := len(stats.Buckets) - 1; i >= 0; i-- {
+		if stats.Buckets[i].Timed > 0 {
+			p95 := stats.Buckets[i].P95
+			return count, &p95, nil
+		}
+	}
+	return count, nil, nil
 }
 
 // GetKey returns the agent's full API key (decrypted) for display in the UI.

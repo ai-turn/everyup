@@ -87,6 +87,18 @@ type AgentOverview struct {
 	ActiveIncidents int      `json:"activeIncidents"`
 	Requests24h     int      `json:"requests24h"`
 	P95Ms           *int     `json:"p95Ms"` // latest timed bucket, nil when no latency data
+	// Services carries the same rollup per service so the environment list can
+	// fill its tree rows with the columns the environment row uses.
+	Services []ServiceOverview `json:"services"`
+}
+
+// ServiceOverview is AgentOverview's per-service slice (no incident count:
+// the service row's own health already says whether it is down).
+type ServiceOverview struct {
+	Key         string   `json:"key"`
+	UptimePct   *float64 `json:"uptimePct"`
+	Requests24h int      `json:"requests24h"`
+	P95Ms       *int     `json:"p95Ms"`
 }
 
 type Agent struct {

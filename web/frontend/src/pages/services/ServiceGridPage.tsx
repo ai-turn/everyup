@@ -231,6 +231,9 @@ export function ServiceGridPage() {
     return [row, ...children.map((service, index) => ({ kind: 'service' as const, agentId: row.agentId, service, last: index === children.length - 1 }))];
   });
   const envStatus = (row: EnvRow) => row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} />;
+  // 업타임·요청·p95는 환경 행과 서비스 행이 같은 열을 쓴다 — 서비스 값은 같은 집계의 서비스별 조각이다.
+  const rollupOf = (row: EnvRow | ServiceRow): { uptimePct: number | null; requests24h: number; p95Ms: number | null } | undefined =>
+    row.kind === 'env' ? row.rollup : overview[row.agentId]?.services?.find(item => item.key === row.service.key);
   const serviceStatus = (service: AgentServiceFlat) => <StatusLight tone={service.healthy ? 'healthy' : 'error'} label={service.healthy ? '정상' : '장애'} />;
 
   return (
@@ -282,7 +285,7 @@ export function ServiceGridPage() {
         <EmptyState icon="sensors" title="검색 결과가 없습니다" />
       ) : (
         view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
-          { key: 'name', label: 'Docker 환경', render: row => row.kind === 'env' ? (
+          { key: 'name', label: 'Docker 환경 · 서비스', render: row => row.kind === 'env' ? (
             // 펼침 버튼(20px)의 가운데(left-2.5)가 하위 행 연결선의 x다. -my-4 py-4로 셀 높이 전체를 덮어야 선이 행 사이에서 끊기지 않는다.
             <div className="relative -my-4 py-4">
               {row.shown.length > 0 && !collapsed.has(row.agentId) && <span aria-hidden="true" className="absolute top-9 bottom-0 left-2.5 w-px bg-ui-border" />}
@@ -294,8 +297,9 @@ export function ServiceGridPage() {
                 ) : <span className="w-5 shrink-0" aria-hidden="true" />}
                 {row.pending ? <span className="block truncate font-medium">{row.agentName}</span> : <Link to={`/agents/${row.agentId}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.agentName}</Link>}
               </div>
+              {/* 서비스 수는 열 대신 이름 아래 보조 줄 — 서비스 행의 체크 주소와 같은 자리다. */}
+              <p className="mt-0.5 pl-6.5 type-caption text-text-muted">서비스 {row.services.length}개<span className="lg:hidden">{row.rollup?.uptimePct != null ? ` · 30일 업타임 ${row.rollup.uptimePct.toFixed(2)}%` : ''}</span></p>
               <div className="mt-2 pl-6.5 md:hidden">{envStatus(row)}</div>
-              <p className="mt-2 pl-6.5 type-caption text-text-muted lg:hidden">서비스 {row.services.length}개{row.rollup?.uptimePct != null ? ` · 30일 업타임 ${row.rollup.uptimePct.toFixed(2)}%` : ''}</p>
             </div>
           ) : (
             // 세로선은 위 행에서 이어 내려오고, 마지막 서비스에서 가로선 높이까지만 그린다(└).
@@ -308,10 +312,9 @@ export function ServiceGridPage() {
             </div>
           ) },
           { key: 'collection', label: '상태', className: 'hidden w-36 md:table-cell', render: row => row.kind === 'env' ? envStatus(row) : serviceStatus(row.service) },
-          { key: 'services', label: '서비스', className: 'hidden w-24 lg:table-cell', align: 'right', render: row => row.kind === 'env' ? row.services.length : '' },
-          { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => row.kind === 'service' ? '' : row.rollup?.uptimePct == null ? '-' : `${row.rollup.uptimePct.toFixed(2)}%` },
-          { key: 'requests', label: '요청 24h', className: 'hidden w-28 xl:table-cell', align: 'right', render: row => row.kind === 'service' ? '' : row.rollup?.requests24h ? row.rollup.requests24h.toLocaleString() : '-' },
-          { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => row.kind === 'service' ? '' : row.rollup?.p95Ms == null ? '-' : `${row.rollup.p95Ms}ms` },
+          { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.uptimePct == null ? '-' : `${rollup.uptimePct.toFixed(2)}%`; } },
+          { key: 'requests', label: '요청 24h', className: 'hidden w-28 lg:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.requests24h ? rollup.requests24h.toLocaleString() : '-'; } },
+          { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.p95Ms == null ? '-' : `${rollup.p95Ms.toLocaleString()}ms`; } },
           { key: 'actions', label: '작업', className: 'w-32', render: row => row.kind === 'service' ? (row.service.healthy ? null : <span className="line-clamp-2 type-caption text-status-error">{row.service.lastError || '상태 체크 실패'}</span>) : row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-2"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
         ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {groups.map((g) => (
