@@ -48,7 +48,7 @@ function ResourceCard({ resource, returnTo }: { resource: InfrastructureResource
     <Link
       to={`/infrastructure/${resource.id}`}
       state={{ returnTo }}
-      className="card-interactive group rounded-xl border border-ui-border bg-bg-surface p-4"
+      className="card-interactive group rounded-xl border border-ui-border-soft bg-bg-surface p-4"
     >
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{resource.name}</h3>}
@@ -96,7 +96,7 @@ export function InfrastructurePage() {
       </PageHeader>
       <DockerEnvironmentHint className="mb-5" />
       {loading ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}</div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border-soft bg-bg-surface" />)}</div>
       ) : error ? (
         <EmptyState icon="error_outline" title="인프라를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       ) : resources.length === 0 ? (

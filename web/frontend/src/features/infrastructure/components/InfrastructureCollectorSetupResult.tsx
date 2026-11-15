@@ -87,7 +87,7 @@ export function InfrastructureCollectorSetupResult({
       <ConnectionAddressField address={address} />
       <div className="space-y-2">
         <p className="type-label text-text-secondary">Collector API Key</p>
-        <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
+        <div className="flex items-center gap-2 rounded-md bg-ui-hover-soft p-3">
           <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
           <CopyButton onCopy={() => copy(setup.apiKey)} title="API Key 복사" className={ICON_ACTION} />
         </div>
@@ -106,14 +106,14 @@ export function InfrastructureCollectorSetupResult({
           <p className="type-label text-text-secondary">otelcol-contrib.yaml</p>
           <CopyButton disabled={!address.valid} onCopy={() => copy(config)} title="Collector 설정 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
         </div>
-        <pre className="max-h-80 overflow-auto whitespace-pre rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{config}</pre>
+        <pre className="max-h-80 overflow-auto whitespace-pre rounded-md bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{config}</pre>
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <p className="type-label text-text-secondary">실행 명령</p>
           <CopyButton onCopy={() => copy(RUN_COMMAND[mode])} title="실행 명령 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
         </div>
-        <pre className="overflow-auto whitespace-pre rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{RUN_COMMAND[mode]}</pre>
+        <pre className="overflow-auto whitespace-pre rounded-md bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{RUN_COMMAND[mode]}</pre>
       </div>
       <TelemetryReceiptStatus
         path={`/infrastructure-resources/${setup.id}/setup-status`}

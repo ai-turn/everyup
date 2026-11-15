@@ -11,7 +11,7 @@ export function TelemetrySetupGuidance({ signals, appConfiguration }: { signals:
   const [experience, setExperience] = useState<'existing' | 'new'>('existing');
   const [language, setLanguage] = useState<keyof typeof guides>('java');
   const guide = guides[language];
-  return <section aria-label="OpenTelemetry 적용 안내" className="space-y-3 rounded-xl border border-ui-border p-4">
+  return <section aria-label="OpenTelemetry 적용 안내" className="space-y-3">
     <h4 className="type-label text-text-base">OpenTelemetry를 이미 사용하고 있나요?</h4>
     <SegmentedControl options={[{ value: 'existing', label: '이미 사용 중' }, { value: 'new', label: '처음 설정' }]} value={experience} onChange={setExperience} size="md" ariaLabel="OpenTelemetry 사용 경험" />
     {experience === 'existing' ? <>
@@ -22,7 +22,7 @@ export function TelemetrySetupGuidance({ signals, appConfiguration }: { signals:
       <p className="type-body text-text-muted">{guide.text} 환경 변수만 추가해서는 데이터가 수집되지 않습니다.</p>
       <a className="block w-fit type-body text-action hover:underline" href={guide.url} target="_blank" rel="noreferrer">{guide.label} SDK 설정 예제</a>
     </>}
-    {appConfiguration && (experience === 'new' ? appConfiguration : <details className="rounded-lg border border-ui-border p-3">
+    {appConfiguration && (experience === 'new' ? appConfiguration : <details>
       <summary className="cursor-pointer type-label text-action">앱에서 직접 전송할 때의 환경 변수</summary>
       <div className="mt-3">{appConfiguration}</div>
     </details>)}

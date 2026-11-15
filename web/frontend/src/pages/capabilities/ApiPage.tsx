@@ -26,7 +26,7 @@ export function ApiPage() {
       </div>
       <ListViewToggle view={view} onChange={setView} />
     </div>
-    {loading ? <div aria-label="API 대상 조회 중" className="h-40 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
+    {loading ? <div aria-label="API 대상 조회 중" className="h-40 animate-pulse rounded-xl bg-ui-hover-soft" />
       : error ? <EmptyState icon="error_outline" title="API 데이터를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
         : rows.length === 0 ? <EmptyState icon="api" title="표시할 API 대상이 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
           <div className="flex flex-col items-center gap-4"><MonitoringConnection capability="api" onConnected={reload} /></div>

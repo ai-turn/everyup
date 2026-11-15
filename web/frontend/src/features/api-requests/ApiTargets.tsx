@@ -60,7 +60,7 @@ export function ApiTargets({ rows: unsorted, view, range, returnTo, onRetry }: {
       <span className="type-caption text-text-dim">{`${rows.length}개 · 최근 ${Number.parseInt(range)}시간, 에러율 높은 순`}</span>
     </div>
     {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {rows.map(row => <article key={row.service.id} className="card-interactive group rounded-xl border border-ui-border bg-bg-surface">
+      {rows.map(row => <article key={row.service.id} className="card-interactive group rounded-xl border border-ui-border-soft bg-bg-surface">
         <Link to={to(row)} state={{ returnTo }} className="block p-4">
         <ResourceCardHeader
           title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.service.name}</h3>}
