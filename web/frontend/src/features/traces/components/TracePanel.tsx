@@ -309,7 +309,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           )}
 
           {error && (
-            <div className="flex items-start gap-3 px-3 py-2 bg-ui-hover-soft rounded-lg border border-ui-border">
+            <div className="flex items-start gap-3 px-3 py-2 bg-ui-hover-soft rounded-md">
               <MaterialIcon size={20} name="error" className="text-status-error shrink-0 mt-0.5" />
               <p className="type-body text-text-secondary">{error}</p>
             </div>
@@ -430,7 +430,7 @@ function SpanDetail({ span }: { span: TraceSpan }) {
   const attrs = span.attributes ?? {};
   const events = span.events ?? [];
   return (
-    <div className="mt-2 space-y-3 border-t border-ui-border-soft pt-2">
+    <div className="mt-3 space-y-3">
       {span.statusMessage && (
         <div>
           <p className="mb-1 type-label-sm text-text-dim">실패 원인</p>
@@ -490,7 +490,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
           return (
             <li
               key={`${span.traceId}-${span.spanId}`}
-              className="px-3 py-2 rounded-lg bg-ui-hover-soft border border-ui-border-soft text-sm"
+              className="px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
             >
               {/* 들여쓰기는 깊이 8까지만(더 깊으면 이름 자리가 남지 않는다). 막대는 들여쓰지 않아 시간축이 맞는다. */}
               <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap" style={{ paddingLeft: `${Math.min(depth, 8) * 12}px` }}>
@@ -562,7 +562,7 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm dark:border-ui-border-dark dark:bg-ui-hover-dark"
+            className="rounded-md bg-ui-hover-soft px-3 py-2 text-sm"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
               {item.serviceName && (
@@ -591,7 +591,7 @@ function RestrictedBodyNotice({ count }: { count: number }) {
   return (
     <section>
       <PanelSectionHeader icon="data_object" title="캡처된 바디" count={count} />
-      <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-ui-border-dark dark:bg-ui-hover-dark">
+      <div className="flex items-center gap-3 rounded-md bg-ui-hover-soft px-4 py-3 text-sm">
         <MaterialIcon size={20} name="lock" className="text-amber-500 shrink-0" />
         <div>
           <p className="font-medium text-text-secondary">관리자 전용</p>
@@ -617,7 +617,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm dark:border-ui-border-dark dark:bg-ui-hover-dark"
+            className="rounded-md bg-ui-hover-soft px-3 py-2 text-sm"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-xs text-action">
@@ -643,7 +643,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
               )}
               {copyButton(() => onCopy(formatCapturedBodyCopy(item)), '캡처된 바디 복사')}
             </div>
-            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded border border-slate-200 bg-white p-2 font-mono text-xs text-slate-700 dark:border-ui-border-dark dark:bg-bg-surface-dark dark:text-text-base-dark">{item.body}</pre>
+            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-bg-surface p-2 font-mono text-xs text-text-secondary">{item.body}</pre>
           </li>
         ))}
       </ul>
@@ -660,7 +660,7 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
         {items.map((req) => (
           <li
             key={req.id}
-            className="px-3 py-2 rounded-lg bg-ui-hover-soft border border-ui-border-soft text-sm"
+            className="px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
           >
             <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-ui-active text-text-secondary shrink-0">
@@ -695,7 +695,7 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
         {logs.map((log) => (
           <li
             key={log.id}
-            className="flex items-start gap-2 px-3 py-2 rounded-lg bg-ui-hover-soft border border-ui-border-soft text-sm"
+            className="flex items-start gap-2 px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
           >
             <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
               {log.level}

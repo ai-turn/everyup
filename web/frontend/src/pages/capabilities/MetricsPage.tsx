@@ -46,7 +46,7 @@ export function MetricsPage() {
       <div className="sm:ml-auto"><ListViewToggle view={view} onChange={setView} /></div>
     </ListToolbar>
     {loading ? <div aria-label="메트릭 서비스 조회 중" className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {METRIC_SKELETONS.map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}
+      {METRIC_SKELETONS.map(item => <div key={item} className="h-44 animate-pulse rounded-xl bg-ui-hover-soft" />)}
     </div> : error ? <EmptyState icon="error_outline" title="메트릭을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
       : rows.length === 0 ? <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
         <MonitoringConnection capability="metrics" onConnected={reload} />

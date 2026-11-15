@@ -129,7 +129,7 @@ export function DirectMetricsDetailPage() {
     }
   };
 
-  if (loading) return <div className="h-96 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
+  if (loading) return <div className="h-96 animate-pulse rounded-xl bg-ui-hover-soft" />;
   if (error || !service) {
     return <EmptyState icon="error_outline" title="메트릭 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: '메트릭으로 돌아가기', to: '/metrics' }} />;
   }

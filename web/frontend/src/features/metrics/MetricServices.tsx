@@ -55,7 +55,7 @@ export function MetricServices({ rows, now, view, returnTo, query }: {
   const line = (row: Row) => <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs"><AttentionLine row={row} query={query} now={now} /></div>;
 
   if (view === 'card') return <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-    {items.map(row => <Link key={row.id} to={`/metrics/${row.id}`} state={{ returnTo }} className="card-interactive group flex min-w-0 flex-col rounded-xl border border-ui-border bg-bg-surface p-4">
+    {items.map(row => <Link key={row.id} to={`/metrics/${row.id}`} state={{ returnTo }} className="card-interactive group flex min-w-0 flex-col rounded-xl border border-ui-border-soft bg-bg-surface p-4">
       <ResourceCardHeader title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.name}</h3>} status={<Status row={row} />} />
       <div className="mt-5 grid grid-cols-2 gap-3">
         <Count label="확인 필요"><AttentionCount row={row} /></Count>
