@@ -156,6 +156,15 @@ export interface AgentOverview {
   activeIncidents: number;
   requests24h: number;
   p95Ms: number | null; // latest timed bucket, null when no latency data
+  /** 같은 집계의 서비스별 값 — 환경 목록 트리의 서비스 행이 환경 행과 같은 열을 채운다. */
+  services?: AgentServiceOverview[];
+}
+
+export interface AgentServiceOverview {
+  key: string;
+  uptimePct: number | null;
+  requests24h: number;
+  p95Ms: number | null;
 }
 
 // One unhealthy episode derived from service history (project dashboard).

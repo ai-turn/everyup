@@ -425,9 +425,21 @@ const mockAgents: ConnectedAgent[] = [
 
 // Home card KPI rollup — mirrors the demo dashboard numbers (99.87% / 2.6K / 121ms).
 const mockAgentOverview: AgentOverview[] = [
-  { agentId: 'agent_demo_01', uptimePct: 99.87, activeIncidents: 1, requests24h: 2600, p95Ms: 121 },
-  { agentId: 'agent_demo_03', uptimePct: 99.99, activeIncidents: 0, requests24h: 0, p95Ms: null },
-  { agentId: 'agent_demo_04', uptimePct: 99.95, activeIncidents: 0, requests24h: 4800, p95Ms: 86 },
+  { agentId: 'agent_demo_01', uptimePct: 99.87, activeIncidents: 1, requests24h: 2600, p95Ms: 121, services: [
+    { key: 'shop:api', uptimePct: 100, requests24h: 2350, p95Ms: 118 },
+    { key: 'shop:payment-worker', uptimePct: 99.61, requests24h: 250, p95Ms: 4980 },
+    { key: 'postgres', uptimePct: 100, requests24h: 0, p95Ms: null },
+  ] },
+  { agentId: 'agent_demo_03', uptimePct: 99.99, activeIncidents: 0, requests24h: 0, p95Ms: null, services: [
+    { key: 'jobs:catalog-worker', uptimePct: 99.98, requests24h: 0, p95Ms: null },
+    { key: 'jobs:notification-worker', uptimePct: 100, requests24h: 0, p95Ms: null },
+    { key: 'redis', uptimePct: 100, requests24h: 0, p95Ms: null },
+  ] },
+  { agentId: 'agent_demo_04', uptimePct: 99.95, activeIncidents: 0, requests24h: 4800, p95Ms: 86, services: [
+    { key: 'edge:nginx', uptimePct: 100, requests24h: 2900, p95Ms: 41 },
+    { key: 'edge:search-api', uptimePct: 99.86, requests24h: 1100, p95Ms: 86 },
+    { key: 'edge:inventory-api', uptimePct: 100, requests24h: 800, p95Ms: 64 },
+  ] },
 ];
 
 const mockAgentServicesFlat: AgentServiceFlat[] = [

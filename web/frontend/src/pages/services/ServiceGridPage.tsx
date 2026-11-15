@@ -27,29 +27,30 @@ interface ProjectCardProps {
   agent?: ConnectedAgent;
   agentName: string;
   services: AgentServiceFlat[];
+  /** 검색으로 걸러진 하위 서비스. 그리드의 트리 행과 같은 목록이다. */
+  shownServices: AgentServiceFlat[];
   overview?: AgentOverview;
   returnTo: string;
 }
 
+const serviceHref = (service: AgentServiceFlat) => `/services/${service.agentId}/${encodeURIComponent(service.key)}`;
+// 장애 먼저, 같은 상태끼리는 이름순 — 트리 행과 카드 목록이 같은 순서를 쓴다.
+const byAttention = (a: AgentServiceFlat, b: AgentServiceFlat) => Number(a.healthy) - Number(b.healthy) || a.name.localeCompare(b.name);
+
 // One project (= one agent = one docker-compose host) rendered as a single card.
-// Clicking drills into the project detail page that lists its internal services.
-function ProjectCard({ agentId, agent, agentName, services, overview, returnTo }: ProjectCardProps) {
+// 카드 전체는 제목 링크를 늘려(after:inset-0) 환경 상세로 가고, 하위 서비스는 각자 링크다 —
+// 그리드의 트리 행과 같은 목적지를 카드에서도 고를 수 있어야 한다(DESIGN.md §4.5 두 보기 동일).
+function ProjectCard({ agentId, agent, agentName, services, shownServices, overview, returnTo }: ProjectCardProps) {
   const online = agent ? agentOnline(agent) : true;
   const total = services.length;
   const healthy = services.filter(s => s.healthy).length;
-  const down = services.filter(s => !s.healthy);
-  const allHealthy = down.length === 0;
+  const allHealthy = healthy === total;
 
   return (
-    <Link
-      to={`/agents/${agentId}`}
-      state={{ returnTo }}
-      aria-label={agentName}
-      className="card-interactive bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3"
-    >
+    <article className="card-interactive relative bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3">
       {/* Header: collection state + environment name */}
       <ResourceCardHeader
-        title={<h2 className="type-card-title text-text-base truncate">{agentName}</h2>}
+        title={<h2 className="type-card-title text-text-base truncate"><Link to={`/agents/${agentId}`} state={{ returnTo }} className="after:absolute after:inset-0 after:rounded-xl">{agentName}</Link></h2>}
         status={<CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />}
       />
 
@@ -59,11 +60,18 @@ function ProjectCard({ agentId, agent, agentName, services, overview, returnTo }
         <StatusLight tone={allHealthy ? 'healthy' : 'error'} label={`${healthy}/${total} 정상`} />
       </div>
 
-      {/* Failing services preview */}
-      {down.length > 0 && (
-        <p className="text-xs text-status-error truncate -mt-1">
-          장애: {down.map(s => s.name).join(', ')}
-        </p>
+      {/* 하위 서비스: 장애를 앞에 두고, 각 이름은 서비스 상세로 간다. 카드 링크 위로 올려(z-10) 따로 누른다. */}
+      {shownServices.length > 0 && (
+        <ul className="relative z-10 flex flex-wrap gap-x-3 gap-y-1" aria-label={`${agentName} 서비스`}>
+          {[...shownServices].sort(byAttention).map((service) => (
+            <li key={service.key}>
+              <Link to={serviceHref(service)} state={{ returnTo }} className={`inline-flex items-center gap-1.5 type-caption hover:underline ${service.healthy ? 'text-text-muted' : 'text-status-error'}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${service.healthy ? 'bg-status-healthy-fill' : 'bg-status-error-fill'}`} aria-hidden="true" />
+                {service.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
 
       {/* KPI rollup (from /agents/overview; hidden until it loads) */}
@@ -95,7 +103,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview, returnTo }
           </div>
         </div>
       )}
-    </Link>
+    </article>
   );
 }
 
@@ -125,6 +133,13 @@ export function ServiceGridPage() {
   const [instrumentationAgentId, setInstrumentationAgentId] = useState<string | null>(null);
   const [keyModalAgent, setKeyModalAgent] = useState<{ id: string; name: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  // 접은 환경만 기억한다. 기본은 모두 펼침(환경과 서비스를 한눈에 보는 것이 이 목록의 목적).
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const toggleCollapsed = (agentId: string) => setCollapsed(current => {
+    const next = new Set(current);
+    if (next.has(agentId)) next.delete(agentId); else next.add(agentId);
+    return next;
+  });
 
   const load = useCallback(async () => {
     // KPI rollup is non-critical — cards render without it and fill in when it lands.
@@ -194,20 +209,32 @@ export function ServiceGridPage() {
   }
 
   // Project search: a project matches if its name or any of its services match.
-  const groups = allGroups.filter((g) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      g.agentName.toLowerCase().includes(q) ||
-      g.services.some((s) => s.name.toLowerCase().includes(q) || s.endpoint.toLowerCase().includes(q))
-    );
-  });
+  // 이름이 맞으면 하위 서비스를 모두, 서비스만 맞으면 맞은 서비스만 펼친다.
+  const q = search.toLowerCase();
+  const serviceMatches = (s: AgentServiceFlat) => s.name.toLowerCase().includes(q) || s.endpoint.toLowerCase().includes(q);
+  const groups = allGroups
+    .map((g) => ({ ...g, shown: !q || g.agentName.toLowerCase().includes(q) ? g.services : g.services.filter(serviceMatches) }))
+    .filter((g) => !q || g.agentName.toLowerCase().includes(q) || g.shown.length > 0);
 
   const visiblePending = pendingAgents.filter((a) => !search || a.name.toLowerCase().includes(search.toLowerCase()));
-  const environmentRows = [
-    ...groups.map(group => ({ ...group, pending: false, rollup: overview[group.agentId] })),
-    ...visiblePending.map(agent => ({ agentId: agent.id, agent, agentName: agent.name, services: [] as AgentServiceFlat[], pending: true, rollup: overview[agent.id] })),
+  // 그리드는 환경 행 아래에 서비스 행을 끼운 평평한 목록이다. 열은 같은 표를 쓰고,
+  // 이름 열만 깊이에 따라 들여쓰고 연결선을 그린다.
+  type EnvRow = { kind: 'env'; agentId: string; agent?: ConnectedAgent; agentName: string; services: AgentServiceFlat[]; shown: AgentServiceFlat[]; pending: boolean; rollup?: AgentOverview };
+  type ServiceRow = { kind: 'service'; agentId: string; service: AgentServiceFlat; last: boolean };
+  const envRows: EnvRow[] = [
+    ...groups.map(group => ({ kind: 'env' as const, ...group, pending: false, rollup: overview[group.agentId] })),
+    ...visiblePending.map(agent => ({ kind: 'env' as const, agentId: agent.id, agent, agentName: agent.name, services: [], shown: [], pending: true, rollup: overview[agent.id] })),
   ];
+  const treeRows: (EnvRow | ServiceRow)[] = envRows.flatMap((row): (EnvRow | ServiceRow)[] => {
+    if (collapsed.has(row.agentId)) return [row];
+    const children = [...row.shown].sort(byAttention);
+    return [row, ...children.map((service, index) => ({ kind: 'service' as const, agentId: row.agentId, service, last: index === children.length - 1 }))];
+  });
+  const envStatus = (row: EnvRow) => row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} />;
+  // 업타임·요청·p95는 환경 행과 서비스 행이 같은 열을 쓴다 — 서비스 값은 같은 집계의 서비스별 조각이다.
+  const rollupOf = (row: EnvRow | ServiceRow): { uptimePct: number | null; requests24h: number; p95Ms: number | null } | undefined =>
+    row.kind === 'env' ? row.rollup : overview[row.agentId]?.services?.find(item => item.key === row.service.key);
+  const serviceStatus = (service: AgentServiceFlat) => <StatusLight tone={service.healthy ? 'healthy' : 'error'} label={service.healthy ? '정상' : '장애'} />;
 
   return (
     <div>
@@ -257,14 +284,38 @@ export function ServiceGridPage() {
       ) : groups.length === 0 && visiblePending.length === 0 ? (
         <EmptyState icon="sensors" title="검색 결과가 없습니다" />
       ) : (
-        view === 'grid' ? <ResourceTable rows={environmentRows} rowKey={row => row.agentId} ariaLabel="Docker 환경 그리드" columns={[
-          { key: 'name', label: 'Docker 환경', render: row => <>{row.pending ? <span className="block truncate font-medium">{row.agentName}</span> : <Link to={`/agents/${row.agentId}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.agentName}</Link>}<div className="mt-2 md:hidden">{row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} />}</div><p className="mt-2 type-caption text-text-muted lg:hidden">서비스 {row.services.length}개{row.rollup?.uptimePct != null ? ` · 30일 업타임 ${row.rollup.uptimePct.toFixed(2)}%` : ''}</p></> },
-          { key: 'collection', label: '수집', className: 'hidden w-36 md:table-cell', render: row => row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} /> },
-          { key: 'services', label: '서비스', className: 'hidden w-24 lg:table-cell', align: 'right', render: row => row.services.length },
-          { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => row.rollup?.uptimePct == null ? '-' : `${row.rollup.uptimePct.toFixed(2)}%` },
-          { key: 'requests', label: '요청 24h', className: 'hidden w-28 xl:table-cell', align: 'right', render: row => row.rollup?.requests24h ? row.rollup.requests24h.toLocaleString() : '-' },
-          { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => row.rollup?.p95Ms == null ? '-' : `${row.rollup.p95Ms}ms` },
-          { key: 'actions', label: '작업', className: 'w-32', render: row => row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-2"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
+        view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
+          { key: 'name', label: 'Docker 환경 · 서비스', render: row => row.kind === 'env' ? (
+            // 펼침 버튼(20px)의 가운데(left-2.5)가 하위 행 연결선의 x다. -my-4 py-4로 셀 높이 전체를 덮어야 선이 행 사이에서 끊기지 않는다.
+            <div className="relative -my-4 py-4">
+              {row.shown.length > 0 && !collapsed.has(row.agentId) && <span aria-hidden="true" className="absolute top-9 bottom-0 left-2.5 w-px bg-ui-border" />}
+              <div className="flex min-w-0 items-center gap-1.5">
+                {row.shown.length > 0 ? (
+                  <button type="button" onClick={() => toggleCollapsed(row.agentId)} aria-expanded={!collapsed.has(row.agentId)} aria-label={`${row.agentName} 서비스 ${collapsed.has(row.agentId) ? '펼치기' : '접기'}`} className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded text-text-muted hover:bg-ui-hover hover:text-text-base">
+                    <MaterialIcon size={16} name="chevron_right" className={`transition-transform ${collapsed.has(row.agentId) ? '' : 'rotate-90'}`} />
+                  </button>
+                ) : <span className="w-5 shrink-0" aria-hidden="true" />}
+                {row.pending ? <span className="block truncate font-medium">{row.agentName}</span> : <Link to={`/agents/${row.agentId}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.agentName}</Link>}
+              </div>
+              {/* 서비스 수는 열 대신 이름 아래 보조 줄 — 서비스 행의 체크 주소와 같은 자리다. */}
+              <p className="mt-0.5 pl-6.5 type-caption text-text-muted">서비스 {row.services.length}개<span className="lg:hidden">{row.rollup?.uptimePct != null ? ` · 30일 업타임 ${row.rollup.uptimePct.toFixed(2)}%` : ''}</span></p>
+              <div className="mt-2 pl-6.5 md:hidden">{envStatus(row)}</div>
+            </div>
+          ) : (
+            // 세로선은 위 행에서 이어 내려오고, 마지막 서비스에서 가로선 높이까지만 그린다(└).
+            <div className="relative -my-4 py-4 pl-9">
+              <span aria-hidden="true" className={`absolute top-0 left-2.5 w-px bg-ui-border ${row.last ? 'h-6.5' : 'bottom-0'}`} />
+              <span aria-hidden="true" className="absolute top-6.5 left-2.5 h-px w-4 bg-ui-border" />
+              <Link to={serviceHref(row.service)} state={{ returnTo }} data-row-link className="block truncate text-text-base">{row.service.name}</Link>
+              <p className="mt-0.5 truncate font-mono type-caption text-text-muted">{row.service.endpoint || row.service.key}</p>
+              <div className="mt-2 md:hidden">{serviceStatus(row.service)}</div>
+            </div>
+          ) },
+          { key: 'collection', label: '상태', className: 'hidden w-36 md:table-cell', render: row => row.kind === 'env' ? envStatus(row) : serviceStatus(row.service) },
+          { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.uptimePct == null ? '-' : `${rollup.uptimePct.toFixed(2)}%`; } },
+          { key: 'requests', label: '요청 24h', className: 'hidden w-28 lg:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.requests24h ? rollup.requests24h.toLocaleString() : '-'; } },
+          { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.p95Ms == null ? '-' : `${rollup.p95Ms.toLocaleString()}ms`; } },
+          { key: 'actions', label: '작업', className: 'w-32', render: row => row.kind === 'service' ? (row.service.healthy ? null : <span className="line-clamp-2 type-caption text-status-error">{row.service.lastError || '상태 체크 실패'}</span>) : row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-2"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
         ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {groups.map((g) => (
             <ProjectCard
@@ -273,6 +324,7 @@ export function ServiceGridPage() {
               agent={g.agent}
               agentName={g.agentName}
               services={g.services}
+              shownServices={g.shown}
               overview={overview[g.agentId]}
               returnTo={returnTo}
             />

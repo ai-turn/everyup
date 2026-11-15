@@ -37,7 +37,7 @@ func TestAgentOverview(t *testing.T) {
 	reqRepo := database.NewApiRequestRepository()
 	mk := func(id string, dur int, at time.Time) models.ApiRequest {
 		return models.ApiRequest{
-			ServiceID: "svc-a", AgentID: agent.ID, RequestID: id,
+			ServiceID: "svc-a", AgentID: agent.ID, ServiceName: "a", RequestID: id,
 			Method: "GET", Path: "/x", PathTemplate: "/x",
 			StatusCode: 200, DurationMs: dur, CreatedAt: at,
 		}
@@ -77,5 +77,21 @@ func TestAgentOverview(t *testing.T) {
 	}
 	if ov.P95Ms == nil || *ov.P95Ms != 200 {
 		t.Errorf("p95Ms = %v, want 200 (nearest-rank p95 of 10/200/30)", ov.P95Ms)
+	}
+
+	// Per-service slice: "a" stayed healthy and owns the requests; "b" went
+	// down once and has no requests (p95 unknown, not 0).
+	byKey := map[string]models.ServiceOverview{}
+	for _, s := range ov.Services {
+		byKey[s.Key] = s
+	}
+	if len(byKey) != 2 {
+		t.Fatalf("services = %+v, want a and b", ov.Services)
+	}
+	if a := byKey["a"]; a.UptimePct == nil || *a.UptimePct != 100 || a.Requests24h != 3 || a.P95Ms == nil || *a.P95Ms != 200 {
+		t.Errorf("service a = %+v, want 100%% uptime, 3 requests, p95 200", a)
+	}
+	if b := byKey["b"]; b.UptimePct == nil || *b.UptimePct != 50 || b.Requests24h != 0 || b.P95Ms != nil {
+		t.Errorf("service b = %+v, want 50%% uptime, 0 requests, nil p95", b)
 	}
 }

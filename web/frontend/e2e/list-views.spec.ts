@@ -181,3 +181,15 @@ test('Group status summary on the list counts the same members as the group deta
   await page.goto('./projects/project_mock_production');
   await expect(page.getByRole('table', { name: '그룹 구성 그리드', exact: true }).locator('tbody tr')).toHaveCount(total);
 });
+
+test('Docker environments nest their services and collapse per environment', async ({ page }) => {
+  await page.goto('./environments');
+  const table = page.getByRole('table', { name: 'Docker 환경 그리드' });
+  const service = table.getByRole('link', { name: 'payment-worker', exact: true });
+  await expect(service).toHaveAttribute('href', /\/services\/agent_demo_01\//);
+  await table.getByRole('button', { name: 'prod-server 서비스 접기', exact: true }).click();
+  await expect(service).toHaveCount(0);
+  await expect(table.getByRole('link', { name: 'prod-server', exact: true })).toBeVisible();
+  await table.getByRole('button', { name: 'prod-server 서비스 펼치기', exact: true }).click();
+  await expect(service).toBeVisible();
+});
