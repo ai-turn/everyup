@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { Button, EmptyState, ListToolbar, ListViewToggle, MaterialIcon, PageHeader, SearchInput, Select } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
-import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { MetricServices } from '../../features/metrics/MetricServices';
 import { useMetricServices } from '../../features/metrics/useMetricServices';
 import { flaggedMetrics, metricCollection } from '../../features/metrics/metricPresentation';
@@ -39,15 +38,13 @@ export function MetricsPage() {
 
   return <div>
     <PageHeader menu title="메트릭">
+      <Button collapseLabel variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
       <MonitoringConnection capability="metrics" onConnected={reload} />
     </PageHeader>
-    <DockerEnvironmentHint className="mb-5" />
     <ListToolbar search={<SearchInput value={query} onChange={event => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filtered.length} shortcut placeholder="서비스 또는 메트릭 이름으로 찾기" aria-label="서비스 또는 메트릭 이름으로 찾기" />}>
-      <Button collapseLabel variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
       <Select aria-label="서비스 정렬" wrapperClassName="w-40" value={sort} onChange={event => setParams(current => { const next = new URLSearchParams(current); next.set('sort', event.target.value); return next; }, { replace: true })}>
         <option value="collection">확인 필요순</option><option value="name">이름순</option>
       </Select>
-      <div className="sm:ml-auto"><ListViewToggle view={view} onChange={setView} /></div>
     </ListToolbar>
     {loading ? <div aria-label="메트릭 서비스 조회 중" className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {METRIC_SKELETONS.map(item => <div key={item} className="h-44 animate-pulse rounded-xl bg-ui-hover-soft" />)}
@@ -55,9 +52,12 @@ export function MetricsPage() {
       : rows.length === 0 ? <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
         <MonitoringConnection capability="metrics" onConnected={reload} />
       </EmptyState> : <section>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="type-section-title text-text-base">메트릭 서비스</h2>
-          <span role="status" className="text-xs text-text-dim">{search ? `서비스 ${filtered.length} / ${rows.length}개` : `서비스 ${rows.length}개`}</span>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="shrink-0 type-section-title text-text-base">메트릭 서비스</h2>
+          <div className="flex min-w-0 items-center gap-3">
+            <span role="status" className="min-w-0 text-right text-balance text-xs text-text-dim">{search ? `서비스 ${filtered.length} / ${rows.length}개` : `서비스 ${rows.length}개`}</span>
+            <ListViewToggle view={view} onChange={setView} />
+          </div>
         </div>
         {filtered.length ? <MetricServices rows={filtered} now={now} view={view} returnTo={returnTo} query={search} />
           : <EmptyState icon="search" title="일치하는 서비스가 없습니다" description={`'${query.trim()}'와 일치하는 서비스나 메트릭 이름이 없습니다.`} action={{ label: '검색 초기화', onClick: () => setQuery('') }} />}

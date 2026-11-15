@@ -6,7 +6,6 @@ import { CollectionStatusBadge, EmptyState, ListViewToggle, PageHeader, Resource
 import { useListView } from '../../hooks/useListView';
 import { infraCollection, peakUsage, usageLevel, type UsageLevel } from '../../features/infra/usage';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
-import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { api, type InfrastructureResource } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -94,7 +93,6 @@ export function InfrastructurePage() {
       <PageHeader menu title="인프라">
         <MonitoringConnection capability="infrastructure" onConnected={reload} />
       </PageHeader>
-      <DockerEnvironmentHint className="mb-5" />
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-xl border border-ui-border-soft bg-bg-surface" />)}</div>
       ) : error ? (

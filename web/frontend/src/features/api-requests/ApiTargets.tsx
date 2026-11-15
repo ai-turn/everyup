@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Tooltip } from '../../components/common/Tooltip';
 import { Link } from 'react-router-dom';
 import { CollectionStatusBadge, LoadErrorBanner, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
@@ -45,8 +46,10 @@ const rate = (row: ApiTarget) => {
 };
 const p95 = (row: ApiTarget) => row.summary?.timed ? `${row.summary.p95.toLocaleString()}ms` : '-';
 
-export function ApiTargets({ rows: unsorted, view, range, returnTo, onRetry }: {
+export function ApiTargets({ rows: unsorted, view, range, returnTo, onRetry, viewToggle }: {
   rows: ApiTarget[]; view: 'card' | 'grid'; range: GlobalTimeRange; returnTo: string; onRetry: (id: string) => void;
+  /** 보기 전환 — 섹션 제목 줄 오른쪽 끝에 둔다. */
+  viewToggle?: ReactNode;
 }) {
   const rows = [...unsorted].sort(compareTargets);
   const to = (row: ApiTarget) => `/api/${row.service.id}?range=${range}`;
@@ -56,8 +59,11 @@ export function ApiTargets({ rows: unsorted, view, range, returnTo, onRetry }: {
   </div>;
   return <section aria-label="API 대상">
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="type-section-title text-text-base">API 대상</h2>
-      <span className="type-caption text-text-dim">{`${rows.length}개 · 최근 ${Number.parseInt(range)}시간, 에러율 높은 순`}</span>
+      <h2 className="shrink-0 type-section-title text-text-base">API 대상</h2>
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="min-w-0 text-right text-balance type-caption text-text-dim">{`${rows.length}개 · 최근 ${Number.parseInt(range)}시간, 에러율 높은 순`}</span>
+        {viewToggle}
+      </div>
     </div>
     {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {rows.map(row => <article key={row.service.id} className="card-interactive group rounded-xl border border-ui-border-soft bg-bg-surface">

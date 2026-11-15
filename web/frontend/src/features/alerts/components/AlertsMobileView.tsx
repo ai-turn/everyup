@@ -107,7 +107,6 @@ export function AlertsMobileView({
           </Button>
         )}
       </PageHeader>
-      <div className="flex"><ListViewToggle view={view} onChange={setView} /></div>
 
       {/* Stats Summary */}
       {stats && (
@@ -133,28 +132,32 @@ export function AlertsMobileView({
         </div>
       )}
 
-      {/* Tab Bar */}
-      <div role="tablist" aria-label="알림" className="flex rounded-xl border border-ui-border bg-ui-hover p-1">
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            role="tab"
-            aria-selected={activeTab === tab.key}
-            aria-controls={`alerts-mobile-panel-${tab.key}`}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm transition-colors ${
-              activeTab === tab.key
-                ? 'bg-ui-raised text-text-base shadow-sm'
-                : 'text-text-muted'
-            }`}
-          >
-            <MaterialIcon size={20} name={tab.icon} />
-            {tab.label}
-            {tab.count !== undefined && (
-              <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
-            )}
-          </button>
-        ))}
+      {/* Tab Bar — 탭 줄이 목록 제목 줄이다. 보기 전환은 데스크톱처럼 오른쪽 끝에 둔다. */}
+      <div className="flex items-center gap-2">
+        <div role="tablist" aria-label="알림" className="flex min-w-0 flex-1 rounded-xl border border-ui-border bg-ui-hover p-1">
+          {tabs.map(tab => (
+            <button
+              key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              aria-controls={`alerts-mobile-panel-${tab.key}`}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm transition-colors ${
+                activeTab === tab.key
+                  ? 'bg-ui-raised text-text-base shadow-sm'
+                  : 'text-text-muted'
+              }`}
+            >
+              {/* 좁은 화면은 보기 전환에 폭을 내주고 장식 아이콘을 뺀다 — 라벨·개수는 그대로. */}
+              <MaterialIcon size={20} name={tab.icon} className="max-sm:hidden" />
+              {tab.label}
+              {tab.count !== undefined && (
+                <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <ListViewToggle view={view} onChange={setView} />
       </div>
 
       {/* Channels Tab */}

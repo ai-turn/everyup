@@ -4,7 +4,6 @@ import { useListView } from '../../hooks/useListView';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries, type LogPatternRow, type LogServiceRow } from '../../features/logs/logServiceRows';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
-import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { api } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -48,7 +47,6 @@ export function LogsPage() {
       <PageHeader menu title="로그">
         <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
-      <DockerEnvironmentHint className="mb-5" />
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map(item => <div key={item} className="h-48 animate-pulse rounded-xl bg-ui-hover-soft" />)}
