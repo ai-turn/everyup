@@ -15,7 +15,7 @@ export function ApiPage() {
   const window = useRequestWindow(range, refreshKey);
   const { rows, loading, error, retryTarget } = useApiTargets(window, refreshKey);
   return <div>
-    <PageHeader title="API 요청" subtitle="OpenTelemetry로 직접 연결한 앱의 HTTP 요청과 오류를 비교합니다.">
+    <PageHeader menu title="API 요청">
       <MonitoringConnection capability="api" onConnected={reload} />
     </PageHeader>
       <DockerEnvironmentHint className="mb-5" />

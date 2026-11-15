@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { MaterialIcon } from '../common';
-import { useBreadcrumbTrail, type Crumb } from '../../contexts/BreadcrumbContext';
+import { useBreadcrumbTrail, useSetHeaderActionSlot, type Crumb } from '../../contexts/BreadcrumbContext';
 import { sectionFor } from './navSections';
 import { listReturnTo } from '../../utils/listReturnTo';
 import { useGroupTrail } from '../../hooks/useGroupTrail';
@@ -13,6 +13,7 @@ import { useGroupTrail } from '../../hooks/useGroupTrail';
 export function AppHeader() {
   const { pathname, state } = useLocation();
   const declared = useBreadcrumbTrail();
+  const setActionSlot = useSetHeaderActionSlot();
 
   // 섹션 크럼은 경로에서 자동으로 나온다. 상세 페이지는 `useBreadcrumb`으로
   // 그 **뒤쪽만** 선언하면 된다 — 목록 페이지는 아무것도 하지 않아도 된다.
@@ -36,7 +37,8 @@ export function AppHeader() {
     // 환경에서는 양쪽 다 0을 예약하므로 자동으로 맞는다. 헤더에 드롭다운처럼
     // 넘치는 요소를 넣으려면 이 클립을 먼저 풀어야 한다.
     <header className="hidden h-16 shrink-0 items-center overflow-y-hidden [scrollbar-gutter:stable] border-b border-ui-border bg-bg-surface lg:flex">
-      <nav aria-label="현재 위치" className="w-full max-w-320 mx-auto px-4 sm:px-6">
+      <div className="flex w-full max-w-320 mx-auto items-center gap-4 px-4 sm:px-6">
+      <nav aria-label="현재 위치" className="min-w-0 flex-1">
         <ol className="flex items-center gap-1.5 min-w-0">
           {crumbs.map((crumb, i) => {
             const last = i === crumbs.length - 1;
@@ -65,6 +67,9 @@ export function AppHeader() {
           })}
         </ol>
       </nav>
+      {/* 메뉴 첫 화면의 주 액션·갱신 표시가 PageHeader(menu)에서 포털로 들어온다(DESIGN.md §3.4). */}
+      <div ref={setActionSlot} className="flex shrink-0 items-center gap-3" />
+      </div>
     </header>
   );
 }

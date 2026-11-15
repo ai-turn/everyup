@@ -56,7 +56,7 @@ export function CopyButton({
     >
       <MaterialIcon
         name={copied ? 'check' : 'content_copy'}
-        className={copied ? 'text-emerald-500 dark:text-emerald-400' : ''}
+        className={copied ? 'text-status-healthy' : ''}
       />
       {children}
     </button></Tooltip>

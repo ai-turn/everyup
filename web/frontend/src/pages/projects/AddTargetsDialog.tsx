@@ -76,7 +76,7 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
       ) : (
         <>
           <div className="px-6 pt-4">
-            <SearchInput value={query} onChange={event => setQuery(event.target.value)} placeholder="이름으로 찾기" aria-label="추가할 대상 검색" />
+            <SearchInput value={query} onChange={event => setQuery(event.target.value)} onClear={() => setQuery('')} placeholder="이름으로 찾기" aria-label="추가할 대상 검색" />
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
             {visible.length === 0 && <p className="py-6 text-center type-body text-text-muted">검색 결과가 없습니다</p>}

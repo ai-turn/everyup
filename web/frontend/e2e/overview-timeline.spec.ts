@@ -48,7 +48,7 @@ test('timeline fetch failure stays unknown and recovers on retry', async ({ page
   const timeline = page.getByRole('region', { name: '최근 장애 이력' });
   await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
   await expect(timeline.getByText('장애 이력을 불러오지 못했습니다', { exact: true })).toBeVisible();
-  await expect(timeline.getByLabel('최근 장애 확인 불가')).toHaveText('-');
+  await expect(timeline.getByText('최근 장애 확인 불가', { exact: true })).toBeAttached();
   await expect(timeline).not.toContainText('최근 7일간 기록된 장애가 없습니다');
   await expect(timeline).not.toContainText('중단 없이 동작했습니다');
   await expect(page.locator('main').getByRole('link', { name: 'Docker 환경 1', exact: true })).toBeVisible();
@@ -56,7 +56,7 @@ test('timeline fetch failure stays unknown and recovers on retry', async ({ page
   state.failed = false;
   await timeline.getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(timeline.getByRole('link', { name: /Storefront/ })).toBeVisible();
-  await expect(timeline.getByLabel('최근 장애 1건')).toHaveText('1');
+  await expect(timeline.getByText('최근 장애 1건', { exact: true })).toBeAttached();
   await expect(timeline.getByRole('status')).toHaveCount(0);
   await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toHaveCount(0);
 });
@@ -117,7 +117,7 @@ test('successful empty timeline reports recorded history without promising uptim
 
   const timeline = page.getByRole('region', { name: '최근 장애 이력' });
   await expect(timeline.getByText('최근 7일간 기록된 장애가 없습니다', { exact: true })).toBeVisible();
-  await expect(timeline.getByLabel('최근 장애 0건')).toHaveText('0');
+  await expect(timeline.getByText('최근 장애 0건', { exact: true })).toBeAttached();
   await expect(timeline.getByRole('status')).toHaveCount(0);
   await expect(timeline).not.toContainText('중단 없이 동작했습니다');
 });
@@ -134,7 +134,7 @@ test('failed refresh labels retained timeline records as previous data', async (
 
   await expect(timeline.getByRole('status')).toContainText('이전에 불러온 기록입니다. 최신 기록은 확인할 수 없습니다.');
   await expect(timeline.getByRole('link', { name: /Storefront/ })).toBeVisible();
-  await expect(timeline.getByLabel('최근 장애 확인 불가')).toHaveText('-');
+  await expect(timeline.getByText('최근 장애 확인 불가', { exact: true })).toBeAttached();
   await expect(page.getByText('현재 확인이 필요한 이상이 없습니다')).toBeVisible();
 
   state.failed = false;
@@ -142,5 +142,5 @@ test('failed refresh labels retained timeline records as previous data', async (
   await timeline.getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(timeline.getByRole('status')).toHaveCount(0);
   await expect(timeline.getByRole('link')).toHaveCount(0);
-  await expect(timeline.getByLabel('최근 장애 0건')).toHaveText('0');
+  await expect(timeline.getByText('최근 장애 0건', { exact: true })).toBeAttached();
 });

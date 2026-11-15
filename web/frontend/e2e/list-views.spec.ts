@@ -193,3 +193,22 @@ test('Docker environments nest their services and collapse per environment', asy
   await table.getByRole('button', { name: 'prod-server 서비스 펼치기', exact: true }).click();
   await expect(service).toBeVisible();
 });
+
+// URL(?q=)에 입력값을 직접 묶으면 react-router transition이 값을 한 박자 늦게 돌려줘 한글 조합이 깨졌다(ㄱ겨결결ㅈ제제).
+for (const [route, name] of [['environments', '서비스 또는 Docker 환경 검색'], ['uptime', '서비스 또는 대상 검색'], ['metrics', '서비스 또는 메트릭 이름으로 찾기']] as const) {
+  test(`${route} search keeps Korean IME composition and fast typing, mirrored to ?q=`, async ({ page }) => {
+    await page.goto(`./${route}`);
+    const input = page.getByRole('textbox', { name, exact: true });
+    await input.click();
+    const cdp = await page.context().newCDPSession(page);
+    for (const [kind, text] of [['compose', 'ㄱ'], ['compose', '겨'], ['compose', '결'], ['commit', '결'], ['compose', 'ㅈ'], ['compose', '제'], ['commit', '제']] as const) {
+      if (kind === 'commit') await cdp.send('Input.insertText', { text });
+      else await cdp.send('Input.imeSetComposition', { text, selectionStart: 1, selectionEnd: 1 });
+    }
+    await expect(input).toHaveValue('결제');
+    await expect.poll(() => new URL(page.url()).searchParams.get('q')).toBe('결제');
+    await input.fill('');
+    await input.pressSequentially('payment');
+    await expect(input).toHaveValue('payment');
+  });
+}

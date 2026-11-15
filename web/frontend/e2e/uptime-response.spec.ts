@@ -88,7 +88,7 @@ for (const mode of ['empty', 'single', 'failed'] as const) {
       await expect(card.getByText('이 기간에 데이터 없음', { exact: true })).toBeVisible();
       await expect(card.getByRole('application')).toHaveCount(0);
     } else {
-      await expect(card.locator('[data-response-average]')).toHaveText(mode === 'failed' ? '—' : '120ms');
+      await expect(card.locator('[data-response-average]')).toHaveText(mode === 'failed' ? '-' : '120ms');
       await hoverTime(page, card, t);
       await expect(card.locator('[data-response-tooltip]')).toContainText(mode === 'failed' ? '응답 없음' : '120 ms');
       if (mode === 'single') await expect(card.locator('[data-response-point]')).toBeVisible();

@@ -519,7 +519,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                 {copyButton(() => onCopy(formatSpanCopy(span)), 'Span 행 복사')}
               </div>
               {/* Waterfall track: bar positioned/sized by the span's time window */}
-              <div className="relative mt-1.5 h-1.5 w-full rounded bg-slate-200/70 dark:bg-ui-active-dark">
+              <div className="relative mt-1.5 h-1.5 w-full rounded bg-ui-active">
                 <div
                   className={`absolute top-0 h-full rounded ${spanBarColor(span)}`}
                   style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
@@ -543,7 +543,7 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
         {headers.map((h) => (
           <div key={h.name} className="flex gap-2 font-mono text-xs">
             <dt className="shrink-0 text-text-muted">{h.name}:</dt>
-            <dd className={`min-w-0 break-all ${h.value === '***' ? 'text-amber-700 dark:text-amber-400' : 'text-text-secondary'}`}>
+            <dd className={`min-w-0 break-all ${h.value === '***' ? 'text-status-warn' : 'text-text-secondary'}`}>
               {h.value}
             </dd>
           </div>
@@ -637,7 +637,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
                 </span>
               )}
               {item.truncated && (
-                <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-400">
+                <span className="rounded bg-status-warn/10 px-1.5 py-0.5 text-xs text-status-warn">
                   잘림
                 </span>
               )}

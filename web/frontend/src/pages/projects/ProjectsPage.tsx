@@ -126,7 +126,7 @@ export function ProjectsPage() {
   };
 
   return <div>
-    <PageHeader title="그룹" subtitle="같이 운영하는 Docker 환경, 업타임 모니터, 애플리케이션과 서버를 한곳에 묶어 상태를 확인합니다."><Button onClick={() => setEditing(null)}><MaterialIcon name="add" />추가</Button></PageHeader>
+    <PageHeader menu title="그룹"><Button onClick={() => setEditing(null)}><MaterialIcon name="add" />추가</Button></PageHeader>
     {projects.length > 0 && <div className="mb-3 flex items-center justify-between gap-3">
       <h2 className="type-section-title text-text-base">그룹 목록</h2>
       <div className="flex items-center gap-3">

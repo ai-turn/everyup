@@ -60,7 +60,7 @@ export function SettingsDesktopView({
 
   return (
     <div>
-      <PageHeader title="환경 설정" subtitle="계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다." />
+      <PageHeader menu title="환경 설정" />
       {settingsError && (
         <div role="alert" className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-secondary">
           <MaterialIcon name="sync_problem" className="text-status-warn" />

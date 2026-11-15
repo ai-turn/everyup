@@ -50,7 +50,7 @@ function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: 
           <div key={item.label} className="flex min-w-0 items-center gap-1.5">
             <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${
               item.complete
-                ? 'bg-emerald-500 text-white'
+                ? 'bg-status-healthy-fill text-bg-surface'
                 : item.active ? 'bg-primary text-on-primary' : 'bg-ui-hover text-text-muted'
             }`}>
               {item.complete ? <MaterialIcon size={20} name="check" /> : index + 1}

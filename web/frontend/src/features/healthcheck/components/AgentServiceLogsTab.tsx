@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, BarChart, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, useActiveTooltipLabel,
 } from 'recharts';
-import { Button, LoadErrorBanner, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange, IconButton } from '../../../components/common';
+import { Button, LoadErrorBanner, MaterialIcon, Pagination, SegmentedControl, SearchInput, type GlobalTimeRange } from '../../../components/common';
 import {
   CHART_INITIAL_DIMENSION, CHART_MARGIN, CHART_STRIP_HEIGHT, ChartCard, ChartLegend, ChartTooltip, fillBuckets, formatTimeTick, gridProps,
   niceYAxis, timeXAxisProps, useChartTheme, yAxisProps, type TooltipPayloadItem,
@@ -432,11 +432,10 @@ function ServiceLogsPanel(props: Props) {
             wrapperClassName="flex-1"
             value={inputValue}
             onChange={e => setInputValue(e.target.value)}
+            onClear={() => { setSearch(''); setInputValue(''); setPage(1); }}
+            shortcut
             placeholder="메시지 검색 후 Enter"
           />
-          {search && (
-            <IconButton icon="close" label="검색어 지우기" tone="quiet" onClick={() => { setSearch(''); setInputValue(''); setPage(1); }} />
-          )}
         </form>
 
         {/* Active attribute filter, set by clicking an attribute on a row */}

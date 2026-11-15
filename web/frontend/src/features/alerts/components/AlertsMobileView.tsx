@@ -99,7 +99,7 @@ export function AlertsMobileView({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <PageHeader title="알림" subtitle="이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다.">
+      <PageHeader title="알림">
         {activeTab !== 'history' && (
           <Button className="w-full" onClick={activeTab === 'rules' ? onAddRule : onAddChannel}>
             <MaterialIcon size={20} name="add" />
@@ -114,12 +114,6 @@ export function AlertsMobileView({
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
             <p className="type-body text-text-muted truncate">
-              성공률
-            </p>
-            <p className="type-kpi text-text-base">{stats.successRate.toFixed(0)}%</p>
-          </div>
-          <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
-            <p className="type-body text-text-muted truncate">
               발송
             </p>
             <p className="type-kpi text-text-base">{stats.totalSent}</p>
@@ -129,6 +123,12 @@ export function AlertsMobileView({
               실패
             </p>
             <p className={`type-kpi ${stats.totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>{stats.totalFailed}</p>
+          </div>
+          <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
+            <p className="type-body text-text-muted truncate">
+              성공률
+            </p>
+            <p className="type-kpi text-text-base">{stats.successRate.toFixed(0)}%</p>
           </div>
         </div>
       )}

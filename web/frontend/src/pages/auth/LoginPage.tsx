@@ -206,7 +206,7 @@ docker compose restart`}
 docker compose down
 docker volume rm everyup-data
 
-# 재시작 — 초기 설정 화면으로 돌아옴
+# 재시작하면 초기 설정 화면으로 돌아옴
 docker compose up -d`}
                   </pre>
                 </div>

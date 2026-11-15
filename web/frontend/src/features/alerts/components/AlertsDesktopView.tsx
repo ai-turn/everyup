@@ -125,9 +125,8 @@ export function AlertsDesktopView({
 
   return (
     <>
-      <PageHeader
+      <PageHeader menu
         title="알림"
-        subtitle="이상을 감지할 규칙과 알림을 받을 채널을 관리하고, 발송 이력을 확인합니다."
       >
         {activeTab !== 'history' && (
           <Button onClick={activeTab === 'rules' ? onAddRule : () => openChannelForm()}>
@@ -153,7 +152,6 @@ export function AlertsDesktopView({
             {totalFailed > 0 && (
               <Button variant="ghost" size="sm" onClick={viewFailedLogs}>
                 실패 로그 보기
-                <MaterialIcon name="arrow_forward" />
               </Button>
             )}
           </span>

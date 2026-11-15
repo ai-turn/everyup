@@ -119,12 +119,15 @@ export function ServiceGridPage() {
   // 개요의 `Docker 연결`은 ?connect=docker로 와서 연결 모달을 바로 연다. 새로고침 때 다시
   // 열리지 않게 파라미터는 읽자마자 지운다.
   const [searchParams, setSearchParams] = useSearchParams();
-  const search = searchParams.get('q') ?? '';
-  const setSearch = (value: string) => setSearchParams(current => {
+  // 입력값은 로컬 상태가 쥔다. URL(?q=)은 react-router가 transition 안에서 반영해 값이 한 박자 늦게 돌아오므로,
+  // URL에 직접 묶으면 한글 조합 중 글자가 덮여 '결제'가 'ㄱ겨결결ㅈ제제'가 됐다. URL은 공유·복귀용 사본이다.
+  // ponytail: URL→입력은 마운트 때만 읽는다. 같은 화면에서 ?q=만 바뀌는 이동이 생기면 그때 동기화를 더한다.
+  const [search, setSearchInput] = useState(() => searchParams.get('q') ?? '');
+  const setSearch = (value: string) => { setSearchInput(value); setSearchParams(current => {
     const next = new URLSearchParams(current);
     if (value) next.set('q', value); else next.delete('q');
     return next;
-  }, { replace: true });
+  }, { replace: true }); };
   const [showAddModal, setShowAddModal] = useState(() => searchParams.get('connect') === 'docker');
   useEffect(() => {
     if (searchParams.has('connect')) setSearchParams(current => { const next = new URLSearchParams(current); next.delete('connect'); return next; }, { replace: true });
@@ -238,9 +241,8 @@ export function ServiceGridPage() {
 
   return (
     <div>
-      <PageHeader
+      <PageHeader menu
         title="Docker 환경"
-        subtitle="연결된 Docker 환경과 모니터링 서비스 현황"
       >
         <Button onClick={() => setShowAddModal(true)}>
           <MaterialIcon size={20} name="add" />
@@ -255,6 +257,9 @@ export function ServiceGridPage() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="서비스 또는 Docker 환경 이름으로 검색"
           aria-label="서비스 또는 Docker 환경 검색"
+          onClear={() => setSearch('')}
+          resultCount={`환경 ${envRows.length} · 서비스 ${envRows.reduce((sum, row) => sum + row.shown.length, 0)}`}
+          shortcut
         />
       }><ListViewToggle view={view} onChange={setView} /></ListToolbar>
 
@@ -291,8 +296,9 @@ export function ServiceGridPage() {
               {row.shown.length > 0 && !collapsed.has(row.agentId) && <span aria-hidden="true" className="absolute top-9 bottom-0 left-2.5 w-px bg-ui-border" />}
               <div className="flex min-w-0 items-center gap-1.5">
                 {row.shown.length > 0 ? (
-                  <button type="button" onClick={() => toggleCollapsed(row.agentId)} aria-expanded={!collapsed.has(row.agentId)} aria-label={`${row.agentName} 서비스 ${collapsed.has(row.agentId) ? '펼치기' : '접기'}`} className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded text-text-muted hover:bg-ui-hover hover:text-text-base">
-                    <MaterialIcon size={16} name="chevron_right" className={`transition-transform ${collapsed.has(row.agentId) ? '' : 'rotate-90'}`} />
+                  // 보이는 자리는 20px 줄에 맞추고 누르는 영역은 32px — 빗나간 탭이 행 링크(환경 상세)로 새지 않게.
+                  <button type="button" onClick={() => toggleCollapsed(row.agentId)} aria-expanded={!collapsed.has(row.agentId)} aria-label={`${row.agentName} 서비스 ${collapsed.has(row.agentId) ? '펼치기' : '접기'}`} className="-mx-1.5 -my-1.5 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-muted hover:bg-ui-hover hover:text-text-base">
+                    <MaterialIcon name="chevron_right" className={`transition-transform ${collapsed.has(row.agentId) ? '' : 'rotate-90'}`} />
                   </button>
                 ) : <span className="w-5 shrink-0" aria-hidden="true" />}
                 {row.pending ? <span className="block truncate font-medium">{row.agentName}</span> : <Link to={`/agents/${row.agentId}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.agentName}</Link>}
@@ -306,6 +312,8 @@ export function ServiceGridPage() {
             <div className="relative -my-4 py-4 pl-9">
               <span aria-hidden="true" className={`absolute top-0 left-2.5 w-px bg-ui-border ${row.last ? 'h-6.5' : 'bottom-0'}`} />
               <span aria-hidden="true" className="absolute top-6.5 left-2.5 h-px w-4 bg-ui-border" />
+              {/* 표는 평평한 행이라 스크린리더는 들여쓰기를 모른다 — 어느 환경의 서비스인지 글로 붙인다(링크 이름은 그대로). */}
+              <span className="sr-only">{row.service.agentName} 환경의 서비스</span>
               <Link to={serviceHref(row.service)} state={{ returnTo }} data-row-link className="block truncate text-text-base">{row.service.name}</Link>
               <p className="mt-0.5 truncate font-mono type-caption text-text-muted">{row.service.endpoint || row.service.key}</p>
               <div className="mt-2 md:hidden">{serviceStatus(row.service)}</div>
@@ -315,7 +323,7 @@ export function ServiceGridPage() {
           { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.uptimePct == null ? '-' : `${rollup.uptimePct.toFixed(2)}%`; } },
           { key: 'requests', label: '요청 24h', className: 'hidden w-28 lg:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.requests24h ? rollup.requests24h.toLocaleString() : '-'; } },
           { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.p95Ms == null ? '-' : `${rollup.p95Ms.toLocaleString()}ms`; } },
-          { key: 'actions', label: '작업', className: 'w-32', render: row => row.kind === 'service' ? (row.service.healthy ? null : <span className="line-clamp-2 type-caption text-status-error">{row.service.lastError || '상태 체크 실패'}</span>) : row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-2"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
+          { key: 'actions', label: '최근 오류', className: 'w-32', render: row => row.kind === 'service' ? (row.service.healthy ? null : <span className="line-clamp-2 type-caption text-status-error">{row.service.lastError || '상태 체크 실패'}</span>) : row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-2"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
         ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {groups.map((g) => (
             <ProjectCard

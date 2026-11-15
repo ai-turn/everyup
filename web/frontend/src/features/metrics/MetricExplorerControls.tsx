@@ -76,7 +76,7 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
     </div>}
     {open === 'series' && <div id={panelId} className="space-y-3 rounded-md bg-ui-hover-soft p-4">
         <div className="flex flex-wrap items-center gap-3"><p className="type-body text-text-muted">차트와 분포에 최대 6개를 함께 표시합니다.</p><Button variant="ghost" size="sm" onClick={() => query.update({ metricSeries: null })}>기본 선택</Button></div>
-        <SearchInput aria-label="Attribute 조합으로 시리즈 찾기" placeholder="Attribute 조합으로 찾기" value={search} onChange={event => setSearch(event.target.value)} />
+        <SearchInput aria-label="Attribute 조합으로 시리즈 찾기" placeholder="Attribute 조합으로 찾기" value={search} onChange={event => setSearch(event.target.value)} onClear={() => setSearch('')} />
         <div className="max-h-64 space-y-2 overflow-y-auto" aria-label="시리즈 목록" aria-busy={pending}>
           {visible.map(item => <Button key={item.id} variant={selected.includes(item.id) ? 'secondary' : 'quiet'} size="md" className="w-full justify-start" title={metricSeriesLabel(item.attributes, item.streamKey, item.streamLabel)} aria-pressed={selected.includes(item.id)} disabled={pending || (!selected.includes(item.id) && selected.length >= 6)} onClick={() => {
             const next = selected.includes(item.id) ? selected.filter(id => id !== item.id) : [...selected, item.id];

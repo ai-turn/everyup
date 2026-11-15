@@ -115,7 +115,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
                 <MaterialIcon name="notifications" />알림 규칙
               </ButtonLink>
               <Button variant="secondary" disabled={service.healthy} onClick={() => props.onTabChange('logs')}>
-                에러 확인<MaterialIcon name="arrow_forward" />
+                에러 확인
               </Button>
             </div>
           </div>

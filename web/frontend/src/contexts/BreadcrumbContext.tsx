@@ -9,14 +9,29 @@ export interface Crumb {
 interface BreadcrumbValue {
   crumbs: Crumb[] | null;
   setCrumbs: (crumbs: Crumb[] | null) => void;
+  /** AppHeader 오른쪽 액션 자리. 메뉴 첫 화면의 PageHeader가 데스크톱에서 주 액션을 여기로 옮긴다. */
+  actionSlot: HTMLElement | null;
+  setActionSlot: (element: HTMLElement | null) => void;
 }
 
-const BreadcrumbContext = createContext<BreadcrumbValue>({ crumbs: null, setCrumbs: () => {} });
+const BreadcrumbContext = createContext<BreadcrumbValue>({ crumbs: null, setCrumbs: () => {}, actionSlot: null, setActionSlot: () => {} });
 
 export function BreadcrumbProvider({ children }: { children: ReactNode }) {
   const [crumbs, setCrumbs] = useState<Crumb[] | null>(null);
-  const value = useMemo(() => ({ crumbs, setCrumbs }), [crumbs]);
+  // ref 콜백으로 채운다 — 커밋의 레이아웃 단계라 페이지가 그려지기 전에 포털 대상이 정해진다.
+  const [actionSlot, setActionSlot] = useState<HTMLElement | null>(null);
+  const value = useMemo(() => ({ crumbs, setCrumbs, actionSlot, setActionSlot }), [crumbs, actionSlot]);
   return <BreadcrumbContext.Provider value={value}>{children}</BreadcrumbContext.Provider>;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useHeaderActionSlot() {
+  return useContext(BreadcrumbContext).actionSlot;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useSetHeaderActionSlot() {
+  return useContext(BreadcrumbContext).setActionSlot;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

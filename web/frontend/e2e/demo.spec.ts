@@ -5,7 +5,7 @@ test.describe('live demo', () => {
     await page.goto('./');
 
     await expect(page.getByRole('complementary').getByText('Live Demo', { exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1, name: '모니터링 개요' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '개요', exact: true })).toBeVisible();
     // 개요의 KPI 행은 제거됐다 — 아래 두 카드가 같은 말을 더 정확히 하고 있었다.
     // 장애 신호는 이제 개수가 아니라 대상 이름으로 확인한다.
     await expect(page.getByRole('heading', { name: '현재 확인 필요' })).toBeVisible();

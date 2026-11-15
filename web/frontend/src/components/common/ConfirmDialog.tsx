@@ -22,8 +22,8 @@ interface ConfirmDialogProps {
 
 const variantStyles: Record<Variant, { iconBg: string; iconText: string; defaultIcon: string }> = {
   danger: {
-    iconBg: 'bg-red-100 dark:bg-red-900/20',
-    iconText: 'text-red-600 dark:text-red-400',
+    iconBg: 'bg-status-error/10',
+    iconText: 'text-status-error',
     defaultIcon: 'warning',
   },
   primary: {

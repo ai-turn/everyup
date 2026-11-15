@@ -90,7 +90,7 @@ function ResponseTooltip({ point, color, messages }: { point?: ResponsePoint; co
   if (!point) return null;
   return (
     <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-ui-border bg-ui-raised px-3.5 py-3 text-sm shadow-lg">
-      <p className="mb-2 type-caption text-text-muted">{formatTimeLabel(point.t)} – {formatTimeTick(point.end)}</p>
+      <p className="mb-2 type-caption text-text-muted">{formatTimeLabel(point.t)} ~ {formatTimeTick(point.end)}</p>
       {point.missing ? <p className="text-text-secondary">수집 데이터 없음</p> : (
         <>
           <div className="flex items-center justify-between gap-8">
@@ -139,7 +139,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
   const grouped = [...isolated.reduce((map, event) => {
     const prev = map.get(event.key);
     map.set(event.key, prev ? { ...prev, from: Math.min(prev.from, event.from), to: Math.max(prev.to, event.to), checks: prev.checks + 1,
-      message: prev.message.includes(event.message) ? prev.message : `${prev.message} · ${event.message}` } : event);
+      message: prev.message.includes(event.message) ? prev.message : `${prev.message}, ${event.message}` } : event);
     return map;
   }, new Map<string, FailureEvent>()).values()];
   const events = [...outages, ...grouped].sort((a, b) => b.from - a.from);
@@ -159,7 +159,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
             <dl aria-label="응답 시간 요약">
               <dt className="mb-1.5 type-caption text-text-muted">선택 기간 평균</dt>
               <dd data-response-average className="type-kpi text-text-base">
-                {average === null ? '—' : number(average)}{average !== null && <span className="ml-1.5 text-sm font-normal tracking-normal text-text-muted">ms</span>}
+                {average === null ? '-' : number(average)}{average !== null && <span className="ml-1.5 text-sm font-normal tracking-normal text-text-muted">ms</span>}
               </dd>
             </dl>
             <p data-response-counts className="type-caption text-text-muted">체크 <span className="tabular-nums text-text-secondary">{number(total)}회</span> 중 <span className={failed ? 'font-medium text-status-error' : ''}>실패 {number(failed)}회</span></p>
@@ -198,7 +198,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
               {failureBuckets.length > 0 && <span className="inline-flex items-center gap-1.5"><span className="h-3 border-l border-dashed border-status-error" />단발 실패</span>}
               {missing && <span>빈 구간은 수집 데이터 없음</span>}
             </div>
-            <span className="tabular-nums">{dateTime(window[0])} – {dateTime(window[1])} · {timezone}</span>
+            <span className="tabular-nums">{dateTime(window[0])} ~ {dateTime(window[1])} · {timezone}</span>
           </div>
           {events.length > 0 && (
             <div className="mt-6">
@@ -207,13 +207,14 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
                 {events.map((event) => (
                   <li key={event.key} data-response-event={event.kind} tabIndex={0}
                     onMouseEnter={() => setFocused(event.key)} onMouseLeave={() => setFocused(null)} onFocus={() => setFocused(event.key)} onBlur={() => setFocused(null)}
-                    className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-x-3 rounded-md px-2 py-1.5 outline-none hover:bg-bg-subtle focus-visible:bg-bg-subtle focus-visible:ring-2 focus-visible:ring-primary sm:grid-cols-[5.5rem_12rem_minmax(0,1fr)]">
+                    className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-x-3 rounded-md px-2 py-1.5 hover:bg-ui-hover-soft focus-visible:bg-ui-hover-soft sm:grid-cols-[5.5rem_12rem_minmax(0,1fr)]">
                     <span className={`type-label-sm ${event.kind === 'outage' ? 'text-status-error' : 'text-status-warn'}`}>
                       {event.kind === 'outage' ? (event.active ? '장애 진행 중' : '장애') : '단발 실패'}
                     </span>
-                    <span className="type-caption tabular-nums text-text-base">
-                      {at(event.from)}{event.to > event.from && ` – ${event.active ? '지금' : at(event.to)}`}
-                      <span className="text-text-muted">{event.kind === 'outage' ? ` · ${formatDuration(Math.round((event.to - event.from) / 1000))}` : ''}{event.checks > 1 ? ` · ${number(event.checks)}회` : ''}</span>
+                    <span className="flex flex-wrap gap-x-3 type-caption tabular-nums text-text-base">
+                      <span>{at(event.from)}{event.to > event.from && ` ~ ${event.active ? '지금' : at(event.to)}`}</span>
+                      {event.kind === 'outage' && <span className="text-text-muted">{formatDuration(Math.round((event.to - event.from) / 1000))}</span>}
+                      {event.checks > 1 && <span className="text-text-muted">{`${number(event.checks)}회`}</span>}
                     </span>
                     <span className="col-span-2 min-w-0 sm:col-span-1"><HintTooltip content={event.message || '오류 메시지 없음'}><span className="block truncate type-caption text-text-secondary">{event.message || '오류 메시지 없음'}</span></HintTooltip></span>
                   </li>
@@ -221,7 +222,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
               </ul>
             </div>
           )}
-          {outsideThresholds.length > 0 && <p className="mt-2 type-caption text-text-muted">{outsideThresholds.map((rule) => `알림 ${OPERATOR_LABEL[rule.operator] ?? '>'} ${number(rule.threshold)}ms`).join(' · ')}</p>}
+          {outsideThresholds.length > 0 && <p className="mt-2 type-caption text-text-muted">{outsideThresholds.map((rule) => `알림 ${OPERATOR_LABEL[rule.operator] ?? '>'} ${number(rule.threshold)}ms`).join(', ')}</p>}
         </>
       )}
     </ChartCard>

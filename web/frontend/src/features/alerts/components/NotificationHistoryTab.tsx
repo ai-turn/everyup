@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ButtonLink, MaterialIcon, Pagination, SegmentedControl, SearchInput, ListToolbar, Select, IconButton, StatusLight } from '../../../components/common';
+import { ButtonLink, MaterialIcon, Pagination, SegmentedControl, SearchInput, ListToolbar, Select, StatusLight } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { api, type AlertRule, type NotificationChannel, type NotificationHistory, type NotificationStats } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
@@ -182,17 +182,13 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
     <div className="space-y-3">
       {/* Filter bar — status segments + type/channel/period + search */}
       <ListToolbar search={
-        <div className="relative">
-          <SearchInput
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="메시지 검색" aria-label="알림 메시지 검색"
-            className="pr-10"
-          />
-          {search && (
-            <IconButton icon="close" label="검색어 지우기" tone="quiet" size="sm" onClick={() => setSearch('')} className="absolute right-1 top-1/2 -translate-y-1/2" />
-          )}
-        </div>
+        <SearchInput
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+          shortcut
+          placeholder="메시지 검색" aria-label="알림 메시지 검색"
+        />
       }>
         <SegmentedControl
           size="md"

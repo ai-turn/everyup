@@ -221,18 +221,15 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       {errorBanner}
       {/* Filter bar — category pills + severity/enabled + search */}
       <ListToolbar search={
-        <div className="relative">
-          <SearchInput
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            aria-label="규칙 이름 또는 대상 검색"
-            placeholder="규칙 이름 · 대상 검색"
-            className="pr-10"
-          />
-          {searchQuery && (
-            <IconButton icon="close" label="검색어 지우기" tone="quiet" size="sm" onClick={() => setSearchQuery('')} className="absolute right-1 top-1/2 -translate-y-1/2" />
-          )}
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          onClear={() => setSearchQuery('')}
+          resultCount={filteredRules.length}
+          shortcut
+          aria-label="규칙 이름 또는 대상 검색"
+          placeholder="규칙 이름 · 대상 검색"
+        />
       }>
         <SegmentedControl
           size="md"
@@ -417,10 +414,10 @@ function SortableTH({ label, active, dir, onClick, className = '' }: { label: st
       <button
         type="button"
         onClick={onClick}
-        className={`inline-flex cursor-pointer items-center gap-1 ${active ? 'text-text-base' : ''}`}
+        className={`relative inline-flex cursor-pointer items-center gap-1 before:absolute before:-inset-x-1 before:-inset-y-3 before:content-[''] ${active ? 'text-text-base' : ''}`}
       >
         {label}
-        <span className={active ? 'opacity-100' : 'opacity-30'}>{active && dir === 'desc' ? '↓' : '↑'}</span>
+        <span className={active ? undefined : 'text-text-dim'}>{active && dir === 'desc' ? '↓' : '↑'}</span>
       </button>
     </th>
   );

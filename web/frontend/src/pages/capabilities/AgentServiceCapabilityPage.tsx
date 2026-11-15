@@ -40,7 +40,10 @@ function ServiceListSkeleton() {
 
 export function AgentServiceCapabilityPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const query = searchParams.get('q') ?? '';
+  // 입력값은 로컬 상태가 쥔다. URL(?q=)은 react-router가 transition 안에서 반영해 값이 한 박자 늦게 돌아오므로,
+  // URL에 직접 묶으면 한글 조합 중 글자가 덮여 '결제'가 'ㄱ겨결결ㅈ제제'가 됐다. URL은 공유·복귀용 사본이다.
+  // ponytail: URL→입력은 마운트 때만 읽는다. 같은 화면에서 ?q=만 바뀌는 이동이 생기면 그때 동기화를 더한다.
+  const [query, setQueryInput] = useState(() => searchParams.get('q') ?? '');
   const status = parseStatus(searchParams.get('status'));
   const { view, setView } = useListView();
   const setParam = (key: string, value: string | null) => {
@@ -49,7 +52,7 @@ export function AgentServiceCapabilityPage() {
     next.delete('inspect');
     setSearchParams(next, { replace: true });
   };
-  const setQuery = (value: string) => setParam('q', value);
+  const setQuery = (value: string) => { setQueryInput(value); setParam('q', value); };
   const setStatus = (value: UptimeState | null) => setParam('status', value);
   const returnTo = `/uptime${searchParams.size ? `?${searchParams}` : ''}`;
   const [adding, setAdding] = useState(false);
@@ -120,7 +123,7 @@ export function AgentServiceCapabilityPage() {
 
   return (
     <div className={prototypeVariant ? 'pb-36' : ''}>
-      <PageHeader compactActions title="업타임" subtitle="서비스가 정상적으로 응답하는지 확인하고, 장애가 발생한 대상을 빠르게 찾습니다.">
+      <PageHeader menu compactActions title="업타임">
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>
 
@@ -149,7 +152,7 @@ export function AgentServiceCapabilityPage() {
       </div>
 
       <ListToolbar inline search={
-        <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
+        <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filteredMonitors.length} shortcut placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
       }>
         <ListViewToggle view={view} onChange={(next) => { setSelected(new Set()); setView(next); }} />
       </ListToolbar>

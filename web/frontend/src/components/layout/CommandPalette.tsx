@@ -139,7 +139,7 @@ export function CommandPalette() {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
-        <div className="flex items-center gap-2 px-4 border-b border-ui-border">
+        <div className="flex items-center gap-2 px-4 border-b border-ui-border focus-within:outline-2 focus-within:outline-action focus-within:-outline-offset-2">
           <MaterialIcon size={20} name="search" className="text-text-dim shrink-0" />
           <input
             ref={inputRef}
