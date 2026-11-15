@@ -365,7 +365,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
             <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
 
                 {/* ── Left: form steps ─────────────────────────────────── */}
-                <div className="space-y-8 min-w-0">
+                <div className="section-stack min-w-0">
 
                     {/* Step 1: Type + Name */}
                     <FormStep n={1} title="채널 유형">

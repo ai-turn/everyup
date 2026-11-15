@@ -70,7 +70,7 @@ export function SettingsDesktopView({
       )}
 
       <div>
-        <div className="min-w-0 w-full max-w-4xl space-y-8">
+        <div className="min-w-0 w-full max-w-4xl section-stack">
           {user && (
             <div id="sec-account" className="scroll-mt-4">
               <AccountSection />

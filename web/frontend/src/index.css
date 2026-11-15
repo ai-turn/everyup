@@ -164,6 +164,16 @@
   }
 }
 
+/* 카드 없이 놓인 페이지 섹션 사이: 32px 간격의 가운데에 옅은 가로선 하나(DESIGN.md §3.1).
+   space-y-8 대신 쓴다. 차트 카드처럼 이미 테두리가 있는 요소끼리는 선이 겹치므로 쓰지 않는다. */
+@utility section-stack {
+  & > * + * {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-ui-border-soft);
+  }
+}
+
 @utility type-section-title {
   font-size: var(--text-xl);
   line-height: 1.75rem;
