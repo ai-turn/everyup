@@ -47,7 +47,9 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
                         <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-center">
                             {subtitle && <p className="min-w-0 type-body text-text-muted max-w-2xl">{subtitle}</p>}
                             {!compactActions && inlineChildren && (
-                                <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:w-auto md:shrink-0 md:justify-end">
+                                // 메뉴 첫 화면은 갱신 같은 보조 조작이 주 액션 앞에 온다 — 좁은 화면에서 쌓지 않고
+                                // 한 줄에 두고 마지막(주 액션)이 남은 폭을 채운다. 하나뿐이면 예전처럼 꽉 찬다.
+                                <div className={`flex w-full gap-2 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:w-auto md:shrink-0 md:justify-end ${menu ? 'flex-wrap items-center *:last:grow sm:*:last:grow-0' : 'flex-col'}`}>
                                     {inlineChildren}
                                 </div>
                             )}

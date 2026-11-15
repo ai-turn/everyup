@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button, EmptyState, ListViewToggle, MaterialIcon, PageHeader, TimeRangePicker } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
-import { DockerEnvironmentHint } from '../../features/services/components/DockerEnvironmentHint';
 import { ApiTargets } from '../../features/api-requests/ApiTargets';
 import { useApiTargets } from '../../features/api-requests/useApiTargets';
 import { useRequestQuery, useRequestWindow } from '../../features/api-requests/useRequestQuery';
@@ -16,20 +15,17 @@ export function ApiPage() {
   const { rows, loading, error, retryTarget } = useApiTargets(window, refreshKey);
   return <div>
     <PageHeader menu title="API 요청">
+      <Button collapseLabel variant="secondary" onClick={reload}><MaterialIcon name="refresh" />새로고침</Button>
       <MonitoringConnection capability="api" onConnected={reload} />
     </PageHeader>
-      <DockerEnvironmentHint className="mb-5" />
-    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <TimeRangePicker value={range} onChange={value => update({ range: value })} />
-        <Button variant="secondary" onClick={reload}><MaterialIcon name="refresh" />새로고침</Button>
-      </div>
-      <ListViewToggle view={view} onChange={setView} />
+    {/* 검색은 없고 기간 필터만 있다 — 툴바 줄에는 필터만 둔다(보기 전환은 목록 제목 줄). */}
+    <div className="mb-5 flex flex-wrap items-center gap-2">
+      <TimeRangePicker value={range} onChange={value => update({ range: value })} />
     </div>
     {loading ? <div aria-label="API 대상 조회 중" className="h-40 animate-pulse rounded-xl bg-ui-hover-soft" />
       : error ? <EmptyState icon="error_outline" title="API 데이터를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
         : rows.length === 0 ? <EmptyState icon="api" title="표시할 API 대상이 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
           <div className="flex flex-col items-center gap-4"><MonitoringConnection capability="api" onConnected={reload} /></div>
-        </EmptyState> : <ApiTargets rows={rows} view={view} range={range} returnTo={returnTo} onRetry={retryTarget} />}
+        </EmptyState> : <ApiTargets rows={rows} view={view} range={range} returnTo={returnTo} onRetry={retryTarget} viewToggle={<ListViewToggle view={view} onChange={setView} />} />}
   </div>;
 }

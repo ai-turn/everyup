@@ -237,6 +237,7 @@ export function ServiceGridPage() {
   // 업타임·요청·p95는 환경 행과 서비스 행이 같은 열을 쓴다 — 서비스 값은 같은 집계의 서비스별 조각이다.
   const rollupOf = (row: EnvRow | ServiceRow): { uptimePct: number | null; requests24h: number; p95Ms: number | null } | undefined =>
     row.kind === 'env' ? row.rollup : overview[row.agentId]?.services?.find(item => item.key === row.service.key);
+  const shownServiceCount = envRows.reduce((sum, row) => sum + row.shown.length, 0);
   const serviceStatus = (service: AgentServiceFlat) => <StatusLight tone={service.healthy ? 'healthy' : 'error'} label={service.healthy ? '정상' : '장애'} />;
 
   return (
@@ -258,10 +259,10 @@ export function ServiceGridPage() {
           placeholder="서비스 또는 Docker 환경 이름으로 검색"
           aria-label="서비스 또는 Docker 환경 검색"
           onClear={() => setSearch('')}
-          resultCount={`환경 ${envRows.length} · 서비스 ${envRows.reduce((sum, row) => sum + row.shown.length, 0)}`}
+          resultCount={`환경 ${envRows.length} · 서비스 ${shownServiceCount}`}
           shortcut
         />
-      }><ListViewToggle view={view} onChange={setView} /></ListToolbar>
+      } />
 
       <div className="space-y-5">
 
@@ -286,10 +287,17 @@ export function ServiceGridPage() {
           description="Docker 환경을 연결하면 컨테이너와 호스트가 자동으로 표시됩니다"
           action={{ label: 'Docker 연결', onClick: () => setShowAddModal(true) }}
         />
-      ) : groups.length === 0 && visiblePending.length === 0 ? (
-        <EmptyState icon="sensors" title="검색 결과가 없습니다" />
       ) : (
-        view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
+        // 검색으로 비어도 목록 제목 줄(보기 전환)은 남긴다.
+        <section>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="shrink-0 type-section-title text-text-base">Docker 환경 목록</h2>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="min-w-0 text-right text-balance text-xs text-text-dim">{`환경 ${envRows.length}개 · 서비스 ${shownServiceCount}개`}</span>
+            <ListViewToggle view={view} onChange={setView} />
+          </div>
+        </div>
+        {envRows.length === 0 ? <EmptyState icon="sensors" title="검색 결과가 없습니다" /> : view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
           { key: 'name', label: 'Docker 환경 · 서비스', render: row => row.kind === 'env' ? (
             // 펼침 버튼(20px)의 가운데(left-2.5)가 하위 행 연결선의 x다. -my-4 py-4로 셀 높이 전체를 덮어야 선이 행 사이에서 끊기지 않는다.
             <div className="relative -my-4 py-4">
@@ -346,7 +354,8 @@ export function ServiceGridPage() {
               onInstall={() => setInstallModalAgent({ id: agent.id, name: agent.name })}
             />
           ))}
-        </div>
+        </div>}
+        </section>
       )}
 
       {showAddModal && (
