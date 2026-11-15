@@ -82,7 +82,7 @@ export const CHART_MARGIN = { top: 8, right: 8, left: 0, bottom: 0 } as const;
 
 /** 차트 카드 공통 클래스 — 패딩(p-4/p-6)은 소비처에서 붙인다. */
 export const chartCardClass =
-  'rounded-xl border border-ui-border bg-bg-surface';
+  'rounded-xl border border-ui-border-soft bg-bg-surface';
 
 export function gridProps(theme: ChartTheme) {
   return { stroke: theme.gridColor, strokeOpacity: 0.55, vertical: false } as const;

@@ -14,7 +14,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false }: PageHeaderProps) {
     return (
-        <div className={`mb-6 border-b border-ui-border pb-5 ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
+        <div className={`mb-6 ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
             <div className="min-w-0 flex-1">
                 <div className={compactActions ? 'flex items-center justify-between gap-3' : ''}>
                     <h1 className="wrap-anywhere type-page-title text-text-base">{title}</h1>

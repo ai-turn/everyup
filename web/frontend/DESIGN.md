@@ -400,13 +400,23 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 ## 3. 레이아웃
 
-### 3.1 카드 (정본)
+### 3.1 테두리와 카드 (2026-11-15, Linear 레퍼런스)
 
-```
-bg-bg-surface border border-ui-border rounded-xl
-```
+**구분은 선이 아니라 간격과 hover 채움으로 한다.** 회색 페이지 위에 테두리 카드를 쌓고 카드 안을 가로선으로 나누던 구성이 위젯을 모아 놓은 화면처럼 보였다(개요 점검, 2026-11-15). 라이트 페이지는 흰색 한 톤(§1.2)이므로 섹션은 제목과 간격으로 나눈다.
 
-내부 패딩은 `p-4`(조밀) 또는 `p-6`(여유). 카드 안 서브블록은 `bg-ui-hover-soft border border-ui-border rounded-md` — **부모와 같은 `rounded-xl`을 쓰지 않는다**(§3.2 동심 규칙).
+| 대상 | 규칙 |
+|---|---|
+| 페이지 섹션 | 카드로 감싸지 않는다. 섹션 제목(`type-card-title`, 그룹 제목은 `type-label-sm`) + 섹션 간격(`space-y-8`) |
+| 목록·표 | 바깥 카드 셸(`rounded-xl border bg-bg-surface`)을 쓰지 않는다. 헤더 행은 배경 없이 아래 `border-ui-border-soft` 한 줄만. 본문 행 사이 구분선(`divide-y`, 행 `border-t/b`)은 쓰지 않는다. 행은 `hover:bg-ui-hover-soft`로 드러낸다 |
+| 회색 띠 | 헤더·그룹 제목·카드 머리에 배경 띠(`bg-ui-table-header`, `bg-ui-hover` 헤더)를 깔지 않는다 |
+| 탭 줄 | 탭 아래 전폭 가로선을 두지 않는다. 선택 표시(밑줄)는 선택된 탭에만 |
+| 정의 목록(`DetailMeta` 등) | 행마다 선을 긋지 않는다. 라벨 열과 행 간격으로 정렬한다 |
+| 남기는 카드 | 차트 카드(`chartCardClass`), KPI·요약 타일(`SummaryCard`), **카드 보기**의 항목 카드, 상태 배너만 카드다. 테두리는 `border-ui-border-soft` |
+| 떠 있는 표면 | 다이얼로그·팝오버·메뉴·툴팁은 그대로 `border-ui-border`(§3.5). 본문 위에 떠 있어 경계가 필요하다 |
+| 입력 컨트롤 | 그대로 `border-ui-control-border`(§1.2, 3:1) |
+| 코드·명령 블록 | 테두리 없이 `bg-ui-hover-soft rounded-md` |
+
+카드 안 서브블록이 필요하면 `bg-ui-hover-soft rounded-md`(테두리 없음)이고, 부모와 같은 `rounded-xl`을 쓰지 않는다(§3.2 동심 규칙). 내부 패딩은 `p-4`(조밀) 또는 `p-6`(여유)다.
 
 ### 3.2 radius
 
@@ -792,22 +802,22 @@ API 대상 목록은 기본 6시간의 요청 수·5xx를 비교하며, 기간�
 
 대상 비교 목록은 공용 `ResourceTable`을 쓴다. 정렬·페이지·고정 작업 열이 있는 알림 데스크톱 표와 로그·트레이스 표는 아래 마크업 규약을 따른다. 두 종류다.
 
-**데이터 표** — 카드 하나를 통째로 쓰는 목록(알림 규칙·채널·발송 이력, 트레이스). 카드 셸(`overflow-hidden rounded-xl border border-ui-border bg-bg-surface`)에 패딩 없이 붙인다. 그래야 첫 열의 `px-4`가 다른 카드의 `p-4`와 같은 기준선이 된다.
+**데이터 표** — 목록 하나를 통째로 보여 주는 표(알림 규칙·채널·발송 이력, 트레이스). 카드 셸 없이 페이지에 바로 놓는다(§3.1).
 
 API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 화살표를 하나의 `Button text`에 함께 표시한다. 버튼의 hover 채움 없이 경로에만 밑줄을 표시하며, 키보드 포커스에서도 같은 밑줄을 표시한다. `aria-haspopup="dialog"`와 접근 가능한 이름으로 목적을 알린다. 긴 경로는 말줄임하고 전체 경로를 공통 툴팁과 접근 가능한 이름에 유지한다. trace ID가 없는 경로에는 액션을 표시하지 않는다.
 
 | 부분 | 클래스 |
 |------|--------|
-| 헤더 행 | `bg-ui-table-header border-b border-ui-border` — 행 hover와 별도 배경 |
+| 헤더 행 | 배경 없이 `border-b border-ui-border-soft` 한 줄 |
 | 헤더 셀 | `px-4 py-3 text-left text-xs font-medium text-text-muted` |
-| 본문 셀 | `px-4 py-2.5`, 행 구분은 `border-ui-border-soft` 한 줄(`divide-y` 또는 행 `border-t`) |
+| 본문 셀 | `px-4 py-2.5`, 행 사이 구분선 없음(§3.1) |
 | 숫자·시간 열 | 헤더와 셀 모두 `text-right`, 셀은 `tabular-nums` |
 | 상세로 이동하는 행 | `hover:bg-ui-hover-soft`(§3.6 — 배지 대비 유지), `data-row-link` 제목 링크와 `tableRowLinkHandlers`. 행 빈 공간도 같은 링크로 이동 |
-| 넓은 표 | `overflow-x-auto` 안에 `min-w-[…] table-fixed`. 작업 열은 `sticky right-0 border-l border-ui-border-soft`에 행과 같은 배경 |
+| 넓은 표 | `overflow-x-auto` 안에 `min-w-[…] table-fixed`. 작업 열은 `sticky right-0`에 행과 같은 배경(세로선 없음) |
 
 본문 글자는 `text-sm`, 로그·트레이스처럼 기계 문자열이 주인 표는 `text-xs`(§2.2).
 
-헤더는 hover 상태와 다른 배경을 사용한다. 행 hover는 배지·본문 대비를 유지하도록 기존 `ui-hover-soft`로 둔다. 상세 행의 기본 클릭은 제목의 실제 링크로 전달해 Router state와 복귀 경로를 보존하고, Ctrl/Meta/중간 클릭은 같은 URL을 새 탭에서 연다. 키보드는 같은 제목 링크를 사용하며, 행을 별도 버튼으로 바꾸거나 중복 Tab 지점을 추가하지 않는다. 행 안의 링크·버튼·토글·입력·summary와 텍스트 선택은 행 이동을 실행하지 않는다. `table-row-link`는 비활성 버튼도 클릭 대상으로 유지해 `pointer-events:none` 때문에 클릭이 행에 전달되는 것을 막는다. 상세 목적지가 없는 행은 이동 가능한 커서를 표시하지 않는다.
+헤더는 배경을 쓰지 않는다. 행 hover는 배지·본문 대비를 유지하도록 기존 `ui-hover-soft`로 둔다. 상세 행의 기본 클릭은 제목의 실제 링크로 전달해 Router state와 복귀 경로를 보존하고, Ctrl/Meta/중간 클릭은 같은 URL을 새 탭에서 연다. 키보드는 같은 제목 링크를 사용하며, 행을 별도 버튼으로 바꾸거나 중복 Tab 지점을 추가하지 않는다. 행 안의 링크·버튼·토글·입력·summary와 텍스트 선택은 행 이동을 실행하지 않는다. `table-row-link`는 비활성 버튼도 클릭 대상으로 유지해 `pointer-events:none` 때문에 클릭이 행에 전달되는 것을 막는다. 상세 목적지가 없는 행은 이동 가능한 커서를 표시하지 않는다.
 
 **목록 보기 (2026-10-18)** — 업타임·그룹·Docker 환경·로그·인프라·API 요청·메트릭·알림의 기본은 그리드(비교 표)다. 환경 상세의 서비스 목록과 그룹 상세의 구성 목록도 같다. 목록 툴바 오른쪽의 `ListViewToggle`로 카드를 선택하며, `useListView`가 `view=card`를 URL에 보존한다. 기본값과 알 수 없는 값은 그리드다. 보기만 바꿀 때 검색·탭·대상 필터를 지우지 않고, 두 보기는 같은 데이터·순서·작업을 사용한다. 개요 상태판·상세 차트·설정 폼에는 적용하지 않는다.
 

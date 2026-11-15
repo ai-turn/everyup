@@ -22,9 +22,9 @@ interface DetailMetaProps {
 export function DetailMeta({ status, fields = [], collapseOnMobile = false, collapseLabel = '서비스 정보' }: DetailMetaProps) {
   const narrow = useMediaQuery('(max-width: 639px)');
   const fieldList = fields.length > 0 ? (
-    <dl className="grid max-w-4xl border-t border-ui-border-soft sm:grid-cols-2 sm:gap-x-12">
+    <dl className="grid max-w-4xl sm:grid-cols-2 sm:gap-x-12">
       {fields.map(field => (
-        <div key={field.label} className="flex min-h-12 min-w-0 items-center gap-4 border-b border-ui-border-soft py-1">
+        <div key={field.label} className="flex min-h-10 min-w-0 items-center gap-4 py-1">
           <dt className="w-24 shrink-0 type-body text-text-dim">{field.label}</dt>
           <dd className="flex min-w-0 flex-1 items-center gap-2 type-body text-text-base">{field.value}</dd>
         </div>
