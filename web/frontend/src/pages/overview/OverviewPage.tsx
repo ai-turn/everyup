@@ -200,7 +200,7 @@ export function OverviewPage() {
       <div className="space-y-5" aria-busy="true">
         <PageHeader title="모니터링 개요" subtitle="수집 상태와 현재 이상을 먼저 확인하세요." />
         <div className="h-8 w-96 max-w-full animate-pulse rounded-md bg-ui-hover-soft" />
-        <div className="h-80 animate-pulse rounded-lg border border-ui-border bg-bg-surface" />
+        <div className="h-80 animate-pulse rounded-lg bg-ui-hover-soft" />
       </div>
     );
   }
@@ -232,7 +232,7 @@ export function OverviewPage() {
       </p>
 
       {failedSources.length > 0 && (
-        <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
+        <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
           <div className="flex items-start gap-3">
             <MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" />
             <div>
@@ -248,7 +248,7 @@ export function OverviewPage() {
 
       {/* 조회 실패로 0건이 된 것을 "대상 없음"으로 오인해 온보딩을 띄우지 않는다. */}
       {totalTargets === 0 && !statusUnknown ? (
-        <section className="rounded-xl border border-ui-border bg-bg-surface">
+        <section>
           <EmptyState
             icon="sensors"
             title="아직 모니터링 대상이 없습니다"
