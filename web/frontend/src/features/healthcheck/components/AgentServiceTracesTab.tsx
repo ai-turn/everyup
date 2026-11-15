@@ -104,7 +104,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
       {loading ? (
         <div className="h-64 animate-pulse rounded-xl bg-ui-hover" />
       ) : error ? (
-        <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <MaterialIcon size={20} name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
             <div>
@@ -115,17 +115,17 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
           <Button variant="secondary" size="sm" onClick={() => setRetryKey(key => key + 1)}>다시 시도</Button>
         </section>
       ) : traces.length === 0 ? (
-        <div className="rounded-xl border border-ui-border bg-bg-surface p-8 text-center">
+        <div className="p-8 text-center">
           <p className="type-body text-text-muted">
             {errorsOnly ? '이 기간에 실패한 트레이스가 없습니다' : '이 기간에 수신한 트레이스가 없습니다. 기간을 바꾸거나 수집 설정을 확인해 주세요.'}
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-ui-border">
+        <div>
           {/* 좁은 화면에서는 이름 열만 두고 소요·Span·시작을 이름 아래로 내린다(요청 표와 같은 방식). 537px 표가 잘렸다. */}
           <table aria-label="트레이스 목록" className="w-full table-fixed text-sm">
             <thead>
-              <tr className="border-b border-ui-border bg-ui-hover-soft text-left type-label-sm text-text-muted">
+              <tr className="border-b border-ui-border-soft text-left type-label-sm text-text-muted">
                 <th scope="col" className="px-4 py-3 font-medium">트레이스</th>
                 <th scope="col" className="hidden w-28 px-4 py-3 font-medium sm:table-cell">종류</th>
                 <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium sm:table-cell">소요</th>
@@ -146,7 +146,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
                       setActiveTraceId(trace.traceId);
                     }
                   }}
-                  className="cursor-pointer border-b border-ui-border-soft bg-bg-surface transition-colors last:border-0 hover:bg-ui-hover-soft"
+                  className="cursor-pointer transition-colors hover:bg-ui-hover-soft"
                 >
                   <td className="min-w-0 px-4 py-2.5">
                     <div className="flex min-w-0 items-center gap-2">

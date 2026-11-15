@@ -77,7 +77,7 @@ function ServiceCard({ service, metric, to, returnTo }: {
       to={to}
       state={{ returnTo }}
       aria-label={service.name}
-      className="card-interactive group bg-bg-surface border border-ui-border rounded-xl p-4 flex flex-col gap-3"
+      className="card-interactive group bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3"
     >
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{service.name}</h3>}
@@ -224,7 +224,7 @@ export function ProjectDetailPage() {
   const banner = activeIncidents[0];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4) */}
       <Link
         to="/environments"
@@ -235,7 +235,7 @@ export function ProjectDetailPage() {
       </Link>
 
       {loadError && (
-        <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <MaterialIcon name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
             <p className="type-body text-text-secondary">Docker 환경 정보를 불러오지 못했습니다. {loadError}</p>
@@ -290,7 +290,7 @@ export function ProjectDetailPage() {
       {banner && (
         <Link
           to={`/services/${agentId}/${encodeURIComponent(banner.key)}`}
-          className="w-full flex items-center gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3 text-left hover:bg-ui-hover-soft transition-colors"
+          className="w-full flex items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 text-left hover:bg-ui-hover-soft transition-colors"
         >
           <span className="h-2.5 w-2.5 rounded-full bg-status-error-fill animate-pulse shrink-0" />
           <span className="type-label text-text-base truncate">
@@ -362,21 +362,21 @@ export function ProjectDetailPage() {
         <AgentCheckHistoryBar agentId={agentId} />
       )}
 
-      {/* Incident history | event timeline — 둘 다 리스트 카드라 나란히 두면 높이가 맞는다 */}
+      {/* Incident history | event timeline — 카드 없이 제목+간격으로 나눈 두 섹션(DESIGN.md §3.1) */}
       {services.length > 0 && agentId && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Incident history */}
-          <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
+          <section>
               <h3 className="type-card-title text-text-base mb-3">장애 이력 · 30일</h3>
               {incidents.length === 0 ? (
                 <p className="type-body text-text-muted py-4 text-center">최근 30일간 장애가 없습니다</p>
               ) : (
-                <div className="space-y-2">
+                <div className="-mx-3 space-y-0.5">
                   {incidents.slice(0, 5).map((inc, i) => (
                     <Link
                       key={`${inc.key}-${inc.startedAt}-${i}`}
                       to={`/services/${agentId}/${encodeURIComponent(inc.key)}`}
-                      className="w-full flex items-start gap-3 rounded-lg border border-ui-border px-3 py-2 text-left transition-colors hover:bg-ui-hover-soft"
+                      className="w-full flex items-start gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-ui-hover-soft"
                     >
                       <span className={`h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 ${inc.active ? 'bg-status-error-fill' : 'bg-status-healthy-fill'}`} />
                       <span className="min-w-0 flex-1">
@@ -392,17 +392,17 @@ export function ProjectDetailPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
 
             {/* Event timeline */}
-            <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
+            <section>
               <h3 className="type-card-title text-text-base mb-3">타임라인</h3>
               {events.length === 0 ? (
                 <p className="type-body text-text-muted py-4 text-center">최근 이벤트가 없습니다</p>
               ) : (
                 <div className="space-y-0.5">
                   {events.map((e) => (
-                    <div key={e.id} className="flex items-baseline gap-2 py-1.5 border-b border-ui-border-soft/50 last:border-0">
+                    <div key={e.id} className="flex items-baseline gap-2 py-1.5">
                       <span className="text-xs text-text-dim w-10 shrink-0">
                         {new Date(e.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
@@ -418,7 +418,7 @@ export function ProjectDetailPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
         </div>
       )}
 

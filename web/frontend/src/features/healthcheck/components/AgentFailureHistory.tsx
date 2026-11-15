@@ -34,7 +34,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
 
   if (loading) {
     return (
-      <div className="p-6 rounded-xl border border-ui-border bg-bg-surface animate-pulse">
+      <div className="animate-pulse">
         <div className="h-5 bg-ui-active rounded w-40 mb-4" />
         {[1, 2].map((i) => (
           <div key={i} className="h-14 bg-ui-hover rounded-lg mb-3" />
@@ -44,7 +44,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
   }
 
   return (
-    <div className="p-6 rounded-xl border border-ui-border bg-bg-surface">
+    <section>
       <div className="flex items-center gap-3 mb-5">
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-status-error/10 shrink-0">
           <MaterialIcon size={20} name="history" className="text-status-error" />
@@ -68,13 +68,13 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
           <p className="text-text-muted type-body">알림 기록이 없습니다</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-1">
           {(events ?? []).map((event) => {
             const isAlert = event.type === 'alert_sent';
             return (
               <div
                 key={event.id}
-                className="flex items-start gap-3 p-4 rounded-xl border border-ui-border bg-ui-hover-soft/50"
+                className="flex items-start gap-3 py-2"
               >
                 <MaterialIcon size={20}
                   name={isAlert ? 'error' : 'check_circle'}
@@ -93,6 +93,6 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
           })}
         </div>
       )}
-    </div>
+    </section>
   );
 }

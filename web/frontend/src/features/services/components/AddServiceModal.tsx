@@ -170,7 +170,7 @@ function AgentForm({
           <p className="type-body text-text-muted">업타임과 로그만 수집합니다. Docker socket은 읽기 전용으로 사용합니다.</p>
         )}
         {profileKind === 'custom' && (
-          <div role="group" aria-label="사용자 지정 수집 기능" className="divide-y divide-ui-border rounded-xl border border-ui-border">
+          <div role="group" aria-label="사용자 지정 수집 기능" className="-mx-3">
             {CAPABILITY_OPTIONS.map((option) => {
               const checked = customCapabilities.includes(option.capability);
               const disabled = option.capability === 'uptime' && uptimeRequired;
@@ -226,8 +226,8 @@ function AgentInstallCommand({
   onRefreshCode: () => void;
 }) {
   return (
-    <details open={expanded} className="group rounded-xl border border-ui-border bg-bg-surface">
-      <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm text-text-base">
+    <details open={expanded} className="group">
+      <summary className="-mx-3 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-3 text-sm text-text-base transition-colors hover:bg-ui-hover-soft">
         <MaterialIcon size={20} name="terminal" className="text-action" />
         Docker Collector 설치 명령
         <span className="ml-auto text-xs font-normal text-text-dim">
@@ -235,8 +235,8 @@ function AgentInstallCommand({
         </span>
         <MaterialIcon size={20} name="expand_more" className="text-text-dim transition-transform group-open:rotate-180" />
       </summary>
-      <div className="space-y-4 border-t border-ui-border-soft p-4">
-        <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
+      <div className="space-y-4 pt-2">
+        <div className="flex items-start gap-3 rounded-md bg-ui-hover-soft p-3">
           <MaterialIcon size={20} name="timer" className="mt-0.5 shrink-0 text-status-warn" />
           <div className="min-w-0 flex-1">
             <p className="type-label text-text-base">일회용 연결 코드</p>
@@ -264,7 +264,7 @@ function AgentInstallCommand({
               <span>복사</span>
             </CopyButton>
           </div>
-          <pre className="overflow-auto whitespace-pre-wrap break-all rounded-xl bg-slate-900 px-4 py-3 font-mono text-xs text-slate-100 dark:bg-slate-950">
+          <pre className="overflow-auto whitespace-pre-wrap break-all rounded-md bg-ui-hover-soft px-4 py-3 font-mono text-xs text-text-base">
             {codeUnavailable ? '사용 가능한 연결 코드가 필요합니다. 새 코드를 발급해 주세요.' : installCommand}
           </pre>
         </div>
@@ -275,7 +275,7 @@ function AgentInstallCommand({
             ['backup', '안전한 설치', '기존 설정을 백업하고 새 설정 저장'],
             ['sensors', '자동 발견', 'Docker Collector와 eBPF Observer를 함께 시작'],
           ].map(([icon, title, description]) => (
-            <div key={title} className="rounded-lg bg-ui-hover-soft p-2.5">
+            <div key={title} className="rounded-md bg-ui-hover-soft p-2.5">
               <MaterialIcon size={20} name={icon} className="text-action" />
               <p className="mt-1 font-medium text-text-secondary">{title}</p>
               <p className="mt-0.5 type-body text-text-muted">{description}</p>
@@ -471,7 +471,7 @@ export function AddServiceModal({
         ) : (
           <div className="p-6 space-y-5 overflow-y-auto">
             {env.isDemoMode && (
-              <div className="space-y-2 rounded-lg border border-ui-border bg-ui-hover-soft p-4">
+              <div className="space-y-2 rounded-md bg-ui-hover-soft p-4">
                 <p className="type-body text-text-base">예시 설치 화면입니다. 이 데모에서는 서버를 연결할 수 없습니다.</p>
                 <p className="type-caption text-text-muted">추가한 예시 환경은 새로고침하면 초기화됩니다.</p>
                 <a href={QUICKSTART_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center type-body text-action hover:underline">실제 설치 방법 보기</a>
@@ -480,7 +480,7 @@ export function AddServiceModal({
             {setupError && <p role="alert" className="type-body text-status-warn">{setupError}</p>}
             {codeExpired && !connected && <p role="alert" className="type-body text-status-warn">설치 명령이 만료됐습니다. 아래에서 새 코드를 발급해 주세요.</p>}
             {connected ? (
-              <div className="flex items-start gap-3 rounded-xl border border-ui-border bg-ui-hover-soft p-4">
+              <div className="flex items-start gap-3 rounded-md bg-ui-hover-soft p-4">
                 <MaterialIcon size={20} name="check_circle" className="mt-0.5 shrink-0 text-status-healthy" />
                 <div>
                   <p className="type-body text-text-base">Docker Collector 연결을 확인했습니다</p>
@@ -490,7 +490,7 @@ export function AddServiceModal({
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <div className="flex items-center gap-3 rounded-md bg-primary/5 p-4">
                 <span className="relative flex h-3 w-3 shrink-0">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-50" />
                   <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />

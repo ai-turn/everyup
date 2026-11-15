@@ -20,7 +20,7 @@ export function InstrumentationRunStatus({ agentId, runId }: { agentId: string; 
   if (!run && !error) return null;
   if (run && isHistory(run, Boolean(runId))) return null;
   const failed = run?.status === 'failed' || run?.status === 'rollback_failed';
-  return <section aria-label="상세 수집 적용 결과" className="space-y-2 rounded-xl border border-ui-border bg-ui-hover-soft p-4">
+  return <section aria-label="상세 수집 적용 결과" className="space-y-2 rounded-md bg-ui-hover-soft p-4">
     <h4 className="type-label text-text-base">{runId ? '상세 수집 적용 결과' : '최근 상세 수집 적용 기록'}</h4>
     {error ? <p role="alert" className="type-body text-status-warn">{error}</p> : run && <>
       <p className="type-body text-text-secondary">{run.project} · {run.targets.map(target => target.name).join(', ')}</p>

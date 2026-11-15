@@ -32,7 +32,7 @@ function ServiceListSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {[0, 1, 2].map((item) => (
-        <div key={item} className="h-36 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />
+        <div key={item} className="h-36 animate-pulse rounded-xl border border-ui-border-soft bg-bg-surface" />
       ))}
     </div>
   );
@@ -124,7 +124,7 @@ export function AgentServiceCapabilityPage() {
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>
 
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-ui-border pb-4">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         {!loading && !error && hasTargets && (
           <section aria-label="업타임 상태 요약" className="w-full sm:w-auto">
             {/* 숫자를 누르면 그 상태만 본다(다시 누르면 해제). Uptime Kuma의 상태 필터를 요약에 겹쳤다. */}
@@ -155,7 +155,7 @@ export function AgentServiceCapabilityPage() {
       </ListToolbar>
 
       {error && (
-        <section role="status" className="mb-6 flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section role="status" className="mb-6 flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <MaterialIcon name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
             <div>
@@ -171,7 +171,7 @@ export function AgentServiceCapabilityPage() {
       )}
 
       {selectedMonitors.length > 0 && (
-        <div role="region" aria-label="선택한 대상 작업" className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-4 py-2">
+        <div role="region" aria-label="선택한 대상 작업" className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-2">
           <p className="mr-auto type-body text-text-base"><span className="font-medium tabular-nums">{selectedMonitors.length}</span>개 선택</p>
           <Button size="sm" variant="secondary" disabled={bulkDisabled || toPause.length === 0} loading={bulkWorking}
             onClick={() => void runBulk(toPause, (monitor) => api.updateUptimeMonitor(monitor.id, withActive(monitor, false)), '일시정지')}>

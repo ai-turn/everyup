@@ -68,7 +68,7 @@ function CommandRow({
   onCopy: (value: string) => void;
 }) {
   return (
-    <div className="rounded-lg border border-ui-border bg-ui-hover-soft px-3 py-2">
+    <div className="rounded-md bg-ui-hover-soft px-3 py-2">
       <div className="mb-1 flex items-center justify-between gap-2">
         <span className="type-label-sm text-text-muted">{label}</span>
         <CopyButton
@@ -181,7 +181,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
             </div>
           ) : (
             <>
-              <div className="rounded-xl border border-ui-border bg-ui-hover-soft p-4">
+              <div className="rounded-md bg-ui-hover-soft p-4">
                 <div className="flex items-start gap-3">
                   <MaterialIcon size={20} name="verified_user" className="mt-0.5 shrink-0 text-status-healthy" />
                   <div>
@@ -250,7 +250,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 </div>
               </div>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-ui-border p-3 transition-colors hover:bg-ui-hover-soft">
+              <label className="-mx-3 flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors hover:bg-ui-hover-soft">
                 <input
                   type="checkbox"
                   checked={captureBodies}
@@ -270,7 +270,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 <Button onClick={() => void prepare()} disabled={targets.length === 0 || webAddressMissing || composePathMissing} loading={preparing}>변경 사항 확인</Button>
                 {targets.length === 0 && <p className="type-body text-text-muted">적용할 서비스를 하나 이상 선택하세요.</p>}
               </div>
-              {plan && <div className="space-y-3 rounded-xl border border-ui-border p-4" aria-label="상세 수집 변경 미리보기">
+              {plan && <div className="space-y-3" aria-label="상세 수집 변경 미리보기">
                 <p className="type-label text-text-base">재시작 대상: {targets.map(target => target.name).join(', ')}</p>
                 <p className="type-body text-text-muted">선택한 서비스에 Java agent 또는 Node preload, OTLP 전송 설정, 주입 파일 볼륨과 모니터링 네트워크를 추가합니다. 다른 서비스의 기존 설정은 유지합니다.</p>
                 <p className="type-body text-text-muted">먼저 서버 미리보기 명령으로 실제 Compose를 검증한 뒤 적용하세요. 실행 기록은 1시간 내 시작할 수 있으며, 적용·실패·복구 결과가 아래에 표시됩니다.</p>
@@ -291,26 +291,26 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                     <span>복사</span>
                   </CopyButton>
                 </div>
-                <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-all rounded-xl bg-slate-900 px-4 py-3 font-mono text-xs text-slate-100 dark:bg-black">
+                <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-all rounded-md bg-ui-hover-soft px-4 py-3 font-mono text-xs text-text-base">
                   {applyCommand}
                 </pre>
               </div>}
 
               <InstrumentationRunStatus agentId={agentId} runId={prepared?.run.id} />
 
-              <details className="rounded-xl border border-ui-border">
-                <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 type-label text-text-secondary">
+              <details>
+                <summary className="-mx-3 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 type-label text-text-secondary transition-colors hover:bg-ui-hover-soft">
                   적용 후 관리 명령
                   <MaterialIcon size={20} name="expand_more" className="ml-auto text-text-dim" />
                 </summary>
-                <div className="space-y-2 border-t border-ui-border-soft p-3">
+                <div className="space-y-2 pt-2">
                   <CommandRow label="상태 확인" command={statusCommand} onCopy={copy} />
                   <CommandRow label="다시 검증" command={verifyCommand} onCopy={copy} />
                   <CommandRow label="직전 설정으로 되돌리기" command={rollbackCommand} onCopy={copy} />
                 </div>
               </details>
 
-              <div className="space-y-1 border-t border-ui-border-soft pt-3">
+              <div className="space-y-1">
                 {skipped.length > 0 && (
                   <p className="type-body text-text-muted">
                     제외됨(Compose 관리 대상 아님): {skipped.map((service) => service.name).join(', ')}
