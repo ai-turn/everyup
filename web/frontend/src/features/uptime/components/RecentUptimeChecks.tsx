@@ -13,8 +13,8 @@ export function RecentUptimeChecks({ metrics, paused = false, stale = false }: {
     ? checkedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
     : checkedAt.toLocaleDateString([], { month: 'numeric', day: 'numeric' });
   const result = [paused ? '정지 전 기록' : '', time, check.status === 'failure' ? '실패' : check.statusCode ? '' : '정상',
-    check.statusCode ? `HTTP ${check.statusCode}` : '', check.status === 'success' ? `${Math.round(check.responseTime).toLocaleString()}ms` : check.errorMessage].filter(Boolean).join(' · ');
-  const detail = `${stale ? '이전에 불러온 기록입니다. ' : ''}최근 체크 ${checks.length}회. ${checkedAt.toLocaleString()} ${check.status === 'success' ? '정상' : '실패'} · ${result}`;
+    check.statusCode ? `HTTP ${check.statusCode}` : '', check.status === 'success' ? `${Math.round(check.responseTime).toLocaleString()}ms` : check.errorMessage].filter(Boolean);
+  const detail = `${stale ? '이전에 불러온 기록입니다. ' : ''}최근 체크 ${checks.length}회. ${checkedAt.toLocaleString()} ${check.status === 'success' ? '정상' : '실패'}, ${result.join(', ')}`;
   const move = (event: KeyboardEvent) => {
     const next = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: checks.length - 1 }[event.key];
     if (next === undefined) return;
@@ -30,7 +30,9 @@ export function RecentUptimeChecks({ metrics, paused = false, stale = false }: {
             className={`h-3 min-w-0 flex-1 rounded-sm ${item.status === 'success' ? 'bg-status-healthy-fill' : 'bg-status-error-fill'} ${slot === index ? 'opacity-75' : ''}`} />
         ))}
       </div>
-      <p className="mt-1 truncate type-caption text-text-muted" aria-live="polite">{result}</p>
+      <p className="mt-1 flex flex-wrap gap-x-3 type-caption text-text-muted" aria-live="polite">
+        {result.map((part, i) => <span key={i} className="max-w-full truncate">{part}</span>)}
+      </p>
     </div>
     </Tooltip>
   );

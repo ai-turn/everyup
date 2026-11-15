@@ -414,10 +414,10 @@ function SortableTH({ label, active, dir, onClick, className = '' }: { label: st
       <button
         type="button"
         onClick={onClick}
-        className={`inline-flex cursor-pointer items-center gap-1 ${active ? 'text-text-base' : ''}`}
+        className={`relative inline-flex cursor-pointer items-center gap-1 before:absolute before:-inset-x-1 before:-inset-y-3 before:content-[''] ${active ? 'text-text-base' : ''}`}
       >
         {label}
-        <span className={active ? 'opacity-100' : 'opacity-30'}>{active && dir === 'desc' ? '↓' : '↑'}</span>
+        <span className={active ? undefined : 'text-text-dim'}>{active && dir === 'desc' ? '↓' : '↑'}</span>
       </button>
     </th>
   );

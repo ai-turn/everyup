@@ -166,6 +166,20 @@
 
 /* 카드 없이 놓인 페이지 섹션 사이: 32px 간격의 가운데에 옅은 가로선 하나(DESIGN.md §3.1).
    space-y-8 대신 쓴다. 차트 카드처럼 이미 테두리가 있는 요소끼리는 선이 겹치므로 쓰지 않는다. */
+/* 텍스트 링크: 링크 색이 글자색과 같으므로(§1.4 무채색) 밑줄로 링크임을 드러낸다. 글자에 붙인 화살표(→, ›)는
+   쓰지 않는다(Hallmark gate 63). 밑줄은 쉴 때 dim, hover·포커스에서 글자색으로 진해진다. */
+@utility link-underline {
+  text-decoration-line: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--color-text-dim);
+  transition: text-decoration-color 150ms;
+  &:hover,
+  &:focus-visible {
+    text-decoration-color: currentColor;
+  }
+}
+
 @utility section-stack {
   & > * + * {
     margin-top: 2rem;

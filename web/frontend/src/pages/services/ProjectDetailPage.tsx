@@ -300,10 +300,6 @@ export function ProjectDetailPage() {
             {formatDuration(banner.durationSec)} {'경과'}
             {activeIncidents.length > 1 && ` · +${activeIncidents.length - 1}`}
           </span>
-          <span className="ml-auto type-label-sm text-action shrink-0 flex items-center">
-            서비스 열기
-            <MaterialIcon size={20} name="chevron_right" />
-          </span>
         </Link>
       )}
 
@@ -407,9 +403,9 @@ export function ProjectDetailPage() {
                         {new Date(e.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       <span className={`h-1.5 w-1.5 rounded-full shrink-0 translate-y-px ${
-                        e.type === 'alert_sent' ? 'bg-red-500'
-                        : e.type === 'status_change' ? 'bg-amber-500'
-                        : 'bg-slate-300 dark:bg-ui-active-dark'
+                        e.type === 'alert_sent' ? 'bg-status-error-fill'
+                        : e.type === 'status_change' ? 'bg-status-warn-fill'
+                        : 'bg-status-idle-fill'
                       }`} />
                       <Tooltip content={e.message} focusable><span className="text-xs text-text-muted min-w-0 truncate">
                         {e.message || e.type}

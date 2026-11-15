@@ -152,7 +152,6 @@ export function AlertsDesktopView({
             {totalFailed > 0 && (
               <Button variant="ghost" size="sm" onClick={viewFailedLogs}>
                 실패 로그 보기
-                <MaterialIcon name="arrow_forward" />
               </Button>
             )}
           </span>

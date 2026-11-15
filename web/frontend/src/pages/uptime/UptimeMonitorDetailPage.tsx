@@ -82,7 +82,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
         <h3 className="type-card-title text-text-base">장애 이력</h3>
         {selectedDate && (
           <Button size="sm" variant="ghost" aria-label={`${selectedDate} 선택 해제`} onClick={onClearDate}>
-            {selectedDate}<MaterialIcon name="close" size={16} />
+            {selectedDate}<MaterialIcon name="close" />
           </Button>
         )}
         <div className="ml-auto"><SegmentedControl options={HISTORY_FILTERS} value={filter} onChange={setFilter} ariaLabel="장애 이력 구분" /></div>

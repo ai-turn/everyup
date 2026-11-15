@@ -198,7 +198,7 @@ export function OverviewPage() {
   if (!updatedAt) {
     return (
       <div className="space-y-5" aria-busy="true">
-        <PageHeader menu title="모니터링 개요" />
+        <PageHeader menu title="개요" />
         <div className="h-8 w-96 max-w-full animate-pulse rounded-md bg-ui-hover-soft" />
         <div className="h-80 animate-pulse rounded-lg bg-ui-hover-soft" />
       </div>
@@ -213,7 +213,7 @@ export function OverviewPage() {
     <div className={`space-y-5 ${prototypeVariant ? 'pb-36' : ''}`}>
       {/* 연결 추가는 각 화면(Docker 환경·업타임·로그)의 일이다. 개요의 머리는 장애에 내준다. */}
       <PageHeader menu
-        title="모니터링 개요"
+        title="개요"
         meta={updatedAt && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="type-caption text-text-muted">
@@ -282,8 +282,8 @@ export function OverviewPage() {
                 </Link>
               )
             ))}
-            <Link to="/projects" className="ml-auto inline-flex h-8 items-center gap-1 rounded-md px-2 type-body text-action transition-colors hover:bg-ui-hover">
-              그룹으로 정리 <MaterialIcon size={16} name="arrow_forward" />
+            <Link to="/projects" className="ml-auto inline-flex h-8 items-center px-2 type-body text-action link-underline">
+              그룹으로 정리
             </Link>
           </nav>
 
@@ -292,21 +292,21 @@ export function OverviewPage() {
             <section id="attention" aria-label="현재 확인 필요" className="scroll-mt-5">
               <GroupHeader title="현재 확인 필요" count={attention.length} countLabel={`확인 필요 ${attention.length}건`} />
               {attention.length === 0 ? (
-                <div className="flex items-center gap-3 px-3 py-3">
-                  <MaterialIcon size={16} name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
+                <div className="flex items-center gap-3 py-3">
+                  <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
                   <p className="type-body text-text-muted">
                     {statusUnknown ? '불러온 영역에서는 이상이 없지만, 전체가 정상인지는 아직 알 수 없습니다.' : '현재 확인이 필요한 이상이 없습니다'}
                   </p>
                 </div>
               ) : (
-                <ul className="mt-1">
+                <ul className="-mx-3 mt-1">
                   {(showAllAttention ? attention : attention.slice(0, 6)).map((item) => {
                     const episode = item.tone === 'error' ? activeEpisodes.get(item.to.split('?')[0]) : undefined;
                     return (
                       <li key={item.id}>
                         <ListRow
                           to={item.to}
-                          marker={<MaterialIcon size={16} name={item.icon} className={item.tone === 'error' ? 'text-status-error' : 'text-status-warn'} />}
+                          marker={<MaterialIcon name={item.icon} className={item.tone === 'error' ? 'text-status-error' : 'text-status-warn'} />}
                           title={item.title}
                           detail={episode?.message || item.detail}
                           start={episode && formatIncidentTime(episode.startedAt)}
@@ -316,8 +316,8 @@ export function OverviewPage() {
                     );
                   })}
                   {attention.length > 6 && (
-                    <li className="px-1 py-1">
-                      <Button variant="ghost" size="sm" onClick={() => setShowAllAttention((value) => !value)}>{showAllAttention ? '우선 항목만 보기' : `전체 ${attention.length}건 보기`}</Button>
+                    <li className="py-1">
+                      <Button variant="ghost" size="sm" aria-expanded={showAllAttention} onClick={() => setShowAllAttention((value) => !value)}><MaterialIcon name={showAllAttention ? 'expand_less' : 'expand_more'} />{showAllAttention ? '우선 항목만 보기' : `전체 ${attention.length}건 보기`}</Button>
                     </li>
                   )}
                 </ul>
@@ -335,9 +335,9 @@ export function OverviewPage() {
                 note="업타임 모니터·Docker 서비스, 최근 7일"
               />
               {timelineFailed && (
-                <div role="status" className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                <div role="status" className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <MaterialIcon name="sync_problem" size={16} className="shrink-0 text-status-warn" />
+                    <MaterialIcon name="sync_problem" className="shrink-0 text-status-warn" />
                     <p className="type-body text-text-muted">
                       <span className="type-label text-text-base">장애 이력을 불러오지 못했습니다</span>{' '}
                       {timeline.length > 0 ? '이전에 불러온 기록입니다. 최신 기록은 확인할 수 없습니다.' : '최근 7일간의 장애 기록을 확인할 수 없습니다.'}
@@ -347,9 +347,9 @@ export function OverviewPage() {
                 </div>
               )}
               {timeline.length === 0 ? (
-                !timelineFailed && <p className="px-3 py-3 type-body text-text-muted">최근 7일간 기록된 장애가 없습니다</p>
+                !timelineFailed && <p className="py-3 type-body text-text-muted">최근 7일간 기록된 장애가 없습니다</p>
               ) : (
-                <ul className="mt-1">
+                <ul className="-mx-3 mt-1">
                   {timeline.map((episode) => (
                     <li key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}>
                       <ListRow
@@ -376,9 +376,10 @@ export function OverviewPage() {
 
 function GroupHeader({ title, count, countLabel, note }: { title: string; count?: number; countLabel: string; note?: string }) {
   return (
-    <div className="flex h-8 items-center gap-2 px-3">
+    <div className="flex h-8 items-center gap-2">
       <h2 className="type-label-sm text-text-base">{title}</h2>
-      <span className="type-caption tabular-nums text-text-muted" aria-label={countLabel}>{count ?? '-'}</span>
+      {/* span의 aria-label은 대부분의 스크린리더가 읽지 않는다 — 숫자는 감추고 같은 뜻을 글로 둔다. */}
+      <span className="type-caption tabular-nums text-text-muted"><span aria-hidden="true">{count ?? '-'}</span><span className="sr-only">{countLabel}</span></span>
       {note && <span className="ml-auto min-w-0 truncate type-caption text-text-muted">{note}</span>}
     </div>
   );
@@ -395,8 +396,8 @@ function ListRow({ to, marker, title, detail, start, duration }: {
   duration?: ReactNode;
 }) {
   return (
-    <Link to={to} className="flex gap-3 rounded-md px-3 py-2 transition-colors hover:bg-ui-hover">
-      <span className="flex h-5 w-4 shrink-0 items-center justify-center">{marker}</span>
+    <Link to={to} className="flex gap-3 rounded-md px-3 py-2 transition-colors hover:bg-ui-hover-soft">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center">{marker}</span>
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-3">
           <span className="min-w-0 truncate type-label text-text-base">{title}</span>

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button, EmptyState, MaterialIcon, Pagination } from '../../components/common';
+import { Button, EmptyState, Pagination } from '../../components/common';
 import type { ApiRequest } from '../../services/api';
 import { statusClass } from './useRequestQuery';
 
@@ -22,7 +22,6 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
           title={`${req.path}: 트레이스 상세를 오른쪽 패널에서 열기`}
           className="group -ml-3 min-w-0 max-w-full max-sm:h-11">
           <span className="truncate font-mono underline-offset-2 group-hover:underline group-focus-visible:underline">{req.path}</span>
-          <MaterialIcon name="chevron_right" size={16} />
         </Button></div>
           : <span className="min-w-0 break-all font-mono text-text-secondary">{req.path}</span>}
         {req.isError && <span className="shrink-0 text-status-error">오류</span>}

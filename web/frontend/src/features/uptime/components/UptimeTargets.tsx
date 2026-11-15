@@ -30,7 +30,7 @@ function MonitorStatus({ monitor, error }: { monitor: UptimeMonitor; error: bool
   return (
     <div className="space-y-1">
       {error ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
-      {incident && <Tooltip content={`장애 시작 ${new Date(incident.startedAt).toLocaleString()} · ${formatDuration(incident.durationSec)} 지속${incident.message ? ` · ${incident.message}` : ''}`} focusable>
+      {incident && <Tooltip content={`장애 시작 ${new Date(incident.startedAt).toLocaleString()}, ${formatDuration(incident.durationSec)} 지속${incident.message ? `. ${incident.message}` : ''}`} focusable>
         <p className="truncate type-caption tabular-nums text-status-error">{formatDuration(incident.durationSec)} 지속</p>
       </Tooltip>}
     </div>

@@ -180,7 +180,7 @@ function TrendCard({
           </ResponsiveContainer>
           {/* 마우스 사용자에게 빈 줄을 남기지 않게, 고르기 전에는 화면에서만 숨긴다(라이브 영역은 유지). */}
           <p aria-live="polite" className={kbdPoint ? 'mt-2 px-2 pb-1 type-caption text-text-muted' : 'sr-only'}>
-            {kbdPoint && `${formatTimeLabel(kbdPoint.t)} · ${chart.series.map((s) => `${s.label} ${formatMetricValue(Number(kbdPoint[s.key]))} ${chart.unit}`).join(' · ')}`}
+            {kbdPoint && `${formatTimeLabel(kbdPoint.t)} · ${chart.series.map((s) => `${s.label} ${formatMetricValue(Number(kbdPoint[s.key]))} ${chart.unit}`).join(', ')}`}
           </p>
         </div>
       )}

@@ -153,7 +153,6 @@ function SetupStep({
       {actionLabel && onAction && (
         <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
           {actionLabel}
-          <MaterialIcon size={20} name="arrow_forward" />
         </Button>
       )}
     </div>

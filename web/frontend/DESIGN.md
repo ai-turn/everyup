@@ -234,7 +234,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | 주 액션 채움 | `bg-primary` | `#1c2024` (slate-12) | `#edeef0` | 글자 최고 단계를 채움으로 쓴다 |
 | 채움 hover | `bg-primary-hover` | `#363a3f` | `#c8cbd0` | 한 단계 옅어진다. 채움 위 글자 대비는 라이트 11.45로 AA를 넘는다 |
 | 채움 위 글자 | `text-on-primary` | `#ffffff` | `#111113` | 다크의 채움이 밝아서 `text-white`를 쓰면 글자가 사라진다. **`bg-primary` 위에 `text-white`를 쓰지 않는다** |
-| 채움 없는 액션 | `text-action` | `#1c2024` | `#edeef0` | 제목 글자와 같은 값. 링크는 색이 아니라 밑줄·화살표·hover 배경으로 드러낸다 |
+| 채움 없는 액션 | `text-action` | `#1c2024` | `#edeef0` | 제목 글자와 같은 값. 텍스트 링크는 색이 아니라 밑줄(`link-underline`: 쉴 때 dim, hover·포커스에서 글자색)로 드러낸다. **글자에 화살표(→, ›)를 붙이지 않는다**(hallmark gate 63) |
 
 `bg-primary/10` 같은 옅은 틴트(사이드바 현재 위치, 선택된 옵션)는 그대로 쓴다. 무채색이 되면서 회색 선택 배경이 된다.
 
@@ -304,7 +304,7 @@ info·debug·trace 바 색이 600단계인 이유: 500단계는 흰 배경에서
 
 ### 1.6 차트 시리즈 팔레트
 
-`chartTheme.ts`의 `SERIES_HEX` + `getSeriesPalette(theme)`. **첫 슬롯은 항상 브랜드 primary.**
+`chartTheme.ts`의 `SERIES_HEX` + `getSeriesPalette(theme)`. **첫 슬롯은 indigo `#3e63dd` 상수다** — UI primary가 무채색이 된 뒤(§1.4) 차트는 이전 브랜드색을 그대로 쓴다.
 
 ```
 primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red #dc2626 → teal #0d9488
@@ -476,7 +476,7 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 **탭은 크럼이 아니다.** 서비스 상세의 `?tab=logs` 같은 하위 뷰는 위치가 아니라 같은 위치의 다른 단면이므로 trail에 넣지 않는다.
 
-**메뉴 첫 화면의 h1은 데스크톱에서 숨긴다** (2026-11-15). 크럼 한 칸(`업타임`)과 본문 h1(`업타임`)이 같은 말을 두 번 했다. `PageHeader menu`가 h1을 `lg:sr-only`로 두고, 주 액션(children)과 meta는 데스크톱에서 `AppHeader` 오른쪽 자리로 포털된다(Linear처럼 위치와 액션이 한 줄). 자리는 `BreadcrumbContext`의 `actionSlot`이고 `AppHeader`가 ref 콜백으로 채운다. 메뉴 첫 화면에는 설명 문구(subtitle)를 두지 않는다: 무엇을 하는 화면인지는 메뉴 이름과 내용이 말한다. 스크린리더의 h1과 모바일(`AppHeader` 없음)의 보이는 h1·액션은 그대로다. h1만 남으면 데스크톱에서 띠의 여백·구분선을 0으로 접는다(`lg:hidden`은 h1까지 접근성 트리에서 지우므로 쓰지 않는다). 상세 화면의 h1은 대상 이름이 상태·메타를 이끌므로 유지한다. 이전 규칙("헤더는 어디에 있나, h1은 무엇인가")은 상세에만 남는다.
+**메뉴 첫 화면의 h1은 데스크톱에서 숨긴다** (2026-11-15). 크럼 한 칸(`업타임`)과 본문 h1(`업타임`)이 같은 말을 두 번 했다. `PageHeader menu`가 h1을 `lg:sr-only`로 두고, 주 액션(children)과 meta는 데스크톱에서 `AppHeader` 오른쪽 자리로 포털된다(Linear처럼 위치와 액션이 한 줄). 자리는 `BreadcrumbContext`의 `actionSlot`이고 `AppHeader`가 ref 콜백으로 채운다. 메뉴 첫 화면에는 설명 문구(subtitle)를 두지 않는다: 무엇을 하는 화면인지는 메뉴 이름과 내용이 말한다. 스크린리더의 h1과 모바일(`AppHeader` 없음)의 보이는 h1·액션은 그대로다. h1만 남으면 데스크톱에서 띠의 여백·구분선을 0으로 접는다(`lg:hidden`은 h1까지 접근성 트리에서 지우므로 쓰지 않는다). 키보드 순서상 헤더의 주 액션은 본문 앞이다: `본문 바로가기`는 그것을 건너뛰고, Shift+Tab으로 닿는다. 상세 화면의 h1은 대상 이름이 상태·메타를 이끌므로 유지한다. 이전 규칙("헤더는 어디에 있나, h1은 무엇인가")은 상세에만 남는다.
 
 전체 화면 높이를 계산하는 페이지는 **`lg`에서 빼는 값이 다르다** — 모바일 `Header` 3.5rem 대신 `AppHeader` 4rem이 추가로 붙어 `lg:h-[calc(100dvh-8rem)]`이다. 모바일은 높이를 계산하지 않고 자연 높이로 두며, 하단 제출 바를 `sticky`로 하단 내비(4rem + safe-area) 위에 붙인다 — 데모 배너처럼 위쪽 크롬이 늘면 높이 계산이 틀려 제출 바가 `BottomNavMobile` 뒤로 숨었다 (`ChannelFormPage`).
 
@@ -591,7 +591,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 
 | variant | 용도 | 클래스 |
 |---------|------|--------|
-| `primary` | 주 액션 (화면당 1개) | `bg-primary text-white hover:bg-primary-hover` |
+| `primary` | 주 액션 (화면당 1개) | `bg-primary text-on-primary hover:bg-primary-hover` |
 | `secondary` | 보더 있는 보조 액션 | `border border-ui-border text-text-base` + 아이콘 `action` |
 | `ghost` | 배경 없는 3순위 | `text-action hover:bg-action/10` |
 | `text` | 경로처럼 본문 안에 놓는 액션. hover 채움 없음 | `text-action` |
@@ -599,7 +599,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | `quiet` | 정보만 보여주는 다이얼로그의 `닫기` — 눈에 띄지 않아야 하는 이탈 | `text-text-muted hover:bg-ui-hover` |
 | `danger` | 확인 다이얼로그의 파괴 확정 | `bg-danger text-white hover:bg-danger-hover` (§1.4) |
 
-**액션에는 색을 싣는다 (§5.3).** 채움도 보더도 없는 버튼이 본문과 같은 회색이면 hover 전까지 버튼으로 읽히지 않는다 — *"기본값으로 색상이 달라야 한다."* 그래서 `ghost`는 라벨·아이콘 전부 `action`, `secondary`는 라벨을 `text-base`로 올리고 아이콘만 `action`을 싣는다(보더가 이미 버튼임을 말하므로 라벨까지 칠할 이유가 없다). **예외는 이탈 액션뿐이다** — 닫기를 색으로 강조하면 정작 그 화면의 주 액션보다 먼저 눈에 들어온다. `quiet`가 그 자리다. 폼 푸터의 `취소`는 주 액션과 짝을 이루므로 `secondary`다(§7 푸터 규칙).
+**액션은 색이 아니라 형태로 드러낸다 (2026-11-15, 무채색 전환).** `action`이 제목 글자색과 같아졌으므로 `ghost` 버튼은 색으로 본문과 갈리지 않는다. 그래서 **`ghost`는 아이콘을 함께 둔다** — 아이콘 없는 글자만의 `ghost`는 라벨로 읽힌다(예: 개요의 `전체 N건 보기`에 `expand_more`). 아이콘을 둘 수 없으면 `secondary`(보더가 버튼임을 말한다)나 텍스트 링크(`link-underline`)를 쓴다. **예외는 이탈 액션뿐이다** — 닫기를 색으로 강조하면 정작 그 화면의 주 액션보다 먼저 눈에 들어온다. `quiet`가 그 자리다. 폼 푸터의 `취소`는 주 액션과 짝을 이루므로 `secondary`다(§7 푸터 규칙).
 
 **버튼 색을 `className`으로 덮어쓰지 않는다.** `variant="ghost" className="text-status-error"`로 쓰던 삭제 버튼 5곳이 전부 회색으로 렌더되고 있었다 — Tailwind가 같은 속성의 유틸리티를 **알파벳 순**으로 내보내기 때문에 `text-status-error`가 `text-text-muted`보다 앞서 나가 매번 졌다. 색은 variant로 고른다.
 
@@ -943,7 +943,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 ### 5.3 색을 싣는 곳
 
-**데이터와 액션에만 색을 싣는다. 컨테이너는 중립으로 둔다.**
+**데이터(상태)에만 색을 싣는다. 컨테이너와 액션은 중립이다** (2026-11-15부터 액션도 무채색, §1.4).
 배지 · 아이콘 · 텍스트 · 게이지 채움 · 차트 시리즈 = 색 OK.
 카드 배경 · 카드 보더 · 섹션 헤더 = 항상 중립.
 
@@ -961,7 +961,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 |----------|-------|------|
 | **`Input`** | `invalid?` `warn?` `mono?` + 네이티브 | 폼 입력 전부 |
 | **`Select`** | 네이티브 `option` children + 기존 select props | 폼 셀렉트 (Input과 같은 셸) |
-| **`SearchInput`** | `wrapperClassName?` `onClear?` `resultCount?` `shortcut?` + 네이티브 | 아이콘 붙은 검색창. Astryx PowerSearch(meta/astryx) 참고: 경계는 래퍼가 갖고 아이콘·입력·결과 수·지우기가 한 줄로 흐른다. 쉴 때 `ui-border`(옅음), hover `ui-control-border`(3:1), 포커스는 경계를 `action`색 + 12% 후광. 쉴 때 경계가 3:1 아래인 것은 의도다: 검색 상자임을 앞의 돋보기와 placeholder가 함께 말한다(다른 입력은 §1.2의 3:1을 지킨다). 결과 수는 검색어가 있을 때만 `N개`로 보이고 `aria-live=polite`로 알린다. 지우기 버튼을 호출부에서 따로 얹지 않는다 |
+| **`SearchInput`** | `wrapperClassName?` `onClear?` `resultCount?` `shortcut?` + 네이티브 | 아이콘 붙은 검색창. Astryx PowerSearch(meta/astryx) 참고: 경계는 래퍼가 갖고 돋보기·입력·결과 수·지우기(`IconButton sm`)가 한 줄로 흐른다. 경계는 다른 입력과 같은 `ui-control-border`(3:1), 포커스는 전역 `:focus-visible`과 같은 2px `action` 외곽선을 래퍼에 그린다(입력 자신의 외곽선은 끈다). 쉴 때 옅은 경계·테두리색 포커스를 시도했다가 대비 1.40:1·후광 1.2:1로 hallmark gate 39a/40에 걸려 되돌렸다(2026-11-15). 결과 수는 검색어가 있을 때만 보이고(`number`면 `N개`, 무엇을 셌는지 모호하면 문자열) `aria-live=polite`로 알린다. `shortcut`은 `/` 포커스 + `aria-keyshortcuts`. **URL(`?q=`)에 입력값을 직접 묶지 않는다**: react-router가 transition으로 반영해 한글 조합이 깨진다(`결제`→`ㄱ겨결결ㅈ제제`). 입력은 로컬 상태, URL은 사본이다 |
 
 **클래스를 직접 쓰지 않는다.** Button과 같은 규칙이다.
 

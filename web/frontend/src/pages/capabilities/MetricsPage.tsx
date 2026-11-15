@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button, EmptyState, ListToolbar, ListViewToggle, MaterialIcon, PageHeader, SearchInput, Select } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
@@ -12,7 +13,10 @@ const METRIC_SKELETONS = ['metric-1', 'metric-2', 'metric-3', 'metric-4', 'metri
 export function MetricsPage() {
   const { view, setView, returnTo } = useListView();
   const [params, setParams] = useSearchParams();
-  const query = params.get('q') ?? '';
+  // 입력값은 로컬 상태가 쥔다. URL(?q=)은 react-router가 transition 안에서 반영해 값이 한 박자 늦게 돌아오므로,
+  // URL에 직접 묶으면 한글 조합 중 글자가 덮여 '결제'가 'ㄱ겨결결ㅈ제제'가 됐다. URL은 공유·복귀용 사본이다.
+  // ponytail: URL→입력은 마운트 때만 읽는다. 같은 화면에서 ?q=만 바뀌는 이동이 생기면 그때 동기화를 더한다.
+  const [query, setQueryInput] = useState(() => params.get('q') ?? '');
   const search = query.trim().toLowerCase();
   const { rows, checkedAt: now, loading, error, reload } = useMetricServices();
   const sort = params.get('sort') === 'name' ? 'name' : 'collection';
@@ -27,11 +31,11 @@ export function MetricsPage() {
   };
   const filtered = rows.filter(row => row.name.toLowerCase().includes(search) || row.metricNames.some(name => name.toLowerCase().includes(search)))
     .sort((a, b) => (sort === 'collection' ? byPriority(a, b) : 0) || a.name.localeCompare(b.name));
-  const setQuery = (value: string) => setParams(current => {
+  const setQuery = (value: string) => { setQueryInput(value); setParams(current => {
     const next = new URLSearchParams(current);
     if (value) next.set('q', value); else next.delete('q');
     return next;
-  }, { replace: true });
+  }, { replace: true }); };
 
   return <div>
     <PageHeader menu title="메트릭">

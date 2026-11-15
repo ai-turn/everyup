@@ -225,7 +225,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
               </ResponsiveContainer>
               {/* 마우스 사용자에게 빈 줄을 남기지 않게, 고르기 전에는 화면에서만 숨긴다(라이브 영역은 유지). */}
               <p aria-live="polite" className={kbdRow ? 'mt-2 px-2 pb-1 type-caption text-text-muted' : 'sr-only'}>
-                {kbdRow && `${formatTimeLabel(kbdRow.t)} · ${series.map(item => `${single ? title : item.label} ${Number.isFinite(kbdRow[item.key]) ? `${formatValue(kbdRow[item.key])}${unit}` : '-'}`).join(' · ')}`}
+                {kbdRow && `${formatTimeLabel(kbdRow.t)} · ${series.map(item => `${single ? title : item.label} ${Number.isFinite(kbdRow[item.key]) ? `${formatValue(kbdRow[item.key])}${unit}` : '-'}`).join(', ')}`}
               </p>
             </div>
             {/* 시리즈는 최대 6개라 범례를 줄바꿈으로 모두 보인다(높이를 제한하면 키보드로 스크롤할 수 없다). */}
