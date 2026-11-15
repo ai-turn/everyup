@@ -90,7 +90,7 @@ for (const retryFails of [true, false]) {
       await page.getByRole('button', { name: '새로고침', exact: true }).click();
       await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
       expect(requests).toBe(1);
-      await expect(page.getByRole('heading', { name: '모니터링 범위' })).toBeVisible();
+      await expect(page.getByRole('navigation', { name: '모니터링 범위' })).toBeVisible();
       state.failed = retryFails;
       releaseResponse();
 

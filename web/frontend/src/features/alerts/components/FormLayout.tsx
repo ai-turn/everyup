@@ -8,13 +8,13 @@
 import { cloneElement, isValidElement, type ReactNode } from 'react';
 import { Button, MaterialIcon } from '../../../components/common';
 
-/** 번호가 붙은 폼 단계 카드. 헤더 스트립 + 본문. */
+/** 번호가 붙은 폼 단계. 카드 없이 제목 + 간격으로 나눈다(DESIGN.md §3.1). */
 export function FormStep({ n, title, subtitle, children }: {
     n: number; title: string; subtitle?: string; children: ReactNode;
 }) {
     return (
-        <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
+        <div>
+            <div className="flex items-center gap-3 mb-4">
                 <span className="w-7 h-7 rounded-lg bg-primary/10 text-action flex items-center justify-center text-xs shrink-0">
                     {n}
                 </span>
@@ -23,7 +23,7 @@ export function FormStep({ n, title, subtitle, children }: {
                     {subtitle && <p className="type-body text-text-muted mt-0.5">{subtitle}</p>}
                 </div>
             </div>
-            <div className="p-5 space-y-5">{children}</div>
+            <div className="space-y-5">{children}</div>
         </div>
     );
 }

@@ -93,7 +93,7 @@ export function DirectInfrastructureDetailPage() {
     }
   };
 
-  if (loading) return <div className="h-96 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
+  if (loading) return <div className="h-96 animate-pulse rounded-xl bg-ui-hover-soft" />;
   if (error || !resource) {
     return <EmptyState icon="error_outline" title="인프라 리소스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: '인프라로 돌아가기', to: '/infrastructure' }} />;
   }

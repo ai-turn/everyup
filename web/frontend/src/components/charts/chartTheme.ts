@@ -82,7 +82,7 @@ export const CHART_MARGIN = { top: 8, right: 8, left: 0, bottom: 0 } as const;
 
 /** 차트 카드 공통 클래스 — 패딩(p-4/p-6)은 소비처에서 붙인다. */
 export const chartCardClass =
-  'rounded-xl border border-ui-border bg-bg-surface';
+  'rounded-xl border border-ui-border-soft bg-bg-surface';
 
 export function gridProps(theme: ChartTheme) {
   return { stroke: theme.gridColor, strokeOpacity: 0.55, vertical: false } as const;
@@ -152,7 +152,8 @@ export function getChartTheme(): ChartTheme {
     // the implementation-only *-dark variables here.
     tickColor: getCssVar('--color-text-muted') || '#60646c',
     surfaceColor: getCssVar('--color-bg-surface') || '#ffffff',
-    primaryColor: getCssVar('--color-primary') || SERIES_HEX.primary,
+    // 차트 첫 시리즈는 UI primary(무채색)와 분리해 indigo로 둔다 — 검정 선은 축·격자와 구분되지 않는다.
+    primaryColor: SERIES_HEX.primary,
     errorColor: getCssVar('--color-status-error-fill') || '#dc2626',
     warnColor: getCssVar('--color-status-warn-fill') || '#c77700',
   };

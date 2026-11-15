@@ -33,11 +33,9 @@ const TABS: { key: DetailTab; labelKo: string }[] = [
 
 function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange: (t: DetailTab) => void; serviceKey: string }) {
   return (
-    // 기준선은 스크롤 영역 밖에 따로 그린다. 스크롤 영역에 border-b를 주고 탭에 -mb-px를 걸면
-    // overflow-x-auto가 overflow-y까지 auto로 만들어, 겹친 1px 때문에 세로 스크롤바가 생긴다.
-    <div className="relative mb-6">
-      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 border-b border-ui-border" />
-      <div role="tablist" aria-label="서비스 데이터" className="relative flex gap-1 overflow-x-auto overflow-y-hidden">
+    // 탭 아래 전폭 기준선은 두지 않는다 — 선택 밑줄만 남긴다(DESIGN.md §3.1).
+    <div className="mb-6">
+      <div role="tablist" aria-label="서비스 데이터" className="flex gap-1 overflow-x-auto overflow-y-hidden">
       {TABS.map(tab => {
         const selected = active === tab.key;
         const tabId = `service-tab-${serviceKey}-${tab.key}`;
@@ -66,9 +64,9 @@ function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange:
 }
 
 function UptimeContent({ agentId, serviceKey, refreshKey, range }: ServiceTabsProps) {
-  // 섹션 간격은 여기서 준다 — 자식마다 mb-8을 달면 §3.7 스케일 밖(32px)이 되고 제각각이 된다.
+  // 섹션 간격은 여기서 준다 — 카드 없이 간격으로 나누므로 §3.1의 space-y-8.
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       <AgentUptimeOverview agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
       <AgentResponseTimeChart key={range} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
       <AgentFailureHistory agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />

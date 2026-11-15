@@ -137,7 +137,7 @@ export function DirectApiDetailPage() {
     }
   };
 
-  if (loading) return <div className="h-96 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
+  if (loading) return <div className="h-96 animate-pulse rounded-xl bg-ui-hover-soft" />;
   if (error || !service) {
     return <EmptyState icon="error_outline" title="직접 API 서비스를 불러오지 못했습니다" description={error ?? undefined} action={{ label: 'API로 돌아가기', to: '/api' }} />;
   }
@@ -202,7 +202,7 @@ export function DirectApiDetailPage() {
         }
       />
 
-      <div role="tablist" aria-label="요청/트레이스 보기" className="mb-4 flex border-b border-ui-border">
+      <div role="tablist" aria-label="요청/트레이스 보기" className="mb-4 flex">
         {(['requests', 'traces'] as const).map((tab, index) => <button key={tab} id={`api-tab-${tab}`} type="button" role="tab"
           tabIndex={view === tab ? 0 : -1} aria-selected={view === tab} aria-controls="api-data-panel"
           onClick={() => update({ tab })}

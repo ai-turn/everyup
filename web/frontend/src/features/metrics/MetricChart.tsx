@@ -145,7 +145,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           </div>
         )}
         {expanded && !pointsError && read.data !== null && quantiles && !quantiles.truncated && (
-          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md border border-ui-border bg-ui-hover-soft px-3 py-1.5">
+          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md bg-ui-hover-soft px-3 py-1.5">
             <span className="type-caption text-text-muted">선택한 시리즈의 기간 분포</span>
             <ChartStats items={[
               { label: 'p50', value: formatValue(quantiles.p50 * factor), unit },
@@ -253,7 +253,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         {read.data?.pointsTruncated && <p role="status" className="mt-3 type-body text-text-muted">{`선택한 시리즈의 최근 ${read.data.pointLimit.toLocaleString()}개 포인트만 표시합니다. 기간이나 Attribute 필터를 좁혀 주세요.${histogram ? ' 분포는 선택한 시리즈의 전체 조회 기간을 기준으로 합니다.' : ''}`}</p>}
         {!expanded && read.data && (read.data.series.length > MAX_METRIC_SERIES || read.data.seriesTruncated) && <Button variant="ghost" size="sm" onClick={onExpand}>시리즈 선택하기 ({read.data.series.length}{read.data.seriesTruncated ? '+' : ''}개)</Button>}
         {expanded && selected === '[]' && <p className="mt-3 type-body text-text-muted">선택한 시리즈가 없습니다. 시리즈를 선택하거나 기본 선택으로 돌아가세요.</p>}
-        {expanded && points.length > 0 && <details className="mt-4 border-t border-ui-border-soft pt-3">
+        {expanded && points.length > 0 && <details className="mt-6">
           <summary className="min-h-11 cursor-pointer type-label text-text-base">수집 정보</summary>
           <p className="mb-3 type-caption text-text-muted">표시한 최신 포인트의 Resource와 Scope입니다.</p>
           <dl className="space-y-2 type-caption text-text-muted">{Object.entries(points[points.length - 1]?.resource ?? {}).map(([key, value]) => <div key={key} className="grid gap-1 sm:grid-cols-2"><dt className="break-all font-mono">{key}</dt><dd className="break-all">{value}</dd></div>)}</dl>

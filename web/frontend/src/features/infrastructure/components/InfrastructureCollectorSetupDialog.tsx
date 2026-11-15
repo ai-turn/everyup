@@ -72,7 +72,7 @@ export function InfrastructureCollectorSetupDialog({
               {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
             </Select>
           </label>
-          <div className="rounded-xl border border-ui-border bg-ui-hover-soft p-4 text-sm text-text-muted">
+          <div className="rounded-md bg-ui-hover-soft p-4 text-sm text-text-muted">
             추가하면 Collector 설정 파일과 한 번만 표시되는 API Key를 발급합니다.
           </div>
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">

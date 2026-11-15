@@ -33,7 +33,7 @@ export function LoadErrorBanner({ title, message, onRetry, retryLabel = '다시 
     );
   }
   return (
-    <div role={role} className="flex items-start gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3">
+    <div role={role} className="flex items-start gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
       <MaterialIcon size={20} name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
       <div className="min-w-0 flex-1">
         <p className="type-label text-text-base">{title}</p>

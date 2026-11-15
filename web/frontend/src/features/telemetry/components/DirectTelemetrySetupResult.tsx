@@ -40,7 +40,7 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
       <p className="type-label text-text-secondary">OpenTelemetry 환경 변수</p>
       <CopyButton onCopy={() => copy(configuration)} disabled={!address.valid} title="환경 변수 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
     </div>
-    <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-xl border border-ui-border bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{address.valid ? configuration : '접근 가능한 서버 주소를 입력하세요.'}</pre>
+    <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{address.valid ? configuration : '접근 가능한 서버 주소를 입력하세요.'}</pre>
   </div> : undefined;
 
   return <div className="space-y-5 p-6">
@@ -54,7 +54,7 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
       <ConnectionAddressField address={address} />
       <div className="space-y-2">
         <p className="type-label text-text-secondary">API Key</p>
-        <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-ui-hover-soft p-3">
+        <div className="flex items-center gap-2 rounded-md bg-ui-hover-soft p-3">
           <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
           <CopyButton onCopy={() => copy(setup.apiKey)} title="API Key 복사" className={ICON_ACTION} />
         </div>

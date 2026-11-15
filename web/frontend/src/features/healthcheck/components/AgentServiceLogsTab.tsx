@@ -205,7 +205,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
   // 마우스는 행 어디를 눌러도 펼치고, 키보드·스크린리더는 끝의 펼침 버튼을 쓴다.
   return (
     <div
-      className={`px-4 py-3 bg-bg-surface transition-colors ${hasMeta ? 'cursor-pointer hover:bg-ui-hover-soft' : ''}`}
+      className={`rounded-md px-4 py-3 transition-colors ${hasMeta ? 'cursor-pointer hover:bg-ui-hover-soft' : ''}`}
       onClick={hasMeta ? () => setExpanded(v => !v) : undefined}
     >
       {/* Time leads so the list scans in time order; on phones it takes its own line. */}
@@ -278,7 +278,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
           {/* The same fields again plus anything nested — closed, since the lists above already read it. */}
           <details className="mt-3">
             <summary className="cursor-pointer py-1 type-caption text-text-dim max-sm:py-3">원본 JSON</summary>
-            <pre className="mt-1.5 text-xs font-mono text-text-muted bg-ui-hover-soft rounded-lg px-3 py-2.5 overflow-x-auto whitespace-pre-wrap break-all">
+            <pre className="mt-1.5 text-xs font-mono text-text-muted bg-ui-hover-soft rounded-md px-3 py-2.5 overflow-x-auto whitespace-pre-wrap break-all">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>
           </details>
@@ -491,7 +491,7 @@ function ServiceLogsPanel(props: Props) {
 
       {/* Volume histogram — stacked per-level counts over the header range */}
       {histogramFailed && (
-        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ui-border bg-bg-surface px-4 py-3">
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
           <p className="type-body text-text-muted">로그 발생량을 불러오지 못했습니다</p>
           <Button variant="ghost" size="sm" onClick={fetchHistogram}>다시 시도</Button>
         </div>
@@ -541,7 +541,7 @@ function ServiceLogsPanel(props: Props) {
           {hasConditions && <Button variant="secondary" className="mt-4" onClick={clearConditions}>조건 초기화</Button>}
         </div>
       ) : (
-        <div className="divide-y divide-ui-border-soft border border-ui-border rounded-xl overflow-hidden">
+        <div>
           {logs.map(log => (
             <LogRow
               key={log.id}
@@ -551,7 +551,7 @@ function ServiceLogsPanel(props: Props) {
             />
           ))}
           {totalPages > 1 && (
-            <div className="flex items-center justify-end bg-ui-hover-soft/60 px-4 py-2.5">
+            <div className="flex items-center justify-end px-4 py-2.5">
               {/* Live tail only ever shows the newest page, so leaving page 1 turns it off. */}
               <Pagination
                 page={page}

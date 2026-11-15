@@ -128,7 +128,7 @@ function SetupStep({
   }[state];
 
   return (
-    <div className="flex min-w-0 flex-col rounded-xl border border-ui-border-soft bg-ui-hover-soft p-3">
+    <div className="flex min-w-0 flex-col rounded-md bg-ui-hover-soft p-3">
       <div className="flex items-start gap-3">
         <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs ${appearance.circle}`}>
           {state === 'ready' || state === 'issue' ? (
@@ -231,11 +231,11 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
     : '이 프로필에서는 별도 기본 Collector를 시작하지 않습니다.';
 
   return (
-    <section className={`rounded-xl border border-ui-border bg-bg-surface p-4 ${className}`}>
+    <section className={className}>
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="type-label text-text-base">모니터링 설정 가이드</h2>
+            <h2 className={`${compact ? 'type-label' : 'type-section-title'} text-text-base`}>모니터링 설정 가이드</h2>
             <span className={`rounded-full px-2 py-0.5 text-xs ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
               필수 {requiredReady}/{requiredTotal}
             </span>

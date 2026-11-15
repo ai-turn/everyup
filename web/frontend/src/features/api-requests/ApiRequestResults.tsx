@@ -62,17 +62,17 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
           action={filtered ? { label: '필터 해제', onClick: onClear } : undefined}
         />;
   } else {
-    content = <div className="overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
+    content = <div>
           <table aria-label="API 요청 목록" className="w-full table-fixed text-xs">
-            <thead className="border-b border-ui-border bg-ui-table-header text-text-muted"><tr>
+            <thead className="border-b border-ui-border-soft text-text-muted"><tr>
               <th scope="col" className="px-4 py-3 text-left font-medium">요청</th>
               <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium sm:table-cell">상태</th>
               <th scope="col" className="hidden w-24 px-4 py-3 text-right font-medium sm:table-cell">소요</th>
               <th scope="col" className="hidden w-44 px-4 py-3 text-right font-medium lg:table-cell">시작</th>
             </tr></thead>
-            <tbody className="divide-y divide-ui-border-soft">{requests.map(req => <ApiRequestRow key={req.id} request={req} onSelect={onSelect} />)}</tbody>
+            <tbody>{requests.map(req => <ApiRequestRow key={req.id} request={req} onSelect={onSelect} />)}</tbody>
           </table>
-          {totalPages > 1 && <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ui-border-soft px-4 py-3">
+          {totalPages > 1 && <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <p className="type-caption tabular-nums text-text-muted">{total.toLocaleString()}건 중 {((page - 1) * 25 + 1).toLocaleString()}~{Math.min(page * 25, total).toLocaleString()}</p>
             <Pagination page={page} totalPages={totalPages} onChange={onPageChange} previousLabel="이전" nextLabel="다음" />
           </div>}

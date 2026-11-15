@@ -95,7 +95,7 @@ function LogCard({ row, window: span, returnTo }: { row: StatusRow; window: [num
   const known = row.collection === 'collecting';
 
   return (
-    <Link to={row.to} state={{ returnTo }} className="card-interactive group flex flex-col rounded-xl border border-ui-border bg-bg-surface p-4">
+    <Link to={row.to} state={{ returnTo }} className="card-interactive group flex flex-col rounded-xl border border-ui-border-soft bg-bg-surface p-4">
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.name}</h3>}
         subtitle={row.subtitle}
@@ -123,7 +123,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
     <li>
       <Link
         to={`${row.to}&pattern=${encodeURIComponent(pattern.fingerprint)}`}
-        className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft"
+        className="flex items-start gap-3 rounded-md px-4 py-3 transition-colors hover:bg-ui-hover-soft"
       >
         <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[pattern.level] ?? LEVEL_TEXT.info}`}>{pattern.level}</span>
         <div className="min-w-0 flex-1">
@@ -186,9 +186,9 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
             <span className="type-body text-text-muted">최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다</span>
           </div>
           {patterns === null ? (
-            <p className="rounded-xl border border-ui-border bg-bg-surface px-4 py-3 type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
+            <p className="rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
           ) : (
-            <ul className="divide-y divide-ui-border-soft overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
+            <ul>
               {shownPatterns!.map(({ pattern, row }) => (
                 <PatternRow key={`${row.key}|${pattern.fingerprint}`} pattern={pattern} row={row} windowStart={span[0]} />
               ))}

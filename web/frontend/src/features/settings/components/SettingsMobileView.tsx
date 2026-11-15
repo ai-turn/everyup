@@ -53,14 +53,14 @@ export function SettingsMobileView({
 }: SettingsMobileViewProps) {
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-text-base">환경 설정</h1>
         <p className="type-body text-text-muted mt-0.5">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
       </div>
       {settingsError && (
-        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-ui-border bg-bg-surface px-4 py-3 type-body text-text-secondary">
+        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-secondary">
           <MaterialIcon name="sync_problem" className="text-status-warn" />
           <span className="min-w-0 flex-1">일부 설정을 불러오지 못했습니다.</span>
           <Button size="sm" variant="secondary" onClick={onRetryLoad}>다시 시도</Button>
@@ -94,7 +94,7 @@ export function SettingsMobileView({
             <div className="h-14 bg-ui-hover rounded-lg animate-pulse" />
           </div>
         ) : (
-          <>
+          <div className="space-y-5">
             {/* Collect interval */}
             <div className="space-y-2">
               <p className="type-body text-text-base">수집 주기</p>
@@ -111,8 +111,6 @@ export function SettingsMobileView({
               />
             </div>
 
-            <div className="border-t border-ui-border-soft my-3" />
-
             {/* Metrics */}
             <div className="space-y-2">
               <p className="type-body text-text-base">메트릭 보존 기간</p>
@@ -125,8 +123,6 @@ export function SettingsMobileView({
                 onChange={onMetricsRetentionChange}
               />
             </div>
-
-            <div className="border-t border-ui-border-soft my-3" />
 
             {/* Logs */}
             <div className="space-y-2">
@@ -141,10 +137,10 @@ export function SettingsMobileView({
               />
             </div>
 
-            <p className="mt-3 type-body text-text-muted">
+            <p className="type-body text-text-muted">
               보존 기간을 줄이면 기간을 초과한 기존 데이터는 다음 정리 주기에 삭제됩니다.
             </p>
-          </>
+          </div>
         )}
       </SectionCard>
 

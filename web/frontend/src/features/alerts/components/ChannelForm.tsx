@@ -365,7 +365,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
             <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
 
                 {/* ── Left: form steps ─────────────────────────────────── */}
-                <div className="space-y-4 min-w-0">
+                <div className="space-y-8 min-w-0">
 
                     {/* Step 1: Type + Name */}
                     <FormStep n={1} title="채널 유형">
@@ -463,17 +463,17 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                 {/* ── Right: preview (lg+) + test (모든 폭, 좁으면 폼 아래) ──────── */}
                 <div>
-                    <div className="lg:sticky lg:top-6 space-y-4">
+                    <div className="lg:sticky lg:top-6 space-y-8">
 
                         {/* Channel preview card */}
-                        <div className="hidden lg:block bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
-                            <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
+                        <div className="hidden lg:block">
+                            <div className="flex items-center gap-3 mb-4">
                                 <div>
                                     <p className="type-label text-text-base">채널 미리보기</p>
                                     <p className="type-body text-text-muted mt-0.5">실제 전송 메시지 형식</p>
                                 </div>
                             </div>
-                            <div className="p-5 space-y-4">
+                            <div className="space-y-4">
                                 {/* Identity */}
                                 <div className="flex items-center gap-3 p-3 bg-ui-hover-soft/50 rounded-xl">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border-2 ${meta.colorBg}`}>
@@ -525,15 +525,15 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                         </div>
 
                         {/* Test send card */}
-                        <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
-                            <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
+                        <div>
+                            <div className="flex items-center gap-3 mb-4">
                                 <MaterialIcon size={20} name="send" className="text-text-dim" />
                                 <div>
                                     <p className="type-label text-text-base">테스트 전송</p>
                                     <p className="type-body text-text-muted mt-0.5">실제 채널로 테스트 메시지 발송</p>
                                 </div>
                             </div>
-                            <div className="p-5 space-y-3">
+                            <div className="space-y-3">
                                 <p className="type-body text-text-muted leading-relaxed">
                                     현재 입력값으로 테스트 메시지를 보냅니다. 채널은 저장되지 않습니다.
                                 </p>
@@ -550,7 +550,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 </Button>
 
                                 {testState === 'success' && (
-                                    <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">
+                                    <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft rounded-md">
                                         <MaterialIcon size={20} name="check_circle" className="text-status-healthy mt-0.5 shrink-0" />
                                         <div>
                                             <p className="type-body text-text-base">발송 성공</p>
@@ -560,7 +560,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 )}
 
                                 {testState === 'error' && (
-                                    <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft border border-ui-border rounded-xl">
+                                    <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft rounded-md">
                                         <MaterialIcon size={20} name="error" className="text-status-error mt-0.5 shrink-0" />
                                         <div>
                                             <p className="type-body text-text-base">발송 실패</p>

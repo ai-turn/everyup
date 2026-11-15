@@ -51,7 +51,7 @@ export function LogsPage() {
       <DockerEnvironmentHint className="mb-5" />
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {[0, 1, 2].map(item => <div key={item} className="h-48 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />)}
+          {[0, 1, 2].map(item => <div key={item} className="h-48 animate-pulse rounded-xl bg-ui-hover-soft" />)}
         </div>
       ) : error ? (
         <EmptyState icon="error_outline" title="로그를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />

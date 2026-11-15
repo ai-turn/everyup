@@ -201,7 +201,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
             <span className="tabular-nums">{dateTime(window[0])} – {dateTime(window[1])} · {timezone}</span>
           </div>
           {events.length > 0 && (
-            <div className="mt-4 border-t border-ui-border pt-3">
+            <div className="mt-6">
               <h3 className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</h3>
               <ul aria-label="이 기간의 실패" className="max-h-48 overflow-y-auto">
                 {events.map((event) => (

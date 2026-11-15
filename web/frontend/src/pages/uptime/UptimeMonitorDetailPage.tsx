@@ -77,7 +77,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
     && (!selectedDate || new Date(row.at).toLocaleDateString('sv-SE') === selectedDate));
   const shown = expanded ? visible : visible.slice(0, HISTORY_ROWS);
   return (
-    <div className="mt-6 border-t border-ui-border pt-5">
+    <div className="mt-8">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h3 className="type-card-title text-text-base">장애 이력</h3>
         {selectedDate && (
@@ -95,7 +95,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
         <div className="-mx-2 overflow-x-auto">
           <table className="w-full min-w-2xl table-fixed text-sm">
             <thead>
-              <tr className="text-left type-caption text-text-muted">
+              <tr className="border-b border-ui-border-soft text-left type-caption text-text-muted">
                 <th className="w-32 px-2 py-2 font-normal">상태</th>
                 <th className="w-32 px-2 py-2 font-normal">시각</th>
                 <th className="w-32 px-2 py-2 font-normal">지속 시간</th>
@@ -106,7 +106,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
               {shown.map((row) => {
                 const [tone, label] = ROW_LIGHT(row);
                 return (
-                  <tr key={row.key} className="border-t border-ui-border-soft">
+                  <tr key={row.key} className="transition-colors hover:bg-ui-hover-soft">
                     <td className="px-2 py-2.5"><StatusLight tone={tone} label={label} /></td>
                     <Tooltip content={new Date(row.at).toLocaleString()} focusable><td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatIncidentTime(row.at)}</td></Tooltip>
                     <td className="px-2 py-2.5 tabular-nums text-text-base">{row.durationSec === undefined ? '-' : formatDuration(row.durationSec)}</td>
@@ -276,35 +276,37 @@ function UptimeMonitorDetail({ monitorId }: { monitorId: string }) {
       />
 
       {failedSources.length > 0 && (
-        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border bg-bg-surface px-4 py-3 text-sm text-text-secondary">
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border-soft bg-bg-surface px-4 py-3 text-sm text-text-secondary">
           <p>{failedSources.join(', ')} 조회에 실패했습니다. 이전에 불러온 데이터가 있으면 유지합니다.</p>
           <Button size="sm" variant="secondary" loading={refreshing} disabled={processing} onClick={() => void load()}>다시 시도</Button>
         </div>
       )}
 
       {/* 현재 실패 → 기간별 수치 → 응답 추이 → 장기 이력 순서. */}
-      <section className="rounded-xl border border-ui-border bg-bg-surface p-6">
-        <h2 className="sr-only">주요 지표</h2>
-        <UptimeStats stats={[
-          { label: '24시간 업타임', value: monitor.uptime === undefined ? '-' : `${monitor.uptime.toFixed(2)}%` },
-          { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '-' },
-          { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '-' : `${Math.round(monitor.responseTime).toLocaleString()}ms` },
-          ...(monitor.certExpiresAt ? [certStat(monitor.certExpiresAt)] : []),
-        ]} />
-      </section>
-      <ResponseTimeChart monitorId={monitor.id} incidents={incidents ?? []} failures={(failures ?? []).map(failureEvent)} range={range} refreshKey={refreshKey} onRangeChange={setRange} />
-      <UptimeOverview
-        stats={[]}
-        historyUptime={history && history.days.length > 0 ? history.percentage : undefined}
-        days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
-        error={!history ? errors.history : undefined}
-        selectedDate={selectedDate}
-        onSelectDate={setSelectedDate}
-      >
-        {incidents && failures && (
-          <OutageHistory rows={historyRows(incidents, failures)} selectedDate={selectedDate} onClearDate={() => setSelectedDate(null)} />
-        )}
-      </UptimeOverview>
+      <div className="space-y-8">
+        <section>
+          <h2 className="sr-only">주요 지표</h2>
+          <UptimeStats stats={[
+            { label: '24시간 업타임', value: monitor.uptime === undefined ? '-' : `${monitor.uptime.toFixed(2)}%` },
+            { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '-' },
+            { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '-' : `${Math.round(monitor.responseTime).toLocaleString()}ms` },
+            ...(monitor.certExpiresAt ? [certStat(monitor.certExpiresAt)] : []),
+          ]} />
+        </section>
+        <ResponseTimeChart monitorId={monitor.id} incidents={incidents ?? []} failures={(failures ?? []).map(failureEvent)} range={range} refreshKey={refreshKey} onRangeChange={setRange} />
+        <UptimeOverview
+          stats={[]}
+          historyUptime={history && history.days.length > 0 ? history.percentage : undefined}
+          days={(history?.days ?? []).map((day) => ({ date: day.date, uptime: day.uptime }))}
+          error={!history ? errors.history : undefined}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+        >
+          {incidents && failures && (
+            <OutageHistory rows={historyRows(incidents, failures)} selectedDate={selectedDate} onClearDate={() => setSelectedDate(null)} />
+          )}
+        </UptimeOverview>
+      </div>
 
       {editing && <UptimeMonitorDialog monitor={monitor} onClose={() => setEditing(false)} onSave={updateMonitor} />}
       <ConfirmDialog

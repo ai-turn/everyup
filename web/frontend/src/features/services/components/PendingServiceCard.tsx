@@ -15,7 +15,7 @@ interface Props {
 // concise status summary; the installation modal owns the detailed guidance.
 export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Props) {
   return (
-    <div className="bg-bg-surface border border-ui-border rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3">
       <ResourceCardHeader
         title={<h2 className="truncate type-card-title text-text-base">{agent.name}</h2>}
         status={

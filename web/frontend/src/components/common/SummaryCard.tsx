@@ -18,7 +18,7 @@ export function SummaryCard({ label, value, detail, tone = 'idle' }: {
   // 아이콘은 뺐다 — 톤이 아이콘과 설명 문장 양쪽에 중복으로 칠해지고 있었고,
   // 종류는 라벨이 이미 말한다. 우측 상단에 혼자 떠 있던 자리를 숫자가 대신 쓴다.
   return (
-    <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
+    <article className="rounded-xl border border-ui-border-soft bg-bg-surface p-4">
       <div className="flex items-baseline justify-between gap-3">
         <p className="min-w-0 truncate type-label text-text-secondary">{label}</p>
         <p className="shrink-0 type-kpi text-text-base">{value}</p>

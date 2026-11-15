@@ -66,16 +66,16 @@ export function ApiEndpointTable({ source, window, refreshKey, selected, onSelec
       <h2 className="type-card-title text-text-base">Endpoint</h2>
       <p className="type-caption tabular-nums text-text-muted">{`${rows.length}개 · 에러 많은 순`}</p>
     </div>
-    <div className="overflow-hidden rounded-xl border border-ui-border bg-bg-surface">
+    <div>
       <table aria-label="Endpoint 목록" className="w-full table-fixed text-xs">
-        <thead className="border-b border-ui-border bg-ui-table-header text-text-muted"><tr>
+        <thead className="border-b border-ui-border-soft text-text-muted"><tr>
           <th scope="col" className="px-4 py-3 text-left font-medium">Endpoint</th>
           <th scope="col" className="w-16 px-4 py-3 text-right font-medium sm:w-20">요청</th>
           <th scope="col" className="w-20 px-4 py-3 text-right font-medium">에러율</th>
           <th scope="col" className="hidden w-24 px-4 py-3 text-right font-medium sm:table-cell">p95</th>
           <th scope="col" className="hidden w-32 px-4 py-3 text-right font-medium md:table-cell">마지막 오류</th>
         </tr></thead>
-        <tbody className="divide-y divide-ui-border-soft">{shown.map(row => {
+        <tbody>{shown.map(row => {
           const active = isSelected(row);
           const lastError = row.lastErrorAt ? formatDistanceToNow(new Date(row.lastErrorAt), { addSuffix: true, locale: ko }) : '-';
           return <tr key={`${row.method} ${row.path}`} className={`transition-colors ${active ? 'bg-ui-hover' : 'hover:bg-ui-hover-soft'}`}>
@@ -96,7 +96,7 @@ export function ApiEndpointTable({ source, window, refreshKey, selected, onSelec
           </tr>;
         })}</tbody>
       </table>
-      {rows.length > LIMIT && selectedIndex < LIMIT && <div className="border-t border-ui-border-soft px-4 py-2">
+      {rows.length > LIMIT && selectedIndex < LIMIT && <div className="px-4 py-2">
         <Button variant="ghost" size="sm" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? '상위 10개만 보기' : `모두 보기 (${rows.length}개)`}</Button>
       </div>}
     </div>

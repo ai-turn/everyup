@@ -296,7 +296,7 @@ function ServiceRequestTrends({
               aria-pressed={active}
               onClick={() => setMetric(tile.id)}
               className={`flex min-w-0 flex-col items-start gap-0.5 rounded-lg border px-3.5 py-2.5 text-left transition-colors ${tile.id === 'latency' ? 'max-sm:col-span-2' : ''} ${
-                active ? 'border-primary ring-1 ring-inset ring-primary' : 'border-ui-border hover:bg-ui-hover-soft'
+                active ? 'border-primary ring-1 ring-inset ring-primary' : 'border-ui-border-soft hover:bg-ui-hover-soft'
               }`}
             >
               <span className={`truncate type-caption ${active ? 'text-text-secondary' : 'text-text-muted'}`}>{tile.label}</span>

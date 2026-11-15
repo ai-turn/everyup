@@ -95,7 +95,7 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
     </>} requests={result.rows} total={result.total} page={page} loading={result.loading} error={result.error}
       filtered={filtered} waiting={awaitingData} onClear={clear} onRetry={() => setRetryKey(key => key + 1)}
       onPageChange={value => update({ page: value === 1 ? null : String(value) })} onSelect={setActiveTraceId} />
-    {!result.loading && !result.error && !filtered && result.rows.length === 0 && <details open={awaitingData} className="rounded-xl border border-ui-border bg-bg-surface p-4">
+    {!result.loading && !result.error && !filtered && result.rows.length === 0 && <details open={awaitingData} className="rounded-xl border border-ui-border-soft bg-bg-surface p-4">
       <summary className="cursor-pointer type-label text-action">수집 설정 안내</summary>
       <div className="mt-4 space-y-4">
         <p className="type-body text-text-muted">HTTP 요청은 method와 HTTP 상태코드가 있는 SERVER span에서 표시합니다. 다른 span이 수신돼도 이 목록은 비어 있을 수 있습니다.</p>

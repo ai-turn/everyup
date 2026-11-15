@@ -17,7 +17,7 @@ import { Tooltip } from './Tooltip';
 // 파괴적 액션은 variant로 고른다.
 const VARIANTS = {
   // 투명 테두리: 강제 색상 모드는 채움을 지우고 테두리만 그린다 — 없으면 글자만 남아 버튼으로 안 보인다.
-  primary: 'border border-transparent bg-primary text-white not-aria-disabled:hover:bg-primary-hover not-aria-disabled:active:bg-primary-hover',
+  primary: 'border border-transparent bg-primary text-on-primary not-aria-disabled:hover:bg-primary-hover not-aria-disabled:active:bg-primary-hover',
   secondary: 'bg-bg-surface border border-ui-border text-text-base not-aria-disabled:hover:bg-ui-hover not-aria-disabled:active:bg-ui-active [&_svg]:text-action',
   ghost: 'text-action not-aria-disabled:hover:bg-action/10 not-aria-disabled:active:bg-action/15',
   text: 'text-action',

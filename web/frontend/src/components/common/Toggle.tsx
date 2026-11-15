@@ -24,8 +24,8 @@ export function Toggle({ checked, onChange, disabled = false, title, ariaLabel }
       }`}
     >
       <span
-        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white forced-colors:bg-[CanvasText] rounded-full shadow transition-transform duration-200 ${
-          checked ? 'translate-x-4' : 'translate-x-0'
+        className={`absolute top-0.5 left-0.5 w-4 h-4 forced-colors:bg-[CanvasText] rounded-full shadow transition-transform duration-200 ${
+          checked ? 'translate-x-4 bg-on-primary' : 'translate-x-0 bg-white'
         }`}
       />
     </button></Tooltip>

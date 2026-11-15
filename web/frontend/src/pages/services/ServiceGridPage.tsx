@@ -45,7 +45,7 @@ function ProjectCard({ agentId, agent, agentName, services, overview, returnTo }
       to={`/agents/${agentId}`}
       state={{ returnTo }}
       aria-label={agentName}
-      className="card-interactive bg-bg-surface border border-ui-border rounded-xl p-4 flex flex-col gap-3"
+      className="card-interactive bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3"
     >
       {/* Header: collection state + environment name */}
       <ResourceCardHeader
@@ -235,7 +235,7 @@ export function ServiceGridPage() {
 
       {/* Content */}
       {error && (
-        <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
+        <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
           <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">Docker 환경을 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{error}</p></div></div>
           <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
         </section>

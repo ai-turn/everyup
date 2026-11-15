@@ -112,19 +112,19 @@ export function AlertsMobileView({
       {/* Stats Summary */}
       {stats && (
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
+          <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
             <p className="type-body text-text-muted truncate">
               성공률
             </p>
             <p className="type-kpi text-text-base">{stats.successRate.toFixed(0)}%</p>
           </div>
-          <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
+          <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
             <p className="type-body text-text-muted truncate">
               발송
             </p>
             <p className="type-kpi text-text-base">{stats.totalSent}</p>
           </div>
-          <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
+          <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
             <p className="type-body text-text-muted truncate">
               실패
             </p>
@@ -182,7 +182,7 @@ export function AlertsMobileView({
               return (
                 <div
                   key={channel.id}
-                  className="bg-bg-surface border border-ui-border rounded-xl p-4"
+                  className="bg-bg-surface border border-ui-border-soft rounded-xl p-4"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${meta.bg} ${!channel.isEnabled ? 'opacity-50' : ''}`}>
@@ -201,7 +201,7 @@ export function AlertsMobileView({
                     </div>
                     <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} />
                   </div>
-                  <div className="mb-3 pb-3 border-b border-ui-border-soft/50">
+                  <div className="mb-3">
                     <ChannelHealthMeta health={channelHealth[channel.id]} compact />
                     {testResults[channel.id] && <div className="mt-2"><ChannelTestResult result={testResults[channel.id]} /></div>}
                   </div>
@@ -223,7 +223,7 @@ export function AlertsMobileView({
       {/* Rules Tab */}
       {activeTab === 'rules' && (
         <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-2">
-          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
+          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
           {errors.rules && <LoadErrorBanner title="알림 규칙을 불러오지 못했습니다" message={errors.rules} onRetry={onRetry.rules} />}
           {rulesLoading ? (
             [1, 2].map(i => (
@@ -245,7 +245,7 @@ export function AlertsMobileView({
               <article
                 key={rule.id}
                 aria-label={rule.name}
-                className="bg-bg-surface border border-ui-border rounded-xl p-4"
+                className="bg-bg-surface border border-ui-border-soft rounded-xl p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -259,7 +259,7 @@ export function AlertsMobileView({
                   <ChannelAvatars rule={rule} channels={channels} />
                   <span className="type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</span>
                 </div>
-                <div className="mt-3 flex items-center justify-between gap-2 border-t border-ui-border-soft pt-3">
+                <div className="mt-3 flex items-center justify-between gap-2">
                   <Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} />
                   <div className="flex gap-1">{ruleActions(rule)}</div>
                 </div>
@@ -293,7 +293,7 @@ export function AlertsMobileView({
               return (
                 <div
                   key={item.id}
-                  className="bg-bg-surface border border-ui-border rounded-xl p-4"
+                  className="bg-bg-surface border border-ui-border-soft rounded-xl p-4"
                 >
                   <div className="flex items-start gap-3">
                     <MaterialIcon size={20} name={statusConf.icon} className={`mt-0.5 shrink-0 ${statusConf.color}`} />

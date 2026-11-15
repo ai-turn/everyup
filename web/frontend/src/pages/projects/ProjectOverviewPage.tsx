@@ -100,7 +100,7 @@ export function ProjectOverviewPage() {
 
   const totalTargets = data.agents.length + data.monitors.length + data.observedServices.length + data.infrastructure.length;
 
-  if (loading) return <div className="h-64 animate-pulse rounded-xl border border-ui-border bg-bg-surface" />;
+  if (loading) return <div className="h-64 animate-pulse rounded-xl bg-ui-hover-soft" />;
   if (error) return <EmptyState icon="sync_problem" title="그룹을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} />;
   if (!data.project) return <EmptyState icon="folder_open" title="그룹을 찾을 수 없습니다" action={{ label: '그룹', to: '/projects' }} />;
 
@@ -148,12 +148,12 @@ export function ProjectOverviewPage() {
         }
       />
 
-      {failedSources.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{failedSources.join(', ')} 정보를 제외한 결과입니다.</p></div></div><Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button></section>}
+      {failedSources.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{failedSources.join(', ')} 정보를 제외한 결과입니다.</p></div></div><Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button></section>}
 
-      {totalTargets === 0 ? <section className="rounded-xl border border-ui-border bg-bg-surface"><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="Docker 환경, 업타임 모니터, 직접 연결 서비스, Collector를 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
+      {totalTargets === 0 ? <section><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="Docker 환경, 업타임 모니터, 직접 연결 서비스, Collector를 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
         <section>
           <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
-          {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center overflow-hidden rounded-xl border border-ui-border bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
+          {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center overflow-hidden rounded-xl border border-ui-border-soft bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
             <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="그룹 구성 그리드" columns={[
               // 종류 아이콘은 분류라 중립색이다(§5.3). 상태는 현황 열의 StatusLight가 말한다(§5.1).
               { key: 'name', label: '대상', render: row => <div className="flex min-w-0 items-start gap-3"><MaterialIcon size={20} name={row.icon} className="mt-0.5 shrink-0 text-text-muted" /><div className="min-w-0"><Link to={row.to} state={{ returnTo }} onClick={() => openMember(row.to)} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.type}</p><div className="mt-2 md:hidden"><StatusLight tone={row.state} label={row.detail} /></div></div></div> },

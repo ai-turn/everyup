@@ -47,7 +47,7 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
       {Object.entries(filters).map(([name, val]) => <Button key={name} variant="secondary" size="md" className="max-w-full" aria-label={`${name} 필터 제거`} onClick={() => { const next = { ...filters }; delete next[name]; setFilters(next); }}><span className="min-w-0 truncate font-mono">{name}={JSON.stringify(val)}</span><MaterialIcon name="close" className="shrink-0" /></Button>)}
       {(query.attributes || query.series || query.mode !== null) && <Button variant="ghost" size="md" onClick={() => query.update({ metricAttributes: null, metricSeries: null, metricMode: null })}>메트릭 조회 초기화</Button>}
     </div>
-    {open === 'filter' && <div id={panelId} className="space-y-3 rounded-lg border border-ui-border p-4">
+    {open === 'filter' && <div id={panelId} className="space-y-3 rounded-md bg-ui-hover-soft p-4">
         <p className="type-body text-text-muted">모든 조건에 정확히 일치하는 시리즈를 조회합니다. 문자열과 숫자를 구분합니다.</p>
         <form onSubmit={event => {
           event.preventDefault();
@@ -74,7 +74,7 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
         </form>
         {error && <p role="alert" className="type-body text-status-error">{error}</p>}
     </div>}
-    {open === 'series' && <div id={panelId} className="space-y-3 rounded-lg border border-ui-border p-4">
+    {open === 'series' && <div id={panelId} className="space-y-3 rounded-md bg-ui-hover-soft p-4">
         <div className="flex flex-wrap items-center gap-3"><p className="type-body text-text-muted">차트와 분포에 최대 6개를 함께 표시합니다.</p><Button variant="ghost" size="sm" onClick={() => query.update({ metricSeries: null })}>기본 선택</Button></div>
         <SearchInput aria-label="Attribute 조합으로 시리즈 찾기" placeholder="Attribute 조합으로 찾기" value={search} onChange={event => setSearch(event.target.value)} />
         <div className="max-h-64 space-y-2 overflow-y-auto" aria-label="시리즈 목록" aria-busy={pending}>

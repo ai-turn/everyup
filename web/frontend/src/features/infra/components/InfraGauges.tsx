@@ -40,7 +40,7 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
   const displayUnit = gauge.displayUnit ?? '%';
 
   return (
-    <article className="rounded-xl border border-ui-border bg-bg-surface p-4">
+    <article className="rounded-xl border border-ui-border-soft bg-bg-surface p-4">
       <div className="flex min-h-5 items-center justify-between gap-2">
         <p className="truncate type-label-sm text-text-muted">
           {gauge.label}

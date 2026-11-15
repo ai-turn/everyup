@@ -169,7 +169,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
     return (
         <form id="alert-rule-form" onSubmit={handleSubmit}>
             <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
-                <div className="space-y-4 min-w-0">
+                <div className="space-y-8 min-w-0">
                     <FormStep n={1} title="시스템 규칙" subtitle="시스템이 관리하는 규칙입니다. 메시지와 알림 채널만 수정할 수 있습니다.">
                         <div className="p-4 bg-ui-hover-soft/50 rounded-xl">
                             <h3 className="type-card-title text-text-base">{rule.name}</h3>
@@ -209,8 +209,8 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                 <div className="hidden lg:block">
                     {/* top-0: 패널 스크롤 영역 기준이라 0이어야 좌측 카드 시작선과 정렬 (실측 검증) */}
                     <div className="sticky top-0 space-y-4">
-                        <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
-                            <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
+                        <div>
+                            <div className="flex items-center gap-3 mb-4">
                                 <MaterialIcon size={20} name="lock" className="text-text-dim" />
                                 <div>
                                     <p className="type-label text-text-base">
@@ -221,7 +221,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                     </p>
                                 </div>
                             </div>
-                            <div className="p-5 space-y-4">
+                            <div className="space-y-4">
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
                                     <p className="type-label-sm text-text-muted">규칙 이름</p>
                                     <p className="mt-1 truncate type-body text-text-base">{rule.name}</p>
@@ -489,7 +489,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
             <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
 
                 {/* ── Left: form steps ─────────────────────────────────── */}
-                <div className="space-y-4 min-w-0">
+                <div className="space-y-8 min-w-0">
 
                     {/* Step 1: Target */}
                     <FormStep n={1} title="대상">
@@ -820,14 +820,14 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                     <div className="lg:sticky lg:top-0 space-y-4">
 
                         {/* Preview card */}
-                        <div className="bg-bg-surface border border-ui-border rounded-xl overflow-hidden">
-                            <div className="flex items-center gap-3 px-5 py-4 border-b border-ui-border bg-ui-hover-soft/50">
+                        <div>
+                            <div className="flex items-center gap-3 mb-4">
                                 <div>
                                     <p className="type-label text-text-base">미리보기</p>
                                     <p className="type-body text-text-muted mt-0.5">저장하면 이렇게 동작합니다</p>
                                 </div>
                             </div>
-                            <div className="p-5 space-y-5">
+                            <div className="space-y-5">
 
                                 <div>
                                     <p className="type-label-sm text-text-muted mb-2">조건</p>

@@ -96,9 +96,9 @@ export function LoginPage() {
         <div className="w-[26rem] max-w-full">
           {/* relative wrapper — height equals card only, anchor for recovery panel */}
           <div className="relative">
-            <div className="bg-bg-surface border border-ui-border rounded-xl shadow-sm p-6 space-y-4">
+            <div className="bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-4">
               {error && (
-                <div role="alert" className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft border border-ui-border rounded-lg px-3 py-2.5">
+                <div role="alert" className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
                     <MaterialIcon size={20} name="error_outline" className="leading-none text-status-error" />
                   </span>
@@ -107,7 +107,7 @@ export function LoginPage() {
               )}
 
               {isSetup && (
-                <div className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft border border-ui-border rounded-lg px-3 py-2.5">
+                <div className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
                     <MaterialIcon size={20} name="info" className="leading-none text-action" />
                   </span>
@@ -162,7 +162,7 @@ export function LoginPage() {
 
             {/* Recovery panel — outside card div, bottom-aligned with card border */}
             {!isSetup && showForgot && (
-              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border rounded-xl shadow-sm p-6 space-y-4">
+              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-4">
                 <p className="type-label text-text-secondary">
                   계정 정보를 잊으셨나요?
                 </p>
@@ -180,7 +180,7 @@ export function LoginPage() {
                   </p>
                   <div className="space-y-1">
                     <p className="type-body text-text-muted">① 환경 변수 설정 후 재시작</p>
-                    <pre className="text-xs bg-bg-main border border-ui-border rounded-lg p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
+                    <pre className="text-xs bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
 {`# docker-compose.yml
 environment:
   EVERYUP_ADMIN_USERNAME: admin
@@ -201,7 +201,7 @@ docker compose restart`}
                   <p className="type-body text-text-muted">
                     데이터 볼륨을 제거하고 재시작하면 초기 설정 화면으로 돌아갑니다. 모니터링 데이터는 유지됩니다.
                   </p>
-                  <pre className="text-xs bg-bg-main border border-ui-border rounded-lg p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
+                  <pre className="text-xs bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
 {`# 컨테이너 중지 후 데이터 볼륨 삭제
 docker compose down
 docker volume rm everyup-data

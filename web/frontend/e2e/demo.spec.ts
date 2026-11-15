@@ -10,7 +10,7 @@ test.describe('live demo', () => {
     // 장애 신호는 이제 개수가 아니라 대상 이름으로 확인한다.
     await expect(page.getByRole('heading', { name: '현재 확인 필요' })).toBeVisible();
     await expect(page.locator('#attention').getByRole('link', { name: /payment-worker/ })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '모니터링 범위' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: '모니터링 범위' })).toBeVisible();
   });
 
   test('visitor can inspect logs for a Docker service', async ({ page }) => {
@@ -113,7 +113,7 @@ test.describe('live demo', () => {
     await expect(timeline).toBeVisible();
     // Scope is part of the claim: direct-connection services keep no history,
     // so the card must not imply it covers every monitored target.
-    await expect(timeline.getByText('업타임 모니터와 Docker 서비스의 최근 7일 기록입니다.')).toBeVisible();
+    await expect(timeline.getByText('업타임 모니터·Docker 서비스, 최근 7일')).toBeVisible();
 
     // An ongoing Docker outage and a resolved uptime episode, newest first.
     await expect(timeline.getByRole('link', { name: /payment-worker/ })).toBeVisible();
@@ -130,9 +130,9 @@ test.describe('live demo', () => {
     await page.getByRole('option', { name: '부분 수집 실패' }).click();
 
     await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
-    // 성공한 영역이 남아 있는지를 '모니터링 범위' 카드로 확인한다. `직접 연결 서비스`는
+    // 성공한 영역이 남아 있는지를 '모니터링 범위' 줄로 확인한다. `직접 연결 서비스`는
     // 사이드바 메뉴명과 겹치지 않아 스코프 없이도 유일하다.
-    await expect(page.getByRole('heading', { name: '모니터링 범위' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: '모니터링 범위' })).toBeVisible();
     await expect(page.getByText('직접 연결 서비스', { exact: true })).toBeVisible();
   });
 });

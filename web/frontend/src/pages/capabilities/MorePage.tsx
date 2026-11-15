@@ -10,8 +10,8 @@ export function MorePage() {
   return (
     <div>
       <PageHeader title="더보기" subtitle="추가 모니터링 기능과 설정으로 이동합니다." />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {LINKS.map((link) => <Link key={link.to} to={link.to} className="card-interactive flex items-center gap-3 rounded-xl border border-ui-border bg-bg-surface p-4">
+      <div className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
+        {LINKS.map((link) => <Link key={link.to} to={link.to} className="flex items-center gap-3 rounded-md px-3 py-3 transition-colors hover:bg-ui-hover-soft">
           <MaterialIcon size={20} name={link.icon} className="text-action" />
           <div className="min-w-0"><h2 className="type-card-title text-text-base">{link.label}</h2><p className="mt-0.5 type-body text-text-muted">{link.description}</p></div>
           <MaterialIcon size={20} name="chevron_right" className="ml-auto text-text-dim" />

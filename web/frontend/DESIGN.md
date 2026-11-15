@@ -1,12 +1,13 @@
 ---
 version: alpha
 name: EveryUp
-description: 개발자용 모니터링 대시보드. 중립 slate 표면에 primary 파랑 하나, 색은 데이터와 액션에만 싣는다.
+description: 개발자용 모니터링 대시보드. 흰 표면 한 톤에 무채색 액션, 유채색은 상태와 데이터에만 싣는다.
 colors:
-  primary: "#3e63dd"
-  primary-hover: "#3358d4"
-  action: "#3a5bc7"
-  bg-main: "#f9f9fb"
+  primary: "#1c2024"
+  primary-hover: "#363a3f"
+  on-primary: "#ffffff"
+  action: "#1c2024"
+  bg-main: "#ffffff"
   bg-surface: "#ffffff"
   ui-border: "#d9d9e0"
   ui-control-border: "#80838d"
@@ -31,9 +32,10 @@ colors:
   danger: "#dc2626"
   danger-hover: "#b91c1c"
   chart-border: "#e0e1e6"
-  primary-dark: "#3e63dd"
-  primary-hover-dark: "#3358d4"
-  action-dark: "#9eb1ff"
+  primary-dark: "#edeef0"
+  primary-hover-dark: "#c8cbd0"
+  on-primary-dark: "#111113"
+  action-dark: "#edeef0"
   bg-main-dark: "#111113"
   bg-surface-dark: "#18191b"
   ui-border-dark: "#363a3f"
@@ -185,7 +187,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 | 역할 | 클래스 | light | dark |
 |------|--------|-------|------|
-| 페이지 배경 | `bg-bg-main` | `#f9f9fb` (2) | `#111113` (1) |
+| 페이지 배경 | `bg-bg-main` | `#ffffff` | `#111113` (1) |
 | 카드 표면 | `bg-bg-surface` | `#ffffff` | `#18191b` (2) |
 | 헤어라인 | `border-ui-border` | `#d9d9e0` (6) | `#363a3f` (6) |
 | 입력 컨트롤 경계 | `border-ui-control-border` | `#80838d` (10) | `#6b6f78` |
@@ -197,6 +199,8 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | **떠오른 표면** | `bg-ui-raised` | `#ffffff` | `#2e3135` (5) |
 
 `ui-active`와 `ui-raised`는 **다크값이 같지만 역할이 반대다.** `ui-active`(라이트 `#e8e8ec`)는 스켈레톤·칩·hover처럼 트랙보다 **눌려** 보여야 하는 자리, `ui-raised`(라이트 흰색)는 세그먼티드 컨트롤의 선택된 칸처럼 `ui-hover` 트랙 **위로 솟아** 보여야 하는 자리다. 라이트에서 흰색이어야 하므로 `bg-bg-surface`로 대체할 수 없다 — 다크값(`#18191b`)이 트랙(`#212225`)보다 어두워 방향이 뒤집힌다.
+
+**라이트의 페이지 배경은 카드와 같은 흰색이다**(2026-11-15, Linear Docs 레퍼런스). 회색 페이지 위에 흰 카드를 띄우는 구성이 위젯을 모아 놓은 화면처럼 보여서, 라이트는 한 톤으로 두고 구분은 간격·헤어라인·hover 채움으로 한다. 다크는 main/surface 2단을 유지한다.
 
 다크에서 `soft` 계열은 상위 토큰과 동일하다 — **다크 모드의 명도 계층은 2단(main/surface)뿐**이고, 이는 의도된 설계다.
 
@@ -223,11 +227,20 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 ### 1.4 브랜드 · 상태
 
-**primary** `#3e63dd` indigo-9 (dark 같은 값) — 주 액션, 링크, 선택 상태, 차트 첫 시리즈. 흰 글자 5.21
+**브랜드 색은 무채색이다** (2026-11-15). 이전의 indigo(`#3e63dd`)를 뺐고, 화면에서 유채색은 상태색(§1.4 아래 표)만 남는다. 레퍼런스는 Linear Docs다: 주 버튼은 검정, 링크·선택 상태는 글자색과 hover 채움으로 구분한다.
 
-**primary-hover** `#3358d4` indigo-10 (dark 같은 값) — primary 채움의 hover. 흰 글자가 얹히므로 **더 진하게** 간다(6.02). Radix 다크 indigo-10(`#5472e4`)은 밝아지는 쪽이라 쓰지 않는다. 이전 `hover:bg-primary/90`은 배경과 섞여 밝아지면서 흰 글자 대비가 AA 아래로 떨어졌다. 채움 버튼의 hover·누름은 어두워지는 쪽이 보편 규칙이다(Carbon·Primer·Polaris).
+| 역할 | 클래스 | light | dark | 근거 |
+|---|---|---|---|---|
+| 주 액션 채움 | `bg-primary` | `#1c2024` (slate-12) | `#edeef0` | 글자 최고 단계를 채움으로 쓴다 |
+| 채움 hover | `bg-primary-hover` | `#363a3f` | `#c8cbd0` | 한 단계 옅어진다. 채움 위 글자 대비는 라이트 11.45로 AA를 넘는다 |
+| 채움 위 글자 | `text-on-primary` | `#ffffff` | `#111113` | 다크의 채움이 밝아서 `text-white`를 쓰면 글자가 사라진다. **`bg-primary` 위에 `text-white`를 쓰지 않는다** |
+| 채움 없는 액션 | `text-action` | `#1c2024` | `#edeef0` | 제목 글자와 같은 값. 링크는 색이 아니라 밑줄·화살표·hover 배경으로 드러낸다 |
 
-**action** `#3a5bc7` indigo-11 (dark `#9eb1ff`) — 채움 없는 액션(버튼 라벨·아이콘)의 색. primary를 그대로 텍스트로 쓰면 다크의 hover 배경(`ui-hover`) 위에서 3.06으로 AA 미달이라 명도만 옮긴 변주를 둔다. 표면·hover·페이지 배경에서 라이트 5.27~6.00, 다크 7.72~9.15다. **채움에는 쓰지 않는다** — `bg-primary`는 그대로 primary다.
+`bg-primary/10` 같은 옅은 틴트(사이드바 현재 위치, 선택된 옵션)는 그대로 쓴다. 무채색이 되면서 회색 선택 배경이 된다.
+
+**차트 첫 시리즈는 UI primary와 분리했다.** `chartTheme.ts`의 `primaryColor`는 CSS 변수를 읽지 않고 indigo `#3e63dd` 상수를 쓴다. 검정 선은 축·격자·글자와 구분되지 않기 때문이다.
+
+Toggle의 켜진 손잡이도 `bg-on-primary`다. 다크에서 켜진 트랙이 밝아지므로 흰 손잡이가 묻힌다.
 
 **상태색도 시맨틱 토큰이다.** `emerald-600 dark:emerald-400` 같은 primitive 직접 사용 금지 — 토큰이 `.dark`에서 자가 전환하므로 `dark:` 짝이 필요 없다.
 
@@ -272,7 +285,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | debug | violet | `#7c3aed` | `text-violet-700` |
 | trace | slate | `#64748b` | `text-text-muted` |
 
-info가 sky인 이유: primary(#3e63dd)와 붙어 있으면 "선택된 항목"으로 오독된다.
+info가 sky인 이유: 이전 primary였던 indigo(#3e63dd, 지금은 차트 첫 시리즈)와 붙어 있으면 "선택된 항목"으로 오독됐다.
 
 **알림 severity도 같은 규칙을 따른다** (2026-11-13). severity(critical·warning·info)는 규칙을 만든 사람이 정한 중요도라 상태와 별개 축이지만, 발송 이력 한 행에 `실패`(상태)와 `심각`(severity)이 나란히 서서 빨강이 둘이면 뜻이 둘로 읽힌다. critical·warning은 상태 글자 토큰·`/10` 틴트·`-fill` 점을, info는 위 표의 sky를 쓴다. SSOT는 `features/alerts/utils/severityLabel.ts`의 `SEVERITY_TONE`이고 `SeverityBadge`·규칙 폼·모바일 카드가 모두 이것을 쓴다.
 
@@ -387,13 +400,23 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 ## 3. 레이아웃
 
-### 3.1 카드 (정본)
+### 3.1 테두리와 카드 (2026-11-15, Linear 레퍼런스)
 
-```
-bg-bg-surface border border-ui-border rounded-xl
-```
+**구분은 선이 아니라 간격과 hover 채움으로 한다.** 회색 페이지 위에 테두리 카드를 쌓고 카드 안을 가로선으로 나누던 구성이 위젯을 모아 놓은 화면처럼 보였다(개요 점검, 2026-11-15). 라이트 페이지는 흰색 한 톤(§1.2)이므로 섹션은 제목과 간격으로 나눈다.
 
-내부 패딩은 `p-4`(조밀) 또는 `p-6`(여유). 카드 안 서브블록은 `bg-ui-hover-soft border border-ui-border rounded-md` — **부모와 같은 `rounded-xl`을 쓰지 않는다**(§3.2 동심 규칙).
+| 대상 | 규칙 |
+|---|---|
+| 페이지 섹션 | 카드로 감싸지 않는다. 섹션 제목(`type-card-title`, 그룹 제목은 `type-label-sm`) + 섹션 간격(`space-y-8`, §3.7). 헤더·툴바·배너처럼 섹션이 아닌 머리 요소끼리는 기존 `5` |
+| 목록·표 | 바깥 카드 셸(`rounded-xl border bg-bg-surface`)을 쓰지 않는다. 헤더 행은 배경 없이 아래 `border-ui-border-soft` 한 줄만. 본문 행 사이 구분선(`divide-y`, 행 `border-t/b`)은 쓰지 않는다. 행은 `hover:bg-ui-hover-soft`로 드러낸다 |
+| 회색 띠 | 헤더·그룹 제목·카드 머리에 배경 띠(`bg-ui-table-header`, `bg-ui-hover` 헤더)를 깔지 않는다 |
+| 탭 줄 | 탭 아래 전폭 가로선을 두지 않는다. 선택 표시(밑줄)는 선택된 탭에만 |
+| 정의 목록(`DetailMeta` 등) | 행마다 선을 긋지 않는다. 라벨 열과 행 간격으로 정렬한다 |
+| 남기는 카드 | 차트 카드(`chartCardClass`), KPI·요약 타일(`SummaryCard`), **카드 보기**의 항목 카드, 상태 배너만 카드다. 테두리는 `border-ui-border-soft` |
+| 떠 있는 표면 | 다이얼로그·팝오버·메뉴·툴팁은 그대로 `border-ui-border`(§3.5). 본문 위에 떠 있어 경계가 필요하다 |
+| 입력 컨트롤 | 그대로 `border-ui-control-border`(§1.2, 3:1) |
+| 코드·명령 블록 | 테두리 없이 `bg-ui-hover-soft rounded-md` |
+
+카드 안 서브블록이 필요하면 `bg-ui-hover-soft rounded-md`(테두리 없음)이고, 부모와 같은 `rounded-xl`을 쓰지 않는다(§3.2 동심 규칙). 내부 패딩은 `p-4`(조밀) 또는 `p-6`(여유)다.
 
 ### 3.2 radius
 
@@ -493,6 +516,7 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 | `3` | 12px | 블록 안의 구획 | 선행 아이콘·타일 + 텍스트 블록, `justify-between` 행의 최소 간격, 툴바 컨트롤 사이, 카드 안 서브블록 사이 |
 | `4` | 16px | 카드 사이 | 카드 그리드, 폼 필드 2열, 탭 안 툴바 → 목록 |
 | `5` | 20px | 섹션 사이 | 본문 래퍼(§3.3), 모달·패널 본문의 섹션, 페이지 2단 레이아웃 |
+| `8` | 32px | 카드 없이 놓인 페이지 섹션 사이 | 개요의 그룹, 상세의 지표 → 차트 → 이력, 설정 섹션(§3.1, 2026-11-15). 테두리가 하던 구분을 간격이 맡으므로 `5`보다 넓다 |
 
 - **`gap-1`(4px)은 조밀한 액션끼리만**이다 — 표 행·카드 헤더에 나란히 놓인 `IconButton sm`·`Button sm`. `gap-2.5`는 쓰지 않는다.
 - **인라인 아이콘과 메뉴 행을 가르는 기준**: 아이콘이 글자 한 줄에 붙어 다니면(메타 줄, 링크, 버튼 라벨) 짝이라 `1.5`다. 행 전체가 누르는 대상인 목록 항목(사이드바·명령 팔레트·드롭다운 메뉴)은 아이콘이 행을 이끄는 독립 요소라 `2`다. 둘이 `1`·`1.5`·`2`·`2.5` 네 값으로 갈려 있었다.
@@ -779,22 +803,22 @@ API 대상 목록은 기본 6시간의 요청 수·5xx를 비교하며, 기간�
 
 대상 비교 목록은 공용 `ResourceTable`을 쓴다. 정렬·페이지·고정 작업 열이 있는 알림 데스크톱 표와 로그·트레이스 표는 아래 마크업 규약을 따른다. 두 종류다.
 
-**데이터 표** — 카드 하나를 통째로 쓰는 목록(알림 규칙·채널·발송 이력, 트레이스). 카드 셸(`overflow-hidden rounded-xl border border-ui-border bg-bg-surface`)에 패딩 없이 붙인다. 그래야 첫 열의 `px-4`가 다른 카드의 `p-4`와 같은 기준선이 된다.
+**데이터 표** — 목록 하나를 통째로 보여 주는 표(알림 규칙·채널·발송 이력, 트레이스). 카드 셸 없이 페이지에 바로 놓는다(§3.1).
 
 API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 화살표를 하나의 `Button text`에 함께 표시한다. 버튼의 hover 채움 없이 경로에만 밑줄을 표시하며, 키보드 포커스에서도 같은 밑줄을 표시한다. `aria-haspopup="dialog"`와 접근 가능한 이름으로 목적을 알린다. 긴 경로는 말줄임하고 전체 경로를 공통 툴팁과 접근 가능한 이름에 유지한다. trace ID가 없는 경로에는 액션을 표시하지 않는다.
 
 | 부분 | 클래스 |
 |------|--------|
-| 헤더 행 | `bg-ui-table-header border-b border-ui-border` — 행 hover와 별도 배경 |
+| 헤더 행 | 배경 없이 `border-b border-ui-border-soft` 한 줄 |
 | 헤더 셀 | `px-4 py-3 text-left text-xs font-medium text-text-muted` |
-| 본문 셀 | `px-4 py-2.5`, 행 구분은 `border-ui-border-soft` 한 줄(`divide-y` 또는 행 `border-t`) |
+| 본문 셀 | `px-4 py-2.5`, 행 사이 구분선 없음(§3.1) |
 | 숫자·시간 열 | 헤더와 셀 모두 `text-right`, 셀은 `tabular-nums` |
 | 상세로 이동하는 행 | `hover:bg-ui-hover-soft`(§3.6 — 배지 대비 유지), `data-row-link` 제목 링크와 `tableRowLinkHandlers`. 행 빈 공간도 같은 링크로 이동 |
-| 넓은 표 | `overflow-x-auto` 안에 `min-w-[…] table-fixed`. 작업 열은 `sticky right-0 border-l border-ui-border-soft`에 행과 같은 배경 |
+| 넓은 표 | `overflow-x-auto` 안에 `min-w-[…] table-fixed`. 작업 열은 `sticky right-0`에 행과 같은 배경(세로선 없음) |
 
 본문 글자는 `text-sm`, 로그·트레이스처럼 기계 문자열이 주인 표는 `text-xs`(§2.2).
 
-헤더는 hover 상태와 다른 배경을 사용한다. 행 hover는 배지·본문 대비를 유지하도록 기존 `ui-hover-soft`로 둔다. 상세 행의 기본 클릭은 제목의 실제 링크로 전달해 Router state와 복귀 경로를 보존하고, Ctrl/Meta/중간 클릭은 같은 URL을 새 탭에서 연다. 키보드는 같은 제목 링크를 사용하며, 행을 별도 버튼으로 바꾸거나 중복 Tab 지점을 추가하지 않는다. 행 안의 링크·버튼·토글·입력·summary와 텍스트 선택은 행 이동을 실행하지 않는다. `table-row-link`는 비활성 버튼도 클릭 대상으로 유지해 `pointer-events:none` 때문에 클릭이 행에 전달되는 것을 막는다. 상세 목적지가 없는 행은 이동 가능한 커서를 표시하지 않는다.
+헤더는 배경을 쓰지 않는다. 행 hover는 배지·본문 대비를 유지하도록 기존 `ui-hover-soft`로 둔다. 상세 행의 기본 클릭은 제목의 실제 링크로 전달해 Router state와 복귀 경로를 보존하고, Ctrl/Meta/중간 클릭은 같은 URL을 새 탭에서 연다. 키보드는 같은 제목 링크를 사용하며, 행을 별도 버튼으로 바꾸거나 중복 Tab 지점을 추가하지 않는다. 행 안의 링크·버튼·토글·입력·summary와 텍스트 선택은 행 이동을 실행하지 않는다. `table-row-link`는 비활성 버튼도 클릭 대상으로 유지해 `pointer-events:none` 때문에 클릭이 행에 전달되는 것을 막는다. 상세 목적지가 없는 행은 이동 가능한 커서를 표시하지 않는다.
 
 **목록 보기 (2026-10-18)** — 업타임·그룹·Docker 환경·로그·인프라·API 요청·메트릭·알림의 기본은 그리드(비교 표)다. 환경 상세의 서비스 목록과 그룹 상세의 구성 목록도 같다. 목록 툴바 오른쪽의 `ListViewToggle`로 카드를 선택하며, `useListView`가 `view=card`를 URL에 보존한다. 기본값과 알 수 없는 값은 그리드다. 보기만 바꿀 때 검색·탭·대상 필터를 지우지 않고, 두 보기는 같은 데이터·순서·작업을 사용한다. 개요 상태판·상세 차트·설정 폼에는 적용하지 않는다.
 

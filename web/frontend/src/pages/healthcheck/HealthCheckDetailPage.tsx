@@ -101,7 +101,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
 
   return (
     <>
-    {loadError && <div role="alert" className="mb-4 rounded-lg border border-ui-border px-4 py-3 text-sm text-text-secondary">서비스 조회에 실패했습니다. 이전에 불러온 상태입니다. <Button size="sm" variant="secondary" loading={refreshing} onClick={handleRefresh}>다시 시도</Button></div>}
+    {loadError && <div role="alert" className="mb-4 rounded-xl border border-ui-border-soft px-4 py-3 text-sm text-text-secondary">서비스 조회에 실패했습니다. 이전에 불러온 상태입니다. <Button size="sm" variant="secondary" loading={refreshing} onClick={handleRefresh}>다시 시도</Button></div>}
     <AgentHealthCheckDetailView
       service={service}
       agentId={agentId!}
