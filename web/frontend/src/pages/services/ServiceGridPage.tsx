@@ -240,7 +240,6 @@ export function ServiceGridPage() {
     <div>
       <PageHeader menu
         title="Docker 환경"
-        subtitle="연결된 Docker 환경과 모니터링 서비스 현황"
       >
         <Button onClick={() => setShowAddModal(true)}>
           <MaterialIcon size={20} name="add" />
@@ -256,6 +255,7 @@ export function ServiceGridPage() {
           placeholder="서비스 또는 Docker 환경 이름으로 검색"
           aria-label="서비스 또는 Docker 환경 검색"
           onClear={() => setSearch('')}
+          resultCount={envRows.length}
           shortcut
         />
       }><ListViewToggle view={view} onChange={setView} /></ListToolbar>

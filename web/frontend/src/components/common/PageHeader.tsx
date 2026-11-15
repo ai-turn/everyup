@@ -1,4 +1,7 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useHeaderActionSlot } from '../../contexts/BreadcrumbContext';
 
 interface PageHeaderProps {
     title: string;
@@ -11,45 +14,49 @@ interface PageHeaderProps {
     /** 목록의 주 액션을 좁은 화면에서도 제목 옆에 둔다. */
     compactActions?: boolean;
     /**
-     * 메뉴 첫 화면. 데스크톱(`lg`+)은 `AppHeader` 크럼이 같은 이름을 이미 보여 주므로 h1을
-     * 시각적으로만 숨기고(`lg:sr-only`) 설명·주 액션이 첫 줄로 올라온다. 모바일은 `AppHeader`가
-     * 없어 h1이 유일한 위치 표시라 그대로 보인다. 상세 화면은 제목이 대상 이름·상태를 이끌므로 쓰지 않는다.
+     * 메뉴 첫 화면(DESIGN.md §3.4). 데스크톱(`lg`+)은 `AppHeader` 크럼이 이름을 이미 말하므로 h1을
+     * 시각적으로만 숨기고(`lg:sr-only`), 주 액션(children)과 meta는 `AppHeader` 오른쪽으로 옮긴다 —
+     * 위치와 액션이 한 줄이 되고 본문 위 빈 띠가 사라진다. 모바일은 `AppHeader`가 없어 그대로 그린다.
+     * 상세 화면은 제목이 대상 이름·상태를 이끌므로 쓰지 않는다.
      */
     menu?: boolean;
 }
 
 export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false, menu = false }: PageHeaderProps) {
+    const desktop = useMediaQuery('(min-width: 1024px)');
+    const slot = useHeaderActionSlot();
+    const headerSlot = menu && desktop ? slot : null;
+    const inlineChildren = headerSlot ? undefined : children;
+    const inlineMeta = headerSlot ? undefined : meta;
+
+    // h1만 남으면(sr-only) 데스크톱에서 띠의 여백·구분선을 0으로 접는다.
+    // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
+    const collapseOnDesktop = menu && !subtitle && !aside && !inlineChildren && !inlineMeta;
     const titleClass = `wrap-anywhere type-page-title text-text-base ${menu ? 'lg:sr-only' : ''}`;
-    const subtitleClass = 'min-w-0 type-body text-text-muted max-w-2xl';
+
     return (
-        <div className={`mb-6 border-b border-ui-border-soft pb-5 ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
-            <div className="min-w-0 flex-1">
-                {compactActions ? (
-                    // 제목·액션이 한 줄, 설명은 그 아래. menu면 lg에서 h1이 흐름에서 빠지고(sr-only는 absolute)
-                    // 설명이 제목 자리(1행 1열)로 올라가 액션과 한 줄이 된다.
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3">
-                        <h1 className={`col-start-1 row-start-1 ${titleClass}`}>{title}</h1>
-                        {children && <div className="col-start-2 row-start-1 flex shrink-0 items-center gap-2">{children}</div>}
-                        {subtitle && <p className={`col-span-2 mt-2 ${menu ? 'lg:col-span-1 lg:col-start-1 lg:row-start-1 lg:mt-0' : ''} ${subtitleClass}`}>{subtitle}</p>}
-                    </div>
-                ) : (
-                    <>
+        <>
+            {headerSlot && (meta || children) && createPortal(<>{meta}{children}</>, headerSlot)}
+            <div className={`mb-6 border-b border-ui-border-soft pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
+                <div className="min-w-0 flex-1">
+                    <div className={compactActions ? 'flex items-center justify-between gap-3' : ''}>
                         <h1 className={titleClass}>{title}</h1>
-                        {(subtitle || children) && (
-                            <div className={`mt-2 flex flex-col gap-4 md:flex-row md:items-center ${menu ? 'lg:mt-0' : ''}`}>
-                                {subtitle && <p className={subtitleClass}>{subtitle}</p>}
-                                {children && (
-                                    <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:w-auto md:shrink-0 md:justify-end">
-                                        {children}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </>
-                )}
-                {meta && <div className="mt-3">{meta}</div>}
+                        {compactActions && inlineChildren && <div className="flex shrink-0 items-center gap-2">{inlineChildren}</div>}
+                    </div>
+                    {(subtitle || (!compactActions && inlineChildren)) && (
+                        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-center">
+                            {subtitle && <p className="min-w-0 type-body text-text-muted max-w-2xl">{subtitle}</p>}
+                            {!compactActions && inlineChildren && (
+                                <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:w-auto md:shrink-0 md:justify-end">
+                                    {inlineChildren}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {inlineMeta && <div className="mt-3">{inlineMeta}</div>}
+                </div>
+                {aside && <div className="min-w-0 space-y-4 xl:max-w-[max(24rem,calc(100%_-_36rem))] xl:shrink-0">{aside}</div>}
             </div>
-            {aside && <div className="min-w-0 space-y-4 xl:max-w-[max(24rem,calc(100%_-_36rem))] xl:shrink-0">{aside}</div>}
-        </div>
+        </>
     );
 }

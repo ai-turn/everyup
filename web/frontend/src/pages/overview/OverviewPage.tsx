@@ -198,7 +198,7 @@ export function OverviewPage() {
   if (!updatedAt) {
     return (
       <div className="space-y-5" aria-busy="true">
-        <PageHeader menu title="모니터링 개요" subtitle="수집 상태와 현재 이상을 먼저 확인하세요." />
+        <PageHeader menu title="모니터링 개요" />
         <div className="h-8 w-96 max-w-full animate-pulse rounded-md bg-ui-hover-soft" />
         <div className="h-80 animate-pulse rounded-lg bg-ui-hover-soft" />
       </div>
@@ -214,7 +214,6 @@ export function OverviewPage() {
       {/* 연결 추가는 각 화면(Docker 환경·업타임·로그)의 일이다. 개요의 머리는 장애에 내준다. */}
       <PageHeader menu
         title="모니터링 개요"
-        subtitle="수집 상태와 현재 이상을 먼저 확인하세요."
         meta={updatedAt && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="type-caption text-text-muted">

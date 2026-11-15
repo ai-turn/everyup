@@ -34,11 +34,11 @@ export function MetricsPage() {
   }, { replace: true });
 
   return <div>
-    <PageHeader menu title="메트릭" subtitle="OpenTelemetry로 직접 연결한 앱의 성능 수치와 시간에 따른 변화를 확인합니다.">
+    <PageHeader menu title="메트릭">
       <MonitoringConnection capability="metrics" onConnected={reload} />
     </PageHeader>
     <DockerEnvironmentHint className="mb-5" />
-    <ListToolbar search={<SearchInput value={query} onChange={event => setQuery(event.target.value)} onClear={() => setQuery('')} shortcut placeholder="서비스 또는 메트릭 이름으로 찾기" aria-label="서비스 또는 메트릭 이름으로 찾기" />}>
+    <ListToolbar search={<SearchInput value={query} onChange={event => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filtered.length} shortcut placeholder="서비스 또는 메트릭 이름으로 찾기" aria-label="서비스 또는 메트릭 이름으로 찾기" />}>
       <Button collapseLabel variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
       <Select aria-label="서비스 정렬" wrapperClassName="w-40" value={sort} onChange={event => setParams(current => { const next = new URLSearchParams(current); next.set('sort', event.target.value); return next; }, { replace: true })}>
         <option value="collection">확인 필요순</option><option value="name">이름순</option>

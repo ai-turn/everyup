@@ -225,6 +225,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           onClear={() => setSearchQuery('')}
+          resultCount={filteredRules.length}
           shortcut
           aria-label="규칙 이름 또는 대상 검색"
           placeholder="규칙 이름 · 대상 검색"

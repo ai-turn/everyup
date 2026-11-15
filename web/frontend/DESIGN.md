@@ -476,7 +476,7 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 **탭은 크럼이 아니다.** 서비스 상세의 `?tab=logs` 같은 하위 뷰는 위치가 아니라 같은 위치의 다른 단면이므로 trail에 넣지 않는다.
 
-**메뉴 첫 화면의 h1은 데스크톱에서 숨긴다** (2026-11-15). 크럼 한 칸(`업타임`)과 본문 h1(`업타임`)이 같은 말을 두 번 했다. `PageHeader menu`가 h1을 `lg:sr-only`로 두고, 설명과 주 액션이 첫 줄로 올라온다. 스크린리더의 h1과 모바일(`AppHeader` 없음)의 보이는 h1은 그대로다. 상세 화면의 h1은 대상 이름이 상태·메타를 이끌므로 유지한다. 이전 규칙("헤더는 어디에 있나, h1은 무엇인가")은 상세에만 남는다.
+**메뉴 첫 화면의 h1은 데스크톱에서 숨긴다** (2026-11-15). 크럼 한 칸(`업타임`)과 본문 h1(`업타임`)이 같은 말을 두 번 했다. `PageHeader menu`가 h1을 `lg:sr-only`로 두고, 주 액션(children)과 meta는 데스크톱에서 `AppHeader` 오른쪽 자리로 포털된다(Linear처럼 위치와 액션이 한 줄). 자리는 `BreadcrumbContext`의 `actionSlot`이고 `AppHeader`가 ref 콜백으로 채운다. 메뉴 첫 화면에는 설명 문구(subtitle)를 두지 않는다: 무엇을 하는 화면인지는 메뉴 이름과 내용이 말한다. 스크린리더의 h1과 모바일(`AppHeader` 없음)의 보이는 h1·액션은 그대로다. h1만 남으면 데스크톱에서 띠의 여백·구분선을 0으로 접는다(`lg:hidden`은 h1까지 접근성 트리에서 지우므로 쓰지 않는다). 상세 화면의 h1은 대상 이름이 상태·메타를 이끌므로 유지한다. 이전 규칙("헤더는 어디에 있나, h1은 무엇인가")은 상세에만 남는다.
 
 전체 화면 높이를 계산하는 페이지는 **`lg`에서 빼는 값이 다르다** — 모바일 `Header` 3.5rem 대신 `AppHeader` 4rem이 추가로 붙어 `lg:h-[calc(100dvh-8rem)]`이다. 모바일은 높이를 계산하지 않고 자연 높이로 두며, 하단 제출 바를 `sticky`로 하단 내비(4rem + safe-area) 위에 붙인다 — 데모 배너처럼 위쪽 크롬이 늘면 높이 계산이 틀려 제출 바가 `BottomNavMobile` 뒤로 숨었다 (`ChannelFormPage`).
 
@@ -564,7 +564,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`Input`** | `invalid?` `warn?` `mono?` | 폼 입력 (§6) |
 | **`Textarea`** | `invalid?` `mono?` + 네이티브 textarea | 여러 줄 입력. `Input`과 같은 셸 (§6) |
 | **`Select`** | 네이티브 `option` children + 기존 select props | 앱 스타일 listbox (§6) |
-| **`SearchInput`** | `wrapperClassName?` `onClear?` `shortcut?` | 아이콘 붙은 검색창 (§6). `onClear`면 값이 있을 때 안쪽 ✕, `shortcut`이면 `/`로 포커스(목록의 주 검색 하나에만) |
+| **`SearchInput`** | `wrapperClassName?` `onClear?` `resultCount?` `shortcut?` | 아이콘 붙은 검색창 (§6). `onClear`면 값이 있을 때 안쪽 ✕, `resultCount`면 검색 중 `N개`, `shortcut`이면 `/`로 포커스(목록의 주 검색 하나에만) |
 | **`StatusLight`** | `tone` `label` `pulse?` | 대상 상태의 정본 — 점 + 라벨 (§5.1) |
 | **`StatusBadge`** | `healthy: boolean` | 정상/장애 `StatusLight` 래퍼 (§5.1) |
 | **`CollectionStatusBadge`** | `collecting` \| `partial` \| `delayed` \| `waiting` \| `not-configured` | 수집 신선도·설정 상태. 서비스 상태와 별도 축 (§5.1) |
@@ -961,7 +961,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 |----------|-------|------|
 | **`Input`** | `invalid?` `warn?` `mono?` + 네이티브 | 폼 입력 전부 |
 | **`Select`** | 네이티브 `option` children + 기존 select props | 폼 셀렉트 (Input과 같은 셸) |
-| **`SearchInput`** | `wrapperClassName?` `onClear?` `shortcut?` + 네이티브 | 아이콘 붙은 검색창. 경계는 `ui-control-border`(3:1)를 지키고, 포커스는 전역 외곽선 대신 경계를 `action`색으로 바꾸고 12% 후광을 둔다. 지우기 버튼을 호출부에서 따로 얹지 않는다 |
+| **`SearchInput`** | `wrapperClassName?` `onClear?` `resultCount?` `shortcut?` + 네이티브 | 아이콘 붙은 검색창. Astryx PowerSearch(meta/astryx) 참고: 경계는 래퍼가 갖고 아이콘·입력·결과 수·지우기가 한 줄로 흐른다. 쉴 때 `ui-border`(옅음), hover `ui-control-border`(3:1), 포커스는 경계를 `action`색 + 12% 후광. 쉴 때 경계가 3:1 아래인 것은 의도다: 검색 상자임을 앞의 돋보기와 placeholder가 함께 말한다(다른 입력은 §1.2의 3:1을 지킨다). 결과 수는 검색어가 있을 때만 `N개`로 보이고 `aria-live=polite`로 알린다. 지우기 버튼을 호출부에서 따로 얹지 않는다 |
 
 **클래스를 직접 쓰지 않는다.** Button과 같은 규칙이다.
 

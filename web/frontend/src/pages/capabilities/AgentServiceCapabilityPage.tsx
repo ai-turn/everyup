@@ -120,7 +120,7 @@ export function AgentServiceCapabilityPage() {
 
   return (
     <div className={prototypeVariant ? 'pb-36' : ''}>
-      <PageHeader menu compactActions title="업타임" subtitle="서비스가 정상적으로 응답하는지 확인하고, 장애가 발생한 대상을 빠르게 찾습니다.">
+      <PageHeader menu compactActions title="업타임">
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>
 
@@ -149,7 +149,7 @@ export function AgentServiceCapabilityPage() {
       </div>
 
       <ListToolbar inline search={
-        <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} shortcut placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
+        <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filteredMonitors.length} shortcut placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
       }>
         <ListViewToggle view={view} onChange={(next) => { setSelected(new Set()); setView(next); }} />
       </ListToolbar>
