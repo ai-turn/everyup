@@ -57,7 +57,7 @@ export function ChannelFormPage() {
     // AppHeader breadcrumb보다 왼쪽으로 튀어나가 있었다.
     <div className="-m-4 sm:-mx-6 sm:-my-5 flex flex-col bg-bg-main lg:h-[calc(100dvh-8rem)]">
       {/* Page header */}
-      <header className="flex-none border-b border-ui-border px-6 py-3 bg-bg-surface">
+      <header className="flex-none px-6 py-3 bg-bg-surface">
         <h1 className="type-page-title text-text-base">{title}</h1>
         <p className="type-body text-text-muted mt-0.5">
           {isEdit
@@ -67,7 +67,8 @@ export function ChannelFormPage() {
       </header>
 
       {/* Form body */}
-      <div className="lg:flex-1 lg:overflow-y-auto">
+      {/* 단계 카드를 걷어 내 본문이 화면 끝에 붙지 않도록 헤더와 같은 좌우 여백을 준다(DESIGN.md §3.1). */}
+      <div className="px-6 py-5 lg:flex-1 lg:overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center h-full py-16 text-text-muted">
             <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />

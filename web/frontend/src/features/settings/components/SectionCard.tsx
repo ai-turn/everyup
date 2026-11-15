@@ -7,9 +7,9 @@ export function SectionCard({
   subtitle?: string;
   children: React.ReactNode;
 }) {
-  // 파괴적 작업도 카드는 중립 — 색은 액션 텍스트에만 싣는다.
+  // 섹션은 카드로 감싸지 않고 제목과 간격으로 나눈다(DESIGN.md §3.1). 파괴적 작업도 색은 액션 텍스트에만 싣는다.
   return (
-    <div className="bg-bg-surface border border-ui-border rounded-xl p-4">
+    <div>
       <div className="mb-4">
         <h2 className="type-card-title text-text-base">{title}</h2>
         {subtitle && (

@@ -38,11 +38,11 @@ export function SetupGuide({ type }: SetupGuideProps) {
     const tip = GUIDE_TIPS[type];
 
     return (
-        <div className="rounded-lg border border-ui-border overflow-hidden">
+        <div>
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-ui-hover-soft transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left hover:bg-ui-hover-soft transition-colors"
             >
                 <MaterialIcon size={20}
                     name="help_outline"
@@ -58,7 +58,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
             </button>
 
             {isOpen && (
-                <div className="px-3 pb-3 space-y-3 border-t border-ui-border-soft">
+                <div className="px-3 pb-3 space-y-3">
                     <ol className="mt-3 space-y-2">
                         {steps.map((step, i) => (
                             <li key={i} className="flex gap-2 text-sm text-text-secondary">
@@ -71,7 +71,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                     </ol>
 
                     {tip && (
-                        <div className="flex gap-2 px-2.5 py-2 rounded-md bg-ui-hover-soft border border-ui-border">
+                        <div className="flex gap-2 px-2.5 py-2 rounded-md bg-ui-hover-soft">
                             <MaterialIcon size={20} name="lightbulb" className="text-amber-500 shrink-0 mt-0.5" />
                             <p className="type-body text-text-secondary">{tip}</p>
                         </div>

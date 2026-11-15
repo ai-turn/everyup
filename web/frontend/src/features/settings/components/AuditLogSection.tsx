@@ -48,7 +48,7 @@ export function AuditLogSection() {
       ) : (
         <>
         <p className="mb-2 text-xs text-text-dim">{`최근 ${events.length}건`}</p>
-        <ul className="divide-y divide-ui-border-soft">
+        <ul>
           {events.map((event) => {
             const count = bodyCountOf(event.metadata);
             return (

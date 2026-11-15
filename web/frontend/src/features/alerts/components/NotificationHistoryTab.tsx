@@ -86,7 +86,7 @@ function HistoryCards({ rows, loading, rules }: { rows: HistoryRow[]; loading: b
 
 function HistoryCard({ item, rules }: { item: NotificationHistory; rules: AlertRule[] }) {
   const rule = ruleName(item, rules);
-  return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border bg-bg-surface p-4">
+  return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><StatusLight {...historyStatus(item.status)} />{item.severity && <SeverityBadge severity={item.severity} />}</div>
     <p className="mt-3 break-words type-body text-text-base">{item.message}</p><p className="mt-2 flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
     <div className="mt-2"><FailureReason item={item} /></div>
@@ -242,12 +242,12 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
 
       {error && <LoadErrorBanner title="발송 이력을 불러오지 못했습니다" message={error} onRetry={() => setReloadKey(key => key + 1)} />}
       {/* History Table */}
-      {!error && <div className={view === 'card' ? 'space-y-3' : 'bg-bg-surface rounded-xl border border-ui-border overflow-hidden'}>
+      {!error && <div className={view === 'card' ? 'space-y-3' : undefined}>
         {view === 'card' ? <HistoryCards rows={groupedRows} loading={loading} rules={rules} /> : (
         <div className="overflow-x-auto">
           <table aria-label="발송 이력 그리드" className="w-full min-w-[960px] table-fixed">
-            <thead className="bg-ui-table-header">
-              <tr className="border-b border-ui-border">
+            <thead>
+              <tr className="border-b border-ui-border-soft">
                 <th className={`${thClass} w-[110px]`}>상태</th>
                 <th className={`${thClass} w-[160px]`}>규칙</th>
                 <th className={`${thClass} w-[190px]`}>채널</th>
@@ -276,7 +276,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                   if (row.kind === 'group') {
                     return (
                       <tr key={`g-${row.key}`}>
-                        <td colSpan={6} className="px-4 py-1.5 border-t border-ui-border-soft bg-ui-hover-soft text-xs text-text-muted">
+                        <td colSpan={6} className="px-4 pt-4 pb-1.5 text-xs text-text-muted">
                           {row.label}
                         </td>
                       </tr>
@@ -290,7 +290,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                     <tr
                       key={item.id}
                       // 실패는 상태 칸의 점·문구가 말한다 — 행 전체를 붉게 칠하지 않는다(DESIGN §9.3).
-                      className="border-t border-ui-border-soft transition-colors hover:bg-ui-hover-soft"
+                      className="transition-colors hover:bg-ui-hover-soft"
                     >
                       <td className="px-4 py-2.5">
                         <StatusLight {...historyStatus(item.status)} />
@@ -331,7 +331,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
 
         {/* Pagination */}
         {!loading && total > 0 && (
-          <div className="flex items-center justify-between border-t border-ui-border bg-ui-hover-soft/60 px-4 py-2.5">
+          <div className="flex items-center justify-between px-4 py-2.5">
             <p className="text-xs text-text-muted">
               {`총 ${total}건 중 ${(page - 1) * PAGE_SIZE + 1}~${Math.min(page * PAGE_SIZE, total)}`}
             </p>
