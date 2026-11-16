@@ -38,7 +38,8 @@ export function MetricsPage() {
 
   return <div>
     <PageHeader menu title="메트릭">
-      <Button collapseLabel variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+      <Button collapseLabel onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+      {rows.length > 0 && <ListViewToggle view={view} onChange={setView} />}
       <MonitoringConnection capability="metrics" onConnected={reload} />
     </PageHeader>
     <ListToolbar search={<SearchInput value={query} onChange={event => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filtered.length} shortcut placeholder="서비스 또는 메트릭 이름으로 찾기" aria-label="서비스 또는 메트릭 이름으로 찾기" />}>
@@ -52,13 +53,7 @@ export function MetricsPage() {
       : rows.length === 0 ? <EmptyState icon="monitoring" title="아직 연결된 메트릭 서비스가 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
         <MonitoringConnection capability="metrics" onConnected={reload} />
       </EmptyState> : <section>
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="shrink-0 type-section-title text-text-base">메트릭 서비스</h2>
-          <div className="flex min-w-0 items-center gap-3">
-            <span role="status" className="min-w-0 text-right text-balance text-xs text-text-dim">{search ? `서비스 ${filtered.length} / ${rows.length}개` : `서비스 ${rows.length}개`}</span>
-            <ListViewToggle view={view} onChange={setView} />
-          </div>
-        </div>
+        <h2 className="sr-only">메트릭 서비스</h2>
         {filtered.length ? <MetricServices rows={filtered} now={now} view={view} returnTo={returnTo} query={search} />
           : <EmptyState icon="search" title="일치하는 서비스가 없습니다" description={`'${query.trim()}'와 일치하는 서비스나 메트릭 이름이 없습니다.`} action={{ label: '검색 초기화', onClick: () => setQuery('') }} />}
       </section>}

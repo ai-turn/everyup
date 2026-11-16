@@ -121,7 +121,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await page.goto('./');
     const badge = page.getByText('Live Demo', { exact: true }).filter({ visible: true });
     expect(await contrast(badge)).toBeGreaterThanOrEqual(4.5);
-    await expect(page.getByRole('link', { name: '실제 사용 시작하기', exact: true })).toHaveAttribute('href', /guide\/quickstart/);
+    await expect(page.getByRole('link', { name: '설치 가이드', exact: true })).toHaveAttribute('href', /guide\/quickstart/);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('./alerts/channels/new');
     const label = page.locator('p').filter({ hasText: /^Telegram$/ });

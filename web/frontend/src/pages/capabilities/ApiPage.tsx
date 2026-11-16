@@ -15,10 +15,11 @@ export function ApiPage() {
   const { rows, loading, error, retryTarget } = useApiTargets(window, refreshKey);
   return <div>
     <PageHeader menu title="API 요청">
-      <Button collapseLabel variant="secondary" onClick={reload}><MaterialIcon name="refresh" />새로고침</Button>
+      <Button collapseLabel onClick={reload}><MaterialIcon name="refresh" />새로고침</Button>
+      {rows.length > 0 && <ListViewToggle view={view} onChange={setView} />}
       <MonitoringConnection capability="api" onConnected={reload} />
     </PageHeader>
-    {/* 검색은 없고 기간 필터만 있다 — 툴바 줄에는 필터만 둔다(보기 전환은 목록 제목 줄). */}
+    {/* 검색은 없고 기간 필터만 있다 — 툴바 줄에는 필터만 둔다(보기 전환은 헤더). */}
     <div className="mb-5 flex flex-wrap items-center gap-2">
       <TimeRangePicker value={range} onChange={value => update({ range: value })} />
     </div>
@@ -26,6 +27,6 @@ export function ApiPage() {
       : error ? <EmptyState icon="error_outline" title="API 데이터를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
         : rows.length === 0 ? <EmptyState icon="api" title="표시할 API 대상이 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
           <div className="flex flex-col items-center gap-4"><MonitoringConnection capability="api" onConnected={reload} /></div>
-        </EmptyState> : <ApiTargets rows={rows} view={view} range={range} returnTo={returnTo} onRetry={retryTarget} viewToggle={<ListViewToggle view={view} onChange={setView} />} />}
+        </EmptyState> : <ApiTargets rows={rows} view={view} range={range} returnTo={returnTo} onRetry={retryTarget} />}
   </div>;
 }

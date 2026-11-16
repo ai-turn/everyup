@@ -18,7 +18,8 @@ test('[02] names match without case or outer whitespace sensitivity', async ({ p
   ] as const) {
     await search.fill(query);
     await expect(targets.getByRole('link')).toHaveText([...names]);
-    await expect(targets.getByText(String(names.length), { exact: true })).toBeVisible();
+    // 개수는 검색창 안에서만 보인다(목록 개수 줄은 헤더 정리로 없앴다).
+    if (query) await expect(page.getByText(`${names.length}개`, { exact: true })).toBeVisible();
   }
 });
 

@@ -21,9 +21,9 @@ export function UptimeRefreshControls({ updatedAt, refreshing, autoRefresh, onAu
       </p>
       <div className="flex min-h-11 items-center gap-2 sm:min-h-10">
         <Toggle checked={autoRefresh} onChange={onAutoRefreshChange} disabled={disabled} ariaLabel="30초마다 자동 갱신" />
-        <span className="type-caption text-text-muted">자동 갱신 30초</span>
+        <span className="type-caption text-text-muted">30초마다 자동 갱신</span>
       </div>
-      <Button variant="secondary" collapseLabel loading={refreshing} disabled={disabled} onClick={onRefresh}>
+      <Button collapseLabel loading={refreshing} disabled={disabled} onClick={onRefresh}>
         <MaterialIcon name="refresh" />새로고침
       </Button>
     </div>

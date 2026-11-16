@@ -245,6 +245,8 @@ export function ServiceGridPage() {
       <PageHeader menu
         title="Docker 환경"
       >
+        <Button collapseLabel onClick={() => void load()} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+        {(services.length > 0 || agents.length > 0) && <ListViewToggle view={view} onChange={setView} />}
         <Button onClick={() => setShowAddModal(true)}>
           <MaterialIcon size={20} name="add" />
           Docker 연결
@@ -288,15 +290,8 @@ export function ServiceGridPage() {
           action={{ label: 'Docker 연결', onClick: () => setShowAddModal(true) }}
         />
       ) : (
-        // 검색으로 비어도 목록 제목 줄(보기 전환)은 남긴다.
         <section>
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="shrink-0 type-section-title text-text-base">Docker 환경 목록</h2>
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="min-w-0 text-right text-balance text-xs text-text-dim">{`환경 ${envRows.length}개 · 서비스 ${shownServiceCount}개`}</span>
-            <ListViewToggle view={view} onChange={setView} />
-          </div>
-        </div>
+        <h2 className="sr-only">Docker 환경 목록</h2>
         {envRows.length === 0 ? <EmptyState icon="sensors" title="검색 결과가 없습니다" /> : view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
           { key: 'name', label: 'Docker 환경 · 서비스', render: row => row.kind === 'env' ? (
             // 펼침 버튼(20px)의 가운데(left-2.5)가 하위 행 연결선의 x다. -my-4 py-4로 셀 높이 전체를 덮어야 선이 행 사이에서 끊기지 않는다.

@@ -219,7 +219,7 @@ export function OverviewPage() {
             <span className="type-caption text-text-muted">
               {updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 갱신 · 30초마다 자동 갱신
             </span>
-            <Button variant="ghost" onClick={handleRefresh}>
+            <Button collapseLabel onClick={handleRefresh}>
               <MaterialIcon size={20} name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
             </Button>
           </div>
@@ -262,21 +262,27 @@ export function OverviewPage() {
         </section>
       ) : (
         <>
-          {/* 모니터링 범위 — 카드 대신 한 줄. 숫자보다 "무엇을 보고 있나"를 한눈에 주는 자리라 크게 키우지 않는다. */}
+          {/* 모니터링 범위 — 카드 대신 한 줄. 숫자보다 "무엇을 보고 있나"를 한눈에 주는 자리라 크게 키우지 않는다.
+              글자만 늘어서면 문장처럼 읽혀서 사이드바·그룹 목록과 같은 아이콘을 앞에 붙였다. */}
+          {/* 범위 줄은 아래 목록과 성격이 달라서(전체 규모 vs 지금 볼 것) 그룹 사이 선과 같은 옅은 선으로 끊는다.
+              선을 nav가 아니라 감싼 div에 긋는 것은 nav의 -mx-2 때문에 선이 본문보다 양쪽으로 8px 삐져나오기 때문이다. */}
+          <div className="border-b border-ui-border-soft pb-4">
           <nav aria-label="모니터링 범위" className="-mx-2 flex flex-wrap items-center gap-x-1 gap-y-1">
             {([
-              ['Docker 환경', agents.length, '/environments', 'agents'],
-              ['업타임 모니터', monitors.length, '/uptime', 'monitors'],
-              ['직접 연결 서비스', observedServices.length, '/logs', 'observed'],
-              ['인프라 리소스', infrastructure.length, '/infrastructure', 'infrastructure'],
-            ] as const).map(([label, count, to, source]) => (
+              ['Docker 환경', agents.length, '/environments', 'agents', 'dns'],
+              ['업타임 모니터', monitors.length, '/uptime', 'monitors', 'monitor_heart'],
+              ['직접 연결 서비스', observedServices.length, '/logs', 'observed', 'hub'],
+              ['인프라 리소스', infrastructure.length, '/infrastructure', 'infrastructure', 'memory'],
+            ] as const).map(([label, count, to, source, icon]) => (
               failedSources.includes(source) ? (
                 <span key={label} className="inline-flex h-8 items-center gap-1.5 px-2">
+                  <MaterialIcon name={icon} size={20} className="text-text-dim" />
                   <span className="type-body text-text-muted">{label}</span>
                   <Tooltip content="불러오지 못했습니다" focusable><span className="type-label text-text-muted" aria-label="확인 불가">-</span></Tooltip>
                 </span>
               ) : (
                 <Link key={label} to={to} className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 transition-colors hover:bg-ui-hover">
+                  <MaterialIcon name={icon} size={20} className="text-text-dim" />
                   <span className="type-body text-text-muted">{label}</span>
                   <span className="type-label tabular-nums text-text-base">{count}</span>
                 </Link>
@@ -286,6 +292,7 @@ export function OverviewPage() {
               그룹으로 정리
             </Link>
           </nav>
+          </div>
 
           {/* Linear식 목록: 카드·행 구분선·배경 띠 없이 그룹 제목과 간격으로 나누고, 두 그룹 사이에만 옅은 선을 둔다. 행은 Triage 인박스처럼 두 줄. */}
           <div className="section-stack">
@@ -377,9 +384,10 @@ export function OverviewPage() {
 function GroupHeader({ title, count, countLabel, note }: { title: string; count?: number; countLabel: string; note?: string }) {
   return (
     <div className="flex h-8 items-center gap-2">
-      <h2 className="type-label-sm text-text-base">{title}</h2>
+      {/* 섹션 제목이다(section-stack 선으로 나뉜다) — 그룹 제목용 12px이면 아래 행 이름(14px)보다 작아 위계가 뒤집혔다. */}
+      <h2 className="type-card-title text-text-base">{title}</h2>
       {/* span의 aria-label은 대부분의 스크린리더가 읽지 않는다 — 숫자는 감추고 같은 뜻을 글로 둔다. */}
-      <span className="type-caption tabular-nums text-text-muted"><span aria-hidden="true">{count ?? '-'}</span><span className="sr-only">{countLabel}</span></span>
+      <span className="type-body tabular-nums text-text-muted"><span aria-hidden="true">{count ?? '-'}</span><span className="sr-only">{countLabel}</span></span>
       {note && <span className="ml-auto min-w-0 truncate type-caption text-text-muted">{note}</span>}
     </div>
   );

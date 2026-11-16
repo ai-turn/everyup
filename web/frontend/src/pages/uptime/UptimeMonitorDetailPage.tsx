@@ -24,7 +24,7 @@ import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRe
 import { UptimeLatestCheck } from '../../features/uptime/components/UptimeLatestCheck';
 
 type ResponseRange = '1h' | '6h' | '24h';
-const RESPONSE_RANGES = [{ label: '1H', value: '1h' }, { label: '6H', value: '6h' }, { label: '24H', value: '24h' }] as const;
+const RESPONSE_RANGES = [{ label: '1h', value: '1h' }, { label: '6h', value: '6h' }, { label: '24h', value: '24h' }] as const;
 const RESPONSE_WINDOW = { '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000 } as const;
 const RESPONSE_BUCKET = { '1h': 120_000, '6h': 300_000, '24h': 1_200_000 } as const;
 

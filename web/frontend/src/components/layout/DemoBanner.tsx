@@ -7,13 +7,11 @@ export function DemoBanner() {
 
   return (
     <div data-demo-chrome className="lg:hidden max-h-[30dvh] overflow-y-auto w-full shrink-0 border-b border-ui-border bg-bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-2">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="shrink-0 type-label text-text-base">Live Demo</span>
-          <p className="min-w-0 type-caption text-text-muted">예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.</p>
-        </div>
-        <DemoScenarioSwitcher />
-        <DemoHelpLinks />
+      {/* 한 줄: 설명 두 줄 + 라벨 붙은 선택 상자 + 링크 줄이 첫 화면을 약 96px 밀어냈다. 사이드바 카드와 같은 구성이다. */}
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-1.5">
+        <span className="shrink-0 type-label text-text-base">Live Demo</span>
+        <div className="w-36"><DemoScenarioSwitcher bare /></div>
+        <div className="ml-auto"><DemoHelpLinks /></div>
       </div>
     </div>
   );

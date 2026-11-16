@@ -6,9 +6,9 @@ import { SegmentedControl } from './SegmentedControl';
 export type GlobalTimeRange = '1h' | '6h' | '24h';
 
 const OPTIONS: { label: string; value: GlobalTimeRange }[] = [
-  { label: '1H', value: '1h' },
-  { label: '6H', value: '6h' },
-  { label: '24H', value: '24h' },
+  { label: '1h', value: '1h' },
+  { label: '6h', value: '6h' },
+  { label: '24h', value: '24h' },
 ];
 
 export function TimeRangePicker({ value, onChange }: {

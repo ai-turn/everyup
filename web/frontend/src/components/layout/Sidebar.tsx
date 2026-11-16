@@ -78,10 +78,12 @@ export function Sidebar() {
       {env.isDemoMode && (
         // 중립 표면 — 아래 검색 버튼과 같은 bg-main + ui-border. 파란 틴트 상자는 §9.3 금지 패턴이라 사이드바에서 혼자 튀었다.
         <div data-demo-chrome className="mx-3 mb-2 rounded-lg border border-ui-border bg-bg-main p-3">
-          <p className="type-label-sm text-text-base">Live Demo</p>
-          <p className="mt-0.5 type-caption text-text-muted">예시 데이터입니다. 서버 연결과 알림 발송은 실행되지 않습니다.</p>
-          <div className="mt-3"><DemoScenarioSwitcher stacked /></div>
-          <div className="mt-1"><DemoHelpLinks compact /></div>
+          {/* 제목 줄 + 선택 상자 두 줄. 설명 문장은 내비를 밀어 내려서 뺐다 — 모바일 DemoBanner에는 남아 있다. */}
+          <div className="flex items-center justify-between gap-2">
+            <p className="type-label-sm text-text-base">Live Demo</p>
+            <DemoHelpLinks compact />
+          </div>
+          <div className="mt-1"><DemoScenarioSwitcher bare size="sm" /></div>
         </div>
       )}
 

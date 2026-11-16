@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { CollectionStatusBadge, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { Button, CollectionStatusBadge, EmptyState, ListViewToggle, MaterialIcon, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { infraCollection, peakUsage, usageLevel, type UsageLevel } from '../../features/infra/usage';
 import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
@@ -91,6 +91,8 @@ export function InfrastructurePage() {
   return (
     <div>
       <PageHeader menu title="인프라">
+        <Button collapseLabel onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+        {resources.length > 0 && <ListViewToggle view={view} onChange={setView} />}
         <MonitoringConnection capability="infrastructure" onConnected={reload} />
       </PageHeader>
       {loading ? (
@@ -105,13 +107,7 @@ export function InfrastructurePage() {
         </EmptyState>
       ) : (
         <section>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="type-section-title text-text-base">인프라 대상</h2>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-text-dim">{`서버 ${resources.length}개 · 사용률 높은 순`}</span>
-              <ListViewToggle view={view} onChange={setView} />
-            </div>
-          </div>
+          <h2 className="sr-only">인프라 대상</h2>
           {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{resources.map(resource => <ResourceCard key={resource.id} resource={resource} returnTo={returnTo} />)}</div> :
             <ResourceTable rows={resources} rowKey={row => row.id} ariaLabel="인프라 대상 그리드" columns={[
               { key: 'name', label: '대상', render: row => <><Link to={`/infrastructure/${row.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link><div className="mt-2 md:hidden">{resourceCollectionStatus(row)}<p className="mt-2 type-caption text-text-muted">{USAGE.map(([key, label], index) => <Fragment key={key}>{index > 0 && ', '}{label} <UsageValue value={row[key]} /></Fragment>)}</p></div></> },

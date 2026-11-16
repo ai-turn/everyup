@@ -4,10 +4,11 @@
 // 크기는 **높이로 고정**한다 (px/py 조합 금지) — 나란히 놓았을 때 밑변이 맞아야 한다.
 // 아이콘 전용 버튼은 IconButton이다.
 
-import { Children, type ComponentPropsWithRef, type ReactNode } from 'react';
+import { Children, useContext, type ComponentPropsWithRef, type ReactNode } from 'react';
 import { Link, type LinkProps } from 'react-router-dom';
 import { MaterialIcon } from './MaterialIcon';
 import { Tooltip } from './Tooltip';
+import { ControlDefaultsContext } from './controlSize';
 
 // 액션에는 색을 싣는다 (§5.3). 채움도 보더도 없는 버튼이 본문과 같은 회색이면
 // 눈에 들어오지 않아 hover 전까지 버튼인지 읽히지 않았다. `action`은 표면·hover
@@ -76,8 +77,8 @@ interface ButtonProps extends ComponentPropsWithRef<'button'> {
 }
 
 export function Button({
-  variant = 'primary',
-  size = 'md',
+  variant,
+  size,
   loading = false,
   collapseLabel = false,
   disabled,
@@ -86,6 +87,9 @@ export function Button({
   title,
   ...props
 }: ButtonProps) {
+  const defaults = useContext(ControlDefaultsContext);
+  size ??= defaults.size ?? 'md';
+  variant ??= defaults.variant ?? 'primary';
   const c = collapseLabel ? collapsible(children) : null;
   return (
     <Tooltip content={title ?? c?.label}><button
@@ -102,14 +106,17 @@ export function Button({
 
 /** 다른 화면으로 가는 버튼 모양 — 이동은 `<a href>`여야 새 탭·주소 미리보기·"링크" 낭독이 된다. */
 export function ButtonLink({
-  variant = 'primary',
-  size = 'md',
+  variant,
+  size,
   collapseLabel = false,
   className = '',
   children,
   title,
   ...props
 }: LinkProps & { variant?: Variant; size?: Size; collapseLabel?: boolean }) {
+  const defaults = useContext(ControlDefaultsContext);
+  size ??= defaults.size ?? 'md';
+  variant ??= defaults.variant ?? 'primary';
   const c = collapseLabel ? collapsible(children) : null;
   return (
     <Tooltip content={title ?? c?.label}><Link className={buttonClass(variant, size, `${c?.className ?? ''} ${className}`)} {...props}>
