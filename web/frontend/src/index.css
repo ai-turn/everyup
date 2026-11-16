@@ -131,6 +131,7 @@
      chart-bg(#131920)는 당시 bg-surface-dark와 대비 1.02로 사실상 같은 색이라 제거하고
      bg-bg-surface로 통합했다. 쓰이지 않던 chart-surface/chart-hover/text-chart-dim도 함께 제거. */
   --color-chart-border: #e0e1e6;    /* slate-5 */
+  --color-chart-border-dark: #2e3135;
 
   /* 7. Sans: 본문 전용. body와 font-sans 유틸리티가 같은 값을 보게 한다 —
      토큰을 안 정의하면 font-sans가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다. */
@@ -309,7 +310,7 @@
   --color-status-warn-fill: var(--color-status-warn-fill-dark);
   --color-status-error-fill: var(--color-status-error-fill-dark);
   --color-status-idle-fill: var(--color-status-idle-fill-dark);
-  --color-chart-border: #2e3135;
+  --color-chart-border: var(--color-chart-border-dark);
 
   color-scheme: dark;
 }

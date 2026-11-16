@@ -65,12 +65,12 @@ test('collection gaps break the line and only confirmed incidents receive outage
   await expect(card.locator('[data-response-tooltip]')).not.toContainText('실패');
 });
 
-test('6H is the default and 1H / 24H use their own server ranges and aggregation labels', async ({ page }) => {
+test('6h is the default and 1h / 24h use their own server ranges and aggregation labels', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.goto('./uptime/http-monitor');
   const ranges = page.getByRole('group', { name: '응답 시간 범위' });
-  await expect(ranges.getByRole('button', { name: '6H', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  for (const [label, range, caption] of [['1H', '1h', '2분 평균'], ['24H', '24h', '20분 평균']]) {
+  await expect(ranges.getByRole('button', { name: '6h', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  for (const [label, range, caption] of [['1h', '1h', '2분 평균'], ['24h', '24h', '20분 평균']]) {
     await ranges.getByRole('button', { name: label, exact: true }).click();
     await expect(cardFor(page).getByText(caption, { exact: true }).first()).toBeVisible();
     await expect.poll(() => state.requests.some((request) => request.path.endsWith('/metrics/history') && request.query === '?range=' + range)).toBe(true);

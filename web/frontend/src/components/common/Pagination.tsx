@@ -1,3 +1,4 @@
+import { MaterialIcon } from './MaterialIcon';
 // Page controls only — the "N건 중 x–y" summary stays with the caller, whose
 // wording and i18n namespace differ per page.
 
@@ -37,7 +38,7 @@ export function Pagination({
   return (
     <div className="flex items-center gap-1">
       <button onClick={() => onChange(Math.max(1, page - 1))} disabled={page === 1} className={STEP} aria-label={previousLabel}>
-        ‹
+        <MaterialIcon name="chevron_left" size={20} />
       </button>
       {pageItems(page, totalPages).map((p, i) =>
         p === null ? (
@@ -58,7 +59,7 @@ export function Pagination({
         ),
       )}
       <button onClick={() => onChange(Math.min(totalPages, page + 1))} disabled={page >= totalPages} className={STEP} aria-label={nextLabel}>
-        ›
+        <MaterialIcon name="chevron_right" size={20} />
       </button>
     </div>
   );

@@ -131,14 +131,41 @@ export function AlertsDesktopView({
         {activeTab !== 'history' && (
           <Button onClick={activeTab === 'rules' ? onAddRule : () => openChannelForm()}>
             <MaterialIcon size={20} name="add" />
-            추가
+            {activeTab === 'rules' ? '규칙 추가' : '채널 추가'}
           </Button>
         )}
       </PageHeader>
 
-      {/* 7-day delivery summary — one card, divider-separated cells. Active rule/channel
-          counts were dropped: the channel table's toggles and the rules tab already say them. */}
-      <div className="mb-5 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border-soft bg-bg-surface py-3.5">
+      {/* Tabs */}
+      <div className="flex items-end mb-5">
+        <div role="tablist" aria-label="알림" className="flex gap-0">
+          {tabs.map(tab => (
+            <button
+              key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              onClick={() => selectTab(tab.key)}
+              className={`relative px-4 py-2.5 type-label transition-colors border-b-2 ${
+                activeTab === tab.key
+                  ? 'text-text-base border-primary'
+                  : 'text-text-muted border-transparent hover:text-text-base'
+              }`}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                {tab.label}
+                {tab.count != null && (
+                  <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
+                )}
+              </span>
+            </button>
+          ))}
+        </div>
+        {/* 보기 전환은 바꾸는 대상(탭 내용) 바로 위에 둔다 — 헤더 아래 혼자 한 줄을 차지하지 않게 */}
+        <div className="ml-auto pb-2"><ListViewToggle size="sm" view={view} onChange={setView} /></div>
+      </div>
+
+      {/* 7일 발송 요약은 발송 이력의 머리다 — 탭 위에 있으면 규칙·채널 탭에서도 표보다 먼저, 더 크게 섰다. */}
+      {activeTab === 'history' && <div className="mb-5 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border-soft bg-bg-surface py-3.5">
         <div className="flex flex-col gap-0.5 px-5">
           <span className="text-xs text-text-muted">발송 (7일)</span>
           <span className="type-kpi text-text-base">{totalSent}</span>
@@ -169,35 +196,7 @@ export function AlertsDesktopView({
             )}
           </span>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex items-end mb-5">
-        <div role="tablist" aria-label="알림" className="flex gap-0">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              role="tab"
-              aria-selected={activeTab === tab.key}
-              onClick={() => selectTab(tab.key)}
-              className={`relative px-4 py-2.5 type-label transition-colors border-b-2 ${
-                activeTab === tab.key
-                  ? 'text-text-base border-primary'
-                  : 'text-text-muted border-transparent hover:text-text-base'
-              }`}
-            >
-              <span className="inline-flex items-center gap-1.5">
-                {tab.label}
-                {tab.count != null && (
-                  <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
-                )}
-              </span>
-            </button>
-          ))}
-        </div>
-        {/* 보기 전환은 바꾸는 대상(탭 내용) 바로 위에 둔다 — 헤더 아래 혼자 한 줄을 차지하지 않게 */}
-        <div className="ml-auto pb-2"><ListViewToggle view={view} onChange={setView} /></div>
-      </div>
+      </div>}
 
       {/* Tab Content */}
       {activeTab === 'history' ? (
@@ -318,7 +317,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
             <th className="w-[150px] px-4 py-3 text-left type-label-sm text-text-muted">7일 발송 / 실패</th>
             <th className="w-[110px] px-4 py-3 text-left type-label-sm text-text-muted">연결 규칙</th>
             <th className="w-[200px] px-4 py-3 text-left type-label-sm text-text-muted">최근 발송</th>
-            <th className="sticky right-0 w-[180px] bg-bg-surface px-4 py-3 text-right type-label-sm text-text-muted">작업</th>
+            <th className="sticky right-0 w-[180px] bg-bg-main px-4 py-3 text-right type-label-sm text-text-muted">작업</th>
           </tr>
         </thead>
         <tbody>
@@ -378,7 +377,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                     : !testResults[channel.id] && <span className="text-text-dim">테스트로 확인</span>}
                   <ChannelTestResult result={testResults[channel.id]} />
                 </td>
-                <td className="sticky right-0 bg-bg-surface px-4 py-2.5 transition-colors group-hover:bg-ui-hover-soft">
+                <td className="sticky right-0 bg-bg-main px-4 py-2.5 transition-colors group-hover:bg-ui-hover-soft">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)} className="whitespace-nowrap">
                       <MaterialIcon size={20} name="send" />

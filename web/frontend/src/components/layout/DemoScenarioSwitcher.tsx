@@ -4,9 +4,9 @@ import { DEMO_SCENARIOS, getDemoScenario, setDemoScenario, type MockScenario } f
 
 /**
  * Demo-only data-state control. It reloads so every page refetches the chosen fixture.
- * stacked: 사이드바 카드 — 라벨 위, 선택 상자는 카드 폭 전체. 좁은 폭에 라벨과 상자를 한 줄로 붙이면 비좁았다.
+ * bare: 라벨 없이 선택 상자만 — 사이드바 카드·모바일 배너. 옆의 `Live Demo`가 라벨 역할을 한다.
  */
-export function DemoScenarioSwitcher({ stacked = false }: { stacked?: boolean }) {
+export function DemoScenarioSwitcher({ bare = false, size = 'md' }: { bare?: boolean; size?: 'sm' | 'md' }) {
   const [scenario, setScenario] = useState(getDemoScenario);
 
   const changeScenario = (next: MockScenario) => {
@@ -17,16 +17,11 @@ export function DemoScenarioSwitcher({ stacked = false }: { stacked?: boolean })
   };
 
   const select = (
-    <Select aria-label="데모 시나리오" size={stacked ? 'sm' : 'md'} value={scenario} onChange={(event) => changeScenario(event.target.value as MockScenario)}>
+    <Select aria-label="데모 시나리오" size={size} value={scenario} onChange={(event) => changeScenario(event.target.value as MockScenario)}>
       {DEMO_SCENARIOS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
     </Select>
   );
-  return stacked ? (
-    <label className="block">
-      <span className="mb-1.5 block type-caption text-text-muted">데모 상태</span>
-      {select}
-    </label>
-  ) : (
+  return bare ? select : (
     <label className="flex items-center gap-2 type-label-sm text-text-secondary">
       <span className="shrink-0">데모 상태</span>
       {select}

@@ -71,7 +71,7 @@ export function SettingsMobileView({
       <AccountSection />
 
       {/* Interface */}
-      <SectionCard title="인터페이스" subtitle="테마 설정">
+      <SectionCard title="인터페이스">
         {/* Theme */}
         <div className="space-y-2">
           <p className="type-body text-text-base">테마</p>
@@ -87,7 +87,7 @@ export function SettingsMobileView({
       </SectionCard>
 
       {/* Data Retention */}
-      <SectionCard title="데이터 수집 및 보존" subtitle="메트릭 수집 주기와 데이터 보존 기간">
+      <SectionCard title="데이터 수집 및 보존">
         {backendLoading ? (
           <div className="space-y-3">
             <div className="h-14 bg-ui-hover rounded-lg animate-pulse" />

@@ -99,17 +99,45 @@ export function AlertsMobileView({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <PageHeader title="알림">
+      <PageHeader menu title="알림">
         {activeTab !== 'history' && (
-          <Button className="w-full" onClick={activeTab === 'rules' ? onAddRule : onAddChannel}>
+          <Button onClick={activeTab === 'rules' ? onAddRule : onAddChannel}>
             <MaterialIcon size={20} name="add" />
-            추가
+            {activeTab === 'rules' ? '규칙 추가' : '채널 추가'}
           </Button>
         )}
       </PageHeader>
 
-      {/* Stats Summary */}
-      {stats && (
+      {/* Tab Bar — 탭 줄이 목록 제목 줄이다. 보기 전환은 데스크톱처럼 오른쪽 끝에 둔다. */}
+      <div className="flex items-center gap-2">
+        <div role="tablist" aria-label="알림" className="flex min-w-0 flex-1 rounded-xl border border-ui-border bg-ui-hover p-1">
+          {tabs.map(tab => (
+            <button
+              key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              aria-controls={`alerts-mobile-panel-${tab.key}`}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap py-2.5 rounded-lg text-sm transition-colors ${
+                activeTab === tab.key
+                  ? 'bg-ui-raised text-text-base shadow-sm'
+                  : 'text-text-muted'
+              }`}
+            >
+              {/* 좁은 화면은 보기 전환에 폭을 내주고 장식 아이콘을 뺀다 — 라벨·개수는 그대로. */}
+              <MaterialIcon size={20} name={tab.icon} className="max-sm:hidden" />
+              {tab.label}
+              {tab.count !== undefined && (
+                <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <ListViewToggle view={view} onChange={setView} />
+      </div>
+
+      {/* 7일 발송 요약 — 발송 이력 탭의 머리다(데스크톱과 같음). */}
+      {stats && activeTab === 'history' && (
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
             <p className="type-body text-text-muted truncate">
@@ -131,34 +159,6 @@ export function AlertsMobileView({
           </div>
         </div>
       )}
-
-      {/* Tab Bar — 탭 줄이 목록 제목 줄이다. 보기 전환은 데스크톱처럼 오른쪽 끝에 둔다. */}
-      <div className="flex items-center gap-2">
-        <div role="tablist" aria-label="알림" className="flex min-w-0 flex-1 rounded-xl border border-ui-border bg-ui-hover p-1">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              role="tab"
-              aria-selected={activeTab === tab.key}
-              aria-controls={`alerts-mobile-panel-${tab.key}`}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-ui-raised text-text-base shadow-sm'
-                  : 'text-text-muted'
-              }`}
-            >
-              {/* 좁은 화면은 보기 전환에 폭을 내주고 장식 아이콘을 뺀다 — 라벨·개수는 그대로. */}
-              <MaterialIcon size={20} name={tab.icon} className="max-sm:hidden" />
-              {tab.label}
-              {tab.count !== undefined && (
-                <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
-              )}
-            </button>
-          ))}
-        </div>
-        <ListViewToggle view={view} onChange={setView} />
-      </div>
 
       {/* Channels Tab */}
       {activeTab === 'channels' && (

@@ -68,13 +68,14 @@ function LevelCount({ label, value, tone, known }: { label: string; value: numbe
 }
 
 /** 카드 맨 아래 한 줄 — 가장 최근 오류(없으면 경고), 그것도 없으면 마지막 수신 시각. */
-function LatestLine({ summary, known }: { summary?: LogServiceSummary; known: boolean }) {
+/** wrap: 좁은 셀(모바일 표의 이름 칸) — 메시지를 둘째 줄 전체 폭으로 내린다. 한 줄이면 `Conne…`만 남았다. */
+function LatestLine({ summary, known, wrap = false }: { summary?: LogServiceSummary; known: boolean; wrap?: boolean }) {
   const latest = summary?.latest;
   if (latest) {
     return (
       <>
         <span className={`${LEVEL_BASE} ${LEVEL_TEXT[latest.level] ?? LEVEL_TEXT.info}`}>{latest.level}</span>
-        <Tooltip content={latest.message} focusable><span className="min-w-0 flex-1 truncate font-mono text-text-secondary">{latest.message}</span></Tooltip>
+        <Tooltip content={latest.message} focusable><span className={`min-w-0 font-mono text-text-secondary ${wrap ? 'order-last basis-full line-clamp-2 break-all' : 'flex-1 truncate'}`}>{latest.message}</span></Tooltip>
         <span className="shrink-0 text-text-dim">{ago(latest.createdAt)}</span>
       </>
     );
@@ -144,7 +145,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
 
 const PATTERN_PREVIEW = 5;
 
-export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스', viewToggle }: {
+export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스', titleHidden = false, viewToggle, onRetryPatterns }: {
   rows: LogServiceRow[];
   /** null이면 패턴만 불러오지 못한 상태 — 서비스 목록은 그대로 그린다. */
   patterns: LogPatternRow[] | null;
@@ -152,26 +153,31 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
   view: 'card' | 'grid';
   returnTo: string;
   title?: string;
-  /** 보기 전환 — 섹션 제목 줄 오른쪽에 둔다. */
+  /** 로그 메뉴 첫 화면: 메뉴 이름을 되풀이하므로 제목을 스크린리더에만 둔다 */
+  titleHidden?: boolean;
+  /** 보기 전환 — 제목이 보일 때(그룹 상세) 제목 줄 오른쪽에 둔다. 로그 메뉴는 헤더에 둔다. */
   viewToggle?: ReactNode;
+  /** 패턴만 불러오지 못했을 때 다시 시도 */
+  onRetryPatterns?: () => void;
 }) {
   const statusRows = rows.map(row => ({ ...row, collection: collectionOf(row.summary, span[0]) }));
   // 패턴은 상위 몇 개만 먼저 — 20행이 이어지면 페이지 대부분을 차지해 위의 서비스 목록이 묻혔다.
   const [showAllPatterns, setShowAllPatterns] = useState(false);
   const shownPatterns = patterns && !showAllPatterns ? patterns.slice(0, PATTERN_PREVIEW) : patterns;
   return (
-    <div className="space-y-5">
+    // 서비스 목록과 반복 패턴은 성격이 다른 두 섹션이라 개요처럼 section-stack(32px + 옅은 선)으로 나눈다.
+    <div className="section-stack">
       <section>
-        <div className="mb-3 flex items-center justify-between gap-3">
+        {titleHidden ? <h2 className="sr-only">{title}</h2> : <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="type-section-title text-text-base">{title}</h2>
           <div className="flex items-center gap-3">
             <span className="text-xs text-text-dim">{`최근 24시간 · 서비스 ${rows.length}개`}</span>
             {viewToggle}
           </div>
-        </div>
+        </div>}
         {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{statusRows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
           <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
-            { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 items-baseline gap-2 text-xs xl:hidden"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div></> },
+            { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs xl:hidden"><LatestLine wrap summary={row.summary} known={row.collection === 'collecting'} /></div></> },
             { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => <LogStatus row={row} /> },
             ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: StatusRow) => row.collection === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><span className="text-text-muted">-</span></Tooltip> })),
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },
@@ -182,11 +188,15 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
       {(patterns === null || patterns.length > 0) && (
         <section>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <h2 className="type-section-title text-text-base">자주 발생한 오류·경고</h2>
-            <span className="type-body text-text-muted">최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다</span>
+            {/* 섹션 제목·보조 설명은 개요와 같은 크기(16px·12px, DESIGN.md §3.3). 20px이면 위 서비스 목록(제목 없음)보다 이 섹션이 더 무거웠다. */}
+            <h2 className="type-card-title text-text-base">자주 발생한 오류·경고</h2>
+            <span className="type-caption text-text-muted">최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다</span>
           </div>
           {patterns === null ? (
-            <p className="rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
+              <p className="type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
+              {onRetryPatterns && <Button variant="secondary" size="sm" onClick={onRetryPatterns}>다시 시도</Button>}
+            </div>
           ) : (
             <ul>
               {shownPatterns!.map(({ pattern, row }) => (

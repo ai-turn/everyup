@@ -299,7 +299,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                   최근 발동
                 </th>
                 {/* 1180px 테이블이 노트북 폭에서 가로 스크롤될 때도 작업 열은 보이게 오른쪽에 고정한다. */}
-                <th className="sticky right-0 w-[120px] bg-bg-surface px-4 py-3 text-right type-label-sm text-text-muted">
+                <th className="sticky right-0 w-[120px] bg-bg-main px-4 py-3 text-right type-label-sm text-text-muted">
                   작업
                 </th>
               </tr>
@@ -318,7 +318,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                   return (
                     <tr
                       key={rule.id}
-                      className={`group transition-colors hover:bg-ui-hover-soft ${!rule.isEnabled ? 'bg-ui-hover-soft/60' : ''}`}
+                      className={`group transition-colors hover:bg-ui-hover-soft ${!rule.isEnabled ? 'bg-ui-hover-soft' : ''}`}
                     >
                       <td className="px-4 py-2.5 align-middle">
                         <div className="flex min-w-0 items-center gap-2">
@@ -360,7 +360,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                           ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko })
                           : <span className="text-text-dim">-</span>}
                       </td>
-                      <td className="sticky right-0 bg-bg-surface px-4 py-2 text-right align-middle whitespace-nowrap transition-colors group-hover:bg-ui-hover-soft">
+                      <td className={`sticky right-0 px-4 py-2 text-right align-middle whitespace-nowrap transition-colors group-hover:bg-ui-hover-soft ${rule.isEnabled ? 'bg-bg-main' : 'bg-ui-hover-soft'}`}>
                         <div className="inline-flex items-center justify-end gap-1">
                           <Toggle
                             checked={rule.isEnabled}

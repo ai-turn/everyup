@@ -13,7 +13,7 @@ export function Footer() {
   return (
     <footer className="border-t border-ui-border">
       {/* 본문 컨테이너(p-4 sm:px-6)와 동일 패딩 — full-bleed 콘텐츠와 좌우 정렬 유지 */}
-      <div className="px-4 sm:px-6 py-3">
+      <div className="mx-auto max-w-320 px-4 sm:px-6 py-3">
         <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-text-dim">
           <span>© {currentYear} EveryUp</span>
 

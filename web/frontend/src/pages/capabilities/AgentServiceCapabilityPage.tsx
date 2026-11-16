@@ -126,30 +126,32 @@ export function AgentServiceCapabilityPage() {
         <UptimeRefreshControls updatedAt={updatedAt} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh}
           onRefresh={() => void load()} disabled={bulkWorking || changingMonitor !== null} />
       }>
+        {hasTargets && <ListViewToggle view={view} onChange={(next) => { setSelected(new Set()); setView(next); }} />}
         <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />추가</Button>
       </PageHeader>
 
-      {!loading && !error && hasTargets && (
-        <section aria-label="업타임 상태 요약" className="mb-5">
-          {/* 숫자를 누르면 그 상태만 본다(다시 누르면 해제). Uptime Kuma의 상태 필터를 요약에 겹쳤다. */}
-          <div role="group" aria-label="상태로 거르기" className="-ml-2 grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
-            {STATUS_FILTERS.map((key) => {
-              const [tone, label] = UPTIME_STATE_LIGHT[key];
-              return (
-                <button key={key} type="button" aria-pressed={status === key} onClick={() => setStatus(status === key ? null : key)}
-                  className="flex min-h-11 flex-col items-start gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">
-                  <StatusLight label={label} tone={key === 'down' && counts.down === 0 ? 'idle' : tone} />
-                  <span className="type-kpi">{counts[key]}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <ListToolbar inline search={
+      {/* 상태 요약은 필터라 검색 옆에 둔다(DESIGN.md §4.5 규칙 2). 따로 한 줄이면 두 줄 모두 오른쪽 60%가 비었다. */}
+      <ListToolbar search={
         <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filteredMonitors.length} shortcut placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
-      } />
+      }>
+        {!loading && !error && hasTargets && (
+          <section aria-label="업타임 상태 요약">
+            {/* 숫자를 누르면 그 상태만 본다(다시 누르면 해제). Uptime Kuma의 상태 필터를 요약에 겹쳤다. */}
+            <div role="group" aria-label="상태로 거르기" className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
+              {STATUS_FILTERS.map((key) => {
+                const [tone, label] = UPTIME_STATE_LIGHT[key];
+                return (
+                  <button key={key} type="button" aria-pressed={status === key} onClick={() => setStatus(status === key ? null : key)}
+                    className="flex min-h-11 flex-col items-start gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">
+                    <StatusLight label={label} tone={key === 'down' && counts.down === 0 ? 'idle' : tone} />
+                    <span className="type-kpi">{counts[key]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </ListToolbar>
 
       {error && (
         <section role="status" className="mb-6 flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -192,13 +194,7 @@ export function AgentServiceCapabilityPage() {
         </EmptyState>
       ) : (
         <section aria-label="업타임 대상" aria-busy={loading || undefined}>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="type-section-title text-text-base">모니터링 대상</h2>
-            <div className="flex items-center gap-3">
-              <span className="type-caption text-text-muted"><span>{filteredMonitors.length}</span>개 · 장애 우선</span>
-              <ListViewToggle view={view} onChange={(next) => { setSelected(new Set()); setView(next); }} />
-            </div>
-          </div>
+          <h2 className="sr-only">모니터링 대상</h2>
           {empty ? (!error && (status
             ? <EmptyState icon="monitor_heart" title={`${UPTIME_STATE_LIGHT[status][1]} 상태인 대상이 없습니다`} description="다른 상태를 고르거나 필터를 해제해 보세요.">
               <Button variant="secondary" onClick={() => setStatus(null)}>필터 해제</Button>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { EmptyState, ListViewToggle, PageHeader } from '../../components/common';
+import { Button, EmptyState, ListViewToggle, MaterialIcon, PageHeader } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries, type LogPatternRow, type LogServiceRow } from '../../features/logs/logServiceRows';
@@ -45,6 +45,8 @@ export function LogsPage() {
   return (
     <div>
       <PageHeader menu title="로그">
+        <Button collapseLabel onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+        {rows.length > 0 && <ListViewToggle view={view} onChange={setView} />}
         <MonitoringConnection capability="logs" onConnected={reload} />
       </PageHeader>
       {loading ? (
@@ -60,7 +62,7 @@ export function LogsPage() {
           </div>
         </EmptyState>
       ) : (
-        <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} viewToggle={<ListViewToggle view={view} onChange={setView} />} />
+        <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} titleHidden onRetryPatterns={reload} />
       )}
     </div>
   );

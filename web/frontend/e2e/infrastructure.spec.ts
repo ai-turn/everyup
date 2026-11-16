@@ -6,7 +6,6 @@ test('infrastructure list puts the busiest host first and marks warning levels',
   const table = page.getByRole('table', { name: '인프라 대상 그리드' });
   // db-primary-01 메모리 84.6% > batch-host-01 CPU 76.1% > edge-host-01 메모리 72.8% > staging-host-01
   await expect(table.locator('tbody tr a[data-row-link]')).toHaveText(['db-primary-01', 'batch-host-01', 'edge-host-01', 'staging-host-01']);
-  await expect(page.getByText('서버 4개 · 사용률 높은 순')).toBeVisible();
   // 행 안에 모바일 요약과 메모리 열이 함께 있다 — 데스크톱에서 보이는 것은 열 쪽이다.
   await expect(table.locator('tbody tr').first().getByText('84.6% 주의').last()).toBeVisible();
 });

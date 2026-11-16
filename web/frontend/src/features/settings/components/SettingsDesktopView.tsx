@@ -78,7 +78,7 @@ export function SettingsDesktopView({
           )}
 
           <section id="sec-ui" className="scroll-mt-4">
-            <SectionCard title="인터페이스" subtitle="테마 설정">
+            <SectionCard title="인터페이스">
               <SettingRow label="테마" description="라이트 또는 다크 모드를 선택합니다">
                 <SegmentedControl
                   size="md"
@@ -92,7 +92,7 @@ export function SettingsDesktopView({
           </section>
 
           <section id="sec-data" className="scroll-mt-4">
-            <SectionCard title="데이터 수집 및 보존" subtitle="메트릭 수집 주기와 데이터 보존 기간">
+            <SectionCard title="데이터 수집 및 보존">
               {backendLoading ? (
                 <div className="space-y-3">
                   <div className="h-10 bg-ui-hover rounded-lg animate-pulse" />

@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useHeaderActionSlot } from '../../contexts/BreadcrumbContext';
+import { ControlDefaultsContext } from './controlSize';
 
 interface PageHeaderProps {
     title: string;
@@ -22,11 +23,15 @@ interface PageHeaderProps {
     menu?: boolean;
 }
 
+const DESKTOP_HEADER = { size: 'sm', variant: 'secondary' } as const;
+const MOBILE_MENU = { variant: 'secondary' } as const;
+
 export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false, menu = false }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
     const slot = useHeaderActionSlot();
     const headerSlot = menu && desktop ? slot : null;
-    const inlineChildren = headerSlot ? undefined : children;
+    const inlineChildren = headerSlot || !children ? undefined
+        : menu ? <ControlDefaultsContext.Provider value={MOBILE_MENU}>{children}</ControlDefaultsContext.Provider> : children;
     const inlineMeta = headerSlot ? undefined : meta;
 
     // h1만 남으면(sr-only) 데스크톱에서 띠의 여백·구분선을 0으로 접는다.
@@ -36,7 +41,7 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
 
     return (
         <>
-            {headerSlot && (meta || children) && createPortal(<>{meta}{children}</>, headerSlot)}
+            {headerSlot && (meta || children) && createPortal(<ControlDefaultsContext.Provider value={DESKTOP_HEADER}>{meta}{children}</ControlDefaultsContext.Provider>, headerSlot)}
             <div className={`mb-6 border-b border-ui-border-soft pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
                 <div className="min-w-0 flex-1">
                     <div className={compactActions ? 'flex items-center justify-between gap-3' : ''}>
@@ -48,8 +53,8 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
                             {subtitle && <p className="min-w-0 type-body text-text-muted max-w-2xl">{subtitle}</p>}
                             {!compactActions && inlineChildren && (
                                 // 메뉴 첫 화면은 갱신 같은 보조 조작이 주 액션 앞에 온다 — 좁은 화면에서 쌓지 않고
-                                // 한 줄에 두고 마지막(주 액션)이 남은 폭을 채운다. 하나뿐이면 예전처럼 꽉 찬다.
-                                <div className={`flex w-full gap-2 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:w-auto md:shrink-0 md:justify-end ${menu ? 'flex-wrap items-center *:last:grow sm:*:last:grow-0' : 'flex-col'}`}>
+                                // 한 줄에 내용 폭으로 둔다. 남은 폭을 채운 주 액션이 화면에서 가장 무거웠다(설정 조작인데).
+                                <div className={`flex w-full gap-2 sm:flex-row sm:flex-wrap sm:items-center md:ml-auto md:w-auto md:shrink-0 md:justify-end ${menu ? 'flex-wrap items-center' : 'flex-col'}`}>
                                     {inlineChildren}
                                 </div>
                             )}

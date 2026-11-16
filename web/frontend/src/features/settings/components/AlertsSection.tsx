@@ -15,7 +15,7 @@ export function AlertsSection({ value, loading, onChange }: {
   const options = OPTIONS.includes(value) ? OPTIONS : [...OPTIONS, value].sort((a, b) => a - b);
 
   return (
-    <SectionCard title="알림 임계값" subtitle="알림 발송 조건 설정">
+    <SectionCard title="알림 임계값">
       {loading ? (
         <div className="h-10 bg-ui-hover rounded-lg animate-pulse" />
       ) : (
