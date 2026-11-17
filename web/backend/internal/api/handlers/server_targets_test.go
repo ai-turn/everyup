@@ -8,6 +8,7 @@ import (
 
 type monitorResponse struct {
 	ID        string `json:"id"`
+	Name      string `json:"name"`
 	ServerID  string `json:"serverId"`
 	ProjectID string `json:"projectId"`
 }
@@ -129,6 +130,23 @@ func TestMonitorMovesBetweenServers(t *testing.T) {
 	if got := decodeMonitor(t, result); got.ServerID != edge.ID {
 		t.Fatalf("stored serverId: got %s, want %s", got.ServerID, edge.ID)
 	}
+
+	projectID := createTestProject(t, ts, auth, "Production")
+	grouped := mustCreateServer(t, ts, auth, "grouped", projectID)
+	body["serverId"] = grouped.ID
+	resp, result = ts.doRequest(t, "PUT", "/api/v1/services/"+monitor.ID, body, auth...)
+	if got := decodeMonitor(t, result); resp.StatusCode != http.StatusOK || got.ServerID != grouped.ID || got.ProjectID != projectID {
+		t.Fatalf("move to grouped server: %d %s", resp.StatusCode, result.Data)
+	}
+
+	body["serverId"] = "nope"
+	body["name"] = "renamed"
+	resp, result = ts.doRequest(t, "PUT", "/api/v1/services/"+monitor.ID, body, auth...)
+	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
+	_, result = ts.doRequest(t, "GET", "/api/v1/services/"+monitor.ID, nil, auth...)
+	if got := decodeMonitor(t, result); got.Name != "public-dns" || got.ServerID != grouped.ID {
+		t.Fatalf("failed move must change nothing: %+v", got)
+	}
 }
 
 func TestLegacyMonitorGroupAssignmentMovesTheServer(t *testing.T) {
@@ -241,10 +259,39 @@ func TestObservedServiceUpdateWithServerIdIgnoresProjectId(t *testing.T) {
 		t.Fatalf("same serverId must keep the group: %+v", got)
 	}
 
+	got = mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": app.ServerID, "projectId": "missing"})
+	if got.ServerID != app.ServerID || got.ProjectID != projectID {
+		t.Fatalf("projectId must be ignored when serverId is set: %+v", got)
+	}
+
 	other := mustCreateServer(t, ts, auth, "other", "")
 	got = mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": other.ID})
 	if got.ServerID != other.ID {
 		t.Fatalf("move: got %s, want %s", got.ServerID, other.ID)
+	}
+
+	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "ignored", "signals": []string{"logs"}, "serverId": other.ID, "projectId": "missing"})
+}
+
+func TestObservedServiceServerErrors(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	projectID := createTestProject(t, ts, auth, "P")
+
+	ungrouped := mustCreateServer(t, ts, auth, "dup", "")
+	grouped := mustCreateServer(t, ts, auth, "dup", projectID)
+	loose := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "loose", "signals": []string{"logs"}, "serverId": ungrouped.ID})
+	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "grouped", "signals": []string{"logs"}, "serverId": grouped.ID})
+
+	resp, result := ts.doRequest(t, "PUT", "/api/v1/observed-services/"+loose.ID, map[string]interface{}{"name": "loose", "signals": []string{"logs"}, "serverId": "nope"}, auth...)
+	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
+
+	resp, result = ts.doRequest(t, "PUT", "/api/v1/observed-services/"+loose.ID, map[string]interface{}{"name": "loose", "signals": []string{"logs"}, "projectId": projectID}, auth...)
+	expectError(t, resp, result, http.StatusConflict, "SERVER_NAME_TAKEN")
+
+	resp, _ = ts.doRequest(t, "PUT", "/api/v1/observed-services/missing", map[string]interface{}{"name": "x", "signals": []string{"logs"}}, auth...)
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("missing app: got %d, want 404", resp.StatusCode)
 	}
 }
 
@@ -355,6 +402,60 @@ func TestInfrastructureResourceMoveRules(t *testing.T) {
 	_, result = ts.doRequest(t, "GET", endpoint, nil, auth...)
 	if got := decodeInfra(t, result); got.ServerID != empty.ID {
 		t.Fatalf("serverId changed after conflict: got %s, want %s", got.ServerID, empty.ID)
+	}
+}
+
+func TestInfrastructureResourceGroupAndErrors(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	p := createTestProject(t, ts, auth, "P")
+	p2 := createTestProject(t, ts, auth, "P2")
+
+	resp, result := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources", map[string]interface{}{"name": "db-01", "serverId": "nope"}, auth...)
+	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
+
+	grouped := mustCreateServer(t, ts, auth, "grouped", p)
+	resource := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01", "serverId": grouped.ID})
+	if resource.ProjectID != p {
+		t.Fatalf("create response projectId: got %q, want %q", resource.ProjectID, p)
+	}
+	endpoint := "/api/v1/infrastructure-resources/" + resource.ID
+
+	resp, result = ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01", "projectId": p2}, auth...)
+	if got := decodeInfra(t, result); resp.StatusCode != http.StatusOK || got.ProjectID != p2 || getServer(t, ts, auth, got.ServerID).ProjectID != p2 {
+		t.Fatalf("legacy group assignment: %d %s", resp.StatusCode, result.Data)
+	}
+
+	resp, result = ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01"}, auth...)
+	if got := decodeInfra(t, result); resp.StatusCode != http.StatusOK || got.ProjectID != "" || getServer(t, ts, auth, got.ServerID).ProjectID != "" {
+		t.Fatalf("legacy group clear: %d %s", resp.StatusCode, result.Data)
+	}
+}
+
+func TestProjectDeleteRenamesChainedCollisions(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	projectID := createTestProject(t, ts, auth, "P")
+
+	mustCreateServer(t, ts, auth, "web", "")
+	mustCreateServer(t, ts, auth, "web (2)", "")
+	groupedWeb := mustCreateServer(t, ts, auth, "web", projectID)
+
+	expectStatus(t, ts, auth, "DELETE", "/api/v1/projects/"+projectID, http.StatusNoContent)
+
+	_, result := ts.doRequest(t, "GET", "/api/v1/servers", nil, auth...)
+	var servers []serverResponse
+	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 3 {
+		t.Fatalf("expected three servers, got %v %s", err, result.Data)
+	}
+	wantNames := []string{"web", "web (2)", "web (3)"}
+	for i, server := range servers {
+		if server.Name != wantNames[i] {
+			t.Fatalf("server %d: got %q, want %q", i, server.Name, wantNames[i])
+		}
+	}
+	if got := getServer(t, ts, auth, groupedWeb.ID); got.Name != "web (3)" {
+		t.Fatalf("grouped server name: got %q, want %q", got.Name, "web (3)")
 	}
 }
 

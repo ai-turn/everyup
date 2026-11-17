@@ -179,6 +179,41 @@ func TestServerDeleteRemovesTargetsAndTheirData(t *testing.T) {
 	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
 }
 
+func TestServerDeleteLeavesOtherServersTargets(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	a := mustCreateServer(t, ts, auth, "a", "")
+	b := mustCreateServer(t, ts, auth, "b", "")
+	mustCreateMonitor(t, ts, auth, "probe-a", a.ID)
+	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "app-a", "signals": []string{"logs"}, "serverId": a.ID})
+	monitor := mustCreateMonitor(t, ts, auth, "probe-b", b.ID)
+	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "app-b", "signals": []string{"logs"}, "serverId": b.ID})
+	infra := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-b", "serverId": b.ID})
+
+	expectStatus(t, ts, auth, "DELETE", "/api/v1/servers/"+a.ID, http.StatusNoContent)
+	expectStatus(t, ts, auth, "GET", "/api/v1/servers/"+b.ID, http.StatusOK)
+
+	resp, result := ts.doRequest(t, "GET", "/api/v1/services/"+monitor.ID, nil, auth...)
+	if got := decodeMonitor(t, result).ServerID; resp.StatusCode != http.StatusOK || got != b.ID {
+		t.Fatalf("monitor: %d serverId %s, want %s", resp.StatusCode, got, b.ID)
+	}
+	resp, result = ts.doRequest(t, "GET", "/api/v1/observed-services/"+app.ID, nil, auth...)
+	if got := decodeApp(t, result).ServerID; resp.StatusCode != http.StatusOK || got != b.ID {
+		t.Fatalf("app: %d serverId %s, want %s", resp.StatusCode, got, b.ID)
+	}
+	resp, result = ts.doRequest(t, "GET", "/api/v1/infrastructure-resources/"+infra.ID, nil, auth...)
+	if got := decodeInfra(t, result).ServerID; resp.StatusCode != http.StatusOK || got != b.ID {
+		t.Fatalf("infra: %d serverId %s, want %s", resp.StatusCode, got, b.ID)
+	}
+
+	_, result = ts.doRequest(t, "GET", "/api/v1/servers", nil, auth...)
+	var servers []serverResponse
+	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 1 {
+		t.Fatalf("expected one server, got %v %s", err, result.Data)
+	}
+}
+
 func TestServerMerge(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))

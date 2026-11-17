@@ -145,7 +145,7 @@ func (r *LogRepository) Summary(from time.Time, bucketMins int, serverID string)
 	logsWhere, receiptsWhere := "", ""
 	logsArgs, receiptsArgs := []interface{}{from}, []interface{}{}
 	if serverID != "" {
-		logsWhere = ` AND service_id IN (SELECT id FROM observed_services WHERE server_id = ?)`
+		logsWhere = ` AND service_id IN (SELECT id FROM observed_services WHERE server_id = ?) AND COALESCE(agent_id, '') = ''`
 		receiptsWhere = ` AND owner_kind = 'direct' AND owner_id IN (SELECT id FROM observed_services WHERE server_id = ?)`
 		logsArgs = append(logsArgs, serverID)
 		receiptsArgs = append(receiptsArgs, serverID)

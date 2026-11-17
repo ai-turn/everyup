@@ -223,6 +223,11 @@ func TestLogSummaryAndPatternsScopeToServer(t *testing.T) {
 	if len(patterns) != 0 {
 		t.Errorf("unknown server patterns = %+v, want none", patterns)
 	}
+
+	getJSON(t, ts, "/api/v1/logs/summary?serverId=missing", &summaries, auth...)
+	if len(summaries) != 0 {
+		t.Errorf("unknown server summary = %+v, want none", summaries)
+	}
 }
 
 // getJSON fetches a JSON endpoint and decodes its data envelope into out.
