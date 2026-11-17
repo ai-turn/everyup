@@ -98,7 +98,7 @@ func (r *ServiceRepository) GetAll(typeFilter ...string) ([]models.Service, erro
 		var apiKeyMasked, logLevelFilter, apiExcludePaths sql.NullString
 		if err := rows.Scan(&s.ID, &s.Name, &s.ProjectID, &s.ServerID, &s.Type, &isActive, &url, &port, &method, &headers, &body,
 			&expectedStatus, &interval, &timeout, &tags, &scheduleType, &cronExpression,
-			&apiKeyMasked,&logLevelFilter, &apiExcludePaths, &s.CreatedAt, &s.UpdatedAt); err != nil {
+			&apiKeyMasked, &logLevelFilter, &apiExcludePaths, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			return nil, err
 		}
 		s.IsActive = isActive == 1
