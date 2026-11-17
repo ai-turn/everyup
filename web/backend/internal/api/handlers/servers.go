@@ -105,9 +105,15 @@ func serverWriteError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return projectNotFound(c)
+	case errors.Is(err, database.ErrServerMissing):
+		return agentBadRequest(c, "VALIDATION_ERROR", "server not found")
 	case errors.Is(err, database.ErrServerNameTaken):
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"success": false, "error": fiber.Map{
 			"code": "SERVER_NAME_TAKEN", "message": err.Error(),
+		}})
+	case errors.Is(err, database.ErrServerHasInfrastructure):
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"success": false, "error": fiber.Map{
+			"code": "SERVER_HAS_INFRASTRUCTURE", "message": err.Error(),
 		}})
 	}
 	return internalError(c, "DATABASE_ERROR", err)

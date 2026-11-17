@@ -75,6 +75,102 @@ func (r *ServerRepository) Update(server *models.Server) error {
 	return serverNameError(err)
 }
 
+type ServerTargetKind string
+
+const (
+	ServerTargetMonitor ServerTargetKind = "monitor" // services, type http/tcp
+	ServerTargetApp     ServerTargetKind = "app"     // observed_services
+	ServerTargetInfra   ServerTargetKind = "infra"   // hosts, collector_type otel-collector
+)
+
+// table returns the target table and the filter that limits it to directly configured rows.
+func (kind ServerTargetKind) table() (string, string) {
+	switch kind {
+	case ServerTargetMonitor:
+		return "services", "type IN ('http','tcp')"
+	case ServerTargetApp:
+		return "observed_services", "1 = 1"
+	case ServerTargetInfra:
+		return "hosts", "collector_type = 'otel-collector'"
+	}
+	panic("unknown server target kind: " + string(kind))
+}
+
+// ResolveForTarget returns the server a new target should join. With serverID it
+// verifies the server exists (ErrServerMissing) and, for infra, that it has no
+// infrastructure resource yet (ErrServerHasInfrastructure). Without serverID it
+// applies the find-or-create rule with name and projectID.
+func (r *ServerRepository) ResolveForTarget(kind ServerTargetKind, serverID, name, projectID string) (string, error) {
+	err := Transaction(func(tx *sql.Tx) error {
+		if serverID != "" {
+			return checkTargetServerTx(tx, kind, serverID)
+		}
+		var err error
+		serverID, err = resolveServerTx(tx, strings.TrimSpace(name), projectID, kind == ServerTargetInfra, time.Now())
+		return err
+	})
+	if err != nil {
+		return "", err
+	}
+	return serverID, nil
+}
+
+// MoveTarget re-parents an existing target. Moving to the current server is a no-op.
+// Errors: sql.ErrNoRows (target missing), ErrServerMissing, ErrServerHasInfrastructure.
+func (r *ServerRepository) MoveTarget(kind ServerTargetKind, targetID, serverID string) error {
+	table, filter := kind.table()
+	return Transaction(func(tx *sql.Tx) error {
+		var current string
+		if err := tx.QueryRow(`SELECT COALESCE(server_id, '') FROM `+table+` WHERE id = ? AND `+filter, targetID).Scan(&current); err != nil {
+			return err
+		}
+		if current == serverID {
+			return nil
+		}
+		if err := checkTargetServerTx(tx, kind, serverID); err != nil {
+			return err
+		}
+		_, err := tx.Exec(`UPDATE `+table+` SET server_id = ? WHERE id = ?`, serverID, targetID)
+		return err
+	})
+}
+
+// SetProjectForTarget writes projectID ("" clears) to the server that owns the target.
+// This is the legacy group-assignment path. Errors: sql.ErrNoRows, ErrServerNameTaken.
+func (r *ServerRepository) SetProjectForTarget(kind ServerTargetKind, targetID, projectID string) error {
+	table, filter := kind.table()
+	result, err := DB.Exec(`UPDATE servers SET project_id = ?, updated_at = ?
+		WHERE id = (SELECT server_id FROM `+table+` WHERE id = ? AND `+filter+`)`,
+		nullableProjectID(projectID), time.Now(), targetID)
+	if err != nil {
+		return serverNameError(err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+func checkTargetServerTx(tx *sql.Tx, kind ServerTargetKind, serverID string) error {
+	var exists, hasInfra bool
+	if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers WHERE id = ?),
+		EXISTS(SELECT 1 FROM hosts WHERE server_id = ? AND collector_type = 'otel-collector')`,
+		serverID, serverID).Scan(&exists, &hasInfra); err != nil {
+		return err
+	}
+	if !exists {
+		return ErrServerMissing
+	}
+	if kind == ServerTargetInfra && hasInfra {
+		return ErrServerHasInfrastructure
+	}
+	return nil
+}
+
 func serverNameError(err error) error {
 	if err != nil && strings.Contains(err.Error(), "idx_servers_name_group") {
 		return ErrServerNameTaken

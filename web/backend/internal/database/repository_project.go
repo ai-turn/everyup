@@ -15,7 +15,7 @@ func (r *ProjectRepository) GetAll() ([]models.Project, error) {
 	rows, err := DB.Query(`
 		SELECT p.id, p.name, p.description, p.created_at, p.updated_at,
 			(SELECT COUNT(*) FROM agents a WHERE a.project_id = p.id AND COALESCE(a.status, 'active') = 'active'),
-			(SELECT COUNT(*) FROM services s WHERE s.project_id = p.id AND s.type IN ('http', 'tcp')),
+			(SELECT COUNT(*) FROM services s JOIN servers sv ON sv.id = s.server_id WHERE sv.project_id = p.id AND s.type IN ('http', 'tcp')),
 			(SELECT COUNT(*) FROM observed_services os WHERE os.project_id = p.id),
 			(SELECT COUNT(*) FROM hosts h WHERE h.project_id = p.id AND h.collector_type = 'otel-collector')
 		FROM projects p ORDER BY p.name`)
@@ -108,19 +108,9 @@ func (r *ProjectRepository) AssignAgent(projectID, agentID string) error {
 	return nil
 }
 
+// AssignMonitor moves the monitor's server, and so every target on it, into projectID.
 func (r *ProjectRepository) AssignMonitor(projectID, monitorID string) error {
-	result, err := DB.Exec(`UPDATE services SET project_id = ?, updated_at = ? WHERE id = ? AND type IN ('http', 'tcp')`, nullableProjectID(projectID), time.Now(), monitorID)
-	if err != nil {
-		return err
-	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rows == 0 {
-		return sql.ErrNoRows
-	}
-	return nil
+	return NewServerRepository().SetProjectForTarget(ServerTargetMonitor, monitorID, projectID)
 }
 
 func nullableProjectID(projectID string) interface{} {

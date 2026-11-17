@@ -18,6 +18,7 @@ import (
 // ServiceHandler handles service-related requests
 type ServiceHandler struct {
 	repo       *database.ServiceRepository
+	servers    *database.ServerRepository
 	metricRepo *database.MetricRepository
 	scheduler  *checker.Scheduler
 }
@@ -26,6 +27,7 @@ type ServiceHandler struct {
 func NewServiceHandler(scheduler *checker.Scheduler) *ServiceHandler {
 	return &ServiceHandler{
 		repo:       database.NewServiceRepository(),
+		servers:    database.NewServerRepository(),
 		metricRepo: database.NewMetricRepository(),
 		scheduler:  scheduler,
 	}
@@ -166,6 +168,10 @@ func (h *ServiceHandler) Create(c *fiber.Ctx) error {
 		AlertOnDown bool `json:"alertOnDown"`
 	}
 	_ = c.BodyParser(&opts) // the body already parsed above; this only reads the extra flag
+	if service.ServerID, err = h.servers.ResolveForTarget(database.ServerTargetMonitor, service.ServerID, service.Name, ""); err != nil {
+		return serverWriteError(c, err)
+	}
+	// A server created just above stays behind, empty, if this insert fails.
 	if err := h.repo.Create(service); err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
@@ -212,7 +218,8 @@ func createMonitorDownRule(service *models.Service) error {
 // refreshes its in-memory schedule.
 func (h *ServiceHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
-	if existing, err := h.repo.GetByID(id); err != nil {
+	existing, err := h.repo.GetByID(id)
+	if err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	} else if existing == nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": fiber.Map{"code": "SERVICE_NOT_FOUND"}})
@@ -221,9 +228,19 @@ func (h *ServiceHandler) Update(c *fiber.Ctx) error {
 	if err != nil {
 		return agentBadRequest(c, "VALIDATION_ERROR", err.Error())
 	}
+	if service.ServerID != "" && service.ServerID != existing.ServerID {
+		if err := h.servers.MoveTarget(database.ServerTargetMonitor, id, service.ServerID); err != nil {
+			return serverWriteError(c, err)
+		}
+	}
 	if err := h.repo.Update(service); err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
+	stored, err := h.repo.GetByID(id)
+	if err != nil || stored == nil {
+		return internalError(c, "DATABASE_ERROR", fmt.Errorf("reload service %s: %v", id, err))
+	}
+	service.ServerID, service.ProjectID = stored.ServerID, stored.ProjectID
 	if h.scheduler != nil {
 		h.scheduler.AddService(service)
 	}
