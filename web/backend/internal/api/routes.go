@@ -85,6 +85,8 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Post("/servers", serverHandler.Create)
 	local.Get("/servers/:id", serverHandler.GetByID)
 	local.Put("/servers/:id", serverHandler.Update)
+	local.Delete("/servers/:id", serverHandler.Delete)
+	local.Post("/servers/:id/merge", serverHandler.Merge)
 	observedServiceHandler := handlers.NewObservedServiceHandler()
 	local.Get("/observed-services", observedServiceHandler.GetAll)
 	local.Post("/observed-services", observedServiceHandler.Create)

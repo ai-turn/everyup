@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/aiturn/everyup/internal/database"
 )
 
 type serverResponse struct {
@@ -133,4 +135,112 @@ func TestServerNameIsUniqueWithinGroup(t *testing.T) {
 
 	resp, result = ts.doRequest(t, "PUT", "/api/v1/servers/"+grouped.ID, map[string]string{"name": "web"}, auth...)
 	expectError(t, resp, result, http.StatusConflict, "SERVER_NAME_TAKEN")
+}
+
+func expectStatus(t *testing.T, ts *testServer, auth []string, method, path string, status int) {
+	t.Helper()
+	if resp, result := ts.doRequest(t, method, path, nil, auth...); resp.StatusCode != status {
+		t.Fatalf("%s %s: got %d %+v, want %d", method, path, resp.StatusCode, result.Error, status)
+	}
+}
+
+func TestServerDeleteRemovesTargetsAndTheirData(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	web := mustCreateServer(t, ts, auth, "web", "")
+	resp, result := ts.doRequest(t, "POST", "/api/v1/services", map[string]interface{}{
+		"name": "probe", "type": "tcp", "host": "1.1.1.1", "port": 53, "interval": 5,
+		"serverId": web.ID, "alertOnDown": true,
+	}, auth...)
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("create monitor: %d %+v", resp.StatusCode, result.Error)
+	}
+	monitor := decodeMonitor(t, result)
+	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": web.ID})
+	infra := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01", "serverId": web.ID})
+
+	var rules int
+	if err := database.DB.QueryRow(`SELECT COUNT(*) FROM alert_rules WHERE service_id = ?`, monitor.ID).Scan(&rules); err != nil || rules == 0 {
+		t.Fatalf("expected monitor alert rules before delete: %d %v", rules, err)
+	}
+
+	expectStatus(t, ts, auth, "DELETE", "/api/v1/servers/"+web.ID, http.StatusNoContent)
+	expectStatus(t, ts, auth, "GET", "/api/v1/servers/"+web.ID, http.StatusNotFound)
+	expectStatus(t, ts, auth, "GET", "/api/v1/services/"+monitor.ID, http.StatusNotFound)
+	expectStatus(t, ts, auth, "GET", "/api/v1/observed-services/"+app.ID, http.StatusNotFound)
+	expectStatus(t, ts, auth, "GET", "/api/v1/infrastructure-resources/"+infra.ID, http.StatusNotFound)
+
+	if err := database.DB.QueryRow(`SELECT COUNT(*) FROM alert_rules WHERE service_id = ?`, monitor.ID).Scan(&rules); err != nil || rules != 0 {
+		t.Fatalf("monitor alert rules must be deleted: %d %v", rules, err)
+	}
+
+	resp, result = ts.doRequest(t, "DELETE", "/api/v1/servers/missing", nil, auth...)
+	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
+}
+
+func TestServerMerge(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	a := mustCreateServer(t, ts, auth, "a", "")
+	b := mustCreateServer(t, ts, auth, "b", "")
+	monitor := mustCreateMonitor(t, ts, auth, "probe", a.ID)
+	appA := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": a.ID})
+	appB := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "worker", "signals": []string{"logs"}, "serverId": b.ID})
+	infra := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01", "serverId": b.ID})
+
+	resp, result := ts.doRequest(t, "POST", "/api/v1/servers/"+a.ID+"/merge", map[string]string{"targetServerId": b.ID}, auth...)
+	if resp.StatusCode != http.StatusOK || decodeServer(t, result).ID != b.ID {
+		t.Fatalf("merge: %d %s %+v", resp.StatusCode, result.Data, result.Error)
+	}
+
+	_, result = ts.doRequest(t, "GET", "/api/v1/servers", nil, auth...)
+	var servers []serverResponse
+	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 1 || servers[0].ID != b.ID {
+		t.Fatalf("expected only server b, got %v %s", err, result.Data)
+	}
+
+	_, result = ts.doRequest(t, "GET", "/api/v1/services/"+monitor.ID, nil, auth...)
+	if got := decodeMonitor(t, result).ServerID; got != b.ID {
+		t.Fatalf("monitor serverId: got %s, want %s", got, b.ID)
+	}
+	for _, id := range []string{appA.ID, appB.ID} {
+		_, result = ts.doRequest(t, "GET", "/api/v1/observed-services/"+id, nil, auth...)
+		if got := decodeApp(t, result).ServerID; got != b.ID {
+			t.Fatalf("app %s serverId: got %s, want %s", id, got, b.ID)
+		}
+	}
+	_, result = ts.doRequest(t, "GET", "/api/v1/infrastructure-resources/"+infra.ID, nil, auth...)
+	if got := decodeInfra(t, result).ServerID; got != b.ID {
+		t.Fatalf("infra serverId: got %s, want %s", got, b.ID)
+	}
+}
+
+func TestServerMergeConflicts(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	first := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01"})
+	second := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-02"})
+
+	resp, result := ts.doRequest(t, "POST", "/api/v1/servers/"+first.ServerID+"/merge", map[string]string{"targetServerId": second.ServerID}, auth...)
+	expectError(t, resp, result, http.StatusConflict, "SERVER_HAS_INFRASTRUCTURE")
+	expectStatus(t, ts, auth, "GET", "/api/v1/servers/"+first.ServerID, http.StatusOK)
+	expectStatus(t, ts, auth, "GET", "/api/v1/servers/"+second.ServerID, http.StatusOK)
+	for _, resource := range []infraResponse{first, second} {
+		_, result = ts.doRequest(t, "GET", "/api/v1/infrastructure-resources/"+resource.ID, nil, auth...)
+		if got := decodeInfra(t, result).ServerID; got != resource.ServerID {
+			t.Fatalf("infra %s serverId changed: got %s, want %s", resource.ID, got, resource.ServerID)
+		}
+	}
+
+	resp, result = ts.doRequest(t, "POST", "/api/v1/servers/"+first.ServerID+"/merge", map[string]string{"targetServerId": first.ServerID}, auth...)
+	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
+	resp, result = ts.doRequest(t, "POST", "/api/v1/servers/"+first.ServerID+"/merge", map[string]string{"targetServerId": ""}, auth...)
+	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
+	resp, result = ts.doRequest(t, "POST", "/api/v1/servers/"+first.ServerID+"/merge", map[string]string{"targetServerId": "missing"}, auth...)
+	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
+	resp, result = ts.doRequest(t, "POST", "/api/v1/servers/missing/merge", map[string]string{"targetServerId": first.ServerID}, auth...)
+	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
 }

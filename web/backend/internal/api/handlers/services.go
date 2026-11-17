@@ -254,21 +254,29 @@ func (h *ServiceHandler) Update(c *fiber.Ctx) error {
 
 // Delete removes an independent monitor and cancels its scheduled checks.
 func (h *ServiceHandler) Delete(c *fiber.Ctx) error {
-	id := c.Params("id")
-	if err := h.repo.Delete(id); err != nil {
+	if err := deleteMonitor(h.repo, h.scheduler, c.Params("id")); err != nil {
 		if err == sql.ErrNoRows {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": fiber.Map{"code": "SERVICE_NOT_FOUND"}})
 		}
 		return internalError(c, "DATABASE_ERROR", err)
 	}
-	if h.scheduler != nil {
-		h.scheduler.RemoveService(id)
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// deleteMonitor removes the monitor row, its schedule and its health rules.
+// sql.ErrNoRows when the monitor is missing.
+func deleteMonitor(repo *database.ServiceRepository, scheduler *checker.Scheduler, id string) error {
+	if err := repo.Delete(id); err != nil {
+		return err
+	}
+	if scheduler != nil {
+		scheduler.RemoveService(id)
 	}
 	// The monitor is gone either way; a failed cleanup only leaves orphaned rules.
 	if err := database.NewAlertRuleRepository().DeleteHealthRulesForMonitor(id); err != nil {
 		log.Printf("[Services] delete rules for monitor %s: %v", id, err)
 	}
-	return c.SendStatus(fiber.StatusNoContent)
+	return nil
 }
 
 func (h *ServiceHandler) parseUptimeService(c *fiber.Ctx, id string) (*models.Service, error) {

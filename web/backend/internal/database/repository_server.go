@@ -155,6 +155,94 @@ func (r *ServerRepository) SetProjectForTarget(kind ServerTargetKind, targetID, 
 	return nil
 }
 
+type ServerTargets struct {
+	MonitorIDs         []string
+	ObservedServiceIDs []string
+	InfrastructureID   string // "" when none
+}
+
+func (r *ServerRepository) Targets(serverID string) (ServerTargets, error) {
+	var targets ServerTargets
+	for _, kind := range []ServerTargetKind{ServerTargetMonitor, ServerTargetApp, ServerTargetInfra} {
+		table, filter := kind.table()
+		rows, err := DB.Query(`SELECT id FROM `+table+` WHERE server_id = ? AND `+filter+` ORDER BY id`, serverID)
+		if err != nil {
+			return targets, err
+		}
+		var ids []string
+		for rows.Next() {
+			var id string
+			if err := rows.Scan(&id); err != nil {
+				rows.Close()
+				return targets, err
+			}
+			ids = append(ids, id)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return targets, err
+		}
+		switch kind {
+		case ServerTargetMonitor:
+			targets.MonitorIDs = ids
+		case ServerTargetApp:
+			targets.ObservedServiceIDs = ids
+		case ServerTargetInfra:
+			if len(ids) > 0 {
+				targets.InfrastructureID = ids[0]
+			}
+		}
+	}
+	return targets, nil
+}
+
+// Merge moves every target of sourceID to targetID and deletes sourceID, in one transaction.
+// Errors: ErrServerMissing (either id), ErrServerHasInfrastructure (both own one).
+func (r *ServerRepository) Merge(sourceID, targetID string) error {
+	return Transaction(func(tx *sql.Tx) error {
+		var sourceExists, targetExists, sourceHasInfra, targetHasInfra bool
+		if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers WHERE id = ?), EXISTS(SELECT 1 FROM servers WHERE id = ?),
+			EXISTS(SELECT 1 FROM hosts WHERE server_id = ? AND collector_type = 'otel-collector'),
+			EXISTS(SELECT 1 FROM hosts WHERE server_id = ? AND collector_type = 'otel-collector')`,
+			sourceID, targetID, sourceID, targetID).Scan(&sourceExists, &targetExists, &sourceHasInfra, &targetHasInfra); err != nil {
+			return err
+		}
+		if !sourceExists || !targetExists {
+			return ErrServerMissing
+		}
+		if sourceHasInfra && targetHasInfra {
+			return ErrServerHasInfrastructure
+		}
+		for _, kind := range []ServerTargetKind{ServerTargetMonitor, ServerTargetApp, ServerTargetInfra} {
+			table, filter := kind.table()
+			if _, err := tx.Exec(`UPDATE `+table+` SET server_id = ? WHERE server_id = ? AND `+filter, targetID, sourceID); err != nil {
+				return err
+			}
+		}
+		if _, err := tx.Exec(`UPDATE servers SET updated_at = ? WHERE id = ?`, time.Now(), targetID); err != nil {
+			return err
+		}
+		_, err := tx.Exec(`DELETE FROM servers WHERE id = ?`, sourceID)
+		return err
+	})
+}
+
+// DeleteEmpty deletes a server that owns no targets. sql.ErrNoRows when missing.
+func (r *ServerRepository) DeleteEmpty(id string) error {
+	result, err := DB.Exec(`DELETE FROM servers WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
 func checkTargetServerTx(tx *sql.Tx, kind ServerTargetKind, serverID string) error {
 	var exists, hasInfra bool
 	if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers WHERE id = ?),
