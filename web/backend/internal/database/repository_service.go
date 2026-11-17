@@ -268,6 +268,13 @@ func (r *ServiceRepository) Create(s *models.Service) error {
 		scheduleType = string(models.ScheduleTypeInterval)
 	}
 
+	// Callers that bypass the API (config-file monitors) still need a server.
+	if s.ServerID == "" && (s.Type == models.ServiceTypeHTTP || s.Type == models.ServiceTypeTCP) {
+		if s.ServerID, err = NewServerRepository().ResolveForTarget(ServerTargetMonitor, "", s.Name, ""); err != nil {
+			return err
+		}
+	}
+
 	_, err = DB.Exec(`
 		INSERT INTO services (id, name, server_id, type, is_active, url, port, method, headers, body,
 		                      expected_status, interval, timeout, tags, schedule_type, cron_expression,
