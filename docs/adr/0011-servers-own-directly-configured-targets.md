@@ -76,6 +76,11 @@ known.
 - Deleting a Group leaves its Servers without a Group. When a name then
   collides with a Server already without a Group, a suffix such as ` (2)` is
   added.
+- Until the new screens ship, the existing screens still assign a Group to a
+  single target, and that assignment applies to the whole Server the target
+  belongs to. When the destination Group already has a Server with the same
+  name, the two Servers are merged. When both own an Infrastructure Resource,
+  they are not merged; the moving Server gets a suffix such as ` (2)` instead.
 - Bulk Uptime actions across several Servers go away. They are to work only
   inside one Server's Uptime tab.
 - The `project_id` columns of the target tables stay in storage but are no

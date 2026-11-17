@@ -325,7 +325,8 @@ func migrateV58() error {
 	now := time.Now()
 	return Transaction(func(tx *sql.Tx) error {
 		for _, kind := range kinds {
-			// Target project_id has no foreign key, so it may point at a deleted group.
+			// project_id may point at a deleted group: services and hosts have no foreign key on it,
+			// and observed_services rows may have been written while foreign keys were off.
 			rows, err := tx.Query(`SELECT t.id, t.name, COALESCE(p.id, '')
 				FROM ` + kind.table + ` t LEFT JOIN projects p ON p.id = t.project_id
 				WHERE t.server_id IS NULL AND ` + kind.filter + `
