@@ -89,6 +89,12 @@ func TestMonitorJoinsServer(t *testing.T) {
 		t.Fatalf("explicit serverId: got %s, want %s", got.ServerID, edge.ID)
 	}
 
+	projectID := createTestProject(t, ts, auth, "Production")
+	grouped := mustCreateServer(t, ts, auth, "grouped", projectID)
+	if got := mustCreateMonitor(t, ts, auth, "grouped-probe", grouped.ID); got.ProjectID != projectID {
+		t.Fatalf("create response projectId: got %q, want %q", got.ProjectID, projectID)
+	}
+
 	before := len(listMonitors(t, ts, auth))
 	resp, result := createTestMonitor(t, ts, auth, "lost", "nope")
 	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")

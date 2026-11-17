@@ -171,6 +171,11 @@ func (h *ServiceHandler) Create(c *fiber.Ctx) error {
 	if service.ServerID, err = h.servers.ResolveForTarget(database.ServerTargetMonitor, service.ServerID, service.Name, ""); err != nil {
 		return serverWriteError(c, err)
 	}
+	if server, err := h.servers.GetByID(service.ServerID); err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	} else if server != nil {
+		service.ProjectID = server.ProjectID
+	}
 	// A server created just above stays behind, empty, if this insert fails.
 	if err := h.repo.Create(service); err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
