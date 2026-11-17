@@ -7,8 +7,80 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aiturn/everyup/internal/models"
 	"github.com/google/uuid"
 )
+
+var (
+	ErrServerMissing           = errors.New("server not found")
+	ErrServerNameTaken         = errors.New("server name already exists in this group")
+	ErrServerHasInfrastructure = errors.New("server already has an infrastructure resource")
+)
+
+type ServerRepository struct{}
+
+func NewServerRepository() *ServerRepository { return &ServerRepository{} }
+
+const serverColumns = `id, name, description, COALESCE(project_id, ''), created_at, updated_at`
+
+func scanServer(row interface{ Scan(...any) error }) (models.Server, error) {
+	var server models.Server
+	err := row.Scan(&server.ID, &server.Name, &server.Description, &server.ProjectID, &server.CreatedAt, &server.UpdatedAt)
+	return server, err
+}
+
+func (r *ServerRepository) GetAll() ([]models.Server, error) {
+	rows, err := DB.Query(`SELECT ` + serverColumns + ` FROM servers ORDER BY name`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	servers := make([]models.Server, 0)
+	for rows.Next() {
+		server, err := scanServer(rows)
+		if err != nil {
+			return nil, err
+		}
+		servers = append(servers, server)
+	}
+	return servers, rows.Err()
+}
+
+func (r *ServerRepository) GetByID(id string) (*models.Server, error) {
+	server, err := scanServer(DB.QueryRow(`SELECT `+serverColumns+` FROM servers WHERE id = ?`, id))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &server, nil
+}
+
+func (r *ServerRepository) Create(server *models.Server) error {
+	now := time.Now()
+	server.CreatedAt, server.UpdatedAt = now, now
+	_, err := DB.Exec(`INSERT INTO servers (id, name, description, project_id, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)`, server.ID, server.Name, server.Description, nullableProjectID(server.ProjectID), now, now)
+	return serverNameError(err)
+}
+
+// Update replaces name, description and project; CreatedAt is reloaded so the
+// caller can return the stored row.
+func (r *ServerRepository) Update(server *models.Server) error {
+	server.UpdatedAt = time.Now()
+	err := DB.QueryRow(`UPDATE servers SET name = ?, description = ?, project_id = ?, updated_at = ?
+		WHERE id = ? RETURNING created_at`,
+		server.Name, server.Description, nullableProjectID(server.ProjectID), server.UpdatedAt, server.ID).Scan(&server.CreatedAt)
+	return serverNameError(err)
+}
+
+func serverNameError(err error) error {
+	if err != nil && strings.Contains(err.Error(), "idx_servers_name_group") {
+		return ErrServerNameTaken
+	}
+	return err
+}
 
 // migrateV58 introduces servers and moves every directly configured target
 // that has no server yet under one (spec 5.4).
