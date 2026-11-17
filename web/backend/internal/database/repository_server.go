@@ -136,23 +136,41 @@ func (r *ServerRepository) MoveTarget(kind ServerTargetKind, targetID, serverID 
 }
 
 // SetProjectForTarget writes projectID ("" clears) to the server that owns the target.
-// This is the legacy group-assignment path. Errors: sql.ErrNoRows, ErrServerNameTaken.
+// This is the legacy group-assignment path, whose screens know nothing of servers, so
+// a same-name server in projectID never fails it (spec 5.5): the owning server merges
+// into that one, or, when both own an infrastructure resource, takes a suffixed name.
+// Errors: sql.ErrNoRows (target missing).
 func (r *ServerRepository) SetProjectForTarget(kind ServerTargetKind, targetID, projectID string) error {
 	table, filter := kind.table()
-	result, err := DB.Exec(`UPDATE servers SET project_id = ?, updated_at = ?
-		WHERE id = (SELECT server_id FROM `+table+` WHERE id = ? AND `+filter+`)`,
-		nullableProjectID(projectID), time.Now(), targetID)
-	if err != nil {
-		return serverNameError(err)
-	}
-	rows, err := result.RowsAffected()
-	if err != nil {
+	return Transaction(func(tx *sql.Tx) error {
+		var serverID, name, current string
+		if err := tx.QueryRow(`SELECT s.id, s.name, COALESCE(s.project_id, '')
+			FROM `+table+` t JOIN servers s ON s.id = t.server_id
+			WHERE t.id = ? AND `+filter, targetID).Scan(&serverID, &name, &current); err != nil {
+			return err
+		}
+		if current == projectID {
+			return nil
+		}
+		var sameNameID string
+		err := tx.QueryRow(`SELECT id FROM servers
+			WHERE lower(trim(name)) = lower(trim(?)) AND COALESCE(project_id, '') = ?`, name, projectID).Scan(&sameNameID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+		if err == nil {
+			// mergeServersTx checks for two infrastructure resources before writing anything.
+			if err := mergeServersTx(tx, serverID, sameNameID); !errors.Is(err, ErrServerHasInfrastructure) {
+				return err
+			}
+			if name, err = nextFreeServerNameTx(tx, name, projectID); err != nil {
+				return err
+			}
+		}
+		_, err = tx.Exec(`UPDATE servers SET name = ?, project_id = ?, updated_at = ? WHERE id = ?`,
+			name, nullableProjectID(projectID), time.Now(), serverID)
 		return err
-	}
-	if rows == 0 {
-		return sql.ErrNoRows
-	}
-	return nil
+	})
 }
 
 type ServerTargets struct {
@@ -200,31 +218,36 @@ func (r *ServerRepository) Targets(serverID string) (ServerTargets, error) {
 // Errors: ErrServerMissing (either id), ErrServerHasInfrastructure (both own one).
 func (r *ServerRepository) Merge(sourceID, targetID string) error {
 	return Transaction(func(tx *sql.Tx) error {
-		var sourceExists, targetExists, sourceHasInfra, targetHasInfra bool
-		if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers WHERE id = ?), EXISTS(SELECT 1 FROM servers WHERE id = ?),
-			EXISTS(SELECT 1 FROM hosts WHERE server_id = ? AND collector_type = 'otel-collector'),
-			EXISTS(SELECT 1 FROM hosts WHERE server_id = ? AND collector_type = 'otel-collector')`,
-			sourceID, targetID, sourceID, targetID).Scan(&sourceExists, &targetExists, &sourceHasInfra, &targetHasInfra); err != nil {
-			return err
-		}
-		if !sourceExists || !targetExists {
-			return ErrServerMissing
-		}
-		if sourceHasInfra && targetHasInfra {
-			return ErrServerHasInfrastructure
-		}
-		for _, kind := range []ServerTargetKind{ServerTargetMonitor, ServerTargetApp, ServerTargetInfra} {
-			table, filter := kind.table()
-			if _, err := tx.Exec(`UPDATE `+table+` SET server_id = ? WHERE server_id = ? AND `+filter, targetID, sourceID); err != nil {
-				return err
-			}
-		}
-		if _, err := tx.Exec(`UPDATE servers SET updated_at = ? WHERE id = ?`, time.Now(), targetID); err != nil {
-			return err
-		}
-		_, err := tx.Exec(`DELETE FROM servers WHERE id = ?`, sourceID)
-		return err
+		return mergeServersTx(tx, sourceID, targetID)
 	})
+}
+
+// mergeServersTx is Merge inside tx. Its errors are returned before any write.
+func mergeServersTx(tx *sql.Tx, sourceID, targetID string) error {
+	var sourceExists, targetExists, sourceHasInfra, targetHasInfra bool
+	if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers WHERE id = ?), EXISTS(SELECT 1 FROM servers WHERE id = ?),
+		EXISTS(SELECT 1 FROM hosts WHERE server_id = ? AND collector_type = 'otel-collector'),
+		EXISTS(SELECT 1 FROM hosts WHERE server_id = ? AND collector_type = 'otel-collector')`,
+		sourceID, targetID, sourceID, targetID).Scan(&sourceExists, &targetExists, &sourceHasInfra, &targetHasInfra); err != nil {
+		return err
+	}
+	if !sourceExists || !targetExists {
+		return ErrServerMissing
+	}
+	if sourceHasInfra && targetHasInfra {
+		return ErrServerHasInfrastructure
+	}
+	for _, kind := range []ServerTargetKind{ServerTargetMonitor, ServerTargetApp, ServerTargetInfra} {
+		table, filter := kind.table()
+		if _, err := tx.Exec(`UPDATE `+table+` SET server_id = ? WHERE server_id = ? AND `+filter, targetID, sourceID); err != nil {
+			return err
+		}
+	}
+	if _, err := tx.Exec(`UPDATE servers SET updated_at = ? WHERE id = ?`, time.Now(), targetID); err != nil {
+		return err
+	}
+	_, err := tx.Exec(`DELETE FROM servers WHERE id = ?`, sourceID)
+	return err
 }
 
 // DeleteEmpty deletes a server that owns no targets. sql.ErrNoRows when missing.
