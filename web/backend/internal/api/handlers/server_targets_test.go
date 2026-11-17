@@ -358,6 +358,90 @@ func TestInfrastructureResourceMoveRules(t *testing.T) {
 	}
 }
 
+type projectCountsResponse struct {
+	ID                          string `json:"id"`
+	ServerCount                 int    `json:"serverCount"`
+	MonitorCount                int    `json:"monitorCount"`
+	ObservedServiceCount        int    `json:"observedServiceCount"`
+	InfrastructureResourceCount int    `json:"infrastructureResourceCount"`
+}
+
+func projectCounts(t *testing.T, ts *testServer, auth []string, projectID string) projectCountsResponse {
+	t.Helper()
+	_, result := ts.doRequest(t, "GET", "/api/v1/projects", nil, auth...)
+	var projects []projectCountsResponse
+	if err := json.Unmarshal(result.Data, &projects); err != nil {
+		t.Fatalf("list projects: %v, %s", err, result.Data)
+	}
+	for _, project := range projects {
+		if project.ID == projectID {
+			return project
+		}
+	}
+	t.Fatalf("project %s not listed: %s", projectID, result.Data)
+	return projectCountsResponse{}
+}
+
+func TestProjectCountsFollowServers(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	projectID := createTestProject(t, ts, auth, "P")
+
+	web := mustCreateServer(t, ts, auth, "web", projectID)
+	mustCreateMonitor(t, ts, auth, "web-probe", web.ID)
+	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": web.ID})
+	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "worker", "signals": []string{"logs"}, "serverId": web.ID})
+
+	got := projectCounts(t, ts, auth, projectID)
+	want := projectCountsResponse{ID: projectID, ServerCount: 1, MonitorCount: 1, ObservedServiceCount: 2}
+	if got != want {
+		t.Fatalf("grouped counts: got %+v, want %+v", got, want)
+	}
+
+	resp, result := ts.doRequest(t, "PUT", "/api/v1/servers/"+web.ID, map[string]string{"name": "web"}, auth...)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("ungroup server: %d %+v", resp.StatusCode, result.Error)
+	}
+	if got := projectCounts(t, ts, auth, projectID); got != (projectCountsResponse{ID: projectID}) {
+		t.Fatalf("counts after ungrouping: %+v", got)
+	}
+}
+
+func TestProjectDeleteRenamesCollidingServers(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	projectID := createTestProject(t, ts, auth, "P")
+
+	mustCreateServer(t, ts, auth, "web", "")
+	groupedWeb := mustCreateServer(t, ts, auth, "web", projectID)
+	mustCreateServer(t, ts, auth, "api", projectID)
+	monitor := mustCreateMonitor(t, ts, auth, "web-probe", groupedWeb.ID)
+
+	resp, _ := ts.doRequest(t, "DELETE", "/api/v1/projects/"+projectID, nil, auth...)
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("delete project: %d", resp.StatusCode)
+	}
+
+	_, result := ts.doRequest(t, "GET", "/api/v1/servers", nil, auth...)
+	var servers []serverResponse
+	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 3 {
+		t.Fatalf("expected three servers, got %v %s", err, result.Data)
+	}
+	wantNames := []string{"api", "web", "web (2)"}
+	for i, server := range servers {
+		if server.ProjectID != "" || server.Name != wantNames[i] {
+			t.Fatalf("server %d: got %+v, want name %q without group", i, server, wantNames[i])
+		}
+	}
+	if servers[2].ID != groupedWeb.ID {
+		t.Fatalf("renamed server: got %s, want %s", servers[2].ID, groupedWeb.ID)
+	}
+	_, result = ts.doRequest(t, "GET", "/api/v1/services/"+monitor.ID, nil, auth...)
+	if got := decodeMonitor(t, result); got.ServerID != groupedWeb.ID {
+		t.Fatalf("monitor serverId: got %s, want %s", got.ServerID, groupedWeb.ID)
+	}
+}
+
 func TestInfrastructureListKeepsDockerBackedResourcesWithoutServer(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
