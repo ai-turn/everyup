@@ -88,9 +88,9 @@ func logsPageWindowStart() time.Time {
 }
 
 // GetSummary returns each log service's error/warn activity over the logs page
-// window, bucketed hourly. GET /logs/summary
+// window, bucketed hourly, optionally for one server's apps. GET /logs/summary?serverId=
 func (h *LogHandler) GetSummary(c *fiber.Ctx) error {
-	summaries, err := h.repo.Summary(logsPageWindowStart(), 60)
+	summaries, err := h.repo.Summary(logsPageWindowStart(), 60, c.Query("serverId"))
 	if err != nil {
 		return internalError(c, ErrCodeDatabase, err)
 	}
@@ -99,13 +99,14 @@ func (h *LogHandler) GetSummary(c *fiber.Ctx) error {
 
 // GetPatterns returns the most frequent error/warn log patterns over the logs
 // page window, for one Docker environment or, without agentId, for direct
-// connections. GET /logs/patterns?agentId=&limit= (default 10)
+// connections, optionally only one server's apps.
+// GET /logs/patterns?agentId=&serverId=&limit= (default 10)
 func (h *LogHandler) GetPatterns(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	if limit <= 0 || limit > 50 {
 		limit = 10
 	}
-	patterns, err := h.repo.Patterns(logsPageWindowStart(), c.Query("agentId"), limit)
+	patterns, err := h.repo.Patterns(logsPageWindowStart(), c.Query("agentId"), c.Query("serverId"), limit)
 	if err != nil {
 		return internalError(c, ErrCodeDatabase, err)
 	}
