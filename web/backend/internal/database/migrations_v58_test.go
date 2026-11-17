@@ -200,6 +200,146 @@ func TestMigrateV58LeavesNoDirectTargetWithoutServer(t *testing.T) {
 	}
 }
 
+func TestMigrateV58UpgradesAPreV58Database(t *testing.T) {
+	originalDB := DB
+	db, err := sql.Open("sqlite", "file::memory:?_pragma=foreign_keys(1)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	db.SetMaxOpenConns(1)
+	DB = db
+	t.Cleanup(func() { DB = originalDB; db.Close() })
+
+	// V57 shape of the tables migrateV58 touches, with their real column definitions.
+	for _, statement := range []string{
+		`CREATE TABLE projects (
+			id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
+			created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL
+		)`,
+		`CREATE TABLE services (
+			id TEXT PRIMARY KEY, name TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'http',
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			project_id TEXT
+		)`,
+		`CREATE TABLE observed_services (
+			id TEXT PRIMARY KEY, name TEXT NOT NULL, project_id TEXT,
+			created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL,
+			FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE SET NULL
+		)`,
+		`CREATE TABLE hosts (
+			id TEXT PRIMARY KEY, name TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			project_id TEXT, collector_type TEXT NOT NULL DEFAULT ''
+		)`,
+		`INSERT INTO projects VALUES ('P', 'Production', '', '2026-01-01 00:00:00', '2026-01-01 00:00:00')`,
+		`INSERT INTO hosts (id, name, collector_type, project_id, created_at, updated_at) VALUES
+			('h1', 'web-01', 'otel-collector', 'P', '2026-01-02 00:00:00', '2026-01-02 00:00:00'),
+			('h2', 'legacy-host', '', NULL, '2026-01-03 00:00:00', '2026-01-03 00:00:00')`,
+		// observed_services.project_id has a foreign key, so a dangling group can only
+		// exist in a DB written with foreign keys off; seed it that way.
+		`PRAGMA foreign_keys = OFF`,
+		`INSERT INTO observed_services (id, name, project_id, created_at, updated_at) VALUES
+			('o1', 'web-01', 'P', '2026-01-04 00:00:00', '2026-01-04 00:00:00'),
+			('o2', 'worker', 'gone', '2026-01-05 00:00:00', '2026-01-05 00:00:00')`,
+		`PRAGMA foreign_keys = ON`,
+		`INSERT INTO services (id, name, type, project_id, created_at, updated_at) VALUES
+			('s1', 'web-01', 'http', 'P', '2026-01-06 00:00:00', '2026-01-06 00:00:00'),
+			('s2', 'public-dns', 'tcp', NULL, '2026-01-07 00:00:00', '2026-01-07 00:00:00'),
+			('s3', 'old-log', 'log', NULL, '2026-01-08 00:00:00', '2026-01-08 00:00:00')`,
+	} {
+		if _, err := DB.Exec(statement); err != nil {
+			t.Fatalf("seed: %v\n%s", err, statement)
+		}
+	}
+	var fk int
+	if err := DB.QueryRow(`PRAGMA foreign_keys`).Scan(&fk); err != nil || fk != 1 {
+		t.Fatalf("foreign_keys = %d (%v), want 1", fk, err)
+	}
+
+	if err := migrateV58(); err != nil {
+		t.Fatalf("migrateV58: %v", err)
+	}
+
+	serverID := func(name string, wantProject sql.NullString) string {
+		t.Helper()
+		var id string
+		var project sql.NullString
+		if err := DB.QueryRow(`SELECT id, project_id FROM servers WHERE name = ?`, name).Scan(&id, &project); err != nil {
+			t.Fatalf("read server %s: %v", name, err)
+		}
+		if project != wantProject {
+			t.Fatalf("server %s project_id = %v, want %v", name, project, wantProject)
+		}
+		return id
+	}
+	if n := v58ServerCount(t); n != 3 {
+		t.Fatalf("servers = %d, want 3", n)
+	}
+	web := serverID("web-01", sql.NullString{String: "P", Valid: true})
+	worker := serverID("worker", sql.NullString{})
+	dns := serverID("public-dns", sql.NullString{})
+
+	targets := []struct {
+		table, id, name, createdAt string
+		server                     sql.NullString
+	}{
+		{"hosts", "h1", "web-01", "2026-01-02 00:00:00", sql.NullString{String: web, Valid: true}},
+		{"hosts", "h2", "legacy-host", "2026-01-03 00:00:00", sql.NullString{}},
+		{"observed_services", "o1", "web-01", "2026-01-04 00:00:00", sql.NullString{String: web, Valid: true}},
+		{"observed_services", "o2", "worker", "2026-01-05 00:00:00", sql.NullString{String: worker, Valid: true}},
+		{"services", "s1", "web-01", "2026-01-06 00:00:00", sql.NullString{String: web, Valid: true}},
+		{"services", "s2", "public-dns", "2026-01-07 00:00:00", sql.NullString{String: dns, Valid: true}},
+		{"services", "s3", "old-log", "2026-01-08 00:00:00", sql.NullString{}},
+	}
+	checkTargets := func(run string) {
+		t.Helper()
+		for _, target := range targets {
+			if got := v58ServerID(t, target.table, target.id); got != target.server {
+				t.Errorf("%s: %s %s server_id = %v, want %v", run, target.table, target.id, got, target.server)
+			}
+		}
+	}
+	checkTargets("first run")
+
+	for _, target := range targets {
+		var unchanged bool
+		if err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM `+target.table+` WHERE id = ? AND name = ? AND created_at = ?)`,
+			target.id, target.name, target.createdAt).Scan(&unchanged); err != nil {
+			t.Fatalf("read %s %s: %v", target.table, target.id, err)
+		}
+		if !unchanged {
+			t.Errorf("%s %s name or created_at changed", target.table, target.id)
+		}
+	}
+	for table, want := range map[string]int{"hosts": 2, "observed_services": 2, "services": 3} {
+		var n int
+		if err := DB.QueryRow(`SELECT COUNT(*) FROM ` + table).Scan(&n); err != nil {
+			t.Fatalf("count %s: %v", table, err)
+		}
+		if n != want {
+			t.Errorf("%s rows = %d, want %d", table, n, want)
+		}
+	}
+
+	if err := migrateV58(); err != nil {
+		t.Fatalf("migrateV58 second run: %v", err)
+	}
+	if n := v58ServerCount(t); n != 3 {
+		t.Fatalf("servers after second run = %d, want 3", n)
+	}
+	checkTargets("second run")
+
+	for _, index := range []string{"idx_servers_name_group", "idx_hosts_server_id"} {
+		var exists bool
+		if err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = ?)`, index).Scan(&exists); err != nil {
+			t.Fatalf("read index %s: %v", index, err)
+		}
+		if !exists {
+			t.Errorf("index %s missing", index)
+		}
+	}
+}
+
 func TestNextFreeServerNameSkipsTakenSuffix(t *testing.T) {
 	setupV58(t,
 		v58Project,
