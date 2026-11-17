@@ -46,9 +46,9 @@ new Server with a suffixed name when that Server already has one.
 
 Group membership belongs to the Server, and its targets inherit it. This
 extends ADR 0003 from Docker Environments to directly configured targets. The
-direct Group membership that ADR 0003 gave Uptime Monitors and ADR 0004 gave
-directly created Observed Services and Infrastructure Resources moves to the
-Server.
+direct Group membership that ADR 0003 gave Uptime Monitors, ADR 0004 gave
+directly created Observed Services, and directly configured Infrastructure
+Resources later gained, moves to the Server.
 
 Uptime Monitor and Infrastructure Resource remain separate modules, as in ADR
 0004, but each belongs to a Server.
@@ -68,15 +68,16 @@ known.
 ## Consequences
 
 - Existing directly configured targets with the same name and Group migrate
-  into one Server. Every other target gets its own Server. Users can move
-  targets or merge Servers afterwards.
+  into one Server. Every other target gets its own Server. The API can move
+  targets and merge Servers afterwards; screens for both are to come with the
+  navigation change.
 - Server names are unique within a Group, ignoring case and surrounding
   whitespace.
 - Deleting a Group leaves its Servers without a Group. When a name then
   collides with a Server already without a Group, a suffix such as ` (2)` is
   added.
-- Bulk Uptime actions across several Servers go away. They work only inside one
-  Server's Uptime tab.
+- Bulk Uptime actions across several Servers go away. They are to work only
+  inside one Server's Uptime tab.
 - The `project_id` columns of the target tables stay in storage but are no
   longer read or written. A target's Group comes from its Server.
 - Deleting a Server deletes its targets and their data.
