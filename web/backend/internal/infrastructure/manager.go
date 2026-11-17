@@ -26,6 +26,7 @@ type Manager struct {
 	agentRepo   *database.AgentRepository
 	metricRepo  *database.SystemMetricRepository
 	projectRepo *database.ProjectRepository
+	servers     *database.ServerRepository
 }
 
 func NewManager() *Manager {
@@ -34,12 +35,17 @@ func NewManager() *Manager {
 		agentRepo:   database.NewAgentRepository(),
 		metricRepo:  database.NewSystemMetricRepository(),
 		projectRepo: database.NewProjectRepository(),
+		servers:     database.NewServerRepository(),
 	}
 }
 
 func (m *Manager) validateInput(input models.InfrastructureResourceInput) (models.InfrastructureResourceInput, error) {
 	input.Name = strings.TrimSpace(input.Name)
+	input.ServerID = strings.TrimSpace(input.ServerID)
 	input.ProjectID = strings.TrimSpace(input.ProjectID)
+	if input.ServerID != "" {
+		input.ProjectID = "" // the server's group wins
+	}
 	if input.Name == "" {
 		return input, fmt.Errorf("%w: name is required", ErrInvalidInput)
 	}
@@ -63,12 +69,24 @@ func (m *Manager) Create(input models.InfrastructureResourceInput) (*models.Infr
 	if err != nil {
 		return nil, err
 	}
+	serverID, err := m.servers.ResolveForTarget(database.ServerTargetInfra, input.ServerID, input.Name, input.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	server, err := m.servers.GetByID(serverID)
+	if err != nil {
+		return nil, err
+	}
+	if server == nil {
+		return nil, database.ErrServerMissing
+	}
 	plainKey := crypto.GenerateApiKey()
 	now := time.Now()
 	resource := models.InfrastructureResource{
 		ID:           uuid.NewString(),
 		Name:         input.Name,
-		ProjectID:    input.ProjectID,
+		ProjectID:    server.ProjectID,
+		ServerID:     serverID,
 		Adapter:      models.InfrastructureAdapterOTelCollector,
 		IsActive:     true,
 		ApiKeyMasked: crypto.MaskApiKey(plainKey),
@@ -174,8 +192,18 @@ func (m *Manager) Update(id string, input models.InfrastructureResourceInput) (*
 	if err != nil {
 		return nil, err
 	}
+	if input.ServerID != "" {
+		err = m.servers.MoveTarget(database.ServerTargetInfra, id, input.ServerID)
+	} else {
+		err = m.servers.SetProjectForTarget(database.ServerTargetInfra, id, input.ProjectID)
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
 	resource.Name = input.Name
-	resource.ProjectID = input.ProjectID
 	if err := m.repo.Update(resource); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound

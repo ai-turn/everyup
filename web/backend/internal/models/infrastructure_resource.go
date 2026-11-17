@@ -13,6 +13,7 @@ type InfrastructureResource struct {
 	ID           string     `json:"id"`
 	Name         string     `json:"name"`
 	ProjectID    string     `json:"projectId,omitempty"`
+	ServerID     string     `json:"serverId,omitempty"`
 	Adapter      string     `json:"adapter"`
 	IsActive     bool       `json:"isActive"`
 	ApiKeyMasked string     `json:"apiKeyMasked,omitempty"`
@@ -27,6 +28,7 @@ type InfrastructureResource struct {
 type InfrastructureResourceInput struct {
 	Name      string `json:"name"`
 	ProjectID string `json:"projectId,omitempty"`
+	ServerID  string `json:"serverId,omitempty"`
 }
 
 type InfrastructureResourceSetup struct {

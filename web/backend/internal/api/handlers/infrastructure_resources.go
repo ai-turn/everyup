@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 
+	"github.com/aiturn/everyup/internal/database"
 	"github.com/aiturn/everyup/internal/infrastructure"
 	"github.com/aiturn/everyup/internal/models"
 	"github.com/gofiber/fiber/v2"
@@ -29,6 +30,9 @@ func infrastructureError(c *fiber.Ctx, err error) error {
 		return agentBadRequest(c, ErrCodeInfrastructureProject, "project not found")
 	case errors.Is(err, infrastructure.ErrInvalidInput):
 		return agentBadRequest(c, ErrCodeValidation, err.Error())
+	case errors.Is(err, database.ErrServerMissing), errors.Is(err, database.ErrServerNameTaken),
+		errors.Is(err, database.ErrServerHasInfrastructure):
+		return serverWriteError(c, err)
 	default:
 		return internalError(c, ErrCodeDatabase, err)
 	}

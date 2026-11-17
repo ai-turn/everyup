@@ -264,3 +264,132 @@ func TestLegacyObservedServiceUpdateSetsServerGroup(t *testing.T) {
 		t.Fatalf("legacy group clear: %+v", got)
 	}
 }
+
+type infraResponse struct {
+	ID        string `json:"id"`
+	Adapter   string `json:"adapter"`
+	ServerID  string `json:"serverId"`
+	ProjectID string `json:"projectId"`
+}
+
+func decodeInfra(t *testing.T, result apiResponse) infraResponse {
+	t.Helper()
+	var resource infraResponse
+	if err := json.Unmarshal(result.Data, &resource); err != nil || resource.ID == "" {
+		t.Fatalf("invalid infrastructure response: %v, %s", err, result.Data)
+	}
+	return resource
+}
+
+func mustCreateInfra(t *testing.T, ts *testServer, auth []string, body map[string]interface{}) infraResponse {
+	t.Helper()
+	resp, result := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources", body, auth...)
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("create infrastructure resource: %d %+v", resp.StatusCode, result.Error)
+	}
+	return decodeInfra(t, result)
+}
+
+func TestInfrastructureResourceJoinsServer(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	first := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01"})
+	if first.ServerID == "" {
+		t.Fatal("resource without serverId must join a server")
+	}
+	if server := getServer(t, ts, auth, first.ServerID); server.Name != "db-01" {
+		t.Fatalf("first server name: %q", server.Name)
+	}
+
+	second := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01"})
+	if second.ServerID == "" || second.ServerID == first.ServerID {
+		t.Fatalf("second resource must get its own server: %s vs %s", second.ServerID, first.ServerID)
+	}
+	if server := getServer(t, ts, auth, second.ServerID); server.Name != "db-01 (2)" {
+		t.Fatalf("second server name: %q", server.Name)
+	}
+
+	resp, result := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources",
+		map[string]interface{}{"name": "db-02", "serverId": first.ServerID}, auth...)
+	expectError(t, resp, result, http.StatusConflict, "SERVER_HAS_INFRASTRUCTURE")
+}
+
+func TestInfrastructureResourceJoinsExistingServerWithoutInfrastructure(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "shared", "signals": []string{"logs"}})
+	resource := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "shared"})
+	if resource.ServerID != app.ServerID {
+		t.Fatalf("resource must join the app's server: %s vs %s", resource.ServerID, app.ServerID)
+	}
+	_, result := ts.doRequest(t, "GET", "/api/v1/servers", nil, auth...)
+	var servers []serverResponse
+	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 1 {
+		t.Fatalf("expected one server, got %v %s", err, result.Data)
+	}
+}
+
+func TestInfrastructureResourceMoveRules(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	resource := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01"})
+	other := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-02"})
+	endpoint := "/api/v1/infrastructure-resources/" + resource.ID
+
+	resp, result := ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01", "serverId": resource.ServerID}, auth...)
+	if resp.StatusCode != http.StatusOK || decodeInfra(t, result).ServerID != resource.ServerID {
+		t.Fatalf("same server: %d %s", resp.StatusCode, result.Data)
+	}
+
+	empty := mustCreateServer(t, ts, auth, "empty", "")
+	resp, result = ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01", "serverId": empty.ID}, auth...)
+	if resp.StatusCode != http.StatusOK || decodeInfra(t, result).ServerID != empty.ID {
+		t.Fatalf("move to empty server: %d %s", resp.StatusCode, result.Data)
+	}
+
+	resp, result = ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01", "serverId": other.ServerID}, auth...)
+	expectError(t, resp, result, http.StatusConflict, "SERVER_HAS_INFRASTRUCTURE")
+	_, result = ts.doRequest(t, "GET", endpoint, nil, auth...)
+	if got := decodeInfra(t, result); got.ServerID != empty.ID {
+		t.Fatalf("serverId changed after conflict: got %s, want %s", got.ServerID, empty.ID)
+	}
+}
+
+func TestInfrastructureListKeepsDockerBackedResourcesWithoutServer(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	_, result := ts.doRequest(t, "POST", "/api/v1/agents", map[string]interface{}{
+		"name": "prod-host", "profile": map[string]interface{}{"kind": "custom", "capabilities": []string{"infrastructure"}},
+	}, auth...)
+	if !result.Success {
+		t.Fatalf("create agent: %+v", result.Error)
+	}
+	mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01"})
+
+	_, result = ts.doRequest(t, "GET", "/api/v1/infrastructure-resources", nil, auth...)
+	var resources []infraResponse
+	if err := json.Unmarshal(result.Data, &resources); err != nil {
+		t.Fatal(err)
+	}
+	seen := map[string]bool{}
+	for _, resource := range resources {
+		seen[resource.Adapter] = true
+		switch resource.Adapter {
+		case "everyup-agent":
+			if resource.ServerID != "" {
+				t.Fatalf("Docker-backed resource must have no serverId: %+v", resource)
+			}
+		case "otel-collector":
+			if resource.ServerID == "" {
+				t.Fatalf("direct resource must have a serverId: %+v", resource)
+			}
+		}
+	}
+	if !seen["everyup-agent"] || !seen["otel-collector"] {
+		t.Fatalf("expected both adapters, got %+v", resources)
+	}
+}
