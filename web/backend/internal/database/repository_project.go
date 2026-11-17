@@ -16,7 +16,7 @@ func (r *ProjectRepository) GetAll() ([]models.Project, error) {
 		SELECT p.id, p.name, p.description, p.created_at, p.updated_at,
 			(SELECT COUNT(*) FROM agents a WHERE a.project_id = p.id AND COALESCE(a.status, 'active') = 'active'),
 			(SELECT COUNT(*) FROM services s JOIN servers sv ON sv.id = s.server_id WHERE sv.project_id = p.id AND s.type IN ('http', 'tcp')),
-			(SELECT COUNT(*) FROM observed_services os WHERE os.project_id = p.id),
+			(SELECT COUNT(*) FROM observed_services os JOIN servers sv ON sv.id = os.server_id WHERE sv.project_id = p.id),
 			(SELECT COUNT(*) FROM hosts h WHERE h.project_id = p.id AND h.collector_type = 'otel-collector')
 		FROM projects p ORDER BY p.name`)
 	if err != nil {

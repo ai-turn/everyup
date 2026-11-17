@@ -169,3 +169,98 @@ func TestLegacyMonitorGroupAssignmentMovesTheServer(t *testing.T) {
 	resp, result = ts.doRequest(t, "PUT", "/api/v1/projects/"+projectID+"/monitors/"+loose.ID, nil, auth...)
 	expectError(t, resp, result, http.StatusConflict, "SERVER_NAME_TAKEN")
 }
+
+type appResponse struct {
+	ID        string `json:"id"`
+	ServerID  string `json:"serverId"`
+	ProjectID string `json:"projectId"`
+	ApiKey    string `json:"apiKey"`
+}
+
+func decodeApp(t *testing.T, result apiResponse) appResponse {
+	t.Helper()
+	var app appResponse
+	if err := json.Unmarshal(result.Data, &app); err != nil || app.ID == "" {
+		t.Fatalf("invalid app response: %v, %s", err, result.Data)
+	}
+	return app
+}
+
+func mustCreateApp(t *testing.T, ts *testServer, auth []string, body map[string]interface{}) appResponse {
+	t.Helper()
+	resp, result := ts.doRequest(t, "POST", "/api/v1/observed-services", body, auth...)
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("create app: %d %+v", resp.StatusCode, result.Error)
+	}
+	return decodeApp(t, result)
+}
+
+func mustUpdateApp(t *testing.T, ts *testServer, auth []string, id string, body map[string]interface{}) appResponse {
+	t.Helper()
+	resp, result := ts.doRequest(t, "PUT", "/api/v1/observed-services/"+id, body, auth...)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("update app: %d %+v", resp.StatusCode, result.Error)
+	}
+	return decodeApp(t, result)
+}
+
+func getServer(t *testing.T, ts *testServer, auth []string, id string) serverResponse {
+	t.Helper()
+	_, result := ts.doRequest(t, "GET", "/api/v1/servers/"+id, nil, auth...)
+	return decodeServer(t, result)
+}
+
+func TestObservedServiceJoinsServer(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	projectID := createTestProject(t, ts, auth, "Production")
+
+	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "projectId": projectID})
+	if app.ServerID == "" || app.ProjectID != projectID || app.ApiKey == "" {
+		t.Fatalf("unexpected create response: %+v", app)
+	}
+	if server := getServer(t, ts, auth, app.ServerID); server.ProjectID != projectID || server.Name != "checkout" {
+		t.Fatalf("unexpected server: %+v", server)
+	}
+
+	web := mustCreateServer(t, ts, auth, "web", "")
+	worker := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "worker", "signals": []string{"logs"}, "serverId": web.ID, "projectId": projectID})
+	if worker.ServerID != web.ID || worker.ProjectID != "" {
+		t.Fatalf("explicit serverId must win over projectId: %+v", worker)
+	}
+}
+
+func TestObservedServiceUpdateWithServerIdIgnoresProjectId(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	projectID := createTestProject(t, ts, auth, "Production")
+	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "projectId": projectID})
+
+	got := mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": app.ServerID})
+	if got.ServerID != app.ServerID || got.ProjectID != projectID {
+		t.Fatalf("same serverId must keep the group: %+v", got)
+	}
+
+	other := mustCreateServer(t, ts, auth, "other", "")
+	got = mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": other.ID})
+	if got.ServerID != other.ID {
+		t.Fatalf("move: got %s, want %s", got.ServerID, other.ID)
+	}
+}
+
+func TestLegacyObservedServiceUpdateSetsServerGroup(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}})
+	p2 := createTestProject(t, ts, auth, "Staging")
+
+	got := mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "projectId": p2})
+	if got.ProjectID != p2 || getServer(t, ts, auth, got.ServerID).ProjectID != p2 {
+		t.Fatalf("legacy group assignment: %+v", got)
+	}
+
+	got = mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}})
+	if got.ProjectID != "" || getServer(t, ts, auth, got.ServerID).ProjectID != "" {
+		t.Fatalf("legacy group clear: %+v", got)
+	}
+}

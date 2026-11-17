@@ -18,6 +18,7 @@ type ObservedService struct {
 	ID              string            `json:"id"`
 	Name            string            `json:"name"`
 	ProjectID       string            `json:"projectId,omitempty"`
+	ServerID        string            `json:"serverId,omitempty"`
 	Signals         []TelemetrySignal `json:"signals"`
 	LogLevelFilter  []LogLevel        `json:"logLevelFilter,omitempty"`
 	ApiExcludePaths []string          `json:"apiExcludePaths,omitempty"`
@@ -32,6 +33,7 @@ type ObservedService struct {
 type ObservedServiceInput struct {
 	Name      string            `json:"name"`
 	ProjectID string            `json:"projectId,omitempty"`
+	ServerID  string            `json:"serverId,omitempty"`
 	Signals   []TelemetrySignal `json:"signals"`
 }
 

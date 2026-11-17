@@ -21,7 +21,7 @@ type observedServiceScanner interface {
 }
 
 const observedServiceSelect = `
-	o.id, o.name, COALESCE(o.project_id, ''), c.signals, c.log_level_filter, c.api_exclude_paths, c.is_active,
+	o.id, o.name, COALESCE((SELECT project_id FROM servers WHERE servers.id = o.server_id), ''), COALESCE(o.server_id, ''), c.signals, c.log_level_filter, c.api_exclude_paths, c.is_active,
 	c.api_key_masked, c.last_seen_at, o.created_at, o.updated_at`
 
 func scanObservedService(scanner observedServiceScanner) (*models.ObservedService, error) {
@@ -32,7 +32,7 @@ func scanObservedService(scanner observedServiceScanner) (*models.ObservedServic
 	var isActive int
 	var lastSeen sql.NullTime
 	if err := scanner.Scan(
-		&service.ID, &service.Name, &service.ProjectID, &signalsJSON, &logLevelFilter, &apiExcludePaths, &isActive,
+		&service.ID, &service.Name, &service.ProjectID, &service.ServerID, &signalsJSON, &logLevelFilter, &apiExcludePaths, &isActive,
 		&service.ApiKeyMasked, &lastSeen, &service.CreatedAt, &service.UpdatedAt,
 	); err != nil {
 		return nil, err
@@ -68,9 +68,9 @@ func (r *ObservedServiceRepository) Create(service *models.ObservedService, apiK
 	}
 	return Transaction(func(tx *sql.Tx) error {
 		if _, err := tx.Exec(`
-			INSERT INTO observed_services(id, name, project_id, created_at, updated_at)
+			INSERT INTO observed_services(id, name, server_id, created_at, updated_at)
 			VALUES (?, ?, ?, ?, ?)`,
-			service.ID, service.Name, nullableProjectID(service.ProjectID), service.CreatedAt, service.UpdatedAt,
+			service.ID, service.Name, service.ServerID, service.CreatedAt, service.UpdatedAt,
 		); err != nil {
 			return err
 		}
@@ -140,8 +140,8 @@ func (r *ObservedServiceRepository) Update(service *models.ObservedService) erro
 	service.UpdatedAt = time.Now()
 	return Transaction(func(tx *sql.Tx) error {
 		result, err := tx.Exec(`UPDATE observed_services
-			SET name = ?, project_id = ?, updated_at = ? WHERE id = ?`,
-			service.Name, nullableProjectID(service.ProjectID), service.UpdatedAt, service.ID)
+			SET name = ?, updated_at = ? WHERE id = ?`,
+			service.Name, service.UpdatedAt, service.ID)
 		if err != nil {
 			return err
 		}

@@ -422,6 +422,9 @@ func observedServiceError(c *fiber.Ctx, err error) error {
 		})
 	case errors.Is(err, directtelemetry.ErrSignalDenied):
 		return agentBadRequest(c, ErrCodeValidation, "capability is not enabled for this observed service")
+	case errors.Is(err, database.ErrServerMissing), errors.Is(err, database.ErrServerNameTaken),
+		errors.Is(err, database.ErrServerHasInfrastructure):
+		return serverWriteError(c, err)
 	default:
 		return internalError(c, ErrCodeDatabase, err)
 	}
