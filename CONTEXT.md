@@ -33,7 +33,7 @@ A configured availability check, such as HTTP or TCP, with its own target and sc
 _Avoid_: Service, Group
 
 **Response Check**:
-A check that asks a target to answer, such as an HTTP request or TCP connection. Independent Uptime Monitors and Docker Collector HTTP checks are both Response Checks. Uptime shows only Uptime Monitors; Docker Collector Response Checks appear in their Docker Environment.
+A check that asks a target to answer, such as an HTTP request or TCP connection. Independent Uptime Monitors and Docker Collector HTTP checks are both Response Checks. A Server's Uptime tab shows only that Server's Uptime Monitors; Docker Collector Response Checks appear in their Docker Environment.
 _Avoid_: Liveness Check
 
 **Liveness Check**:
