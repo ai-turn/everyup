@@ -12,12 +12,13 @@ interface DirectConnectionMetaProps {
   onRotateKey: () => void;
   /** 수집 중일 때만 — 상태 옆에 붙는 연결 중지 */
   onRevoke: () => void;
-  projects: Project[];
-  projectId: string;
-  savedProjectId: string;
-  onProjectChange: (projectId: string) => void;
-  onSaveProject: () => void;
-  savingProject: boolean;
+  /** 그룹 배정. onProjectChange가 없으면 그룹 칸을 그리지 않는다(서버 화면은 그룹을 서버가 정한다). */
+  projects?: Project[];
+  projectId?: string;
+  savedProjectId?: string;
+  onProjectChange?: (projectId: string) => void;
+  onSaveProject?: () => void;
+  savingProject?: boolean;
   projectsLoading?: boolean;
   projectsError?: string | null;
   onRetryProjects?: () => void;
@@ -38,12 +39,12 @@ export function DirectConnectionMeta({
   detail,
   onRotateKey,
   onRevoke,
-  projects,
-  projectId,
-  savedProjectId,
+  projects = [],
+  projectId = '',
+  savedProjectId = '',
   onProjectChange,
   onSaveProject,
-  savingProject,
+  savingProject = false,
   projectsLoading = false,
   projectsError,
   onRetryProjects,
@@ -74,7 +75,7 @@ export function DirectConnectionMeta({
             </>
           ),
         },
-        {
+        ...(onProjectChange ? [{
           label: '그룹',
           value: (
             projectsLoading ? <span>그룹 목록 확인 중…</span> : projectsError ? <LoadErrorBanner inline role="status" title="그룹 목록을 불러오지 못했습니다" onRetry={onRetryProjects} /> : <>
@@ -87,7 +88,7 @@ export function DirectConnectionMeta({
               )}
             </>
           ),
-        },
+        }] : []),
         // mono 아님 — 신호 목록('logs, metrics')도 어댑터명('OpenTelemetry Collector')도
         // 복사해 쓰는 코드가 아니라 읽는 값이다. 코드인 수집 키만 mono로 둔다.
         { label: detail.label, value: detail.value },

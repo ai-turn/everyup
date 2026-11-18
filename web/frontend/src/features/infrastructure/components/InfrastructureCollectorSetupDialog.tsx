@@ -9,9 +9,12 @@ import { InfrastructureCollectorSetupResult } from './InfrastructureCollectorSet
 export function InfrastructureCollectorSetupDialog({
   onClose,
   onCreated,
+  serverId,
 }: {
   onClose: () => void;
   onCreated: (resource: InfrastructureResource) => void;
+  /** 서버 화면에서 열 때. 그룹은 서버의 것이므로 그룹 선택을 숨긴다. */
+  serverId?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [name, setName] = useState('');
@@ -21,13 +24,18 @@ export function InfrastructureCollectorSetupDialog({
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { ref.current?.showModal(); }, []);
-  useEffect(() => { api.getProjects().then(rows => setProjects(rows ?? [])).catch(() => {}); }, []);
+  useEffect(() => {
+    if (serverId) return;
+    let alive = true;
+    api.getProjects().then(rows => { if (alive) setProjects(rows ?? []); }).catch(() => {});
+    return () => { alive = false; };
+  }, [serverId]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
     try {
-      setSetup(await api.createInfrastructureResource({ name: name.trim(), projectId: projectId || undefined }));
+      setSetup(await api.createInfrastructureResource(serverId ? { name: name.trim(), serverId } : { name: name.trim(), projectId: projectId || undefined }));
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -65,13 +73,13 @@ export function InfrastructureCollectorSetupDialog({
             <span className="type-label text-text-secondary">인프라 이름</span>
             <Input id="collector-resource-name" required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="edge-host-01" />
           </label>
-          <label className="block space-y-1.5" htmlFor="collector-project">
+          {!serverId && <label className="block space-y-1.5" htmlFor="collector-project">
             <span className="type-label text-text-secondary">그룹</span>
             <Select id="collector-project" value={projectId} onChange={event => setProjectId(event.target.value)}>
               <option value="">미분류</option>
               {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
             </Select>
-          </label>
+          </label>}
           <div className="rounded-md bg-ui-hover-soft p-4 text-sm text-text-muted">
             추가하면 Collector 설정 파일과 한 번만 표시되는 API Key를 발급합니다.
           </div>

@@ -5,6 +5,7 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { ServerCapabilityPlaceholder } from '../../features/servers/components/ServerCapabilityPlaceholder';
 import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
+import { ServerInfrastructureTab } from '../../features/servers/components/ServerInfrastructureTab';
 import { ServerOverviewTab } from '../../features/servers/components/ServerOverviewTab';
 import { ServerUptimeTab } from '../../features/servers/components/ServerUptimeTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
@@ -145,7 +146,10 @@ export function ServerDetailPage() {
           : active === 'uptime'
             ? <ServerUptimeTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
               stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
-            : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
+            : active === 'infrastructure'
+              ? <ServerInfrastructureTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
+                stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
+              : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
               unknown={row.unknownCapabilities.includes(active)} stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />}
       </div>
       {/* 대화 상자를 겹쳐 열지 않는다. 설정에서 합치기나 삭제를 고르면 설정을 닫고 그 대화 상자를 연다. */}
