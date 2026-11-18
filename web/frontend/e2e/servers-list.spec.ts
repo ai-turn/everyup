@@ -27,25 +27,49 @@ test('server list puts the failing server first with its cause', async ({ page }
   // 대상이 없는 서버는 대기이고, 수치는 0이 아니라 수집 안 함이다.
   const empty = rowOf(page, 'staging-empty');
   await expect(empty.getByRole('cell').nth(1)).toContainText('대기');
-  const missing = empty.getByLabel('수집 안 함');
-  await expect(missing).toHaveCount(4);
-  await expect(missing.first()).toHaveText('-');
-  await missing.first().hover();
+  // 화면 낭독기는 숨긴 글자를 읽고, 보이는 `-`는 건너뛴다. 마우스에는 같은 말이 툴팁으로 나온다.
+  await expect(empty.getByText('수집 안 함', { exact: true })).toHaveCount(4);
+  const cpuCell = empty.getByRole('cell').nth(2);
+  await expect(cpuCell).toHaveText('-수집 안 함');
+  const dash = cpuCell.locator('[aria-hidden="true"]');
+  await expect(dash).toHaveText('-');
+  await dash.hover();
   await expect(page.getByRole('tooltip')).toHaveText('수집 안 함');
 });
 
 test('search finds servers by their targets and keeps the query in the address', async ({ page }) => {
   await page.goto('./servers');
   await expect(dataRows(page).first()).toBeVisible();
-  await page.getByRole('textbox', { name: '서버 또는 대상 검색' }).fill('Checkout');
+  // 모니터 Orders PostgreSQL의 주소에만 있는 값이다. 같은 서버의 앱 이름에는 없다.
+  await page.getByRole('textbox', { name: '서버 또는 대상 검색' }).fill('orders-db');
   await expect(dataRows(page)).toHaveCount(1);
-  await expect(dataRows(page).first()).toContainText('edge-host-01');
-  await expect(dataRows(page).first()).toContainText('Checkout API');
-  await expect(page).toHaveURL(/[?&]q=Checkout/);
+  await expect(dataRows(page).first()).toContainText('batch-host-01');
+  await expect(dataRows(page).first()).toContainText('Orders PostgreSQL');
+  await expect(page).toHaveURL(/[?&]q=orders-db/);
 
   await page.getByRole('textbox', { name: '서버 또는 대상 검색' }).fill('no-such-target');
   await expect(page.getByText('검색 결과가 없습니다')).toBeVisible();
   await page.getByRole('button', { name: '필터 해제', exact: true }).click();
+  await expect(dataRows(page)).toHaveCount(9);
+});
+
+test('the search box follows the address when it changes from outside', async ({ page }) => {
+  await page.goto('./servers?q=orders-db');
+  const search = page.getByRole('textbox', { name: '서버 또는 대상 검색' });
+  await expect(search).toHaveValue('orders-db');
+  await expect(dataRows(page)).toHaveCount(1);
+  // 같은 화면에서 q가 없는 주소로 이동한다(뒤로 가기·링크와 같은 경로).
+  await page.evaluate(() => {
+    window.history.pushState(null, '', window.location.pathname);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(search).toHaveValue('');
+  await expect(dataRows(page)).toHaveCount(9);
+});
+
+test('an unknown group in the address does not hide servers', async ({ page }) => {
+  await page.goto('./servers?group=no-such-group');
+  await expect(page.getByRole('combobox', { name: '그룹으로 거르기' })).toBeVisible();
   await expect(dataRows(page)).toHaveCount(9);
 });
 
@@ -81,10 +105,12 @@ test('Docker infrastructure never shows up as a server target', async ({ page })
   expect(docker.length).toBeGreaterThan(0);
   await page.goto('./servers');
   await expect(dataRows(page).first()).toBeVisible();
-  for (const resource of docker) await expect(table(page)).not.toContainText(resource.name);
-  // 서버에 넣었다면 이름 검색에 걸린다.
-  await page.getByRole('textbox', { name: '서버 또는 대상 검색' }).fill(docker[0].name);
-  await expect(page.getByText('검색 결과가 없습니다')).toBeVisible();
+  // 인프라 이름은 검색에 걸릴 때만 표에 보이므로 리소스마다 이름으로 검색한다.
+  const search = page.getByRole('textbox', { name: '서버 또는 대상 검색' });
+  for (const resource of docker) {
+    await search.fill(resource.name);
+    await expect(page.getByText('검색 결과가 없습니다')).toBeVisible();
+  }
 });
 
 test('partial failure keeps the rows and says what is missing', async ({ page }) => {
@@ -95,7 +121,10 @@ test('partial failure keeps the rows and says what is missing', async ({ page })
   await expect(rowOf(page, 'edge-host-01')).toBeVisible();
   await expect(dataRows(page)).toHaveCount(9);
   // 앱 목록이 실패했으므로 앱만 가진 서버의 오류 로그는 알 수 없다.
-  await expect(rowOf(page, 'inventory-api').getByLabel('불러오지 못함').first()).toHaveText('-');
+  // 앱만 가진 inventory-api는 앱 목록이 빠지면 대상이 없는 서버로 계산되어 대기다.
+  const inventory = rowOf(page, 'inventory-api');
+  await expect(inventory.getByRole('cell').nth(1)).toHaveText('대기');
+  await expect(inventory.getByRole('cell').nth(5)).toHaveText('-불러오지 못함');
 });
 
 test('empty scenario guides adding a server', async ({ page }) => {

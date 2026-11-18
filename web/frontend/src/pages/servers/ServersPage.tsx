@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import {
   Button, ButtonLink, EmptyState, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select, StatusLight, type StatusTone,
 } from '../../components/common';
@@ -36,9 +36,19 @@ export function ServersPage() {
   const [params, setParams] = useSearchParams();
   // 입력값은 로컬 상태가 쥔다. URL에 직접 묶으면 한글 조합 중 글자가 덮인다(AgentServiceCapabilityPage와 같은 이유).
   const [query, setQueryInput] = useState(() => params.get('q') ?? '');
+  // 이 화면이 쓰는 주소 변경은 모두 replace다. 그 밖의 이동(링크, 뒤로 가기)이면 검색창이 주소의 q를 따른다.
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  // 첫 기록의 key는 항상 default라 key만으로는 이동을 놓친다. 주소도 함께 본다.
+  const seen = `${location.key}${location.search}`;
+  const [seenLocation, setSeenLocation] = useState(seen);
+  if (seen !== seenLocation) {
+    setSeenLocation(seen);
+    if (navigationType !== 'REPLACE') setQueryInput(params.get('q') ?? '');
+  }
   const search = query.trim().toLowerCase();
   const status = parseStatus(params.get('status'));
-  const group = params.get('group');
+  const requestedGroup = params.get('group');
   const { rows, loading, error, failed, reload } = useServers();
   // 그룹 이름과 Docker 환경 안내는 보조 정보다. 실패해도 목록은 그린다.
   const [projects, setProjects] = useState<Project[] | null>(null);
@@ -74,6 +84,8 @@ export function ServersPage() {
     }, { replace: true });
   };
 
+  // 그룹 목록을 모르거나 없는 그룹이면 걸러지는 까닭이 화면에 보이지 않으므로 적용하지 않는다.
+  const group = projects && (requestedGroup === NO_GROUP || projects.some((project) => project.id === requestedGroup)) ? requestedGroup : null;
   const groupName = (projectId?: string) => projects === null ? '-' : projectId ? projects.find((project) => project.id === projectId)?.name ?? '-' : '미분류';
   const { visible, matches } = useMemo(() => {
     const found = new Map<string, string[]>();
@@ -136,7 +148,7 @@ export function ServersPage() {
           ) : (
             <section aria-label="서버" aria-busy={loading || undefined}>
               <h2 className="sr-only">서버 목록</h2>
-              {visible.length > 0 ? <ServerTable rows={visible} matches={matches} failed={failed} groupName={groupName} />
+              {visible.length > 0 ? <ServerTable rows={visible} matches={matches} groupName={groupName} />
                 : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: clearFilters }} />}
             </section>
           )}

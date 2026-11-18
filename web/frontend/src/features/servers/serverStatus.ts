@@ -55,7 +55,11 @@ export interface ServerRow {
   uptime?: number;
   /** 로그 신호를 가진 앱들의 24시간 오류 로그 합계 */
   errorLogs?: number;
+  /** 값이 없는 까닭이 수집하지 않아서가 아니라 조회에 실패해서인 수치 */
+  unavailable: ServerMetric[];
 }
+
+export type ServerMetric = 'cpu' | 'memory' | 'disk' | 'uptime' | 'errorLogs';
 
 const worst = (states: StatusTone[]): StatusTone | null =>
   states.reduce<StatusTone | null>((current, state) => current === null || STATE_ORDER[state] < STATE_ORDER[current] ? state : current, null);
@@ -135,7 +139,8 @@ export function buildServerRows(input: {
       cause: culprit && { text: culprit.text, to: culprit.to },
       capabilities: {
         uptime: worst(monitors.map((monitor) => monitorState(monitor).state)),
-        infrastructure: infrastructure ? infrastructureState(infrastructure).state : null,        logs: worst(logApps.map((app) => appState(app).state)),
+        infrastructure: infrastructure ? infrastructureState(infrastructure).state : null,
+        logs: worst(logApps.map((app) => appState(app).state)),
         api: worst(appsWith('api').map((app) => appState(app).state)),
         metrics: worst(appsWith('metrics').map((app) => appState(app).state)),
       },
@@ -144,6 +149,12 @@ export function buildServerRows(input: {
       disk: infrastructure?.diskUsage,
       uptime: uptimes.length ? Math.min(...uptimes) : undefined,
       errorLogs,
+      // 로그 요약만 실패했으면 로그 앱이 없는 서버는 여전히 수집 안 함이다.
+      unavailable: [
+        ...(input.infrastructure ? [] : ['cpu', 'memory', 'disk'] as const),
+        ...(input.monitors ? [] : ['uptime'] as const),
+        ...(!input.apps || (!input.logSummaries && logApps.length > 0) ? ['errorLogs'] as const : []),
+      ],
     };
   }).sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state] || a.server.name.localeCompare(b.server.name));
 }

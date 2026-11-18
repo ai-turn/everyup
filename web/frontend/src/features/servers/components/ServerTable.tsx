@@ -3,38 +3,34 @@ import { Link } from 'react-router-dom';
 import { ResourceTable, StatusLight, Tooltip } from '../../../components/common';
 import { WARNING_PCT } from '../../infra/usage';
 import { serverPath } from '../serverPaths';
-import { STATE_LABEL, type ServerRow } from '../serverStatus';
+import { STATE_LABEL, type ServerMetric, type ServerRow } from '../serverStatus';
 
 const percent = (value: number, digits: number) => `${value.toFixed(digits)}%`;
 
-/** 값이 없으면 0이 아니라 `-`이다. 왜 없는지는 툴팁과 접근 가능한 이름이 말한다. */
-function Value({ value, unavailable, render }: { value?: number; unavailable: boolean; render: (value: number) => ReactNode }) {
+/** 값이 없으면 0이 아니라 `-`이다. 왜 없는지는 마우스에는 툴팁, 화면 낭독기에는 숨긴 글자가 말한다. */
+function Value({ row, metric, render }: { row: ServerRow; metric: ServerMetric; render: (value: number) => ReactNode }) {
+  const value = row[metric];
   if (value === undefined) {
-    const label = unavailable ? '불러오지 못함' : '수집 안 함';
-    // 칸마다 Tab 지점을 늘리지 않는다(focusable 없음). 키보드·스크린리더는 접근 가능한 이름으로 읽는다.
-    return <Tooltip content={label}><span aria-label={label} className="text-text-muted">-</span></Tooltip>;
+    const label = row.unavailable.includes(metric) ? '불러오지 못함' : '수집 안 함';
+    // 칸마다 Tab 지점을 늘리지 않는다(focusable 없음). 이름 없는 span의 aria-label은 읽히지 않으므로 sr-only 글자로 둔다.
+    return <><Tooltip content={label}><span aria-hidden="true" className="text-text-muted">-</span></Tooltip><span className="sr-only">{label}</span></>;
   }
   return render(value);
 }
 
 const usageClass = (value: number) => value >= WARNING_PCT ? 'text-status-warn' : 'text-text-base';
 
-export function ServerTable({ rows, matches, failed, groupName }: {
+export function ServerTable({ rows, matches, groupName }: {
   rows: ServerRow[];
   /** 서버 이름이 아니라 소속 대상이 검색어와 일치한 경우, 일치한 대상의 이름 */
   matches: ReadonlyMap<string, string[]>;
-  /** useServers의 failed. 실패한 종류의 칸은 수집 안 함이 아니라 불러오지 못함이다. */
-  failed: readonly string[];
   groupName: (projectId?: string) => string;
 }) {
-  const infraFailed = failed.includes('인프라');
-  const uptimeFailed = failed.includes('업타임');
-  const logsFailed = failed.includes('앱') || failed.includes('로그 요약');
   const usage = (value: number) => <span className={usageClass(value)}>{percent(value, 1)}</span>;
-  const cpu = (row: ServerRow) => <Value value={row.cpu} unavailable={infraFailed} render={usage} />;
-  const memory = (row: ServerRow) => <Value value={row.memory} unavailable={infraFailed} render={usage} />;
-  const uptime = (row: ServerRow) => <Value value={row.uptime} unavailable={uptimeFailed} render={(value) => percent(value, 2)} />;
-  const errorLogs = (row: ServerRow) => <Value value={row.errorLogs} unavailable={logsFailed} render={(value) => value.toLocaleString()} />;
+  const cpu = (row: ServerRow) => <Value row={row} metric="cpu" render={usage} />;
+  const memory = (row: ServerRow) => <Value row={row} metric="memory" render={usage} />;
+  const uptime = (row: ServerRow) => <Value row={row} metric="uptime" render={(value) => percent(value, 2)} />;
+  const errorLogs = (row: ServerRow) => <Value row={row} metric="errorLogs" render={(value) => value.toLocaleString()} />;
 
   // 열은 뷰포트가 아니라 목록 폭에 맞춘다(DESIGN.md §4.5). 좁아지면 그룹, 수치 순서로 숨기고 이름 아래로 모은다.
   return <div className="@container">
