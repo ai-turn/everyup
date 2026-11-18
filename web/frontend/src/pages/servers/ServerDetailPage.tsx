@@ -54,7 +54,9 @@ export function ServerDetailPage() {
 
   const refresh = () => { reload(); setProjectsKey((key) => key + 1); };
   useAutoRefresh(reload, 30_000);
-  const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
+  // 머리말의 새로고침은 하나다. 서버 데이터와 함께 열린 패널의 데이터도 다시 불러온다.
+  const [refreshToken, setRefreshToken] = useState(0);
+  const { spinning, trigger: handleRefresh } = useSpinAction(() => { refresh(); setRefreshToken((token) => token + 1); });
 
   // 서버를 만든 뒤에 이 화면으로 오면 포커스를 탭 패널로 옮긴다.
   const [dialog, setDialog] = useState<'settings' | 'merge' | 'delete' | null>(null);
@@ -141,9 +143,10 @@ export function ServerDetailPage() {
         {active === 'overview'
           ? <ServerOverviewTab row={row} onOpen={(capability) => open(capability)} />
           : active === 'uptime'
-            ? <ServerUptimeTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)} onRetry={() => void reload()} />
+            ? <ServerUptimeTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
+              stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
             : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
-              unknown={row.unknownCapabilities.includes(active)} onRetry={() => void reload()} />}
+              unknown={row.unknownCapabilities.includes(active)} stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />}
       </div>
       {/* 대화 상자를 겹쳐 열지 않는다. 설정에서 합치기나 삭제를 고르면 설정을 닫고 그 대화 상자를 연다. */}
       {dialog === 'settings' && (

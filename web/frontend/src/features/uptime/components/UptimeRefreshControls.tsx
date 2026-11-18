@@ -5,7 +5,8 @@ interface Props {
   refreshing: boolean;
   autoRefresh: boolean;
   onAutoRefreshChange: (enabled: boolean) => void;
-  onRefresh: () => void;
+  /** 없으면 새로고침 버튼을 그리지 않는다. 화면의 새로고침이 이미 따로 있을 때(서버 상세). */
+  onRefresh?: () => void;
   disabled?: boolean;
 }
 
@@ -23,9 +24,9 @@ export function UptimeRefreshControls({ updatedAt, refreshing, autoRefresh, onAu
         <Toggle checked={autoRefresh} onChange={onAutoRefreshChange} disabled={disabled} ariaLabel="30초마다 자동 갱신" />
         <span className="type-caption text-text-muted">30초마다 자동 갱신</span>
       </div>
-      <Button collapseLabel loading={refreshing} disabled={disabled} onClick={onRefresh}>
+      {onRefresh && <Button collapseLabel loading={refreshing} disabled={disabled} onClick={onRefresh}>
         <MaterialIcon name="refresh" />새로고침
-      </Button>
+      </Button>}
     </div>
   );
 }

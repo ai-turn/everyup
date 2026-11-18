@@ -6,17 +6,18 @@ import { UptimeMonitorDialog } from '../../uptime/components/UptimeMonitorDialog
 import { UptimeMonitorList } from '../../uptime/components/UptimeMonitorList';
 import { UptimeMonitorPanel } from '../../uptime/components/UptimeMonitorPanel';
 import { monitorInput } from '../../uptime/monitorInput';
-import { api, type UptimeMonitor, type UptimeMonitorInput } from '../../../services/api';
+import { api, type UptimeMonitorInput } from '../../../services/api';
 import { serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt } from './ConnectPrompt';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
 /** 업타임 탭: 모니터가 없으면 연결 안내, 하나면 그 상세, 여럿이면 목록. 주소에 모니터가 있으면 그 상세. */
-export function ServerUptimeTab({ row, targetId, onChanged, unknown, onRetry }: ServerCapabilityTabProps) {
+export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
-  const [moving, setMoving] = useState<UptimeMonitor | null>(null);
+  // ID만 둔다. 옮길 때 최신 행에서 찾아야 그 사이의 일시정지나 수정을 되돌리지 않는다.
+  const [movingId, setMovingId] = useState<string | null>(null);
   const serverId = row.server.id;
   const monitors = row.targets.monitors;
   const firstScreen = serverPath(serverId, 'uptime');
@@ -33,10 +34,12 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, onRetry }: 
     show(serverPath(serverId, 'uptime', created.id));
   };
 
-  const move = async (monitor: UptimeMonitor, to: string) => {
+  const move = async (id: string, to: string) => {
+    const monitor = monitors.find((candidate) => candidate.id === id);
+    if (!monitor) throw new Error('이 모니터가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     await api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { serverId: to }));
     await onChanged();
-    setMoving(null);
+    setMovingId(null);
     toast.success('업타임 모니터를 옮겼습니다');
     show(serverPath(to, 'uptime', monitor.id));
   };
@@ -46,12 +49,15 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, onRetry }: 
     show(firstScreen);
   };
 
+  const moving = movingId ? monitors.find((monitor) => monitor.id === movingId) : undefined;
   const current = targetId ? monitors.find((monitor) => monitor.id === targetId) : monitors.length === 1 ? monitors[0] : undefined;
   const addButton = <Button variant="secondary" onClick={() => setAdding(true)}><MaterialIcon name="add" />모니터 추가</Button>;
 
   const content = () => {
     if (unknown) return <LoadErrorBanner inline title="업타임 모니터 정보를 불러오지 못했습니다" onRetry={onRetry} />;
     if (targetId && !current) {
+      // 다시 불러오지 못해 이전 정보만 있으면 "이 서버의 것이 아니다"라고 단정하지 않는다.
+      if (stale) return <LoadErrorBanner inline title="이 모니터의 정보를 불러오지 못했습니다" onRetry={onRetry} />;
       return (
         <EmptyState icon="search_off" title="이 서버의 모니터가 아닙니다" description="다른 서버로 옮겨졌거나 삭제되었습니다." headingLevel="h2">
           <ButtonLink variant="secondary" to={firstScreen}>이 서버의 모니터 보기</ButtonLink>
@@ -69,16 +75,16 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, onRetry }: 
       return (
         <div className="space-y-5">
           {!targetId && <div className="flex justify-end">{addButton}</div>}
-          <UptimeMonitorPanel key={current.id} monitorId={current.id} back={{ label: '목록', to: firstScreen }}
-            onDeleted={() => void removed()} onChanged={() => void onChanged()}
-            extraActions={<Button collapseLabel variant="secondary" onClick={() => setMoving(current)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
+          <UptimeMonitorPanel key={current.id} monitorId={current.id} back={{ label: '목록', to: firstScreen, showBack: monitors.length > 1 }}
+            onDeleted={() => void removed()} onChanged={onChanged} refreshToken={refreshToken}
+            extraActions={<Button collapseLabel variant="secondary" onClick={() => setMovingId(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
         </div>
       );
     }
     // 목록은 서버 상세가 불러온 모니터를 쓴다. 갱신의 주체는 서버 상세 하나다.
     return (
       <UptimeMonitorList monitors={monitors} filter={(monitor) => monitor.serverId === serverId}
-        hrefFor={(monitor) => serverPath(serverId, 'uptime', monitor.id)} createDefaults={{ serverId }} onChanged={() => void onChanged()}
+        hrefFor={(monitor) => serverPath(serverId, 'uptime', monitor.id)} createDefaults={{ serverId }} onChanged={onChanged}
         renderControls={({ viewToggle }) => <div className="mb-4 flex flex-wrap items-center justify-end gap-2">{viewToggle}{addButton}</div>} />
     );
   };
@@ -89,7 +95,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, onRetry }: 
       {content()}
       {adding && <UptimeMonitorDialog monitor={null} onClose={() => setAdding(false)} onSave={create} />}
       {moving && <MoveTargetDialog kind="monitor" targetName={moving.name} currentServerId={serverId}
-        onClose={() => setMoving(null)} onMove={(to) => move(moving, to)} />}
+        onClose={() => setMovingId(null)} onMove={(to) => move(moving.id, to)} />}
     </>
   );
 }

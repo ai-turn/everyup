@@ -114,7 +114,11 @@ export interface ServerCapabilityTabProps {
   onChanged: () => Promise<void>;
   /** 이 기능의 대상 목록을 불러오지 못했다. 연결 안내 대신 불러오지 못했다는 안내를 보여 준다. */
   unknown?: boolean;
+  /** 마지막 다시 불러오기가 실패해서 row가 이전 정보다. 대상이 없다고 단정하지 않는다. */
+  stale?: boolean;
   onRetry?: () => void;
+  /** 머리말의 새로고침을 누를 때마다 1 오른다(자동 갱신은 올리지 않는다). 패널이 자기 데이터도 다시 불러온다. */
+  refreshToken: number;
 }
 
 export function buildServerRows(input: {

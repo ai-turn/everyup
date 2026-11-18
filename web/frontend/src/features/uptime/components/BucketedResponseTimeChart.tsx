@@ -14,10 +14,11 @@ interface BucketedResponseTimeChartProps {
   controls?: ReactNode;
   incidents?: TimelineIncident[];
   failures?: ResponseFailure[];
+  headingLevel?: 'h2' | 'h3';
 }
 
 // Docker 서비스 업타임 탭과 모니터 상세가 함께 쓰는 버킷 응답 시간 카드.
-export function BucketedResponseTimeChart({ load, windowMs, bucketMs, caption, thresholds, refreshKey, controls, incidents, failures }: BucketedResponseTimeChartProps) {
+export function BucketedResponseTimeChart({ load, windowMs, bucketMs, caption, thresholds, refreshKey, controls, incidents, failures, headingLevel }: BucketedResponseTimeChartProps) {
   const [points, setPoints] = useState<ServiceHistoryPoint[]>([]);
   const [loadedAt, setLoadedAt] = useState(0);
   // First load only — a refresh keeps the previous chart instead of flashing the skeleton.
@@ -70,6 +71,7 @@ export function BucketedResponseTimeChart({ load, windowMs, bucketMs, caption, t
         thresholds={thresholds}
         loading={loading}
         controls={controls}
+        headingLevel={headingLevel}
         unavailable={error && loadedAt === 0}
         notice={error && <div className="mb-4"><UptimeFetchNotice source="체크 이력" onRetry={() => setAttempt((value) => value + 1)} /></div>}
       />

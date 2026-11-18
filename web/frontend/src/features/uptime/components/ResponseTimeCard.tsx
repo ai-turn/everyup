@@ -52,6 +52,8 @@ interface ResponseTimeCardProps {
   unavailable?: boolean;
   notice?: ReactNode;
   controls?: ReactNode;
+  /** 카드 제목의 단계. 상세 패널처럼 h2 아래에 놓이면 h3를 넘긴다. 안쪽 제목은 한 단계 아래다. */
+  headingLevel?: 'h2' | 'h3';
 }
 
 const number = (value: number) => Math.round(value).toLocaleString();
@@ -107,7 +109,8 @@ function ResponseTooltip({ point, color, messages }: { point?: ResponsePoint; co
   );
 }
 
-export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents = [], failures = [], thresholds = [], loading = false, unavailable = false, notice, controls }: ResponseTimeCardProps) {
+export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents = [], failures = [], thresholds = [], loading = false, unavailable = false, notice, controls, headingLevel = 'h2' }: ResponseTimeCardProps) {
+  const SubHeading = headingLevel === 'h2' ? 'h3' : 'h4';
   const theme = useChartTheme();
   const id = useId();
   const [focused, setFocused] = useState<string | null>(null);
@@ -151,7 +154,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
   const at = (t: number) => new Date(t).toDateString() === new Date(window[1]).toDateString() ? formatTimeTick(t) : dateTime(t);
 
   return (
-    <ChartCard as="h2" title="응답 시간" unit={caption} right={controls}>
+    <ChartCard as={headingLevel} title="응답 시간" unit={caption} right={controls}>
       {notice}
       {unavailable ? null : loading ? <ChartSkeleton /> : total === 0 ? <ChartEmpty /> : (
         <>
@@ -202,7 +205,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
           </div>
           {events.length > 0 && (
             <div className="mt-6">
-              <h3 className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</h3>
+              <SubHeading className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
               <ul aria-label="이 기간의 실패" className="max-h-48 overflow-y-auto">
                 {events.map((event) => (
                   <li key={event.key} data-response-event={event.kind} tabIndex={0}

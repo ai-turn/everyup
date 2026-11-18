@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Button, ButtonLink, ConfirmDialog, DetailMeta, MaterialIcon, SegmentedControl, StatusLight, Tooltip, type StatusTone } from '../../../components/common';
-import { ControlDefaultsContext } from '../../../components/common/controlSize';
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useAutoRefresh } from '../../../hooks/useAutoRefresh';
 import { useGroupTrail } from '../../../hooks/useGroupTrail';
@@ -26,12 +25,12 @@ const RESPONSE_RANGES = [{ label: '1h', value: '1h' }, { label: '6h', value: '6h
 const RESPONSE_WINDOW = { '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000 } as const;
 const RESPONSE_BUCKET = { '1h': 120_000, '6h': 300_000, '24h': 1_200_000 } as const;
 
-function ResponseTimeChart({ monitorId, incidents, failures, range, refreshKey, onRangeChange }: { monitorId: string; incidents: TimelineIncident[]; failures: ResponseFailure[]; range: ResponseRange; refreshKey: number; onRangeChange: (range: ResponseRange) => void }) {
+function ResponseTimeChart({ monitorId, incidents, failures, range, refreshKey, onRangeChange, headingLevel }: { monitorId: string; incidents: TimelineIncident[]; failures: ResponseFailure[]; range: ResponseRange; refreshKey: number; onRangeChange: (range: ResponseRange) => void; headingLevel: 'h2' | 'h3' }) {
   const thresholds = useAlertThresholds({ kind: 'direct', serviceId: monitorId }, 'response_time');
   const loadBuckets = useCallback(() => api.getUptimeMonitorBuckets(monitorId, range), [monitorId, range]);
   const controls = <SegmentedControl options={RESPONSE_RANGES} value={range} onChange={onRangeChange} ariaLabel="응답 시간 범위" />;
   return <BucketedResponseTimeChart key={range} load={loadBuckets} windowMs={RESPONSE_WINDOW[range]} bucketMs={RESPONSE_BUCKET[range]}
-    caption={`${RESPONSE_BUCKET[range] / 60_000}분 평균`} incidents={incidents} failures={failures} thresholds={thresholds} refreshKey={refreshKey} controls={controls} />;
+    caption={`${RESPONSE_BUCKET[range] / 60_000}분 평균`} incidents={incidents} failures={failures} thresholds={thresholds} refreshKey={refreshKey} controls={controls} headingLevel={headingLevel} />;
 }
 
 const failureMessage = (failure: UptimeMonitorMetric) => [failure.statusCode && `HTTP ${failure.statusCode}`, failure.errorMessage].filter(Boolean).join(', ');
@@ -68,7 +67,7 @@ const ROW_LIGHT = (row: HistoryRow): [StatusTone, string] =>
   row.kind === 'failure' ? ['warn', '실패'] : row.active ? ['error', '장애 진행 중'] : ['healthy', '장애 복구'];
 
 // 90일 띠 아래, 같은 카드에 붙는다. 띠에서 날짜를 고르면 그날 이력만 남는다.
-function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]; selectedDate: string | null; onClearDate: () => void }) {
+function OutageHistory({ rows, selectedDate, onClearDate, Heading }: { rows: HistoryRow[]; selectedDate: string | null; onClearDate: () => void; Heading: 'h3' | 'h4' }) {
   const [filter, setFilter] = useState<HistoryFilter>('all');
   const [expanded, setExpanded] = useState(false);
   const visible = rows.filter((row) => (filter === 'all' || row.kind === filter)
@@ -77,7 +76,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
   return (
     <div className="mt-8 border-t border-ui-border-soft pt-8">
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <h3 className="type-card-title text-text-base">장애 이력</h3>
+        <Heading className="type-card-title text-text-base">장애 이력</Heading>
         {selectedDate && (
           <Button size="sm" variant="ghost" aria-label={`${selectedDate} 선택 해제`} onClick={onClearDate}>
             {selectedDate}<MaterialIcon name="close" />
@@ -144,17 +143,15 @@ function metaFields(monitor: UptimeMonitor, target: string) {
   ];
 }
 
-// 일시정지/재개 — 상태에 따라 아이콘·라벨이 바뀐다.
+// 일시정지/재개 — 상태에 따라 아이콘·라벨이 바뀐다. 상태 바로 옆에 둔다(DESIGN.md §4.1, 상태 전환은 meta 줄).
 function ActiveToggleButton({ active, disabled, loading, onClick }: { active: boolean; disabled: boolean; loading: boolean; onClick: () => void }) {
   return (
-    <Button collapseLabel variant="secondary" disabled={disabled} loading={loading} onClick={onClick}>
+    <Button variant="ghost" disabled={disabled} loading={loading} onClick={onClick}>
       <MaterialIcon name={active ? 'pause' : 'play_arrow'} />
       {active ? '일시정지' : '재개'}
     </Button>
   );
 }
-
-const SECONDARY = { variant: 'secondary' } as const;
 
 function MonitorCrumb({ name }: { name: string }) {
   useBreadcrumb([{ label: name }]);
@@ -162,23 +159,25 @@ function MonitorCrumb({ name }: { name: string }) {
 }
 
 /** 업타임 모니터 하나의 상세 본문. 모니터 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, onChanged, standalone = false }: {
+export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, onChanged, refreshToken, standalone = false }: {
   monitorId: string;
   /** 삭제가 끝난 뒤 */
   onDeleted: () => void;
-  /** 찾지 못했을 때와 모바일 복귀 링크의 목적지 */
-  back: { label: string; to: string };
+  /** 찾지 못했을 때와 모바일 복귀 링크의 목적지. 돌아갈 목록이 없으면(대상이 하나뿐인 탭) showBack을 false로 준다. */
+  back: { label: string; to: string; showBack?: boolean };
   /** 알림 규칙, 수정, 삭제 옆에 놓을 추가 조작(예: 다른 서버로 옮기기) */
   extraActions?: ReactNode;
   /** 일시정지나 수정으로 모니터가 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
-  onChanged?: () => void;
+  onChanged?: () => void | Promise<void>;
+  /** 화면의 새로고침을 누를 때마다 바뀐다. 바뀌면(마운트 때는 제외) 패널의 데이터를 다시 불러온다. */
+  refreshToken?: number;
   /** 옛 업타임 상세(/uptime/:id)처럼 패널이 페이지 전체일 때: 제목이 h1이고 경로 표시를 패널이 정한다. Task 13에서 없앤다. */
   standalone?: boolean;
 }) {
   const location = useLocation();
   // 그룹에서 열었으면 모바일 돌아가기는 레이아웃의 GroupBackLink가 맡는다. 지금 화면으로 가는 링크는 두지 않는다.
   const trail = useGroupTrail();
-  const showBack = !trail && back.to !== location.pathname;
+  const showBack = back.showBack !== false && !trail && back.to !== location.pathname;
 
   const { monitor, metrics, summary, history, incidents, failures, loading, refreshing, errors, notFound, updatedAt, load } = useUptimeMonitorDetail(monitorId);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -196,12 +195,19 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
   useEffect(() => { void load(); }, [load]);
+  // 화면의 새로고침이 패널의 새로고침을 겸한다. 마운트 때의 값은 건너뛴다(위의 첫 조회와 겹친다).
+  const seenToken = useRef(refreshToken);
+  useEffect(() => {
+    if (seenToken.current === refreshToken) return;
+    seenToken.current = refreshToken;
+    void load();
+  }, [refreshToken, load]);
 
   const updateMonitor = async (input: UptimeMonitorInput) => {
     if (!monitor) return;
     await api.updateUptimeMonitor(monitor.id, { ...input, serverId: monitor.serverId, method: monitor.method, expectedStatus: input.expectedStatus ?? monitor.expectedStatus, isActive: monitor.isActive });
     await load();
-    onChanged?.();
+    await onChanged?.();
   };
 
   const toggleActive = async () => {
@@ -210,7 +216,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
     try {
       await api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { isActive: !monitor.isActive }));
       await load();
-      onChanged?.();
+      await onChanged?.();
     } catch (actionError) {
       toast.error(getErrorMessage(actionError));
     } finally {
@@ -227,6 +233,8 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
       onDeleted();
     } catch (actionError) {
       toast.error(getErrorMessage(actionError));
+      // 성공하면 화면이 바뀔 때까지 풀지 않으므로 finally가 아니라 실패에서만 푼다.
+      // react-doctor-disable-next-line no-loading-flag-reset-outside-finally
       if (alive.current) setProcessing(false);
     }
   };
@@ -250,6 +258,8 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
   const failedSources = [errors.monitor && '모니터', errors.metrics && '최근 체크', errors.summary && '30일 요약', errors.history && '90일 이력', (errors.incidents || errors.failures) && '장애 이력'].filter(Boolean);
   const actionsDisabled = processing || refreshing || Boolean(errors.monitor);
   const Heading = standalone ? 'h1' : 'h2';
+  // 패널 안의 절 제목은 패널 제목 한 단계 아래다.
+  const Section = standalone ? 'h2' : 'h3';
 
   return (
     <div className="space-y-5">
@@ -260,9 +270,8 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
       </Link>}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <Heading className={`min-w-0 wrap-anywhere text-text-base ${standalone ? 'type-page-title' : 'type-section-title'}`}>{monitor.name}</Heading>
-        {/* 상태 전환, 이동, 편집, 파괴 순서. 수정과 삭제는 붙어 있는 짝이다(DESIGN.md §4.1). */}
+        {/* 이동, 편집, 파괴 순서. 수정과 삭제는 붙어 있는 짝이다(DESIGN.md §4.1). */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
           <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: monitor.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
           {extraActions}
           <Button collapseLabel variant="secondary" disabled={actionsDisabled} onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
@@ -274,14 +283,14 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
           {errors.monitor ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
           <UptimeLatestCheck monitor={monitor} metrics={metrics} incidents={incidents}
             incidentsError={errors.monitor ? '모니터 상태를 갱신한 뒤 다시 확인하세요.' : errors.incidents} />
+          <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
         </>}
         fields={metaFields(monitor, target)}
         collapseOnMobile collapseLabel="모니터 정보"
       />
-      {/* 상세의 새로고침은 secondary다(DESIGN.md §4.1). 검은 채움이면 화면에서 가장 무거운 조작이 된다. */}
-      <ControlDefaultsContext.Provider value={SECONDARY}>
-        <UptimeRefreshControls updatedAt={updatedAt} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={(enabled) => { setAutoRefresh(enabled); if (enabled) refresh(); }} onRefresh={refresh} disabled={processing} />
-      </ControlDefaultsContext.Provider>
+      {/* 서버 상세에서는 머리말의 새로고침 하나가 패널까지 갱신한다(refreshToken). */}
+      <UptimeRefreshControls updatedAt={updatedAt} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={(enabled) => { setAutoRefresh(enabled); if (enabled) refresh(); }}
+        onRefresh={standalone ? refresh : undefined} disabled={processing} />
 
       {failedSources.length > 0 && (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border-soft bg-bg-surface px-4 py-3 text-sm text-text-secondary">
@@ -293,7 +302,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
       {/* 현재 실패 → 기간별 수치 → 응답 추이 → 장기 이력 순서. */}
       <div className="space-y-8">
         <section>
-          <h2 className="sr-only">주요 지표</h2>
+          <Section className="sr-only">주요 지표</Section>
           <UptimeStats stats={[
             { label: '24시간 업타임', value: monitor.uptime === undefined ? '-' : `${monitor.uptime.toFixed(2)}%` },
             { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '-' },
@@ -301,7 +310,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
             ...(monitor.certExpiresAt ? [certStat(monitor.certExpiresAt)] : []),
           ]} />
         </section>
-        <ResponseTimeChart monitorId={monitor.id} incidents={incidents ?? []} failures={(failures ?? []).map(failureEvent)} range={range} refreshKey={refreshKey} onRangeChange={setRange} />
+        <ResponseTimeChart monitorId={monitor.id} incidents={incidents ?? []} failures={(failures ?? []).map(failureEvent)} range={range} refreshKey={refreshKey + (refreshToken ?? 0)} onRangeChange={setRange} headingLevel={Section} />
         <UptimeOverview
           stats={[]}
           historyUptime={history && history.days.length > 0 ? history.percentage : undefined}
@@ -309,9 +318,10 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
           error={!history ? errors.history : undefined}
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
+          headingLevel={Section}
         >
           {incidents && failures && (
-            <OutageHistory rows={historyRows(incidents, failures)} selectedDate={selectedDate} onClearDate={() => setSelectedDate(null)} />
+            <OutageHistory rows={historyRows(incidents, failures)} selectedDate={selectedDate} onClearDate={() => setSelectedDate(null)} Heading={standalone ? 'h3' : 'h4'} />
           )}
         </UptimeOverview>
       </div>

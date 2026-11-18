@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다. mock은 쓰기 요청을 메모리에 반영하지만
 // page.goto는 앱을 새로 띄워 그 메모리를 버린다. 변경 뒤에는 앱 안에서(뒤로 가기, 링크) 이동한다.
@@ -146,3 +147,105 @@ for (const path of ['uptime', 'uptime/uptime_mock_store']) {
     expect(await page.locator('#main-content').evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
   });
 }
+
+test('a server with one monitor has no list to go back to on phones', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto('./servers/server_mock_payments_api/uptime/uptime_mock_payments');
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'Payment endpoint' })).toBeVisible();
+  await expect(panel(page).getByRole('link', { name: '목록', exact: true })).toHaveCount(0);
+});
+
+test('panel sections sit one level below the monitor name', async ({ page }) => {
+  await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'Storefront' })).toBeVisible();
+  for (const name of ['주요 지표', '응답 시간', '업타임 현황']) {
+    await expect(panel(page).getByRole('heading', { level: 3, name, exact: true })).toBeAttached();
+  }
+  await expect(panel(page).getByRole('heading', { level: 4, name: '장애 이력', exact: true })).toBeVisible();
+  await expect(panel(page).getByRole('heading', { level: 2 })).toHaveCount(1);
+});
+
+// 요청을 세거나 실패시켜야 하는 경우는 API를 가로채는 개발 서버에서 확인한다.
+test.describe('with an intercepted API', () => {
+  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  const at = '2026-11-01T00:00:00Z';
+  const s1 = { id: 's1', name: 'web-01', createdAt: at, updatedAt: at };
+  const s2 = { id: 's2', name: 'web-02', createdAt: at, updatedAt: at };
+
+  async function twoMonitors(page: Page) {
+    const state = await uptimeFixture(page);
+    state.monitors = [monitor('http-monitor', { serverId: 's1' }), monitor('tcp-monitor', { name: 'Database', type: 'tcp', url: 'db.example.com', port: 5432, serverId: 's1' })];
+    state.responses.set('GET /servers', [s1, s2]);
+    return state;
+  }
+
+  test('the header refresh is the only refresh and reloads the panel history', async ({ page }) => {
+    const state = await twoMonitors(page);
+    await page.goto('./servers/s1/uptime/http-monitor');
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+    const refresh = page.getByRole('button', { name: '새로고침', exact: true });
+    await expect(refresh).toHaveCount(1);
+    const historyRequests = () => state.requests.filter((request) => request.method === 'GET' && request.path === '/services/http-monitor/metrics').length;
+    const before = historyRequests();
+    await refresh.click();
+    await expect.poll(historyRequests).toBeGreaterThan(before);
+  });
+
+  test('a row pause stays busy until the server data has reloaded', async ({ page }) => {
+    const state = await twoMonitors(page);
+    await page.goto('./servers/s1/uptime');
+    const pause = panel(page).getByRole('button', { name: 'Public API 일시정지' });
+    await expect(pause).toBeEnabled();
+    const gate = deferred();
+    state.holds.set('GET /servers', gate.promise);
+    try {
+      await pause.click();
+      await expect.poll(() => state.requests.filter((request) => request.method === 'PUT').length).toBe(1);
+      await expect(panel(page).getByRole('button', { name: 'Public API 일시정지' })).toBeDisabled();
+    } finally { gate.resolve(); state.holds.clear(); }
+    await expect(panel(page).getByRole('button', { name: 'Public API 재개' })).toBeEnabled();
+  });
+
+  test('moving right after a pause keeps the pause', async ({ page }) => {
+    const state = await twoMonitors(page);
+    await page.goto('./servers/s1/uptime/http-monitor');
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+    // 서버 데이터의 모니터 목록이 아직 일시정지 전인 동안에 이동 대화 상자를 연다.
+    const gate = deferred();
+    state.holds.set('GET /services', gate.promise);
+    await panel(page).getByRole('button', { name: '일시정지', exact: true }).click();
+    await expect.poll(() => state.requests.filter((request) => request.method === 'PUT').length).toBe(1);
+    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
+    await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
+    gate.resolve();
+    state.holds.clear();
+    await expect(panel(page).getByRole('button', { name: '재개', exact: true })).toBeEnabled();
+    await dialog.getByRole('radio', { name: /web-02/ }).check();
+    await dialog.getByRole('button', { name: '옮기기' }).click();
+    await expect(page).toHaveURL(/\/servers\/s2\/uptime\/http-monitor$/);
+    const move = state.requests.filter((request) => request.method === 'PUT').at(-1)!;
+    expect(move.body).toMatchObject({ serverId: 's2', isActive: false });
+  });
+
+  test('a failed reload after creating does not claim the monitor belongs elsewhere', async ({ page }) => {
+    const state = await uptimeFixture(page);
+    state.monitors = [];
+    state.responses.set('GET /servers', [s1]);
+    await page.goto('./servers/s1/uptime');
+    await panel(page).getByRole('button', { name: '업타임 모니터 추가' }).click();
+    const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+    await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('Probe');
+    await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill('https://probe.example.com');
+    state.responses.delete('GET /servers');
+    state.failures.set('GET /servers', 500);
+    await dialog.getByRole('button', { name: '추가', exact: true }).click();
+    await expect(page).toHaveURL(/\/servers\/s1\/uptime\/created-0$/);
+    await expect(panel(page)).toContainText('이 모니터의 정보를 불러오지 못했습니다');
+    await expect(panel(page)).not.toContainText('이 서버의 모니터가 아닙니다');
+    state.failures.clear();
+    state.responses.set('GET /servers', [s1]);
+    await panel(page).getByRole('button', { name: '다시 시도' }).click();
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Probe' })).toBeVisible();
+  });
+});

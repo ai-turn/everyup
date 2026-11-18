@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import {
@@ -37,7 +37,8 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
   createDefaults?: Partial<UptimeMonitorInput>;
   /** 목록 화면의 조작(보기 전환, 추가 버튼)을 그릴 자리. 없으면 목록 위에 그린다 */
   renderControls?: (controls: { viewToggle: ReactNode; addButton: ReactNode; refresh: ReactNode }) => ReactNode;
-  onChanged?: () => void;
+  /** 변경한 뒤. 약속을 돌려주면 끝날 때까지 조작을 막아 둔다(옛 값으로 다시 누르지 않게). */
+  onChanged?: () => void | Promise<void>;
   /**
    * 부모가 이미 불러온 모니터. 주면 목록은 따로 불러오거나 주기적으로 갱신하지 않고(갱신의 주체는 부모 하나),
    * 변경한 뒤에는 onChanged로 부모가 다시 불러온다.
@@ -70,8 +71,11 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
   const { loading, refreshing, error } = given ? { loading: false, refreshing: false, error: null } : own;
   const afterChange = async () => {
     if (!given) await own.reloadAfterChange();
-    onChanged?.();
+    await onChanged?.();
   };
+  // 서버 상세에서 화살표 키로 탭을 지나가면 언마운트될 수 있다. 그 뒤에 끝난 작업은 상태를 건드리지 않는다.
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
   const monitors = useMemo(() => (given ?? own.monitors).filter(filter), [given, own.monitors, filter]);
   const normalizedQuery = query.trim().toLowerCase();
@@ -101,7 +105,7 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
     } catch (cause) {
       toast.error(getErrorMessage(cause));
     } finally {
-      setChangingMonitor(null);
+      if (alive.current) setChangingMonitor(null);
     }
   };
 
@@ -111,11 +115,15 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
     const results = await Promise.allSettled(targets.map(run));
     const failed = targets.filter((_, index) => results[index].status === 'rejected').map((monitor) => monitor.id);
     const firstError = results.find((result) => result.status === 'rejected')?.reason;
-    // 실패한 것만 선택에 남겨 다시 시도할 수 있게 한다.
-    setSelected(new Set(failed));
-    setBulkWorking(false);
     if (failed.length > 0) toast.error(`${failed.length}개를 ${verb}하지 못했습니다. ${getErrorMessage(firstError)}`);
-    await afterChange();
+    // 다시 불러온 결과가 반영된 뒤에 조작을 풀어 옛 상태로 다시 누르지 않게 한다.
+    try {
+      await afterChange();
+      // 실패한 것만 선택에 남겨 다시 시도할 수 있게 한다.
+      if (alive.current) setSelected(new Set(failed));
+    } finally {
+      if (alive.current) setBulkWorking(false);
+    }
   };
   const toPause = selectedMonitors.filter((monitor) => monitor.isActive);
   const toResume = selectedMonitors.filter((monitor) => !monitor.isActive);
