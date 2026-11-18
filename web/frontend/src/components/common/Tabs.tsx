@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { STATUS_DOT, type StatusTone } from './statusTone';
 import { tabId, tabPanelId } from './tabIds';
 
@@ -29,6 +29,18 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
   /** 탭과 패널의 id를 만드는 접두사 */
   idPrefix: string;
 }) {
+  // 주소로 바로 들어오면 선택된 탭이 탭 줄 밖에 있을 수 있다. 탭 줄만 가로로 움직인다.
+  // scrollIntoView는 탭 줄이 화면 밖이면 페이지까지 세로로 움직이므로 scrollLeft를 직접 맞춘다.
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    const tab = list?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!list || !tab) return;
+    const left = tab.getBoundingClientRect().left - list.getBoundingClientRect().left + list.scrollLeft;
+    if (left < list.scrollLeft) list.scrollLeft = left;
+    else if (left + tab.offsetWidth > list.scrollLeft + list.clientWidth) list.scrollLeft = left + tab.offsetWidth - list.clientWidth;
+  }, [active]);
+
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const last = items.length - 1;
     const next = event.key === 'Home' ? 0
@@ -44,7 +56,7 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
 
   return (
     // 탭 아래 전폭 기준선은 두지 않고 선택 밑줄만 남긴다(DESIGN.md §3.1).
-    <div role="tablist" aria-label={ariaLabel} className="flex gap-1 overflow-x-auto overflow-y-hidden">
+    <div ref={listRef} role="tablist" aria-label={ariaLabel} className="flex gap-1 overflow-x-auto overflow-y-hidden">
       {items.map((item, index) => {
         const selected = active === item.key;
         return (

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Button, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight } from '../../../components/common';
+import { Button, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight, Tooltip } from '../../../components/common';
 import { SERVERS_PATH } from '../serverPaths';
 import { STATE_LABEL, type ServerRow } from '../serverStatus';
 
@@ -19,15 +19,20 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
       </Link>
       <PageHeader
         title={row.server.name}
-        meta={
+        meta={<>
+          {row.server.description && (
+            <Tooltip content={row.server.description}><p className="mb-2 truncate type-body text-text-muted">{row.server.description}</p></Tooltip>
+          )}
           <DetailMeta
             status={<>
               <StatusLight tone={row.state} label={STATE_LABEL[row.state]} pulse={row.state === 'error'} />
-              {row.cause && <Link to={row.cause.to} className="inline-flex min-h-11 items-center text-action link-underline sm:min-h-0">{row.cause.text}</Link>}
+              {row.cause && (row.cause.to
+                ? <Link to={row.cause.to} className="inline-flex min-h-11 items-center text-action link-underline sm:min-h-6">{row.cause.text}</Link>
+                : <span className="type-caption text-text-muted">{row.cause.text}</span>)}
             </>}
             fields={groupName === undefined ? [] : [{ label: '그룹', value: groupName }]}
           />
-        }
+        </>}
       />
       <DetailActionToolbar
         controls={<Button collapseLabel variant="secondary" loading={refreshing} onClick={onRefresh}><MaterialIcon name="refresh" />새로고침</Button>}

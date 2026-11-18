@@ -3,6 +3,7 @@ import type { InfrastructureResource, LogServiceSummary, ObservedService, Server
 import { formatDuration } from '../../utils/incidentFormat';
 import { isCollectorFresh } from '../../utils/operationalStatus';
 import { peakUsage, WARNING_PCT } from '../infra/usage';
+import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
 import { serverPath, type ServerCapability } from './serverPaths';
 
 // 서버 목록, 서버 개요, 그룹 화면이 같은 판정을 쓴다. 따로 계산하면 목록은 "정상"인데 그룹은 "장애"인 대상이 생긴다.
@@ -11,12 +12,22 @@ import { serverPath, type ServerCapability } from './serverPaths';
 export const STATE_ORDER: Record<StatusTone, number> = { error: 0, warn: 1, idle: 2, healthy: 3 };
 export const STATE_LABEL: Record<StatusTone, string> = { error: '장애', warn: '확인 필요', idle: '대기', healthy: '정상' };
 
+/** 상태를 합칠 때의 심각도. 정렬 순서와 달리 정상이 대기보다 앞선다: 정상 9개와 일시정지 1개는 정상이다. */
+const SEVERITY: Record<StatusTone, number> = { error: 0, warn: 1, healthy: 2, idle: 3 };
+
+const APP_CAPABILITY_LABEL: Record<StatusTone, string> = { error: '장애', warn: '데이터 대기 중', idle: '연결 비활성화됨', healthy: '수집 중' };
+
+/** 기능별 상태 문구. 로그, API 요청, 메트릭은 수신 여부만 판정하므로 "정상"이라고 쓰지 않는다. */
+export function capabilityStateLabel(capability: ServerCapability, state: StatusTone): string {
+  return capability === 'uptime' || capability === 'infrastructure' ? STATE_LABEL[state] : APP_CAPABILITY_LABEL[state];
+}
+
 export interface TargetState { state: StatusTone; detail: string }
 
+// 업타임 화면과 같은 판정과 문구를 쓴다. 일시정지한 모니터는 마지막 상태와 관계없이 대기다.
 export function monitorState(monitor: UptimeMonitor): TargetState {
-  if (monitor.status === 'unhealthy') return { state: 'error', detail: '장애' };
-  if (monitor.status === 'healthy') return { state: 'healthy', detail: '정상' };
-  return { state: 'idle', detail: '상태 확인 중' };
+  const [state, detail] = UPTIME_STATE_LIGHT[uptimeState(monitor)];
+  return { state, detail };
 }
 
 // 앱은 lastSeenAt이 오래돼도 정상으로 둔다. 로그·트레이스는 사건이 있을 때만 오므로 조용한 것이 장애가 아니다.
@@ -46,8 +57,8 @@ export interface ServerRow {
   server: Server;
   targets: ServerTargets;
   state: StatusTone;
-  /** 가장 나쁜 대상의 원인과 그 대상의 주소. 정상이거나 대상이 없으면 없다. */
-  cause?: { text: string; to: string };
+  /** 서버 상태의 원인과 그 대상의 주소. 정상이면 없고, 대상이 없으면 주소가 없다. */
+  cause?: { text: string; to?: string };
   /** 기능별 상태. 연결된 대상이 없으면 null. */
   capabilities: Record<ServerCapability, StatusTone | null>;
   cpu?: number; memory?: number; disk?: number;
@@ -64,16 +75,17 @@ export interface ServerRow {
 export type ServerMetric = 'cpu' | 'memory' | 'disk' | 'uptime' | 'errorLogs';
 
 const worst = (states: StatusTone[]): StatusTone | null =>
-  states.reduce<StatusTone | null>((current, state) => current === null || STATE_ORDER[state] < STATE_ORDER[current] ? state : current, null);
+  states.reduce<StatusTone | null>((current, state) => current === null || SEVERITY[state] < SEVERITY[current] ? state : current, null);
+
+export const hasTargets = (targets: ServerTargets) =>
+  targets.monitors.length > 0 || targets.apps.length > 0 || Boolean(targets.infrastructure);
+
 
 // 앱을 여는 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API)로 고른다.
 const appCapability = (app: ObservedService): ServerCapability =>
   app.signals.includes('logs') ? 'logs' : app.signals.includes('metrics') ? 'metrics' : 'api';
 
 const SIGNAL_OF: Record<'logs' | 'api' | 'metrics', ObservedService['signals'][number]> = { logs: 'logs', api: 'traces', metrics: 'metrics' };
-
-export const hasTargets = (targets: ServerTargets) =>
-  targets.monitors.length > 0 || targets.apps.length > 0 || Boolean(targets.infrastructure);
 
 /** 기능에 연결된 대상. 앱은 그 기능의 신호를 가진 것만. */
 export function capabilityTargets(targets: ServerTargets, capability: ServerCapability): { id: string; name: string }[] {
@@ -112,17 +124,20 @@ export function buildServerRows(input: {
       ...monitors.map((monitor) => {
         const result = monitorState(monitor);
         const incident = monitor.activeIncident?.active ? monitor.activeIncident : undefined;
-        const text = result.state === 'error' ? `응답 없음${incident ? `, ${formatDuration(incident.durationSec)}째` : ''}` : result.detail;
+        const text = `${monitor.name} ${result.state === 'error' ? `응답 없음${incident ? `, ${formatDuration(incident.durationSec)}째` : ''}` : result.detail}`;
         return { ...result, text, to: serverPath(server.id, 'uptime', monitor.id) };
       }),
       ...(infrastructure ? [infrastructureState(infrastructure)].map((result) => ({ ...result, text: result.detail, to: serverPath(server.id, 'infrastructure') })) : []),
       ...apps.map((app) => {
         const result = appState(app);
-        return { ...result, text: result.detail, to: serverPath(server.id, appCapability(app), app.id) };
+        return { ...result, text: `${app.name} ${result.detail}`, to: serverPath(server.id, appCapability(app), app.id) };
       }),
     ];
     const state = worst(candidates.map((candidate) => candidate.state)) ?? 'idle';
-    const culprit = state === 'error' || state === 'warn' ? candidates.find((candidate) => candidate.state === state) : undefined;
+    // 대기도 까닭을 적는다. 대상이 없으면 링크 없는 문구다. 대상 목록을 불러오지 못했으면 없다고 단정하지 않는다.
+    const culprit = state === 'healthy' ? undefined
+      : candidates.find((candidate) => candidate.state === state)
+        ?? (input.monitors && input.apps && input.infrastructure ? { text: '연결한 대상 없음', to: undefined } : undefined);
 
     const appsWith = (capability: 'logs' | 'api' | 'metrics') => apps.filter((app) => app.signals.includes(SIGNAL_OF[capability]));
     const logApps = appsWith('logs');

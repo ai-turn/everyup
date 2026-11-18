@@ -105,7 +105,7 @@ export function ServersPage() {
 
   return (
     <div>
-      <PageHeader menu title="서버">
+      <PageHeader menu compactActions title="서버">
         <Button collapseLabel onClick={handleRefresh}><MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침</Button>
         <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />서버 추가</ButtonLink>
       </PageHeader>
@@ -114,10 +114,10 @@ export function ServersPage() {
         <ListToolbar search={
           <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={visible.length} shortcut placeholder="서버 또는 대상 검색" aria-label="서버 또는 대상 검색" />
         }>
-          <div role="group" aria-label="상태로 거르기" className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
+          <div role="group" aria-label="상태로 거르기" className="grid grid-cols-2 gap-2 min-[26rem]:grid-cols-4 sm:flex sm:flex-wrap">
             {STATUS_FILTERS.map((key) => (
               <button key={key} type="button" aria-pressed={status === key} onClick={() => setParam('status', status === key ? null : key)}
-                className="flex min-h-11 flex-col items-start gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">
+                className="flex min-h-11 flex-col items-start gap-1 whitespace-nowrap rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">
                 <StatusLight label={STATE_LABEL[key]} tone={(key === 'error' || key === 'warn') && counts[key] === 0 ? 'idle' : key} />
                 <span className="type-kpi">{counts[key]}</span>
               </button>
@@ -143,7 +143,7 @@ export function ServersPage() {
       {loading && !hasRows && !error ? <ServerListSkeleton />
         : error && !hasRows ? <EmptyState icon="sync_problem" title="서버 목록을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
           : !hasRows ? (
-            <EmptyState icon="dns" title="아직 서버가 없습니다"
+            <EmptyState icon="dns" headingLevel="h2" title="아직 서버가 없습니다"
               description={`서버를 추가하고 업타임, 인프라, 로그, API 요청, 메트릭을 연결하세요.${hasDockerEnvironments ? ' Docker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.' : ''}`}
               action={{ label: '서버 추가', to: NEW_SERVER_PATH }} />
           ) : (

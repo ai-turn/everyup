@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ButtonLink, EmptyState, LoadErrorBanner, MaterialIcon, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
+import { ButtonLink, EmptyState, LoadErrorBanner, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { ServerCapabilityPlaceholder } from '../../features/servers/components/ServerCapabilityPlaceholder';
 import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
@@ -8,7 +8,7 @@ import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerOverviewTab } from '../../features/servers/components/ServerOverviewTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
 import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, type ServerCapability } from '../../features/servers/serverPaths';
-import { capabilityTargets, STATE_LABEL, type ServerRow } from '../../features/servers/serverStatus';
+import { capabilityStateLabel, capabilityTargets, type ServerRow } from '../../features/servers/serverStatus';
 import { useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
@@ -70,9 +70,13 @@ export function ServerDetailPage() {
   if (!row) {
     if (!updatedAt && !error) {
       return (
-        <div className="flex h-64 items-center justify-center gap-3 text-text-muted" aria-busy="true">
-          <MaterialIcon size={24} name="sync" className="animate-spin" />
-          <span>로딩 중…</span>
+        // 서버 목록의 자리 표시(ServerListSkeleton)와 같은 방식: 머리말, 탭 줄, 행 몇 개.
+        <div aria-label="서버 정보 조회 중" aria-busy="true" className="space-y-6">
+          <div className="h-8 w-48 animate-pulse rounded-lg bg-ui-hover-soft" />
+          <div className="h-10 animate-pulse rounded-lg bg-ui-hover-soft" />
+          <div className="space-y-2">
+            {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
+          </div>
         </div>
       );
     }
@@ -99,7 +103,7 @@ export function ServerDetailPage() {
       return {
         key, label,
         srDetail: `, ${TARGET_NOUN[key]} ${capabilityTargets(row.targets, key).length}개`,
-        ...(state === 'error' || state === 'warn' ? { tone: state, toneLabel: STATE_LABEL[state] } : {}),
+        ...(state === 'error' || state === 'warn' ? { tone: state, toneLabel: capabilityStateLabel(key, state) } : {}),
       };
     }),
   ];

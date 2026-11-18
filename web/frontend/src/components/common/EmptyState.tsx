@@ -10,17 +10,19 @@ interface EmptyStateProps {
   action?: { label: string; onClick: () => void } | { label: string; to: string };
   /** Action slot for triggers that own their own state (e.g. a dialog opener). */
   children?: ReactNode;
+  /** 제목의 단계. 페이지에서 h1 다음에 바로 오면 h2를 넘긴다. */
+  headingLevel?: 'h2' | 'h3';
 }
 
-export function EmptyState({ icon, title, description, action, children }: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action, children, headingLevel: Heading = 'h3' }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
       <div className="w-20 h-20 rounded-full bg-ui-hover flex items-center justify-center mb-6">
         <MaterialIcon size={36} name={icon} className="text-text-dim" />
       </div>
-      <h3 className="type-section-title text-text-base mb-2 text-center">
+      <Heading className="type-section-title text-text-base mb-2 text-center">
         {title}
-      </h3>
+      </Heading>
       {description && (
         <p className="text-text-muted text-center max-w-md mb-6">
           {description}

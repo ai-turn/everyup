@@ -19,6 +19,10 @@ function Value({ row, metric, render }: { row: ServerRow; metric: ServerMetric; 
 }
 
 const usageClass = (value: number) => value >= WARNING_PCT ? 'text-status-warn' : 'text-text-base';
+/** 기준을 넘은 수치는 색만으로 구분하지 않는다. 화면 낭독기에는 글자로 알린다. */
+function OverWarning({ value }: { value: number }) {
+  return value >= WARNING_PCT ? <span className="sr-only">, 주의 기준 초과</span> : null;
+}
 
 export function ServerTable({ rows, matches, groupName }: {
   rows: ServerRow[];
@@ -26,7 +30,7 @@ export function ServerTable({ rows, matches, groupName }: {
   matches: ReadonlyMap<string, string[]>;
   groupName: (projectId?: string) => string;
 }) {
-  const usage = (value: number) => <span className={usageClass(value)}>{percent(value, 1)}</span>;
+  const usage = (value: number) => <span className={usageClass(value)}>{percent(value, 1)}<OverWarning value={value} /></span>;
   const cpu = (row: ServerRow) => <Value row={row} metric="cpu" render={usage} />;
   const memory = (row: ServerRow) => <Value row={row} metric="memory" render={usage} />;
   const uptime = (row: ServerRow) => <Value row={row} metric="uptime" render={(value) => percent(value, 2)} />;
@@ -41,8 +45,8 @@ export function ServerTable({ rows, matches, groupName }: {
           <Tooltip content={row.server.name}><Link data-row-link to={serverPath(row.server.id)} className="block truncate font-medium text-action">{row.server.name}</Link></Tooltip>
           {matched.length > 0 && <p className="mt-1 truncate type-caption text-text-secondary">{matched.join(', ')}</p>}
           <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 type-caption text-text-muted @4xl:hidden">
-            {row.cpu !== undefined && <span className="whitespace-nowrap @3xl:hidden">CPU <span className={`tabular-nums ${usageClass(row.cpu)}`}>{percent(row.cpu, 1)}</span></span>}
-            {row.memory !== undefined && <span className="whitespace-nowrap @3xl:hidden">메모리 <span className={`tabular-nums ${usageClass(row.memory)}`}>{percent(row.memory, 1)}</span></span>}
+            {row.cpu !== undefined && <span className="whitespace-nowrap @3xl:hidden">CPU <span className={`tabular-nums ${usageClass(row.cpu)}`}>{percent(row.cpu, 1)}<OverWarning value={row.cpu} /></span></span>}
+            {row.memory !== undefined && <span className="whitespace-nowrap @3xl:hidden">메모리 <span className={`tabular-nums ${usageClass(row.memory)}`}>{percent(row.memory, 1)}<OverWarning value={row.memory} /></span></span>}
             {row.uptime !== undefined && <span className="whitespace-nowrap tabular-nums @3xl:hidden">업타임 {percent(row.uptime, 2)}</span>}
             {row.errorLogs !== undefined && <span className="whitespace-nowrap tabular-nums @3xl:hidden">오류 로그 {row.errorLogs.toLocaleString()}</span>}
             <span className="whitespace-nowrap">{groupName(row.server.projectId)}</span>
@@ -51,7 +55,7 @@ export function ServerTable({ rows, matches, groupName }: {
       } },
       { key: 'status', label: '상태', className: 'w-32 @3xl:w-40', render: (row) => <>
         <StatusLight tone={row.state} label={STATE_LABEL[row.state]} />
-        {row.cause && <p className="mt-1 break-words type-caption text-text-muted">{row.cause.text}</p>}
+        {row.cause && <Tooltip content={row.cause.text}><p className="mt-1 truncate type-caption text-text-muted">{row.cause.text}</p></Tooltip>}
       </> },
       { key: 'cpu', label: 'CPU', className: 'hidden w-20 @3xl:table-cell', align: 'right', render: cpu },
       { key: 'memory', label: '메모리', className: 'hidden w-20 @3xl:table-cell', align: 'right', render: memory },

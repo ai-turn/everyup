@@ -68,14 +68,12 @@ test('reselecting a tab returns to its first screen', async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
 });
 
-test('overview puts the outage banner first and the failing capability on top', async ({ page }) => {
+test('a single outage is told by the header alone and the failing capability is on top', async ({ page }) => {
   await page.goto(`./servers/${EDGE}`);
   const panel = page.getByRole('tabpanel');
-  const banner = panel.getByRole('link', { name: /진행 중 장애/ });
-  await expect(banner).toBeVisible();
-  await expect(banner).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/uptime/uptime_mock_checkout$`));
-  // 배너가 기능 섹션보다 먼저 온다.
-  await expect(panel.locator('a, h2').first()).toHaveAccessibleName(/진행 중 장애/);
+  // 장애가 하나면 머리말의 원인 링크가 같은 말을 하므로 배너를 두지 않는다(둘 이상은 servers-status.spec.ts).
+  await expect(serverHeader(page).getByRole('link', { name: /Checkout API 응답 없음/ })).toBeVisible();
+  await expect(panel.getByRole('region', { name: /진행 중 장애/ })).toHaveCount(0);
 
   const sections = panel.getByRole('region', { name: '연결된 기능' }).getByRole('heading', { level: 2 });
   await expect(sections.first()).toHaveText('업타임');
@@ -167,4 +165,16 @@ test('the cause link is a full tap target on phones', async ({ page }) => {
   await page.goto(`./servers/${EDGE}`);
   const cause = serverHeader(page).getByRole('link', { name: /응답 없음/ });
   expect((await cause.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+});
+
+test('a tab opened from the address is scrolled into the tab row without moving the page', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto(`./servers/${EDGE}/metrics`);
+  const selected = tablist(page).getByRole('tab', { selected: true });
+  await expect(selected).toHaveText(/^메트릭/);
+  const row = (await tablist(page).boundingBox())!;
+  const tab = (await selected.boundingBox())!;
+  expect(tab.x).toBeGreaterThanOrEqual(row.x - 1);
+  expect(tab.x + tab.width).toBeLessThanOrEqual(row.x + row.width + 1);
+  expect(await page.locator('#main-content').evaluate((element) => element.scrollTop)).toBe(0);
 });
