@@ -75,6 +75,11 @@ export interface ServerRow {
   unavailable: ServerMetric[];
   /** 대상 목록을 불러오지 못해 연결 여부를 모르는 기능. "연결 전"이 아니라 확인 불가다. */
   unknownCapabilities: ServerCapability[];
+  /**
+   * 다시 불러오지 못해 대상 목록이 이전에 불러온 것인 기능. 목록과 개수는 남지만 상태 판정에서는 unknownCapabilities와 같다
+   * (서버 상태, 원인, 기능별 상태, 수치에 쓰지 않는다). 서버 목록 자체를 불러오지 못한 경우는 여기에 들어가지 않는다.
+   */
+  staleCapabilities: ServerCapability[];
 }
 
 export type ServerMetric = 'cpu' | 'memory' | 'disk' | 'uptime' | 'errorLogs';
@@ -117,13 +122,15 @@ export interface ServerCapabilityTabProps {
   targetId?: string;
   /** 대상이 추가·삭제·이동된 뒤 서버 데이터를 다시 불러온다. 다시 불러온 결과가 반영되면 끝난다. */
   onChanged: () => Promise<void>;
-  /** 이 기능의 대상 목록을 불러오지 못했다. 연결 안내 대신 불러오지 못했다는 안내를 보여 준다. */
+  /** 이 기능의 대상 목록을 불러오지 못했고 이전 목록도 없다. 연결 안내 대신 불러오지 못했다는 안내를 보여 준다. */
   unknown?: boolean;
-  /** 마지막 다시 불러오기가 실패해서 row가 이전 정보다. 대상이 없다고 단정하지 않는다. */
+  /** 서버 목록이나 이 기능의 대상 목록을 다시 불러오지 못해 row의 대상이 이전 정보다. 대상이 없다고 단정하지 않는다. */
   stale?: boolean;
   onRetry?: () => void;
   /** 머리말의 새로고침을 누를 때마다 1 오른다(자동 갱신은 올리지 않는다). 패널이 자기 데이터도 다시 불러온다. */
   refreshToken: number;
+  /** 머리말의 `30초마다 자동 갱신` 스위치. 패널이 자기 데이터를 주기적으로 갱신하면 이 값을 따른다. */
+  autoRefresh: boolean;
   /** 탭 줄 오른쪽의 조작 자리. 대상이 연결된 탭이 추가 버튼을 여기로 포털한다(TabAction). 그려지기 전에는 null이다. */
   actionSlot?: HTMLElement | null;
 }
@@ -134,23 +141,37 @@ export function buildServerRows(input: {
   apps: ObservedService[] | null;
   infrastructure: InfrastructureResource[] | null;
   logSummaries: LogServiceSummary[] | null;
+  /** 다시 불러오다 실패해서 이전에 성공한 목록을 준 종류 */
+  stale?: { monitors?: boolean; apps?: boolean; infrastructure?: boolean };
 }): ServerRow[] {
+  // 지금 불러온 목록이 있는 종류. 이전 목록은 대상을 보여 주는 데만 쓰고 상태를 정하는 데는 쓰지 않는다.
+  const known = {
+    monitors: Boolean(input.monitors) && !input.stale?.monitors,
+    apps: Boolean(input.apps) && !input.stale?.apps,
+    infrastructure: Boolean(input.infrastructure) && !input.stale?.infrastructure,
+  };
   return input.servers.map((server): ServerRow => {
     const monitors = input.monitors?.filter((monitor) => monitor.serverId === server.id) ?? [];
     const apps = input.apps?.filter((app) => app.serverId === server.id) ?? [];
     // Docker 환경에서 온 리소스에는 serverId가 없으므로 어느 서버에도 들어오지 않는다.
     const infrastructure = input.infrastructure?.find((resource) => resource.serverId === server.id);
+    // 상태, 원인, 수치는 지금 불러온 대상으로만 정한다.
+    const current = {
+      monitors: known.monitors ? monitors : [],
+      apps: known.apps ? apps : [],
+      infrastructure: known.infrastructure ? infrastructure : undefined,
+    };
 
     // 순서가 같은 상태 안의 우선순위다: 모니터 장애가 앱의 대기보다 먼저 원인으로 보인다.
     const candidates = [
-      ...monitors.map((monitor) => {
+      ...current.monitors.map((monitor) => {
         const result = monitorState(monitor);
         const incident = monitor.activeIncident?.active ? monitor.activeIncident : undefined;
         const text = `${monitor.name} ${result.state === 'error' ? `응답 없음${incident ? `, ${formatDuration(incident.durationSec)}째` : ''}` : result.detail}`;
         return { ...result, text, to: serverPath(server.id, 'uptime', monitor.id) };
       }),
-      ...(infrastructure ? [infrastructureState(infrastructure)].map((result) => ({ ...result, text: result.detail, to: serverPath(server.id, 'infrastructure') })) : []),
-      ...apps.map((app) => {
+      ...(current.infrastructure ? [infrastructureState(current.infrastructure)].map((result) => ({ ...result, text: result.detail, to: serverPath(server.id, 'infrastructure') })) : []),
+      ...current.apps.map((app) => {
         const result = appState(app);
         return { ...result, text: `${app.name} ${result.detail}`, to: serverPath(server.id, appCapability(app), app.id) };
       }),
@@ -159,14 +180,14 @@ export function buildServerRows(input: {
     // 대기도 까닭을 적는다. 대상이 없으면 링크 없는 문구다. 대상 목록을 불러오지 못했으면 없다고 단정하지 않는다.
     const culprit = state === 'healthy' ? undefined
       : candidates.find((candidate) => candidate.state === state)
-        ?? (input.monitors && input.apps && input.infrastructure ? { text: '연결한 대상 없음', to: undefined } : undefined);
+        ?? (known.monitors && known.apps && known.infrastructure ? { text: '연결한 대상 없음', to: undefined } : undefined);
 
-    const appsWith = (capability: 'logs' | 'api' | 'metrics') => apps.filter((app) => app.signals.includes(SIGNAL_OF[capability]));
+    const appsWith = (capability: 'logs' | 'api' | 'metrics') => current.apps.filter((app) => app.signals.includes(SIGNAL_OF[capability]));
     const logApps = appsWith('logs');
-    const errorLogs = input.apps && input.logSummaries && logApps.length > 0
+    const errorLogs = known.apps && input.logSummaries && logApps.length > 0
       ? logApps.reduce((sum, app) => sum + (input.logSummaries!.find((summary) => summary.serviceId === app.id)?.error ?? 0), 0)
       : undefined;
-    const uptimes = monitors.map((monitor) => monitor.uptime).filter((value): value is number => value !== undefined);
+    const uptimes = current.monitors.map((monitor) => monitor.uptime).filter((value): value is number => value !== undefined);
 
     return {
       server,
@@ -174,28 +195,37 @@ export function buildServerRows(input: {
       state,
       cause: culprit && { text: culprit.text, to: culprit.to },
       capabilities: {
-        uptime: worst(monitors.map((monitor) => monitorState(monitor).state)),
-        infrastructure: infrastructure ? infrastructureState(infrastructure).state : null,
+        uptime: worst(current.monitors.map((monitor) => monitorState(monitor).state)),
+        infrastructure: current.infrastructure ? infrastructureState(current.infrastructure).state : null,
         logs: worst(logApps.map((app) => appState(app).state)),
         api: worst(appsWith('api').map((app) => appState(app).state)),
         metrics: worst(appsWith('metrics').map((app) => appState(app).state)),
       },
-      cpu: infrastructure?.cpuUsage,
-      memory: infrastructure?.memoryUsage,
-      disk: infrastructure?.diskUsage,
+      cpu: current.infrastructure?.cpuUsage,
+      memory: current.infrastructure?.memoryUsage,
+      disk: current.infrastructure?.diskUsage,
       uptime: uptimes.length ? Math.min(...uptimes) : undefined,
       errorLogs,
       // 로그 요약만 실패했으면 로그 앱이 없는 서버는 여전히 수집 안 함이다.
       unavailable: [
-        ...(input.infrastructure ? [] : ['cpu', 'memory', 'disk'] as const),
-        ...(input.monitors ? [] : ['uptime'] as const),
-        ...(!input.apps || (!input.logSummaries && logApps.length > 0) ? ['errorLogs'] as const : []),
+        ...(known.infrastructure ? [] : ['cpu', 'memory', 'disk'] as const),
+        ...(known.monitors ? [] : ['uptime'] as const),
+        ...(!known.apps || (!input.logSummaries && logApps.length > 0) ? ['errorLogs'] as const : []),
       ],
       unknownCapabilities: [
         ...(input.monitors ? [] : ['uptime'] as const),
         ...(input.infrastructure ? [] : ['infrastructure'] as const),
         ...(input.apps ? [] : ['logs', 'api', 'metrics'] as const),
       ],
+      staleCapabilities: [
+        ...(input.monitors && !known.monitors ? ['uptime'] as const : []),
+        ...(input.infrastructure && !known.infrastructure ? ['infrastructure'] as const : []),
+        ...(input.apps && !known.apps ? ['logs', 'api', 'metrics'] as const : []),
+      ],
     };
   }).sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state] || a.server.name.localeCompare(b.server.name));
 }
+
+/** 이 기능의 상태를 지금 알 수 없다: 목록을 불러오지 못했거나 이전에 불러온 목록이다. */
+export const capabilityUnverified = (row: ServerRow, capability: ServerCapability) =>
+  row.unknownCapabilities.includes(capability) || row.staleCapabilities.includes(capability);

@@ -10,18 +10,24 @@ import { api, type UptimeMonitorInput } from '../../../services/api';
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
+import { useListReturn } from '../useListReturn';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
 
 /** 업타임 탭: 모니터가 없으면 연결 안내, 하나면 그 상세, 여럿이면 목록. 주소에 모니터가 있으면 그 상세. */
-export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot }: ServerCapabilityTabProps) {
+export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot, autoRefresh }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
   const serverId = row.server.id;
-  const monitors = row.targets.monitors;
+  // 상세에서 삭제한 모니터. 삭제 뒤의 다시 불러오기가 실패하면 이전 목록에 남아 있으므로 여기서 뺀다.
+  // 성공한 목록에는 어차피 없다.
+  const [deleted, setDeleted] = useState<ReadonlySet<string>>(new Set());
+  const monitors = deleted.size ? row.targets.monitors.filter((monitor) => !deleted.has(monitor.id)) : row.targets.monitors;
   const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => monitors.find((monitor) => monitor.id === id), Boolean(unknown || stale));
   const firstScreen = serverPath(serverId, 'uptime');
+  // 목록에서 연 상세는 그 목록의 주소(검색어, 필터, 보기 방식)로 돌아간다.
+  const listPath = useListReturn(firstScreen, targetId);
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
 
@@ -46,9 +52,11 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     show(serverPath(to, 'uptime', monitor.id));
   };
 
-  const removed = async () => {
+  // 다시 불러온 뒤에 뺀다. 먼저 빼면 이동하기 전에 "이 서버의 모니터가 아닙니다"가 잠깐 보인다.
+  const removed = async (id: string) => {
     await onChanged();
-    show(firstScreen);
+    setDeleted((current) => new Set(current).add(id));
+    show(listPath);
   };
 
   const current = targetId ? monitors.find((monitor) => monitor.id === targetId) : monitors.length === 1 ? monitors[0] : undefined;
@@ -78,15 +86,15 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     if (current) {
       return (
         <UptimeMonitorPanel key={current.id} monitorId={current.id}
-          back={several ? { label: '업타임 탭으로', to: firstScreen } : { label: '서버 개요', to: serverPath(serverId) }}
-          listLink={several && <TabBackLink label="모니터 목록" to={firstScreen} />}
-          onDeleted={() => void removed()} onChanged={onChanged} refreshToken={refreshToken}
+          back={several ? { label: '업타임 탭으로', to: listPath } : { label: '서버 개요', to: serverPath(serverId) }}
+          listLink={several && <TabBackLink label="모니터 목록" to={listPath} />}
+          onDeleted={() => void removed(current.id)} onChanged={onChanged} refreshToken={refreshToken} autoRefresh={autoRefresh}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       );
     }
     // 목록은 서버 상세가 불러온 모니터를 쓴다. 갱신의 주체는 서버 상세 하나다. 보기 전환은 탭 줄의 조작 자리에서 추가 버튼 앞이다.
     return (
-      <UptimeMonitorList monitors={monitors} filter={(monitor) => monitor.serverId === serverId} searchLabel="모니터 검색"
+      <UptimeMonitorList monitors={monitors} stale={stale} onRetry={onRetry} filter={(monitor) => monitor.serverId === serverId} searchLabel="모니터 검색"
         hrefFor={(monitor) => serverPath(serverId, 'uptime', monitor.id)} createDefaults={{ serverId }} onChanged={onChanged}
         renderControls={({ viewToggle }) => <TabAction slot={actionSlot}>{viewToggle}{addButton}</TabAction>} />
     );

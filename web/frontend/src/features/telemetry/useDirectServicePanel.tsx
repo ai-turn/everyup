@@ -29,6 +29,8 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   loading: boolean;
   error: string | null;
   reload: () => void;
+  /** 키 재발급, 연결 중지, 삭제 요청이 진행 중이다. 패널은 이 동안 새로고침 신호로 다시 불러오지 않는다. */
+  processing: boolean;
   /** DirectConnectionMeta에 그대로 넘길 연결 관련 props (그룹 관련 props는 포함하지 않는다) */
   connection: { isActive: boolean; apiKeyMasked?: string; lastSeenAt?: string | null; onRotateKey: () => void; onRevoke: () => void; collection: { tone: StatusTone; label: string } };
   /** 삭제 또는 "신호 연결 해제" 버튼 */
@@ -161,6 +163,7 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
     error,
     // 다시 시도의 로딩 표시는 여기서 켠다. 처음 불러올 때는 초기값이 켜 둔다.
     reload: () => { setLoading(true); setError(null); setLoadKey((key) => key + 1); },
+    processing,
     connection: {
       isActive: service?.isActive ?? false,
       apiKeyMasked: service?.apiKeyMasked,

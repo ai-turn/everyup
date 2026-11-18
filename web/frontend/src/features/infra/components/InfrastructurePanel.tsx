@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import { Button, ButtonLink, COLLECTION_STATUS_LABEL, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
+import { useHeldToken } from '../../../hooks/useHeldToken';
 import { useInfraMetrics } from '../../../hooks/useInfra';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
@@ -69,7 +70,8 @@ export function InfrastructurePanel({ resourceId, resource: given, serverName, o
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<InfrastructureResourceSetup | null>(null);
   // 마운트 때의 refreshToken은 첫 조회와 같으므로 합쳐도 처음에 한 번만 불러온다.
-  const { data: metrics, loading: metricsLoading, error: metricsError } = useInfraMetrics(resourceId, range, refreshKey + refreshToken);
+  // 변경 요청이 진행 중일 때의 새로고침 신호는 버린다(변경 전의 응답이 변경 뒤의 화면을 덮지 않게).
+  const { data: metrics, loading: metricsLoading, error: metricsError } = useInfraMetrics(resourceId, range, refreshKey + useHeldToken(refreshToken, processing));
   const refresh = () => setRefreshKey((value) => value + 1);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);

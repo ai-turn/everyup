@@ -50,6 +50,15 @@ test('an app opens its logs in the tab and a pattern narrows them', async ({ pag
   await expect(panel(page).getByText(new RegExp(`^${count.toLocaleString()}건 중`))).toBeVisible();
 });
 
+test('the app list link returns to the card view the app was opened from', async ({ page }) => {
+  await page.goto(`./servers/${EDGE}/logs?view=card`);
+  await panel(page).getByRole('link', { name: /checkout-api/ }).first().click();
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'checkout-api' })).toBeVisible();
+  await panel(page).getByRole('link', { name: '앱 목록', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/logs\\?view=card$`));
+  await expect(page.getByRole('button', { name: '카드', exact: true })).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('connecting logs to an empty server keeps the key guidance open and the app lands on this server', async ({ page }) => {
   await page.goto('./servers');
   const emptyRow = serverRows(page).filter({ has: page.getByRole('link', { name: 'staging-empty', exact: true }) });

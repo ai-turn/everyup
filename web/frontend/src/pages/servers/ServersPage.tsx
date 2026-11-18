@@ -6,7 +6,8 @@ import {
 import { ServerTable } from '../../features/servers/components/ServerTable';
 import { NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
 import { STATE_LABEL, type ServerRow } from '../../features/servers/serverStatus';
-import { useServers } from '../../features/servers/useServers';
+import { partialFailureMessage, useServers } from '../../features/servers/useServers';
+import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRefreshControls';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import { api, type Project } from '../../services/api';
@@ -52,7 +53,7 @@ export function ServersPage() {
   const search = query.trim().toLowerCase();
   const status = parseStatus(params.get('status'));
   const requestedGroup = params.get('group');
-  const { rows, loading, error, failed, reload } = useServers();
+  const { rows, loading, error, failed, updatedAt, reload, poll } = useServers();
   // 그룹 이름과 Docker 환경 안내는 보조 정보다. 실패해도 목록은 그린다.
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [hasDockerEnvironments, setHasDockerEnvironments] = useState(false);
@@ -69,7 +70,7 @@ export function ServersPage() {
   }, [extrasKey]);
 
   const refresh = () => { reload(); setExtrasKey((key) => key + 1); };
-  useAutoRefresh(reload, 30_000);
+  useAutoRefresh(poll, 30_000);
   const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
 
   const setParam = (key: string, value: string | null) => setParams((current) => {
@@ -132,6 +133,8 @@ export function ServersPage() {
               <option value={NO_GROUP}>미분류</option>
             </Select>
           )}
+          {/* 서버 상세의 머리말과 같은 표기. 자동 갱신 스위치는 서버 상세에만 둔다. */}
+          <div className="ml-auto"><UptimeRefreshControls label="서버 데이터 갱신" updatedAt={updatedAt} refreshing={false} /></div>
         </ListToolbar>
       )}
 
@@ -139,7 +142,7 @@ export function ServersPage() {
         <div className="mb-4"><LoadErrorBanner title="서버 목록을 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} /></div>
       )}
       {!error && failed.length > 0 && (
-        <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={`${failed.join(', ')} 정보를 제외한 결과입니다.`} onRetry={reload} retrying={loading} /></div>
+        <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={reload} retrying={loading} /></div>
       )}
 
       {loading && !hasRows && !error ? <ServerListSkeleton />

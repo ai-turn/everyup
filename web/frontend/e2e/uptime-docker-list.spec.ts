@@ -37,7 +37,7 @@ test('Uptime lists independent monitors only (ADR 0007)', async ({ page }) => {
   await expect(page.getByRole('combobox', { name: '검사 출처' })).toHaveCount(0);
 });
 
-test('empty Uptime points Docker users to their Docker environment', async ({ page }) => {
+test('an empty server uptime tab shows its add prompt and the sidebar still reaches Docker environments', async ({ page }) => {
   const state = await uptimeFixture(page); state.monitors = [];
   await page.goto('./servers/server-1/uptime');
   await expect(page.getByRole('heading', { name: '이 서버의 업타임 모니터를 추가하세요' })).toBeVisible();

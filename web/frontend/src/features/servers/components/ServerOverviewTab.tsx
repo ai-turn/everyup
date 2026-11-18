@@ -6,7 +6,7 @@ import { formatDuration } from '../../../utils/incidentFormat';
 import { WARNING_PCT } from '../../infra/usage';
 import { RecentUptimeChecks } from '../../uptime/components/RecentUptimeChecks';
 import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from '../serverPaths';
-import { capabilityStateLabel, capabilityTargets, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
+import { capabilityStateLabel, capabilityTargets, capabilityUnverified, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
 
 const percent = (value: number | undefined, digits: number) => value === undefined ? '-' : `${value.toFixed(digits)}%`;
 const count = (value: number) => `${value}개`;
@@ -25,13 +25,13 @@ function stats(row: ServerRow, capability: ServerCapability, known: boolean): St
   }
 }
 
-function MonitorChecks({ monitor }: { monitor: UptimeMonitor }) {
+function MonitorChecks({ monitor, stale }: { monitor: UptimeMonitor; stale: boolean }) {
   return (
     <div className="min-w-0">
       <p className="mb-1 truncate type-caption text-text-secondary">{monitor.name}</p>
       {!monitor.recentChecks ? <p className="type-caption text-text-muted">체크 기록 확인 불가</p>
         : monitor.recentChecks.length === 0 ? <p className="type-caption text-text-muted">{monitor.isActive ? '첫 체크 대기' : '체크 기록 없음'}</p>
-          : <RecentUptimeChecks metrics={monitor.recentChecks} paused={!monitor.isActive} />}
+          : <RecentUptimeChecks metrics={monitor.recentChecks} paused={!monitor.isActive} stale={stale} />}
     </div>
   );
 }
@@ -59,7 +59,7 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
         </dl>
         {monitors.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {monitors.map((monitor) => <MonitorChecks key={monitor.id} monitor={monitor} />)}
+            {monitors.map((monitor) => <MonitorChecks key={monitor.id} monitor={monitor} stale={!known} />)}
           </div>
         )}
       </div>
@@ -72,8 +72,8 @@ export function ServerOverviewTab({ row, onOpen }: {
   row: ServerRow;
   onOpen: (capability: ServerCapability) => void;
 }) {
-  // 대상 목록을 불러오지 못한 기능은 연결 여부를 모른다. 경고가 아니므로 대기 톤으로, 연결된 기능들 다음에 둔다.
-  const unknown = (key: ServerCapability) => row.unknownCapabilities.includes(key);
+  // 대상 목록을 불러오지 못했거나 이전 목록인 기능은 지금 상태를 모른다. 경고가 아니므로 대기 톤으로, 연결된 기능들 다음에 둔다.
+  const unknown = (key: ServerCapability) => capabilityUnverified(row, key);
   const connected = SERVER_CAPABILITIES
     .filter(({ key }) => row.capabilities[key] !== null || unknown(key))
     .map((item) => ({ ...item, known: !unknown(item.key), tone: row.capabilities[item.key] ?? 'idle' }))
@@ -94,7 +94,8 @@ export function ServerOverviewTab({ row, onOpen }: {
   }
 
   // 장애가 하나면 머리말의 원인 링크가 이미 같은 말을 한다. 둘 이상일 때만 배너로 모두 나열한다. 오래된 것부터.
-  const incidents = row.targets.monitors
+  // 이전에 불러온 모니터의 장애를 지금의 장애처럼 나열하지 않는다.
+  const incidents = (unknown('uptime') ? [] : row.targets.monitors)
     .filter((monitor) => monitor.activeIncident?.active)
     .sort((a, b) => (b.activeIncident?.durationSec ?? 0) - (a.activeIncident?.durationSec ?? 0));
 

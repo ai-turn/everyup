@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Button, ButtonLink, EmptyState, MaterialIcon, SegmentedControl, Tabs, TimeRangePicker, tabId, tabPanelId, type CollectionStatus, type TabItem } from '../../../components/common';
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
+import { useHeldToken } from '../../../hooks/useHeldToken';
 import { api, type ObservedService } from '../../../services/api';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { ApiExclusionsSettings } from '../../api-requests/ApiExclusionsSettings';
@@ -44,11 +45,12 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
 }) {
   const { range, tab: view, traceId, update } = useRequestQuery();
   const [refreshKey, setRefreshKey] = useState(0);
-  const reloadKey = refreshKey + refreshToken;
-  const window = useRequestWindow(range, reloadKey);
-  const { service, loading, error, reload, connection, removalButton, dialogs, projectFields } = useDirectServicePanel(serviceId, 'traces', onRemoved, {
+  const { service, loading, error, reload, processing, connection, removalButton, dialogs, projectFields } = useDirectServicePanel(serviceId, 'traces', onRemoved, {
     service: given, onChanged, standalone, assignProject: standalone,
   });
+  // 변경 요청이 진행 중일 때의 새로고침 신호는 버린다(변경 전의 응답이 변경 뒤의 화면을 덮지 않게).
+  const reloadKey = refreshKey + useHeldToken(refreshToken, processing);
+  const window = useRequestWindow(range, reloadKey);
   // 트레이스 수신 기준. lastSeenAt은 로그 수신으로도 갱신되어 트레이스를 받은 적 없는 앱도 수신 중으로 보인다.
   const [collection, setCollection] = useState<CollectionStatus | undefined>();
   // 저장한 제외 경로. 옛 상세는 패널을 다시 불러오지 않고 이 값으로 개수를 맞춘다(다시 불러오면 열어 둔 칸이 닫힌다).

@@ -103,8 +103,8 @@ export function DeleteServerDialog({ row, onClose, onDeleted, onFailed }: {
           <TargetCountList rows={[row]} />
           <p>수집된 데이터도 함께 삭제됩니다.</p>
         </div>
-      ) : row.unknownCapabilities.length > 0
-        // 알려진 대상이 없어도 불러오지 못한 목록에 있을 수 있다. 없다고 단정하지 않는다.
+      ) : row.unknownCapabilities.length > 0 || row.staleCapabilities.length > 0
+        // 알려진 대상이 없어도 불러오지 못한 목록에 있을 수 있다(이전 목록이면 그 뒤에 생겼을 수 있다). 없다고 단정하지 않는다.
         ? <p>대상 목록을 불러오지 못해 함께 삭제될 대상을 확인하지 못했습니다. 연결된 대상이 있으면 함께 삭제됩니다.</p>
         : <p>이 서버에는 연결된 대상이 없습니다.</p>}
       description={error && <span role="alert" className="text-status-error">{error}</span>}

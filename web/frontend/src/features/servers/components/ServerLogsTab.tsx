@@ -12,6 +12,7 @@ import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTel
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
+import { useListReturn } from '../useListReturn';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
@@ -27,6 +28,8 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
   const logIds = new Set(capabilityTargets(row.targets, 'logs').map((target) => target.id));
   const apps = row.targets.apps.filter((app) => logIds.has(app.id));
   const firstScreen = serverPath(serverId, 'logs');
+  // 앱 목록의 보기 방식(?view=)은 주소에 있다. 목록에서 연 앱은 그 주소로 돌아간다.
+  const listPath = useListReturn(firstScreen, targetId);
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
 
@@ -61,7 +64,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
 
   const removed = async () => {
     await onChanged();
-    show(firstScreen);
+    show(listPath);
   };
 
   const label = CONNECT_LABEL.logs;
@@ -87,8 +90,8 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     }
     if (current) {
       return (
-        <DirectLogsPanel key={current.id} serviceId={current.id} service={current} back={{ label: '로그 탭으로', to: firstScreen }}
-          listLink={<TabBackLink label="앱 목록" to={firstScreen} />}
+        <DirectLogsPanel key={current.id} serviceId={current.id} service={current} back={{ label: '로그 탭으로', to: listPath }}
+          listLink={<TabBackLink label="앱 목록" to={listPath} />}
           onRemoved={() => void removed()} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       );

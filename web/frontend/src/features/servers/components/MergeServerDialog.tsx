@@ -49,7 +49,7 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMe
   const summaryOf = (candidate: ServerRow) => {
     const labels = targetCountLabels(countTargets(candidate.targets));
     if (labels.length > 0) return labels.join(', ');
-    return candidate.unknownCapabilities.length > 0 ? '대상 확인 불가' : '대상 없음';
+    return candidate.unknownCapabilities.length > 0 || candidate.staleCapabilities.length > 0 ? '대상 확인 불가' : '대상 없음';
   };
 
   const toggle = (id: string) => setChecked((current) => {
@@ -89,7 +89,7 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMe
   };
 
   const knownTargets = selected.some((candidate) => hasTargets(candidate.targets));
-  const unknownTargets = selected.some((candidate) => candidate.unknownCapabilities.length > 0);
+  const unknownTargets = selected.some((candidate) => candidate.unknownCapabilities.length > 0 || candidate.staleCapabilities.length > 0);
 
   return (
     // 배경 클릭은 보조 수단이다. Escape와 닫기·취소 버튼이 키보드에서 같은 일을 한다.

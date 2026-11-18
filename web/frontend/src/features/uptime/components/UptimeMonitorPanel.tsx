@@ -5,6 +5,7 @@ import { Button, ButtonLink, ConfirmDialog, DetailMeta, MaterialIcon, SegmentedC
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useAutoRefresh } from '../../../hooks/useAutoRefresh';
 import { useGroupTrail } from '../../../hooks/useGroupTrail';
+import { useHeldToken } from '../../../hooks/useHeldToken';
 import { api, type TimelineIncident, type UptimeMonitor, type UptimeMonitorInput, type UptimeMonitorMetric } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { formatDuration, formatIncidentTime } from '../../../utils/incidentFormat';
@@ -159,7 +160,7 @@ function MonitorCrumb({ name }: { name: string }) {
 }
 
 /** 업타임 모니터 하나의 상세 본문. 모니터 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extraActions, onChanged, refreshToken, standalone = false }: {
+export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extraActions, onChanged, refreshToken = 0, autoRefresh: serverAutoRefresh = true, standalone = false }: {
   monitorId: string;
   /** 삭제가 끝난 뒤 */
   onDeleted: () => void;
@@ -173,6 +174,8 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
   onChanged?: () => void | Promise<void>;
   /** 화면의 새로고침을 누를 때마다 바뀐다. 바뀌면(마운트 때는 제외) 패널의 데이터를 다시 불러온다. */
   refreshToken?: number;
+  /** 서버 탭: 머리말의 자동 갱신 스위치. 패널의 체크 이력 갱신도 이 값을 따르고, 패널은 자기 스위치와 갱신 시각을 그리지 않는다. */
+  autoRefresh?: boolean;
   /** 옛 업타임 상세(/uptime/:id)처럼 패널이 페이지 전체일 때: 제목이 h1이고 경로 표시를 패널이 정한다. Task 13에서 없앤다. */
   standalone?: boolean;
 }) {
@@ -182,7 +185,8 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
   const showBack = standalone && !trail && back.to !== location.pathname;
 
   const { monitor, metrics, summary, history, incidents, failures, loading, refreshing, errors, notFound, updatedAt, load } = useUptimeMonitorDetail(monitorId);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [ownAutoRefresh, setAutoRefresh] = useState(true);
+  const autoRefresh = standalone ? ownAutoRefresh : serverAutoRefresh;
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [range, setRange] = useState<ResponseRange>('6h');
   // 버킷 차트는 자기 데이터를 따로 불러오므로 새로고침 신호만 받는다.
@@ -191,6 +195,8 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [processing, setProcessing] = useState(false);
+  // 수정 저장 중. 일시정지·삭제(processing)와 달리 버튼을 막지 않지만 새로고침 신호는 미룬다.
+  const [saving, setSaving] = useState(false);
   // 체크 이력은 이 패널만 가진 데이터라 패널이 갱신한다.
   useAutoRefresh(refresh, 30_000, autoRefresh && !editing && !deleting && !processing);
   const alive = useRef(true);
@@ -198,18 +204,25 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
 
   useEffect(() => { void load(); }, [load]);
   // 화면의 새로고침이 패널의 새로고침을 겸한다. 마운트 때의 값은 건너뛴다(위의 첫 조회와 겹친다).
-  const seenToken = useRef(refreshToken);
+  // 변경 요청이 진행 중일 때의 신호는 버린다. 변경이 끝나면 다시 불러온다.
+  const token = useHeldToken(refreshToken, processing || saving);
+  const seenToken = useRef(token);
   useEffect(() => {
-    if (seenToken.current === refreshToken) return;
-    seenToken.current = refreshToken;
+    if (seenToken.current === token) return;
+    seenToken.current = token;
     void load();
-  }, [refreshToken, load]);
+  }, [token, load]);
 
   const updateMonitor = async (input: UptimeMonitorInput) => {
     if (!monitor) return;
-    await api.updateUptimeMonitor(monitor.id, { ...input, serverId: monitor.serverId, method: monitor.method, expectedStatus: input.expectedStatus ?? monitor.expectedStatus, isActive: monitor.isActive });
-    await load();
-    await onChanged?.();
+    setSaving(true);
+    try {
+      await api.updateUptimeMonitor(monitor.id, { ...input, serverId: monitor.serverId, method: monitor.method, expectedStatus: input.expectedStatus ?? monitor.expectedStatus, isActive: monitor.isActive });
+      await load();
+      await onChanged?.();
+    } finally {
+      if (alive.current) setSaving(false);
+    }
   };
 
   const toggleActive = async () => {
@@ -260,10 +273,10 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
   const failedSources = [errors.monitor && '모니터', errors.metrics && '최근 체크', errors.summary && '30일 요약', errors.history && '90일 이력', (errors.incidents || errors.failures) && '장애 이력'].filter(Boolean);
   const actionsDisabled = processing || refreshing || Boolean(errors.monitor);
   const Heading = standalone ? 'h1' : 'h2';
-  // 서버 상세에서는 머리말의 새로고침 하나가 패널까지 갱신한다(refreshToken).
-  const refreshControls = (
+  // 서버 상세에서는 머리말의 새로고침과 자동 갱신 스위치가 패널까지 제어한다(refreshToken, autoRefresh). 옛 화면만 자기 조작을 그린다.
+  const refreshControls = standalone && (
     <UptimeRefreshControls updatedAt={updatedAt} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={(enabled) => { setAutoRefresh(enabled); if (enabled) refresh(); }}
-      onRefresh={standalone ? refresh : undefined} disabled={processing} />
+      onRefresh={refresh} disabled={processing} />
   );
   // 패널 안의 절 제목은 패널 제목 한 단계 아래다.
   const Section = standalone ? 'h2' : 'h3';
@@ -296,8 +309,6 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
           <UptimeLatestCheck monitor={monitor} metrics={metrics} incidents={incidents}
             incidentsError={errors.monitor ? '모니터 상태를 갱신한 뒤 다시 확인하세요.' : errors.incidents} />
           <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
-          {/* 서버 탭에서는 갱신 시각과 자동 갱신이 상태 줄 오른쪽 끝이다(다른 패널의 기간 선택 자리). */}
-          {!standalone && <div className="ml-auto">{refreshControls}</div>}
         </>}
         fields={metaFields(monitor, target, standalone)}
         collapseOnMobile collapseLabel="모니터 정보" collapsed={!standalone}
@@ -322,7 +333,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
             ...(monitor.certExpiresAt ? [certStat(monitor.certExpiresAt)] : []),
           ]} />
         </section>
-        <ResponseTimeChart monitorId={monitor.id} incidents={incidents ?? []} failures={(failures ?? []).map(failureEvent)} range={range} refreshKey={refreshKey + (refreshToken ?? 0)} onRangeChange={setRange} headingLevel={Section} />
+        <ResponseTimeChart monitorId={monitor.id} incidents={incidents ?? []} failures={(failures ?? []).map(failureEvent)} range={range} refreshKey={refreshKey + token} onRangeChange={setRange} headingLevel={Section} />
         <UptimeOverview
           stats={[]}
           historyUptime={history && history.days.length > 0 ? history.percentage : undefined}

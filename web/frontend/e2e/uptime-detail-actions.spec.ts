@@ -16,8 +16,16 @@ test('[10] detail pause/resume blocks competing controls and recovers from failu
     await pause.click();
     await expect(pause).toHaveAttribute('aria-busy', 'true');
     for (const name of ['일시정지', '수정', '삭제']) await expect(panel(page).getByRole('button', { name, exact: true })).toBeDisabled();
-    // 서버 탭의 패널에는 새로고침 버튼이 없다. 패널의 갱신 조작인 자동 갱신 스위치가 함께 막힌다.
-    await expect(panel(page).getByRole('switch', { name: '30초마다 자동 갱신' })).toBeDisabled();
+    // 새로고침은 서버 머리말에 하나다. 일시정지 요청이 진행 중인 동안 머리말의 새로고침을 눌러도
+    // 패널은 그 모니터를 다시 불러오지 않는다(변경 전의 응답이 변경 뒤의 화면을 덮지 않게).
+    const detailReads = () => state.requests.filter((request) => request.method === 'GET' && request.path === '/services/http-monitor').length;
+    const serverReads = () => state.requests.filter((request) => request.method === 'GET' && request.path === '/servers').length;
+    const before = { detail: detailReads(), servers: serverReads() };
+    const refresh = page.getByRole('button', { name: '새로고침', exact: true });
+    await refresh.click();
+    await expect.poll(serverReads).toBe(before.servers + 1);
+    await expect(refresh).toBeEnabled();
+    expect(detailReads()).toBe(before.detail);
     const box = await pause.boundingBox();
     await page.mouse.click(box!.x + 5, box!.y + 5);
     expect(state.requests.filter((request) => request.method === 'PUT')).toHaveLength(1);

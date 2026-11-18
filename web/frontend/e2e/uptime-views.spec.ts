@@ -38,9 +38,8 @@ test('grid is the default and switching views preserves search and reload', asyn
   await expect(targets.getByRole('article')).toHaveCount(2);
 });
 
-// 서버 화면에서 빠진 것으로 보이는 동작: 옛 화면은 상세에서 목록으로 돌아가는 링크(경로 표시의 `업타임`)가 검색어와 카드 보기를 되살렸다.
-// 서버 화면의 복귀 링크(`모니터 목록`)는 쿼리 없이 탭의 첫 화면을 연다.
-test.fixme('returning from a detail keeps the search and the card view', async ({ page }) => {
+// 상세의 `모니터 목록` 링크는 목록의 검색어와 카드 보기를 되살린다.
+test('returning from a detail keeps the search and the card view', async ({ page }) => {
   await uptimeFixture(page);
   await page.goto('./servers/server-1/uptime?q=api&view=card');
   const toggle = page.getByRole('group', { name: '대상 보기 방식' });

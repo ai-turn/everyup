@@ -7,6 +7,7 @@ export function TargetCountList({ rows }: { rows: ServerRow[] }) {
   }), { monitors: 0, apps: 0, infrastructure: 0 });
   const labels = targetCountLabels(total);
   const unknown = rows.some((row) => row.unknownCapabilities.length > 0);
+  const stale = rows.some((row) => row.staleCapabilities.length > 0);
   return (
     <>
       {labels.length > 0 && (
@@ -15,6 +16,7 @@ export function TargetCountList({ rows }: { rows: ServerRow[] }) {
         </ul>
       )}
       {unknown && labels.length > 0 && <p className="mt-2 type-body text-text-muted">일부 대상 목록을 불러오지 못해 개수가 빠졌을 수 있습니다.</p>}
+      {stale && labels.length > 0 && <p className="mt-2 type-body text-text-muted">이전에 불러온 정보라서 지금과 다를 수 있습니다.</p>}
     </>
   );
 }

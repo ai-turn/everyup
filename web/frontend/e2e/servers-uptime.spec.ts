@@ -251,13 +251,29 @@ test.describe('with an intercepted API', () => {
     await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
     const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
     await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
-    // 모니터 목록만 실패하면 서버 데이터에서 모니터가 빠지지만(확인 불가) 삭제된 것이 아니다.
+    // 모니터 목록만 다시 불러오지 못하면 이전 목록이 남고 업타임은 확인 불가다. 모니터가 삭제된 것이 아니다.
     state.failures.set('GET /services', 500);
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-    await expect(panel(page)).toContainText('업타임 모니터 정보를 불러오지 못했습니다');
+    await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^업타임/ })).toContainText('확인 불가');
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
     await expect(page.getByText('대상이 삭제되어 옮길 수 없습니다')).toHaveCount(0);
+  });
+
+  test('deleting the only monitor leaves no busy panel behind when the reload fails', async ({ page }) => {
+    const state = await uptimeFixture(page);
+    state.monitors = [monitor('http-monitor', { serverId: 's1' })];
+    state.responses.set('GET /servers', [s1]);
+    await page.goto('./servers/s1/uptime');
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+    await panel(page).getByRole('button', { name: '삭제', exact: true }).click();
+    // 삭제는 성공하고 그 뒤의 모니터 목록만 다시 불러오지 못한다. 이전 목록에는 지운 모니터가 남아 있다.
+    state.failures.set('GET /services', 500);
+    await page.getByRole('dialog', { name: '업타임을 삭제할까요?' }).getByRole('button', { name: '삭제', exact: true }).click();
+    await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^업타임/ })).toContainText('확인 불가');
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toHaveCount(0);
+    await expect(panel(page).getByRole('button', { name: '모니터 추가', exact: true })).toBeEnabled();
   });
 
   test('a failed reload after creating does not claim the monitor belongs elsewhere', async ({ page }) => {

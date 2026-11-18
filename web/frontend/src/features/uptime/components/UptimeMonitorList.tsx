@@ -29,7 +29,7 @@ function ServiceListSkeleton() {
 }
 
 /** 업타임 모니터 목록의 본문: 검색, 상태 필터, 보기 전환, 카드 보기의 선택과 일괄 작업, 최근 체크. */
-export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderControls, onChanged, monitors: given, searchLabel = '서비스 또는 대상 검색' }: {
+export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderControls, onChanged, monitors: given, stale = false, onRetry, searchLabel = '서비스 또는 대상 검색' }: {
   /** 이 목록이 다루는 모니터만 고른다 */
   filter: (monitor: UptimeMonitor) => boolean;
   hrefFor: (monitor: UptimeMonitor) => string;
@@ -44,6 +44,10 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
    * 변경한 뒤에는 onChanged로 부모가 다시 불러온다.
    */
   monitors?: UptimeMonitor[];
+  /** 부모가 준 모니터가 이전에 불러온 것이다(다시 불러오지 못했다). 자체 조회의 실패와 같게 표시하고 조작을 막는다. */
+  stale?: boolean;
+  /** stale일 때 다시 시도 */
+  onRetry?: () => void;
   /** 검색창의 안내 문구이자 접근 가능한 이름. 서버 탭은 "모니터 검색"이다. */
   searchLabel?: string;
 }) {
@@ -71,6 +75,8 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const own = useUptimeMonitorList(adding || bulkWorking || changingMonitor !== null || confirmingDelete, !given);
   const { loading, refreshing, error } = given ? { loading: false, refreshing: false, error: null } : own;
+  // 목록이 지금의 상태가 아니다: 자체 조회가 실패했거나, 부모가 이전 목록을 줬다.
+  const unverified = given ? stale : Boolean(error);
   const afterChange = async () => {
     if (!given) await own.reloadAfterChange();
     await onChanged?.();
@@ -129,7 +135,7 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
   };
   const toPause = selectedMonitors.filter((monitor) => monitor.isActive);
   const toResume = selectedMonitors.filter((monitor) => !monitor.isActive);
-  const bulkDisabled = bulkWorking || loading || Boolean(error) || changingMonitor !== null;
+  const bulkDisabled = bulkWorking || loading || unverified || changingMonitor !== null;
 
   const empty = filteredMonitors.length === 0;
   const hasTargets = monitors.length > 0;
@@ -155,7 +161,7 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
       <ListToolbar search={
         <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filteredMonitors.length} shortcut placeholder={searchLabel} aria-label={searchLabel} />
       }>
-        {!loading && !error && hasTargets && (
+        {!loading && !unverified && hasTargets && (
           <section aria-label="업타임 상태 요약">
             {/* 숫자를 누르면 그 상태만 본다(다시 누르면 해제). Uptime Kuma의 상태 필터를 요약에 겹쳤다. */}
             <div role="group" aria-label="상태로 거르기" className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
@@ -174,19 +180,19 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
         )}
       </ListToolbar>
 
-      {error && (
+      {unverified && (
         <section role="status" className="mb-6 flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <MaterialIcon name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
             <div>
               <p className="type-label text-text-base">업타임 정보를 불러오지 못했습니다</p>
-              <p className="mt-0.5 type-body text-text-muted">업타임 모니터: {error}</p>
+              {error && <p className="mt-0.5 type-body text-text-muted">업타임 모니터: {error}</p>}
               <p className="mt-1 type-body text-text-muted">
                 {hasTargets ? '목록은 이전에 불러온 정보입니다. 최신 상태는 확인할 수 없습니다.' : '모니터 상태를 확인할 수 없습니다.'}
               </p>
             </div>
           </div>
-          <Button variant="secondary" size="sm" className="min-w-28" loading={loading} onClick={() => void own.load()}>다시 시도</Button>
+          <Button variant="secondary" size="sm" className="min-w-28" loading={loading} onClick={() => (given ? onRetry?.() : void own.load())}>다시 시도</Button>
         </section>
       )}
 
@@ -210,18 +216,18 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
 
       {/* 대상이 있으면 검색·필터로 비어도 목록 제목 줄(보기 전환)은 남는다 — 빈 결과에서도 보기를 바꿀 수 있게. */}
       {loading && !hasTargets ? <ServiceListSkeleton /> : !hasTargets ? (
-        !error && <EmptyState icon="monitor_heart" title="표시할 업타임 대상이 없습니다" description="확인할 주소를 업타임 모니터로 추가해 보세요.">
+        !unverified && <EmptyState icon="monitor_heart" title="표시할 업타임 대상이 없습니다" description="확인할 주소를 업타임 모니터로 추가해 보세요.">
           <Button onClick={() => setAdding(true)}>추가</Button>
         </EmptyState>
       ) : (
         <section aria-label="업타임 대상" aria-busy={loading || undefined}>
           <h2 className="sr-only">모니터링 대상</h2>
-          {empty ? (!error && (status
+          {empty ? (!unverified && (status
             ? <EmptyState icon="monitor_heart" title={`${UPTIME_STATE_LIGHT[status][1]} 상태인 대상이 없습니다`} description="다른 상태를 고르거나 필터를 해제해 보세요.">
               <Button variant="secondary" onClick={() => setStatus(null)}>필터 해제</Button>
             </EmptyState>
             : <EmptyState icon="monitor_heart" title="검색 결과가 없습니다" description="검색어를 바꿔 다시 시도해 보세요." />)
-          ) : <UptimeTargets view={view} monitors={filteredMonitors} error={Boolean(error)} hrefFor={hrefFor}
+          ) : <UptimeTargets view={view} monitors={filteredMonitors} error={unverified} hrefFor={hrefFor}
             returnTo={returnTo} loading={loading || bulkWorking} changingMonitor={changingMonitor} onSetActive={(monitor) => void setActive(monitor)}
             selected={visibleSelection} onSelect={select} />}
         </section>

@@ -73,9 +73,9 @@ test('a successful empty registry shows the genuine empty state', async ({ page 
   await expect(page.getByRole('status')).toHaveCount(0);
 });
 
-// 서버 화면에서 빠진 것으로 보이는 동작: 옛 목록은 새로 불러오다 실패하면 이전 목록을 "확인 불가"로 남기고 "이전에 불러온" 안내를 보였다.
-// 서버 탭은 모니터 목록을 다시 불러오지 못하면 이전 목록을 버리고 실패 안내만 보인다(설계 6.7절의 "이전 데이터가 있으면 이전 정보임을 표시하고 유지한다"와 다르다).
-test.fixme('a failed refresh retains previous targets without presenting stale health as current', async ({ page }) => {
+// 모니터 목록을 다시 불러오지 못하면 이전 목록을 "확인 불가"로 남기고 "이전에 불러온" 안내를 보인다(설계 6.7절).
+// 서버 머리말의 일부 실패 안내도 role="status"이므로 패널 안의 안내만 본다.
+test('a failed refresh retains previous targets without presenting stale health as current', async ({ page }) => {
   const state: UptimeState = { monitors: [monitor('healthy-monitor', 'healthy'), monitor('other-monitor', 'healthy')], failed: false };
   await mockUptimeApi(page, state);
   await page.goto('./servers/server-1/uptime');
@@ -85,11 +85,11 @@ test.fixme('a failed refresh retains previous targets without presenting stale h
   const staleCard = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'healthy-monitor', exact: true }) });
   await expect(staleCard.getByText('확인 불가', { exact: true })).toBeVisible();
   await expect(staleCard.getByText('정상', { exact: true })).toHaveCount(0);
-  await expect(page.getByRole('status')).toContainText('이전에 불러온');
+  await expect(panel(page).getByRole('status')).toContainText('이전에 불러온');
   await expect(staleCard.getByRole('button', { name: 'healthy-monitor 일시정지', exact: true })).toBeDisabled();
   state.failed = false;
   await panel(page).getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(staleCard.getByText('일시정지', { exact: true })).toBeVisible();
   await expect(staleCard.getByRole('button', { name: 'healthy-monitor 재개', exact: true })).toBeEnabled();
-  await expect(page.getByRole('status')).toHaveCount(0);
+  await expect(panel(page).getByRole('status')).toHaveCount(0);
 });

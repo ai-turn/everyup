@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Button, ButtonLink, EmptyState, MaterialIcon, TimeRangePicker } from '../../../components/common';
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
+import { useHeldToken } from '../../../hooks/useHeldToken';
 import type { ObservedService } from '../../../services/api';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { DirectServiceMetricsTab } from '../../healthcheck/components/AgentServiceMetricsTab';
@@ -36,12 +37,13 @@ export function DirectMetricsPanel({ serviceId, service: given, onRemoved, back,
 }) {
   const { range, update } = useMetricQuery();
   const [refreshKey, setRefreshKey] = useState(0);
-  const reloadKey = refreshKey + refreshToken;
-  // 머리말의 수집 상태(옛 상세)와 본문 격자가 같은 health 응답을 쓴다.
-  const metricHealth = useMetricHealth({ kind: 'direct', observedServiceId: serviceId }, reloadKey);
-  const { service, loading, error, reload, connection, removalButton, dialogs, projectFields } = useDirectServicePanel(serviceId, 'metrics', onRemoved, {
+  const { service, loading, error, reload, processing, connection, removalButton, dialogs, projectFields } = useDirectServicePanel(serviceId, 'metrics', onRemoved, {
     service: given, onChanged, standalone, assignProject: standalone,
   });
+  // 변경 요청이 진행 중일 때의 새로고침 신호는 버린다(변경 전의 응답이 변경 뒤의 화면을 덮지 않게).
+  const reloadKey = refreshKey + useHeldToken(refreshToken, processing);
+  // 머리말의 수집 상태(옛 상세)와 본문 격자가 같은 health 응답을 쓴다.
+  const metricHealth = useMetricHealth({ kind: 'direct', observedServiceId: serviceId }, reloadKey);
 
   if (loading) return <div aria-busy="true" className="h-96 animate-pulse rounded-xl bg-ui-hover-soft" />;
   if (!service) {

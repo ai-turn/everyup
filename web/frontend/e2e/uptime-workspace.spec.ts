@@ -17,23 +17,24 @@ test('manual refresh keeps filters, a failed refresh is reported and recovery re
   state.failures.set('GET /services', 500);
   // 새로고침은 서버 머리말에 하나다.
   await page.getByRole('button', { name: '새로고침', exact: true }).click();
-  await expect(page.getByText('업타임 모니터 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  // 이전에 불러온 목록이 있으면 실패 안내는 목록 위에 나오고 목록은 남는다(옛 목록 화면과 같은 문구).
+  await expect(page.getByText('업타임 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
   state.failures.clear();
   state.monitors[0].status = 'unhealthy';
   await panel(page).getByRole('button', { name: '다시 시도', exact: true }).click();
-  await expect(page.getByText('업타임 모니터 정보를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('업타임 정보를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('article').getByText('장애', { exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('Public');
   await expect(page).toHaveURL(/view=card/);
 });
 
-// 서버 화면에서 빠진 것으로 보이는 동작: 옛 목록은 마지막 갱신 시각(`업타임 갱신`)을 보였고, 새로 불러오다 실패하면 그 시각과 이전 목록을
-// "확인 불가"로 남겨 두고 행 조작을 막았다. 서버 탭의 목록에는 갱신 시각이 없고, 실패하면 이전 목록 대신 실패 안내만 보인다.
-test.fixme('a failed refresh keeps its last successful timestamp and the previous list as unverified', async ({ page }) => {
+// 갱신 시각은 서버 머리말에 있다(서버 데이터를 마지막으로 성공해서 불러온 시각). 다시 불러오다 실패하면 그 시각과 이전 목록을
+// "확인 불가"로 남겨 두고 행 조작을 막는다.
+test('a failed refresh keeps its last successful timestamp and the previous list as unverified', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.clock.install();
   await page.goto('./servers/server-1/uptime?q=Public&view=card');
-  const stamp = page.getByRole('group', { name: '업타임 갱신' }).locator('> p');
+  const stamp = page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p');
   await expect(stamp).toContainText('갱신');
   await expect(page.getByRole('article')).toHaveCount(1);
   const previous = await stamp.textContent();
@@ -66,10 +67,9 @@ test('30 second polling skips hidden tabs and refreshes when the tab is shown ag
   await expect.poll(reads).toBe(initial + 2);
 });
 
-// 서버 화면에서 빠진 것으로 보이는 동작: 옛 목록에는 `30초마다 자동 갱신` 스위치가 있어 주기적 갱신을 멈출 수 있었고,
-// 갱신이 끝나지 않은 동안에는 다음 주기를 건너뛰고(겹친 갱신을 하나로) 새로고침 버튼을 막았다.
-// 서버 탭의 목록에는 스위치가 없고, 서버 데이터의 주기적 갱신은 이전 요청이 끝나지 않아도 새 요청을 보낸다.
-test.fixme('30 second polling can be paused and coalesces pending refreshes', async ({ page }) => {
+// `30초마다 자동 갱신` 스위치는 서버 머리말에 하나다. 갱신이 끝나지 않은 동안에는 다음 주기를 건너뛰고(겹친 갱신을 하나로)
+// 새로고침 버튼을 막는다.
+test('30 second polling can be paused and coalesces pending refreshes', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.clock.install();
   await page.goto('./servers/server-1/uptime');
@@ -82,6 +82,8 @@ test.fixme('30 second polling can be paused and coalesces pending refreshes', as
   expect(reads()).toBe(initial);
   await auto.click();
   await expect.poll(reads).toBe(initial + 1);
+  // 켜면서 보낸 요청이 끝나야 다음 주기가 겹친 갱신으로 건너뛰어지지 않는다.
+  await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeEnabled();
   const gate = deferred();
   state.holds.set('GET /services', gate.promise);
   try {
@@ -119,14 +121,19 @@ test('list shows recent checks and outage context inline without per-monitor req
   await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor$/);
 });
 
-// 서버 화면에서 빠진 것으로 보이는 동작: 상세에서 목록으로 돌아가는 링크가 검색어를 되살리지 않는다(uptime-navigation.spec.ts 참고).
-test.fixme('returning from a detail opened from the list keeps the search', async ({ page }) => {
-  await uptimeFixture(page);
+// 목록에서 연 상세의 `모니터 목록` 링크는 목록의 주소(검색어 포함)로 돌아간다.
+test('returning from a detail opened from the list keeps the search', async ({ page }) => {
+  const state = await uptimeFixture(page);
   await page.goto('./servers/server-1/uptime?q=Public');
   await page.getByRole('link', { name: 'Public API', exact: true }).click();
   await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor$/);
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  // 목록 → 상세 → 새로고침의 흐름에서 fixture가 처리하지 않은 요청이 없다.
+  await page.getByRole('button', { name: '새로고침', exact: true }).click();
+  await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeEnabled();
   await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('Public');
+  expect(state.unhandled).toEqual([]);
 });
 
 test('automatic refresh updates card history while selection and pause actions remain independent', async ({ page }) => {

@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
+import { useHeldToken } from '../../../hooks/useHeldToken';
 import type { ObservedService } from '../../../services/api';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { DirectServiceLogsTab } from '../../healthcheck/components/AgentServiceLogsTab';
@@ -38,7 +39,9 @@ export function DirectLogsPanel({ serviceId, service: given, onRemoved, back, li
   const [searchParams] = useSearchParams();
   const [range, setRange] = useState<GlobalTimeRange>(() => parseTimeRange(searchParams.get('range')) ?? '6h');
   const [refreshKey, setRefreshKey] = useState(0);
-  const { service, loading, error, reload, connection, removalButton, dialogs } = useDirectServicePanel(serviceId, 'logs', onRemoved, { service: given, onChanged, standalone });
+  const { service, loading, error, reload, processing, connection, removalButton, dialogs } = useDirectServicePanel(serviceId, 'logs', onRemoved, { service: given, onChanged, standalone });
+  // 변경 요청이 진행 중일 때의 새로고침 신호는 버린다(변경 전의 응답이 변경 뒤의 화면을 덮지 않게).
+  const token = useHeldToken(refreshToken, processing);
 
   if (loading) return <div aria-busy="true" className="h-96 animate-pulse rounded-xl bg-ui-hover-soft" />;
   if (!service) {
@@ -86,7 +89,7 @@ export function DirectLogsPanel({ serviceId, service: given, onRemoved, back, li
           <Button collapseLabel variant="secondary" onClick={() => setRefreshKey((value) => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
         </div>
       )}
-      <DirectServiceLogsTab observedServiceId={service.id} refreshKey={refreshKey + refreshToken} range={range} traceId={searchParams.get('traceId') ?? undefined} />
+      <DirectServiceLogsTab observedServiceId={service.id} refreshKey={refreshKey + token} range={range} traceId={searchParams.get('traceId') ?? undefined} />
       {dialogs}
     </div>
   );
