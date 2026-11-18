@@ -19,7 +19,7 @@ export function Footer() {
 
           <div className="flex items-center gap-4">
             <a
-              href="https://github.com/ai-turn/Monitoring"
+              href="https://github.com/ai-turn/everyup"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 hover:text-text-muted transition-colors"
@@ -28,7 +28,7 @@ export function Footer() {
               <span>GitHub</span>
             </a>
             <a
-              href="https://github.com/ai-turn/Monitoring/issues"
+              href="https://github.com/ai-turn/everyup/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-text-muted transition-colors"
