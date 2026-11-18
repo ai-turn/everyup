@@ -1078,11 +1078,24 @@ function mockRequestEndpoints(endpoint: string) {
 // 방금 추가해 아직 수신하지 않은 Collector — 백엔드처럼 info는 NO_DATA, 이력은 빈 배열이다.
 const awaitingFirstMetric = (id: string) => mockInfrastructureResources.some(row => row.id === id && !row.lastSeenAt);
 
+// 정상 운영 시나리오는 서버 목록과 개요 모두 문제가 없어야 한다. 사용률 경고(WARNING_PCT 70%)를 넘던 값과,
+// 차트의 흔들림(CPU ±12, 메모리 ±4, mockHostMetrics)이 70%에 닿던 값을 낮춘다. 다른 시나리오의 값은 그대로다.
+const NORMAL_USAGE: Record<string, Pick<InfrastructureResource, 'cpuUsage' | 'memoryUsage'>> = {
+  infra_mock_edge_01: { cpuUsage: 47.6, memoryUsage: 58.4 },
+  infra_mock_db_01: { memoryUsage: 61.2 },
+  infra_mock_worker_01: { cpuUsage: 46.3 },
+};
+
+const withScenarioUsage = <T extends InfrastructureResource>(resource: T, scenario: MockScenario): T =>
+  scenario === 'normal' && NORMAL_USAGE[resource.id] ? { ...resource, ...NORMAL_USAGE[resource.id] } : resource;
+
 function mockHostInfo(id: string) {
   if (awaitingFirstMetric(id)) throw new ApiError('No metric data yet for this host.', 'NO_DATA', 503);
-  const resource = mockInfrastructureResources.find(row => row.id === id);
+  const stored = mockInfrastructureResources.find(row => row.id === id);
+  // 목록(scenarioInfrastructureResources)과 같은 값이어야 현재 값과 차트가 어긋나지 않는다.
+  const resource = stored && withScenarioUsage(stored, getDemoScenario());
   const agent = mockAgents.find(row => row.id === id);
-  const index = resource ? mockInfrastructureResources.indexOf(resource) : Math.max(0, mockAgents.findIndex(row => row.id === id));
+  const index = stored ? mockInfrastructureResources.indexOf(stored) : Math.max(0, mockAgents.findIndex(row => row.id === id));
   const cpu = resource?.cpuUsage ?? [67.4, 18.5, 76.1, 28.4][index] ?? 25;
   const memory = resource?.memoryUsage ?? [72.8, 31.8, 62.4, 42.1][index] ?? 40;
   const disk = resource?.diskUsage ?? [41.2, 22.1, 35.7, 28.3][index] ?? 30;
@@ -1292,7 +1305,7 @@ function scenarioMetricHealth(scenario: MockScenario, serviceId: string, metrics
 function scenarioInfrastructureResources(scenario: MockScenario): InfrastructureResource[] {
   const resources = scenario === 'empty' ? mockInfrastructureResources.filter(resource => !initialInfrastructureIds.has(resource.id)) : mockInfrastructureResources;
   const fresh = new Date(Date.now() - 20_000).toISOString();
-  return resources.map(resource => withGroup(initialInfrastructureIds.has(resource.id) ? { ...resource,
+  return resources.map(resource => withGroup(initialInfrastructureIds.has(resource.id) ? { ...withScenarioUsage(resource, scenario),
     lastSeenAt: scenario === 'normal' ? fresh : resource.lastSeenAt ? fixtureTime(resource.lastSeenAt) : undefined,
     updatedAt: fixtureTime(resource.updatedAt) } : resource));
 }

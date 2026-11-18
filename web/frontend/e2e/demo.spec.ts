@@ -98,13 +98,17 @@ test.describe('live demo', () => {
     await expect(page.locator('section').filter({ hasText: '아직 모니터링 대상이 없습니다' }).getByRole('link', { name: 'Docker 연결', exact: true })).toBeVisible();
   });
 
-  // 정상 운영 시나리오의 인프라 사용률(70% 이상 셋)이 서버 목록과 같은 판정에서 확인 필요다. 결정 전까지 둔다(Task 14 보고서).
-  test.fixme('normal scenario shows that no action is needed', async ({ page }) => {
+  test('normal scenario shows that no action is needed', async ({ page }) => {
     await page.goto('./');
     await page.getByRole('combobox', { name: '데모 시나리오' }).click();
     await page.getByRole('option', { name: '정상 운영' }).click();
 
     await expect(page.getByText('현재 확인이 필요한 이상이 없습니다')).toBeVisible();
+    // 서버 목록도 같은 판정이다. 장애나 확인 필요인 서버가 없다.
+    await page.getByRole('link', { name: '서버', exact: true }).first().click();
+    const rows = page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr');
+    await expect(rows.first()).toBeVisible();
+    await expect(rows.filter({ hasText: /장애|확인 필요/ })).toHaveCount(0);
   });
 
   test('overview timeline lists outages from both history sources', async ({ page }) => {

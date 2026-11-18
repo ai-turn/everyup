@@ -25,10 +25,7 @@ test('the first traced timeout log links to a failed operation', () => {
 });
 
 for (const scenario of ['정상 운영', '확인 필요']) {
-  // ponytail: 정상 운영 시나리오에는 사용률 70% 이상인 인프라가 셋 있어서 서버 목록과 같은 판정을 쓰는 개요가 확인 필요 3건을 보인다.
-  // 데모 데이터를 바꿀지(시나리오 표의 normal 열) 기대를 바꿀지 정해지기 전까지 둔다(Task 14 보고서).
-  const run = scenario === '정상 운영' ? test.fixme : test;
-  run(`${scenario} demo collection preserves its intended status after three minutes`, async ({ page }) => {
+  test(`${scenario} demo collection preserves its intended status after three minutes`, async ({ page }) => {
     await page.clock.install();
     await page.goto('./');
     await page.getByRole('combobox', { name: '데모 시나리오' }).click();

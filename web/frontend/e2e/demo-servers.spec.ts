@@ -179,3 +179,24 @@ test('the attention scenario flags the metric over its threshold on its server',
   // normal 시나리오에는 임계값 초과가 없다.
   expect(inScenario('normal', () => rows().every(row => row.breachedApps.length === 0))).toBe(true);
 });
+
+test('the normal scenario has no server in trouble, and its host charts stay below the warning line', () => {
+  const rows = inScenario('normal', () => buildServerRows({
+    servers: mockRouter<Server[]>('/servers'),
+    monitors: mockRouter<UptimeMonitor[]>('/services?type=http,tcp'),
+    apps: mockRouter<ObservedService[]>('/observed-services'),
+    infrastructure: mockRouter<InfrastructureResource[]>('/infrastructure-resources'),
+    logSummaries: mockRouter<LogServiceSummary[]>('/logs/summary'),
+    metricCatalog: mockRouter<ObservedServiceMetricName[]>('/observed-services/metric-catalog'),
+  }));
+  expect(rows.filter(row => row.state === 'error' || row.state === 'warn').map(row => row.server.name)).toEqual([]);
+  // 현재 값과 차트가 같은 수준이다. 차트의 어느 점도 경고선(70%)에 닿지 않는다.
+  for (const resource of inScenario('normal', () => mockRouter<InfrastructureResource[]>('/infrastructure-resources')).filter(row => row.adapter === 'otel-collector')) {
+    const info = inScenario('normal', () => mockRouter<{ cpu: { usage: number }; memory: { usage: number } }>(`/hosts/${resource.id}/system/info`));
+    expect([info.cpu.usage, info.memory.usage]).toEqual([resource.cpuUsage, resource.memoryUsage]);
+    const { points } = inScenario('normal', () => mockRouter<{ points: { cpu: number; memUsage: number; diskUsage: number }[] }>(`/hosts/${resource.id}/system/metrics?range=24h`));
+    expect(Math.max(...points.flatMap(point => [point.cpu, point.memUsage, point.diskUsage]))).toBeLessThan(70);
+  }
+  // 확인 필요 시나리오의 높은 사용률은 그대로다.
+  expect(mockRouter<InfrastructureResource[]>('/infrastructure-resources').find(row => row.id === 'infra_mock_db_01')!.memoryUsage).toBe(84.6);
+});
