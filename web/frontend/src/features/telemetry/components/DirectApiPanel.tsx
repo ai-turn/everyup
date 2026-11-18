@@ -49,6 +49,8 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
   });
   // 트레이스 수신 기준. lastSeenAt은 로그 수신으로도 갱신되어 트레이스를 받은 적 없는 앱도 수신 중으로 보인다.
   const [collection, setCollection] = useState<CollectionStatus | undefined>();
+  // 저장한 제외 경로. 옛 상세는 패널을 다시 불러오지 않고 이 값으로 개수를 맞춘다(다시 불러오면 열어 둔 칸이 닫힌다).
+  const [savedPaths, setSavedPaths] = useState<string[] | null>(null);
   useEffect(() => {
     let current = true;
     api.getObservedServiceSetupStatus(serviceId)
@@ -105,8 +107,8 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
             ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} traceId={traceId} awaitingData={collection === 'waiting'} />
             : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} />}
         </div>
-        <ApiExclusionsSettings key={service.id} serviceId={service.id} paths={service.apiExcludePaths ?? []}
-          onSaved={() => { if (standalone) reload(); else void onChanged?.(); }} />
+        <ApiExclusionsSettings key={service.id} serviceId={service.id} paths={savedPaths ?? service.apiExcludePaths ?? []}
+          onSaved={(paths) => { setSavedPaths(paths); if (!standalone) void onChanged?.(); }} />
       </div>
       {dialogs}
     </div>

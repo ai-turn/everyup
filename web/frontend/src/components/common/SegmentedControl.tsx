@@ -17,7 +17,8 @@ interface SegmentedOption<T extends string> {
   value: T;
   /** 아이콘을 쓰면 label은 접근성 이름과 툴팁으로 유지한다. */
   icon?: string;
-  /** 선택지 대상의 상태 점. 점의 접근 가능한 이름과 툴팁은 toneLabel이다(§5.2). */
+  /** 선택지 대상의 상태 점. 점의 접근 가능한 이름은 toneLabel이다(§5.2).
+   *  정상이 아니면 toneLabel을 글자로도 보인다(터치 화면에는 툴팁이 없다). 정상은 점과 툴팁만 둔다(§5.1, 색을 덜 쓴다). */
   tone?: StatusTone;
   toneLabel?: string;
 }
@@ -33,35 +34,38 @@ const ICON_SIZES = {
 } as const;
 
 export function SegmentedControl<T extends string>({
-  options, value, onChange, size = 'sm', ariaLabel,
+  options, value, onChange, size = 'sm', ariaLabel, scroll = false,
 }: {
   options: readonly SegmentedOption<T>[];
   value: T;
   onChange: (value: T) => void;
   size?: keyof typeof SIZES;
   ariaLabel?: string;
+  /** 줄바꿈하지 않는다. 넘치면 호출자가 감싼 영역(overflow-x-auto) 안에서 가로로 스크롤한다. */
+  scroll?: boolean;
 }) {
   return (
     <div
       role="group"
       aria-label={ariaLabel}
-      className="inline-flex max-w-full flex-wrap items-center gap-0.5 rounded-lg p-px bg-ui-hover border border-ui-border"
+      className={`inline-flex ${scroll ? 'flex-nowrap' : 'max-w-full flex-wrap'} items-center gap-0.5 rounded-lg p-px bg-ui-hover border border-ui-border`}
     >
       {options.map((o) => {
         const active = o.value === value;
         return (
-          <Tooltip key={o.value} content={o.icon ? o.label : o.toneLabel}><button
+          <Tooltip key={o.value} content={o.icon ? o.label : o.tone === 'healthy' ? o.toneLabel : undefined}><button
             aria-label={o.icon ? o.label : undefined}
             aria-pressed={active}
             onClick={() => onChange(o.value)}
-            className={`inline-flex min-w-0 max-w-full items-center justify-center gap-1.5 ${o.icon ? ICON_SIZES[size] : SIZES[size]} font-medium rounded-md transition-colors ${
+            className={`inline-flex ${scroll ? 'shrink-0' : 'min-w-0 max-w-full'} items-center justify-center gap-1.5 ${o.icon ? ICON_SIZES[size] : SIZES[size]} font-medium rounded-md transition-colors ${
             active
             ? 'bg-ui-raised text-text-base shadow-sm forced-colors:bg-[Highlight] forced-colors:text-[HighlightText]'
             : 'text-text-muted hover:text-text-base'
             }`}
           >
-            {o.icon ? <MaterialIcon name={o.icon} /> : <span className="truncate">{o.label}</span>}
+            {o.icon ? <MaterialIcon name={o.icon} /> : <span className={`truncate ${scroll ? 'max-w-36' : ''}`}>{o.label}</span>}
             {o.tone && <span role="img" aria-label={o.toneLabel} className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[o.tone]}`} />}
+            {o.tone && o.tone !== 'healthy' && <span aria-hidden="true" className="shrink-0 type-caption text-text-muted">{o.toneLabel}</span>}
           </button></Tooltip>
         );
       })}

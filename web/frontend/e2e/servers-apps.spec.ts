@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import type { ObservedService, Server } from '../src/services/api';
 
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다. mock은 쓰기 요청을 메모리에 반영하지만
 // page.goto는 앱을 새로 띄워 그 메모리를 버린다. 변경 뒤에는 앱 안에서(뒤로 가기, 링크, 탭) 이동한다.
@@ -145,4 +146,87 @@ test('the app selector fits 320px without horizontal scroll', async ({ page }) =
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(await page.locator('#main-content').evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+});
+
+// 데모 데이터에 없는 앱 구성(앱이 늘어나는 서버, 이름이 긴 앱 4개, 앱 6개)은 API를 가로챈다.
+test.describe('app compositions outside the demo data', () => {
+  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  const at = '2026-11-01T00:00:00Z';
+  const server = (id: string, name: string): Server => ({ id, name, createdAt: at, updatedAt: at });
+  const app = (id: string, name: string, serverId: string, changes: Partial<ObservedService> = {}): ObservedService =>
+    ({ id, name, serverId, signals: ['metrics'], isActive: true, lastSeenAt: new Date().toISOString(), createdAt: at, updatedAt: at, ...changes });
+  const waiting = { lastSeenAt: undefined };
+
+  async function mockApps(page: Page, apps: () => ObservedService[]) {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    const servers = [server('one', 'one-01'), server('four', 'four-01'), server('six', 'six-01')];
+    await page.route('**/api/v1/**', async (route) => {
+      const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+      const data = path === '/servers' ? servers : path === '/observed-services' ? apps()
+        : path.endsWith('/otel-metrics/health') ? { checkedAt: new Date().toISOString(), metrics: [] } : [];
+      await route.fulfill({ json: { success: true, data } });
+    });
+    return errors;
+  }
+
+  test('a second app appearing keeps the app that was on screen', async ({ page }) => {
+    const apps = [app('a-first', 'first-worker', 'one')];
+    const errors = await mockApps(page, () => apps);
+    await page.goto('./servers/one/metrics');
+    const heading = panel(page).getByRole('heading', { level: 2, name: 'first-worker' });
+    await expect(heading).toBeVisible();
+    await heading.evaluate((element) => element.setAttribute('data-mounted', 'before'));
+    // 데이터 대기 중인 새 앱이 더 나쁜 상태지만, 보던 앱에서 넘어가지 않는다.
+    apps.push(app('a-new', 'new-worker', 'one', waiting));
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect(metricApps(page).getByRole('button')).toHaveCount(2);
+    await expect(page).toHaveURL(/\/servers\/one\/metrics\/a-first$/);
+    await expect(heading).toHaveAttribute('data-mounted', 'before');
+    await expect(metricApps(page).getByRole('button', { name: /^first-worker/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(errors).toEqual([]);
+  });
+
+  test('four apps with long names scroll inside the selector at 320px and show non-healthy states as text', async ({ page }) => {
+    const long = 'payment-settlement-reconciliation-worker';
+    await mockApps(page, () => [
+      app('f1', `${long}-a`, 'four'), app('f2', `${long}-b`, 'four', waiting),
+      app('f3', `${long}-c`, 'four', { isActive: false }), app('f4', `${long}-d`, 'four'),
+    ]);
+    await page.setViewportSize({ width: 320, height: 700 });
+    await page.goto('./servers/four/metrics');
+    await expect(page).toHaveURL(/\/servers\/four\/metrics\/f2$/);
+    await expect(metricApps(page).getByRole('button')).toHaveCount(4);
+    await expect(metricApps(page).getByRole('button', { name: `${long}-b 데이터 대기 중` })).toContainText('데이터 대기 중');
+    await expect(metricApps(page).getByRole('button', { name: `${long}-c 연결 비활성화됨` })).toContainText('연결 비활성화됨');
+    // 정상인 앱은 점만 둔다.
+    await expect(metricApps(page).getByRole('button', { name: `${long}-a 수집 중` })).not.toContainText('수집 중');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect(await page.locator('#main-content').evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    const scroller = metricApps(page).locator('..');
+    expect(await scroller.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+    // 선택된 앱은 스크롤 영역 안에 보인다.
+    const area = (await scroller.boundingBox())!;
+    const selected = (await metricApps(page).getByRole('button', { pressed: true }).boundingBox())!;
+    expect(selected.x).toBeGreaterThanOrEqual(area.x - 1);
+    expect(selected.x + selected.width).toBeLessThanOrEqual(area.x + area.width + 1);
+  });
+
+  test('more than four apps use a list whose options state non-healthy apps in text', async ({ page }) => {
+    await mockApps(page, () => [
+      app('s1', 'alpha-worker', 'six'), app('s2', 'bravo-worker', 'six', waiting), app('s3', 'charlie-worker', 'six'),
+      app('s4', 'delta-worker', 'six', { isActive: false }), app('s5', 'echo-worker', 'six'), app('s6', 'foxtrot-worker', 'six'),
+    ]);
+    await page.goto('./servers/six/metrics');
+    await expect(page).toHaveURL(/\/servers\/six\/metrics\/s2$/);
+    const select = page.getByRole('combobox', { name: '메트릭 앱' });
+    await expect(select).toHaveText('bravo-worker (데이터 대기 중)');
+    await select.click();
+    await expect(page.getByRole('option')).toHaveText([
+      'alpha-worker', 'bravo-worker (데이터 대기 중)', 'charlie-worker', 'delta-worker (연결 비활성화됨)', 'echo-worker', 'foxtrot-worker',
+    ]);
+    await page.getByRole('option', { name: 'echo-worker' }).click();
+    await expect(page).toHaveURL(/\/servers\/six\/metrics\/s5$/);
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'echo-worker' })).toBeVisible();
+  });
 });

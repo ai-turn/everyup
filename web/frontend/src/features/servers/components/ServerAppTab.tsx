@@ -42,10 +42,15 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
 
-  // 앱이 여럿이고 주소에 앱이 없으면 상태가 가장 나쁜 앱을 연다(같으면 이름순). 주소에 앱이 생기면 다시 고르지 않으므로
-  // 자동 갱신으로 상태가 바뀌어도 보고 있던 앱에서 옮겨 가지 않는다.
+  // 주소에 앱 없이 보여 준 앱(앱이 하나일 때). 같은 주소에 머무는 동안 앱이 늘어도 이 앱을 계속 보여 준다.
+  // 탭을 다시 누르는 등 새로 이동하면(location.key가 바뀐다) 잊고 기본 선택을 다시 한다.
+  const [shown, setShown] = useState<{ key: string; id: string } | null>(null);
+  const remembered = !targetId && shown?.key === location.key ? apps.find((entry) => entry.app.id === shown.id)?.app : undefined;
+  // 앱이 여럿이고 주소에 앱이 없으면 보던 앱, 없으면 상태가 가장 나쁜 앱을 연다(같으면 이름순). 주소에 앱이 생기면
+  // 다시 고르지 않으므로 자동 갱신으로 상태가 바뀌어도 보고 있던 앱에서 옮겨 가지 않는다.
   const worstState = worst(apps.map((entry) => entry.state));
-  const pick = !targetId && !unknown && apps.length > 1 ? apps.find((entry) => entry.state === worstState)?.app.id : undefined;
+  const pick = !targetId && !unknown && apps.length > 1
+    ? remembered?.id ?? apps.find((entry) => entry.state === worstState)?.app.id : undefined;
   useEffect(() => {
     if (pick) navigate(`${serverPath(serverId, capability, pick)}${location.search}`, { replace: true, state: location.state });
   }, [pick, serverId, capability, navigate, location.search, location.state]);
@@ -84,7 +89,10 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
   };
 
   const moving = movingId ? row.targets.apps.find((app) => app.id === movingId) : undefined;
-  const current = targetId ? apps.find((entry) => entry.app.id === targetId)?.app : apps.length === 1 ? apps[0].app : undefined;
+  const current = targetId ? apps.find((entry) => entry.app.id === targetId)?.app
+    : remembered ?? (apps.length === 1 ? apps[0].app : undefined);
+  // 렌더링 중에 기억한다(React의 "이전 렌더의 정보 저장" 방식). 옮겨 가는 동안에도 같은 앱이라 패널이 다시 마운트되지 않는다.
+  if (!targetId && current && (shown?.key !== location.key || shown.id !== current.id)) setShown({ key: location.key, id: current.id });
 
   const content = () => {
     if (unknown) return <LoadErrorBanner inline title={`${copy.label} 앱 정보를 불러오지 못했습니다`} onRetry={onRetry} />;
