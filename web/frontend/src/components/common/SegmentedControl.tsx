@@ -1,4 +1,5 @@
 import { MaterialIcon } from './MaterialIcon';
+import { STATUS_DOT, type StatusTone } from './statusTone';
 import { Tooltip } from './Tooltip';
 
 // Single-track segmented control for mutually-exclusive pick-one selectors
@@ -16,6 +17,9 @@ interface SegmentedOption<T extends string> {
   value: T;
   /** 아이콘을 쓰면 label은 접근성 이름과 툴팁으로 유지한다. */
   icon?: string;
+  /** 선택지 대상의 상태 점. 점의 접근 가능한 이름과 툴팁은 toneLabel이다(§5.2). */
+  tone?: StatusTone;
+  toneLabel?: string;
 }
 
 const SIZES = {
@@ -46,17 +50,18 @@ export function SegmentedControl<T extends string>({
       {options.map((o) => {
         const active = o.value === value;
         return (
-          <Tooltip key={o.value} content={o.icon ? o.label : undefined}><button
+          <Tooltip key={o.value} content={o.icon ? o.label : o.toneLabel}><button
             aria-label={o.icon ? o.label : undefined}
             aria-pressed={active}
             onClick={() => onChange(o.value)}
-            className={`inline-flex items-center justify-center ${o.icon ? ICON_SIZES[size] : SIZES[size]} font-medium rounded-md transition-colors ${
+            className={`inline-flex min-w-0 max-w-full items-center justify-center gap-1.5 ${o.icon ? ICON_SIZES[size] : SIZES[size]} font-medium rounded-md transition-colors ${
             active
             ? 'bg-ui-raised text-text-base shadow-sm forced-colors:bg-[Highlight] forced-colors:text-[HighlightText]'
             : 'text-text-muted hover:text-text-base'
             }`}
           >
-            {o.icon ? <MaterialIcon name={o.icon} /> : o.label}
+            {o.icon ? <MaterialIcon name={o.icon} /> : <span className="truncate">{o.label}</span>}
+            {o.tone && <span role="img" aria-label={o.toneLabel} className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[o.tone]}`} />}
           </button></Tooltip>
         );
       })}

@@ -2,12 +2,19 @@ import { Children, isValidElement, useEffect, useMemo, useRef, useState, type Co
 import { createPortal } from 'react-dom';
 import { FIELD_HEIGHT, FIELD_SHELL } from './Input';
 import { MaterialIcon } from './MaterialIcon';
+import { STATUS_DOT, type StatusTone } from './statusTone';
 import { Tooltip } from './Tooltip';
 
 interface SelectOption {
   value: string;
   label: string;
   disabled: boolean;
+  /** <option data-tone data-tone-label>: 선택지 대상의 상태 점. 점의 이름이 toneLabel이다(§5.2). */
+  tone?: { tone: StatusTone; label: string };
+}
+
+function ToneDot({ tone, className = '' }: { tone: SelectOption['tone']; className?: string }) {
+  return tone ? <span role="img" aria-label={tone.label} className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[tone.tone]} ${className}`} /> : null;
 }
 
 function textFromNode(node: ReactNode): string {
@@ -17,11 +24,12 @@ function textFromNode(node: ReactNode): string {
 function optionsFromChildren(children: ReactNode): SelectOption[] {
   return Children.toArray(children).flatMap((child) => {
     if (!isValidElement(child)) return [];
-    const props = child.props as { value?: string | number; disabled?: boolean; children?: ReactNode };
+    const props = child.props as { value?: string | number; disabled?: boolean; children?: ReactNode; 'data-tone'?: StatusTone; 'data-tone-label'?: string };
     if (child.type === 'optgroup') return optionsFromChildren(props.children);
     if (child.type !== 'option') return [];
     const label = textFromNode(props.children);
-    return [{ value: String(props.value ?? label), label, disabled: Boolean(props.disabled) }];
+    const tone = props['data-tone'] && { tone: props['data-tone'], label: props['data-tone-label'] ?? '' };
+    return [{ value: String(props.value ?? label), label, disabled: Boolean(props.disabled), tone }];
   });
 }
 
@@ -153,6 +161,7 @@ export function Select({
         className={`${TRIGGER_SIZE[size]} inline-flex items-center justify-between gap-2 border-ui-control-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         <span className="min-w-0 flex-1 truncate">{selected?.label}</span>
+        <ToneDot tone={selected?.tone} />
         <MaterialIcon size={20} name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-text-muted" />
       </button></Tooltip>
       {open && createPortal(
@@ -162,6 +171,7 @@ export function Select({
             return (
               <button key={option.value} type="button" role="option" aria-selected={isSelected} disabled={option.disabled} onClick={() => selectValue(option.value)} className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isSelected ? 'bg-primary/10 font-medium text-action' : 'text-text-secondary hover:bg-ui-hover'}`}>
                 <span className="min-w-0 flex-1 truncate">{option.label}</span>
+                <ToneDot tone={option.tone} className="ml-2" />
                 {isSelected && <MaterialIcon size={20} name="check" className="ml-2 shrink-0" />}
               </button>
             );

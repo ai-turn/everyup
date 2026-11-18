@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ButtonLink, EmptyState, LoadErrorBanner, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
-import { ServerCapabilityPlaceholder } from '../../features/servers/components/ServerCapabilityPlaceholder';
+import { ServerAppTab } from '../../features/servers/components/ServerAppTab';
 import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerInfrastructureTab } from '../../features/servers/components/ServerInfrastructureTab';
@@ -153,8 +153,9 @@ export function ServerDetailPage() {
               : active === 'logs'
                 ? <ServerLogsTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
                   stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
-              : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
-              unknown={row.unknownCapabilities.includes(active)} stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />}
+              // 두 탭이 같은 컴포넌트라, 탭을 바꿀 때 이전 탭의 상태(대화 상자 등)가 남지 않게 새로 그린다.
+              : <ServerAppTab key={active} capability={active} row={row} targetId={targetId} onChanged={reload}
+                unknown={row.unknownCapabilities.includes(active)} stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />}
       </div>
       {/* 대화 상자를 겹쳐 열지 않는다. 설정에서 합치기나 삭제를 고르면 설정을 닫고 그 대화 상자를 연다. */}
       {dialog === 'settings' && (

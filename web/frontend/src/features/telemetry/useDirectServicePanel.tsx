@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { Button, ConfirmDialog, MaterialIcon, type StatusTone } from '../../components/common';
-import { api, type ObservedService, type ObservedServiceSetup, type TelemetrySignal } from '../../services/api';
+import { api, type ObservedService, type ObservedServiceSetup, type Project, type TelemetrySignal } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { appState, capabilityStateLabel } from '../servers/serverStatus';
 import { RotatedTelemetryKeyDialog } from './components/RotatedTelemetryKeyDialog';
@@ -13,7 +13,7 @@ const CAPABILITY = { logs: 'logs', traces: 'api', metrics: 'metrics' } as const;
 
 /**
  * 로그·API·메트릭 앱 패널의 공통 로직: 앱 조회, 키 재발급, 연결 중지, 삭제 또는 신호 연결 해제, 확인 대화 상자.
- * 그룹 배정은 다루지 않는다. 서버 화면에서는 그룹을 서버가 정한다.
+ * 그룹 배정은 옛 상세(assignProject)에서만 다룬다. 서버 화면에서는 그룹을 서버가 정한다.
  */
 export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal, onRemoved: () => void, options: {
   /** 서버 상세가 이미 불러온 앱. 주면 따로 불러오지 않는다(갱신의 주체는 서버 상세 하나다). */
@@ -22,6 +22,8 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   onChanged?: () => void | Promise<void>;
   /** 옛 상세(/logs/:id 등)의 요청: serverId를 보내지 않는다. Task 13에서 없앤다. */
   standalone?: boolean;
+  /** 옛 상세의 그룹 배정 칸. 옛 API·메트릭 상세의 e2e가 기대한다. Task 13에서 없앤다. */
+  assignProject?: boolean;
 } = {}): {
   service: ObservedService | null;
   loading: boolean;
@@ -35,8 +37,13 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   dialogs: ReactNode;
   /** 다른 서버로 옮긴다 */
   move: (serverId: string) => Promise<void>;
+  /** assignProject일 때 DirectConnectionMeta에 넘길 그룹 칸 props. 아니면 비어 있다. */
+  projectFields: {
+    projects?: Project[]; projectId?: string; savedProjectId?: string; onProjectChange?: (projectId: string) => void; onSaveProject?: () => void;
+    savingProject?: boolean; projectsLoading?: boolean; projectsError?: string | null; onRetryProjects?: () => void;
+  };
 } {
-  const { service: given, onChanged, standalone = false } = options;
+  const { service: given, onChanged, standalone = false, assignProject = false } = options;
   const [fetched, setFetched] = useState<ObservedService | null>(null);
   const [loading, setLoading] = useState(!given);
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +113,38 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
     }
   };
 
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(assignProject);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
+  const [projectsKey, setProjectsKey] = useState(0);
+  // null이면 저장된 그룹 그대로다.
+  const [projectDraft, setProjectDraft] = useState<string | null>(null);
+  const [savingProject, setSavingProject] = useState(false);
+  useEffect(() => {
+    if (!assignProject) return;
+    let current = true;
+    api.getProjects()
+      .then((rows) => { if (current) setProjects(rows ?? []); }, (requestError: unknown) => { if (current) setProjectsError(getErrorMessage(requestError)); })
+      .finally(() => { if (current) setProjectsLoading(false); });
+    return () => { current = false; };
+  }, [assignProject, projectsKey]);
+
+  const saveProject = async () => {
+    if (!service) return;
+    setSavingProject(true);
+    try {
+      const updated = await api.updateObservedService(service.id, { name: service.name, projectId: projectDraft || undefined, signals: service.signals });
+      if (!alive.current) return;
+      setFetched(updated);
+      setProjectDraft(null);
+      toast.success('그룹 배정을 저장했습니다.');
+    } catch (requestError) {
+      toast.error(getErrorMessage(requestError));
+    } finally {
+      if (alive.current) setSavingProject(false);
+    }
+  };
+
   const move = async (serverId: string) => {
     if (!service) throw new Error('앱 정보를 불러오지 못했습니다.');
     await api.updateObservedService(service.id, { name: service.name, serverId, signals: service.signals });
@@ -153,5 +192,16 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
       </>
     ),
     move,
+    projectFields: assignProject ? {
+      projects,
+      projectId: projectDraft ?? service?.projectId ?? '',
+      savedProjectId: service?.projectId ?? '',
+      onProjectChange: setProjectDraft,
+      onSaveProject: () => void saveProject(),
+      savingProject,
+      projectsLoading,
+      projectsError,
+      onRetryProjects: () => { setProjectsLoading(true); setProjectsError(null); setProjectsKey((key) => key + 1); },
+    } : {},
   };
 }
