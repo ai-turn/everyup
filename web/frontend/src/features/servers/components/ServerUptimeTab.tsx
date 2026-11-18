@@ -10,7 +10,7 @@ import { api, type UptimeMonitorInput } from '../../../services/api';
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
-import { useMoveTarget } from '../useMoveTarget';
+import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
 
@@ -37,7 +37,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
 
   const move = async (id: string, to: string) => {
     const monitor = monitors.find((candidate) => candidate.id === id);
-    if (!monitor) throw new Error('이 모니터가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
+    if (!monitor) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 모니터가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     await api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { serverId: to }));
     markMoved();
     await onChanged();

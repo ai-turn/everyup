@@ -8,7 +8,7 @@ import { InfrastructureCollectorSetupDialog } from '../../infrastructure/compone
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt } from './ConnectPrompt';
-import { useMoveTarget } from '../useMoveTarget';
+import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
 /** 인프라 탭: 서버마다 리소스가 하나뿐이라 없으면 연결 안내, 있으면 그 상세다. 추가할 것이 없어 탭 줄의 조작 자리는 비어 있다. */
@@ -51,7 +51,7 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
 
   const move = async (id: string, to: string) => {
     const latest = row.targets.infrastructure;
-    if (latest?.id !== id) throw new Error('이 인프라 리소스가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
+    if (latest?.id !== id) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 인프라 리소스가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
     await api.updateInfrastructureResource(latest.id, { name: latest.name, serverId: to });
     markMoved();

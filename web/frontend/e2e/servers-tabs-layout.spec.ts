@@ -1,4 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import type { ObservedService } from '../src/services/api';
+import { monitor, uptimeFixture } from './fixtures/uptime';
 
 // 서버 상세의 기능 탭이 같은 틀을 쓰는지 확인한다(Task 10b). 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다.
 const EDGE = 'server_mock_edge_host_01';      // 모니터 2개, 로그 앱 2개, API·메트릭 앱 1개(orders-api), 메모리 72.8%
@@ -217,4 +219,45 @@ test('no tab scrolls the page sideways at 320px', async ({ page }) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), path).toBe(true);
     expect(await page.locator('#main-content').evaluate((element) => element.scrollWidth - element.clientWidth), path).toBeLessThanOrEqual(1);
   }
+});
+
+// 대상이 하나뿐인 탭의 원인 링크. 데모 데이터에는 이런 서버가 없어서 API를 가로챈다.
+test.describe('the cause link on a tab with one target', () => {
+  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: DESKTOP });
+  const at = '2026-11-01T00:00:00Z';
+
+  async function serve(page: Page, apps: ObservedService[]) {
+    await page.route('**/api/v1/**', async (route) => {
+      const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+      const data = path === '/servers' ? [{ id: 's1', name: 'web-01', createdAt: at, updatedAt: at }]
+        : path === '/observed-services' ? apps : [];
+      await route.fulfill({ json: { success: true, data } });
+    });
+  }
+
+  test('the logs overview keeps the link to its only app, the app screen shows plain text', async ({ page }) => {
+    // 데이터 대기 중인 로그 앱 하나가 서버의 원인이다. 로그 탭의 첫 화면은 서버 범위의 요약이지 그 앱의 상세가 아니다.
+    await serve(page, [{ id: 'a1', name: 'worker', serverId: 's1', signals: ['logs'], isActive: true, createdAt: at, updatedAt: at } as ObservedService]);
+    await page.goto('./servers/s1/logs');
+    await expect(page.getByRole('table', { name: '앱 그리드' })).toBeVisible();
+    await expect(serverHeader(page).getByRole('link', { name: 'worker 데이터 대기 중' })).toBeVisible();
+
+    await page.goto('./servers/s1/logs/a1');
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'worker' })).toBeVisible();
+    await expect(serverHeader(page).getByText('worker 데이터 대기 중', { exact: true })).toBeVisible();
+    await expect(serverHeader(page).getByRole('link', { name: 'worker 데이터 대기 중' })).toHaveCount(0);
+  });
+
+  test('the uptime tab with its only monitor down shows the cause as plain text', async ({ page }) => {
+    // 모니터 상세가 부르는 이력 API까지 응답하는 업타임 fixture를 쓴다.
+    const state = await uptimeFixture(page);
+    state.monitors = [monitor('m1', { serverId: 's1', status: 'unhealthy' })];
+    state.responses.set('GET /servers', [{ id: 's1', name: 'web-01', createdAt: at, updatedAt: at }]);
+    await page.goto('./servers/s1');
+    await expect(serverHeader(page).getByRole('link', { name: /^Public API 응답 없음/ })).toBeVisible();
+    await page.goto('./servers/s1/uptime');
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+    await expect(serverHeader(page).getByText(/^Public API 응답 없음/)).toBeVisible();
+    await expect(serverHeader(page).getByRole('link', { name: /^Public API 응답 없음/ })).toHaveCount(0);
+  });
 });

@@ -1,15 +1,19 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button, DetailMeta, MaterialIcon, PageHeader, StatusLight, Tooltip } from '../../../components/common';
-import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath } from '../serverPaths';
+import { SERVERS_PATH, serverPath, type ServerCapability } from '../serverPaths';
 import { capabilityTargets, STATE_LABEL, type ServerRow } from '../serverStatus';
 
+// 대상이 하나면 탭의 첫 화면이 곧 그 대상의 상세인 탭. 로그 탭의 첫 화면은 앱이 하나여도 서버 범위의 요약이라 빠진다.
+// 인프라는 원인 주소가 탭 주소와 같아서 주소 비교로 처리된다.
+const SINGLE_TARGET_TABS: readonly ServerCapability[] = ['uptime', 'api', 'metrics'];
+
 /**
- * 원인 대상을 이미 보고 있는가. 대상이 하나뿐인 탭(모니터 하나, 앱 하나, 인프라)은 주소에 대상 ID가 없으므로,
+ * 원인 대상을 이미 보고 있는가. 대상이 하나뿐인 탭은 주소에 대상 ID가 없으므로,
  * 지금 탭이 원인의 탭이고 그 탭의 대상이 하나뿐이면 같은 화면이다.
  */
 function showingCause(row: ServerRow, to: string, pathname: string) {
   if (to === pathname) return true;
-  return SERVER_CAPABILITIES.some(({ key }) => {
+  return SINGLE_TARGET_TABS.some((key) => {
     const tab = serverPath(row.server.id, key);
     return pathname === tab && to.startsWith(`${tab}/`) && capabilityTargets(row.targets, key).length === 1;
   });

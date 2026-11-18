@@ -6,6 +6,9 @@ import { toast } from 'react-hot-toast';
  * 대화 상자를 열어 둔 사이에 대상이 다른 곳에서 삭제되면 알리고 닫는다. 옮기기에 성공해 이 서버에서 빠진 것은 삭제가 아니다.
  * uncertain이면(이 기능의 목록을 불러오지 못했거나 이전 정보다) 없어진 것인지 알 수 없으므로 판정을 미루고 마지막으로 찾은 대상을 둔다.
  */
+/** 목록을 불러오지 못한 상태(uncertain)에서 옮기기를 눌렀는데 대상을 찾지 못했을 때. 없다고 단정하지 않는다. */
+export const MOVE_TARGET_UNCERTAIN = '대상 정보를 확인하지 못했습니다. 새로고침한 뒤에 다시 시도해 주세요.';
+
 export function useMoveTarget<T>(find: (id: string) => T | undefined, uncertain = false) {
   const [movingId, setMovingId] = useState<string | null>(null);
   const [moved, setMoved] = useState(false);

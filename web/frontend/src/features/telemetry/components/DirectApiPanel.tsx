@@ -74,7 +74,6 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
 
   const Heading = standalone ? 'h1' : 'h2';
   const rangePicker = <TimeRangePicker value={range} onChange={(value) => update({ range: value, page: null })} />;
-  const prefix = 'api';
   const content = view === 'requests'
     ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} traceId={traceId} awaitingData={collection === 'waiting'} noun={standalone ? undefined : '앱'} />
     : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} />;
@@ -115,10 +114,11 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
       )}
       <div>
         {standalone ? <>
+          {/* 옛 API 상세만 밑줄 탭이다. */}
           <div className="mb-4">
-            <Tabs items={viewTabs(standalone)} active={view} onChange={(tab) => update({ tab })} ariaLabel="요청/트레이스 보기" idPrefix={prefix} />
+            <Tabs items={viewTabs(standalone)} active={view} onChange={(tab) => update({ tab })} ariaLabel="요청/트레이스 보기" idPrefix="api" />
           </div>
-          <div role="tabpanel" id={tabPanelId(prefix, view)} aria-labelledby={tabId(prefix, view)}>{content}</div>
+          <div role="tabpanel" id={tabPanelId('api', view)} aria-labelledby={tabId('api', view)}>{content}</div>
         </> : content}
         <ApiExclusionsSettings key={service.id} serviceId={service.id} paths={savedPaths ?? service.apiExcludePaths ?? []}
           onSaved={(paths) => { setSavedPaths(paths); if (!standalone) void onChanged?.(); }} />

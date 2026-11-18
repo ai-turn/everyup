@@ -12,7 +12,7 @@ import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTel
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
-import { useMoveTarget } from '../useMoveTarget';
+import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
 
@@ -50,7 +50,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
 
   const move = async (id: string, to: string) => {
     const app = row.targets.apps.find((candidate) => candidate.id === id);
-    if (!app) throw new Error('이 앱이 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
+    if (!app) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 앱이 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     await api.updateObservedService(app.id, { name: app.name, serverId: to, signals: app.signals });
     markMoved();
     await onChanged();

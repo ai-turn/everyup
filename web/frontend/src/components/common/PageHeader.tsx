@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useHeaderActionSlot } from '../../contexts/BreadcrumbContext';
 import { ControlDefaultsContext } from './controlSize';
+import { Tooltip } from './Tooltip';
 
 interface PageHeaderProps {
     title: string;
@@ -47,7 +48,8 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
             <div className={`mb-6 border-b border-ui-border-soft pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
                 <div className="min-w-0 flex-1">
                     <div className={compactActions ? 'flex items-center justify-between gap-3' : ''}>
-                        <h1 className={titleClass}>{title}</h1>
+                        {/* 말줄임한 제목은 서버 설명처럼 공통 툴팁으로 전체를 보인다. */}
+                        {truncateTitle ? <Tooltip content={title}><h1 className={titleClass}>{title}</h1></Tooltip> : <h1 className={titleClass}>{title}</h1>}
                         {compactActions && inlineChildren && <div className="flex shrink-0 items-center gap-2">{inlineChildren}</div>}
                     </div>
                     {(subtitle || (!compactActions && inlineChildren)) && (
