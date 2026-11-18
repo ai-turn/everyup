@@ -143,10 +143,9 @@ test('server writes follow the backend rules', () => {
   mockRouter(`/observed-services/${app.id}`, 'PUT', json({ name: 'e2e-app', signals: ['logs'], projectId: 'project_mock_backoffice' }));
   expect(mockRouter<Server>(`/servers/${created.id}`).projectId).toBe('project_mock_backoffice');
   expect(mockRouter<UptimeMonitor>(`/services/${monitor.id}`).projectId).toBe('project_mock_backoffice');
-  mockRouter(`/projects/project_mock_backoffice/monitors/${monitor.id}`, 'DELETE');
+  // 옛 화면의 요청(serverId도 projectId도 없음)은 서버의 그룹을 해제한다. 화면의 타입은 serverId를 강제한다.
+  mockRouter(`/observed-services/${app.id}`, 'PUT', json({ name: 'e2e-app', signals: ['logs'] }));
   expect(mockRouter<Server>(`/servers/${created.id}`).projectId).toBeUndefined();
-  mockRouter(`/projects/project_mock_production/monitors/${monitor.id}`, 'PUT');
-  expect(mockRouter<Server>(`/servers/${created.id}`).projectId).toBe('project_mock_production');
 
   // 합치기는 대상을 옮기고 원래 서버를 지운다. 삭제는 소속 대상을 함께 지운다.
   const merged = mockRouter<Server>(`/servers/${grouped.id}/merge`, 'POST', json({ targetServerId: created.id }));

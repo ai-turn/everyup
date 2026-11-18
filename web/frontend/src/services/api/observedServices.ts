@@ -35,8 +35,8 @@ export interface ObservedService {
 
 export interface ObservedServiceInput {
   name: string;
-  projectId?: string;
-  serverId?: string;
+  /** 수정 요청에서도 필수다. 빼면 백엔드가 옛 화면의 요청으로 보고 서버 전체의 그룹을 해제한다. */
+  serverId: string;
   signals: TelemetrySignal[];
 }
 

@@ -97,7 +97,8 @@ test('visitor can explore the added groups and service-specific telemetry', asyn
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('./projects/project_mock_backoffice');
   await expect(page.getByRole('heading', { level: 1, name: 'Backoffice' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /notification-worker/ })).toBeVisible();
+  // 그룹의 구성원은 서버다. notification-worker는 batch-host-01에 있다.
+  await expect(page.getByRole('link', { name: 'batch-host-01', exact: true })).toBeVisible();
   // 서버 화면의 h1은 서버 이름이고 앱 이름은 패널의 h2다. 서버는 src/mocks/SCENARIOS.md를 따른다.
   await page.goto('./servers/server_mock_edge_host_01/logs/observed_mock_orders');
   await expect(page.getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();

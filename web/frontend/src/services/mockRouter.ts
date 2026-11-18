@@ -925,6 +925,9 @@ function resolveTargetServer(serverId: string | undefined, name: string, project
   return writeServer({ name: candidate, projectId }).id;
 }
 
+// 백엔드가 받는 본문. 화면의 타입은 serverId를 강제하지만, 백엔드는 옛 화면의 요청(serverId 없이 projectId)도 받는다.
+type WireInput<T extends { serverId: string }> = Omit<T, 'serverId'> & { serverId?: string; projectId?: string };
+
 // 대상 수정: serverId가 있으면 이동이고, 없으면 기존 화면의 요청이라 projectId를 소속 서버의 그룹으로 기록한다(설계 5.5).
 function updateTargetServer(target: { serverId?: string }, input: { serverId?: string; projectId?: string }, infrastructure: boolean) {
   if (input.serverId) {
@@ -1375,7 +1378,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   // Mutations in mock mode: mutate the in-memory fixtures so flows feel real.
   if (method !== 'GET') {
     const projectMatch = endpoint.match(/^\/projects\/([^/]+)$/);
-    const projectMemberMatch = endpoint.match(/^\/projects\/([^/]+)\/(agents|monitors)\/([^/]+)$/);
+    const projectMemberMatch = endpoint.match(/^\/projects\/([^/]+)\/agents\/([^/]+)$/);
     const observedMatch = endpoint.match(/^\/observed-services\/([^/]+)$/);
     const observedLogFilterMatch = endpoint.match(/^\/observed-services\/([^/]+)\/log-filter$/);
     const observedApiExclusionsMatch = endpoint.match(/^\/observed-services\/([^/]+)\/api-exclusions$/);
@@ -1385,7 +1388,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const infrastructureRotateMatch = endpoint.match(/^\/infrastructure-resources\/([^/]+)\/rotate-key$/);
     const infrastructureRevokeMatch = endpoint.match(/^\/infrastructure-resources\/([^/]+)\/revoke-key$/);
     if (method === 'POST' && endpoint === '/infrastructure-resources') {
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as InfrastructureResourceInput;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<InfrastructureResourceInput>;
       const now = new Date().toISOString();
       const resource: InfrastructureResourceSetup = {
         id: mockId('infra_mock'),
@@ -1415,7 +1418,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     }
     if (method === 'PUT' && infrastructureMatch) {
       const resource = mockInfrastructureResources.find(row => row.id === infrastructureMatch[1]);
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as InfrastructureResourceInput;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<InfrastructureResourceInput>;
       if (!resource) return null as T;
       updateTargetServer(resource, parsed, true);
       Object.assign(resource, { name: parsed.name, updatedAt: new Date().toISOString() });
@@ -1427,7 +1430,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       return undefined as T;
     }
     if (method === 'POST' && endpoint === '/observed-services') {
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as ObservedServiceInput;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<ObservedServiceInput>;
       const now = new Date().toISOString();
       const service: ObservedServiceSetup = {
         id: mockId('observed_mock'),
@@ -1474,7 +1477,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     }
     if (method === 'PUT' && observedMatch) {
       const service = mockObservedServices.find(row => row.id === observedMatch[1]);
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as ObservedServiceInput;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<ObservedServiceInput>;
       if (!service) return null as T;
       updateTargetServer(service, parsed, false);
       Object.assign(service, { name: parsed.name, signals: parsed.signals, updatedAt: new Date().toISOString() });
@@ -1495,25 +1498,13 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       return project as T;
     }
     if (method === 'PUT' && projectMemberMatch) {
-      const [, projectId, kind, memberId] = projectMemberMatch;
-      if (kind === 'agents') {
-        const agent = mockAgents.find(({ id }) => id === memberId);
-        if (agent) agent.projectId = projectId;
-      } else {
-        const monitor = mockUptimeMonitors.find(({ id }) => id === memberId);
-        if (monitor) updateTargetServer(monitor, { projectId }, false);
-      }
+      const agent = mockAgents.find(({ id }) => id === projectMemberMatch[2]);
+      if (agent) agent.projectId = projectMemberMatch[1];
       return undefined as T;
     }
     if (method === 'DELETE' && projectMemberMatch) {
-      const [, , kind, memberId] = projectMemberMatch;
-      if (kind === 'agents') {
-        const agent = mockAgents.find(({ id }) => id === memberId);
-        if (agent) delete agent.projectId;
-      } else {
-        const monitor = mockUptimeMonitors.find(({ id }) => id === memberId);
-        if (monitor) updateTargetServer(monitor, {}, false);
-      }
+      const agent = mockAgents.find(({ id }) => id === projectMemberMatch[2]);
+      if (agent) delete agent.projectId;
       return undefined as T;
     }
     if (method === 'PUT' && projectMatch) {

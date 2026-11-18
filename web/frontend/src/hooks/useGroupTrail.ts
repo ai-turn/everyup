@@ -33,7 +33,9 @@ export function useGroupTrail(): GroupTrail | null {
   const { pathname } = useLocation();
   const trail = read();
   const active = trail && within(pathname, trail.path) ? trail : null;
-  const stale = Boolean(trail && !active && pathname !== `/projects/${trail.id}`);
+  // 그룹 화면으로 돌아와도 지운다. 대상 경로가 서버 전체(/servers/:id)라서, 남겨 두면 그 뒤에 다른 곳에서 같은 서버로 바로 가도
+  // 그룹 맥락이 된다. 구성원을 누르면 openFromGroup이 다시 남긴다(누른 뒤 곧바로 이동하므로 그 사이에 지워지지 않는다).
+  const stale = Boolean(trail && !active);
   useEffect(() => {
     if (stale) try { sessionStorage.removeItem(KEY); } catch { /* 무시 */ }
   }, [stale]);

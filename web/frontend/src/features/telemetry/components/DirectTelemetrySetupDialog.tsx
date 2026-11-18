@@ -6,7 +6,6 @@ import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import {
   api,
   type ObservedService,
-  type Project,
   type TelemetrySignal,
 } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
@@ -20,8 +19,8 @@ interface DirectTelemetrySetupDialogProps {
   description: string;
   onClose: () => void;
   onCreated: (service: ObservedService) => void;
-  /** 서버 화면에서 열었다: 새 앱을 이 서버에 만들고, 기존 서비스 후보를 이 서버의 앱으로 좁히며, 그룹은 서버의 것을 쓴다. */
-  serverId?: string;
+  /** 새 앱을 이 서버에 만들고, 기존 앱 후보를 이 서버의 앱으로 좁힌다. 그룹은 서버의 것이다. */
+  serverId: string;
 }
 
 type SetupMode = 'new' | 'existing';
@@ -38,9 +37,7 @@ export function DirectTelemetrySetupDialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<SetupMode>('new');
   const [name, setName] = useState('');
-  const [projectId, setProjectId] = useState('');
   const [existingId, setExistingId] = useState('');
-  const [projects, setProjects] = useState<Project[]>([]);
   const [existingServices, setExistingServices] = useState<ObservedService[]>([]);
   const [result, setResult] = useState<TelemetryConnectionResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -60,11 +57,8 @@ export function DirectTelemetrySetupDialog({
       setOptionsLoading(true);
       setOptionsError(null);
       try {
-        const [projectRows, serviceRows] = await Promise.all([serverId ? null : api.getProjects(), api.getObservedServices()]);
-        if (active) {
-          setProjects(projectRows ?? []);
-          setExistingServices((serviceRows ?? []).filter(service => service.isActive && !service.signals.includes(signal) && (!serverId || service.serverId === serverId)));
-        }
+        const serviceRows = await api.getObservedServices();
+        if (active) setExistingServices((serviceRows ?? []).filter(service => service.isActive && !service.signals.includes(signal) && service.serverId === serverId));
       } catch (error) {
         if (active) setOptionsError(getErrorMessage(error));
       } finally {
@@ -85,18 +79,13 @@ export function DirectTelemetrySetupDialog({
     setSubmitting(true);
     try {
       if (mode === 'new') {
-        const service = await api.createObservedService(serverId
-          ? { name: name.trim(), serverId, signals: [signal] }
-          : { name: name.trim(), projectId: projectId || undefined, signals: [signal] });
+        const service = await api.createObservedService({ name: name.trim(), serverId, signals: [signal] });
         setResult({ kind: 'issued', service });
       } else if (selected) {
         // 목록을 받은 뒤에 앱의 신호가 바뀌었을 수 있다. 지금의 앱에 신호를 더한다(그 사이의 연결 해제를 되돌리지 않게).
         const latest = await readLatest(() => api.getObservedService(selected.id), '연결');
         const signals = latest.signals.includes(signal) ? latest.signals : [...latest.signals, signal];
-        // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
-        const service = await api.updateObservedService(latest.id, serverId
-          ? { name: latest.name, serverId, signals }
-          : { name: latest.name, projectId: latest.projectId, signals });
+        const service = await api.updateObservedService(latest.id, { name: latest.name, serverId, signals });
         setResult({ kind: 'attached', service, signal });
       }
     } catch (error) {
@@ -106,9 +95,6 @@ export function DirectTelemetrySetupDialog({
     }
   };
 
-  // 서버 화면은 대상을 앱이라고 부른다.
-  const noun = serverId ? '앱' : '서비스';
-
   const done = () => {
     const service = result?.service;
     if (service) onCreated(service);
@@ -116,8 +102,8 @@ export function DirectTelemetrySetupDialog({
   };
 
   const modeOptions: { value: SetupMode; label: string }[] = [
-    { value: 'new', label: `새 ${noun}` },
-    { value: 'existing', label: `기존 ${noun}` },
+    { value: 'new', label: '새 앱' },
+    { value: 'existing', label: '기존 앱' },
   ];
 
   return (
@@ -141,7 +127,7 @@ export function DirectTelemetrySetupDialog({
         <DirectTelemetrySetupResult
           connection={result}
           // 조사가 이름의 받침에 따라 갈리지 않는 문장으로 쓴다("메트릭를"이 됐었다).
-          title={result.kind === 'issued' ? `${capabilityLabel} 연결이 준비되었습니다` : `기존 ${noun}에 ${capabilityLabel} 연결을 추가했습니다`}
+          title={result.kind === 'issued' ? `${capabilityLabel} 연결이 준비되었습니다` : `기존 앱에 ${capabilityLabel} 연결을 추가했습니다`}
           doneLabel={`${capabilityLabel} 보기`}
           onDone={done}
         />
@@ -156,29 +142,20 @@ export function DirectTelemetrySetupDialog({
           )}
           {/* Offered only when some service can take this signal on. */}
           {existingServices.length > 0 && (
-            <SegmentedControl options={modeOptions} value={mode} onChange={setMode} size="md" ariaLabel={`${noun} 선택 방식`} />
+            <SegmentedControl options={modeOptions} value={mode} onChange={setMode} size="md" ariaLabel="앱 선택 방식" />
           )}
 
           {mode === 'new' ? (
-            <>
-              <div className="space-y-1.5">
-                <label className="block type-label text-text-secondary" htmlFor={`direct-${signal}-service-name`}>{noun} 이름</label>
-                <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" aria-describedby={`direct-${signal}-name-hint`} required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="예: orders-api" />
-                <p id={`direct-${signal}-name-hint`} className="type-body text-text-muted">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</p>
-              </div>
-              {!serverId && <label className="block space-y-1.5" htmlFor={`direct-${signal}-project`}>
-                <span className="type-label text-text-secondary">그룹</span>
-                <Select id={`direct-${signal}-project`} value={projectId} onChange={event => setProjectId(event.target.value)}>
-                  <option value="">미분류</option>
-                  {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
-                </Select>
-              </label>}
-            </>
+            <div className="space-y-1.5">
+              <label className="block type-label text-text-secondary" htmlFor={`direct-${signal}-service-name`}>앱 이름</label>
+              <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" aria-describedby={`direct-${signal}-name-hint`} required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="예: orders-api" />
+              <p id={`direct-${signal}-name-hint`} className="type-body text-text-muted">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</p>
+            </div>
           ) : (
             <label className="block space-y-1.5" htmlFor={`direct-${signal}-existing-service`}>
-              <span className="type-label text-text-secondary">{noun}</span>
+              <span className="type-label text-text-secondary">앱</span>
               <Select id={`direct-${signal}-existing-service`} required value={existingId} onChange={event => setExistingId(event.target.value)}>
-                <option value="">{noun} 선택</option>
+                <option value="">앱 선택</option>
                 {existingServices.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}
               </Select>
               <span className="block type-body text-text-muted">{`기존 연결 키에 ${capabilityLabel} 권한을 추가합니다.`}</span>

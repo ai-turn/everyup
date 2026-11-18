@@ -70,11 +70,20 @@ test.describe('against the API', () => {
     await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor\?range=6h$/);
   });
 
-  test('a target without a server (a Docker environment resource) is not found', async ({ page }) => {
-    // Docker 환경에서 온 인프라 리소스에는 serverId가 없다(Review Focus 1).
+  test('a Docker environment resource goes to its environment', async ({ page }) => {
+    // Docker 환경에서 온 인프라 리소스에는 serverId가 없고 ID가 그 환경과 같다(Review Focus 1).
     const state = await uptimeFixture(page);
     state.responses.set('GET /infrastructure-resources/docker-host', { id: 'docker-host', name: 'Production Docker', adapter: 'everyup-agent', isActive: true });
     await page.goto('./infrastructure/docker-host');
+    await expect(page).toHaveURL(/\/agents\/docker-host$/);
+    // 실제 백엔드의 단건 조회는 직접 연결 리소스만 찾는다(404). 그래도 환경 목록에서 찾아 보낸다.
+    state.responses.delete('GET /infrastructure-resources/docker-host');
+    state.failures.set('GET /infrastructure-resources/docker-host', 404);
+    await page.goto('./infrastructure/docker-host?range=6h');
+    await expect(page).toHaveURL(/\/agents\/docker-host\?range=6h$/);
+    // 어느 환경에도 없는 ID는 찾을 수 없다.
+    state.failures.set('GET /infrastructure-resources/gone', 404);
+    await page.goto('./infrastructure/gone');
     await expect(page.getByRole('heading', { level: 1, name: '대상을 찾을 수 없습니다' })).toBeVisible();
   });
 });

@@ -25,6 +25,4 @@ export const projectsApi = {
   deleteProject: (id: string) => request<void>(`/projects/${id}`, { method: 'DELETE' }),
   assignAgent: (projectId: string, agentId: string) => request<void>(`/projects/${projectId}/agents/${agentId}`, { method: 'PUT' }),
   unassignAgent: (projectId: string, agentId: string) => request<void>(`/projects/${projectId}/agents/${agentId}`, { method: 'DELETE' }),
-  assignMonitor: (projectId: string, monitorId: string) => request<void>(`/projects/${projectId}/monitors/${monitorId}`, { method: 'PUT' }),
-  unassignMonitor: (projectId: string, monitorId: string) => request<void>(`/projects/${projectId}/monitors/${monitorId}`, { method: 'DELETE' }),
 };

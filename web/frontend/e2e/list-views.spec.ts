@@ -111,8 +111,10 @@ test('a target opened from a group stays inside the group until leaving it', asy
   const crumbs = page.getByRole('navigation', { name: '현재 위치', exact: true });
   const sidebarCurrent = page.locator('aside a[aria-current="page"]');
   await page.goto('./projects/project_mock_staging');
-  await page.getByRole('link', { name: 'Redis TCP', exact: true }).click();
-  // 그룹 화면의 링크는 아직 옛 주소이고(Task 14), 옛 주소는 서버 화면으로 바뀐다. 그룹 맥락은 함께 옮겨 간다.
+  // 그룹의 구성원은 서버다. 서버 안에서 대상으로 들어가도 그룹 맥락이다.
+  await page.getByRole('link', { name: 'staging-host-01', exact: true }).click();
+  await page.getByRole('tab', { name: /^업타임/ }).click();
+  await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
   await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/uptime\/uptime_mock_redis$/);
   await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
   await expect(sidebarCurrent).toHaveText('그룹');
@@ -121,6 +123,7 @@ test('a target opened from a group stays inside the group until leaving it', asy
   await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
   await crumbs.getByRole('link', { name: 'Staging', exact: true }).click();
   await expect(page).toHaveURL(/\/projects\/project_mock_staging$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Staging' })).toBeVisible();
   // 그룹을 떠나 서버 화면에서 같은 대상을 열면 서버 맥락이다.
   await page.goto('./servers/server_mock_staging_host_01/uptime');
   await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();

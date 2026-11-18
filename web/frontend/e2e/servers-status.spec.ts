@@ -98,15 +98,17 @@ test('status filters stay on one line each at 320px', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test('a group with healthy targets and a paused monitor reads healthy', async ({ page }) => {
-  const project = { id: 'p-mixed', name: 'Mixed group', agentCount: 0, monitorCount: 2, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 1, createdAt: at, updatedAt: at };
+test('a group with a healthy server and a waiting server reads healthy', async ({ page }) => {
+  const project = { id: 'p-mixed', name: 'Mixed group', agentCount: 0, monitorCount: 2, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 2, createdAt: at, updatedAt: at };
+  // 그룹의 구성원은 서버다. 정상 서버 하나와 일시정지한 모니터만 있는(대기) 서버 하나.
+  const groupServers = [{ ...server('g-up', 'up-01'), projectId: 'p-mixed' }, { ...server('g-paused', 'paused-01'), projectId: 'p-mixed' }];
   const groupMonitors = [
-    monitor('g-up', { name: 'Storefront', serverId: 'mixed', projectId: 'p-mixed' }),
-    monitor('g-paused', { name: 'Old cron', serverId: 'mixed', projectId: 'p-mixed', isActive: false }),
+    monitor('g-up-m', { name: 'Storefront', serverId: 'g-up', projectId: 'p-mixed' }),
+    monitor('g-paused-m', { name: 'Old cron', serverId: 'g-paused', projectId: 'p-mixed', isActive: false }),
   ];
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
-    const data = path === '/projects' ? [project] : path === '/services' ? groupMonitors : [];
+    const data = path === '/projects' ? [project] : path === '/services' ? groupMonitors : path === '/servers' ? groupServers : [];
     await route.fulfill({ json: { success: true, data } });
   });
   await page.goto('./projects');

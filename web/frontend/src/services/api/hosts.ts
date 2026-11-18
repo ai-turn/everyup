@@ -50,8 +50,8 @@ export interface InfrastructureResource {
 
 export interface InfrastructureResourceInput {
   name: string;
-  projectId?: string;
-  serverId?: string;
+  /** 수정 요청에서도 필수다(ObservedServiceInput과 같은 이유). */
+  serverId: string;
 }
 
 export interface InfrastructureResourceSetup extends InfrastructureResource {

@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { Button, IconButton, MaterialIcon, SearchInput } from '../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import type { Project } from '../../services/api';
-import { getErrorMessage } from '../../utils/errors';
+import { ApiError, getErrorMessage } from '../../utils/errors';
 import { TARGET_KINDS, setTargetGroup, targetKey, type AssignableTarget } from './projectMembers';
 
 // 그룹 상세의 "대상 추가". 이미 이 그룹에 있는 대상은 빼고, 다른 그룹에 있는 대상은 현재 그룹을 보여 준 채
 // 고를 수 있게 한다(배정은 덮어쓰기라 그대로 옮겨진다). 미분류를 먼저 보여 준다.
+// 같은 그룹에 같은 이름의 서버가 있으면 백엔드가 409로 거부한다.
+const failureReason = (cause: unknown) =>
+  cause instanceof ApiError && cause.code === 'SERVER_NAME_TAKEN' ? '이 그룹에 같은 이름의 서버가 있습니다' : getErrorMessage(cause);
+
 export function AddTargetsDialog({ project, projects, targets, onClose, onAdded }: {
   project: Project;
   projects: Project[];
@@ -19,6 +22,8 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  // 넣지 못한 대상과 까닭. 성공한 대상은 반영하고 대화 상자를 닫지 않는다.
+  const [failures, setFailures] = useState<{ name: string; reason: string }[]>([]);
   useEffect(() => { dialogRef.current?.showModal(); }, []);
 
   const groupName = (id?: string) => projects.find(row => row.id === id)?.name;
@@ -39,15 +44,18 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
   const close = () => { if (!saving) onClose(); };
   const submit = async () => {
     setSaving(true);
+    setFailures([]);
     const results = await Promise.allSettled(chosen.map(target => setTargetGroup(target, project.id)));
-    const failed = chosen.filter((_, index) => results[index].status === 'rejected');
+    const failed = chosen.flatMap((target, index) => {
+      const result = results[index];
+      return result.status === 'rejected' ? [{ target, reason: failureReason(result.reason) }] : [];
+    });
     await onAdded();
     setSaving(false);
     if (failed.length === 0) { onClose(); return; }
     // 실패한 대상만 선택에 남겨 다시 시도할 수 있게 한다.
-    setSelected(new Set(failed.map(targetKey)));
-    const reason = results.find((result): result is PromiseRejectedResult => result.status === 'rejected')?.reason;
-    toast.error(`${failed.length}개를 추가하지 못했습니다: ${getErrorMessage(reason)}`);
+    setSelected(new Set(failed.map(({ target }) => targetKey(target))));
+    setFailures(failed.map(({ target, reason }) => ({ name: target.item.name, reason })));
   };
 
   return (
@@ -69,7 +77,7 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
         <>
           <div className="px-6 py-8">
             <p className="type-label text-text-base">추가할 수 있는 대상이 없습니다</p>
-            <p className="mt-1 type-body text-text-muted">서버 화면의 탭에서 대상을 먼저 등록하면 여기에 나타납니다.</p>
+            <p className="mt-1 type-body text-text-muted">서버나 Docker 환경을 먼저 등록하면 여기에 나타납니다.</p>
           </div>
           <div className="flex justify-end border-t border-ui-border px-6 py-4"><Button variant="quiet" onClick={close}>닫기</Button></div>
         </>
@@ -103,6 +111,14 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
               );
             })}
           </div>
+          {failures.length > 0 && (
+            <div role="alert" className="px-6 pb-4">
+              <p className="flex items-start gap-1.5 type-label text-text-base"><MaterialIcon size={20} name="error_outline" className="shrink-0 text-status-error" />{failures.length}개를 추가하지 못했습니다</p>
+              <ul className="mt-1 space-y-1 break-words type-body text-text-muted">
+                {failures.map(({ name, reason }, index) => <li key={`${index}-${name}`}><span className="text-text-base">{name}</span>: {reason}</li>)}
+              </ul>
+            </div>
+          )}
           <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 border-t border-ui-border px-6 py-4">
             <p className="w-full type-caption text-text-muted sm:mr-auto sm:w-auto" aria-live="polite">
               {chosen.length === 0 ? '추가할 대상을 고르세요' : moving > 0 ? `${chosen.length}개 선택, ${moving}개는 다른 그룹에서 옮겨집니다` : `${chosen.length}개 선택`}
