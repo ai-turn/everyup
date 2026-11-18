@@ -64,6 +64,12 @@ export function ServerDetailPage() {
   useEffect(() => {
     if (focusPanel && found) panelRef.current?.focus();
   }, [location.key, focusPanel, found]);
+  // 대화 상자가 닫힌 뒤 포커스가 body로 떨어지지 않게 탭 패널로 옮긴다.
+  // 같은 커밋에서 대화 상자의 정리(트리거로 포커스 복귀)가 먼저 돌고 이 효과가 뒤에 돈다.
+  const [focusRequest, setFocusRequest] = useState(0);
+  useEffect(() => {
+    if (focusRequest > 0) panelRef.current?.focus();
+  }, [focusRequest]);
 
   const target = row && targetId ? targetName(row, targetId) : undefined;
   useBreadcrumb(row ? [{ label: row.server.name, to: serverPath(row.server.id) }, ...(target ? [{ label: target }] : [])] : []);
@@ -72,7 +78,8 @@ export function ServerDetailPage() {
     if (!updatedAt && !error) {
       return (
         // 서버 목록의 자리 표시(ServerListSkeleton)와 같은 방식: 머리말, 탭 줄, 행 몇 개.
-        <div aria-label="서버 정보 조회 중" aria-busy="true" className="space-y-6">
+        <div role="status" aria-busy="true" className="space-y-6">
+          <span className="sr-only">로딩 중…</span>
           <div className="h-8 w-48 animate-pulse rounded-lg bg-ui-hover-soft" />
           <div className="h-10 animate-pulse rounded-lg bg-ui-hover-soft" />
           <div className="space-y-2">
@@ -144,7 +151,8 @@ export function ServerDetailPage() {
           onMerge={() => setDialog('merge')} onDelete={() => setDialog('delete')} />
       )}
       {dialog === 'merge' && (
-        <MergeServerDialog row={row} rows={rows} projects={projects} onClose={() => setDialog(null)} onReload={reload} />
+        <MergeServerDialog row={row} rows={rows} projects={projects} onClose={() => setDialog(null)} onReload={() => void reload()}
+          onMerged={() => { setDialog(null); setFocusRequest((n) => n + 1); void reload(); }} />
       )}
       {dialog === 'delete' && (
         <DeleteServerDialog row={row} onClose={() => setDialog(null)} onFailed={reload}

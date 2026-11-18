@@ -28,7 +28,8 @@ function matchTargets(row: ServerRow, query: string): string[] | null {
 }
 
 function ServerListSkeleton() {
-  return <div aria-label="서버 목록 조회 중" className="space-y-2">
+  return <div role="status" className="space-y-2">
+    <span className="sr-only">로딩 중…</span>
     {[0, 1, 2, 3].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
   </div>;
 }
@@ -40,8 +41,8 @@ export function ServersPage() {
   // 이 화면이 쓰는 주소 변경은 모두 replace다. 그 밖의 이동(링크, 뒤로 가기)이면 검색창이 주소의 q를 따른다.
   const location = useLocation();
   const navigationType = useNavigationType();
-  // 첫 기록의 key는 항상 default라 key만으로는 이동을 놓친다. 주소도 함께 본다.
   useEffect(() => { rememberServersSearch(location.search); }, [location.search]);
+  // 첫 기록의 key는 항상 default라 key만으로는 이동을 놓친다. 주소도 함께 본다.
   const seen = `${location.key}${location.search}`;
   const [seenLocation, setSeenLocation] = useState(seen);
   if (seen !== seenLocation) {
@@ -115,7 +116,7 @@ export function ServersPage() {
         <ListToolbar search={
           <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={visible.length} shortcut placeholder="서버 또는 대상 검색" aria-label="서버 또는 대상 검색" />
         }>
-          <div role="group" aria-label="상태로 거르기" className="grid grid-cols-2 gap-2 min-[26rem]:grid-cols-4 sm:flex sm:flex-wrap">
+          <div role="group" aria-label="상태로 거르기" className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             {STATUS_FILTERS.map((key) => (
               <button key={key} type="button" aria-pressed={status === key} onClick={() => setParam('status', status === key ? null : key)}
                 className="flex min-h-11 flex-col items-start gap-1 whitespace-nowrap rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">

@@ -1,7 +1,7 @@
 import type { StatusTone } from '../../components/common';
 import { api, type AgentServiceFlat, ConnectedAgent, InfrastructureResource, ObservedService, UptimeMonitor } from '../../services/api';
 import { isCollectorFresh } from '../../utils/operationalStatus';
-import { appState, infrastructureState, monitorState, STATE_LABEL, STATE_ORDER } from '../../features/servers/serverStatus';
+import { appState, infrastructureState, monitorState, STATE_LABEL, STATE_ORDER, worst } from '../../features/servers/serverStatus';
 
 // 그룹 목록의 상태 요약과 그룹 상세의 구성원 목록이 같은 판정을 쓰도록 한곳에 둔다.
 // 둘이 따로 계산하면 목록은 "정상"인데 상세는 "장애"인 그룹이 생긴다.
@@ -94,5 +94,6 @@ export function summarizeMembers(members: Member[]): { tone: MemberState; label:
   const counts = { error: 0, warn: 0, idle: 0, healthy: 0 };
   for (const member of members) counts[member.state] += 1;
   const states = (Object.keys(STATE_ORDER) as MemberState[]).filter((state) => counts[state] > 0);
-  return { tone: states[0], label: states.map((state) => `${STATE_LABEL[state]} ${counts[state]}`).join(', ') };
+  // 점의 색은 서버와 같은 심각도 합산이다. 정상 여럿과 일시정지 하나는 정상이다. 문구의 나열은 정렬 순서 그대로다.
+  return { tone: worst(states) ?? 'idle', label: states.map((state) => `${STATE_LABEL[state]} ${counts[state]}`).join(', ') };
 }

@@ -74,7 +74,8 @@ export interface ServerRow {
 
 export type ServerMetric = 'cpu' | 'memory' | 'disk' | 'uptime' | 'errorLogs';
 
-const worst = (states: StatusTone[]): StatusTone | null =>
+/** 여러 대상의 상태를 하나로 합친다(장애 > 확인 필요 > 정상 > 대기). 대상이 없으면 null. 그룹 요약도 같은 판정을 쓴다. */
+export const worst = (states: StatusTone[]): StatusTone | null =>
   states.reduce<StatusTone | null>((current, state) => current === null || SEVERITY[state] < SEVERITY[current] ? state : current, null);
 
 export const hasTargets = (targets: ServerTargets) =>

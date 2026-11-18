@@ -15,14 +15,16 @@ const errorMessage = (error: unknown) => error instanceof ApiError && error.code
   : getErrorMessage(error);
 
 /** 다른 서버들을 이 서버로 가져온다. 선택한 서버의 대상은 이 서버로 옮겨지고 선택한 서버는 삭제된다. */
-export function MergeServerDialog({ row, rows, projects, onClose, onReload }: {
+export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMerged }: {
   row: ServerRow;
   rows: ServerRow[];
   /** 그룹 목록을 불러오지 못했으면 null. 항목에서 그룹 이름을 뺀다. */
   projects: Project[] | null;
   onClose: () => void;
-  /** 합친 뒤나 실패한 뒤에 서버 데이터를 다시 불러온다. */
+  /** 실패한 뒤에 서버 데이터를 다시 불러온다. 창은 열어 둔다. */
   onReload: () => void;
+  /** 모두 합쳤다. 창을 닫고 서버 데이터를 다시 불러오는 것은 화면이 한다. */
+  onMerged: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useModalDialog(true, dialogRef);
@@ -69,6 +71,12 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload }: {
         // react-doctor-disable-next-line async-await-in-loop
         await api.mergeServer(candidate.server.id, row.server.id);
         merged += 1;
+        // 다시 불러오기가 끝나기 전이나 실패한 뒤에 재시도해도 이미 합쳐진 서버로 요청하지 않게 선택에서 바로 뺀다.
+        setChecked((current) => {
+          const next = new Set(current);
+          next.delete(candidate.server.id);
+          return next;
+        });
       } catch (cause) {
         setError(`${merged > 0 ? `서버 ${merged}개를 합친 뒤 ` : ''}${candidate.server.name}에서 멈췄습니다. ${errorMessage(cause)}`);
         setMerging(false);
@@ -77,8 +85,7 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload }: {
       }
     }
     toast.success(`서버 ${merged}개를 합쳤습니다`);
-    onClose();
-    onReload();
+    onMerged();
   };
 
   const knownTargets = selected.some((candidate) => hasTargets(candidate.targets));
@@ -107,8 +114,9 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload }: {
             <p className="type-body text-text-muted">합칠 다른 서버가 없습니다.</p>
           ) : (
             <div>
-              <h3 id="merge-server-choices" className="mb-1.5 type-label text-text-muted">합칠 서버</h3>
-              <ul aria-labelledby="merge-server-choices" className="-mx-2 max-h-72 overflow-y-auto">
+              <h3 id="merge-server-choices" className="mb-1.5 type-label text-text-muted">합칠 서버 ({candidates.length}개)</h3>
+              {/* 행 높이(약 52px)의 4.5배쯤에서 자른다. 마지막 행이 반쯤 걸쳐야 목록이 더 있다는 것이 보인다. */}
+              <ul aria-labelledby="merge-server-choices" className="-mx-2 max-h-60 overflow-y-auto">
                 {candidates.map((candidate) => {
                   const disabled = blocked(candidate);
                   const group = groupOf(candidate);

@@ -55,7 +55,7 @@ export function ServerTable({ rows, matches, groupName }: {
       } },
       { key: 'status', label: '상태', className: 'w-32 @3xl:w-40', render: (row) => <>
         <StatusLight tone={row.state} label={STATE_LABEL[row.state]} />
-        {row.cause && <Tooltip content={row.cause.text}><p className="mt-1 truncate type-caption text-text-muted">{row.cause.text}</p></Tooltip>}
+        {row.cause && <Tooltip content={row.cause.text}><p className="mt-1 line-clamp-2 break-words type-caption text-text-muted">{row.cause.text}</p></Tooltip>}
       </> },
       { key: 'cpu', label: 'CPU', className: 'hidden w-20 @3xl:table-cell', align: 'right', render: cpu },
       { key: 'memory', label: '메모리', className: 'hidden w-20 @3xl:table-cell', align: 'right', render: memory },
