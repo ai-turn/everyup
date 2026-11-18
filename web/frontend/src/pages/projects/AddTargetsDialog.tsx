@@ -2,15 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, IconButton, MaterialIcon, SearchInput } from '../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import type { Project } from '../../services/api';
-import { ApiError, getErrorMessage } from '../../utils/errors';
-import { TARGET_KINDS, setTargetGroup, targetKey, type AssignableTarget } from './projectMembers';
+import { TARGET_KINDS, groupChangeFailure, setTargetGroup, targetKey, type AssignableTarget } from './projectMembers';
 
 // 그룹 상세의 "대상 추가". 이미 이 그룹에 있는 대상은 빼고, 다른 그룹에 있는 대상은 현재 그룹을 보여 준 채
 // 고를 수 있게 한다(배정은 덮어쓰기라 그대로 옮겨진다). 미분류를 먼저 보여 준다.
-// 같은 그룹에 같은 이름의 서버가 있으면 백엔드가 409로 거부한다.
-const failureReason = (cause: unknown) =>
-  cause instanceof ApiError && cause.code === 'SERVER_NAME_TAKEN' ? '이 그룹에 같은 이름의 서버가 있습니다' : getErrorMessage(cause);
-
 export function AddTargetsDialog({ project, projects, targets, onClose, onAdded }: {
   project: Project;
   projects: Project[];
@@ -48,7 +43,7 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
     const results = await Promise.allSettled(chosen.map(target => setTargetGroup(target, project.id)));
     const failed = chosen.flatMap((target, index) => {
       const result = results[index];
-      return result.status === 'rejected' ? [{ target, reason: failureReason(result.reason) }] : [];
+      return result.status === 'rejected' ? [{ target, reason: groupChangeFailure(result.reason, project.id) }] : [];
     });
     await onAdded();
     setSaving(false);

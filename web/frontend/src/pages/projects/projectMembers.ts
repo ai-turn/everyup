@@ -4,6 +4,7 @@ import { isCollectorFresh } from '../../utils/operationalStatus';
 import { serverPath } from '../../features/servers/serverPaths';
 import { STATE_LABEL, STATE_ORDER, worst, type ServerRow } from '../../features/servers/serverStatus';
 import { readLatest } from '../../utils/readLatest';
+import { ApiError, getErrorMessage } from '../../utils/errors';
 
 // 그룹 목록의 상태 요약과 그룹 상세의 구성원 목록이 같은 판정을 쓰도록 한곳에 둔다.
 // 둘이 따로 계산하면 목록은 "정상"인데 상세는 "장애"인 그룹이 생긴다.
@@ -63,6 +64,14 @@ export async function setTargetGroup(target: AssignableTarget, projectId?: strin
   if (target.kind === 'agent') return projectId ? api.assignAgent(projectId, target.item.id) : api.unassignAgent(target.item.projectId ?? '', target.item.id);
   const latest = await readLatest(() => api.getServer(target.item.id), '그룹 지정');
   return api.updateServer(latest.id, { name: latest.name, description: latest.description, projectId });
+}
+
+/** 그룹 지정(projectId)이나 해제(없음)가 실패한 까닭. 이름 충돌은 옮겨 갈 곳을 밝힌다. */
+export function groupChangeFailure(cause: unknown, projectId?: string): string {
+  if (cause instanceof ApiError && cause.code === 'SERVER_NAME_TAKEN') {
+    return projectId ? '이 그룹에 같은 이름의 서버가 있습니다' : '미분류에 같은 이름의 서버가 있습니다';
+  }
+  return getErrorMessage(cause);
 }
 
 // 그룹 목록용 한 줄 요약. 가장 나쁜 상태가 점 색을 정한다.

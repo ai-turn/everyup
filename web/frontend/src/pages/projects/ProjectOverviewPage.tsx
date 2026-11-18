@@ -8,7 +8,7 @@ import { useListView } from '../../hooks/useListView';
 import { api, type Project } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { ProjectDialog } from './ProjectsPage';
-import { assignableTargets, projectMembers, setTargetGroup, sourcesForProject, type Member, type ProjectSources } from './projectMembers';
+import { assignableTargets, groupChangeFailure, projectMembers, setTargetGroup, sourcesForProject, type Member, type ProjectSources } from './projectMembers';
 import { AddTargetsDialog } from './AddTargetsDialog';
 import { openFromGroup } from '../../hooks/useGroupTrail';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
@@ -25,7 +25,7 @@ function MemberLink({ to, icon, type, name, detail, cause, state, returnTo, onOp
   return (
     <Link to={to} state={{ returnTo }} onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
       <MaterialIcon size={20} name={icon} className={`shrink-0 ${stateClass}`} />
-      <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-0.5 block truncate text-xs text-text-muted">{type} · {cause ?? detail}</span></span>
+      <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-0.5 block truncate text-xs text-text-muted">{type} · {detail}</span>{cause && <span className="mt-0.5 block truncate text-xs text-text-muted">{cause}</span>}</span>
       <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
     </Link>
   );
@@ -102,6 +102,8 @@ export function ProjectOverviewPage() {
   const all: ProjectSources = { ...data.docker, servers: servers.rows };
   const own = projectId ? sourcesForProject(projectId, all) : { ...EMPTY_DOCKER, servers: [] };
   const totalTargets = own.agents.length + own.servers.length;
+  // 서버나 Docker 환경 목록을 처음부터 못 불러왔으면 빈 그룹이라고 단정하지 않는다(위의 안내만 보인다).
+  const membersUnknown = !servers.loaded || failedSources.includes('Docker 환경');
   // 서버 목록을 처음부터 불러오지 못했으면 서버가 없다고 단정하지 않는다(안내에 서버를 넣는다).
   const failures: FailedTargets[] = [
     ...failedSources.map((label) => ({ label, stale: false })),
@@ -130,7 +132,7 @@ export function ProjectOverviewPage() {
       await setTargetGroup(member.assignment);
       toast.success(`그룹에서 뺐습니다: ${member.name}`);
       await reloadAll();
-    } catch (requestError) { toast.error(getErrorMessage(requestError)); }
+    } catch (requestError) { toast.error(`${member.name}: ${groupChangeFailure(requestError)}`); }
   };
   // Docker 서비스는 Docker 환경을 따르므로 따로 뺄 수 없다.
   // ✕ 아이콘은 대상 삭제로 읽혀서 "빼기"라고 쓴다. 대상은 지워지지 않고 미분류로 돌아간다.
@@ -159,7 +161,7 @@ export function ProjectOverviewPage() {
 
       {failures.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{partialFailureMessage(failures)}</p></div></div><Button variant="secondary" size="sm" onClick={() => void reloadAll()}>다시 시도</Button></section>}
 
-      {totalTargets === 0 ? <section><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="서버와 Docker 환경을 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
+      {totalTargets === 0 ? membersUnknown ? null : <section><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="서버와 Docker 환경을 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
         <section>
           <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
           {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center overflow-hidden rounded-xl border border-ui-border-soft bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :

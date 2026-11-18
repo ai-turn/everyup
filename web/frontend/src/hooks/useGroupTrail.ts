@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { NAV_SECTIONS, sectionFor, type NavTarget } from '../components/layout/navSections';
 
@@ -36,7 +36,8 @@ export function useGroupTrail(): GroupTrail | null {
   // 그룹 화면으로 돌아와도 지운다. 대상 경로가 서버 전체(/servers/:id)라서, 남겨 두면 그 뒤에 다른 곳에서 같은 서버로 바로 가도
   // 그룹 맥락이 된다. 구성원을 누르면 openFromGroup이 다시 남긴다(누른 뒤 곧바로 이동하므로 그 사이에 지워지지 않는다).
   const stale = Boolean(trail && !active);
-  useEffect(() => {
+  // 화면이 그려지기 전에 지운다. 그룹 화면이 보인 직후에 다른 주소로 가도 지난 맥락이 남지 않게.
+  useLayoutEffect(() => {
     if (stale) try { sessionStorage.removeItem(KEY); } catch { /* 무시 */ }
   }, [stale]);
   return active;
