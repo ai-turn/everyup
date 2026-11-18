@@ -60,10 +60,27 @@ export function infrastructureState(resource: InfrastructureResource): TargetSta
 
 export interface ServerTargets { monitors: UptimeMonitor[]; apps: ObservedService[]; infrastructure?: InfrastructureResource }
 
+/** 문제가 있는 대상 하나. 서버 목록의 원인 문구와 같은 판정과 문구다. */
+export interface TargetIssue {
+  kind: 'monitor' | 'infrastructure' | 'app';
+  id: string;
+  name: string;
+  state: 'error' | 'warn';
+  /** 대상 이름을 뺀 원인("응답 없음, 3분째", "CPU 88.0%", "데이터 대기 중") */
+  detail: string;
+  /** 서버 목록의 원인 문구. 모니터와 앱은 이름을 앞에 붙인다. */
+  text: string;
+  to: string;
+  /** 모니터는 마지막 체크, 인프라는 마지막 수신, 앱은 마지막 수신이나 연결한 때 */
+  observedAt?: string;
+}
+
 export interface ServerRow {
   server: Server;
   targets: ServerTargets;
   state: StatusTone;
+  /** 지금 불러온 대상 가운데 장애·확인 필요인 것(같은 상태 안에서 원인 우선순위 순). 개요의 "현재 확인 필요"가 쓴다. */
+  issues: TargetIssue[];
   /** 서버 상태의 원인과 그 대상의 주소. 정상이면 없고, 대상이 없으면 주소가 없다. */
   cause?: { text: string; to?: string };
   /** 기능별 상태. 연결된 대상이 없으면 null. */
@@ -196,23 +213,27 @@ export function buildServerRows(input: {
     };
 
     // 순서가 같은 상태 안의 우선순위다: 모니터 장애가 앱의 대기보다 먼저 원인으로 보인다.
-    const candidates = [
+    const candidates: (Omit<TargetIssue, 'state'> & { state: StatusTone })[] = [
       ...current.monitors.map((monitor) => {
         const result = monitorState(monitor);
         const incident = monitor.activeIncident?.active ? monitor.activeIncident : undefined;
-        const text = `${monitor.name} ${result.state === 'error' ? `응답 없음${incident ? `, ${formatDuration(incident.durationSec)}째` : ''}` : result.detail}`;
-        return { ...result, text, to: serverPath(server.id, 'uptime', monitor.id) };
+        const detail = result.state === 'error' ? `응답 없음${incident ? `, ${formatDuration(incident.durationSec)}째` : ''}` : result.detail;
+        return { kind: 'monitor' as const, id: monitor.id, name: monitor.name, state: result.state, detail, text: `${monitor.name} ${detail}`, to: serverPath(server.id, 'uptime', monitor.id), observedAt: monitor.lastCheckAt };
       }),
-      ...(current.infrastructure ? [infrastructureState(current.infrastructure)].map((result) => ({ ...result, text: result.detail, to: serverPath(server.id, 'infrastructure') })) : []),
+      ...(current.infrastructure ? [current.infrastructure].map((resource) => {
+        const result = infrastructureState(resource);
+        return { kind: 'infrastructure' as const, id: resource.id, name: resource.name, state: result.state, detail: result.detail, text: result.detail, to: serverPath(server.id, 'infrastructure'), observedAt: resource.lastSeenAt };
+      }) : []),
       ...current.apps.map((app) => {
         const breached = breachedOf(app);
+        const base = { kind: 'app' as const, id: app.id, name: app.name, observedAt: app.lastSeenAt ?? app.createdAt };
         if (breached.length > 0) {
           // 옛 메트릭 목록의 표현: 까닭(임계값 초과)과 첫 지표 이름, 나머지 개수.
-          const text = `${app.name} ${BREACHED_LABEL} ${metricTitle(breached[0])}${breached.length > 1 ? ` 외 ${breached.length - 1}개` : ''}`;
-          return { state: 'warn' as const, detail: BREACHED_LABEL, text, to: serverPath(server.id, 'metrics', app.id) };
+          const detail = `${BREACHED_LABEL} ${metricTitle(breached[0])}${breached.length > 1 ? ` 외 ${breached.length - 1}개` : ''}`;
+          return { ...base, state: 'warn' as const, detail, text: `${app.name} ${detail}`, to: serverPath(server.id, 'metrics', app.id) };
         }
         const result = appState(app);
-        return { ...result, text: `${app.name} ${result.detail}`, to: serverPath(server.id, appCapability(app), app.id) };
+        return { ...base, state: result.state, detail: result.detail, text: `${app.name} ${result.detail}`, to: serverPath(server.id, appCapability(app), app.id) };
       }),
     ];
     const state = worst(candidates.map((candidate) => candidate.state)) ?? 'idle';
@@ -242,6 +263,7 @@ export function buildServerRows(input: {
       targets: { monitors, apps, infrastructure },
       state,
       cause: culprit && { text: culprit.text, to: culprit.to },
+      issues: candidates.filter((candidate): candidate is TargetIssue => candidate.state === 'error' || candidate.state === 'warn'),
       capabilities: {
         uptime: worst(current.monitors.map((monitor) => monitorState(monitor).state)),
         infrastructure: current.infrastructure ? infrastructureState(current.infrastructure).state : null,

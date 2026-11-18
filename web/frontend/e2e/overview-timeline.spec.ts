@@ -6,7 +6,7 @@ test.use({ baseURL: 'http://127.0.0.1:4174/' });
 const incident: TimelineIncident = {
   source: 'uptime',
   targetName: 'Storefront',
-  targetPath: '/uptime/storefront',
+  targetPath: '/servers/server-1/uptime/storefront',
   startedAt: '2026-10-16T00:00:00Z',
   endedAt: '2026-10-16T00:42:00Z',
   durationSec: 2520,

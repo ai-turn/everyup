@@ -1,23 +1,20 @@
 import { Tooltip } from '../../components/common/Tooltip';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
   type ConnectedAgent,
   type InfrastructureResource,
-  type ObservedService,
   type TimelineIncident,
-  type UptimeMonitor,
 } from '../../services/api';
 import { isCollectorFresh } from '../../utils/operationalStatus';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
-import { serverPath } from '../../features/servers/serverPaths';
-
-const OverviewPrototype = import.meta.env.DEV ? lazy(() => import('./Overview.prototype').then((module) => ({ default: module.OverviewPrototype }))) : null;
+import { ALL_LOGS_PATH, NEW_SERVER_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
+import { useServers } from '../../features/servers/useServers';
 
 interface AttentionItem {
   id: string;
@@ -33,56 +30,54 @@ interface AttentionItem {
 const SOURCE_LABELS: Record<string, string> = {
   agents: 'Docker 환경',
   services: 'Docker 서비스 상태',
-  monitors: '업타임 모니터',
-  observed: '직접 연결 서비스',
-  infrastructure: '인프라 리소스',
+  infrastructure: 'Docker 인프라',
   timeline: '장애 이력',
 };
 
+// 문제가 있는 직접 대상의 아이콘. 장애는 종류와 관계없이 같은 표시다.
+const ISSUE_ICON = { monitor: 'monitor_heart', infrastructure: 'memory', app: 'hub' } as const;
+
 export function OverviewPage() {
-  const [prototypeParams] = useSearchParams();
-  const prototypeVariant = import.meta.env.DEV ? prototypeParams.get('variant') : null;
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
-  const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
-  const [observedServices, setObservedServices] = useState<ObservedService[]>([]);
-  const [infrastructure, setInfrastructure] = useState<InfrastructureResource[]>([]);
+  // Docker 환경의 인프라 리소스. 직접 연결 리소스는 서버 행(useServers)이 판정한다.
+  const [dockerInfrastructure, setDockerInfrastructure] = useState<InfrastructureResource[]>([]);
   const [failedSources, setFailedSources] = useState<string[]>([]);
   const [timeline, setTimeline] = useState<TimelineIncident[]>([]);
   const [showAllAttention, setShowAllAttention] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [retrying, setRetrying] = useState(false);
   const pendingLoad = useRef<Promise<void> | null>(null);
+  // 서버와 직접 대상의 상태는 서버 목록과 같은 훅과 판정을 쓴다. 따로 계산하면 개요와 서버 목록이 어긋난다.
+  const servers = useServers();
+  const { poll, refresh: refreshServers } = servers;
 
   const load = useCallback(() => {
     // 두 재시도 버튼과 수동·자동 갱신이 겹쳐도 같은 조회가 끝나기를 기다린다.
     if (pendingLoad.current) return pendingLoad.current;
     pendingLoad.current = (async () => {
-      const [agentsResult, servicesResult, monitorsResult, observedResult, infrastructureResult, timelineResult] = await Promise.allSettled([
+      const [agentsResult, servicesResult, infrastructureResult, timelineResult] = await Promise.allSettled([
         api.getAgents(),
         api.getAllAgentServicesFlat(),
-        api.getUptimeMonitors(),
-        api.getObservedServices(),
         api.getInfrastructureResources(),
         api.getIncidentTimeline(7, 6),
       ]);
       const failed: string[] = [];
       if (agentsResult.status === 'fulfilled') setAgents(agentsResult.value ?? []); else failed.push('agents');
       if (servicesResult.status === 'fulfilled') setServices(servicesResult.value ?? []); else failed.push('services');
-      if (monitorsResult.status === 'fulfilled') setMonitors(monitorsResult.value ?? []); else failed.push('monitors');
-      if (observedResult.status === 'fulfilled') setObservedServices(observedResult.value ?? []); else failed.push('observed');
-      if (infrastructureResult.status === 'fulfilled') setInfrastructure(infrastructureResult.value ?? []); else failed.push('infrastructure');
+      if (infrastructureResult.status === 'fulfilled') setDockerInfrastructure((infrastructureResult.value ?? []).filter((resource) => resource.adapter === 'everyup-agent')); else failed.push('infrastructure');
       if (timelineResult.status === 'fulfilled') setTimeline(timelineResult.value ?? []); else failed.push('timeline');
       setFailedSources(failed);
       setUpdatedAt(new Date());
     })().finally(() => { pendingLoad.current = null; });
     return pendingLoad.current;
   }, []);
+  const loadAll = useCallback(() => Promise.all([load(), refreshServers()]).then(() => undefined), [load, refreshServers]);
 
   const retry = async () => {
     setRetrying(true);
     try {
-      await load();
+      await loadAll();
     } finally {
       setRetrying(false);
     }
@@ -92,18 +87,25 @@ export function OverviewPage() {
     const initialLoad = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(initialLoad);
   }, [load]);
-  useAutoRefresh(() => void load(), 30_000);
+  useAutoRefresh(() => { void load(); poll(); }, 30_000);
   // 직접 누른 새로고침만 아이콘을 돌린다 — 30초 자동 갱신마다 버튼을 비활성으로 깜빡이지 않게 (상세 화면과 같은 방식).
-  const { spinning, trigger: handleRefresh } = useSpinAction(load);
+  const { spinning, trigger: handleRefresh } = useSpinAction(loadAll);
 
   const staleAgents = agents.filter((agent) => !isCollectorFresh(agent.lastSeenAt));
   const unhealthyServices = services.filter((service) => !service.healthy);
-  const unhealthyMonitors = monitors.filter((monitor) => monitor.status === 'unhealthy');
-  const directAwaitingData = observedServices.filter((service) => service.isActive && !service.lastSeenAt);
-  const inactiveInfrastructure = infrastructure.filter((resource) => resource.isActive && !isCollectorFresh(resource.lastSeenAt));
+  // Docker 환경의 인프라는 그 환경과 ID와 수신 시각이 같다. 환경 항목이 이미 있으면 같은 곳으로 가는 두 번째 항목을 만들지 않는다.
+  const staleDockerInfrastructure = dockerInfrastructure.filter((resource) =>
+    resource.isActive && !isCollectorFresh(resource.lastSeenAt) && !staleAgents.some((agent) => agent.id === resource.id));
+  // 서버 목록 자체나 대상 목록(업타임, 앱, 인프라, 메트릭 임계값)을 불러오지 못했다. 로그 요약은 이 화면의 판정에 쓰지 않는다.
+  const serverFailures = [
+    ...(servers.error ? ['서버'] : []),
+    ...servers.failed.filter((item) => item.label !== '로그 요약').map((item) => item.label),
+  ];
+  const monitorsUnknown = Boolean(servers.error) || servers.failed.some((item) => item.label === '업타임');
+  const failedLabels = [...failedSources.map((source) => SOURCE_LABELS[source] ?? source), ...serverFailures];
 
   // 상태 소스가 하나라도 실패하면 "이상 없음"을 단정할 수 없다. 이력(timeline)만 실패한 경우는 현재 상태 판단과 무관하다.
-  const statusUnknown = failedSources.some((source) => source !== 'timeline');
+  const statusUnknown = failedSources.some((source) => source !== 'timeline') || serverFailures.length > 0;
   const timelineFailed = failedSources.includes('timeline');
 
   const attention = useMemo<AttentionItem[]>(() => {
@@ -117,14 +119,21 @@ export function OverviewPage() {
         icon: 'error_outline',
         observedAt: service.observedAt,
       })),
-      ...unhealthyMonitors.map((monitor) => ({
-        id: `monitor-${monitor.id}`,
-        title: monitor.name,
-        detail: '업타임 모니터가 장애를 보고했습니다',
-        to: serverPath(monitor.serverId, 'uptime', monitor.id),
-        tone: 'error' as const,
-        icon: 'error_outline',
-        observedAt: monitor.lastCheckAt,
+      // 서버 목록의 원인과 같은 판정이다. 서버 이름을 앞에 붙인다(인프라 리소스는 보통 서버와 이름이 같다).
+      ...servers.rows.flatMap((row) => row.issues.map((issue) => {
+        const app = issue.kind === 'app' ? row.targets.apps.find((item) => item.id === issue.id) : undefined;
+        return {
+          id: `${issue.kind}-${issue.id}`,
+          title: issue.name === row.server.name ? row.server.name : `${row.server.name} / ${issue.name}`,
+          detail: issue.detail,
+          to: issue.to,
+          tone: issue.state,
+          icon: issue.state === 'error' ? 'error_outline' : ISSUE_ICON[issue.kind],
+          observedAt: issue.observedAt,
+          timeLabel: issue.kind === 'monitor' ? undefined
+            : app && !app.lastSeenAt ? `${formatIncidentTime(app.createdAt)} 연결`
+              : issue.observedAt ? `마지막 수신 ${formatIncidentTime(issue.observedAt)}` : '수신 기록 없음',
+        };
       })),
       ...staleAgents.map((agent) => ({
         id: `agent-${agent.id}`,
@@ -136,21 +145,12 @@ export function OverviewPage() {
         observedAt: agent.lastSeenAt,
         timeLabel: agent.lastSeenAt ? `마지막 수신 ${formatIncidentTime(agent.lastSeenAt)}` : '수신 기록 없음',
       })),
-      ...directAwaitingData.map((service) => ({
-        id: `observed-${service.id}`,
-        title: service.name,
-        detail: '직접 연결한 서비스에서 아직 데이터가 확인되지 않았습니다',
-        to: `/logs/${service.id}`,
-        tone: 'warn' as const,
-        icon: 'schedule',
-        observedAt: service.createdAt,
-        timeLabel: `${formatIncidentTime(service.createdAt)} 연결`,
-      })),
-      ...inactiveInfrastructure.map((resource) => ({
+      ...staleDockerInfrastructure.map((resource) => ({
         id: `infrastructure-${resource.id}`,
         title: resource.name,
         detail: '인프라 Collector 데이터가 지연되었거나 끊겼습니다',
-        to: `/infrastructure/${resource.id}`,
+        // Docker 환경의 인프라 리소스는 서버가 없고 ID가 그 환경과 같다.
+        to: `/agents/${resource.id}`,
         tone: 'warn' as const,
         icon: 'sensors_off',
         observedAt: resource.lastSeenAt,
@@ -161,7 +161,7 @@ export function OverviewPage() {
     const listedPaths = new Set(items.map((item) => item.to.split('?')[0]));
     const unlistedActive = timeline.filter((episode) =>
       episode.active
-      && failedSources.includes(episode.source === 'uptime' ? 'monitors' : 'services')
+      && (episode.source === 'uptime' ? monitorsUnknown : failedSources.includes('services'))
       && !listedPaths.has(episode.targetPath));
     items.push(...unlistedActive.map((episode) => ({
       id: `episode-${episode.source}-${episode.targetPath}`,
@@ -178,7 +178,7 @@ export function OverviewPage() {
       if (Number.isFinite(observedDelta) && observedDelta !== 0) return observedDelta;
       return a.id.localeCompare(b.id);
     });
-  }, [directAwaitingData, failedSources, inactiveInfrastructure, staleAgents, timeline, unhealthyMonitors, unhealthyServices]);
+  }, [failedSources, monitorsUnknown, servers.rows, staleAgents, staleDockerInfrastructure, timeline, unhealthyServices]);
 
   // 확인 필요 행에 "언제부터"를 붙이기 위해 진행 중인 에피소드를 대상 경로로 찾는다.
   const activeEpisodes = new Map(timeline.filter((episode) => episode.active).map((episode) => [episode.targetPath, episode]));
@@ -192,11 +192,11 @@ export function OverviewPage() {
     return () => { document.title = previous; };
   }, [errorCount]);
 
-  const totalTargets = agents.length + monitors.length + observedServices.length + infrastructure.length;
+  const totalTargets = agents.length + servers.rows.length;
 
   // 첫 로드에만 스켈레톤을 보인다 — 대상이 0개인 상태에서 30초마다 다시 깜빡이지 않게.
   // 모양은 실제 배치(범위 스트립, 그 아래 확인 필요·이력 패널)를 따른다.
-  if (!updatedAt) {
+  if (!updatedAt || (!servers.loaded && !servers.error)) {
     return (
       <div className="space-y-5" aria-busy="true">
         <PageHeader menu title="개요" />
@@ -206,13 +206,9 @@ export function OverviewPage() {
     );
   }
 
-  if (OverviewPrototype && prototypeVariant && ['A', 'B', 'C'].includes(prototypeVariant)) {
-    return <Suspense fallback={<p className="p-6 text-text-muted">설계안을 불러오는 중</p>}><OverviewPrototype variant={prototypeVariant} attention={attention} timeline={timeline} agents={agents} services={services} monitors={monitors} observed={observedServices} infrastructure={infrastructure} failedSources={failedSources} updatedAt={updatedAt} onRefresh={handleRefresh} /></Suspense>;
-  }
-
   return (
-    <div className={`space-y-5 ${prototypeVariant ? 'pb-36' : ''}`}>
-      {/* 연결 추가는 각 화면(Docker 환경·업타임·로그)의 일이다. 개요의 머리는 장애에 내준다. */}
+    <div className="space-y-5">
+      {/* 연결 추가는 각 화면(서버, Docker 환경)의 일이다. 개요의 머리는 장애에 내준다. */}
       <PageHeader menu
         title="개요"
         meta={updatedAt && (
@@ -231,14 +227,14 @@ export function OverviewPage() {
         {updatedAt && `확인 필요 ${attention.length}건${statusUnknown ? ', 일부 상태 확인 불가' : ''}`}
       </p>
 
-      {failedSources.length > 0 && (
+      {failedLabels.length > 0 && (
         <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
           <div className="flex items-start gap-3">
             <MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" />
             <div>
               <p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p>
               <p className="mt-0.5 type-body text-text-muted">
-                불러오지 못한 영역: {failedSources.map((source) => SOURCE_LABELS[source] ?? source).join(', ')}. 이 영역은 정상 여부를 판단할 수 없습니다.
+                불러오지 못한 영역: {failedLabels.join(', ')}. 이 영역은 정상 여부를 판단할 수 없습니다.
               </p>
             </div>
           </div>
@@ -252,12 +248,11 @@ export function OverviewPage() {
           <EmptyState
             icon="sensors"
             title="아직 모니터링 대상이 없습니다"
-            description="Docker 환경, 업타임 모니터 또는 직접 OpenTelemetry 연결 중 하나를 선택해 시작하세요."
+            description="서버를 추가해 업타임, 로그, 인프라 같은 기능을 연결하거나 Docker 환경을 연결해 시작하세요."
           >
             <div className="flex flex-wrap justify-center gap-2">
-              <ButtonLink to="/environments?connect=docker">Docker 연결</ButtonLink>
-              <ButtonLink variant="secondary" to="/uptime">업타임 모니터 추가</ButtonLink>
-              <ButtonLink variant="secondary" to="/logs">OpenTelemetry 직접 연결</ButtonLink>
+              <ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink>
+              <ButtonLink variant="secondary" to="/environments?connect=docker">Docker 연결</ButtonLink>
             </div>
           </EmptyState>
         </section>
@@ -270,12 +265,10 @@ export function OverviewPage() {
           <div className="border-b border-ui-border-soft pb-4">
           <nav aria-label="모니터링 범위" className="-mx-2 flex flex-wrap items-center gap-x-1 gap-y-1">
             {([
-              ['Docker 환경', agents.length, '/environments', 'agents', 'dns'],
-              ['업타임 모니터', monitors.length, '/uptime', 'monitors', 'monitor_heart'],
-              ['직접 연결 서비스', observedServices.length, '/logs', 'observed', 'hub'],
-              ['인프라 리소스', infrastructure.length, '/infrastructure', 'infrastructure', 'memory'],
-            ] as const).map(([label, count, to, source, icon]) => (
-              failedSources.includes(source) ? (
+              ['서버', servers.rows.length, SERVERS_PATH, Boolean(servers.error) && !servers.loaded, 'dns'],
+              ['Docker 환경', agents.length, '/environments', failedSources.includes('agents'), 'deployed_code'],
+            ] as const).map(([label, count, to, unknown, icon]) => (
+              unknown ? (
                 <span key={label} className="inline-flex h-8 items-center gap-1.5 px-2">
                   <MaterialIcon name={icon} size={20} className="text-text-dim" />
                   <span className="type-body text-text-muted">{label}</span>
@@ -298,7 +291,8 @@ export function OverviewPage() {
           {/* Linear식 목록: 카드·행 구분선·배경 띠 없이 그룹 제목과 간격으로 나누고, 두 그룹 사이에만 옅은 선을 둔다. 행은 Triage 인박스처럼 두 줄. */}
           <div className="section-stack">
             <section id="attention" aria-label="현재 확인 필요" className="scroll-mt-5">
-              <GroupHeader title="현재 확인 필요" count={attention.length} countLabel={`확인 필요 ${attention.length}건`} />
+              <GroupHeader title="현재 확인 필요" count={attention.length} countLabel={`확인 필요 ${attention.length}건`}
+                action={<Link to={ALL_LOGS_PATH} className="inline-flex h-8 items-center px-2 type-body text-action link-underline">전체 로그</Link>} />
               {attention.length === 0 ? (
                 <div className="flex items-center gap-3 py-3">
                   <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
@@ -382,7 +376,7 @@ export function OverviewPage() {
   );
 }
 
-function GroupHeader({ title, count, countLabel, note }: { title: string; count?: number; countLabel: string; note?: string }) {
+function GroupHeader({ title, count, countLabel, note, action }: { title: string; count?: number; countLabel: string; note?: string; action?: ReactNode }) {
   return (
     <div className="flex h-8 items-center gap-2">
       {/* 섹션 제목이다(section-stack 선으로 나뉜다) — 그룹 제목용 12px이면 아래 행 이름(14px)보다 작아 위계가 뒤집혔다. */}
@@ -390,6 +384,7 @@ function GroupHeader({ title, count, countLabel, note }: { title: string; count?
       {/* span의 aria-label은 대부분의 스크린리더가 읽지 않는다 — 숫자는 감추고 같은 뜻을 글로 둔다. */}
       <span className="type-body tabular-nums text-text-muted"><span aria-hidden="true">{count ?? '-'}</span><span className="sr-only">{countLabel}</span></span>
       {note && <span className="ml-auto min-w-0 truncate type-caption text-text-muted">{note}</span>}
+      {action && <span className="-mr-2 ml-auto">{action}</span>}
     </div>
   );
 }
