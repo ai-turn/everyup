@@ -11,14 +11,9 @@
 // 점은 인접 라벨이 이미 상태를 말하므로 장식이다(aria-hidden). 라벨 없이 점만 쓰는
 // 자리는 §5.2를 따라 role="img" + aria-label이 필요하다.
 
-export type StatusTone = 'healthy' | 'warn' | 'error' | 'idle';
+import { STATUS_DOT, type StatusTone } from './statusTone';
 
-const DOT: Record<StatusTone, string> = {
-  healthy: 'bg-status-healthy-fill',
-  warn: 'bg-status-warn-fill',
-  error: 'bg-status-error-fill',
-  idle: 'bg-status-idle-fill',
-};
+export type { StatusTone };
 
 interface StatusLightProps {
   tone: StatusTone;
@@ -30,7 +25,7 @@ interface StatusLightProps {
 export function StatusLight({ tone, label, pulse }: StatusLightProps) {
   return (
     <span className="inline-flex shrink-0 items-center gap-1.5 type-caption text-text-secondary">
-      <span className={`h-2 w-2 shrink-0 rounded-full ${DOT[tone]} ${pulse ? 'animate-pulse' : ''}`} aria-hidden="true" />
+      <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[tone]} ${pulse ? 'animate-pulse' : ''}`} aria-hidden="true" />
       {label}
     </span>
   );

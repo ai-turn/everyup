@@ -20,9 +20,11 @@ test.describe('shared tabs', () => {
     // 끝에서 오른쪽으로 가면 처음으로 돌아간다.
     await page.keyboard.press('ArrowRight');
     await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
+    await expect(tabs.first()).toBeFocused();
 
     await page.keyboard.press('ArrowLeft');
     await expect(last).toHaveAttribute('aria-selected', 'true');
+    await expect(last).toBeFocused();
 
     await page.keyboard.press('Home');
     await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');

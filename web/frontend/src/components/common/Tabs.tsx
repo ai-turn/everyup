@@ -1,5 +1,5 @@
 import type { KeyboardEvent } from 'react';
-import type { StatusTone } from './StatusLight';
+import { STATUS_DOT, type StatusTone } from './statusTone';
 import { tabId, tabPanelId } from './tabIds';
 
 // 패널을 바꾸는 밑줄 탭. DESIGN.md §4.6.
@@ -7,7 +7,8 @@ import { tabId, tabPanelId } from './tabIds';
 export interface TabItem<T extends string> {
   key: T;
   label: string;
-  /** 문제가 있는 탭에 붙는 상태 점. 점의 접근 가능한 이름은 toneLabel이다. */
+  /** 문제가 있는 탭에 붙는 상태 점. 점의 접근 가능한 이름은 toneLabel이다.
+   *  점만으로 상태를 전달하지 않도록 toneLabel을 함께 준다(없으면 점은 aria-hidden). */
   tone?: StatusTone;
   toneLabel?: string;
   /** 라벨 옆의 보조 문구(예: "연결 전"). */
@@ -16,13 +17,6 @@ export interface TabItem<T extends string> {
   muted?: boolean;
 }
 
-// StatusLight의 점과 같은 토큰. 컴포넌트 파일끼리 상수를 export하면 fast refresh 규칙에 걸려 복제했다.
-const DOT: Record<StatusTone, string> = {
-  healthy: 'bg-status-healthy-fill',
-  warn: 'bg-status-warn-fill',
-  error: 'bg-status-error-fill',
-  idle: 'bg-status-idle-fill',
-};
 
 export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idPrefix }: {
   items: readonly TabItem<T>[];
@@ -69,7 +63,12 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
           >
             {item.label}
             {item.caption && <span className="type-caption text-text-dim">{item.caption}</span>}
-            {item.tone && <span role="img" aria-label={item.toneLabel} className={`h-2 w-2 shrink-0 rounded-full ${DOT[item.tone]}`} />}
+            {item.tone && (
+              <span
+                {...(item.toneLabel ? { role: 'img', 'aria-label': item.toneLabel } : { 'aria-hidden': true })}
+                className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[item.tone]}`}
+              />
+            )}
           </button>
         );
       })}
