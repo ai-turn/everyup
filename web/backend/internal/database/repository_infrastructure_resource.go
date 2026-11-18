@@ -13,7 +13,8 @@ func NewInfrastructureResourceRepository() *InfrastructureResourceRepository {
 	return &InfrastructureResourceRepository{}
 }
 
-const infrastructureResourceSelect = `id, name, COALESCE(project_id, ''), collector_type,
+const infrastructureResourceSelect = `id, name, COALESCE((SELECT project_id FROM servers WHERE servers.id = hosts.server_id), ''),
+	COALESCE(server_id, ''), collector_type,
 	is_active, COALESCE(api_key_masked, ''), last_seen_at, created_at, updated_at`
 
 type infrastructureResourceScanner interface {
@@ -25,7 +26,7 @@ func scanInfrastructureResource(scanner infrastructureResourceScanner) (*models.
 	var isActive int
 	var lastSeen sql.NullTime
 	if err := scanner.Scan(
-		&resource.ID, &resource.Name, &resource.ProjectID, &resource.Adapter,
+		&resource.ID, &resource.Name, &resource.ProjectID, &resource.ServerID, &resource.Adapter,
 		&isActive, &resource.ApiKeyMasked, &lastSeen, &resource.CreatedAt, &resource.UpdatedAt,
 	); err != nil {
 		return nil, err
@@ -44,10 +45,10 @@ func (r *InfrastructureResourceRepository) Create(resource *models.Infrastructur
 	}
 	_, err := DB.Exec(`INSERT INTO hosts(
 		id, name, type, resource_category, ip, port, "group", is_active, description,
-		last_error, project_id, collector_type, api_key_hash, api_key_masked,
+		last_error, server_id, collector_type, api_key_hash, api_key_masked,
 		created_at, updated_at
 	) VALUES (?, ?, 'remote', 'server', '', 0, '', ?, 'OpenTelemetry hostmetrics', '', ?, ?, ?, ?, ?, ?)`,
-		resource.ID, resource.Name, isActive, nullableProjectID(resource.ProjectID), resource.Adapter,
+		resource.ID, resource.Name, isActive, resource.ServerID, resource.Adapter,
 		apiKeyHash, resource.ApiKeyMasked, resource.CreatedAt, resource.UpdatedAt)
 	return err
 }
@@ -93,8 +94,8 @@ func (r *InfrastructureResourceRepository) FindByApiKeyHash(apiKeyHash string) (
 
 func (r *InfrastructureResourceRepository) Update(resource *models.InfrastructureResource) error {
 	resource.UpdatedAt = time.Now()
-	result, err := DB.Exec(`UPDATE hosts SET name = ?, project_id = ?, updated_at = ?
-		WHERE id = ? AND collector_type = ?`, resource.Name, nullableProjectID(resource.ProjectID), resource.UpdatedAt,
+	result, err := DB.Exec(`UPDATE hosts SET name = ?, updated_at = ?
+		WHERE id = ? AND collector_type = ?`, resource.Name, resource.UpdatedAt,
 		resource.ID, models.InfrastructureAdapterOTelCollector)
 	if err != nil {
 		return err

@@ -9,6 +9,7 @@ type Project struct {
 	Name                        string    `json:"name"`
 	Description                 string    `json:"description,omitempty"`
 	AgentCount                  int       `json:"agentCount"`
+	ServerCount                 int       `json:"serverCount"`
 	MonitorCount                int       `json:"monitorCount"`
 	ObservedServiceCount        int       `json:"observedServiceCount"`
 	InfrastructureResourceCount int       `json:"infrastructureResourceCount"`

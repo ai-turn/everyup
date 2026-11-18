@@ -1,6 +1,6 @@
 # Capability menus show only directly configured targets
 
-Status: accepted
+Status: superseded by ADR 0011
 
 Date: 2026-10-25
 

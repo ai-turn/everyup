@@ -32,12 +32,14 @@ var defaultLogLevelFilter = []models.LogLevel{
 type Manager struct {
 	repo        *database.ObservedServiceRepository
 	projectRepo *database.ProjectRepository
+	servers     *database.ServerRepository
 }
 
 func NewManager() *Manager {
 	return &Manager{
 		repo:        database.NewObservedServiceRepository(),
 		projectRepo: database.NewProjectRepository(),
+		servers:     database.NewServerRepository(),
 	}
 }
 
@@ -119,7 +121,11 @@ func NormalizeApiExcludePaths(paths []string) ([]string, error) {
 
 func (m *Manager) validateInput(input models.ObservedServiceInput) (models.ObservedServiceInput, error) {
 	input.Name = strings.TrimSpace(input.Name)
+	input.ServerID = strings.TrimSpace(input.ServerID)
 	input.ProjectID = strings.TrimSpace(input.ProjectID)
+	if input.ServerID != "" {
+		input.ProjectID = "" // the server's group wins
+	}
 	if input.Name == "" {
 		return input, fmt.Errorf("%w: name is required", ErrInvalidInput)
 	}
@@ -148,12 +154,24 @@ func (m *Manager) Create(input models.ObservedServiceInput) (*models.ObservedSer
 	if err != nil {
 		return nil, err
 	}
+	serverID, err := m.servers.ResolveForTarget(database.ServerTargetApp, input.ServerID, input.Name, input.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	server, err := m.servers.GetByID(serverID)
+	if err != nil {
+		return nil, err
+	}
+	if server == nil {
+		return nil, database.ErrServerMissing
+	}
 	plainKey := crypto.GenerateApiKey()
 	now := time.Now()
 	service := models.ObservedService{
 		ID:             uuid.NewString(),
 		Name:           input.Name,
-		ProjectID:      input.ProjectID,
+		ProjectID:      server.ProjectID,
+		ServerID:       serverID,
 		Signals:        input.Signals,
 		LogLevelFilter: append([]models.LogLevel(nil), defaultLogLevelFilter...),
 		IsActive:       true,
@@ -252,8 +270,18 @@ func (m *Manager) Update(id string, input models.ObservedServiceInput) (*models.
 	if err != nil {
 		return nil, err
 	}
+	if input.ServerID != "" {
+		err = m.servers.MoveTarget(database.ServerTargetApp, id, input.ServerID)
+	} else {
+		err = m.servers.SetProjectForTarget(database.ServerTargetApp, id, input.ProjectID)
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
 	service.Name = input.Name
-	service.ProjectID = input.ProjectID
 	service.Signals = input.Signals
 	if err := m.repo.Update(service); err != nil {
 		if err == sql.ErrNoRows {

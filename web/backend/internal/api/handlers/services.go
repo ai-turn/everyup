@@ -18,6 +18,7 @@ import (
 // ServiceHandler handles service-related requests
 type ServiceHandler struct {
 	repo       *database.ServiceRepository
+	servers    *database.ServerRepository
 	metricRepo *database.MetricRepository
 	scheduler  *checker.Scheduler
 }
@@ -26,6 +27,7 @@ type ServiceHandler struct {
 func NewServiceHandler(scheduler *checker.Scheduler) *ServiceHandler {
 	return &ServiceHandler{
 		repo:       database.NewServiceRepository(),
+		servers:    database.NewServerRepository(),
 		metricRepo: database.NewMetricRepository(),
 		scheduler:  scheduler,
 	}
@@ -166,6 +168,15 @@ func (h *ServiceHandler) Create(c *fiber.Ctx) error {
 		AlertOnDown bool `json:"alertOnDown"`
 	}
 	_ = c.BodyParser(&opts) // the body already parsed above; this only reads the extra flag
+	if service.ServerID, err = h.servers.ResolveForTarget(database.ServerTargetMonitor, service.ServerID, service.Name, ""); err != nil {
+		return serverWriteError(c, err)
+	}
+	if server, err := h.servers.GetByID(service.ServerID); err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	} else if server != nil {
+		service.ProjectID = server.ProjectID
+	}
+	// A server created just above stays behind, empty, if this insert fails.
 	if err := h.repo.Create(service); err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
@@ -212,7 +223,8 @@ func createMonitorDownRule(service *models.Service) error {
 // refreshes its in-memory schedule.
 func (h *ServiceHandler) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
-	if existing, err := h.repo.GetByID(id); err != nil {
+	existing, err := h.repo.GetByID(id)
+	if err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	} else if existing == nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": fiber.Map{"code": "SERVICE_NOT_FOUND"}})
@@ -221,9 +233,19 @@ func (h *ServiceHandler) Update(c *fiber.Ctx) error {
 	if err != nil {
 		return agentBadRequest(c, "VALIDATION_ERROR", err.Error())
 	}
+	if service.ServerID != "" && service.ServerID != existing.ServerID {
+		if err := h.servers.MoveTarget(database.ServerTargetMonitor, id, service.ServerID); err != nil {
+			return serverWriteError(c, err)
+		}
+	}
 	if err := h.repo.Update(service); err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
+	stored, err := h.repo.GetByID(id)
+	if err != nil || stored == nil {
+		return internalError(c, "DATABASE_ERROR", fmt.Errorf("reload service %s: %v", id, err))
+	}
+	service.ServerID, service.ProjectID = stored.ServerID, stored.ProjectID
 	if h.scheduler != nil {
 		h.scheduler.AddService(service)
 	}
@@ -232,21 +254,29 @@ func (h *ServiceHandler) Update(c *fiber.Ctx) error {
 
 // Delete removes an independent monitor and cancels its scheduled checks.
 func (h *ServiceHandler) Delete(c *fiber.Ctx) error {
-	id := c.Params("id")
-	if err := h.repo.Delete(id); err != nil {
+	if err := deleteMonitor(h.repo, h.scheduler, c.Params("id")); err != nil {
 		if err == sql.ErrNoRows {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": fiber.Map{"code": "SERVICE_NOT_FOUND"}})
 		}
 		return internalError(c, "DATABASE_ERROR", err)
 	}
-	if h.scheduler != nil {
-		h.scheduler.RemoveService(id)
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// deleteMonitor removes the monitor row, its schedule and its health rules.
+// sql.ErrNoRows when the monitor is missing.
+func deleteMonitor(repo *database.ServiceRepository, scheduler *checker.Scheduler, id string) error {
+	if err := repo.Delete(id); err != nil {
+		return err
+	}
+	if scheduler != nil {
+		scheduler.RemoveService(id)
 	}
 	// The monitor is gone either way; a failed cleanup only leaves orphaned rules.
 	if err := database.NewAlertRuleRepository().DeleteHealthRulesForMonitor(id); err != nil {
 		log.Printf("[Services] delete rules for monitor %s: %v", id, err)
 	}
-	return c.SendStatus(fiber.StatusNoContent)
+	return nil
 }
 
 func (h *ServiceHandler) parseUptimeService(c *fiber.Ctx, id string) (*models.Service, error) {

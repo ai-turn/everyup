@@ -113,9 +113,10 @@ func newLogServiceKey(serviceID, agentID, serviceName string) logServiceKey {
 
 // Summary rolls up each log service's error/warn activity since `from` for the
 // logs page cards: exact counts, per-bucket counts for the sparkline, the
-// newest error (else warn), and when logs of any level last arrived.
+// newest error (else warn), and when logs of any level last arrived. A non-empty
+// serverID keeps only the apps (direct connections) of that server.
 // ponytail: one pass over the window's error/warn rows per call; pre-aggregate at ingest if error volume makes it slow.
-func (r *LogRepository) Summary(from time.Time, bucketMins int) ([]models.LogServiceSummary, error) {
+func (r *LogRepository) Summary(from time.Time, bucketMins int, serverID string) ([]models.LogServiceSummary, error) {
 	bucketDur := time.Duration(bucketMins) * time.Minute
 
 	type newest struct {
@@ -141,10 +142,19 @@ func (r *LogRepository) Summary(from time.Time, bucketMins int) ([]models.LogSer
 		return s
 	}
 
+	logsWhere, receiptsWhere := "", ""
+	logsArgs, receiptsArgs := []interface{}{from}, []interface{}{}
+	if serverID != "" {
+		logsWhere = ` AND service_id IN (SELECT id FROM observed_services WHERE server_id = ?) AND COALESCE(agent_id, '') = ''`
+		receiptsWhere = ` AND owner_kind = 'direct' AND owner_id IN (SELECT id FROM observed_services WHERE server_id = ?)`
+		logsArgs = append(logsArgs, serverID)
+		receiptsArgs = append(receiptsArgs, serverID)
+	}
+
 	rows, err := DB.Query(`
 		SELECT id, COALESCE(service_id, ''), COALESCE(agent_id, ''), COALESCE(service_name, ''), level, created_at
 		FROM logs
-		WHERE level IN ('error', 'warn') AND created_at >= ?`, from)
+		WHERE level IN ('error', 'warn') AND created_at >= ?`+logsWhere, logsArgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +196,7 @@ func (r *LogRepository) Summary(from time.Time, bucketMins int) ([]models.LogSer
 	rows, err = DB.Query(`
 		SELECT owner_kind, owner_id, service_name, last_received_ms
 		FROM signal_receipts
-		WHERE signal = 'logs' AND owner_kind IN ('agent', 'direct')`)
+		WHERE signal = 'logs' AND owner_kind IN ('agent', 'direct')`+receiptsWhere, receiptsArgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -276,8 +286,17 @@ func (r *LogRepository) Summary(from time.Time, bucketMins int) ([]models.LogSer
 // Patterns returns the most frequent error/warn groups since `from` for one
 // Docker environment, or for direct connections when agentID is empty, errors
 // before warnings. Scoping before the limit keeps one busy source from filling
-// every slot. Stored fingerprints already mask the variable parts.
-func (r *LogRepository) Patterns(from time.Time, agentID string, limit int) ([]models.LogPattern, error) {
+// every slot. A non-empty serverID narrows further to that server's apps, which
+// are direct connections, so agentID is then treated as empty. Stored
+// fingerprints already mask the variable parts.
+func (r *LogRepository) Patterns(from time.Time, agentID, serverID string, limit int) ([]models.LogPattern, error) {
+	serverWhere := ""
+	args := []interface{}{from, agentID}
+	if serverID != "" {
+		serverWhere = ` AND service_id IN (SELECT id FROM observed_services WHERE server_id = ?)`
+		args = []interface{}{from, "", serverID}
+	}
+	args = append(args, limit)
 	// With a single MAX() aggregate SQLite takes the bare columns from that row,
 	// so created_at and message are the newest occurrence's. The bare created_at
 	// also keeps its DATETIME type — the driver returns MAX(created_at) as text.
@@ -285,10 +304,10 @@ func (r *LogRepository) Patterns(from time.Time, agentID string, limit int) ([]m
 		SELECT fingerprint, level, COALESCE(service_id, ''), COALESCE(agent_id, ''), COALESCE(service_name, ''),
 			COUNT(*) AS n, MAX(created_at), created_at, message
 		FROM logs
-		WHERE level IN ('error', 'warn') AND created_at >= ? AND fingerprint != '' AND COALESCE(agent_id, '') = ?
+		WHERE level IN ('error', 'warn') AND created_at >= ? AND fingerprint != '' AND COALESCE(agent_id, '') = ?`+serverWhere+`
 		GROUP BY fingerprint
 		ORDER BY level = 'error' DESC, n DESC
-		LIMIT ?`, from, agentID, limit)
+		LIMIT ?`, args...)
 	if err != nil {
 		return nil, err
 	}

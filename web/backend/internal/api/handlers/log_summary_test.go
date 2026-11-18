@@ -165,6 +165,71 @@ func TestLogSummaryAndPatterns(t *testing.T) {
 	}
 }
 
+// TestLogSummaryAndPatternsScopeToServer checks that serverId narrows both
+// reads to the apps of one server, and that patterns apply it before the limit.
+func TestLogSummaryAndPatternsScopeToServer(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	serverA := mustCreateServer(t, ts, auth, "a", "")
+	serverB := mustCreateServer(t, ts, auth, "b", "")
+	appA := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "app-a", "signals": []string{"logs"}, "serverId": serverA.ID})
+	appB := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "app-b", "signals": []string{"logs"}, "serverId": serverB.ID})
+
+	sendErrors := func(apiKey string, messages ...string) {
+		t.Helper()
+		records := make([]*logspb.LogRecord, 0, len(messages))
+		for _, m := range messages {
+			records = append(records, &logspb.LogRecord{
+				TimeUnixNano:   uint64(time.Now().Add(-time.Minute).UnixNano()),
+				SeverityNumber: logspb.SeverityNumber_SEVERITY_NUMBER_ERROR,
+				Body:           stringValue(m),
+			})
+		}
+		postOTLP(t, ts, "/api/v1/otlp/v1/logs", apiKey, &collectorlogspb.ExportLogsServiceRequest{
+			ResourceLogs: []*logspb.ResourceLogs{{ScopeLogs: []*logspb.ScopeLogs{{LogRecords: records}}}},
+		})
+	}
+	sendErrors(appA.ApiKey, "db timeout 1", "db timeout 2")
+	sendErrors(appB.ApiKey, "queue full")
+
+	var summaries []models.LogServiceSummary
+	getJSON(t, ts, "/api/v1/logs/summary?serverId="+serverA.ID, &summaries, auth...)
+	if len(summaries) != 1 || summaries[0].ServiceID != appA.ID || summaries[0].Error != 2 {
+		t.Errorf("server a summary = %+v, want app a with 2 errors", summaries)
+	}
+
+	getJSON(t, ts, "/api/v1/logs/summary", &summaries, auth...)
+	seen := map[string]bool{}
+	for _, s := range summaries {
+		seen[s.ServiceID] = true
+	}
+	if !seen[appA.ID] || !seen[appB.ID] {
+		t.Errorf("unscoped summary = %+v, want both apps", summaries)
+	}
+
+	var patterns []models.LogPattern
+	getJSON(t, ts, "/api/v1/logs/patterns?serverId="+serverA.ID, &patterns, auth...)
+	if len(patterns) != 1 || patterns[0].Count != 2 || patterns[0].ServiceID != appA.ID {
+		t.Errorf("server a patterns = %+v, want one pattern of 2 from app a", patterns)
+	}
+
+	getJSON(t, ts, "/api/v1/logs/patterns?serverId="+serverB.ID+"&limit=1", &patterns, auth...)
+	if len(patterns) != 1 || patterns[0].Message != "queue full" {
+		t.Errorf("server b patterns = %+v, want only queue full", patterns)
+	}
+
+	getJSON(t, ts, "/api/v1/logs/patterns?serverId=missing", &patterns, auth...)
+	if len(patterns) != 0 {
+		t.Errorf("unknown server patterns = %+v, want none", patterns)
+	}
+
+	getJSON(t, ts, "/api/v1/logs/summary?serverId=missing", &summaries, auth...)
+	if len(summaries) != 0 {
+		t.Errorf("unknown server summary = %+v, want none", summaries)
+	}
+}
+
 // getJSON fetches a JSON endpoint and decodes its data envelope into out.
 func getJSON(t *testing.T, ts *testServer, path string, out interface{}, auth ...string) {
 	t.Helper()

@@ -100,7 +100,7 @@ func (h *ProjectHandler) AssignMonitor(c *fiber.Ctx) error {
 		if err == sql.ErrNoRows {
 			return agentBadRequest(c, "NOT_FOUND", "uptime monitor not found")
 		}
-		return internalError(c, "DATABASE_ERROR", err)
+		return serverWriteError(c, err)
 	}
 	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"projectId": c.Params("projectId")}})
 }
@@ -115,7 +115,7 @@ func (h *ProjectHandler) UnassignMonitor(c *fiber.Ctx) error {
 		if err == sql.ErrNoRows {
 			return agentBadRequest(c, "NOT_FOUND", "uptime monitor not found")
 		}
-		return internalError(c, "DATABASE_ERROR", err)
+		return serverWriteError(c, err)
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }

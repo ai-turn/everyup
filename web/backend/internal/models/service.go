@@ -38,6 +38,7 @@ type Service struct {
 	ID             string            `json:"id"`
 	Name           string            `json:"name"`
 	ProjectID      string            `json:"projectId,omitempty"`
+	ServerID       string            `json:"serverId,omitempty"`
 	Type           ServiceType       `json:"type"`
 	IsActive       bool              `json:"isActive"`
 	URL            string            `json:"url,omitempty"`
@@ -104,6 +105,7 @@ type TCPConfig struct {
 type ServiceCreateRequest struct {
 	ID             string            `json:"id"`
 	Name           string            `json:"name"`
+	ServerID       string            `json:"serverId,omitempty"`
 	Type           ServiceType       `json:"type"`
 	IsActive       *bool             `json:"isActive,omitempty"`
 	URL            string            `json:"url,omitempty"`
@@ -189,6 +191,7 @@ func (r *ServiceCreateRequest) ToService() *Service {
 	return &Service{
 		ID:              r.ID,
 		Name:            r.Name,
+		ServerID:        r.ServerID,
 		Type:            r.Type,
 		IsActive:        isActive,
 		URL:             url,

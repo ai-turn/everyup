@@ -60,11 +60,14 @@ func marshalStringList(list []string) string {
 	return string(b)
 }
 
+// serviceGroupColumns reads the group from the owning server, then the server id.
+const serviceGroupColumns = `COALESCE((SELECT project_id FROM servers WHERE servers.id = services.server_id), ''), COALESCE(server_id, '')`
+
 // GetAll returns all services, optionally filtered by type.
 // Example: GetAll("http", "tcp") returns only http and tcp services.
 // Call with no arguments to return all services.
 func (r *ServiceRepository) GetAll(typeFilter ...string) ([]models.Service, error) {
-	query := `SELECT id, name, COALESCE(project_id, ''), type, is_active, url, port, method, headers, body,
+	query := `SELECT id, name, ` + serviceGroupColumns + `, type, is_active, url, port, method, headers, body,
 		       expected_status, interval, timeout, tags, schedule_type, cron_expression,
 		       api_key_masked, log_level_filter, api_exclude_paths, created_at, updated_at
 		FROM services`
@@ -93,7 +96,7 @@ func (r *ServiceRepository) GetAll(typeFilter ...string) ([]models.Service, erro
 		var url, method, headers, body, tags, scheduleType, cronExpression sql.NullString
 		var port, expectedStatus, interval, timeout sql.NullInt64
 		var apiKeyMasked, logLevelFilter, apiExcludePaths sql.NullString
-		if err := rows.Scan(&s.ID, &s.Name, &s.ProjectID, &s.Type, &isActive, &url, &port, &method, &headers, &body,
+		if err := rows.Scan(&s.ID, &s.Name, &s.ProjectID, &s.ServerID, &s.Type, &isActive, &url, &port, &method, &headers, &body,
 			&expectedStatus, &interval, &timeout, &tags, &scheduleType, &cronExpression,
 			&apiKeyMasked, &logLevelFilter, &apiExcludePaths, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			return nil, err
@@ -155,11 +158,11 @@ func (r *ServiceRepository) GetByID(id string) (*models.Service, error) {
 	var certExpiresAt sql.NullTime
 
 	err := DB.QueryRow(`
-		SELECT id, name, COALESCE(project_id, ''), type, is_active, url, port, method, headers, body,
+		SELECT id, name, `+serviceGroupColumns+`, type, is_active, url, port, method, headers, body,
 		       expected_status, interval, timeout, tags, schedule_type, cron_expression,
 		       api_key, api_key_masked, log_level_filter, api_exclude_paths, cert_expires_at, created_at, updated_at
 		FROM services WHERE id = ?
-	`, id).Scan(&s.ID, &s.Name, &s.ProjectID, &s.Type, &isActive, &url, &port, &method, &headers, &body,
+	`, id).Scan(&s.ID, &s.Name, &s.ProjectID, &s.ServerID, &s.Type, &isActive, &url, &port, &method, &headers, &body,
 		&expectedStatus, &interval, &timeout, &tags, &scheduleType, &cronExpression,
 		&apiKeyHash, &apiKeyMasked, &logLevelFilter, &apiExcludePaths, &certExpiresAt, &s.CreatedAt, &s.UpdatedAt)
 
@@ -265,12 +268,19 @@ func (r *ServiceRepository) Create(s *models.Service) error {
 		scheduleType = string(models.ScheduleTypeInterval)
 	}
 
+	// Callers that bypass the API (config-file monitors) still need a server.
+	if s.ServerID == "" && (s.Type == models.ServiceTypeHTTP || s.Type == models.ServiceTypeTCP) {
+		if s.ServerID, err = NewServerRepository().ResolveForTarget(ServerTargetMonitor, "", s.Name, ""); err != nil {
+			return err
+		}
+	}
+
 	_, err = DB.Exec(`
-		INSERT INTO services (id, name, type, is_active, url, port, method, headers, body,
+		INSERT INTO services (id, name, server_id, type, is_active, url, port, method, headers, body,
 		                      expected_status, interval, timeout, tags, schedule_type, cron_expression,
 		                      api_key, api_key_masked, log_level_filter, api_exclude_paths, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`, s.ID, s.Name, s.Type, isActive, s.URL, s.Port, s.Method, string(headersJSON), s.Body,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, s.ID, s.Name, nullableProjectID(s.ServerID), s.Type, isActive, s.URL, s.Port, s.Method, string(headersJSON), s.Body,
 		s.ExpectedStatus, s.Interval, s.Timeout, string(tagsJSON), scheduleType, s.CronExpression,
 		crypto.HashApiKey(s.ApiKey), s.ApiKeyMasked, marshalLogLevelFilter(s.LogLevelFilter),
 		marshalStringList(s.ApiExcludePaths), s.CreatedAt, s.UpdatedAt)
