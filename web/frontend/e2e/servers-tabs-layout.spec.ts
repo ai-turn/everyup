@@ -15,24 +15,34 @@ const top = async (locator: Locator) => (await locator.boundingBox())!.y;
 const DESKTOP = { width: 1440, height: 1000 };
 const PHONE = { width: 390, height: 844 };
 
-// 각 탭의 첫 차트(또는 수치 타일, 로그 목록). 머리말과 패널의 머리 요소가 이것을 첫 화면 밖으로 밀어내면 안 된다.
-const FIRST_CONTENT: [string, string, (page: Page) => Locator][] = [
-  ['monitor detail', `uptime/uptime_mock_checkout`, (page) => panel(page).locator('section', { has: page.getByRole('heading', { name: '주요 지표' }) })],
-  ['infrastructure', 'infrastructure', (page) => chartOf(panel(page).getByRole('heading', { name: 'CPU', exact: true }))],
-  ['log app detail', 'logs/observed_mock_checkout', (page) => chartOf(panel(page).getByRole('heading', { name: '로그 발생량', exact: true }))],
-  ['metrics', 'metrics', (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first())],
+const BATCH = 'server_mock_batch_host_01';   // 메트릭 앱 둘(앱 선택 줄이 있다)
+
+// 각 탭에서 사용자가 처음 보는 데이터 요소의 위쪽 좌표와 그 상한. 머리 요소가 이것을 첫 화면 밖으로 밀어내면 안 된다.
+// 상한은 1440×1000에서 잰 값에 30px 정도의 여유(글꼴 대체)를 둔 값이다. 600px을 넘는 탭도 그대로 적는다(보고서 참고).
+const FIRST_CONTENT: [string, string, (page: Page) => Locator, number][] = [
+  // 수치 타일의 첫 값(24시간 업타임)
+  ['monitor detail', `${EDGE}/uptime/uptime_mock_checkout`, (page) => panel(page).locator('section', { has: page.getByRole('heading', { name: '주요 지표' }) }).locator('dd').first(), 582],
+  // 첫 차트 카드
+  ['infrastructure', `${EDGE}/infrastructure`, (page) => chartOf(panel(page).getByRole('heading', { name: 'CPU', exact: true })), 434],
+  // 로그 발생량 차트 카드
+  ['log app detail', `${EDGE}/logs/observed_mock_checkout`, (page) => chartOf(panel(page).getByRole('heading', { name: '로그 발생량', exact: true })), 582],
+  // 수치 타일의 첫 값(요청 수)
+  ['api requests', `${EDGE}/api`, (page) => panel(page).getByRole('button', { name: /^요청 수/ }).locator('.type-kpi'), 659],
+  // 첫 지표 차트 카드(앱 하나, 앱 둘)
+  ['metrics', `${EDGE}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 614],
+  ['metrics with two apps', `${BATCH}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 645],
 ];
 
 test.describe('at 1440x1000', () => {
   test.use({ viewport: DESKTOP });
 
-  for (const [name, path, first] of FIRST_CONTENT) {
-    test(`the ${name} content starts on the first screen`, async ({ page }) => {
-      await page.goto(`./servers/${EDGE}/${path}`);
+  for (const [name, path, first, limit] of FIRST_CONTENT) {
+    test(`the ${name} data starts within its measured top`, async ({ page }) => {
+      await page.goto(`./servers/${path}`);
       await expect(first(page)).toBeVisible();
       const y = await top(first(page));
       test.info().annotations.push({ type: 'first-content-y', description: `${name}: ${Math.round(y)}` });
-      expect(y).toBeLessThan(600);
+      expect(y).toBeLessThan(limit);
     });
   }
 
@@ -49,6 +59,31 @@ test.describe('at 1440x1000', () => {
     await expect(panel(page).getByRole('heading', { level: 2 })).toBeVisible();
     tops.push(await top(tablist(page)));
     expect(new Set(tops.map(Math.round)).size).toBe(1);
+  });
+
+  test('each tab has one h1 and never skips a heading level', async ({ page }) => {
+    for (const path of ['', '/uptime', '/uptime/uptime_mock_checkout', '/infrastructure', '/logs', '/logs/observed_mock_checkout', '/api', '/metrics']) {
+      await page.goto(`./servers/${EDGE}${path}`);
+      await expect(panel(page).getByRole('heading').first()).toBeAttached();
+      await expect(page.getByText('불러오는 중', { exact: true })).toHaveCount(0);
+      // 화면에서 숨긴(sr-only) 제목도 제목 구조에 들어간다.
+      const levels = await page.locator('#main-content').evaluate((main) => [...main.querySelectorAll('h1, h2, h3, h4, h5, h6')].map((h) => Number(h.tagName[1])));
+      expect(levels.filter((level) => level === 1), path).toHaveLength(1);
+      levels.forEach((level, index) => { if (index > 0) expect(level, `${path} ${levels.join(',')}`).toBeLessThanOrEqual(levels[index - 1] + 1); });
+    }
+  });
+
+  test('Tab moves from the tab row to the tab actions and then into the panel', async ({ page }) => {
+    await page.goto(`./servers/${EDGE}/uptime`);
+    await expect(actionSlot(page).getByRole('button', { name: '모니터 추가' })).toBeVisible();
+    await tablist(page).getByRole('tab', { selected: true }).focus();
+    const slotStops = await actionSlot(page).locator('button').count();
+    for (let index = 0; index < slotStops; index += 1) {
+      await page.keyboard.press('Tab');
+      expect(await actionSlot(page).evaluate((slot) => slot.contains(document.activeElement))).toBe(true);
+    }
+    await page.keyboard.press('Tab');
+    expect(await panel(page).evaluate((element) => element.contains(document.activeElement))).toBe(true);
   });
 
   test('there is one refresh button and it sits on the server name line', async ({ page }) => {

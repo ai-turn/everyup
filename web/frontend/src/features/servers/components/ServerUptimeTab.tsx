@@ -20,7 +20,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
   const [adding, setAdding] = useState(false);
   const serverId = row.server.id;
   const monitors = row.targets.monitors;
-  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => monitors.find((monitor) => monitor.id === id));
+  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => monitors.find((monitor) => monitor.id === id), Boolean(unknown || stale));
   const firstScreen = serverPath(serverId, 'uptime');
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });

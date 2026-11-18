@@ -9,7 +9,11 @@ import { useMetricQuery, useMetricWindow } from '../../metrics/useMetricQuery';
 import { metricFlags, metricGroup, metricHealthCollection, metricIdentity, metricTitle } from '../../metrics/metricPresentation';
 import { useMetricHealth, type MetricHealthState } from '../../metrics/useMetricHealth';
 
-interface CommonProps { refreshKey?: number; range: GlobalTimeRange; active?: boolean }
+interface CommonProps {
+  refreshKey?: number; range: GlobalTimeRange; active?: boolean;
+  /** 대상을 부르는 이름. 서버 화면은 앱이라고 부른다. */
+  noun?: string;
+}
 interface AgentProps extends CommonProps { agentId: string; serviceKey: string }
 interface DirectProps extends CommonProps {
   observedServiceId: string;
@@ -21,7 +25,7 @@ interface DirectProps extends CommonProps {
 
 const GROUPS = ['고정한 지표', '요청과 응답', '작업과 메시지', '런타임과 리소스', '사용자 정의 지표'];
 
-function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, empty, showCollection }: CommonProps & { source: MetricSource; state: MetricHealthState; empty?: ReactNode; showCollection: boolean }) {
+function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, empty, showCollection, noun = '서비스' }: CommonProps & { source: MetricSource; state: MetricHealthState; empty?: ReactNode; showCollection: boolean }) {
   const { health, loading, error, retry } = state;
   const query = useMetricQuery();
   const window = useMetricWindow(range, refreshKey);
@@ -84,7 +88,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
         {opened && <ButtonLink variant="secondary" size="sm" to={alertRuleNewPath(alertTarget, { category: 'metric', metricName: opened.metricName })}><MaterialIcon name="notifications" />알림 추가</ButtonLink>}
       </div>
       {opened ? chart(opened, true) : matches.length > 1 ? <div className="space-y-3"><p className="type-body text-text-muted">같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.</p>{matches.map(meta => <Button key={metricIdentity(meta)} variant="secondary" onClick={() => openMetric(meta)} className="h-auto min-h-11 flex-wrap gap-x-3 py-2"><span className="min-w-0 break-all">{meta.metricName}</span><span>{meta.metricType}</span><span>{meta.unit || '단위 없음'}</span></Button>)}</div>
-        : <EmptyState icon="search" title="메트릭을 찾을 수 없습니다" description="선택한 메트릭이 이 서비스의 저장된 목록에 없습니다." action={{ label: '전체 메트릭', onClick: closeMetric }} />}
+        : <EmptyState icon="search" title="메트릭을 찾을 수 없습니다" description={`선택한 메트릭이 이 ${noun}의 저장된 목록에 없습니다.`} action={{ label: '전체 메트릭', onClick: closeMetric }} />}
     </> : <>
       {flagged.length > 0 && <details className="rounded-xl border border-ui-border-soft bg-bg-surface p-4" open>
         <summary className="cursor-pointer type-label text-text-base">확인 필요 · {flagged.length}개 지표</summary>

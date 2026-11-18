@@ -245,6 +245,21 @@ test.describe('with an intercepted API', () => {
     await expect(page.getByText('대상이 삭제되어 옮길 수 없습니다')).toBeVisible();
   });
 
+  test('a failed monitor list while the move dialog is open does not call the monitor deleted', async ({ page }) => {
+    const state = await twoMonitors(page);
+    await page.goto('./servers/s1/uptime/http-monitor');
+    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
+    await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
+    // 모니터 목록만 실패하면 서버 데이터에서 모니터가 빠지지만(확인 불가) 삭제된 것이 아니다.
+    state.failures.set('GET /services', 500);
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect(panel(page)).toContainText('업타임 모니터 정보를 불러오지 못했습니다');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
+    await expect(page.getByText('대상이 삭제되어 옮길 수 없습니다')).toHaveCount(0);
+  });
+
   test('a failed reload after creating does not claim the monitor belongs elsewhere', async ({ page }) => {
     const state = await uptimeFixture(page);
     state.monitors = [];

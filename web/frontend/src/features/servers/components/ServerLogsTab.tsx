@@ -23,7 +23,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
   // 설정 안내의 "로그 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
   const serverId = row.server.id;
-  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => row.targets.apps.find((app) => app.id === id));
+  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => row.targets.apps.find((app) => app.id === id), Boolean(unknown || stale));
   const logIds = new Set(capabilityTargets(row.targets, 'logs').map((target) => target.id));
   const apps = row.targets.apps.filter((app) => logIds.has(app.id));
   const firstScreen = serverPath(serverId, 'logs');

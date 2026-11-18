@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Button, ButtonLink, EmptyState, MaterialIcon, Tabs, TimeRangePicker, tabId, tabPanelId, type CollectionStatus, type TabItem } from '../../../components/common';
+import { Button, ButtonLink, EmptyState, MaterialIcon, SegmentedControl, Tabs, TimeRangePicker, tabId, tabPanelId, type CollectionStatus, type TabItem } from '../../../components/common';
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { api, type ObservedService } from '../../../services/api';
 import { alertRulesPath } from '../../alerts/alertTarget';
@@ -16,6 +16,8 @@ const viewTabs = (standalone: boolean): TabItem<'requests' | 'traces'>[] => [
   { key: 'requests', label: standalone ? 'API 요청' : '요청' },
   { key: 'traces', label: '트레이스' },
 ];
+// 서버 탭에서는 같은 앱, 같은 기간의 두 보기라 SegmentedControl이다(DESIGN.md §4.6). 밑줄 탭이면 탭 줄이 두 겹이었다.
+const VIEW_OPTIONS = [{ label: '요청', value: 'requests' }, { label: '트레이스', value: 'traces' }] as const;
 
 function ServiceCrumb({ name }: { name: string }) {
   useBreadcrumb([{ label: name }]);
@@ -72,12 +74,16 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
 
   const Heading = standalone ? 'h1' : 'h2';
   const rangePicker = <TimeRangePicker value={range} onChange={(value) => update({ range: value, page: null })} />;
-  const prefix = standalone ? 'api' : 'server-api';
+  const prefix = 'api';
+  const content = view === 'requests'
+    ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} traceId={traceId} awaitingData={collection === 'waiting'} noun={standalone ? undefined : '앱'} />
+    : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} />;
 
   return (
     <div className="space-y-5">
       {standalone && <ServiceCrumb name={service.name} />}
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      {/* 서버 탭: 제목이 위의 요소보다 아래의 상태 줄에 붙어 보이게 아래 간격을 줄이고 버튼 줄의 가운데에 맞춘다. */}
+      <div className={`flex flex-wrap justify-between gap-3 ${standalone ? 'items-start' : 'mb-2 items-center'}`}>
         <Heading className={`min-w-0 wrap-anywhere text-text-base ${standalone ? 'type-page-title' : 'type-section-title'}`}>{service.name}</Heading>
         {/* 이동, 편집, 파괴 순서(DESIGN.md §4.1) */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
@@ -96,7 +102,10 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
         collapseLabel={standalone ? '서비스 정보' : '연결 정보'}
         // 서버 탭: 연결 정보는 확인하는 값이라 접고, 기간 선택은 상태 줄 오른쪽 끝에 둔다. 새로고침은 서버 머리말 하나다.
         collapsed={!standalone}
-        statusAside={standalone ? undefined : rangePicker}
+        statusAside={standalone ? undefined : <>
+          <SegmentedControl options={VIEW_OPTIONS} value={view} onChange={(tab) => update({ tab })} size="md" ariaLabel="요청/트레이스 보기" />
+          {rangePicker}
+        </>}
       />
       {standalone && (
         <div className="flex flex-wrap items-center gap-2">
@@ -105,14 +114,12 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
         </div>
       )}
       <div>
-        <div className="mb-4">
-          <Tabs items={viewTabs(standalone)} active={view} onChange={(tab) => update({ tab })} ariaLabel="요청/트레이스 보기" idPrefix={prefix} />
-        </div>
-        <div role="tabpanel" id={tabPanelId(prefix, view)} aria-labelledby={tabId(prefix, view)}>
-          {view === 'requests'
-            ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} traceId={traceId} awaitingData={collection === 'waiting'} noun={standalone ? undefined : '앱'} />
-            : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} />}
-        </div>
+        {standalone ? <>
+          <div className="mb-4">
+            <Tabs items={viewTabs(standalone)} active={view} onChange={(tab) => update({ tab })} ariaLabel="요청/트레이스 보기" idPrefix={prefix} />
+          </div>
+          <div role="tabpanel" id={tabPanelId(prefix, view)} aria-labelledby={tabId(prefix, view)}>{content}</div>
+        </> : content}
         <ApiExclusionsSettings key={service.id} serviceId={service.id} paths={savedPaths ?? service.apiExcludePaths ?? []}
           onSaved={(paths) => { setSavedPaths(paths); if (!standalone) void onChanged?.(); }} />
       </div>

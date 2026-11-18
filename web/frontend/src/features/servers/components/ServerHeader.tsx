@@ -1,7 +1,19 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button, DetailMeta, MaterialIcon, PageHeader, StatusLight, Tooltip } from '../../../components/common';
-import { SERVERS_PATH } from '../serverPaths';
-import { STATE_LABEL, type ServerRow } from '../serverStatus';
+import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath } from '../serverPaths';
+import { capabilityTargets, STATE_LABEL, type ServerRow } from '../serverStatus';
+
+/**
+ * 원인 대상을 이미 보고 있는가. 대상이 하나뿐인 탭(모니터 하나, 앱 하나, 인프라)은 주소에 대상 ID가 없으므로,
+ * 지금 탭이 원인의 탭이고 그 탭의 대상이 하나뿐이면 같은 화면이다.
+ */
+function showingCause(row: ServerRow, to: string, pathname: string) {
+  if (to === pathname) return true;
+  return SERVER_CAPABILITIES.some(({ key }) => {
+    const tab = serverPath(row.server.id, key);
+    return pathname === tab && to.startsWith(`${tab}/`) && capabilityTargets(row.targets, key).length === 1;
+  });
+}
 
 export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings }: {
   row: ServerRow;
@@ -14,22 +26,19 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
   const { pathname } = useLocation();
   const cause = row.cause;
   // 원인 대상을 이미 보고 있으면 같은 화면으로 가는 링크를 두지 않는다.
-  const causeLink = cause?.to && cause.to !== pathname ? cause.to : undefined;
+  const causeLink = cause?.to && !showingCause(row, cause.to, pathname) ? cause.to : undefined;
   return (
     <header>
       {/* 데스크톱은 AppHeader 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
       <Link to={SERVERS_PATH} className="mb-3 inline-flex min-h-11 items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />서버 목록
       </Link>
-      {/* 조작은 제목 줄 오른쪽이다(DESIGN.md "서비스 상세 헤더 예외"와 같은 배치). 버튼만 있는 줄이 탭과 본문을 밀어냈다. */}
+      {/* 조작은 모든 폭에서 서버 이름과 같은 줄의 오른쪽이다. 이름이 길면 이름이 말줄임되고 버튼은 줄지 않는다.
+          버튼만 있는 줄이 탭과 본문을 밀어냈다(모바일에서는 상태 줄 아래 한 줄을 따로 썼다). */}
       <PageHeader
         title={row.server.name}
-        aside={
-          <div role="group" aria-label="서버 조작" className="flex flex-wrap items-center gap-2 xl:justify-end">
-            <Button collapseLabel variant="secondary" loading={refreshing} onClick={onRefresh}><MaterialIcon name="refresh" />새로고침</Button>
-            <Button collapseLabel variant="secondary" onClick={onSettings}><MaterialIcon name="settings" />서버 설정</Button>
-          </div>
-        }
+        compactActions
+        truncateTitle
         meta={<>
           {row.server.description && (
             <Tooltip content={row.server.description}><p className="mb-2 truncate type-body text-text-muted">{row.server.description}</p></Tooltip>
@@ -45,7 +54,10 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
             </>}
           />
         </>}
-      />
+      >
+        <Button collapseLabel variant="secondary" loading={refreshing} onClick={onRefresh}><MaterialIcon name="refresh" />새로고침</Button>
+        <Button collapseLabel variant="secondary" onClick={onSettings}><MaterialIcon name="settings" />서버 설정</Button>
+      </PageHeader>
     </header>
   );
 }

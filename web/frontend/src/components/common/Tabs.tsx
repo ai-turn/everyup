@@ -56,7 +56,8 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
 
   return (
     // 탭 아래 전폭 기준선은 두지 않고 선택 밑줄만 남긴다(DESIGN.md §3.1).
-    <div ref={listRef} role="tablist" aria-label={ariaLabel} className="flex gap-1 overflow-x-auto overflow-y-hidden">
+    // 가로 스크롤 영역은 세로도 잘라서 포커스 링(2px + 간격 2px)이 잘렸다. 링이 들어갈 여백(p-1)을 두고 같은 만큼 끌어당겨(-m-1) 자리는 그대로다.
+    <div ref={listRef} role="tablist" aria-label={ariaLabel} className="-m-1 flex gap-1 overflow-x-auto overflow-y-hidden p-1">
       {items.map((item, index) => {
         const selected = active === item.key;
         return (

@@ -21,10 +21,13 @@ export function AppSelector({ apps, value, onChange, ariaLabel }: {
 
   if (apps.length <= 4) {
     return (
-      // 넘치면 페이지가 아니라 이 영역만 가로로 스크롤한다(서버 탭 줄과 같다).
-      <div ref={scrollRef} className="max-w-full overflow-x-auto overflow-y-hidden">
-        <SegmentedControl size="md" scroll ariaLabel={ariaLabel} value={value} onChange={onChange}
-          options={apps.map((app) => ({ value: app.id, label: app.name, tone: app.state, toneLabel: app.stateLabel }))} />
+      // 넘치면 페이지가 아니라 이 영역만 가로로 스크롤한다(서버 탭 줄과 같다). 포커스 링이 잘리지 않게 여백을 두고 같은 만큼 끌어당긴다.
+      // 바깥 div는 부모의 간격(space-y)을 받는다. 음수 마진을 바깥에 걸면 그 간격을 덮어쓴다.
+      <div>
+        <div ref={scrollRef} className="-m-1 max-w-[calc(100%+0.5rem)] overflow-x-auto overflow-y-hidden p-1">
+          <SegmentedControl size="md" scroll ariaLabel={ariaLabel} value={value} onChange={onChange}
+            options={apps.map((app) => ({ value: app.id, label: app.name, tone: app.state, toneLabel: app.stateLabel }))} />
+        </div>
       </div>
     );
   }

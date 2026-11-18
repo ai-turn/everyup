@@ -12,7 +12,7 @@ import { useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
 /** 인프라 탭: 서버마다 리소스가 하나뿐이라 없으면 연결 안내, 있으면 그 상세다. 추가할 것이 없어 탭 줄의 조작 자리는 비어 있다. */
-export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, onRetry, refreshToken }: ServerCapabilityTabProps) {
+export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
   // 설정 안내의 "인프라 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
@@ -21,7 +21,7 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, onR
   const issued = useRef(false);
   const serverId = row.server.id;
   const resource = row.targets.infrastructure;
-  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => resource?.id === id ? resource : undefined);
+  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => resource?.id === id ? resource : undefined, Boolean(unknown || stale));
   const firstScreen = serverPath(serverId, 'infrastructure');
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });

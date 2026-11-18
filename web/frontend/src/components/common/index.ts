@@ -16,6 +16,7 @@ export { CopyButton, COPY_ACTION_PRIMARY, COPY_ACTION_SUBTLE } from './CopyButto
 export { StatusLight, type StatusTone } from './StatusLight';
 export { StatusBadge } from './StatusBadge';
 export { CollectionStatusBadge, type CollectionStatus } from './CollectionStatusBadge';
+export { COLLECTION_STATUS_LABEL } from './collectionStatus';
 export { Toggle } from './Toggle';
 export { EmptyState } from './EmptyState';
 export { LoadErrorBanner } from './LoadErrorBanner';

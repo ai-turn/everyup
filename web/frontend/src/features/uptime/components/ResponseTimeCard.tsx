@@ -206,7 +206,8 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
           {events.length > 0 && (
             <div className="mt-6">
               <SubHeading className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
-              <ul aria-label="이 기간의 실패" className="max-h-48 overflow-y-auto">
+              {/* 스크롤 영역이 행의 포커스 링을 자르지 않게 여백을 두고 같은 만큼 끌어당긴다. */}
+              <ul aria-label="이 기간의 실패" className="-m-1 max-h-48 overflow-y-auto p-1">
                 {events.map((event) => (
                   <li key={event.key} data-response-event={event.kind} tabIndex={0}
                     onMouseEnter={() => setFocused(event.key)} onMouseLeave={() => setFocused(null)} onFocus={() => setFocused(event.key)} onBlur={() => setFocused(null)}

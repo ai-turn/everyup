@@ -110,9 +110,10 @@ test('narrow screens keep the page and the tab row to one line', async ({ page }
   await expect(tablist(page)).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(await page.locator('#main-content').evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+  // 탭 목록은 포커스 링이 들어갈 여백(위아래 4px)을 가진다. 그 안의 탭이 한 줄이다.
   const listHeight = (await tablist(page).boundingBox())!.height;
   const tabHeight = (await tablist(page).getByRole('tab').first().boundingBox())!.height;
-  expect(Math.abs(listHeight - tabHeight)).toBeLessThanOrEqual(1);
+  expect(Math.abs(listHeight - 8 - tabHeight)).toBeLessThanOrEqual(1);
 });
 
 test('a failed app list reads as unknown, not as not connected', async ({ page }) => {

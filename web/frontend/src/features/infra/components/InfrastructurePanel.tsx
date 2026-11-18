@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
-import { Button, ButtonLink, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, COLLECTION_STATUS_LABEL, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useInfraMetrics } from '../../../hooks/useInfra';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../../services/api';
@@ -165,10 +165,14 @@ export function InfrastructurePanel({ resourceId, resource: given, serverName, o
   const rangePicker = <TimeRangePicker value={range} onChange={setRange} />;
   // 서버 탭: 탭의 상태 점과 같은 판정(infrastructureState)과 그 원인을 보인다. 수집 여부는 마지막 수집이 말한다.
   const state = infrastructureState(resource);
+  // 사용률이면 그 값과 기준, 수집 문제면 목록과 같은 수집 상태 문구(수신 대기, 수집 지연). "확인 필요 데이터 확인 필요"처럼 되풀이하지 않는다.
+  const reason = state.state === 'healthy' ? null
+    : state.threshold !== undefined ? `${state.detail}, 기준 ${state.threshold}%`
+      : state.state === 'warn' ? COLLECTION_STATUS_LABEL[infraCollection(resource)] : state.detail;
   const serverStatus = standalone ? undefined : {
     collection: { tone: state.state, label: STATE_LABEL[state.state] },
     statusDetail: <>
-      {state.state !== 'healthy' && <span>{state.threshold === undefined ? state.detail : `${state.detail}, 기준 ${state.threshold}%`}</span>}
+      {reason && <span>{reason}</span>}
       {resource.name !== serverName && <span className="text-text-dim">{resource.name}</span>}
     </>,
     statusAside: <>{rangePicker}{actions}</>,

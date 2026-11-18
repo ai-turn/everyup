@@ -104,3 +104,42 @@ test('the infrastructure tab has no horizontal scroll at 320px', async ({ page }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(await page.locator('#main-content').evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
 });
+
+test('the status line gives the usage and its threshold as the reason', async ({ page }) => {
+  await page.goto(`./servers/${EDGE}/infrastructure`);
+  await expect(panel(page).getByText('확인 필요', { exact: true })).toBeVisible();
+  await expect(panel(page).getByText('메모리 72.8%, 기준 70%', { exact: true })).toBeVisible();
+});
+
+// 수집이 끊겼거나 아직 수신 전인 리소스는 데모 데이터에 없으므로 API를 가로챈다.
+test.describe('collection states outside the demo data', () => {
+  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  const at = '2026-11-01T00:00:00Z';
+  const resource = (changes: Record<string, unknown>) => ({
+    id: 'r1', name: 'web-01', serverId: 's1', isActive: true, apiKeyMasked: 'evup_****0001', adapter: 'otel-collector', createdAt: at, updatedAt: at, ...changes,
+  });
+
+  async function serve(page: Page, infra: Record<string, unknown>) {
+    await page.route('**/api/v1/**', async (route) => {
+      const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+      const data = path === '/servers' ? [{ id: 's1', name: 'web-01', createdAt: at, updatedAt: at }]
+        : path === '/infrastructure-resources' ? [infra] : [];
+      await route.fulfill({ json: { success: true, data } });
+    });
+  }
+
+  for (const [name, changes, label, reason] of [
+    ['stopped collecting', { lastSeenAt: new Date(Date.now() - 3_600_000).toISOString() }, '확인 필요', '수집 지연'],
+    ['not received yet', {}, '확인 필요', '수신 대기'],
+    ['deactivated', { isActive: false }, '대기', 'Collector 비활성화됨'],
+  ] as const) {
+    test(`a resource that has ${name} says why without repeating the state`, async ({ page }) => {
+      await serve(page, resource(changes));
+      await page.goto('./servers/s1/infrastructure');
+      const status = panel(page).getByText(label, { exact: true });
+      await expect(status).toBeVisible();
+      await expect(panel(page).getByText(reason, { exact: true })).toBeVisible();
+      await expect(panel(page).getByText('데이터 확인 필요')).toHaveCount(0);
+    });
+  }
+});

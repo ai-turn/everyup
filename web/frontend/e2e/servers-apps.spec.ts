@@ -64,16 +64,17 @@ test('several metrics apps open the worst one, keep the choice in the address an
   await expect(panel(page).getByRole('heading', { level: 2, name: 'notification-worker' })).toBeVisible();
 });
 
-test('the requests and traces switch is its own tab row inside the API tab', async ({ page }) => {
+test('the requests and traces switch is a segmented control beside the range, not a second tab row', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/api`);
-  const views = page.getByRole('tablist', { name: '요청/트레이스 보기' });
-  await views.getByRole('tab', { name: '트레이스' }).click();
+  // 같은 앱, 같은 기간의 두 보기라 SegmentedControl이다. 서버 탭 줄 밑에 두 번째 탭 줄을 쌓지 않는다.
+  await expect(page.getByRole('tablist')).toHaveCount(1);
+  const views = panel(page).getByRole('group', { name: '요청/트레이스 보기' });
+  await views.getByRole('button', { name: '트레이스' }).click();
   await expect(page).toHaveURL(/[?&]tab=traces/);
-  await expect(views.getByRole('tab', { name: '트레이스' })).toHaveAttribute('aria-selected', 'true');
+  await expect(views.getByRole('button', { name: '트레이스' })).toHaveAttribute('aria-pressed', 'true');
   await expect(serverTabs(page).getByRole('tab', { selected: true })).toHaveText(/^API 요청/);
-  // 안쪽 탭의 화살표 키는 서버 탭을 옮기지 않는다.
-  await page.keyboard.press('ArrowLeft');
-  await expect(views.getByRole('tab', { name: '요청' })).toHaveAttribute('aria-selected', 'true');
+  await views.getByRole('button', { name: '요청' }).click();
+  await expect(views.getByRole('button', { name: '요청' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/api\\?`));
   await expect(serverTabs(page).getByRole('tab', { selected: true })).toHaveText(/^API 요청/);
 });

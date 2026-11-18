@@ -33,7 +33,7 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
   // 설정 안내의 "보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
   const serverId = row.server.id;
-  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => row.targets.apps.find((app) => app.id === id));
+  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => row.targets.apps.find((app) => app.id === id), Boolean(unknown || stale));
   const ids = new Set(capabilityTargets(row.targets, capability).map((target) => target.id));
   const apps = row.targets.apps.filter((app) => ids.has(app.id))
     .map((app) => ({ app, state: appState(app).state }))

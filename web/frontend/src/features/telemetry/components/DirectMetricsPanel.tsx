@@ -64,7 +64,8 @@ export function DirectMetricsPanel({ serviceId, service: given, onRemoved, back,
   return (
     <div className="space-y-5">
       {standalone && <ServiceCrumb name={service.name} />}
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      {/* 서버 탭: 제목이 위의 요소보다 아래의 상태 줄에 붙어 보이게 아래 간격을 줄이고 버튼 줄의 가운데에 맞춘다. */}
+      <div className={`flex flex-wrap justify-between gap-3 ${standalone ? 'items-start' : 'mb-2 items-center'}`}>
         <Heading className={`min-w-0 wrap-anywhere text-text-base ${standalone ? 'type-page-title' : 'type-section-title'}`}>{service.name}</Heading>
         {/* 이동, 편집, 파괴 순서(DESIGN.md §4.1) */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
@@ -96,6 +97,7 @@ export function DirectMetricsPanel({ serviceId, service: given, onRemoved, back,
         refreshKey={reloadKey}
         range={range}
         active={service.isActive}
+        noun={standalone ? undefined : '앱'}
         empty={service.isActive ? (
           <EmptyState
             icon="schedule"

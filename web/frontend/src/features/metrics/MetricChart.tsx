@@ -99,7 +99,8 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           </button></HintTooltip>
         )}
         // A metric name is an identifier, so it reads in mono like other code.
-        titleClassName={title === name ? "font-mono text-sm" : undefined}
+        // 제목 칸이 말줄임으로 넘침을 자르므로 버튼의 포커스 링이 들어갈 여백을 두고 같은 만큼 끌어당긴다.
+        titleClassName={`${title === name ? 'font-mono text-sm' : ''} ${expanded ? '' : '-m-1 p-1'}`}
         wrapTitle={expanded}
         className="min-w-0"
         // 격자를 훑을 때 어느 패널이 확인 필요인지 보이게 상태를 제목 줄에 둔다(단독 보기는 아래 줄).

@@ -14,6 +14,8 @@ interface PageHeaderProps {
     children?: React.ReactNode;
     /** 목록의 주 액션을 좁은 화면에서도 제목 옆에 둔다. */
     compactActions?: boolean;
+    /** 긴 제목을 한 줄로 말줄임한다(compactActions와 함께: 버튼이 줄어들지 않고 제목이 줄어든다). 기본은 줄바꿈. */
+    truncateTitle?: boolean;
     /**
      * 메뉴 첫 화면(DESIGN.md §3.4). 데스크톱(`lg`+)은 `AppHeader` 크럼이 이름을 이미 말하므로 h1을
      * 시각적으로만 숨기고(`lg:sr-only`), 주 액션(children)과 meta는 `AppHeader` 오른쪽으로 옮긴다 —
@@ -26,7 +28,7 @@ interface PageHeaderProps {
 const DESKTOP_HEADER = { size: 'sm', variant: 'secondary' } as const;
 const MOBILE_MENU = { variant: 'secondary' } as const;
 
-export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false, menu = false }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false, truncateTitle = false, menu = false }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
     const slot = useHeaderActionSlot();
     const headerSlot = menu && desktop ? slot : null;
@@ -37,7 +39,7 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
     // h1만 남으면(sr-only) 데스크톱에서 띠의 여백·구분선을 0으로 접는다.
     // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
     const collapseOnDesktop = menu && !subtitle && !aside && !inlineChildren && !inlineMeta;
-    const titleClass = `wrap-anywhere type-page-title text-text-base ${menu ? 'lg:sr-only' : ''}`;
+    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text-base ${menu ? 'lg:sr-only' : ''}`;
 
     return (
         <>
