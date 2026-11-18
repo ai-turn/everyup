@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
-  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, TimeRangePicker, type CollectionStatus,
+  Button, ButtonLink, ConfirmDialog, DetailActionToolbar, EmptyState, MaterialIcon, PageHeader, Tabs, TimeRangePicker, tabId, tabPanelId, type CollectionStatus, type TabItem,
 } from '../../components/common';
 import { DirectServiceRequestsTab } from '../../features/healthcheck/components/AgentServiceRequestsTab';
 import { alertRulesPath } from '../../features/alerts/alertTarget';
@@ -17,6 +17,11 @@ import { ApiExclusionsSettings } from '../../features/api-requests/ApiExclusions
 import { useRequestQuery, useRequestWindow } from '../../features/api-requests/useRequestQuery';
 
 type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
+
+const DATA_TABS: TabItem<'requests' | 'traces'>[] = [
+  { key: 'requests', label: 'API 요청' },
+  { key: 'traces', label: '트레이스' },
+];
 
 export function DirectApiDetailPage() {
 
@@ -202,22 +207,10 @@ export function DirectApiDetailPage() {
         }
       />
 
-      <div role="tablist" aria-label="요청/트레이스 보기" className="mb-4 flex">
-        {(['requests', 'traces'] as const).map((tab, index) => <button key={tab} id={`api-tab-${tab}`} type="button" role="tab"
-          tabIndex={view === tab ? 0 : -1} aria-selected={view === tab} aria-controls="api-data-panel"
-          onClick={() => update({ tab })}
-          onKeyDown={event => {
-            const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : event.key === 'ArrowRight' || event.key === 'ArrowLeft' ? 1 - index : -1;
-            if (next < 0) return;
-            event.preventDefault();
-            update({ tab: next === 0 ? 'requests' : 'traces' });
-            event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
-          }}
-          className={`border-b-2 px-4 py-2.5 type-label transition-colors ${view === tab ? 'border-primary text-text-base' : 'border-transparent text-text-muted hover:text-text-base'}`}>
-          {tab === 'requests' ? 'API 요청' : '트레이스'}
-        </button>)}
+      <div className="mb-4">
+        <Tabs items={DATA_TABS} active={view} onChange={tab => update({ tab })} ariaLabel="요청/트레이스 보기" idPrefix="api" />
       </div>
-      <div role="tabpanel" id="api-data-panel" aria-labelledby={`api-tab-${view}`}>
+      <div role="tabpanel" id={tabPanelId('api', view)} aria-labelledby={tabId('api', view)}>
         {view === 'requests'
           ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={refreshKey} range={range} window={window} traceId={traceId} awaitingData={collection === 'waiting'} />
           : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={refreshKey} range={range} window={window} />}

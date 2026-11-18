@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { type GlobalTimeRange } from '../../../components/common';
+import { Tabs, tabId, tabPanelId, type GlobalTimeRange, type TabItem } from '../../../components/common';
 import type { AgentServiceFlat } from '../../../services/api';
 import { AgentUptimeOverview } from './AgentUptimeOverview';
 import { AgentResponseTimeChart } from './AgentResponseTimeChart';
@@ -22,46 +22,14 @@ export interface ServiceTabsProps {
 
 export type DetailTab = 'uptime' | 'logs' | 'requests' | 'traces' | 'metrics' | 'infra';
 
-const TABS: { key: DetailTab; labelKo: string }[] = [
-  { key: 'uptime',   labelKo: '업타임' },
-  { key: 'logs',     labelKo: '로그' },
-  { key: 'requests', labelKo: 'API 요청' },
-  { key: 'traces',   labelKo: '트레이스' },
-  { key: 'metrics',  labelKo: '메트릭' },
-  { key: 'infra',    labelKo: '인프라' },
+const TABS: TabItem<DetailTab>[] = [
+  { key: 'uptime',   label: '업타임' },
+  { key: 'logs',     label: '로그' },
+  { key: 'requests', label: 'API 요청' },
+  { key: 'traces',   label: '트레이스' },
+  { key: 'metrics',  label: '메트릭' },
+  { key: 'infra',    label: '인프라' },
 ];
-
-function TabBar({ active, onChange, serviceKey }: { active: DetailTab; onChange: (t: DetailTab) => void; serviceKey: string }) {
-  return (
-    // 탭 아래 전폭 기준선은 두지 않는다 — 선택 밑줄만 남긴다(DESIGN.md §3.1).
-    <div className="mb-6">
-      <div role="tablist" aria-label="서비스 데이터" className="flex gap-1 overflow-x-auto overflow-y-hidden">
-      {TABS.map(tab => {
-        const selected = active === tab.key;
-        const tabId = `service-tab-${serviceKey}-${tab.key}`;
-        return (
-        <button
-          key={tab.key}
-          id={tabId}
-          type="button"
-          role="tab"
-          aria-selected={selected}
-          aria-controls={`service-panel-${serviceKey}-${tab.key}`}
-          onClick={() => onChange(tab.key)}
-          className={`shrink-0 border-b-2 px-4 py-2.5 type-label transition-colors ${
-            selected
-              ? 'border-primary text-text-base'
-              : 'border-transparent text-text-muted hover:text-text-base'
-          }`}
-        >
-          {tab.labelKo}
-        </button>
-        );
-      })}
-      </div>
-    </div>
-  );
-}
 
 function UptimeContent({ agentId, serviceKey, refreshKey, range }: ServiceTabsProps) {
   // 섹션 간격은 여기서 준다 — 카드 없이 간격으로 나누므로 §3.1의 space-y-8.
@@ -96,10 +64,13 @@ export function AgentServiceTabs({ initialTab = 'uptime', tab, onTabChange, ...p
     onTabChange?.(nextTab);
     if (tab === undefined) setUncontrolledTab(nextTab);
   };
+  const idPrefix = `service-${props.serviceKey}`;
   return (
     <>
-      <TabBar active={activeTab} onChange={changeTab} serviceKey={props.serviceKey} />
-      <div role="tabpanel" id={`service-panel-${props.serviceKey}-${activeTab}`} aria-labelledby={`service-tab-${props.serviceKey}-${activeTab}`}>
+      <div className="mb-6">
+        <Tabs items={TABS} active={activeTab} onChange={changeTab} ariaLabel="서비스 데이터" idPrefix={idPrefix} />
+      </div>
+      <div role="tabpanel" id={tabPanelId(idPrefix, activeTab)} aria-labelledby={tabId(idPrefix, activeTab)}>
         <TabContent tab={activeTab} {...props} />
       </div>
     </>
