@@ -8,6 +8,7 @@ import { MetricChart, type MetricSource } from '../../metrics/MetricChart';
 import { useMetricQuery, useMetricWindow } from '../../metrics/useMetricQuery';
 import { metricFlags, metricGroup, metricHealthCollection, metricIdentity, metricTitle } from '../../metrics/metricPresentation';
 import { useMetricHealth, type MetricHealthState } from '../../metrics/useMetricHealth';
+import { formatClock, formatDateTime } from '../../../utils/incidentFormat';
 
 interface CommonProps {
   refreshKey?: number; range: GlobalTimeRange; active?: boolean;
@@ -77,7 +78,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption text-text-muted" aria-label="메트릭 수집 현황">
       {/* 직접 상세는 헤더가 같은 판정으로 수집 상태와 마지막 수신을 보인다. */}
       {showCollection && <StatusLight {...collection} />}<span>{names.length}개 지표</span>
-      {showCollection && <span>마지막 수신 {receivedAt ? <time dateTime={receivedAt}>{new Date(receivedAt).toLocaleString('ko-KR', { hour12: false })}</time> : '기록 없음'}</span>}
+      {showCollection && <span>마지막 수신 {receivedAt ? <time dateTime={receivedAt}>{formatDateTime(receivedAt)}</time> : '기록 없음'}</span>}
       {loading && <span role="status">상태 갱신 중…</span>}
     </div>
     {error && <LoadErrorBanner title="메트릭 상태를 새로고침하지 못했습니다" message="이전 상태를 표시합니다." onRetry={retry} retryLabel="목록 다시 시도" />}
@@ -95,7 +96,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 type-caption text-text-muted">
           <span>전체 지표 기준</span>
           <span>최근 5분 원값 임계값과 수신 상태로 판단</span>
-          <span>{new Date(health.checkedAt).toLocaleTimeString('ko-KR', { hour12: false })} 확인</span>
+          <span>{formatClock(health.checkedAt, true)} 확인</span>
         </div>
         <div className="mt-3 max-h-48 overflow-y-auto" aria-label="확인이 필요한 메트릭">
           {flagged.map(meta => <button key={metricIdentity(meta)} type="button" onClick={() => openMetric(meta)} className="flex min-h-11 w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-left hover:text-action">

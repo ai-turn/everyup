@@ -25,11 +25,11 @@ interface AttentionItem {
   icon: string;
   observedAt?: string;
   timeLabel?: string;
-  /** Docker 환경의 항목. 서버 목록의 필터로는 볼 수 없다. */
-  docker?: boolean;
+  /** 확인 필요의 종류 순서: 0 수집이 끊겼거나 수신 전, 1 메트릭 임계값 초과, 2 리소스 사용률. */
+  warnRank?: number;
 }
 
-/** 확인 필요 묶음에 먼저 보이는 수. 나머지는 서버 목록의 확인 필요 필터에 있다. */
+/** 확인 필요 묶음에 먼저 보이는 수. 나머지는 그 자리에서 펼친다. */
 const WARN_PREVIEW = 3;
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -146,6 +146,7 @@ export function OverviewPage() {
           tone: issue.state,
           icon: issue.state === 'error' ? 'error_outline' : ISSUE_ICON[issue.kind],
           observedAt: issue.observedAt,
+          warnRank: issue.threshold !== undefined ? 2 : row.breachedApps.includes(issue.id) ? 1 : 0,
           timeLabel: issue.kind === 'monitor' || issue.threshold !== undefined ? undefined
             : app && !app.lastSeenAt ? `${formatIncidentTime(app.createdAt)} 연결`
               : issue.observedAt ? `마지막 수신 ${formatIncidentTime(issue.observedAt)}` : '수신 기록 없음',
@@ -158,7 +159,7 @@ export function OverviewPage() {
         to: `/agents/${agent.id}`,
         tone: 'warn' as const,
         icon: 'sensors_off',
-        docker: true,
+        warnRank: 0,
         observedAt: agent.lastSeenAt,
         timeLabel: agent.lastSeenAt ? `마지막 수신 ${formatIncidentTime(agent.lastSeenAt)}` : '수신 기록 없음',
       })),
@@ -170,7 +171,7 @@ export function OverviewPage() {
         to: `/agents/${resource.id}`,
         tone: 'warn' as const,
         icon: 'sensors_off',
-        docker: true,
+        warnRank: 0,
         observedAt: resource.lastSeenAt,
         timeLabel: resource.lastSeenAt ? `마지막 수신 ${formatIncidentTime(resource.lastSeenAt)}` : '수신 기록 없음',
       })),
@@ -203,10 +204,13 @@ export function OverviewPage() {
 
   // 장애와 확인 필요를 나눈다. 장애의 수는 사이드바의 배지와 같은 판정이다(모니터는 uptimeState, Docker 서비스는 healthy).
   const outageItems = attention.filter((item) => item.tone === 'error');
-  const warnItems = attention.filter((item) => item.tone === 'warn');
-  // Docker 환경의 확인 필요는 서버 목록의 필터로 볼 수 없어서, 그때는 이 자리에서 펼친다.
-  const warnsExpandHere = warnItems.some((item) => item.docker);
-  const shownWarnItems = warnsExpandHere && showAllAttention ? warnItems : warnItems.slice(0, WARN_PREVIEW);
+  // 확인 필요는 종류의 순서로 먼저 세운다(정렬은 안정적이라 같은 종류 안은 위의 순서 그대로). 관찰 시각만으로 세우면
+  // 늘 "방금"인 사용률 경고가 위를 차지하고 수집이 끊긴 대상이 접힌 쪽에 숨었다.
+  const warnItems = attention.filter((item) => item.tone === 'warn').sort((a, b) => (a.warnRank ?? 0) - (b.warnRank ?? 0));
+  // 나머지는 제자리에서 펼친다. 서버 목록의 확인 필요 필터는 서버 수를 보여 주어 항목 수와 맞지 않았다.
+  // 세 건 이하로 줄면 펼친 상태를 접는다(렌더 중에 이전 렌더의 정보로 상태를 맞추는 방식).
+  if (showAllAttention && warnItems.length <= WARN_PREVIEW) setShowAllAttention(false);
+  const shownWarnItems = showAllAttention ? warnItems : warnItems.slice(0, WARN_PREVIEW);
 
   // 백그라운드 탭에서도 장애가 보이도록 탭 제목에 장애 수를 붙인다.
   const errorCount = outageItems.length;
@@ -321,8 +325,9 @@ export function OverviewPage() {
           {/* Linear식 목록: 카드·행 구분선·배경 띠 없이 그룹 제목과 간격으로 나누고, 두 그룹 사이에만 옅은 선을 둔다. 행은 Triage 인박스처럼 두 줄. */}
           <div className="section-stack">
             <section id="attention" aria-label="현재 확인 필요" className="scroll-mt-5">
+              {/* 일부 대상을 불러오지 못한 동안에는 본문이 판단을 유보하므로 건수를 단정하지 않는다. */}
               <GroupHeader title="현재 확인 필요"
-                count={<><span>장애 {outageItems.length}</span>, <span>확인 필요 {warnItems.length}</span></>} />
+                count={statusUnknown ? null : <><span>장애 {outageItems.length}</span>, <span>확인 필요 {warnItems.length}</span></>} />
               {attention.length === 0 ? (
                 <div className="flex items-center gap-3 py-3">
                   <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
@@ -345,9 +350,9 @@ export function OverviewPage() {
                   )}
                   {warnItems.length > 0 && (
                     <AttentionGroup id="attention-warnings" title="확인 필요"
-                      footer={warnItems.length > WARN_PREVIEW && (warnsExpandHere
-                        ? <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" aria-expanded={showAllAttention} onClick={() => setShowAllAttention((value) => !value)}><MaterialIcon name={showAllAttention ? 'expand_less' : 'expand_more'} />{showAllAttention ? '우선 항목만 보기' : `확인 필요 ${warnItems.length}건 모두 보기`}</Button>
-                        : <ButtonLink variant="ghost" size="sm" className="min-h-11 sm:min-h-0" to={`${SERVERS_PATH}?status=warn`}>확인 필요 {warnItems.length}건 모두 보기</ButtonLink>)}>
+                      footer={warnItems.length > WARN_PREVIEW && (
+                        <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" aria-expanded={showAllAttention} onClick={() => setShowAllAttention((value) => !value)}><MaterialIcon name={showAllAttention ? 'expand_less' : 'expand_more'} />{showAllAttention ? '우선 항목만 보기' : `확인 필요 ${warnItems.length}건 모두 보기`}</Button>
+                      )}>
                       {shownWarnItems.map((item) => <AttentionRow key={item.id} item={item} />)}
                     </AttentionGroup>
                   )}

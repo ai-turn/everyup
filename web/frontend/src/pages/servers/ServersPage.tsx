@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import {
   Button, ButtonLink, EmptyState, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select, StatusLight, type StatusTone,
 } from '../../components/common';
@@ -109,12 +109,9 @@ export function ServersPage() {
   return (
     <div>
       <PageHeader menu compactActions title="서버">
-        {/* 여러 서버를 가로지르는 로그 요약(설계 6.6). 사이드바에 없는 화면이라 여기서 들어간다.
-            모바일에서도 이름을 보인다(아이콘만으로는 무엇인지 알 수 없다). 그 대신 모바일의 서버 추가는 아이콘(+)만 남긴다.
-            셋 다 글자이면 320px에서 제목이 글자마다 줄바꿈되었다. */}
-        <ButtonLink variant="ghost" to={ALL_LOGS_PATH}><MaterialIcon name="article" />전체 로그</ButtonLink>
         <Button collapseLabel onClick={handleRefresh}><MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침</Button>
-        <ButtonLink collapseLabel to={NEW_SERVER_PATH}><MaterialIcon name="add" />서버 추가</ButtonLink>
+        {/* 메뉴 첫 화면의 생성 버튼은 `추가` 하나다(DESIGN.md §4.1 액션 앵커). 대상은 화면 제목이 말한다. 그룹 목록과 같다. */}
+        <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />추가</ButtonLink>
       </PageHeader>
 
       {hasRows && (
@@ -137,8 +134,12 @@ export function ServersPage() {
               <option value={NO_GROUP}>미분류</option>
             </Select>
           )}
-          {/* 서버 상세의 머리말과 같은 표기. 자동 갱신 스위치는 서버 상세에만 둔다. */}
-          <div className="ml-auto"><UptimeRefreshControls updatedAt={updatedAt} /></div>
+          {/* 여러 서버를 가로지르는 로그 요약(설계 6.6)은 사이드바에 없어 여기서 들어간다. 보조 이동이라 머리말의 주 조작과 섞지 않고
+              툴바 끝의 텍스트 링크로 둔다. 갱신 시각은 서버 상세의 머리말과 같은 표기이고, 자동 갱신 스위치는 서버 상세에만 둔다. */}
+          <div className="ml-auto flex flex-wrap items-center gap-x-3">
+            <Link to={ALL_LOGS_PATH} className="inline-flex min-h-11 items-center type-body text-action link-underline sm:min-h-6">전체 로그</Link>
+            <UptimeRefreshControls updatedAt={updatedAt} />
+          </div>
         </ListToolbar>
       )}
 

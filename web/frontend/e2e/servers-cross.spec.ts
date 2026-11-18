@@ -42,6 +42,8 @@ test('the overview and the server list agree on which servers need attention', a
   expect(flagged.length).toBeGreaterThan(0);
   await page.goto('./');
   await expect(attention(page).getByRole('listitem').first()).toBeVisible();
+  // 확인 필요는 세 건까지 먼저 보이고 나머지는 제자리에서 펼친다. 모두 펼쳐서 비교한다.
+  await attention(page).getByRole('button', { name: /모두 보기$/ }).click();
   // 항목의 첫 줄은 대상 제목이다. 직접 대상은 `서버 / 대상`, 서버와 이름이 같은 인프라는 서버 이름이다.
   const items = await attention(page).getByRole('listitem').getByRole('link').allInnerTexts();
   const serverOf = (text: string) => text.trim().split('\n')[0].split(' / ')[0].trim();

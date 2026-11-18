@@ -30,7 +30,8 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
   const apps = row.targets.apps.filter((app) => logIds.has(app.id));
   const firstScreen = serverPath(serverId, 'logs');
   // 앱 목록의 보기 방식(?view=)은 주소에 있다. 목록에서 연 앱은 그 주소로 돌아간다.
-  const listPath = useListReturn(firstScreen, targetId);
+  // 전체 로그에서 연 앱은 전체 로그로 돌아간다(여러 서버를 차례로 훑는 길).
+  const listPath = useListReturn(firstScreen, targetId, [ALL_LOGS_PATH]);
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
 

@@ -117,7 +117,8 @@ export function CommandPalette() {
       id: `group-${group.id}`, icon: 'folder_open', label: group.name, meta: '그룹', to: `/projects/${group.id}`,
     })),
     ...services.map((s) => ({
-      id: `svc-${s.agentId}-${s.key}`, icon: '', label: s.name, meta: s.agentName,
+      // 환경 이름만 쓰면 같은 이름의 서버의 대상처럼 읽혔다.
+      id: `svc-${s.agentId}-${s.key}`, icon: '', label: s.name, meta: `${s.agentName}의 Docker 서비스`,
       to: `/services/${s.agentId}/${encodeURIComponent(s.key)}`, healthy: s.healthy,
     })),
     ];

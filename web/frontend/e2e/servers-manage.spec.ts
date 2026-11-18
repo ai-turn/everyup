@@ -24,7 +24,8 @@ async function choose(page: Page, scope: ReturnType<Page['getByRole']>, label: s
 
 test('creating a server opens its overview and lists it', async ({ page }) => {
   await page.goto('./servers');
-  await page.getByRole('link', { name: '서버 추가' }).first().click();
+  // 목록 머리말의 생성 버튼은 `추가`다(DESIGN.md §4.1 액션 앵커).
+  await page.getByRole('link', { name: '추가', exact: true }).click();
   await expect(page).toHaveURL(/\/servers\/new$/);
   await expect(page.getByRole('heading', { level: 1, name: '서버 추가' })).toBeVisible();
 
