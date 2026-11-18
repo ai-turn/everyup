@@ -3,12 +3,13 @@ import { Button, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, Stat
 import { SERVERS_PATH } from '../serverPaths';
 import { STATE_LABEL, type ServerRow } from '../serverStatus';
 
-export function ServerHeader({ row, groupName, onRefresh, refreshing }: {
+export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings }: {
   row: ServerRow;
   /** 그룹 목록을 불러오지 못했으면 undefined. 그룹 칸을 숨긴다. */
   groupName?: string;
   onRefresh: () => void;
   refreshing: boolean;
+  onSettings: () => void;
 }) {
   return (
     <header>
@@ -30,7 +31,7 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing }: {
       />
       <DetailActionToolbar
         controls={<Button collapseLabel variant="secondary" loading={refreshing} onClick={onRefresh}><MaterialIcon name="refresh" />새로고침</Button>}
-        actions={null}
+        actions={<Button collapseLabel variant="secondary" onClick={onSettings}><MaterialIcon name="settings" />서버 설정</Button>}
       />
     </header>
   );

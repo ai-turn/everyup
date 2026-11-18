@@ -4,6 +4,7 @@ import {
   Button, ButtonLink, EmptyState, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select, StatusLight, type StatusTone,
 } from '../../components/common';
 import { ServerTable } from '../../features/servers/components/ServerTable';
+import { NEW_SERVER_PATH } from '../../features/servers/serverPaths';
 import { STATE_LABEL, type ServerRow } from '../../features/servers/serverStatus';
 import { useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
@@ -106,7 +107,7 @@ export function ServersPage() {
     <div>
       <PageHeader menu title="서버">
         <Button collapseLabel onClick={handleRefresh}><MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침</Button>
-        <ButtonLink to="/servers/new"><MaterialIcon name="add" />서버 추가</ButtonLink>
+        <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />서버 추가</ButtonLink>
       </PageHeader>
 
       {hasRows && (
@@ -144,7 +145,7 @@ export function ServersPage() {
           : !hasRows ? (
             <EmptyState icon="dns" title="아직 서버가 없습니다"
               description={`서버를 추가하고 업타임, 인프라, 로그, API 요청, 메트릭을 연결하세요.${hasDockerEnvironments ? ' Docker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.' : ''}`}
-              action={{ label: '서버 추가', to: '/servers/new' }} />
+              action={{ label: '서버 추가', to: NEW_SERVER_PATH }} />
           ) : (
             <section aria-label="서버" aria-busy={loading || undefined}>
               <h2 className="sr-only">서버 목록</h2>

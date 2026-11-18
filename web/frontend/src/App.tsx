@@ -30,6 +30,7 @@ const ProjectsPage          = lazy(() => import('./pages/projects/ProjectsPage')
 const ProjectOverviewPage   = lazy(() => import('./pages/projects/ProjectOverviewPage').then(m => ({ default: m.ProjectOverviewPage })));
 const ServersPage           = lazy(() => import('./pages/servers/ServersPage').then(m => ({ default: m.ServersPage })));
 const ServerDetailPage      = lazy(() => import('./pages/servers/ServerDetailPage').then(m => ({ default: m.ServerDetailPage })));
+const ServerFormPage        = lazy(() => import('./pages/servers/ServerFormPage').then(m => ({ default: m.ServerFormPage })));
 
 function PageLoader() {
   return (
@@ -68,6 +69,7 @@ function App() {
                 <Route index element={<OverviewPage />} />
                 <Route path="/environments" element={<ServiceGridPage />} />
                 <Route path="/servers" element={<ServersPage />} />
+                <Route path="/servers/new" element={<ServerFormPage />} />
                 <Route path="/servers/:serverId" element={<ServerDetailPage />} />
                 <Route path="/servers/:serverId/:capability" element={<ServerDetailPage />} />
                 <Route path="/servers/:serverId/:capability/:targetId" element={<ServerDetailPage />} />

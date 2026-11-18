@@ -1,6 +1,7 @@
 // 서버 화면의 주소는 여기서만 만든다. 컴포넌트마다 문자열을 이어 붙이면 인코딩과 순서가 어긋난다.
 
 export const SERVERS_PATH = '/servers';
+export const NEW_SERVER_PATH = '/servers/new';
 
 export type ServerCapability = 'uptime' | 'infrastructure' | 'logs' | 'api' | 'metrics';
 

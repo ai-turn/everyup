@@ -3,8 +3,10 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ButtonLink, EmptyState, LoadErrorBanner, MaterialIcon, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { ServerCapabilityPlaceholder } from '../../features/servers/components/ServerCapabilityPlaceholder';
+import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerOverviewTab } from '../../features/servers/components/ServerOverviewTab';
+import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
 import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, type ServerCapability } from '../../features/servers/serverPaths';
 import { capabilityTargets, STATE_LABEL, type ServerRow } from '../../features/servers/serverStatus';
 import { useServers } from '../../features/servers/useServers';
@@ -52,6 +54,15 @@ export function ServerDetailPage() {
   const refresh = () => { reload(); setProjectsKey((key) => key + 1); };
   useAutoRefresh(reload, 30_000);
   const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
+
+  // 서버를 만들거나 합친 뒤에 이 화면으로 오면 포커스를 탭 패널로 옮긴다.
+  const [dialog, setDialog] = useState<'settings' | 'merge' | 'delete' | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const found = Boolean(row);
+  const focusPanel = (location.state as { focusPanel?: boolean } | null)?.focusPanel === true;
+  useEffect(() => {
+    if (focusPanel && found) panelRef.current?.focus();
+  }, [location.key, focusPanel, found]);
 
   const target = row && targetId ? targetName(row, targetId) : undefined;
   useBreadcrumb(row ? [{ label: row.server.name, to: serverPath(row.server.id) }, ...(target ? [{ label: target }] : [])] : []);
@@ -106,7 +117,7 @@ export function ServerDetailPage() {
 
   return (
     <div>
-      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning} />
+      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning} onSettings={() => setDialog('settings')} />
       {error && <div className="mb-4"><LoadErrorBanner title="서버 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} /></div>}
       {!error && failed.length > 0 && (
         <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={`${failed.join(', ')} 정보를 제외한 결과입니다.`} onRetry={reload} retrying={loading} /></div>
@@ -114,12 +125,24 @@ export function ServerDetailPage() {
       <div className="mb-6">
         <Tabs items={tabs} active={active} onChange={open} ariaLabel="서버 기능" idPrefix={ID_PREFIX} />
       </div>
-      <div role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
+      <div ref={panelRef} tabIndex={-1} role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
         {active === 'overview'
           ? <ServerOverviewTab row={row} onOpen={(capability) => open(capability)} />
           : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
             unknown={row.unknownCapabilities.includes(active)} onRetry={reload} />}
       </div>
+      {/* 대화 상자를 겹쳐 열지 않는다. 설정에서 합치기나 삭제를 고르면 설정을 닫고 그 대화 상자를 연다. */}
+      {dialog === 'settings' && (
+        <ServerSettingsDialog row={row} onClose={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }}
+          onMerge={() => setDialog('merge')} onDelete={() => setDialog('delete')} />
+      )}
+      {dialog === 'merge' && (
+        <MergeServerDialog row={row} rows={rows} projects={projects} onClose={() => setDialog(null)}
+          onMerged={(targetServerId) => { setDialog(null); reload(); navigate(serverPath(targetServerId), { replace: true, state: { focusPanel: true } }); }} />
+      )}
+      {dialog === 'delete' && (
+        <DeleteServerDialog row={row} onClose={() => setDialog(null)} onDeleted={() => { setDialog(null); navigate(SERVERS_PATH); }} />
+      )}
     </div>
   );
 }

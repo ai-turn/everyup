@@ -72,6 +72,9 @@ const appCapability = (app: ObservedService): ServerCapability =>
 
 const SIGNAL_OF: Record<'logs' | 'api' | 'metrics', ObservedService['signals'][number]> = { logs: 'logs', api: 'traces', metrics: 'metrics' };
 
+export const hasTargets = (targets: ServerTargets) =>
+  targets.monitors.length > 0 || targets.apps.length > 0 || Boolean(targets.infrastructure);
+
 /** 기능에 연결된 대상. 앱은 그 기능의 신호를 가진 것만. */
 export function capabilityTargets(targets: ServerTargets, capability: ServerCapability): { id: string; name: string }[] {
   if (capability === 'uptime') return targets.monitors;
