@@ -29,6 +29,7 @@ const MorePage              = lazy(() => import('./pages/capabilities/MorePage')
 const ProjectsPage          = lazy(() => import('./pages/projects/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
 const ProjectOverviewPage   = lazy(() => import('./pages/projects/ProjectOverviewPage').then(m => ({ default: m.ProjectOverviewPage })));
 const ServersPage           = lazy(() => import('./pages/servers/ServersPage').then(m => ({ default: m.ServersPage })));
+const ServerDetailPage      = lazy(() => import('./pages/servers/ServerDetailPage').then(m => ({ default: m.ServerDetailPage })));
 
 function PageLoader() {
   return (
@@ -67,6 +68,9 @@ function App() {
                 <Route index element={<OverviewPage />} />
                 <Route path="/environments" element={<ServiceGridPage />} />
                 <Route path="/servers" element={<ServersPage />} />
+                <Route path="/servers/:serverId" element={<ServerDetailPage />} />
+                <Route path="/servers/:serverId/:capability" element={<ServerDetailPage />} />
+                <Route path="/servers/:serverId/:capability/:targetId" element={<ServerDetailPage />} />
                 <Route path="/agents" element={<Navigate to="/environments" replace />} />
                 <Route path="/services" element={<Navigate to="/uptime" replace />} />
                 <Route path="/uptime" element={<AgentServiceCapabilityPage />} />

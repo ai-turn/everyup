@@ -66,6 +66,31 @@ const appCapability = (app: ObservedService): ServerCapability =>
 
 const SIGNAL_OF: Record<'logs' | 'api' | 'metrics', ObservedService['signals'][number]> = { logs: 'logs', api: 'traces', metrics: 'metrics' };
 
+/** 기능에 연결된 대상. 앱은 그 기능의 신호를 가진 것만. */
+export function capabilityTargets(targets: ServerTargets, capability: ServerCapability): { id: string; name: string }[] {
+  if (capability === 'uptime') return targets.monitors;
+  if (capability === 'infrastructure') return targets.infrastructure ? [targets.infrastructure] : [];
+  return targets.apps.filter((app) => app.signals.includes(SIGNAL_OF[capability]));
+}
+
+/** useServers의 failed 가운데 기능의 대상 목록 자체를 모르게 만든 것. 이 기능은 "연결 전"이 아니라 확인 불가다. */
+export function unknownCapabilities(failed: readonly string[]): Set<ServerCapability> {
+  return new Set<ServerCapability>([
+    ...(failed.includes('업타임') ? ['uptime' as const] : []),
+    ...(failed.includes('인프라') ? ['infrastructure' as const] : []),
+    ...(failed.includes('앱') ? ['logs' as const, 'api' as const, 'metrics' as const] : []),
+  ]);
+}
+
+/** 서버 상세의 기능 탭이 받는 props. */
+export interface ServerCapabilityTabProps {
+  row: ServerRow;
+  /** 경로의 :targetId. 없으면 탭의 첫 화면 */
+  targetId?: string;
+  /** 대상이 추가·삭제·이동된 뒤 서버 데이터를 다시 불러온다 */
+  onChanged: () => void;
+}
+
 export function buildServerRows(input: {
   servers: Server[];
   monitors: UptimeMonitor[] | null;        // null은 조회 실패
