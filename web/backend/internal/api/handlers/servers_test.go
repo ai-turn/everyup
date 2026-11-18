@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aiturn/everyup/internal/database"
 )
@@ -278,4 +279,54 @@ func TestServerMergeConflicts(t *testing.T) {
 	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
 	resp, result = ts.doRequest(t, "POST", "/api/v1/servers/missing/merge", map[string]string{"targetServerId": first.ServerID}, auth...)
 	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
+}
+
+func TestIncidentTimelineUptimeTargetPathPointsAtServer(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	web := mustCreateServer(t, ts, auth, "web", "")
+	resp, result := ts.doRequest(t, "POST", "/api/v1/services", map[string]interface{}{
+		"name": "probe", "type": "tcp", "host": "1.1.1.1", "port": 53, "interval": 5, "serverId": web.ID,
+	}, auth...)
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("create monitor: %d %+v", resp.StatusCode, result.Error)
+	}
+	monitor := decodeMonitor(t, result)
+	if _, err := database.DB.Exec(
+		`INSERT INTO incidents (service_id, type, message, started_at) VALUES (?, ?, ?, ?)`,
+		monitor.ID, "down", "connection refused", time.Now().Add(-time.Hour),
+	); err != nil {
+		t.Fatalf("seed incident: %v", err)
+	}
+
+	_, result = ts.doRequest(t, "GET", "/api/v1/incidents/timeline", nil, auth...)
+	var episodes []struct {
+		Source     string `json:"source"`
+		TargetPath string `json:"targetPath"`
+	}
+	if err := json.Unmarshal(result.Data, &episodes); err != nil || len(episodes) != 1 {
+		t.Fatalf("timeline: %v, %s", err, result.Data)
+	}
+	if want := "/servers/" + web.ID + "/uptime/" + monitor.ID; episodes[0].TargetPath != want {
+		t.Fatalf("targetPath = %q, want %q", episodes[0].TargetPath, want)
+	}
+}
+
+func TestServerNotFoundHasMessage(t *testing.T) {
+	ts := setupTestServer(t)
+	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
+
+	resp, result := ts.doRequest(t, "GET", "/api/v1/servers/missing", nil, auth...)
+	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
+	if result.Error.Message != "server not found" {
+		t.Fatalf("unexpected message: %q", result.Error.Message)
+	}
+
+	web := mustCreateServer(t, ts, auth, "web", "")
+	resp, result = ts.doRequest(t, "POST", "/api/v1/servers/"+web.ID+"/merge", map[string]string{"targetServerId": "missing"}, auth...)
+	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
+	if result.Error.Message != "server not found" {
+		t.Fatalf("merge: unexpected message: %q", result.Error.Message)
+	}
 }

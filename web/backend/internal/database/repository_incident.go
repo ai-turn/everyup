@@ -21,6 +21,7 @@ func NewIncidentRepository() *IncidentRepository {
 type UptimeIncident struct {
 	ServiceID   string
 	ServiceName string
+	ServerID    string // empty when the monitor row is gone or has no server
 	Message     string
 	StartedAt   time.Time
 	ResolvedAt  *time.Time
@@ -46,7 +47,7 @@ func (r *IncidentRepository) uptimeIncidents(serviceID string, days, limit int) 
 	}
 	since := time.Now().AddDate(0, 0, -days)
 	rows, err := DB.Query(`
-SELECT i.service_id, COALESCE(s.name, i.service_id), COALESCE(i.message, ''), i.started_at, i.resolved_at
+SELECT i.service_id, COALESCE(s.name, i.service_id), COALESCE(s.server_id, ''), COALESCE(i.message, ''), i.started_at, i.resolved_at
 FROM incidents i
 LEFT JOIN services s ON s.id = i.service_id
 WHERE (i.started_at >= ? OR i.resolved_at IS NULL) AND (? = '' OR i.service_id = ?)
@@ -61,7 +62,7 @@ LIMIT ?`, since, serviceID, serviceID, limit)
 	for rows.Next() {
 		var in UptimeIncident
 		var resolved sql.NullTime
-		if err := rows.Scan(&in.ServiceID, &in.ServiceName, &in.Message, &in.StartedAt, &resolved); err != nil {
+		if err := rows.Scan(&in.ServiceID, &in.ServiceName, &in.ServerID, &in.Message, &in.StartedAt, &resolved); err != nil {
 			return nil, err
 		}
 		if resolved.Valid {
