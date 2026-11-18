@@ -18,7 +18,7 @@ const rowNames = (page: import('@playwright/test').Page) =>
 
 test('summary counts filter the list by state and keep it in the URL', async ({ page }) => {
   await threeMonitors(page);
-  await page.goto('./uptime');
+  await page.goto('./servers/server-1/uptime');
   const down = page.getByRole('group', { name: '상태로 거르기' }).getByRole('button', { name: /장애/ });
   await down.click();
   await expect(down).toHaveAttribute('aria-pressed', 'true');
@@ -33,7 +33,7 @@ test('summary counts filter the list by state and keep it in the URL', async ({ 
 
 test('bulk pause only touches selected active monitors', async ({ page }) => {
   const state = await threeMonitors(page);
-  await page.goto('./uptime?view=card');
+  await page.goto('./servers/server-1/uptime?view=card');
   await page.getByRole('checkbox', { name: 'Up API 선택' }).check();
   await page.getByRole('checkbox', { name: 'Paused API 선택' }).check();
   const bar = page.getByRole('region', { name: '선택한 대상 작업' });
@@ -46,7 +46,7 @@ test('bulk pause only touches selected active monitors', async ({ page }) => {
 
 test('card bulk delete confirms and only deletes selected monitors visible in the filter', async ({ page }) => {
   const state = await threeMonitors(page);
-  await page.goto('./uptime?view=card');
+  await page.goto('./servers/server-1/uptime?view=card');
   await page.getByRole('checkbox', { name: 'Paused API 선택' }).check();
   // Filtered out of view → dropped from the bulk selection.
   await page.getByRole('group', { name: '상태로 거르기' }).getByRole('button', { name: /장애/ }).click();

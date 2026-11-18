@@ -12,8 +12,8 @@ async function tabTo(page: Page, target: Locator) {
 }
 
 test('[16] add/edit/delete dialogs trap focus and return it to their keyboard trigger', async ({ page }) => {
-  await uptimeFixture(page); await page.goto('./uptime');
-  const add = page.getByRole('button', { name: '추가', exact: true });
+  await uptimeFixture(page); await page.goto('./servers/server-1/uptime');
+  const add = page.getByRole('button', { name: '모니터 추가', exact: true });
   await tabTo(page, add); await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: '업타임 추가' });
   await expect(dialog).toBeVisible();
@@ -61,9 +61,9 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
 });
 
 test('[16] Escape closes the add dialog directly when no child overlay is open', async ({ page }) => {
-  await uptimeFixture(page); await page.goto('./uptime');
+  await uptimeFixture(page); await page.goto('./servers/server-1/uptime');
   await page.mouse.move(0, 0);
-  const add = page.getByRole('button', { name: '추가', exact: true });
+  const add = page.getByRole('button', { name: '모니터 추가', exact: true });
   await tabTo(page, add); await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: '업타임 추가' });
   const type = dialog.getByRole('combobox', { name: /체크 방식/ });
@@ -79,7 +79,7 @@ test('[16] Escape closes the add dialog directly when no child overlay is open',
 
 test('[16] mobile keyboard focus remains above bottom navigation and charts are single stops', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await uptimeFixture(page); await page.goto('./uptime/http-monitor');
+  await uptimeFixture(page); await page.goto('./servers/server-1/uptime/http-monitor');
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const history = page.getByRole('group', { name: /최근 90일/ });
   const response = page.getByRole('application', { name: /응답 시간 추이/ });

@@ -9,7 +9,7 @@ for (const view of ['grid', 'card'] as const) for (const fail of [false, true]) 
     const gate = deferred();
     state.holds.set('PUT /services/http-monitor', gate.promise);
     if (fail) state.failures.set('PUT /services/http-monitor', 500);
-    await page.goto(`./uptime${view === 'card' ? '?view=card' : ''}`);
+    await page.goto(`./servers/server-1/uptime${view === 'card' ? '?view=card' : ''}`);
     const pause = page.getByRole('button', { name: 'Public API 일시정지', exact: true });
     const card = page.getByRole('row').or(page.getByRole('article')).filter({ has: page.getByRole('link', { name: 'Public API', exact: true }) });
     try {

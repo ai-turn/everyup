@@ -2,10 +2,11 @@ import { expect, test } from '@playwright/test';
 import { deferred, uptimeFixture } from './fixtures/uptime';
 
 test.use({ baseURL: 'http://127.0.0.1:4174/' });
+const panel = (page: import('@playwright/test').Page) => page.getByRole('tabpanel');
 
 test('[10] detail pause/resume blocks competing controls and recovers from failure', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./uptime/http-monitor');
+  await page.goto('./servers/server-1/uptime/http-monitor');
   const pause = page.getByRole('button', { name: '일시정지', exact: true });
   await expect(pause).toBeEnabled();
   const gate = deferred();
@@ -14,17 +15,19 @@ test('[10] detail pause/resume blocks competing controls and recovers from failu
   try {
     await pause.click();
     await expect(pause).toHaveAttribute('aria-busy', 'true');
-    for (const name of ['일시정지', '수정', '삭제', '새로고침']) await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
+    for (const name of ['일시정지', '수정', '삭제']) await expect(panel(page).getByRole('button', { name, exact: true })).toBeDisabled();
+    // 서버 탭의 패널에는 새로고침 버튼이 없다. 패널의 갱신 조작인 자동 갱신 스위치가 함께 막힌다.
+    await expect(panel(page).getByRole('switch', { name: '30초마다 자동 갱신' })).toBeDisabled();
     const box = await pause.boundingBox();
     await page.mouse.click(box!.x + 5, box!.y + 5);
     expect(state.requests.filter((request) => request.method === 'PUT')).toHaveLength(1);
     gate.resolve(); state.holds.clear();
     await expect(pause).toBeEnabled();
-    await expect(page.getByText('정상', { exact: true })).toBeVisible();
+    await expect(panel(page).getByText('정상', { exact: true })).toBeVisible();
     state.failures.clear();
     await pause.click();
     await expect(page.getByRole('button', { name: '재개', exact: true })).toBeEnabled();
-    await expect(page.getByText('일시정지', { exact: true })).toBeVisible();
+    await expect(panel(page).getByText('일시정지', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: '재개', exact: true }).click();
     await expect(pause).toBeEnabled();
     const writes = state.requests.filter((request) => request.method === 'PUT');
@@ -36,7 +39,7 @@ test('[10] detail pause/resume blocks competing controls and recovers from failu
 
 test('[11] deleting identifies the monitor, cancels safely, and retries a failed delayed DELETE', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./uptime/http-monitor');
+  await page.goto('./servers/server-1/uptime/http-monitor');
   const open = page.getByRole('button', { name: '삭제', exact: true });
   await open.click();
   const dialog = page.getByRole('dialog', { name: '업타임을 삭제할까요?' });
@@ -67,9 +70,10 @@ test('[11] deleting identifies the monitor, cancels safely, and retries a failed
     expect(state.monitors.some((monitor) => monitor.id === 'http-monitor')).toBe(true);
     state.failures.clear();
     await confirm.click();
-    await expect(page).toHaveURL(/\/uptime$/);
-    await expect(page.getByRole('link', { name: 'Public API', exact: true })).toHaveCount(0);
-    await expect(page.getByRole('link', { name: 'Database', exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/servers\/server-1\/uptime$/);
+    // 남은 모니터가 하나라서 탭의 첫 화면은 그 모니터의 상세다.
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Database', exact: true })).toBeVisible();
+    await expect(panel(page)).not.toContainText('Public API');
     expect(state.requests.filter((request) => request.method === 'DELETE')).toHaveLength(2);
     expect(state.monitors.some((monitor) => monitor.id === 'http-monitor')).toBe(false);
   } finally { gate.resolve(); }

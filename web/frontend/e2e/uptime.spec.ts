@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('uptime response chart shows realistic samples, an outage and keyboard tooltips', async ({ page }) => {
-  await page.goto('./uptime/uptime_mock_store');
+  await page.goto('./servers/server_mock_edge_host_01/uptime/uptime_mock_store');
   const card = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
   await expect(card.getByRole('button', { name: '6h', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(card.locator('.recharts-line-curve')).toBeVisible();

@@ -1,8 +1,8 @@
 import type { Page } from '@playwright/test';
-import type { AgentServiceFlat, UptimeMonitor, UptimeMonitorHistory, UptimeMonitorInput, UptimeMonitorMetric, UptimeMonitorSummary } from '../../src/services/api';
+import type { AgentServiceFlat, Server, UptimeMonitor, UptimeMonitorHistory, UptimeMonitorInput, UptimeMonitorMetric, UptimeMonitorSummary } from '../../src/services/api';
 
 export function monitor(id = 'http-monitor', changes: Partial<UptimeMonitor> = {}): UptimeMonitor {
-  return { id, name: 'Public API', type: 'http', isActive: true, url: 'https://api.example.com/health', method: 'GET', expectedStatus: 200, timeout: 5000, interval: 30, status: 'healthy', lastCheckAt: new Date().toISOString(), ...changes };
+  return { id, name: 'Public API', serverId: 'server-1', type: 'http', isActive: true, url: 'https://api.example.com/health', method: 'GET', expectedStatus: 200, timeout: 5000, interval: 30, status: 'healthy', lastCheckAt: new Date().toISOString(), ...changes };
 }
 
 export function dockerService(changes: Partial<AgentServiceFlat> = {}): AgentServiceFlat {
@@ -17,7 +17,10 @@ export function deferred() {
 
 export async function uptimeFixture(page: Page) {
   const now = Date.now();
+  const at = new Date(now).toISOString();
   const state = {
+    // 서버 화면은 이 서버의 업타임 탭(/servers/server-1/uptime)에서 모니터를 보여 준다.
+    server: { id: 'server-1', name: 'web-01', createdAt: at, updatedAt: at } as Server,
     monitors: [monitor(), monitor('tcp-monitor', { name: 'Database', type: 'tcp', url: 'db.example.com', port: 5432 })],
     services: [dockerService()],
     metrics: [
@@ -30,6 +33,8 @@ export async function uptimeFixture(page: Page) {
     holds: new Map<string, Promise<void>>(),
     responses: new Map<string, unknown>(),
     requests: [] as { method: string; path: string; query: string; body: UptimeMonitorInput | null }[],
+    /** 아래 분기 어디에도 걸리지 않아 기본값([])으로 응답한 요청. 서버 화면이 부르는 API를 빠짐없이 처리하는지 확인할 때 본다. */
+    unhandled: [] as string[],
   };
   await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
@@ -61,7 +66,11 @@ export async function uptimeFixture(page: Page) {
       state.monitors = state.monitors.filter((item) => path !== `/services/${item.id}`);
       await route.fulfill({ status: 204 });
       return;
-    } else if (path === '/agents/services/all') data = state.services;
+    } else if (path === '/servers') data = [state.server];
+    else if (path === `/servers/${state.server.id}`) data = state.server;
+    // 서버 화면이 서버 데이터와 함께 불러오는 다른 대상들. 이 fixture의 서버에는 앱, 인프라, 그룹, 로그가 없다.
+    else if (['/observed-services', '/infrastructure-resources', '/projects', '/logs/summary'].includes(path)) data = [];
+    else if (path === '/agents/services/all') data = state.services;
     else if (path === '/services') data = url.searchParams.get('include') === 'checks' ? state.monitors.map((item) => ({
       ...item, recentChecks: item.recentChecks ?? state.metrics.filter((metric) => metric.serviceId === item.id).slice(0, 10),
     })) : state.monitors;
@@ -85,6 +94,7 @@ export async function uptimeFixture(page: Page) {
     }
     else if (/^\/services\/[^/]+\/metrics$/.test(path)) data = state.metrics;
     else if (/^\/services\/[^/]+\/uptime$/.test(path)) data = state.history;
+    else if (/^\/services\/[^/]+\/(incidents|failures)$/.test(path) || path === '/alert-rules') data = [];
     else if (/^\/services\/[^/]+$/.test(path)) {
       data = state.monitors.find((item) => path === `/services/${item.id}`);
       if (!data) {
@@ -93,6 +103,7 @@ export async function uptimeFixture(page: Page) {
       }
     } else if (path === '/agents') data = [{ id: 'docker-host', name: 'Production Docker', lastSeenAt: new Date().toISOString() }];
     else if (path.endsWith('/request-stats')) data = { buckets: [], truncated: false };
+    else state.unhandled.push(key);
     await route.fulfill({ json: { success: true, data } });
   });
   return state;

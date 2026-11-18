@@ -1,7 +1,8 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { deferred, uptimeFixture } from './fixtures/uptime';
 
 test.use({ baseURL: 'http://127.0.0.1:4174/' });
+const panel = (page: Page) => page.getByRole('tabpanel');
 
 test('[09] initial loading, 404 and server failure have distinct recovery paths', async ({ page }) => {
   const state = await uptimeFixture(page);
@@ -9,7 +10,7 @@ test('[09] initial loading, 404 and server failure have distinct recovery paths'
   state.holds.set('GET /services/http-monitor', gate.promise);
   state.failures.set('GET /services/http-monitor', 500);
   try {
-    await page.goto('./uptime/http-monitor');
+    await page.goto('./servers/server-1/uptime/http-monitor');
     await expect(page.getByText('불러오는 중', { exact: true })).toBeVisible();
     gate.resolve(); state.holds.clear();
     await expect(page.getByText('업타임 모니터를 불러오지 못했습니다', { exact: true })).toBeVisible();
@@ -17,9 +18,11 @@ test('[09] initial loading, 404 and server failure have distinct recovery paths'
     state.failures.clear();
     await page.getByRole('button', { name: '다시 시도', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
-    await page.goto('./uptime/missing');
-    await expect(page.getByText('업타임 모니터를 찾을 수 없습니다', { exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: '업타임으로 돌아가기' })).toBeVisible();
+    // 서버 화면에서 없는 모니터는 "이 서버의 모니터가 아닙니다"이고, 탭의 첫 화면으로 돌아가는 길이 있다.
+    await page.goto('./servers/server-1/uptime/missing');
+    await expect(panel(page).getByText('이 서버의 모니터가 아닙니다', { exact: true })).toBeVisible();
+    await expect(page.getByText('업타임 모니터를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
+    await expect(panel(page).getByRole('link', { name: '업타임 탭으로' })).toBeVisible();
   } finally { gate.resolve(); }
 });
 
@@ -27,7 +30,7 @@ for (const [path, label] of [['/metrics', '최근 체크'], ['/metrics/summary',
   test(`[09] independent failure of ${label} retains monitor and other successful sections`, async ({ page }) => {
     const state = await uptimeFixture(page);
     state.failures.set(`GET /services/http-monitor${path}`, 500);
-    await page.goto('./uptime/http-monitor');
+    await page.goto('./servers/server-1/uptime/http-monitor');
     await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
     await expect(page.getByRole('alert')).toContainText(label);
     if (path !== '/failures') await expect(page.getByRole('heading', { name: '장애 이력', exact: true })).toBeVisible();
@@ -40,15 +43,15 @@ for (const [path, label] of [['/metrics', '최근 체크'], ['/metrics/summary',
 
 test('[09] a failed refresh keeps labelled prior data and disables mutations on unknown monitor state', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./uptime/http-monitor');
+  await page.goto('./servers/server-1/uptime/http-monitor');
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const gate = deferred();
   state.holds.set('GET /services/http-monitor', gate.promise);
   for (const path of ['', '/metrics', '/metrics/summary', '/uptime']) state.failures.set(`GET /services/http-monitor${path}`, 500);
   try {
-    const refresh = page.getByRole('button', { name: '새로고침', exact: true });
-    await refresh.click();
-    await expect(refresh).toHaveAttribute('aria-busy', 'true');
+    // 새로고침은 서버 머리말에 하나다. 패널의 갱신 중 표시는 갱신 시각 자리에 나온다.
+    await page.getByRole('button', { name: '새로고침', exact: true }).click();
+    await expect(panel(page).getByRole('group', { name: '업타임 갱신' })).toContainText('갱신 중');
     await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
     gate.resolve(); state.holds.clear();
     await expect(page.getByRole('alert')).toContainText('이전에 불러온');
@@ -67,9 +70,9 @@ test('[09] switching monitor ids does not retain another monitor or late respons
   const gate = deferred();
   state.holds.set('GET /services/http-monitor', gate.promise);
   try {
-    await page.goto('./uptime/tcp-monitor');
+    await page.goto('./servers/server-1/uptime/tcp-monitor');
     await expect(page.getByRole('heading', { name: 'Database', exact: true })).toBeVisible();
-    await page.getByRole('navigation', { name: '현재 위치' }).getByRole('link', { name: '업타임', exact: true }).click();
+    await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
     await page.getByRole('link', { name: 'Public API', exact: true }).click();
     await expect(page.getByText('불러오는 중', { exact: true })).toBeVisible();
     await page.goBack();
