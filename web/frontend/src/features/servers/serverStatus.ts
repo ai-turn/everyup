@@ -238,7 +238,6 @@ export function buildServerRows(input: {
         return { ...base, state: result.state, detail: result.detail, text: `${app.name} ${result.detail}`, to: serverPath(server.id, appCapability(app), app.id) };
       }),
     ];
-    const state = worst(candidates.map((candidate) => candidate.state)) ?? 'idle';
     // 확인할 수 없는 기능: 목록을 불러오지 못했거나(대상이 있는지 모른다, 앱은 기능을 모르므로 "앱") 이전 목록에 대상이 있다.
     const unverified = [
       ...(!input.monitors || (!known.monitors && monitors.length > 0) ? ['업타임'] : []),
@@ -247,11 +246,16 @@ export function buildServerRows(input: {
         .filter(({ key }) => key !== 'uptime' && key !== 'infrastructure' && apps.some((app) => app.signals.includes(SIGNAL_OF[key as 'logs' | 'api' | 'metrics'])))
         .map(({ label }) => label)),
     ];
+    const checked = worst(candidates.map((candidate) => candidate.state)) ?? 'idle';
+    // 확인한 장애와 확인 필요는 그대로다. 그 밖에는 확인하지 못한 기능이 있으면 정상이라고 하지 않고 대기로 둔다:
+    // 장애 중인 모니터의 목록만 불러오지 못한 서버가 남은 인프라로 정상이 되면 안 된다.
+    const unsure = unverified.length > 0 && (checked === 'healthy' || checked === 'idle');
+    const state: StatusTone = unsure ? 'idle' : checked;
     // 대기도 까닭을 적는다. 대상이 없으면 링크 없는 문구다. 확인할 수 없는 기능이 있으면 대상이 없다고 단정하지 않고 그 기능을 적는다.
-    const culprit = state === 'healthy' ? undefined
-      : candidates.find((candidate) => candidate.state === state)
-        ?? (unverified.length > 0 ? { text: `${unverified.join(', ')} 확인 불가`, to: undefined }
-          : known.monitors && known.apps && known.infrastructure ? { text: '연결한 대상 없음', to: undefined } : undefined);
+    const culprit = unsure ? { text: `${unverified.join(', ')} 확인 불가`, to: undefined }
+      : state === 'healthy' ? undefined
+        : candidates.find((candidate) => candidate.state === state)
+          ?? (known.monitors && known.apps && known.infrastructure ? { text: '연결한 대상 없음', to: undefined } : undefined);
 
     const appsWith = (capability: 'logs' | 'api' | 'metrics') => current.apps.filter((app) => app.signals.includes(SIGNAL_OF[capability]));
     const logApps = appsWith('logs');

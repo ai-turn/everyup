@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
-import type { ObservedService, Server } from '../src/services/api';
-import { deferred, uptimeFixture } from './fixtures/uptime';
+import type { ObservedService, Server, UptimeMonitor } from '../src/services/api';
+import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
 // 서버 데이터의 갱신: 갱신 시각, 자동 갱신 스위치, 겹치는 요청, 다시 불러오기에 실패한 종류의 이전 목록 유지(Task 11b).
 test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 } });
@@ -15,7 +15,9 @@ const serverHeader = (page: Page) => page.locator('header', { has: page.getByRol
 const stamp = (page: Page) => page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p');
 const refresh = (page: Page) => page.getByRole('button', { name: '새로고침', exact: true });
 
-async function mockServer(page: Page, options: { infrastructure?: boolean } = {}) {
+async function mockServer(page: Page, options: { infrastructure?: boolean; monitors?: UptimeMonitor[]; project?: boolean } = {}) {
+  const group = { id: 'p1', name: 'payments', createdAt: at, updatedAt: at };
+  const own = options.project ? { ...server, projectId: group.id } : server;
   const state = {
     // 키는 경로(GET) 또는 `메서드 경로`이다.
     failures: new Set<string>(),
@@ -47,7 +49,8 @@ async function mockServer(page: Page, options: { infrastructure?: boolean } = {}
       return;
     }
     // 앱 패널(로그, API 요청)이 부르는 객체 응답. 나머지는 빈 목록이다.
-    const data = path === '/servers' ? [server] : path === '/observed-services' ? (state.app ? [state.app] : [])
+    const data = path === '/servers' ? [own] : path === '/services' ? options.monitors ?? [] : path === '/projects' ? (options.project ? [group] : [])
+      : path === '/observed-services' ? (state.app ? [state.app] : [])
       : path === '/infrastructure-resources' ? (state.infrastructure ? [state.infrastructure] : [])
         : path === '/infrastructure-resources/r1' || path === '/infrastructure-resources/r1/revoke-key' ? state.infrastructure
           : path === '/observed-services/a1/revoke-key' ? state.app
@@ -411,4 +414,42 @@ test('a header refresh during a connection stop does not reload the infrastructu
       expect(state.count(panelRequest)()).toBe(before.panel);
     } finally { state.holds.clear(); gate.resolve(); }
   }
+});
+
+test('a server whose failing monitor could not be checked is not called healthy by its other targets', async ({ page }) => {
+  const down = monitor('m1', { name: 'Checkout', serverId: 's1', status: 'unhealthy' });
+  const state = await mockServer(page, { infrastructure: true, monitors: [down], project: true });
+  const row = page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr').filter({ hasText: 'web-01' });
+  const statusCell = row.getByRole('cell').nth(1);
+  await page.goto('./servers');
+  await expect(statusCell).toContainText('장애');
+
+  // 다시 불러오기만 실패: 이전 목록의 장애를 지금의 상태로 쓰지 않지만, 남은 인프라만으로 정상이라고 하지도 않는다.
+  state.failures.add('/services');
+  await refresh(page).click();
+  await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  await expect(statusCell).toHaveText('대기업타임 확인 불가');
+  await expect(page.getByRole('group', { name: '상태로 거르기' }).getByRole('button', { name: /정상/ })).toContainText('0');
+
+  // 서버 상세는 처음부터 실패한다. 머리말도 같은 판정이다.
+  await row.getByRole('link', { name: 'web-01' }).click();
+  await expect(serverHeader(page).getByText('업타임 확인 불가', { exact: true })).toBeVisible();
+  await expect(serverHeader(page).getByText('정상', { exact: true })).toHaveCount(0);
+  await expect(serverHeader(page).getByText('대기', { exact: true })).toBeVisible();
+
+  // 그룹 목록의 요약과 그룹 상세도 그 서버를 정상으로 세지 않는다.
+  await page.goto('./projects');
+  const groupRow = page.getByRole('table', { name: '그룹 그리드' }).locator('tbody tr').filter({ hasText: 'payments' });
+  await expect(groupRow).toContainText('대기 1');
+  await expect(groupRow).not.toContainText('정상');
+  await page.goto('./projects/p1');
+  const member = page.getByRole('table', { name: '그룹 구성 그리드' }).locator('tbody tr').filter({ hasText: 'web-01' });
+  await expect(member).toContainText('업타임 확인 불가');
+  await expect(member).not.toContainText('정상');
+
+  // 조회가 회복되면 원래의 상태로 돌아온다.
+  state.failures.clear();
+  await page.goto('./servers/s1');
+  await expect(serverHeader(page).getByText('장애', { exact: true })).toBeVisible();
+  await expect(serverHeader(page).getByRole('link', { name: /Checkout 응답 없음/ })).toBeVisible();
 });
