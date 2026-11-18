@@ -102,6 +102,9 @@ export function DirectTelemetrySetupDialog({
     }
   };
 
+  // 서버 화면은 대상을 앱이라고 부른다.
+  const noun = serverId ? '앱' : '서비스';
+
   const done = () => {
     const service = result?.service;
     if (service) onCreated(service);
@@ -109,8 +112,8 @@ export function DirectTelemetrySetupDialog({
   };
 
   const modeOptions: { value: SetupMode; label: string }[] = [
-    { value: 'new', label: '새 서비스' },
-    { value: 'existing', label: '기존 서비스' },
+    { value: 'new', label: `새 ${noun}` },
+    { value: 'existing', label: `기존 ${noun}` },
   ];
 
   return (
@@ -133,7 +136,8 @@ export function DirectTelemetrySetupDialog({
       {result ? (
         <DirectTelemetrySetupResult
           connection={result}
-          title={result.kind === 'issued' ? `${capabilityLabel} 연결이 준비되었습니다` : `기존 서비스에 ${capabilityLabel}를 추가했습니다`}
+          // 조사가 이름의 받침에 따라 갈리지 않는 문장으로 쓴다("메트릭를"이 됐었다).
+          title={result.kind === 'issued' ? `${capabilityLabel} 연결이 준비되었습니다` : `기존 ${noun}에 ${capabilityLabel} 연결을 추가했습니다`}
           doneLabel={`${capabilityLabel} 보기`}
           onDone={done}
         />
@@ -148,13 +152,13 @@ export function DirectTelemetrySetupDialog({
           )}
           {/* Offered only when some service can take this signal on. */}
           {existingServices.length > 0 && (
-            <SegmentedControl options={modeOptions} value={mode} onChange={setMode} size="md" ariaLabel="서비스 선택 방식" />
+            <SegmentedControl options={modeOptions} value={mode} onChange={setMode} size="md" ariaLabel={`${noun} 선택 방식`} />
           )}
 
           {mode === 'new' ? (
             <>
               <div className="space-y-1.5">
-                <label className="block type-label text-text-secondary" htmlFor={`direct-${signal}-service-name`}>서비스 이름</label>
+                <label className="block type-label text-text-secondary" htmlFor={`direct-${signal}-service-name`}>{noun} 이름</label>
                 <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" aria-describedby={`direct-${signal}-name-hint`} required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="예: orders-api" />
                 <p id={`direct-${signal}-name-hint`} className="type-body text-text-muted">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</p>
               </div>
@@ -168,9 +172,9 @@ export function DirectTelemetrySetupDialog({
             </>
           ) : (
             <label className="block space-y-1.5" htmlFor={`direct-${signal}-existing-service`}>
-              <span className="type-label text-text-secondary">서비스</span>
+              <span className="type-label text-text-secondary">{noun}</span>
               <Select id={`direct-${signal}-existing-service`} required value={existingId} onChange={event => setExistingId(event.target.value)}>
-                <option value="">서비스 선택</option>
+                <option value="">{noun} 선택</option>
                 {existingServices.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}
               </Select>
               <span className="block type-body text-text-muted">{`기존 연결 키에 ${capabilityLabel} 권한을 추가합니다.`}</span>

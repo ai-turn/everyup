@@ -27,7 +27,8 @@ export function UptimeLatestCheck({ monitor, metrics, incidents, incidentsError 
     <>
       {active && (
         <Tooltip content={`${formatIncidentTime(active.startedAt)} 시작`} focusable>
-          <span className="tabular-nums text-status-error">장애 {formatDuration(active.durationSec)}째</span>
+          {/* 바로 앞의 상태가 이미 "장애"라고 말한다 */}
+          <span className="tabular-nums text-status-error">{formatDuration(active.durationSec)}째</span>
         </Tooltip>
       )}
       {latest && (

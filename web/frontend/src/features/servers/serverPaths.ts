@@ -13,6 +13,11 @@ export const SERVER_CAPABILITIES: readonly { key: ServerCapability; label: strin
   { key: 'metrics', label: '메트릭' },
 ];
 
+/** 연결 안내의 주 버튼과 탭 줄의 추가 버튼이 같이 쓰는 문구(DESIGN.md §4.1 액션 앵커). */
+export const CONNECT_LABEL: Record<ServerCapability, string> = {
+  uptime: '모니터 추가', infrastructure: '인프라 연결', logs: '로그 연결', api: 'API 연결', metrics: '메트릭 연결',
+};
+
 // 삭제 뒤 목록으로 돌아갈 때 사용자가 마지막으로 보던 검색어와 필터를 되살린다. 새로고침하면 사라진다.
 let serversSearch = '';
 export function rememberServersSearch(search: string) { serversSearch = search; }

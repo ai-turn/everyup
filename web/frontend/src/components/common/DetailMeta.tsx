@@ -17,9 +17,11 @@ interface DetailMetaProps {
   collapseOnMobile?: boolean;
   /** 접힌 속성 목록의 이름 — 대상이 서비스가 아니면(인프라 서버 등) 바꾼다 */
   collapseLabel?: string;
+  /** 모든 폭에서 접는다(서버 탭의 패널). 요약 줄에 속성 이름을 함께 적어 펼치지 않고도 무엇이 있는지 보인다. */
+  collapsed?: boolean;
 }
 
-export function DetailMeta({ status, fields = [], collapseOnMobile = false, collapseLabel = '서비스 정보' }: DetailMetaProps) {
+export function DetailMeta({ status, fields = [], collapseOnMobile = false, collapseLabel = '서비스 정보', collapsed = false }: DetailMetaProps) {
   const narrow = useMediaQuery('(max-width: 639px)');
   const fieldList = fields.length > 0 ? (
     <dl className="grid max-w-4xl sm:grid-cols-2 sm:gap-x-12">
@@ -34,9 +36,12 @@ export function DetailMeta({ status, fields = [], collapseOnMobile = false, coll
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 type-caption text-text-muted">{status}</div>
-      {fieldList && (collapseOnMobile && narrow ? (
+      {fieldList && (collapsed || (collapseOnMobile && narrow) ? (
         <details>
-          <summary className="min-h-11 cursor-pointer content-center type-body text-action">{collapseLabel}</summary>
+          <summary className={`min-h-11 cursor-pointer content-center type-body text-action ${collapsed ? 'sm:min-h-8' : ''}`}>
+            {collapseLabel}
+            {collapsed && <span className="ml-2 type-caption text-text-muted">{fields.map(field => field.label).join(', ')}</span>}
+          </summary>
           {fieldList}
         </details>
       ) : fieldList)}

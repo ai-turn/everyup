@@ -17,10 +17,12 @@ interface DirectProps extends SharedProps {
   observedServiceId: string;
   /** traces를 한 번도 받지 않았다 — 빈 목록 아래 수집 설정 안내를 펼쳐 둔다. */
   awaitingData?: boolean;
+  /** 추이 차트가 대상을 부르는 이름(서버 화면은 앱) */
+  noun?: string;
 }
 type RequestSource = { kind: 'agent'; agentId: string; serviceKey: string; runtime?: string } | { kind: 'direct'; observedServiceId: string };
 
-function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter, window: controlledWindow, awaitingData = false }: SharedProps & { source: RequestSource; awaitingData?: boolean }) {
+function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter, window: controlledWindow, awaitingData = false, noun }: SharedProps & { source: RequestSource; awaitingData?: boolean; noun?: string }) {
   const { search, errorsOnly, page, traceId: queryTraceId, status, method, pathTemplate, update } = useRequestQuery();
   const traceId = traceFilter ?? queryTraceId;
   const [result, setResult] = useState<{ rows: ApiRequest[]; total: number; loading: boolean; error: string | null }>({ rows: [], total: 0, loading: true, error: null });
@@ -62,7 +64,7 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
   const statusFilter = { status, onStatusChange: (value?: StatusClass) => update({ status: value ?? null, page: null }) };
   return <div className="space-y-4">
     {source.kind === 'direct'
-      ? <DirectServiceRequestTrends observedServiceId={source.observedServiceId} refreshKey={refreshKey} range={range} window={window} {...statusFilter} />
+      ? <DirectServiceRequestTrends observedServiceId={source.observedServiceId} refreshKey={refreshKey} range={range} window={window} noun={noun} {...statusFilter} />
       : <AgentServiceRequestTrends agentId={source.agentId} serviceKey={source.serviceKey} refreshKey={refreshKey} range={range} window={window} {...statusFilter} />}
 
     <ApiEndpointTable source={target} window={window} refreshKey={refreshKey}

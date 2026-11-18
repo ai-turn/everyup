@@ -53,6 +53,8 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   // 주어진 앱이 최신이다. 직접 불러온 앱은 조작의 응답으로 바뀐다.
   const service = given ?? fetched;
+  // 서버 화면은 대상을 앱이라 부른다.
+  const scope = standalone ? 'menu' : 'server';
 
   const hasGiven = Boolean(given);
   useEffect(() => {
@@ -74,7 +76,7 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
     setProcessing(true);
     try {
       if (confirmAction === 'delete') {
-        const removal = serviceRemoval(service, signal);
+        const removal = serviceRemoval(service, signal, scope);
         if (removal.kind === 'detach') {
           // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
           await api.updateObservedService(service.id, standalone
@@ -143,9 +145,9 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
     }
   };
 
-  const removal = service ? serviceRemoval(service, signal) : null;
+  const removal = service ? serviceRemoval(service, signal, scope) : null;
   const confirmCopy = {
-    rotate: { title: 'API Key를 재발급할까요?', message: '현재 키는 즉시 폐기됩니다. 이 서비스의 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.', label: '재발급', variant: 'primary' as const },
+    rotate: { title: 'API Key를 재발급할까요?', message: `현재 키는 즉시 폐기됩니다. 이 ${standalone ? '서비스' : '앱'}의 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.`, label: '재발급', variant: 'primary' as const },
     // 키는 앱 단위다. 연결을 중지하면 이 탭의 신호만이 아니라 앱의 모든 신호가 막힌다.
     revoke: { title: '직접 수집 연결을 중지할까요?', message: '이 키를 사용하는 모든 데이터의 수집을 즉시 차단합니다. 저장된 데이터는 유지됩니다.', label: '연결 중지', variant: 'danger' as const },
     delete: { title: removal?.title ?? '', message: removal?.message ?? '', label: removal?.button, variant: 'danger' as const },

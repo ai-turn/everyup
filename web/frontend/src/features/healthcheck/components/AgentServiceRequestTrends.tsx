@@ -34,6 +34,8 @@ interface SharedProps {
   /** 분포 띠의 2xx~5xx를 아래 요청 목록의 필터로 쓴다. 없으면 띠는 읽기 전용. */
   status?: StatusClass;
   onStatusChange?: (status?: StatusClass) => void;
+  /** 대상을 부르는 이름. 서버 화면은 앱이라고 부른다. */
+  noun?: string;
 }
 
 interface AgentProps extends SharedProps {
@@ -74,7 +76,9 @@ function ServiceRequestTrends({
   window: controlledWindow,
   status: statusFilter,
   onStatusChange,
+  noun = '서비스',
 }: SharedProps & { source: RequestTrendSource }) {
+  const title = `${noun} 전체 추이`;
   const [localRange, setLocalRange] = useState<TimeRange>('6h');
   const range = controlledRange ?? localRange;
   const [buckets, setBuckets] = useState<ApiRequestStatBucket[]>([]);
@@ -176,14 +180,14 @@ function ServiceRequestTrends({
   const kbdPoint = kbd.index === null ? undefined : data[kbd.index];
 
   if (loading) {
-    return <ChartCard title="서비스 전체 추이"><ChartSkeleton /></ChartCard>;
+    return <ChartCard title={title}><ChartSkeleton /></ChartCard>;
   }
   if (error) {
-    return <ChartCard title="서비스 전체 추이"><LoadErrorBanner inline title="요청 추이를 불러오지 못했습니다" message={error}
+    return <ChartCard title={title}><LoadErrorBanner inline title="요청 추이를 불러오지 못했습니다" message={error}
       onRetry={() => { setLoading(true); setRetryKey(key => key + 1); }} /></ChartCard>;
   }
   if (truncated) {
-    return <ChartCard title="서비스 전체 추이"><LoadErrorBanner inline role="status" title="조회 범위의 요청이 많아 추이를 표시하지 못했습니다"
+    return <ChartCard title={title}><LoadErrorBanner inline role="status" title="조회 범위의 요청이 많아 추이를 표시하지 못했습니다"
       message="기간을 줄여 다시 확인해 주세요. 일부 요청만으로 전체 기간의 통계를 표시하지 않습니다.">
       {!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}
     </LoadErrorBanner></ChartCard>;
@@ -237,9 +241,9 @@ function ServiceRequestTrends({
   ];
 
   return (
-    <ChartCard title="서비스 전체 추이" right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
+    <ChartCard title={title} right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
 
-      <p className="mb-3 type-body text-text-muted">선택한 기간의 서비스 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
+      <p className="mb-3 type-body text-text-muted">선택한 기간의 {noun} 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
       {summaryError && <div className="mb-3"><LoadErrorBanner inline role="status" title="상태코드 분포를 불러오지 못했습니다" onRetry={() => setRetryKey(key => key + 1)} /></div>}
 
       {/* Status-class distribution + top 5xx endpoint (1a 콘솔 prototype) */}

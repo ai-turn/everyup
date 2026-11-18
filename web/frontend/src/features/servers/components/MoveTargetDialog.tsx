@@ -4,6 +4,7 @@ import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type Project, type Server } from '../../../services/api';
 import { ApiError, getErrorMessage } from '../../../utils/errors';
+import { signalTabList } from '../../telemetry/signals';
 import { NEW_SERVER_PATH } from '../serverPaths';
 
 const KIND_NOUN = { monitor: '업타임 모니터', app: '앱', infrastructure: '인프라 리소스' } as const;
@@ -21,9 +22,11 @@ interface Choices {
 }
 
 /** 대상 하나를 다른 서버로 옮긴다. 인프라 리소스는 서버마다 하나라서 이미 있는 서버를 비활성으로 둔다. */
-export function MoveTargetDialog({ kind, targetName, currentServerId, onClose, onMove }: {
+export function MoveTargetDialog({ kind, targetName, signals = [], currentServerId, onClose, onMove }: {
   kind: 'monitor' | 'app' | 'infrastructure';
   targetName: string;
+  /** 앱의 신호. 둘 이상이면 모든 데이터가 함께 옮겨진다고 알린다. */
+  signals?: string[];
   currentServerId: string;
   onClose: () => void;
   /** 선택한 서버로 옮긴다. 실패하면 던진다 */
@@ -132,11 +135,15 @@ export function MoveTargetDialog({ kind, targetName, currentServerId, onClose, o
         <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
           <div className="min-w-0">
             <h2 id="move-target-title" className="type-card-title text-text-base">다른 서버로 옮기기</h2>
-            <p className="mt-0.5 break-words type-body text-text-muted">{KIND_NOUN[kind]} <strong className="font-medium text-text-base">{targetName}</strong>을 선택한 서버로 옮깁니다.</p>
+            {/* 이름 뒤에 조사를 붙이지 않는다(받침에 따라 을/를이 갈린다). */}
+            <p className="mt-0.5 break-words type-body text-text-muted">옮길 {KIND_NOUN[kind]}: <strong className="font-medium text-text-base">{targetName}</strong></p>
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={moving} />
         </div>
         <div className="space-y-4 p-6">
+          {kind === 'app' && signals.length > 1 && (
+            <p className="type-body text-text-muted">이 앱의 {signalTabList(signals)} 데이터가 함께 옮겨집니다.</p>
+          )}
           {body}
           {error && <p role="alert" className="type-body text-status-error">{error}</p>}
         </div>

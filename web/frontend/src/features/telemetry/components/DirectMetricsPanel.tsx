@@ -23,7 +23,7 @@ export function DirectMetricsPanel({ serviceId, service: given, onRemoved, back,
   service?: ObservedService;
   /** 삭제나 메트릭 연결 해제가 끝난 뒤 */
   onRemoved: () => void;
-  /** 불러오지 못했을 때 돌아갈 곳 */
+  /** 불러오지 못했을 때 돌아갈 곳. 서버 탭에서는 label을 링크 문구 그대로 쓴다. */
   back: { label: string; to: string };
   /** 알림 규칙과 삭제 사이에 놓을 추가 조작(예: 다른 서버로 옮기기) */
   extraActions?: ReactNode;
@@ -49,13 +49,14 @@ export function DirectMetricsPanel({ serviceId, service: given, onRemoved, back,
       <EmptyState icon="error_outline" title="메트릭 앱을 불러오지 못했습니다" description={error ?? undefined} headingLevel={standalone ? 'h3' : 'h2'}>
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={reload}>다시 시도</Button>
-          <ButtonLink variant="secondary" to={back.to}>{back.label}로 돌아가기</ButtonLink>
+          <ButtonLink variant="secondary" to={back.to}>{standalone ? `${back.label}로 돌아가기` : back.label}</ButtonLink>
         </div>
       </EmptyState>
     );
   }
 
   const Heading = standalone ? 'h1' : 'h2';
+  const rangePicker = <TimeRangePicker value={range} onChange={(value) => update({ range: value })} />;
   // 서버 탭에서는 앱 선택의 상태와 같은 판정(appState)을 쓴다. 옛 상세는 메트릭 수신 기준이다.
   const health = standalone && metricHealth.health ? metricHealthCollection(metricHealth.health, service.isActive) : null;
   const status = standalone ? { collection: health?.collection, lastSeenAt: health ? health.receivedAt ?? null : service.lastSeenAt } : {};
@@ -79,11 +80,16 @@ export function DirectMetricsPanel({ serviceId, service: given, onRemoved, back,
         detail={{ label: '수집 데이터', value: signalList(service.signals) }}
         collapseOnMobile
         collapseLabel={standalone ? '서비스 정보' : '연결 정보'}
+        // 서버 탭: 연결 정보는 확인하는 값이라 접고, 기간 선택은 상태 줄 오른쪽 끝에 둔다. 새로고침은 서버 머리말 하나다.
+        collapsed={!standalone}
+        statusAside={standalone ? undefined : rangePicker}
       />
-      <div className="flex flex-wrap items-center gap-2">
-        <TimeRangePicker value={range} onChange={(value) => update({ range: value })} />
-        {standalone && <Button collapseLabel variant="secondary" onClick={() => setRefreshKey((value) => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>}
-      </div>
+      {standalone && (
+        <div className="flex flex-wrap items-center gap-2">
+          {rangePicker}
+          <Button collapseLabel variant="secondary" onClick={() => setRefreshKey((value) => value + 1)}><MaterialIcon name="refresh" />새로고침</Button>
+        </div>
+      )}
       <DirectServiceMetricsTab
         observedServiceId={service.id}
         state={metricHealth}

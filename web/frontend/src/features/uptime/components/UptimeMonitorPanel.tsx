@@ -134,9 +134,9 @@ function certStat(iso: string): UptimeOverviewStat {
   return { label: '인증서 만료', value: days < 0 ? '만료됨' : `D-${days}`, tone: days < 0 ? 'error' : days <= CERT_WARN_DAYS ? 'warn' : undefined };
 }
 
-function metaFields(monitor: UptimeMonitor, target: string) {
+function metaFields(monitor: UptimeMonitor, target: string, withTarget: boolean) {
   return [
-    { label: monitor.type === 'tcp' ? 'Host' : 'URL', value: <span className="truncate font-mono">{target}</span> },
+    ...(withTarget ? [{ label: monitor.type === 'tcp' ? 'Host' : 'URL', value: <span className="truncate font-mono">{target}</span> }] : []),
     { label: 'Protocol', value: monitor.type.toUpperCase() },
     { label: 'Interval', value: `${monitor.interval}초` },
     ...(monitor.type === 'http' ? [{ label: '기대 상태 코드', value: <span className="tabular-nums">{monitor.expectedStatus}</span> }] : []),
@@ -159,12 +159,14 @@ function MonitorCrumb({ name }: { name: string }) {
 }
 
 /** 업타임 모니터 하나의 상세 본문. 모니터 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, onChanged, refreshToken, standalone = false }: {
+export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extraActions, onChanged, refreshToken, standalone = false }: {
   monitorId: string;
   /** 삭제가 끝난 뒤 */
   onDeleted: () => void;
-  /** 찾지 못했을 때와 모바일 복귀 링크의 목적지. 돌아갈 목록이 없으면(대상이 하나뿐인 탭) showBack을 false로 준다. */
-  back: { label: string; to: string; showBack?: boolean };
+  /** 찾지 못했을 때 돌아갈 곳. 옛 화면에서는 모바일 복귀 링크의 목적지이기도 하다. 서버 탭에서는 label을 링크 문구 그대로 쓴다. */
+  back: { label: string; to: string };
+  /** 서버 탭: 패널 제목 위에 모든 폭에서 보이는 목록 복귀 링크. 돌아갈 목록이 없으면(모니터가 하나뿐) 주지 않는다. */
+  listLink?: ReactNode;
   /** 알림 규칙, 수정, 삭제 옆에 놓을 추가 조작(예: 다른 서버로 옮기기) */
   extraActions?: ReactNode;
   /** 일시정지나 수정으로 모니터가 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
@@ -177,7 +179,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
   const location = useLocation();
   // 그룹에서 열었으면 모바일 돌아가기는 레이아웃의 GroupBackLink가 맡는다. 지금 화면으로 가는 링크는 두지 않는다.
   const trail = useGroupTrail();
-  const showBack = back.showBack !== false && !trail && back.to !== location.pathname;
+  const showBack = standalone && !trail && back.to !== location.pathname;
 
   const { monitor, metrics, summary, history, incidents, failures, loading, refreshing, errors, notFound, updatedAt, load } = useUptimeMonitorDetail(monitorId);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -249,7 +251,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
         <MaterialIcon size={32} name="error_outline" className="text-status-error" />
         <div><p className="font-medium text-text-base">{notFound ? '업타임 모니터를 찾을 수 없습니다' : '업타임 모니터를 불러오지 못했습니다'}</p>{errors.monitor && <p className="mt-1 type-body text-text-muted">{errors.monitor}</p>}</div>
         <Button variant="secondary" loading={refreshing} onClick={() => void load()}>다시 시도</Button>
-        <ButtonLink variant="secondary" to={back.to}>{back.label}으로 돌아가기</ButtonLink>
+        <ButtonLink variant="secondary" to={back.to}>{standalone ? `${back.label}으로 돌아가기` : back.label}</ButtonLink>
       </div>
     );
   }
@@ -258,6 +260,11 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
   const failedSources = [errors.monitor && '모니터', errors.metrics && '최근 체크', errors.summary && '30일 요약', errors.history && '90일 이력', (errors.incidents || errors.failures) && '장애 이력'].filter(Boolean);
   const actionsDisabled = processing || refreshing || Boolean(errors.monitor);
   const Heading = standalone ? 'h1' : 'h2';
+  // 서버 상세에서는 머리말의 새로고침 하나가 패널까지 갱신한다(refreshToken).
+  const refreshControls = (
+    <UptimeRefreshControls updatedAt={updatedAt} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={(enabled) => { setAutoRefresh(enabled); if (enabled) refresh(); }}
+      onRefresh={standalone ? refresh : undefined} disabled={processing} />
+  );
   // 패널 안의 절 제목은 패널 제목 한 단계 아래다.
   const Section = standalone ? 'h2' : 'h3';
 
@@ -268,15 +275,20 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
       {showBack && <Link to={back.to} className="inline-flex min-h-11 items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />{back.label}
       </Link>}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <Heading className={`min-w-0 wrap-anywhere text-text-base ${standalone ? 'type-page-title' : 'type-section-title'}`}>{monitor.name}</Heading>
-        {/* 이동, 편집, 파괴 순서. 수정과 삭제는 붙어 있는 짝이다(DESIGN.md §4.1). */}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: monitor.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-          {extraActions}
-          <Button collapseLabel variant="secondary" disabled={actionsDisabled} onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-          <Button collapseLabel variant="destructive" disabled={actionsDisabled} onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+      {listLink}
+      <div>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <Heading className={`min-w-0 wrap-anywhere text-text-base ${standalone ? 'type-page-title' : 'type-section-title'}`}>{monitor.name}</Heading>
+          {/* 이동, 편집, 파괴 순서. 수정과 삭제는 붙어 있는 짝이다(DESIGN.md §4.1). */}
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: monitor.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
+            {extraActions}
+            <Button collapseLabel variant="secondary" disabled={actionsDisabled} onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
+            <Button collapseLabel variant="destructive" disabled={actionsDisabled} onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+          </div>
         </div>
+        {/* 서버 탭: 확인 대상만 제목 아래에 두고 나머지 속성은 접는다. */}
+        {!standalone && <Tooltip content={target}><p className="mt-1 truncate font-mono text-sm text-text-secondary">{target}</p></Tooltip>}
       </div>
       <DetailMeta
         status={<>
@@ -284,13 +296,13 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
           <UptimeLatestCheck monitor={monitor} metrics={metrics} incidents={incidents}
             incidentsError={errors.monitor ? '모니터 상태를 갱신한 뒤 다시 확인하세요.' : errors.incidents} />
           <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />
+          {/* 서버 탭에서는 갱신 시각과 자동 갱신이 상태 줄 오른쪽 끝이다(다른 패널의 기간 선택 자리). */}
+          {!standalone && <div className="ml-auto">{refreshControls}</div>}
         </>}
-        fields={metaFields(monitor, target)}
-        collapseOnMobile collapseLabel="모니터 정보"
+        fields={metaFields(monitor, target, standalone)}
+        collapseOnMobile collapseLabel="모니터 정보" collapsed={!standalone}
       />
-      {/* 서버 상세에서는 머리말의 새로고침 하나가 패널까지 갱신한다(refreshToken). */}
-      <UptimeRefreshControls updatedAt={updatedAt} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={(enabled) => { setAutoRefresh(enabled); if (enabled) refresh(); }}
-        onRefresh={standalone ? refresh : undefined} disabled={processing} />
+      {standalone && refreshControls}
 
       {failedSources.length > 0 && (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border-soft bg-bg-surface px-4 py-3 text-sm text-text-secondary">

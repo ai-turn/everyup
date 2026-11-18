@@ -29,7 +29,7 @@ function ServiceListSkeleton() {
 }
 
 /** 업타임 모니터 목록의 본문: 검색, 상태 필터, 보기 전환, 카드 보기의 선택과 일괄 작업, 최근 체크. */
-export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderControls, onChanged, monitors: given }: {
+export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderControls, onChanged, monitors: given, searchLabel = '서비스 또는 대상 검색' }: {
   /** 이 목록이 다루는 모니터만 고른다 */
   filter: (monitor: UptimeMonitor) => boolean;
   hrefFor: (monitor: UptimeMonitor) => string;
@@ -44,6 +44,8 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
    * 변경한 뒤에는 onChanged로 부모가 다시 불러온다.
    */
   monitors?: UptimeMonitor[];
+  /** 검색창의 안내 문구이자 접근 가능한 이름. 서버 탭은 "모니터 검색"이다. */
+  searchLabel?: string;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
@@ -151,7 +153,7 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
 
       {/* 상태 요약은 필터라 검색 옆에 둔다(DESIGN.md §4.5 규칙 2). 따로 한 줄이면 두 줄 모두 오른쪽 60%가 비었다. */}
       <ListToolbar search={
-        <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filteredMonitors.length} shortcut placeholder="서비스 또는 대상 검색" aria-label="서비스 또는 대상 검색" />
+        <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filteredMonitors.length} shortcut placeholder={searchLabel} aria-label={searchLabel} />
       }>
         {!loading && !error && hasTargets && (
           <section aria-label="업타임 상태 요약">

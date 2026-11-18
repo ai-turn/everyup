@@ -145,7 +145,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
 
 const PATTERN_PREVIEW = 5;
 
-export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스', titleHidden = false, viewToggle, onRetryPatterns }: {
+export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스', noun = '서비스', titleHidden = false, viewToggle, onRetryPatterns }: {
   rows: LogServiceRow[];
   /** null이면 패턴만 불러오지 못한 상태 — 서비스 목록은 그대로 그린다. */
   patterns: LogPatternRow[] | null;
@@ -153,6 +153,8 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
   view: 'card' | 'grid';
   returnTo: string;
   title?: string;
+  /** 행이 가리키는 대상의 이름(개수 문구, 이름 열). 서버 화면은 앱이라고 부른다. */
+  noun?: string;
   /** 로그 메뉴 첫 화면: 메뉴 이름을 되풀이하므로 제목을 스크린리더에만 둔다 */
   titleHidden?: boolean;
   /** 보기 전환 — 제목이 보일 때(그룹 상세) 제목 줄 오른쪽에 둔다. 로그 메뉴는 헤더에 둔다. */
@@ -171,13 +173,13 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
         {titleHidden ? <h2 className="sr-only">{title}</h2> : <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="type-section-title text-text-base">{title}</h2>
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <span className="text-xs text-text-dim">{`최근 24시간 · 서비스 ${rows.length}개`}</span>
+            <span className="text-xs text-text-dim">{`최근 24시간 · ${noun} ${rows.length}개`}</span>
             {viewToggle}
           </div>
         </div>}
         {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{statusRows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
           <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
-            { key: 'name', label: '서비스', render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs xl:hidden"><LatestLine wrap summary={row.summary} known={row.collection === 'collecting'} /></div></> },
+            { key: 'name', label: noun, render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs xl:hidden"><LatestLine wrap summary={row.summary} known={row.collection === 'collecting'} /></div></> },
             { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => <LogStatus row={row} /> },
             ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: StatusRow) => row.collection === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><span className="text-text-muted">-</span></Tooltip> })),
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },

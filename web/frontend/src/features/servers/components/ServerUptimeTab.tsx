@@ -7,19 +7,20 @@ import { UptimeMonitorList } from '../../uptime/components/UptimeMonitorList';
 import { UptimeMonitorPanel } from '../../uptime/components/UptimeMonitorPanel';
 import { monitorInput } from '../../uptime/monitorInput';
 import { api, type UptimeMonitorInput } from '../../../services/api';
-import { serverPath } from '../serverPaths';
+import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
-import { ConnectPrompt } from './ConnectPrompt';
+import { ConnectPrompt, TabAction } from './ConnectPrompt';
+import { useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
+import { TabBackLink } from './TabBackLink';
 
 /** 업타임 탭: 모니터가 없으면 연결 안내, 하나면 그 상세, 여럿이면 목록. 주소에 모니터가 있으면 그 상세. */
-export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken }: ServerCapabilityTabProps) {
+export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
-  // ID만 둔다. 옮길 때 최신 행에서 찾아야 그 사이의 일시정지나 수정을 되돌리지 않는다.
-  const [movingId, setMovingId] = useState<string | null>(null);
   const serverId = row.server.id;
   const monitors = row.targets.monitors;
+  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => monitors.find((monitor) => monitor.id === id));
   const firstScreen = serverPath(serverId, 'uptime');
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
@@ -38,8 +39,9 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     const monitor = monitors.find((candidate) => candidate.id === id);
     if (!monitor) throw new Error('이 모니터가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     await api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { serverId: to }));
+    markMoved();
     await onChanged();
-    setMovingId(null);
+    closeMove();
     toast.success('업타임 모니터를 옮겼습니다');
     show(serverPath(to, 'uptime', monitor.id));
   };
@@ -49,9 +51,11 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     show(firstScreen);
   };
 
-  const moving = movingId ? monitors.find((monitor) => monitor.id === movingId) : undefined;
   const current = targetId ? monitors.find((monitor) => monitor.id === targetId) : monitors.length === 1 ? monitors[0] : undefined;
-  const addButton = <Button variant="secondary" onClick={() => setAdding(true)}><MaterialIcon name="add" />모니터 추가</Button>;
+  const label = CONNECT_LABEL.uptime;
+  const addButton = <Button variant="secondary" onClick={() => setAdding(true)}><MaterialIcon name="add" />{label}</Button>;
+  // 모니터가 둘 이상이면 상세에서 목록으로 돌아가는 길을 둔다. 하나면 그 상세가 탭의 첫 화면이다.
+  const several = monitors.length > 1;
 
   const content = () => {
     if (unknown) return <LoadErrorBanner inline title="업타임 모니터 정보를 불러오지 못했습니다" onRetry={onRetry} />;
@@ -60,42 +64,45 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
       if (stale) return <LoadErrorBanner inline title="이 모니터의 정보를 불러오지 못했습니다" onRetry={onRetry} />;
       return (
         <EmptyState icon="search_off" title="이 서버의 모니터가 아닙니다" description="다른 서버로 옮겨졌거나 삭제되었습니다." headingLevel="h2">
-          <ButtonLink variant="secondary" to={firstScreen}>이 서버의 모니터 보기</ButtonLink>
+          <ButtonLink variant="secondary" to={firstScreen}>업타임 탭으로</ButtonLink>
         </EmptyState>
       );
     }
     if (monitors.length === 0) {
       return (
         <ConnectPrompt title="이 서버의 업타임 모니터를 추가하세요" description="확인할 URL이나 호스트와 포트만 입력하면 됩니다. 서버에 설치할 것은 없습니다.">
-          <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />업타임 모니터 추가</Button>
+          <Button onClick={() => setAdding(true)}><MaterialIcon name="add" />{label}</Button>
         </ConnectPrompt>
       );
     }
     if (current) {
       return (
-        <div className="space-y-5">
-          {!targetId && <div className="flex justify-end">{addButton}</div>}
-          <UptimeMonitorPanel key={current.id} monitorId={current.id} back={{ label: '목록', to: firstScreen, showBack: monitors.length > 1 }}
-            onDeleted={() => void removed()} onChanged={onChanged} refreshToken={refreshToken}
-            extraActions={<Button collapseLabel variant="secondary" onClick={() => setMovingId(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
-        </div>
+        <UptimeMonitorPanel key={current.id} monitorId={current.id}
+          back={several ? { label: '업타임 탭으로', to: firstScreen } : { label: '서버 개요', to: serverPath(serverId) }}
+          listLink={several && <TabBackLink label="모니터 목록" to={firstScreen} />}
+          onDeleted={() => void removed()} onChanged={onChanged} refreshToken={refreshToken}
+          extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       );
     }
-    // 목록은 서버 상세가 불러온 모니터를 쓴다. 갱신의 주체는 서버 상세 하나다.
+    // 목록은 서버 상세가 불러온 모니터를 쓴다. 갱신의 주체는 서버 상세 하나다. 보기 전환은 탭 줄의 조작 자리에서 추가 버튼 앞이다.
     return (
-      <UptimeMonitorList monitors={monitors} filter={(monitor) => monitor.serverId === serverId}
+      <UptimeMonitorList monitors={monitors} filter={(monitor) => monitor.serverId === serverId} searchLabel="모니터 검색"
         hrefFor={(monitor) => serverPath(serverId, 'uptime', monitor.id)} createDefaults={{ serverId }} onChanged={onChanged}
-        renderControls={({ viewToggle }) => <div className="mb-4 flex flex-wrap items-center justify-end gap-2">{viewToggle}{addButton}</div>} />
+        renderControls={({ viewToggle }) => <TabAction slot={actionSlot}>{viewToggle}{addButton}</TabAction>} />
     );
   };
+
+  // 목록은 보기 전환과 함께 자기 조작을 그린다.
+  const listShown = !unknown && !targetId && several;
 
   // 대화 상자는 본문이 바뀌어도 같은 자리에 둔다. 자리가 바뀌면 다시 마운트되어 열린 채로 처음부터 다시 그려진다.
   return (
     <>
       {content()}
+      {!unknown && monitors.length > 0 && !listShown && <TabAction slot={actionSlot}>{addButton}</TabAction>}
       {adding && <UptimeMonitorDialog monitor={null} onClose={() => setAdding(false)} onSave={create} />}
       {moving && <MoveTargetDialog kind="monitor" targetName={moving.name} currentServerId={serverId}
-        onClose={() => setMovingId(null)} onMove={(to) => move(moving.id, to)} />}
+        onClose={closeMove} onMove={(to) => move(moving.id, to)} />}
     </>
   );
 }

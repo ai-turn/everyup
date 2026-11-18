@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, ButtonLink, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, type GlobalTimeRange } from '../../../components/common';
+import { useSearchParams } from 'react-router-dom';
+import { Button, ButtonLink, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
 import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useInfraMetrics } from '../../../hooks/useInfra';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { InfrastructureCollectorKeyDialog } from '../../infrastructure/components/InfrastructureCollectorKeyDialog';
+import { infrastructureState, STATE_LABEL } from '../../servers/serverStatus';
 import { DirectConnectionMeta } from '../../telemetry/components/DirectConnectionMeta';
 import { infraCollection } from '../usage';
 import { InfraTrends } from './InfraTrends';
@@ -25,13 +27,15 @@ function ResourceCrumb({ name }: { name: string }) {
 }
 
 /** 인프라 리소스 하나의 상세 본문. 리소스 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function InfrastructurePanel({ resourceId, resource: given, onDeleted, back, extraActions, hideGroup = false, onChanged, standalone = false, refreshToken = 0 }: {
+export function InfrastructurePanel({ resourceId, resource: given, serverName, onDeleted, back, extraActions, hideGroup = false, onChanged, standalone = false, refreshToken = 0 }: {
   resourceId: string;
   /** 서버 상세가 이미 불러온 리소스. 주면 따로 불러오지 않는다(갱신의 주체는 서버 상세 하나다). */
   resource?: InfrastructureResource;
+  /** 서버 탭: 리소스 이름이 이와 같으면 다시 적지 않는다(서버 이름이 이미 h1이다). */
+  serverName?: string;
   /** 삭제가 끝난 뒤 */
   onDeleted: () => void;
-  /** 불러오지 못했을 때 돌아갈 곳 */
+  /** 불러오지 못했을 때 돌아갈 곳. 서버 탭에서는 label을 링크 문구 그대로 쓴다. */
   back: { label: string; to: string };
   /** 알림 규칙과 삭제 사이에 놓을 추가 조작(예: 다른 서버로 옮기기) */
   extraActions?: ReactNode;
@@ -48,7 +52,14 @@ export function InfrastructurePanel({ resourceId, resource: given, onDeleted, ba
   const resource = given ?? fetched;
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState('');
-  const [range, setRange] = useState<GlobalTimeRange>('6h');
+  // 서버 탭은 기간을 주소(range)에 둔다(설계 6.7). 옛 상세는 화면 상태다.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [localRange, setLocalRange] = useState<GlobalTimeRange>('6h');
+  const range = standalone ? localRange : parseTimeRange(searchParams.get('range')) ?? '6h';
+  const setRange = (value: GlobalTimeRange) => {
+    if (standalone) setLocalRange(value);
+    else setSearchParams((current) => { const next = new URLSearchParams(current); next.set('range', value); return next; });
+  };
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(!given);
   const [error, setError] = useState<string | null>(null);
@@ -118,9 +129,11 @@ export function InfrastructurePanel({ resourceId, resource: given, onDeleted, ba
         setFetched(updated);
         toast.success('Collector 연결을 중지했습니다.');
       }
-      setConfirmAction(null);
+      // 다시 불러온 결과가 반영된 뒤에 닫는다. 먼저 닫으면 그동안 옛 상태와 누를 수 있는 버튼이 보였다.
       await onChanged?.();
-      if (alive.current) setProcessing(false);
+      if (!alive.current) return;
+      setConfirmAction(null);
+      setProcessing(false);
     } catch (requestError) {
       toast.error(getErrorMessage(requestError));
       // 삭제에 성공하면 화면이 바뀔 때까지 풀지 않으므로 finally가 아니라 실패에서만 푼다.
@@ -135,7 +148,7 @@ export function InfrastructurePanel({ resourceId, resource: given, onDeleted, ba
       <EmptyState icon="error_outline" title="인프라 리소스를 불러오지 못했습니다" description={error ?? undefined} headingLevel={standalone ? 'h3' : 'h2'}>
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={() => setLoadKey((key) => key + 1)}>다시 시도</Button>
-          <ButtonLink variant="secondary" to={back.to}>{back.label}로 돌아가기</ButtonLink>
+          <ButtonLink variant="secondary" to={back.to}>{standalone ? `${back.label}로 돌아가기` : back.label}</ButtonLink>
         </div>
       </EmptyState>
     );
@@ -143,23 +156,42 @@ export function InfrastructurePanel({ resourceId, resource: given, onDeleted, ba
 
   const selectedConfirm = confirmAction ? CONFIRM_COPY[confirmAction] : null;
   const Heading = standalone ? 'h1' : 'h2';
+  // 이동, 편집, 파괴 순서(DESIGN.md §4.1)
+  const actions = <>
+    <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'infrastructure', resourceId: resource.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
+    {extraActions}
+    <Button collapseLabel variant="destructive" disabled={processing} onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+  </>;
+  const rangePicker = <TimeRangePicker value={range} onChange={setRange} />;
+  // 서버 탭: 탭의 상태 점과 같은 판정(infrastructureState)과 그 원인을 보인다. 수집 여부는 마지막 수집이 말한다.
+  const state = infrastructureState(resource);
+  const serverStatus = standalone ? undefined : {
+    collection: { tone: state.state, label: STATE_LABEL[state.state] },
+    statusDetail: <>
+      {state.state !== 'healthy' && <span>{state.threshold === undefined ? state.detail : `${state.detail}, 기준 ${state.threshold}%`}</span>}
+      {resource.name !== serverName && <span className="text-text-dim">{resource.name}</span>}
+    </>,
+    statusAside: <>{rangePicker}{actions}</>,
+  };
 
   return (
     <div className="space-y-5">
       {standalone && <ResourceCrumb name={resource.name} />}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <Heading className={`min-w-0 wrap-anywhere text-text-base ${standalone ? 'type-page-title' : 'type-section-title'}`}>{resource.name}</Heading>
-        {/* 이동, 편집, 파괴 순서(DESIGN.md §4.1) */}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'infrastructure', resourceId: resource.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-          {extraActions}
-          <Button collapseLabel variant="destructive" disabled={processing} onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+      {standalone ? (
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <Heading className="min-w-0 wrap-anywhere text-text-base type-page-title">{resource.name}</Heading>
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div>
         </div>
-      </div>
+      ) : (
+        // 리소스는 서버마다 하나이고 이름이 서버 이름과 같은 경우가 많다. 제목은 스크린리더에만 두고 조작은 상태 줄 오른쪽이다.
+        <Heading className="sr-only">인프라</Heading>
+      )}
       {/* 연결 중지는 DirectConnectionMeta가 상태 바로 옆에 둔다. */}
       <DirectConnectionMeta
         isActive={resource.isActive}
         collection={infraCollection(resource)}
+        {...serverStatus}
+        collapsed={!standalone}
         collapseOnMobile
         // 서버 화면 안에서 "서버 정보"는 서버 자체의 정보로 읽힌다.
         collapseLabel={standalone ? '서버 정보' : '연결 정보'}
@@ -174,10 +206,12 @@ export function InfrastructurePanel({ resourceId, resource: given, onDeleted, ba
         })}
       />
       {/* 서버 상세에서는 머리말의 새로고침 하나가 패널까지 갱신한다(refreshToken). */}
-      <div className="flex flex-wrap items-center gap-2">
-        <TimeRangePicker value={range} onChange={setRange} />
-        {standalone && <Button collapseLabel variant="secondary" onClick={refresh}><MaterialIcon name="refresh" />새로고침</Button>}
-      </div>
+      {standalone && (
+        <div className="flex flex-wrap items-center gap-2">
+          {rangePicker}
+          <Button collapseLabel variant="secondary" onClick={refresh}><MaterialIcon name="refresh" />새로고침</Button>
+        </div>
+      )}
 
       {/* 현재 값·위험 표시는 차트 머리에 있다. 같은 지표를 게이지 줄로 한 번 더 그리지 않는다. */}
       <InfraTrends
@@ -187,6 +221,7 @@ export function InfrastructurePanel({ resourceId, resource: given, onDeleted, ba
         range={range}
         error={metricsError}
         onRetry={refresh}
+        showHeading={standalone}
         empty={resource.lastSeenAt ? undefined : (
           <EmptyState
             icon="schedule"

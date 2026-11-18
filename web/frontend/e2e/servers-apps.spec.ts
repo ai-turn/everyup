@@ -20,7 +20,8 @@ test('a server with one trace app shows that app\'s requests without a selector'
   // 로그만 보내는 checkout-api는 API 요청 탭의 대상이 아니다.
   await expect(panel(page)).not.toContainText('checkout-api');
   await expect(panel(page).getByText('수집 중', { exact: true })).toBeVisible();
-  await expect(panel(page).getByRole('button', { name: '앱 연결 추가' })).toBeVisible();
+  // 추가 버튼은 탭 줄 오른쪽의 조작 자리에 있다.
+  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('button', { name: 'API 연결' })).toBeVisible();
   await expect(panel(page).getByRole('button', { name: '다른 서버로 옮기기' })).toBeVisible();
   // 서버 화면의 그룹은 서버가 정한다. 머리말이 유일한 h1이고 새로고침도 머리말에만 있다.
   await expect(page.getByRole('combobox', { name: '그룹 배정' })).toHaveCount(0);
@@ -80,7 +81,7 @@ test('the requests and traces switch is its own tab row inside the API tab', asy
 test('a server without metrics apps asks to connect them', async ({ page }) => {
   await page.goto(`./servers/${EMPTY}/metrics`);
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 메트릭을 연결하세요' })).toBeVisible();
-  await expect(panel(page).getByText('앱이 OTLP로 보내는 메트릭을 확인합니다.')).toBeVisible();
+  await expect(panel(page).getByText(/^앱이 OpenTelemetry로 보내는 메트릭을 차트로 확인합니다\./)).toBeVisible();
   await expect(panel(page).getByRole('button', { name: '메트릭 연결' })).toBeVisible();
   await page.goto(`./servers/${EMPTY}/api`);
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 API 요청을 연결하세요' })).toBeVisible();
@@ -88,11 +89,11 @@ test('a server without metrics apps asks to connect them', async ({ page }) => {
 
 test('connecting API requests to an empty server keeps the key guidance and lands on the new app', async ({ page }) => {
   await page.goto(`./servers/${EMPTY}/api`);
-  await panel(page).getByRole('button', { name: 'API 요청 연결' }).click();
+  await panel(page).getByRole('button', { name: 'API 연결' }).click();
   const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });
   await expect(dialog.getByText('연결 정보를 확인하고 있습니다…')).toHaveCount(0);
   await expect(dialog.getByRole('combobox', { name: '그룹' })).toHaveCount(0);
-  await dialog.getByLabel('서비스 이름').fill('staging-api');
+  await dialog.getByLabel('앱 이름').fill('staging-api');
   await dialog.getByRole('button', { name: '추가' }).click();
   await expect(dialog.getByRole('button', { name: 'API Key 복사' })).toBeVisible();
   // 서버 데이터를 다시 불러와 탭의 본문이 바뀌어도 키 안내는 남는다.
@@ -124,9 +125,9 @@ test('moving a metrics app goes to its new server', async ({ page }) => {
 
 test('detaching metrics from an app with logs returns to the first screen without it and keeps the group', async ({ page }) => {
   await page.goto(`./servers/${BATCH}/metrics/observed_mock_notifications`);
-  // 서버 머리말의 그룹 칸. 수정 요청에서 serverId가 빠지면 백엔드(와 mock)가 서버의 그룹을 해제한다.
-  const serverGroup = page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).locator('dd');
-  await expect(serverGroup).toHaveText('Backoffice');
+  // 서버 머리말 상태 줄의 그룹. 수정 요청에서 serverId가 빠지면 백엔드(와 mock)가 서버의 그룹을 해제한다.
+  const serverGroup = page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByText(/^그룹 /);
+  await expect(serverGroup).toHaveText('그룹 Backoffice');
   await panel(page).getByRole('button', { name: '메트릭 연결 해제' }).click();
   await page.getByRole('dialog', { name: '메트릭 연결을 해제할까요?' }).getByRole('button', { name: '메트릭 연결 해제' }).click();
   // 남은 앱이 하나라 선택 컨트롤 없이 그 앱을 보여 준다.
@@ -134,7 +135,7 @@ test('detaching metrics from an app with logs returns to the first screen withou
   await expect(panel(page).getByRole('heading', { level: 2, name: 'billing-worker' })).toBeVisible();
   await expect(metricApps(page)).toHaveCount(0);
   await expect(panel(page)).toBeFocused();
-  await expect(serverGroup).toHaveText('Backoffice');
+  await expect(serverGroup).toHaveText('그룹 Backoffice');
 });
 
 test('the app selector fits 320px without horizontal scroll', async ({ page }) => {

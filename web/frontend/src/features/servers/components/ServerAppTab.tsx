@@ -6,34 +6,34 @@ import { api } from '../../../services/api';
 import { DirectApiPanel } from '../../telemetry/components/DirectApiPanel';
 import { DirectMetricsPanel } from '../../telemetry/components/DirectMetricsPanel';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
-import { serverPath } from '../serverPaths';
+import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import { appState, capabilityStateLabel, capabilityTargets, worst, type ServerCapabilityTabProps } from '../serverStatus';
 import { AppSelector } from './AppSelector';
-import { ConnectPrompt } from './ConnectPrompt';
+import { ConnectPrompt, TabAction } from './ConnectPrompt';
+import { useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
 const COPY = {
   api: {
     signal: 'traces', label: 'API 요청', dialogLabel: 'API', Panel: DirectApiPanel,
-    connectTitle: '이 서버의 API 요청을 연결하세요', connectDescription: '앱이 OTLP로 트레이스를 보내면 요청 상태와 오류를 확인할 수 있습니다.',
+    connectTitle: '이 서버의 API 요청을 연결하세요', connectDescription: '앱이 OpenTelemetry로 트레이스를 보내면 요청 상태와 오류를 확인할 수 있습니다. 연결을 누르면 앱 이름을 정하고 키와 설정 예시를 받습니다.',
   },
   metrics: {
     signal: 'metrics', label: '메트릭', dialogLabel: '메트릭', Panel: DirectMetricsPanel,
-    connectTitle: '이 서버의 메트릭을 연결하세요', connectDescription: '앱이 OTLP로 보내는 메트릭을 확인합니다.',
+    connectTitle: '이 서버의 메트릭을 연결하세요', connectDescription: '앱이 OpenTelemetry로 보내는 메트릭을 차트로 확인합니다. 연결을 누르면 앱 이름을 정하고 키와 설정 예시를 받습니다.',
   },
 } as const;
 
 /** API 요청 탭과 메트릭 탭: 앱이 없으면 연결 안내, 하나면 그 앱, 여럿이면 앱 선택과 선택한 앱. 여러 앱을 합친 화면은 없다. */
-export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, capability }: ServerCapabilityTabProps & { capability: 'api' | 'metrics' }) {
+export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot, capability }: ServerCapabilityTabProps & { capability: 'api' | 'metrics' }) {
   const navigate = useNavigate();
   const location = useLocation();
   const copy = COPY[capability];
   const [adding, setAdding] = useState(false);
   // 설정 안내의 "보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
-  // ID만 둔다. 옮길 때 최신 행에서 찾아야 그 사이의 변경을 되돌리지 않는다.
-  const [movingId, setMovingId] = useState<string | null>(null);
   const serverId = row.server.id;
+  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => row.targets.apps.find((app) => app.id === id));
   const ids = new Set(capabilityTargets(row.targets, capability).map((target) => target.id));
   const apps = row.targets.apps.filter((app) => ids.has(app.id))
     .map((app) => ({ app, state: appState(app).state }))
@@ -77,8 +77,9 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
     const app = row.targets.apps.find((candidate) => candidate.id === id);
     if (!app) throw new Error('이 앱이 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     await api.updateObservedService(app.id, { name: app.name, serverId: to, signals: app.signals });
+    markMoved();
     await onChanged();
-    setMovingId(null);
+    closeMove();
     toast.success('앱을 옮겼습니다');
     show(serverPath(to, capability, app.id));
   };
@@ -88,7 +89,7 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
     show(firstScreen);
   };
 
-  const moving = movingId ? row.targets.apps.find((app) => app.id === movingId) : undefined;
+  const label = CONNECT_LABEL[capability];
   const current = targetId ? apps.find((entry) => entry.app.id === targetId)?.app
     : remembered ?? (apps.length === 1 ? apps[0].app : undefined);
   // 렌더링 중에 기억한다(React의 "이전 렌더의 정보 저장" 방식). 옮겨 가는 동안에도 같은 앱이라 패널이 다시 마운트되지 않는다.
@@ -101,14 +102,14 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
       if (stale) return <LoadErrorBanner inline title="이 앱의 정보를 불러오지 못했습니다" onRetry={onRetry} />;
       return (
         <EmptyState icon="search_off" title="이 서버의 앱이 아닙니다" description={`다른 서버로 옮겨졌거나 ${copy.label} 연결이 해제되었습니다.`} headingLevel="h2">
-          <ButtonLink variant="secondary" to={firstScreen}>이 서버의 {copy.label} 보기</ButtonLink>
+          <ButtonLink variant="secondary" to={firstScreen}>{copy.label} 탭으로</ButtonLink>
         </EmptyState>
       );
     }
     if (apps.length === 0) {
       return (
         <ConnectPrompt title={copy.connectTitle} description={copy.connectDescription}>
-          <Button onClick={openSetup}><MaterialIcon name="add" />{copy.label} 연결</Button>
+          <Button onClick={openSetup}><MaterialIcon name="add" />{label}</Button>
         </ConnectPrompt>
       );
     }
@@ -117,18 +118,16 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
     const { Panel } = copy;
     return (
       <div className="space-y-5">
-        <div className="flex flex-wrap items-center gap-3">
-          {apps.length > 1 && (
-            <AppSelector ariaLabel={`${copy.label} 앱`} value={current.id}
-              apps={apps.map(({ app, state }) => ({ id: app.id, name: app.name, state, stateLabel: capabilityStateLabel(capability, state) }))}
-              // 다른 앱의 필터가 넘어가지 않게 쿼리를 버린다.
-              onChange={(id) => navigate(serverPath(serverId, capability, id))} />
-          )}
-          <Button variant="secondary" className="ml-auto" onClick={openSetup}><MaterialIcon name="add" />앱 연결 추가</Button>
-        </div>
+        {/* 앱이 하나면 고를 것이 없으므로 줄째 없다. 추가 버튼은 탭 줄의 조작 자리에 있다. */}
+        {apps.length > 1 && (
+          <AppSelector ariaLabel={`${copy.label} 앱`} value={current.id}
+            apps={apps.map(({ app, state }) => ({ id: app.id, name: app.name, state, stateLabel: capabilityStateLabel(capability, state) }))}
+            // 다른 앱의 필터가 넘어가지 않게 쿼리를 버린다.
+            onChange={(id) => navigate(serverPath(serverId, capability, id))} />
+        )}
         <Panel key={current.id} serviceId={current.id} service={current} back={{ label: '서버 개요', to: serverPath(serverId) }}
           onRemoved={() => void removed()} onChanged={onChanged} refreshToken={refreshToken}
-          extraActions={<Button collapseLabel variant="secondary" onClick={() => setMovingId(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
+          extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       </div>
     );
   };
@@ -137,10 +136,13 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
   return (
     <>
       {content()}
+      {!unknown && apps.length > 0 && (
+        <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
+      )}
       {adding && <DirectTelemetrySetupDialog signal={copy.signal} capabilityLabel={copy.dialogLabel} title={`${copy.label} 연결`} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
         serverId={serverId} onClose={closeSetup} onCreated={(service) => void finishCreate(service.id)} />}
-      {moving && <MoveTargetDialog kind="app" targetName={moving.name} currentServerId={serverId}
-        onClose={() => setMovingId(null)} onMove={(to) => move(moving.id, to)} />}
+      {moving && <MoveTargetDialog kind="app" targetName={moving.name} signals={moving.signals} currentServerId={serverId}
+        onClose={closeMove} onMove={(to) => move(moving.id, to)} />}
     </>
   );
 }

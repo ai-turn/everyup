@@ -5,21 +5,23 @@ import { Button, LoadErrorBanner, MaterialIcon } from '../../../components/commo
 import { api } from '../../../services/api';
 import { InfrastructurePanel } from '../../infra/components/InfrastructurePanel';
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
-import { serverPath } from '../serverPaths';
+import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt } from './ConnectPrompt';
+import { useMoveTarget } from '../useMoveTarget';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
-/** 인프라 탭: 서버마다 리소스가 하나뿐이라 없으면 연결 안내, 있으면 그 상세다. */
+/** 인프라 탭: 서버마다 리소스가 하나뿐이라 없으면 연결 안내, 있으면 그 상세다. 추가할 것이 없어 탭 줄의 조작 자리는 비어 있다. */
 export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, onRetry, refreshToken }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
   // 설정 안내의 "인프라 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
-  // ID만 둔다. 옮길 때 최신 행에서 찾아야 그 사이의 변경을 되돌리지 않는다.
-  const [movingId, setMovingId] = useState<string | null>(null);
+  // 대화 상자가 리소스를 만들었다(키를 발급했다). 만들지 않고 닫으면 다시 불러올 것이 없다.
+  const issued = useRef(false);
   const serverId = row.server.id;
   const resource = row.targets.infrastructure;
+  const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => resource?.id === id ? resource : undefined);
   const firstScreen = serverPath(serverId, 'infrastructure');
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
@@ -29,7 +31,7 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, onR
     if (targetId) navigate(firstScreen, { replace: true });
   }, [targetId, firstScreen, navigate]);
 
-  const openSetup = () => { created.current = false; setAdding(true); };
+  const openSetup = () => { created.current = false; issued.current = false; setAdding(true); };
 
   // 서버 데이터를 다시 불러온 뒤에 대화 상자를 닫는다. 먼저 닫으면 잠시 연결 안내가 다시 보인다.
   const finishCreate = async () => {
@@ -43,8 +45,8 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, onR
   const closeSetup = () => {
     if (created.current) return;
     setAdding(false);
-    // 만든 뒤 닫기(X)로 닫았을 수도 있다.
-    void onChanged();
+    // 만든 뒤 닫기(X)로 닫았으면 새 리소스를 불러온다.
+    if (issued.current) void onChanged();
   };
 
   const move = async (id: string, to: string) => {
@@ -52,8 +54,9 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, onR
     if (latest?.id !== id) throw new Error('이 인프라 리소스가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
     await api.updateInfrastructureResource(latest.id, { name: latest.name, serverId: to });
+    markMoved();
     await onChanged();
-    setMovingId(null);
+    closeMove();
     toast.success('인프라 리소스를 옮겼습니다');
     show(serverPath(to, 'infrastructure'));
   };
@@ -63,21 +66,20 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, onR
     show(firstScreen);
   };
 
-  const moving = movingId && resource?.id === movingId ? resource : undefined;
-
   const content = () => {
     if (unknown) return <LoadErrorBanner inline title="인프라 정보를 불러오지 못했습니다" onRetry={onRetry} />;
     if (!resource) {
       return (
-        <ConnectPrompt title="이 서버의 인프라를 연결하세요" description="CPU, 메모리, 디스크를 수집합니다. 서버에 OpenTelemetry Collector를 설치해야 합니다.">
-          <Button onClick={openSetup}><MaterialIcon name="add" />인프라 연결</Button>
+        <ConnectPrompt title="이 서버의 인프라를 연결하세요"
+          description="CPU, 메모리, 디스크를 수집합니다. 서버에 OpenTelemetry Collector를 설치해야 합니다. 연결을 누르면 API Key와 Collector 설정 파일을 받습니다. 키는 한 번만 표시됩니다.">
+          <Button onClick={openSetup}><MaterialIcon name="add" />{CONNECT_LABEL.infrastructure}</Button>
         </ConnectPrompt>
       );
     }
     return (
-      <InfrastructurePanel key={resource.id} resourceId={resource.id} resource={resource} hideGroup refreshToken={refreshToken}
-        back={{ label: '개요', to: serverPath(serverId) }} onChanged={onChanged} onDeleted={() => void removed()}
-        extraActions={<Button collapseLabel variant="secondary" onClick={() => setMovingId(resource.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
+      <InfrastructurePanel key={resource.id} resourceId={resource.id} resource={resource} serverName={row.server.name} hideGroup refreshToken={refreshToken}
+        back={{ label: '서버 개요', to: serverPath(serverId) }} onChanged={onChanged} onDeleted={() => void removed()}
+        extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(resource.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
     );
   };
 
@@ -85,9 +87,10 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, onR
   return (
     <>
       {content()}
-      {adding && <InfrastructureCollectorSetupDialog serverId={serverId} onClose={closeSetup} onCreated={() => void finishCreate()} />}
+      {adding && <InfrastructureCollectorSetupDialog serverId={serverId} serverName={row.server.name} onClose={closeSetup}
+        onIssued={() => { issued.current = true; }} onCreated={() => void finishCreate()} />}
       {moving && <MoveTargetDialog kind="infrastructure" targetName={moving.name} currentServerId={serverId}
-        onClose={() => setMovingId(null)} onMove={(to) => move(moving.id, to)} />}
+        onClose={closeMove} onMove={(to) => move(moving.id, to)} />}
     </>
   );
 }

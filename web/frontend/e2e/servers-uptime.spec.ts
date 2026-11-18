@@ -29,7 +29,8 @@ test('a server with one monitor shows its detail without a list', async ({ page 
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Payment endpoint' })).toBeVisible();
   await expect(panel(page).getByRole('heading', { name: '응답 시간', exact: true })).toBeVisible();
   await expect(page.getByRole('table', { name: '업타임 그리드' })).toHaveCount(0);
-  await expect(panel(page).getByRole('button', { name: '모니터 추가' })).toBeVisible();
+  // 추가 버튼은 탭 줄 오른쪽의 조작 자리에 있다.
+  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('button', { name: '모니터 추가' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
 });
 
@@ -42,7 +43,7 @@ test('adding the first monitor to an empty server opens it and the server is no 
   await expect(page).toHaveURL(new RegExp(`/servers/${EMPTY}/uptime$`));
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 업타임 모니터를 추가하세요' })).toBeVisible();
 
-  await panel(page).getByRole('button', { name: '업타임 모니터 추가' }).click();
+  await panel(page).getByRole('button', { name: '모니터 추가' }).click();
   const dialog = page.getByRole('dialog', { name: '업타임 추가' });
   await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('Staging probe');
   await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill('https://staging.example.com/health');
@@ -74,6 +75,8 @@ test('moving a monitor goes to its new server and it leaves the old one', async 
   await dialog.getByRole('button', { name: '옮기기' }).click();
 
   await expect(dialog).toBeHidden();
+  // 옮겨서 이 서버에서 빠진 것은 삭제가 아니다.
+  await expect(page.getByText('대상이 삭제되어 옮길 수 없습니다')).toHaveCount(0);
   await expect(page).toHaveURL(/\/servers\/server_mock_public_status\/uptime\/uptime_mock_store$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Public status' })).toBeVisible();
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Storefront' })).toBeVisible();
@@ -82,7 +85,7 @@ test('moving a monitor goes to its new server and it leaves the old one', async 
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime/uptime_mock_store$`));
   await expect(panel(page)).toContainText('이 서버의 모니터가 아닙니다');
-  await panel(page).getByRole('link', { name: '이 서버의 모니터 보기' }).click();
+  await panel(page).getByRole('link', { name: '업타임 탭으로' }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
   // 남은 모니터는 하나라서 목록 없이 상세가 보인다.
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Checkout API' })).toBeVisible();
@@ -103,7 +106,7 @@ test('a monitor of another server is not shown in this server', async ({ page })
   await page.goto(`./servers/${EDGE}/uptime/uptime_mock_payments`);
   await expect(panel(page)).toContainText('이 서버의 모니터가 아닙니다');
   await expect(panel(page)).not.toContainText('Payment endpoint');
-  await panel(page).getByRole('link', { name: '이 서버의 모니터 보기' }).click();
+  await panel(page).getByRole('link', { name: '업타임 탭으로' }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
 });
 
@@ -116,7 +119,8 @@ test('status filter and bulk pause stay inside the server', async ({ page }) => 
   await down.click();
   await expect(rowNames(page)).toHaveCount(2);
 
-  await panel(page).getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드' }).click();
+  // 보기 전환은 탭 줄 오른쪽의 조작 자리에 있다.
+  await page.getByRole('group', { name: '탭 조작' }).getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드' }).click();
   await expect(page).toHaveURL(/view=card/);
   // 카드 보기의 선택지는 이 서버의 모니터뿐이다.
   await expect(panel(page).getByRole('checkbox')).toHaveCount(2);
@@ -130,11 +134,11 @@ test('status filter and bulk pause stay inside the server', async ({ page }) => 
 test('on phones a monitor screen links back to the tab', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
-  await panel(page).getByRole('link', { name: '목록', exact: true }).click();
+  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
   // 첫 화면에서는 지금 화면으로 가는 복귀 링크를 두지 않는다.
   await expect(rowNames(page)).toHaveCount(2);
-  await expect(panel(page).getByRole('link', { name: '목록', exact: true })).toHaveCount(0);
+  await expect(panel(page).getByRole('link', { name: '모니터 목록', exact: true })).toHaveCount(0);
 });
 
 for (const path of ['uptime', 'uptime/uptime_mock_store']) {
@@ -152,7 +156,7 @@ test('a server with one monitor has no list to go back to on phones', async ({ p
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto('./servers/server_mock_payments_api/uptime/uptime_mock_payments');
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Payment endpoint' })).toBeVisible();
-  await expect(panel(page).getByRole('link', { name: '목록', exact: true })).toHaveCount(0);
+  await expect(panel(page).getByRole('link', { name: '모니터 목록', exact: true })).toHaveCount(0);
 });
 
 test('panel sections sit one level below the monitor name', async ({ page }) => {
@@ -228,12 +232,25 @@ test.describe('with an intercepted API', () => {
     expect(move.body).toMatchObject({ serverId: 's2', isActive: false });
   });
 
+  test('a monitor deleted elsewhere while the move dialog is open closes it with a notice', async ({ page }) => {
+    const state = await twoMonitors(page);
+    await page.goto('./servers/s1/uptime/http-monitor');
+    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
+    await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
+    state.monitors = state.monitors.filter((item) => item.id !== 'http-monitor');
+    // 대화 상자가 모달이라 새로고침을 누를 수 없다. 자동 갱신이 다시 보일 때 한 번 도는 것을 이용한다.
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText('대상이 삭제되어 옮길 수 없습니다')).toBeVisible();
+  });
+
   test('a failed reload after creating does not claim the monitor belongs elsewhere', async ({ page }) => {
     const state = await uptimeFixture(page);
     state.monitors = [];
     state.responses.set('GET /servers', [s1]);
     await page.goto('./servers/s1/uptime');
-    await panel(page).getByRole('button', { name: '업타임 모니터 추가' }).click();
+    await panel(page).getByRole('button', { name: '모니터 추가' }).click();
     const dialog = page.getByRole('dialog', { name: '업타임 추가' });
     await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('Probe');
     await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill('https://probe.example.com');

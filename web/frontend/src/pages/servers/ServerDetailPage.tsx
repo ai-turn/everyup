@@ -71,6 +71,9 @@ export function ServerDetailPage() {
   // 대화 상자가 닫힌 뒤 포커스가 body로 떨어지지 않게 탭 패널로 옮긴다.
   // 같은 커밋에서 대화 상자의 정리(트리거로 포커스 복귀)가 먼저 돌고 이 효과가 뒤에 돈다.
   const [focusRequest, setFocusRequest] = useState(0);
+  // 탭 줄 오른쪽의 "현재 탭의 조작 자리". 탭이 자기 추가 버튼을 이 요소로 포털한다.
+  // 콜백 ref의 setState는 커밋 중에 동기로 다시 그려지므로 첫 화면에서 버튼이 깜빡이지 않는다.
+  const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null);
   useEffect(() => {
     if (focusRequest > 0) panelRef.current?.focus();
   }, [focusRequest]);
@@ -138,24 +141,28 @@ export function ServerDetailPage() {
       {!error && failed.length > 0 && (
         <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={`${failed.join(', ')} 정보를 제외한 결과입니다.`} onRetry={reload} retrying={loading} /></div>
       )}
-      <div className="mb-6">
-        <Tabs items={tabs} active={active} onChange={open} ariaLabel="서버 기능" idPrefix={ID_PREFIX} />
+      {/* 탭 줄이 넘쳐 가로로 스크롤하는 좁은 화면에서는 조작 자리가 탭 줄 아래 오른쪽으로 내려간다. 비어 있으면 높이가 없다. */}
+      <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="min-w-0 max-w-full">
+          <Tabs items={tabs} active={active} onChange={open} ariaLabel="서버 기능" idPrefix={ID_PREFIX} />
+        </div>
+        <div ref={setActionSlot} role="group" aria-label="탭 조작" className="ml-auto flex flex-wrap items-center justify-end gap-2 empty:hidden" />
       </div>
       <div ref={panelRef} tabIndex={-1} role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
         {active === 'overview'
           ? <ServerOverviewTab row={row} onOpen={(capability) => open(capability)} />
           : active === 'uptime'
             ? <ServerUptimeTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
-              stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
+              stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} actionSlot={actionSlot} />
             : active === 'infrastructure'
               ? <ServerInfrastructureTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
-                stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
+                stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} actionSlot={actionSlot} />
               : active === 'logs'
                 ? <ServerLogsTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
-                  stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
+                  stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} actionSlot={actionSlot} />
               // 두 탭이 같은 컴포넌트라, 탭을 바꿀 때 이전 탭의 상태(대화 상자 등)가 남지 않게 새로 그린다.
               : <ServerAppTab key={active} capability={active} row={row} targetId={targetId} onChanged={reload}
-                unknown={row.unknownCapabilities.includes(active)} stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />}
+                unknown={row.unknownCapabilities.includes(active)} stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} actionSlot={actionSlot} />}
       </div>
       {/* 대화 상자를 겹쳐 열지 않는다. 설정에서 합치기나 삭제를 고르면 설정을 닫고 그 대화 상자를 연다. */}
       {dialog === 'settings' && (

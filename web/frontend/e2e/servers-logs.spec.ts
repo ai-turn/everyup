@@ -10,8 +10,8 @@ const panel = (page: Page) => page.getByRole('tabpanel');
 const appLinks = (page: Page) => page.getByRole('table', { name: '앱 그리드' }).locator('tbody a[data-row-link]');
 const patterns = (page: Page) => panel(page).locator('section', { has: page.getByRole('heading', { name: '자주 발생한 오류·경고' }) }).getByRole('link');
 const serverRows = (page: Page) => page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr');
-// 서버 머리말의 그룹 칸. 앱 수정 요청에서 serverId가 빠지면 백엔드(와 mock)가 서버의 그룹을 해제한다.
-const serverGroup = (page: Page) => page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).locator('dd');
+// 서버 머리말 상태 줄의 그룹. 앱 수정 요청에서 serverId가 빠지면 백엔드(와 mock)가 서버의 그룹을 해제한다.
+const serverGroup = (page: Page) => page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByText(/^그룹 /);
 
 test('a server with several log apps lists only its own apps and patterns', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/logs`);
@@ -23,7 +23,8 @@ test('a server with several log apps lists only its own apps and patterns', asyn
   // 다른 서버의 앱과 그 패턴은 없다.
   await expect(panel(page)).not.toContainText('payments-api');
   await expect(panel(page)).not.toContainText('notification-worker');
-  await expect(panel(page).getByRole('button', { name: '앱 연결 추가' })).toBeVisible();
+  // 추가 버튼은 탭 줄 오른쪽의 조작 자리에 있다.
+  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('button', { name: '로그 연결' })).toBeVisible();
   // 서버 이름이 유일한 h1이고, 새로고침은 머리말에만 있다.
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
   await expect(panel(page).getByRole('button', { name: '새로고침' })).toHaveCount(0);
@@ -59,11 +60,11 @@ test('connecting logs to an empty server keeps the key guidance open and the app
 
   await panel(page).getByRole('button', { name: '로그 연결' }).click();
   const dialog = page.getByRole('dialog', { name: '로그 연결' });
-  // 그룹은 서버의 것을 쓴다. 다른 서버의 앱(catalog-worker)은 기존 서비스 후보가 아니다.
+  // 그룹은 서버의 것을 쓴다. 다른 서버의 앱(catalog-worker)은 기존 앱 후보가 아니다.
   await expect(dialog.getByText('연결 정보를 확인하고 있습니다…')).toHaveCount(0);
   await expect(dialog.getByRole('combobox', { name: '그룹' })).toHaveCount(0);
-  await expect(dialog.getByRole('button', { name: '기존 서비스', exact: true })).toHaveCount(0);
-  await dialog.getByLabel('서비스 이름').fill('staging-logs');
+  await expect(dialog.getByRole('button', { name: '기존 앱', exact: true })).toHaveCount(0);
+  await dialog.getByLabel('앱 이름').fill('staging-logs');
   await dialog.getByRole('button', { name: '추가' }).click();
 
   await expect(dialog.getByText('로그 연결이 준비되었습니다')).toBeVisible();
@@ -90,13 +91,13 @@ test('connecting logs to an empty server keeps the key guidance open and the app
 
 test('adding logs to an existing app offers only this server\'s apps and keeps the app and the group here', async ({ page }) => {
   await page.goto(`./servers/${DB}/logs`);
-  await expect(serverGroup(page)).toHaveText('Production');
+  await expect(serverGroup(page)).toHaveText('그룹 Production');
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 로그를 연결하세요' })).toBeVisible();
   await panel(page).getByRole('button', { name: '로그 연결' }).click();
   const dialog = page.getByRole('dialog', { name: '로그 연결' });
-  await dialog.getByRole('button', { name: '기존 서비스', exact: true }).click();
-  await dialog.getByRole('combobox', { name: '서비스' }).click();
-  await expect(page.getByRole('option')).toHaveText(['서비스 선택', 'catalog-worker']);
+  await dialog.getByRole('button', { name: '기존 앱', exact: true }).click();
+  await dialog.getByRole('combobox', { name: '앱' }).click();
+  await expect(page.getByRole('option')).toHaveText(['앱 선택', 'catalog-worker']);
   await page.getByRole('option', { name: 'catalog-worker' }).click();
   await dialog.getByRole('button', { name: '추가' }).click();
   await dialog.getByRole('button', { name: '로그 보기' }).click();
@@ -105,7 +106,7 @@ test('adding logs to an existing app offers only this server\'s apps and keeps t
   await expect(panel(page).getByRole('heading', { level: 2, name: 'catalog-worker' })).toBeVisible();
   // 로그와 메트릭을 함께 가지므로 삭제가 아니라 로그 연결 해제다.
   await expect(panel(page).getByRole('button', { name: '로그 연결 해제' })).toBeVisible();
-  await expect(serverGroup(page)).toHaveText('Production');
+  await expect(serverGroup(page)).toHaveText('그룹 Production');
 });
 
 test('moving an app goes to its new server and it leaves the old one', async ({ page }) => {
@@ -125,25 +126,25 @@ test('moving an app goes to its new server and it leaves the old one', async ({ 
 
   await page.goBack();
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 앱이 아닙니다' })).toBeVisible();
-  await panel(page).getByRole('link', { name: '이 서버의 로그 보기' }).click();
+  await panel(page).getByRole('link', { name: '로그 탭으로' }).click();
   await expect(appLinks(page)).toHaveText(['orders-api']);
 });
 
 test('another server\'s app id says it is not this server\'s app', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/logs/observed_mock_payments`);
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 앱이 아닙니다' })).toBeVisible();
-  await expect(panel(page).getByRole('link', { name: '이 서버의 로그 보기' })).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/logs$`));
+  await expect(panel(page).getByRole('link', { name: '로그 탭으로' })).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/logs$`));
 });
 
 test('detaching logs from an app with metrics returns to the first screen without it and keeps the group', async ({ page }) => {
   await page.goto(`./servers/${BATCH}/logs/observed_mock_notifications`);
-  await expect(serverGroup(page)).toHaveText('Backoffice');
+  await expect(serverGroup(page)).toHaveText('그룹 Backoffice');
   await panel(page).getByRole('button', { name: '로그 연결 해제' }).click();
   await page.getByRole('dialog', { name: '로그 연결을 해제할까요?' }).getByRole('button', { name: '로그 연결 해제' }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${BATCH}/logs$`));
   await expect(appLinks(page)).toHaveText(['billing-worker']);
   await expect(panel(page)).toBeFocused();
-  await expect(serverGroup(page)).toHaveText('Backoffice');
+  await expect(serverGroup(page)).toHaveText('그룹 Backoffice');
 });
 
 test('stopping the connection sits in the status row and shows the app as inactive', async ({ page }) => {

@@ -22,7 +22,12 @@ export function capabilityStateLabel(capability: ServerCapability, state: Status
   return capability === 'uptime' || capability === 'infrastructure' ? STATE_LABEL[state] : APP_CAPABILITY_LABEL[state];
 }
 
-export interface TargetState { state: StatusTone; detail: string }
+export interface TargetState {
+  state: StatusTone;
+  detail: string;
+  /** 사용률 때문에 확인 필요일 때 그 기준(%). 화면이 "기준 70%"처럼 함께 적는다. */
+  threshold?: number;
+}
 
 // 업타임 화면과 같은 판정과 문구를 쓴다. 일시정지한 모니터는 마지막 상태와 관계없이 대기다.
 export function monitorState(monitor: UptimeMonitor): TargetState {
@@ -46,7 +51,7 @@ export function infrastructureState(resource: InfrastructureResource): TargetSta
   const peak = peakUsage(resource);
   if (peak >= WARNING_PCT) {
     const label = USAGE.find(([key]) => resource[key] === peak)?.[1] ?? '사용률';
-    return { state: 'warn', detail: `${label} ${peak.toFixed(1)}%` };
+    return { state: 'warn', detail: `${label} ${peak.toFixed(1)}%`, threshold: WARNING_PCT };
   }
   return { state: 'healthy', detail: '데이터 유입 중' };
 }
@@ -119,6 +124,8 @@ export interface ServerCapabilityTabProps {
   onRetry?: () => void;
   /** 머리말의 새로고침을 누를 때마다 1 오른다(자동 갱신은 올리지 않는다). 패널이 자기 데이터도 다시 불러온다. */
   refreshToken: number;
+  /** 탭 줄 오른쪽의 조작 자리. 대상이 연결된 탭이 추가 버튼을 여기로 포털한다(TabAction). 그려지기 전에는 null이다. */
+  actionSlot?: HTMLElement | null;
 }
 
 export function buildServerRows(input: {
