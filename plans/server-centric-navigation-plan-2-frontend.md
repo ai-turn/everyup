@@ -38,6 +38,9 @@
 - 기능 탭의 패널(Task 7~10)에 적용하는 규칙(Task 6 이후의 디자인 점검에서 추가):
   - 서버 상세에는 이미 머리말과 탭 줄이 있다. 패널 안에 두 번째 머리말을 쌓지 않는다. 기존 상세 화면의 `PageHeader`와 `DetailActionToolbar`를 통째로 가져오지 않고, 대상 이름은 패널의 제목(h2) 한 줄로, 조작은 그 줄의 오른쪽에 둔다.
   - 자동 새로고침의 주체는 하나이다. 서버 상세(`useServers`)가 30초마다 다시 불러오므로, 패널이 같은 데이터를 따로 주기적으로 불러오지 않는다. 패널 고유의 데이터(체크 이력, 로그 등)만 패널이 관리한다.
+  - 새로고침 버튼은 서버 상세의 머리말에 하나만 있다. 머리말의 `새로고침`은 서버 데이터를 다시 불러오면서 `ServerCapabilityTabProps.refreshToken`을 1 올리고, 패널은 이 값이 바뀌면(마운트 시점 제외) 자신의 데이터를 다시 불러온다. 서버 탭 안의 패널은 자신의 새로고침 버튼을 그리지 않는다(갱신 시각과 자동 갱신 토글은 둘 수 있다).
+  - 상태를 켜고 끄는 조작(일시정지, 연결 중지)은 제목 줄의 조작이 아니라 상태 표시 바로 옆에 둔다(`DESIGN.md`의 상세 화면 규칙). 수정, 삭제, 다른 서버로 옮기기는 제목 줄의 오른쪽에 둔다.
+  - 대상을 바꾸는 조작 뒤에는 `onChanged`(Promise를 돌려준다)를 기다린 뒤에 버튼을 다시 활성화하거나 화면을 이동한다. 요청은 누른 시점에 저장해 둔 객체가 아니라 최신 데이터로 만든다.
   - 화살표 키로 탭을 옮기면 지나가는 탭마다 패널이 마운트된다. 패널은 마운트 시점의 요청이 취소되거나 버려져도 문제가 없어야 하고(언마운트 뒤의 상태 갱신 금지), 마운트만으로 쓰기 요청을 보내지 않는다.
   - 로그, API 요청, 메트릭의 상태 문구는 `serverStatus.ts`의 기능별 문구 함수를 사용한다("정상" 대신 "수집 중" 등).
   - 업타임 목록의 행 단위 일시정지 조작은 유지한다.
@@ -718,6 +721,7 @@ export function LegacyTargetRedirect(props: { kind: ServerCapability }): JSX.Ele
 - `LegacyTargetRedirect`: 주소의 ID로 대상을 조회하여(`getUptimeMonitor`, `getObservedService`, `getInfrastructureResource`) `serverId`를 얻고, `serverPath(serverId, kind, id)`에 원래의 쿼리 문자열과 해시를 붙여 `replace` 이동한다. 인프라는 `targetId` 없이 `serverPath(serverId, 'infrastructure')`로 간다. 조회하는 동안에는 로딩 표시를, 대상을 찾지 못하거나 `serverId`가 없으면 "대상을 찾을 수 없습니다"와 서버 목록 링크(`EmptyState`)를 보여 준다.
 - 전체 로그(`LogsPage`): 제목과 경로 표시를 `전체 로그`로 바꾼다(`PageHeader`의 `menu`는 쓰지 않는다. 사이드바에 없는 화면이므로 제목을 숨기지 않는다). 각 행에 서버 이름을 함께 표시하고, 행과 패턴의 링크를 `serverPath(serverId, 'logs', app.id)`로 바꾼다. 헤더의 `로그 연결` 버튼은 없앤다(연결은 서버의 로그 탭에서 한다). 빈 화면의 안내는 서버 목록으로 보낸다.
 - 삭제한 페이지를 참조하는 곳이 남지 않게 한다(`grep -rn "DirectLogsDetailPage\|AgentServiceCapabilityPage" src`).
+- 옛 화면만을 위해 패널에 남겨 둔 경로도 함께 지운다(Task 7~10의 검토에서 기록). 업타임의 경우: `UptimeMonitorList`의 자체 조회 방식과 그 오류 구역, `controls.refresh`, 서버 탭에서 닿지 않는 `createDefaults`/`saveMonitor` 경로, `useUptimeMonitorList`의 `enabled` 인자, `UptimeMonitorPanel`의 `standalone`과 `MonitorCrumb`, 패널 자체의 새로고침 버튼. 다른 패널에도 같은 종류의 `standalone` 분기가 있으면 같은 방식으로 지운다.
 
 - [ ] **Step 1: 실패하는 e2e를 작성한다**
   - `navigation.spec.ts`(데모 빌드 대상):
