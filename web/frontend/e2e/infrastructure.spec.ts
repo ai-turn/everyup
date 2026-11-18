@@ -23,6 +23,8 @@ test('infrastructure detail shows that host\'s own values in the chart headers',
 // 데모: payments-api 서버에는 인프라가 없다.
 test('a host that has not sent metrics yet says it is waiting, not empty charts', async ({ page }) => {
   await page.goto('./servers/server_mock_payments_api/infrastructure');
+  const connectPrompt = page.getByRole('tabpanel').getByRole('heading', { level: 2, name: '이 서버의 인프라를 연결하세요' });
+  await expect(connectPrompt).toBeVisible();
   await page.getByRole('button', { name: '인프라 연결', exact: true }).first().click();
   // 서버 탭에서는 이름을 묻지 않고 서버 이름(payments-api)으로 만든다.
   const dialog = page.getByRole('dialog', { name: 'OpenTelemetry Collector 연결' });
@@ -30,6 +32,9 @@ test('a host that has not sent metrics yet says it is waiting, not empty charts'
   await expect(dialog.getByText('Collector를 실행하면 30초 안에 첫 메트릭이 들어옵니다.', { exact: false })).toBeVisible();
   // "인프라 보기"는 방금 만든 리소스의 상세로 간다. 서버마다 리소스가 하나라 탭 주소가 곧 그 상세다.
   await dialog.getByRole('button', { name: '인프라 보기' }).click();
+  // 같은 탭 주소에 머물므로 주소 대신 대화 상자가 닫히고 본문이 연결 안내에서 상세로 바뀐 것을 본다.
+  await expect(dialog).toHaveCount(0);
+  await expect(connectPrompt).toHaveCount(0);
   await expect(page).toHaveURL(/\/servers\/server_mock_payments_api\/infrastructure$/);
   await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: '인프라', exact: true })).toBeAttached();
   await expect(page.getByRole('heading', { name: 'Collector 수신 대기' })).toBeVisible();

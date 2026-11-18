@@ -13,16 +13,23 @@ const service: ObservedService = {
 
 interface ApiState {
   failList?: boolean;
+  failSummary?: boolean;
   failRequests?: boolean;
   failStats?: boolean;
   failOptions?: boolean;
   truncated?: boolean;
   requests?: ApiRequest[];
   received?: boolean;
+  /** 로그는 받았다(lastSeenAt과 로그 수신 기록이 있다). 트레이스 수신은 received가 따로 정한다. */
+  logsReceived?: boolean;
   serviceName?: string;
   beforeRequests?: (url: URL) => Promise<void>;
   queries: URL[];
 }
+
+const current = (state: ApiState): ObservedService => ({
+  ...service, name: state.serviceName ?? service.name, ...(state.logsReceived ? { lastSeenAt: new Date().toISOString() } : {}),
+});
 
 async function mockApi(page: Page, state: ApiState) {
   await page.route('**/api/v1/**', async route => {
@@ -30,6 +37,7 @@ async function mockApi(page: Page, state: ApiState) {
     state.queries.push(url);
     const path = url.pathname.replace('/api/v1', '');
     const failed = (path === '/observed-services' && state.failList)
+      || (path.endsWith('/request-status-summary') && state.failSummary)
       || (path.endsWith('/requests') && state.failRequests)
       || (path.endsWith('/request-stats') && state.failStats)
       || (path === '/projects' && state.failOptions);
@@ -42,8 +50,8 @@ async function mockApi(page: Page, state: ApiState) {
     if (path === '/servers') data = [server];
     else if (path === `/servers/${server.id}`) data = server;
     else if (path === '/observed-services' && route.request().method() === 'POST') data = { ...service, name: route.request().postDataJSON().name, apiKey: 'test-only-key' };
-    else if (path === '/observed-services') data = [{ ...service, name: state.serviceName ?? service.name }];
-    else if (path === '/observed-services/api-test') data = { ...service, name: state.serviceName ?? service.name };
+    else if (path === '/observed-services') data = [current(state)];
+    else if (path === '/observed-services/api-test') data = current(state);
     else if (path.endsWith('/api-exclusions')) data = { paths: ['/health'] };
     else if (path.endsWith('/request-status-summary')) data = { count2xx: 2, count3xx: 0, count4xx: 1, count5xx: 1, countOther: 0, top5xxMethod: 'GET', top5xxPath: '/orders/:id', top5xxCount: 1, errorCount: 1, p95: 20, timed: 4 };
     else if (path.endsWith('/request-stats')) data = { buckets: state.requests?.length ? [{ time: new Date(Date.now() - 60_000).toISOString(), count: 4, errorCount: 2, p50: 20, p95: 20, p99: 20, timed: 4 }] : [], truncated: state.truncated ?? false };
@@ -63,7 +71,10 @@ async function mockApi(page: Page, state: ApiState) {
       const offset = Number(url.searchParams.get('offset') ?? 0);
       data = { data: rows.slice(offset, offset + 25), total: rows.length };
     }
-    else if (path.endsWith('/setup-status')) data = state.received ? [{ serviceName: service.name, signal: 'traces', firstReceivedAt: new Date().toISOString(), lastReceivedAt: new Date().toISOString() }] : [];
+    else if (path.endsWith('/setup-status')) {
+      const receipt = (signal: string) => ({ serviceName: service.name, signal, firstReceivedAt: new Date().toISOString(), lastReceivedAt: new Date().toISOString() });
+      data = [...(state.received ? [receipt('traces')] : []), ...(state.logsReceived ? [receipt('logs')] : [])];
+    }
     else if (path === '/settings/connection') data = { publicUrl: 'https://monitor.example.com' };
     await route.fulfill({ json: { success: true, data } });
   });
@@ -284,15 +295,32 @@ test('long service names and request paths remain accessible on narrow screens',
   }
 });
 
-test('a service that never received traces says so in the list and opens setup guidance', async ({ page }) => {
-  await mockApi(page, { queries: [] });
-  // 옛 API 목록의 행 대신 서버 목록의 행이 그 앱을 원인으로 적는다.
-  await page.goto('./servers');
-  const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'web-01', exact: true }) });
-  await expect(row).toContainText('orders-api 데이터 대기 중');
+// 로그는 받아서 lastSeenAt이 있지만 트레이스는 받은 적이 없는 앱. 패널의 안내는 트레이스 수신 기록을 따른다.
+test('an app that never received traces says so in its panel and opens setup guidance', async ({ page }) => {
+  await mockApi(page, { logsReceived: true, queries: [] });
   await page.goto('./servers/server-1/api/api-test');
   await expect(page.getByText('아직 수신한 API 트레이스가 없습니다', { exact: true })).toBeVisible();
   await expect(page.locator('details').filter({ hasText: '수집 설정 안내' })).toHaveAttribute('open', '');
+});
+
+// 옛 API 목록의 "요약 하나가 실패해도 대상은 보이고 그 요약만 다시 시도한다"를 패널의 상태코드 분포로 옮겼다.
+test('a status distribution failure keeps the app and its requests visible and retries only the distribution', async ({ page }) => {
+  const state: ApiState = { failSummary: true, requests: requestRows(), received: true, queries: [] };
+  await mockApi(page, state);
+  await page.goto('./servers/server-1/api/api-test');
+  const panel = page.getByRole('tabpanel');
+  const failure = panel.getByRole('status').filter({ hasText: '상태코드 분포를 불러오지 못했습니다' });
+  await expect(failure).toBeVisible();
+  await expect(panel.getByRole('heading', { level: 2, name: 'orders-api', exact: true })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'API 요청 목록' })).toBeVisible();
+  await expect(page.getByRole('region', { name: '요청 결과' })).toContainText('전체 35건');
+  const requestReads = state.queries.filter(url => url.pathname.endsWith('/requests')).length;
+  state.failSummary = false;
+  await failure.getByRole('button', { name: '다시 시도', exact: true }).click();
+  const distribution = page.getByRole('group', { name: '상태코드로 요청 목록 거르기' });
+  await expect(distribution.getByRole('button', { name: /^2xx/ })).toBeVisible();
+  await expect(panel.getByText('상태코드 분포를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
+  expect(state.queries.filter(url => url.pathname.endsWith('/requests')).length).toBe(requestReads);
 });
 
 test('endpoint rows and status classes filter the request list', async ({ page }) => {
