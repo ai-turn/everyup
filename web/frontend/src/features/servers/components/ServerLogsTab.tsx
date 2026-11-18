@@ -14,7 +14,7 @@ import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatu
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
-import { readLatest } from '../../../utils/readLatest';
+import { readLatest, TargetGoneError } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
 
@@ -56,9 +56,15 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     const app = row.targets.apps.find((candidate) => candidate.id === id);
     if (!app) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 앱이 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     // 화면의 앱이 아니라 지금의 앱으로 요청을 만든다. 그 사이의 신호 연결 해제를 되돌리지 않게.
-    const latest = await readLatest(() => api.getObservedService(app.id), '이동');
-    await api.updateObservedService(app.id, { name: latest.name, serverId: to, signals: latest.signals });
+    const latest = await readLatest(() => api.getObservedService(app.id), '이동').catch(async (cause: unknown) => {
+      // 이미 지워졌으면 화면에서도 뺀다(대화 상자는 대상이 사라진 것을 보고 닫힌다).
+      if (cause instanceof TargetGoneError) { forgetTarget?.('apps', app.id); void onChanged(); }
+      throw cause;
+    });
+    const updated = await api.updateObservedService(app.id, { name: latest.name, serverId: to, signals: latest.signals });
     markMoved();
+    // 다시 불러오기가 실패해도 옮긴 앱이 이 서버의 목록에 남지 않게 한다.
+    forgetTarget?.('apps', app.id, updated);
     await onChanged();
     closeMove();
     toast.success('앱을 옮겼습니다');

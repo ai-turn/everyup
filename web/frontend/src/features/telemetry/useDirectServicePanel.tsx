@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 import { Button, ConfirmDialog, MaterialIcon, type StatusTone } from '../../components/common';
 import { api, type ObservedService, type ObservedServiceSetup, type Project, type TelemetrySignal } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
-import { readLatest } from '../../utils/readLatest';
+import { readLatest, TargetGoneError } from '../../utils/readLatest';
 import { appState, capabilityStateLabel } from '../servers/serverStatus';
 import { RotatedTelemetryKeyDialog } from './components/RotatedTelemetryKeyDialog';
 import { serviceRemoval, signalLabel } from './signals';
@@ -94,6 +94,8 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
       setConfirmAction('delete');
     } catch (requestError) {
       toast.error(getErrorMessage(requestError));
+      // 이미 지워진 앱이면 서버 데이터를 다시 불러와 화면에서 뺀다.
+      if (requestError instanceof TargetGoneError) void onChanged?.();
     } finally {
       if (alive.current) setCheckingRemoval(false);
     }
@@ -150,6 +152,10 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
       // 삭제에 성공하면 화면이 바뀔 때까지 풀지 않으므로 finally가 아니라 실패에서만 푼다.
       // react-doctor-disable-next-line no-loading-flag-reset-outside-finally
       if (alive.current) setProcessing(false);
+      if (requestError instanceof TargetGoneError) {
+        if (alive.current) setConfirmAction(null);
+        void onChanged?.();
+      }
     }
   };
 

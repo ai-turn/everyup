@@ -53,7 +53,7 @@ export function ServersPage() {
   const search = query.trim().toLowerCase();
   const status = parseStatus(params.get('status'));
   const requestedGroup = params.get('group');
-  const { rows, loading, error, failed, updatedAt, reload, poll, refresh: joinRefresh } = useServers();
+  const { rows, loading, loaded, error, failed, updatedAt, reload, poll, refresh: joinRefresh } = useServers();
   // 그룹 이름과 Docker 환경 안내는 보조 정보다. 실패해도 목록은 그린다.
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [hasDockerEnvironments, setHasDockerEnvironments] = useState(false);
@@ -145,7 +145,8 @@ export function ServersPage() {
         <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={reload} retrying={loading} /></div>
       )}
 
-      {loading && !hasRows && !error ? <ServerListSkeleton />
+      {/* 한 번도 불러오지 못했으면 서버가 없는 것이 아니라 아직 모르는 것이다(매달린 첫 요청을 버린 뒤에도). */}
+      {!loaded && !error ? <ServerListSkeleton />
         : error && !hasRows ? <EmptyState icon="sync_problem" title="서버 목록을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
           : !hasRows ? (
             <EmptyState icon="dns" headingLevel="h2" title="아직 서버가 없습니다"

@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { mockRouter } from '../src/services/mockRouter';
+import { buildServerRows, capabilityLabel } from '../src/features/servers/serverStatus';
 import type { MockScenario } from '../src/mocks/demoScenario';
 import type {
-  InfrastructureResource, LogPattern, LogServiceSummary, ObservedService, Project, Server, TimelineIncident, UptimeMonitor,
+  InfrastructureResource, LogPattern, LogServiceSummary, ObservedService, ObservedServiceMetricName, Project, Server, TimelineIncident, UptimeMonitor,
   UptimeMonitorMetric, UptimeMonitorSummary,
 } from '../src/services/api';
 
@@ -157,4 +158,25 @@ test('server writes follow the backend rules', () => {
   expect(mockRouter<ObservedService[]>('/observed-services').some(row => row.id === app.id)).toBe(false);
   expect(mockRouter<InfrastructureResource[]>('/infrastructure-resources').some(row => row.id === infra.id || row.id === second.id)).toBe(false);
   expect(mockRouter<Server[]>('/servers').some(row => row.name.startsWith('e2e-host'))).toBe(false);
+});
+
+test('the attention scenario flags the metric over its threshold on its server', () => {
+  const rows = () => buildServerRows({
+    servers: mockRouter<Server[]>('/servers'),
+    monitors: mockRouter<UptimeMonitor[]>('/services?type=http,tcp'),
+    apps: mockRouter<ObservedService[]>('/observed-services'),
+    infrastructure: mockRouter<InfrastructureResource[]>('/infrastructure-resources'),
+    logSummaries: mockRouter<LogServiceSummary[]>('/logs/summary'),
+    metricCatalog: mockRouter<ObservedServiceMetricName[]>('/observed-services/metric-catalog'),
+  });
+  const db = rows().find(row => row.server.id === 'server_mock_db_primary_01')!;
+  // 첫 메트릭 앱(catalog-worker)의 첫 지표가 임계값을 넘는다. 메트릭 기능이 확인 필요이고 까닭이 임계값 초과다.
+  expect(db.breachedApps).toEqual(['observed_mock_catalog']);
+  expect(db.state).toBe('warn');
+  expect(db.capabilities.metrics).toBe('warn');
+  expect(capabilityLabel(db, 'metrics', 'warn')).toBe('임계값 초과');
+  // 서버의 원인은 같은 확인 필요 가운데 앞선 인프라(메모리)다. 대상의 순서는 모니터, 인프라, 앱이다.
+  expect(db.cause?.text).toBe('메모리 84.6%');
+  // normal 시나리오에는 임계값 초과가 없다.
+  expect(inScenario('normal', () => rows().every(row => row.breachedApps.length === 0))).toBe(true);
 });

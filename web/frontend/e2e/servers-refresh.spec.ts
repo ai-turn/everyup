@@ -161,24 +161,84 @@ test('a pending refresh disables the refresh button and skips the next poll', as
   await expect(refresh(page)).toBeEnabled();
 });
 
-test('a refresh that finishes quickly does not change the button, and a click meanwhile joins it', async ({ page }) => {
+test('a refresh shorter than 300ms leaves the button alone, and a click meanwhile joins it', async ({ page }) => {
   const state = await mockServer(page);
+  await page.clock.install();
   await page.goto('./servers/s1');
   await expect(stamp(page)).toContainText('갱신');
+  // 시계를 멈춰서 300ms의 경계를 실제 시간과 무관하게 본다.
+  await page.clock.pauseAt(Date.now() + 1_000);
   const initial = state.serverReads();
-  // 자동 갱신(화면이 다시 보일 때)이 진행 중인 동안 버튼은 그대로이고, 누르면 그 요청에 합류한다.
   const gate = deferred();
   state.holds.set('/servers', gate.promise);
   try {
+    // 자동 갱신(화면이 다시 보일 때)의 요청이 진행 중이다.
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
     await expect.poll(state.serverReads).toBe(initial + 1);
+    await page.clock.runFor(299);
+    await expect(refresh(page)).toBeEnabled();
     await expect(refresh(page)).not.toHaveAttribute('aria-busy', 'true');
-    await refresh(page).click();
-    // 직접 누르면 회전은 바로 보이지만 새 요청은 없다.
+    await page.clock.runFor(1);
+    await expect(refresh(page)).toBeDisabled();
     await expect(refresh(page)).toHaveAttribute('aria-busy', 'true');
-    expect(state.serverReads()).toBe(initial + 1);
   } finally { state.holds.clear(); gate.resolve(); }
   await expect(refresh(page)).toBeEnabled();
+
+  // 300ms 안에 직접 누르면 회전은 바로 보이지만 새 요청은 보내지 않고 진행 중인 요청에 합류한다.
+  const second = deferred();
+  state.holds.set('/servers', second.promise);
+  try {
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect.poll(state.serverReads).toBe(initial + 2);
+    await refresh(page).click();
+    await expect(refresh(page)).toHaveAttribute('aria-busy', 'true');
+    expect(state.serverReads()).toBe(initial + 2);
+  } finally { state.holds.clear(); second.resolve(); }
+});
+
+test('a server list whose first load hangs past 30 seconds keeps the placeholder, not an empty list', async ({ page }) => {
+  const state = await mockServer(page);
+  const gate = deferred();
+  state.holds.set('/servers', gate.promise);
+  await page.clock.install();
+  try {
+    await page.goto('./servers');
+    await expect(page.getByRole('status').filter({ hasText: '로딩 중' })).toBeAttached();
+    await page.clock.fastForward(31_000);
+    await expect(page.getByText('아직 서버가 없습니다')).toHaveCount(0);
+    await expect(page.getByText(/^서버를 추가하고 업타임/)).toHaveCount(0);
+    await expect(page.getByRole('status').filter({ hasText: '로딩 중' })).toBeAttached();
+  } finally { state.holds.clear(); gate.resolve(); }
+  await expect(page.getByRole('table', { name: '서버 그리드' })).toBeVisible();
+});
+
+test('a deleted monitor stays out of the list when the reload of the server list fails', async ({ page }) => {
+  const state = await uptimeFixture(page);
+  await page.goto('./servers/server-1/uptime/http-monitor');
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  state.failures.set('GET /servers', 500);
+  await panel(page).getByRole('button', { name: '삭제', exact: true }).click();
+  await page.getByRole('dialog', { name: '업타임을 삭제할까요?' }).getByRole('button', { name: '삭제', exact: true }).click();
+  await expect(page.getByText('서버 정보를 새로 불러오지 못했습니다')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  // 남은 모니터가 하나라 탭의 첫 화면이 그 상세다. 지운 모니터는 목록에도 상세에도 없다.
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'Database' })).toBeVisible();
+  await expect(panel(page).getByText('Public API')).toHaveCount(0);
+  await expect(tablist(page).getByRole('tab', { name: /^업타임/ })).toHaveAccessibleName(/모니터 1개/);
+});
+
+test('detaching the only API app while the server list fails closes the dialog and leaves no busy panel', async ({ page }) => {
+  const state = await mockServer(page);
+  await page.goto('./servers/s1/api');
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
+  state.failures.add('/servers');
+  await panel(page).getByRole('button', { name: /연결 해제$/ }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /연결 해제$/ }).click();
+  await expect.poll(() => state.app?.signals).toEqual(['logs']);
+  await expect(page.getByText('서버 정보를 새로 불러오지 못했습니다')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toHaveCount(0);
+  await expect(panel(page).getByRole('button', { name: 'API 연결' })).toBeEnabled();
 });
 
 test('the server list shows when its data was last refreshed', async ({ page }) => {

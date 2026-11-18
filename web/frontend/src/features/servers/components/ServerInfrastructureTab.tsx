@@ -9,7 +9,7 @@ import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt } from './ConnectPrompt';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
-import { readLatest } from '../../../utils/readLatest';
+import { readLatest, TargetGoneError } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
 /** 인프라 탭: 서버마다 리소스가 하나뿐이라 없으면 연결 안내, 있으면 그 상세다. 추가할 것이 없어 탭 줄의 조작 자리는 비어 있다. */
@@ -54,9 +54,15 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
     const latest = row.targets.infrastructure;
     if (latest?.id !== id) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 인프라 리소스가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
-    const current = await readLatest(() => api.getInfrastructureResource(latest.id), '이동');
-    await api.updateInfrastructureResource(current.id, { name: current.name, serverId: to });
+    const current = await readLatest(() => api.getInfrastructureResource(latest.id), '이동').catch(async (cause: unknown) => {
+      // 이미 지워졌으면 화면에서도 뺀다(대화 상자는 대상이 사라진 것을 보고 닫힌다).
+      if (cause instanceof TargetGoneError) { forgetTarget?.('infrastructure', latest.id); void onChanged(); }
+      throw cause;
+    });
+    const updated = await api.updateInfrastructureResource(current.id, { name: current.name, serverId: to });
     markMoved();
+    // 다시 불러오기가 실패해도 옮긴 리소스가 이 서버에 남지 않게 한다.
+    forgetTarget?.('infrastructure', current.id, updated);
     await onChanged();
     closeMove();
     toast.success('인프라 리소스를 옮겼습니다');

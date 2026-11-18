@@ -29,4 +29,6 @@ Every direct target (uptime monitor, app, `otel-collector` infrastructure resour
 
 In `attention` and `partial-failure`, `uptime_mock_checkout` is down with an outage that started six minutes ago; its timeline entry links to `/servers/server_mock_edge_host_01/uptime/uptime_mock_checkout`. In `partial-failure` the app list fails, so the apps drop out of the server rows.
 
+In `attention`, the first metric of `observed_mock_catalog` (the first app with metrics) is over its threshold (`breached` in `/observed-services/metric-catalog`). The metrics capability of `db-primary-01` is 확인 필요 with the reason 임계값 초과 (metrics tab dot, overview row, app selector). The server stays 확인 필요 and its cause stays `메모리 84.6%`, because infrastructure comes before apps among causes of the same state. `normal` has no breached metric.
+
 Scenarios return copied read data where they need a variation. The base fixtures remain mutable for normal demo create, update, and delete flows. Legacy `mockScenario` URL links still work, but the selector is the intended UX.

@@ -22,7 +22,14 @@ export function partialFailureMessage(failed: FailedTargets[]): string {
   ].filter(Boolean).join(' ');
 }
 
-export type ForgetTarget = (kind: 'monitors' | 'apps' | 'infrastructure', id: string, next?: ObservedService) => void;
+/** 대상을 이전 목록과 지금의 행에서 빼거나(next 없음) 응답으로 바꾼다(신호를 해제한 앱, 다른 서버로 옮긴 대상). */
+export type ForgetTarget = {
+  (kind: 'monitors', id: string, next?: UptimeMonitor): void;
+  (kind: 'apps', id: string, next?: ObservedService): void;
+  (kind: 'infrastructure', id: string, next?: InfrastructureResource): void;
+};
+
+type BuildInput = Parameters<typeof buildServerRows>[0];
 
 interface LastLists { monitors: UptimeMonitor[] | null; apps: ObservedService[] | null; infrastructure: InfrastructureResource[] | null }
 
@@ -73,14 +80,25 @@ export function useServers(): {
   const pendingSince = useRef<number | null>(null);
   // 종류마다 마지막으로 성공한 목록. 다시 불러오다 실패한 동안에만 쓴다(성공하면 새 목록으로 바뀐다).
   const last = useRef<LastLists>({ monitors: null, apps: null, infrastructure: null });
+  // 마지막으로 행을 만든 입력. forgetTarget이 바뀐 목록으로 행을 다시 만들 때 쓴다(서버 목록 조회가 실패해도 행이 대상을 빼도록).
+  const lastBuild = useRef<BuildInput | null>(null);
+  // 언마운트 때 정리할 타이머
+  const timers = useRef(new Set<number>());
+  const later = (run: () => void, ms: number) => {
+    const timer = window.setTimeout(() => { timers.current.delete(timer); run(); }, ms);
+    timers.current.add(timer);
+    return timer;
+  };
+  const cancel = (timer: number) => { window.clearTimeout(timer); timers.current.delete(timer); };
+  useEffect(() => { const pending = timers.current; return () => pending.forEach((timer) => window.clearTimeout(timer)); }, []);
 
   const reload = useCallback((): Promise<void> => {
     const id = ++latest.current;
     pendingSince.current = Date.now();
     setLoading(true);
-    const busyTimer = window.setTimeout(() => { if (id === latest.current) setBusy(true); }, BUSY_AFTER_MS);
+    const busyTimer = later(() => { if (id === latest.current) setBusy(true); }, BUSY_AFTER_MS);
     // 매달린 요청은 버린다. 늦게 와도 더 새 요청이 없으면 그대로 반영된다(새 요청이 있으면 위의 id 비교가 버린다).
-    const abandonTimer = window.setTimeout(() => {
+    const abandonTimer = later(() => {
       if (id !== latest.current) return;
       pendingSince.current = null;
       setLoading(false);
@@ -90,8 +108,8 @@ export function useServers(): {
       api.getServers(), api.getUptimeMonitors(true), api.getObservedServices(), api.getInfrastructureResources(), api.getLogSummary(),
       api.getObservedServiceMetricCatalog(),
     ]).then(([servers, monitors, apps, infrastructure, logSummaries, metricCatalog]) => {
-      window.clearTimeout(busyTimer);
-      window.clearTimeout(abandonTimer);
+      cancel(busyTimer);
+      cancel(abandonTimer);
       if (id !== latest.current) return;
       pendingSince.current = null;
       setLoading(false);
@@ -107,10 +125,11 @@ export function useServers(): {
       if (servers.status === 'rejected') { setError(getErrorMessage(servers.reason)); return; }
       setError(null);
       setLoaded(true);
-      setRows(buildServerRows({
+      lastBuild.current = {
         servers: servers.value ?? [], ...lists, logSummaries: settled(logSummaries), metricCatalog: settled(metricCatalog),
         stale: { monitors: !fresh.monitors, apps: !fresh.apps, infrastructure: !fresh.infrastructure },
-      }));
+      };
+      setRows(buildServerRows(lastBuild.current));
       const failures = ([[monitors, '업타임', lists.monitors], [apps, '앱', lists.apps], [infrastructure, '인프라', lists.infrastructure],
         [logSummaries, '로그 요약', null], [metricCatalog, '메트릭 임계값', null]] as const)
         .filter(([result]) => result.status === 'rejected').map(([, label, list]) => ({ label, stale: list !== null }));
@@ -132,12 +151,19 @@ export function useServers(): {
     return () => window.clearTimeout(timer);
   }, [reload]);
 
-  const forgetTarget = useCallback<ForgetTarget>((kind, id, next) => {
-    const current = last.current;
-    if (kind === 'monitors') current.monitors = current.monitors?.filter((monitor) => monitor.id !== id) ?? null;
-    else if (kind === 'infrastructure') current.infrastructure = current.infrastructure?.filter((resource) => resource.id !== id) ?? null;
-    else current.apps = current.apps?.flatMap((app) => (app.id !== id ? [app] : next ? [next] : [])) ?? null;
+  // 이전 목록과 지금의 행에 함께 반영한다. 행은 같은 함수로 다시 만들어 상태, 원인, 수치가 목록과 어긋나지 않게 한다.
+  const forget = useCallback((kind: keyof LastLists, id: string, next?: { id: string }) => {
+    // 응답이 그 대상이 아니면(빈 응답 등) 바꾸지 않고 뺀다.
+    const replacement = next && !Array.isArray(next) && next.id === id ? [next] : [];
+    const replace = (list: { id: string }[] | null) => list?.flatMap((item) => (item.id !== id ? [item] : replacement)) ?? null;
+    // 종류마다 같은 모양의 목록이라 키로 바꾼다(ForgetTarget의 오버로드가 kind와 next의 짝을 강제한다).
+    last.current = { ...last.current, [kind]: replace(last.current[kind]) } as LastLists;
+    if (lastBuild.current) {
+      lastBuild.current = { ...lastBuild.current, [kind]: replace(lastBuild.current[kind]) } as BuildInput;
+      setRows(buildServerRows(lastBuild.current));
+    }
   }, []);
+  const forgetTarget = forget as ForgetTarget;
 
   return { forgetTarget, rows, loading, busy, loaded, error, failed, updatedAt, reload, poll, refresh };
 }

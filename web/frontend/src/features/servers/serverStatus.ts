@@ -6,6 +6,7 @@ import { peakUsage, WARNING_PCT } from '../infra/usage';
 import { metricTitle } from '../metrics/metricPresentation';
 import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
 import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from './serverPaths';
+import type { ForgetTarget } from './useServers';
 
 // 서버 목록, 서버 개요, 그룹 화면이 같은 판정을 쓴다. 따로 계산하면 목록은 "정상"인데 그룹은 "장애"인 대상이 생긴다.
 
@@ -154,7 +155,7 @@ export interface ServerCapabilityTabProps {
   /** 머리말의 `30초마다 자동 갱신` 스위치. 패널이 자기 데이터를 주기적으로 갱신하면 이 값을 따른다. */
   autoRefresh: boolean;
   /** 삭제·연결 해제한 대상을 서버 데이터의 이전 목록에 반영한다(useServers.forgetTarget). */
-  forgetTarget?: (kind: 'monitors' | 'apps' | 'infrastructure', id: string, next?: ObservedService) => void;
+  forgetTarget?: ForgetTarget;
   /** 탭 줄 오른쪽의 조작 자리. 대상이 연결된 탭이 추가 버튼을 여기로 포털한다(TabAction). 그려지기 전에는 null이다. */
   actionSlot?: HTMLElement | null;
 }

@@ -12,7 +12,7 @@ import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
-import { readLatest } from '../../../utils/readLatest';
+import { readLatest, TargetGoneError } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
 
@@ -43,9 +43,15 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     const monitor = monitors.find((candidate) => candidate.id === id);
     if (!monitor) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 모니터가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
     // 화면의 모니터가 아니라 지금의 모니터로 요청을 만든다. 그 사이의 일시정지를 되돌리지 않게.
-    const latest = await readLatest(() => api.getUptimeMonitor(monitor.id), '이동');
-    await api.updateUptimeMonitor(monitor.id, monitorInput(latest, { serverId: to }));
+    const latest = await readLatest(() => api.getUptimeMonitor(monitor.id), '이동').catch(async (cause: unknown) => {
+      // 이미 지워졌으면 화면에서도 뺀다(대화 상자는 대상이 사라진 것을 보고 닫힌다).
+      if (cause instanceof TargetGoneError) { forgetTarget?.('monitors', monitor.id); void onChanged(); }
+      throw cause;
+    });
+    const updated = await api.updateUptimeMonitor(monitor.id, monitorInput(latest, { serverId: to }));
     markMoved();
+    // 다시 불러오기가 실패해도 옮긴 모니터가 이 서버의 목록에 남지 않게 한다.
+    forgetTarget?.('monitors', monitor.id, updated);
     await onChanged();
     closeMove();
     toast.success('업타임 모니터를 옮겼습니다');
@@ -94,7 +100,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     }
     // 목록은 서버 상세가 불러온 모니터를 쓴다. 갱신의 주체는 서버 상세 하나다. 보기 전환은 탭 줄의 조작 자리에서 추가 버튼 앞이다.
     return (
-      <UptimeMonitorList monitors={monitors} stale={stale} onRetry={onRetry} filter={(monitor) => monitor.serverId === serverId} searchLabel="모니터 검색"
+      <UptimeMonitorList monitors={monitors} stale={stale} onRetry={onRetry} onDeleted={(ids) => ids.forEach((id) => forgetTarget?.('monitors', id))} filter={(monitor) => monitor.serverId === serverId} searchLabel="모니터 검색"
         hrefFor={(monitor) => serverPath(serverId, 'uptime', monitor.id)} createDefaults={{ serverId }} onChanged={onChanged}
         renderControls={({ viewToggle }) => <TabAction slot={actionSlot}>{viewToggle}{addButton}</TabAction>} />
     );

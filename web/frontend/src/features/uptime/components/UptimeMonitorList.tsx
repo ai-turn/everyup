@@ -30,7 +30,7 @@ function ServiceListSkeleton() {
 }
 
 /** 업타임 모니터 목록의 본문: 검색, 상태 필터, 보기 전환, 카드 보기의 선택과 일괄 작업, 최근 체크. */
-export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderControls, onChanged, monitors: given, stale = false, onRetry, searchLabel = '서비스 또는 대상 검색' }: {
+export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderControls, onChanged, monitors: given, stale = false, onRetry, onDeleted, searchLabel = '서비스 또는 대상 검색' }: {
   /** 이 목록이 다루는 모니터만 고른다 */
   filter: (monitor: UptimeMonitor) => boolean;
   hrefFor: (monitor: UptimeMonitor) => string;
@@ -49,6 +49,8 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
   stale?: boolean;
   /** stale일 때 다시 시도 */
   onRetry?: () => void;
+  /** 일괄 삭제에 성공한 모니터. 부모가 다시 불러오기 전에 이전 목록에서 뺀다(다시 불러오기가 실패해도 다시 보이지 않게). */
+  onDeleted?: (ids: string[]) => void;
   /** 검색창의 안내 문구이자 접근 가능한 이름. 서버 탭은 "모니터 검색"이다. */
   searchLabel?: string;
 }) {
@@ -133,12 +135,13 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
   };
 
   // ponytail: 대상마다 기존 API를 한꺼번에 부른다 — 수십 개 단위가 흔해지면 일괄 엔드포인트로.
-  const runBulk = async (targets: UptimeMonitor[], run: (monitor: UptimeMonitor) => Promise<unknown>, verb: string) => {
+  const runBulk = async (targets: UptimeMonitor[], run: (monitor: UptimeMonitor) => Promise<unknown>, verb: string, done?: (ids: string[]) => void) => {
     setBulkWorking(true);
     const results = await Promise.allSettled(targets.map(run));
     const failed = targets.filter((_, index) => results[index].status === 'rejected').map((monitor) => monitor.id);
     const firstError = results.find((result) => result.status === 'rejected')?.reason;
     if (failed.length > 0) toast.error(`${failed.length}개를 ${verb}하지 못했습니다. ${getErrorMessage(firstError)}`);
+    done?.(targets.filter((_, index) => results[index].status === 'fulfilled').map((monitor) => monitor.id));
     // 다시 불러온 결과가 반영된 뒤에 조작을 풀어 옛 상태로 다시 누르지 않게 한다.
     try {
       await afterChange();
@@ -252,7 +255,7 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
       <ConfirmDialog
         isOpen={confirmingDelete}
         onClose={() => setConfirmingDelete(false)}
-        onConfirm={() => { setConfirmingDelete(false); void runBulk(selectedMonitors, (monitor) => api.deleteUptimeMonitor(monitor.id), '삭제'); }}
+        onConfirm={() => { setConfirmingDelete(false); void runBulk(selectedMonitors, (monitor) => api.deleteUptimeMonitor(monitor.id), '삭제', onDeleted); }}
         title={`업타임 ${selectedMonitors.length}개를 삭제할까요?`}
         message={<>
           <strong className="break-all font-medium text-text-base">{selectedMonitors.slice(0, 3).map((monitor) => monitor.name).join(', ')}</strong>
