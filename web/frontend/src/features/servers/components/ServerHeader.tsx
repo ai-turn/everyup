@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button, DetailActionToolbar, DetailMeta, MaterialIcon, PageHeader, StatusLight } from '../../../components/common';
+import { SERVERS_PATH } from '../serverPaths';
 import { STATE_LABEL, type ServerRow } from '../serverStatus';
 
 export function ServerHeader({ row, groupName, onRefresh, refreshing }: {
@@ -12,7 +13,7 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing }: {
   return (
     <header>
       {/* 데스크톱은 AppHeader 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to="/servers" className="mb-3 inline-flex min-h-11 items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
+      <Link to={SERVERS_PATH} className="mb-3 inline-flex min-h-11 items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />서버 목록
       </Link>
       <PageHeader
@@ -21,7 +22,7 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing }: {
           <DetailMeta
             status={<>
               <StatusLight tone={row.state} label={STATE_LABEL[row.state]} pulse={row.state === 'error'} />
-              {row.cause && <Link to={row.cause.to} className="text-action link-underline">{row.cause.text}</Link>}
+              {row.cause && <Link to={row.cause.to} className="inline-flex min-h-11 items-center text-action link-underline sm:min-h-0">{row.cause.text}</Link>}
             </>}
             fields={groupName === undefined ? [] : [{ label: '그룹', value: groupName }]}
           />

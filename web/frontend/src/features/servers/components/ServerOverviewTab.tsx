@@ -45,7 +45,7 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
       <div className="sm:w-40 sm:shrink-0">
-        <h3 id={headingId} className="type-card-title text-text-base">{label}</h3>
+        <h2 id={headingId} className="type-card-title text-text-base">{label}</h2>
         <div className="mt-1"><StatusLight tone={tone} label={known ? STATE_LABEL[tone] : '확인 불가'} pulse={tone === 'error'} /></div>
       </div>
       <div className="min-w-0 flex-1 space-y-4">
@@ -68,17 +68,17 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
   );
 }
 
-export function ServerOverviewTab({ row, unknown, onOpen }: {
+export function ServerOverviewTab({ row, onOpen }: {
   row: ServerRow;
-  /** 대상 목록을 불러오지 못한 기능. 연결 여부를 모르므로 "연결할 수 있는 기능"에 넣지 않는다. */
-  unknown: ReadonlySet<ServerCapability>;
   onOpen: (capability: ServerCapability) => void;
 }) {
+  // 대상 목록을 불러오지 못한 기능은 연결 여부를 모른다. 경고가 아니므로 대기 톤으로, 연결된 기능들 다음에 둔다.
+  const unknown = (key: ServerCapability) => row.unknownCapabilities.includes(key);
   const connected = SERVER_CAPABILITIES
-    .filter(({ key }) => row.capabilities[key] !== null || unknown.has(key))
-    .map((item) => ({ ...item, known: !unknown.has(item.key), tone: row.capabilities[item.key] ?? 'warn' }))
-    .sort((a, b) => STATE_ORDER[a.tone] - STATE_ORDER[b.tone]);
-  const connectable = SERVER_CAPABILITIES.filter(({ key }) => row.capabilities[key] === null && !unknown.has(key));
+    .filter(({ key }) => row.capabilities[key] !== null || unknown(key))
+    .map((item) => ({ ...item, known: !unknown(item.key), tone: row.capabilities[item.key] ?? 'idle' }))
+    .sort((a, b) => Number(!a.known) - Number(!b.known) || STATE_ORDER[a.tone] - STATE_ORDER[b.tone]);
+  const connectable = SERVER_CAPABILITIES.filter(({ key }) => row.capabilities[key] === null && !unknown(key));
 
   if (connected.length === 0) {
     return (

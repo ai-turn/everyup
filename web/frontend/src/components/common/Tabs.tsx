@@ -13,6 +13,8 @@ export interface TabItem<T extends string> {
   toneLabel?: string;
   /** 라벨 옆의 보조 문구(예: "연결 전"). */
   caption?: string;
+  /** 화면에는 그리지 않고 접근 가능한 이름에만 붙는 설명(예: ", 모니터 2개"). 라벨 바로 뒤에 읽힌다. */
+  srDetail?: string;
   /** 연결되지 않은 탭처럼 흐리게 표시한다. 선택은 가능하다. */
   muted?: boolean;
 }
@@ -21,7 +23,8 @@ export interface TabItem<T extends string> {
 export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idPrefix }: {
   items: readonly TabItem<T>[];
   active: T;
-  onChange: (key: T) => void;
+  /** 키보드(화살표, Home, End)로 바꾼 경우에만 source가 'keyboard'다. */
+  onChange: (key: T, source?: 'keyboard') => void;
   ariaLabel: string;
   /** 탭과 패널의 id를 만드는 접두사 */
   idPrefix: string;
@@ -35,7 +38,7 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
       : -1;
     if (next < 0) return;
     event.preventDefault();
-    onChange(items[next].key);
+    onChange(items[next].key, 'keyboard');
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
   };
 
@@ -55,13 +58,14 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
             aria-controls={tabPanelId(idPrefix, item.key)}
             onClick={() => onChange(item.key)}
             onKeyDown={event => onKeyDown(event, index)}
-            className={`inline-flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 type-label transition-colors ${
+            className={`relative inline-flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 type-label transition-colors ${
               selected
                 ? 'border-primary text-text-base'
                 : `border-transparent hover:text-text-base ${item.muted ? 'text-text-dim' : 'text-text-muted'}`
             }`}
           >
             {item.label}
+            {item.srDetail && <span className="sr-only">{item.srDetail}</span>}
             {item.caption && <span className="type-caption text-text-dim">{item.caption}</span>}
             {item.tone && (
               <span

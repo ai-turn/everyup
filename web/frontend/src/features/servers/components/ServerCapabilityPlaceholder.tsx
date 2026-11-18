@@ -1,8 +1,10 @@
+import { LoadErrorBanner } from '../../../components/common';
 import type { ServerCapability } from '../serverPaths';
 import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 
 // 기능 탭의 임시 본문. 이후 작업이 탭마다 실제 패널로 바꾼다.
-export function ServerCapabilityPlaceholder({ row, capability }: ServerCapabilityTabProps & { capability: ServerCapability }) {
+export function ServerCapabilityPlaceholder({ row, capability, unknown, onRetry }: ServerCapabilityTabProps & { capability: ServerCapability }) {
+  if (unknown) return <LoadErrorBanner inline title="이 기능의 정보를 불러오지 못했습니다" onRetry={onRetry} />;
   const targets = capabilityTargets(row.targets, capability);
   return (
     <div className="space-y-3 type-body text-text-muted">

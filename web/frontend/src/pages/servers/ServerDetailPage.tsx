@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ButtonLink, EmptyState, LoadErrorBanner, MaterialIcon, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { ServerCapabilityPlaceholder } from '../../features/servers/components/ServerCapabilityPlaceholder';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerOverviewTab } from '../../features/servers/components/ServerOverviewTab';
-import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from '../../features/servers/serverPaths';
-import { STATE_LABEL, unknownCapabilities, type ServerRow } from '../../features/servers/serverStatus';
+import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, type ServerCapability } from '../../features/servers/serverPaths';
+import { capabilityTargets, STATE_LABEL, type ServerRow } from '../../features/servers/serverStatus';
 import { useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
@@ -15,6 +15,8 @@ import { api, type Project } from '../../services/api';
 type ServerTab = 'overview' | ServerCapability;
 const ID_PREFIX = 'server';
 
+const TARGET_NOUN: Record<ServerCapability, string> = { uptime: '모니터', infrastructure: '리소스', logs: '앱', api: '앱', metrics: '앱' };
+
 const targetName = (row: ServerRow, targetId: string) =>
   [...row.targets.monitors, ...row.targets.apps, ...(row.targets.infrastructure ? [row.targets.infrastructure] : [])]
     .find((target) => target.id === targetId)?.name;
@@ -22,7 +24,7 @@ const targetName = (row: ServerRow, targetId: string) =>
 export function ServerDetailPage() {
   const { serverId = '', capability: rawCapability, targetId } = useParams<{ serverId: string; capability?: string; targetId?: string }>();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const location = useLocation();
   const capability = SERVER_CAPABILITIES.find(({ key }) => key === rawCapability)?.key;
   const invalidCapability = rawCapability !== undefined && capability === undefined;
   const active: ServerTab = capability ?? 'overview';
@@ -30,6 +32,10 @@ export function ServerDetailPage() {
   useEffect(() => {
     if (invalidCapability) navigate(serverPath(serverId), { replace: true });
   }, [invalidCapability, serverId, navigate]);
+
+  // 키를 빠르게 연달아 누르면 다음 키가 새 주소로 다시 그려지기 전에 온다. 아직 그려지지 않은 키보드 이동을 기억한다.
+  const pendingKeyboard = useRef<string | null>(null);
+  useEffect(() => { pendingKeyboard.current = null; }, [location]);
 
   const { rows, error, failed, updatedAt, reload, loading } = useServers();
   const row = rows.find((candidate) => candidate.server.id === serverId);
@@ -64,12 +70,11 @@ export function ServerDetailPage() {
     }
     return (
       <EmptyState icon="search_off" title="서버를 찾을 수 없습니다" description="삭제되었거나 주소가 잘못되었습니다.">
-        <ButtonLink to="/servers">서버 목록</ButtonLink>
+        <ButtonLink to={SERVERS_PATH}>서버 목록</ButtonLink>
       </EmptyState>
     );
   }
 
-  const unknown = unknownCapabilities(failed);
   const groupName = projects === null ? undefined
     : row.server.projectId ? projects.find((project) => project.id === row.server.projectId)?.name ?? '-' : '미분류';
 
@@ -77,18 +82,26 @@ export function ServerDetailPage() {
     { key: 'overview', label: '개요' },
     ...SERVER_CAPABILITIES.map(({ key, label }): TabItem<ServerTab> => {
       const state = row.capabilities[key];
+      // 모르는 기능은 연결 전이 아니다: 흐리게 두지 않고 상태 점도 붙이지 않는다.
+      if (row.unknownCapabilities.includes(key)) return { key, label, caption: '확인 불가' };
+      if (state === null) return { key, label, muted: true, caption: '연결 전' };
       return {
         key, label,
+        srDetail: `, ${TARGET_NOUN[key]} ${capabilityTargets(row.targets, key).length}개`,
         ...(state === 'error' || state === 'warn' ? { tone: state, toneLabel: STATE_LABEL[state] } : {}),
-        ...(state === null && !unknown.has(key) ? { muted: true, caption: '연결 전' } : {}),
       };
     }),
   ];
 
   // 탭을 바꾸면 주소가 바뀌어 뒤로 가기로 돌아올 수 있다. 선택된 탭을 다시 누르면 그 탭의 첫 화면이다.
-  const open = (tab: ServerTab) => {
+  // 화살표 키로 연달아 옮기면 기록 하나를 덮어써서, 뒤로 가기 한 번이면 키보드 탐색을 시작한 탭으로 돌아간다.
+  const open = (tab: ServerTab, source?: 'keyboard') => {
     const next = tab === 'overview' ? serverPath(row.server.id) : serverPath(row.server.id, tab);
-    if (next !== pathname) navigate(next);
+    if (next === (pendingKeyboard.current ?? location.pathname)) return;
+    const keyboard = source === 'keyboard';
+    const previousKeyboard = pendingKeyboard.current !== null || (location.state as { tabKeys?: boolean } | null)?.tabKeys === true;
+    pendingKeyboard.current = keyboard ? next : null;
+    navigate(next, { replace: keyboard && previousKeyboard, state: keyboard ? { tabKeys: true } : null });
   };
 
   return (
@@ -103,8 +116,9 @@ export function ServerDetailPage() {
       </div>
       <div role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
         {active === 'overview'
-          ? <ServerOverviewTab row={row} unknown={unknown} onOpen={open} />
-          : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload} />}
+          ? <ServerOverviewTab row={row} onOpen={(capability) => open(capability)} />
+          : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
+            unknown={row.unknownCapabilities.includes(active)} onRetry={reload} />}
       </div>
     </div>
   );

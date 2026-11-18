@@ -1,5 +1,7 @@
 // 서버 화면의 주소는 여기서만 만든다. 컴포넌트마다 문자열을 이어 붙이면 인코딩과 순서가 어긋난다.
 
+export const SERVERS_PATH = '/servers';
+
 export type ServerCapability = 'uptime' | 'infrastructure' | 'logs' | 'api' | 'metrics';
 
 export const SERVER_CAPABILITIES: readonly { key: ServerCapability; label: string }[] = [
@@ -11,7 +13,7 @@ export const SERVER_CAPABILITIES: readonly { key: ServerCapability; label: strin
 ];
 
 export function serverPath(serverId: string, capability?: ServerCapability, targetId?: string): string {
-  return ['/servers', serverId, capability, capability && targetId]
+  return [SERVERS_PATH, serverId, capability, capability && targetId]
     .filter((part): part is string => Boolean(part))
     .map((part, index) => index === 0 ? part : encodeURIComponent(part))
     .join('/');

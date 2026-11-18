@@ -57,6 +57,8 @@ export interface ServerRow {
   errorLogs?: number;
   /** 값이 없는 까닭이 수집하지 않아서가 아니라 조회에 실패해서인 수치 */
   unavailable: ServerMetric[];
+  /** 대상 목록을 불러오지 못해 연결 여부를 모르는 기능. "연결 전"이 아니라 확인 불가다. */
+  unknownCapabilities: ServerCapability[];
 }
 
 export type ServerMetric = 'cpu' | 'memory' | 'disk' | 'uptime' | 'errorLogs';
@@ -77,15 +79,6 @@ export function capabilityTargets(targets: ServerTargets, capability: ServerCapa
   return targets.apps.filter((app) => app.signals.includes(SIGNAL_OF[capability]));
 }
 
-/** useServers의 failed 가운데 기능의 대상 목록 자체를 모르게 만든 것. 이 기능은 "연결 전"이 아니라 확인 불가다. */
-export function unknownCapabilities(failed: readonly string[]): Set<ServerCapability> {
-  return new Set<ServerCapability>([
-    ...(failed.includes('업타임') ? ['uptime' as const] : []),
-    ...(failed.includes('인프라') ? ['infrastructure' as const] : []),
-    ...(failed.includes('앱') ? ['logs' as const, 'api' as const, 'metrics' as const] : []),
-  ]);
-}
-
 /** 서버 상세의 기능 탭이 받는 props. */
 export interface ServerCapabilityTabProps {
   row: ServerRow;
@@ -93,6 +86,9 @@ export interface ServerCapabilityTabProps {
   targetId?: string;
   /** 대상이 추가·삭제·이동된 뒤 서버 데이터를 다시 불러온다 */
   onChanged: () => void;
+  /** 이 기능의 대상 목록을 불러오지 못했다. 연결 안내 대신 불러오지 못했다는 안내를 보여 준다. */
+  unknown?: boolean;
+  onRetry?: () => void;
 }
 
 export function buildServerRows(input: {
@@ -154,6 +150,11 @@ export function buildServerRows(input: {
         ...(input.infrastructure ? [] : ['cpu', 'memory', 'disk'] as const),
         ...(input.monitors ? [] : ['uptime'] as const),
         ...(!input.apps || (!input.logSummaries && logApps.length > 0) ? ['errorLogs'] as const : []),
+      ],
+      unknownCapabilities: [
+        ...(input.monitors ? [] : ['uptime'] as const),
+        ...(input.infrastructure ? [] : ['infrastructure'] as const),
+        ...(input.apps ? [] : ['logs', 'api', 'metrics'] as const),
       ],
     };
   }).sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state] || a.server.name.localeCompare(b.server.name));
