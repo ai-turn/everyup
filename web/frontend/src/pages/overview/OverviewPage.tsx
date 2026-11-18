@@ -54,7 +54,8 @@ export function OverviewPage() {
   const [retrying, setRetrying] = useState(false);
   const pendingLoad = useRef<Promise<void> | null>(null);
   // 서버와 직접 대상의 상태는 서버 목록과 같은 훅과 판정을 쓴다. 따로 계산하면 개요와 서버 목록이 어긋난다.
-  const servers = useServers();
+  // 오류 로그 수를 보여 주지 않으므로 로그 요약은 불러오지 않는다.
+  const servers = useServers({ logSummary: false });
   const { poll, refresh: refreshServers } = servers;
 
   const load = useCallback(() => {
@@ -101,10 +102,10 @@ export function OverviewPage() {
   // Docker 환경의 인프라는 그 환경과 ID와 수신 시각이 같다. 환경 항목이 이미 있으면 같은 곳으로 가는 두 번째 항목을 만들지 않는다.
   const staleDockerInfrastructure = dockerInfrastructure.filter((resource) =>
     resource.isActive && !isCollectorFresh(resource.lastSeenAt) && !staleAgents.some((agent) => agent.id === resource.id));
-  // 서버 목록 자체나 대상 목록(업타임, 앱, 인프라, 메트릭 임계값)을 불러오지 못했다. 로그 요약은 이 화면의 판정에 쓰지 않는다.
+  // 서버 목록 자체나 대상 목록(업타임, 앱, 인프라, 메트릭 임계값)을 불러오지 못했다. 로그 요약은 불러오지 않는다.
   const serverFailures = [
     ...(servers.error ? ['서버'] : []),
-    ...servers.failed.filter((item) => item.label !== '로그 요약').map((item) => item.label),
+    ...servers.failed.map((item) => item.label),
   ];
   const monitorsUnknown = Boolean(servers.error) || servers.failed.some((item) => item.label === '업타임');
   const failedLabels = [...failedSources.map((source) => SOURCE_LABELS[source] ?? source), ...serverFailures];

@@ -84,7 +84,8 @@ export function ProjectsPage() {
   // 상태 요약은 그룹 상세와 같은 입력으로 계산한다. Docker 서비스를 불러오지 못하면 services가 null이다.
   // 장애를 모른 채 "정상"이라고 말하지 않는다. 서버는 서버 목록과 같은 훅에서 온다.
   const [docker, setDocker] = useState<DockerSources>({ agents: [], services: [] });
-  const servers = useServers();
+  // 오류 로그 수를 보여 주지 않으므로 로그 요약은 불러오지 않는다.
+  const servers = useServers({ logSummary: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null | undefined>(undefined);

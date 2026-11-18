@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, type InfrastructureResource, type ObservedService, type UptimeMonitor } from '../../services/api';
+import { api, type InfrastructureResource, type LogServiceSummary, type ObservedService, type UptimeMonitor } from '../../services/api';
 
 /** 이보다 빨리 끝나는 다시 불러오기는 진행 중으로 보이지 않는다(30초마다 버튼이 깜빡이지 않게). */
 const BUSY_AFTER_MS = 300;
@@ -34,7 +34,13 @@ type BuildInput = Parameters<typeof buildServerRows>[0];
 interface LastLists { monitors: UptimeMonitor[] | null; apps: ObservedService[] | null; infrastructure: InfrastructureResource[] | null }
 
 // 서버 목록은 새 집계 API 없이 기존 목록 응답을 serverId로 묶어서 만든다.
-export function useServers(): {
+export function useServers({ logSummary = true }: {
+  /**
+   * 24시간 오류 로그 수(/logs/summary)를 불러온다. 무거운 조회라 그 수를 보여 주지 않는 화면(개요, 그룹)은 끈다.
+   * 끄면 errorLogs는 "조회 실패"가 아니라 쓰지 않는 값이다(unavailable과 failed에 들어가지 않는다).
+   */
+  logSummary?: boolean;
+} = {}): {
   rows: ServerRow[];
   /** 다시 불러오는 중이다(가장 최근 요청이 아직 끝나지 않았다). */
   loading: boolean;
@@ -105,8 +111,8 @@ export function useServers(): {
       setBusy(false);
     }, ABANDON_AFTER_MS);
     const done: Promise<void> = Promise.allSettled([
-      api.getServers(), api.getUptimeMonitors(true), api.getObservedServices(), api.getInfrastructureResources(), api.getLogSummary(),
-      api.getObservedServiceMetricCatalog(),
+      api.getServers(), api.getUptimeMonitors(true), api.getObservedServices(), api.getInfrastructureResources(),
+      logSummary ? api.getLogSummary() : Promise.resolve(undefined), api.getObservedServiceMetricCatalog(),
     ]).then(([servers, monitors, apps, infrastructure, logSummaries, metricCatalog]) => {
       cancel(busyTimer);
       cancel(abandonTimer);
@@ -126,7 +132,7 @@ export function useServers(): {
       setError(null);
       setLoaded(true);
       lastBuild.current = {
-        servers: servers.value ?? [], ...lists, logSummaries: settled(logSummaries), metricCatalog: settled(metricCatalog),
+        servers: servers.value ?? [], ...lists, logSummaries: logSummary ? settled(logSummaries as PromiseSettledResult<LogServiceSummary[] | null>) : undefined, metricCatalog: settled(metricCatalog),
         stale: { monitors: !fresh.monitors, apps: !fresh.apps, infrastructure: !fresh.infrastructure },
       };
       setRows(buildServerRows(lastBuild.current));
@@ -139,7 +145,7 @@ export function useServers(): {
     }).then(() => (id === latest.current ? undefined : inFlight.current ?? undefined));
     inFlight.current = done;
     return done;
-  }, []);
+  }, [logSummary]);
 
   // 시작한 지 ABANDON_AFTER_MS가 지난 요청은 끝나지 않았어도 기다리지 않는다(타이머와 같은 시각에 와도 판정이 같게 시각으로 본다).
   const waiting = () => pendingSince.current !== null && Date.now() - pendingSince.current < ABANDON_AFTER_MS;

@@ -523,3 +523,20 @@ test('the metrics panel of an app over a threshold says so, like its tab', async
   await expect(statusLine.getByText('임계값 초과', { exact: true })).toBeVisible();
   await expect(statusLine.getByText('수집 중', { exact: true })).toHaveCount(0);
 });
+
+test('only the screens that show error log counts ask for the log summary', async ({ page }) => {
+  const state = await mockServer(page, { project: true });
+  const summaries = state.count('/logs/summary');
+  const catalogReads = state.count('/observed-services/metric-catalog');
+  // 서버 데이터의 요청은 한꺼번에 나간다. 지표 목록(마지막 요청)이 나갔으면 로그 요약도 나갔을 때다.
+  for (const path of ['./', './projects', './projects/p1']) {
+    const before = catalogReads();
+    await page.goto(path);
+    await expect.poll(catalogReads).toBeGreaterThan(before);
+    await expect(page.getByText('일부 정보를 불러오지 못했습니다')).toHaveCount(0);
+  }
+  expect(summaries()).toBe(0);
+  await page.goto('./servers');
+  await expect(page.getByRole('table', { name: '서버 그리드' })).toBeVisible();
+  await expect.poll(summaries).toBe(1);
+});

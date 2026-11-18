@@ -213,7 +213,8 @@ export function buildServerRows(input: {
   monitors: UptimeMonitor[] | null;        // null은 조회 실패
   apps: ObservedService[] | null;
   infrastructure: InfrastructureResource[] | null;
-  logSummaries: LogServiceSummary[] | null;
+  /** null은 조회 실패, 없으면 이 화면이 쓰지 않는 값이다(errorLogs를 만들지 않고 불러오지 못한 것으로도 보지 않는다). */
+  logSummaries?: LogServiceSummary[] | null;
   /** 모든 앱의 지표 목록(임계값 초과 판정용). null은 조회 실패: 수신 여부만으로 판정한다. */
   metricCatalog?: ObservedServiceMetricName[] | null;
   /** 다시 불러오다 실패해서 이전에 성공한 목록을 준 종류 */
@@ -315,7 +316,7 @@ export function buildServerRows(input: {
       unavailable: [
         ...(known.infrastructure ? [] : ['cpu', 'memory', 'disk'] as const),
         ...(known.monitors ? [] : ['uptime'] as const),
-        ...(!known.apps || (!input.logSummaries && logApps.length > 0) ? ['errorLogs'] as const : []),
+        ...(input.logSummaries !== undefined && (!known.apps || (!input.logSummaries && logApps.length > 0)) ? ['errorLogs'] as const : []),
       ],
       unknownCapabilities: [
         ...(input.monitors ? [] : ['uptime'] as const),

@@ -42,7 +42,8 @@ export function ProjectOverviewPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<ProjectData>({ project: null, projects: [], docker: EMPTY_DOCKER });
-  const servers = useServers();
+  // 오류 로그 수를 보여 주지 않으므로 로그 요약은 불러오지 않는다.
+  const servers = useServers({ logSummary: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [failedSources, setFailedSources] = useState<string[]>([]);
