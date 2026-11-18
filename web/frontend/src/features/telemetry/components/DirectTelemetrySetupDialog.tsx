@@ -19,6 +19,8 @@ interface DirectTelemetrySetupDialogProps {
   description: string;
   onClose: () => void;
   onCreated: (service: ObservedService) => void;
+  /** 서버 화면에서 열었다: 새 앱을 이 서버에 만들고, 기존 서비스 후보를 이 서버의 앱으로 좁히며, 그룹은 서버의 것을 쓴다. */
+  serverId?: string;
 }
 
 type SetupMode = 'new' | 'existing';
@@ -30,6 +32,7 @@ export function DirectTelemetrySetupDialog({
   description,
   onClose,
   onCreated,
+  serverId,
 }: DirectTelemetrySetupDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<SetupMode>('new');
@@ -56,10 +59,10 @@ export function DirectTelemetrySetupDialog({
       setOptionsLoading(true);
       setOptionsError(null);
       try {
-        const [projectRows, serviceRows] = await Promise.all([api.getProjects(), api.getObservedServices()]);
+        const [projectRows, serviceRows] = await Promise.all([serverId ? null : api.getProjects(), api.getObservedServices()]);
         if (active) {
           setProjects(projectRows ?? []);
-          setExistingServices((serviceRows ?? []).filter(service => service.isActive && !service.signals.includes(signal)));
+          setExistingServices((serviceRows ?? []).filter(service => service.isActive && !service.signals.includes(signal) && (!serverId || service.serverId === serverId)));
         }
       } catch (error) {
         if (active) setOptionsError(getErrorMessage(error));
@@ -69,7 +72,7 @@ export function DirectTelemetrySetupDialog({
     };
     void load();
     return () => { active = false; };
-  }, [signal, optionsRetryKey]);
+  }, [signal, serverId, optionsRetryKey]);
 
   const selected = useMemo(
     () => existingServices.find(service => service.id === existingId),
@@ -81,18 +84,15 @@ export function DirectTelemetrySetupDialog({
     setSubmitting(true);
     try {
       if (mode === 'new') {
-        const service = await api.createObservedService({
-          name: name.trim(),
-          projectId: projectId || undefined,
-          signals: [signal],
-        });
+        const service = await api.createObservedService(serverId
+          ? { name: name.trim(), serverId, signals: [signal] }
+          : { name: name.trim(), projectId: projectId || undefined, signals: [signal] });
         setResult({ kind: 'issued', service });
       } else if (selected) {
-        const service = await api.updateObservedService(selected.id, {
-          name: selected.name,
-          projectId: selected.projectId,
-          signals: [...selected.signals, signal],
-        });
+        // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
+        const service = await api.updateObservedService(selected.id, serverId
+          ? { name: selected.name, serverId, signals: [...selected.signals, signal] }
+          : { name: selected.name, projectId: selected.projectId, signals: [...selected.signals, signal] });
         setResult({ kind: 'attached', service, signal });
       }
     } catch (error) {
@@ -158,13 +158,13 @@ export function DirectTelemetrySetupDialog({
                 <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" aria-describedby={`direct-${signal}-name-hint`} required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="예: orders-api" />
                 <p id={`direct-${signal}-name-hint`} className="type-body text-text-muted">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</p>
               </div>
-              <label className="block space-y-1.5" htmlFor={`direct-${signal}-project`}>
+              {!serverId && <label className="block space-y-1.5" htmlFor={`direct-${signal}-project`}>
                 <span className="type-label text-text-secondary">그룹</span>
                 <Select id={`direct-${signal}-project`} value={projectId} onChange={event => setProjectId(event.target.value)}>
                   <option value="">미분류</option>
                   {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
                 </Select>
-              </label>
+              </label>}
             </>
           ) : (
             <label className="block space-y-1.5" htmlFor={`direct-${signal}-existing-service`}>

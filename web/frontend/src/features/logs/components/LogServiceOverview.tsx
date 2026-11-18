@@ -168,9 +168,9 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
     // 서비스 목록과 반복 패턴은 성격이 다른 두 섹션이라 개요처럼 section-stack(32px + 옅은 선)으로 나눈다.
     <div className="section-stack">
       <section>
-        {titleHidden ? <h2 className="sr-only">{title}</h2> : <div className="mb-3 flex items-center justify-between gap-3">
+        {titleHidden ? <h2 className="sr-only">{title}</h2> : <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="type-section-title text-text-base">{title}</h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <span className="text-xs text-text-dim">{`최근 24시간 · 서비스 ${rows.length}개`}</span>
             {viewToggle}
           </div>

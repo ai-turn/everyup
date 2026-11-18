@@ -28,7 +28,7 @@ interface DirectConnectionMetaProps {
   collapseOnMobile?: boolean;
   collapseLabel?: string;
   /** 목록과 같은 수집 상태. 주면 "연결 활성" 대신 이것을 보인다 — 키가 살아 있어도 수신 전·지연일 수 있다.
-   *  메트릭은 목록·본문과 같은 판정(`metricCollection`)의 점 + 라벨을 그대로 넘긴다. */
+   *  메트릭은 목록·본문과 같은 판정(`metricCollection`)의 점 + 라벨을 그대로 넘긴다. 점 + 라벨은 연결을 멈췄을 때도 쓴다. */
   collection?: CollectionStatus | { tone: StatusTone; label: string };
 }
 
@@ -59,7 +59,10 @@ export function DirectConnectionMeta({
       collapseLabel={collapseLabel}
       status={
         <>
-          {isActive && collection ? typeof collection === 'string' ? <CollectionStatusBadge status={collection} /> : <StatusLight {...collection} /> : <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '연결 활성' : '중지됨'} />}
+          {/* 점과 문구로 받은 상태는 연결을 멈춘 상태의 문구도 갖고 있다. */}
+          {collection && typeof collection !== 'string' ? <StatusLight {...collection} />
+            : isActive && collection ? <CollectionStatusBadge status={collection} />
+              : <StatusLight tone={isActive ? 'healthy' : 'error'} label={isActive ? '연결 활성' : '중지됨'} />}
           <span>마지막 수집 {lastSeenAt ? new Date(lastSeenAt).toLocaleString('ko-KR', { hour12: false }) : '아직 없음'}</span>
           {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 원리 */}
           {isActive && <Button variant="ghost" onClick={onRevoke}><MaterialIcon name="block" />연결 중지</Button>}

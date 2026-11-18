@@ -53,7 +53,7 @@ test('switching tabs changes the address and back returns to the overview', asyn
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/logs$`));
   await expect(logs).toHaveAttribute('aria-selected', 'true');
   await expect(tablist(page).getByRole('tab', { name: '개요' })).toHaveAttribute('aria-selected', 'false');
-  await expect(page.getByRole('tabpanel')).toContainText('이 탭은 준비 중입니다');
+  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: '앱' })).toBeVisible();
 
   await page.goBack();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}$`));
@@ -131,7 +131,7 @@ test('a failed app list reads as unknown, not as not connected', async ({ page }
   await expect(page.getByRole('region', { name: '로그', exact: true })).not.toContainText('확인 필요');
 
   await logs.click();
-  await expect(page.getByRole('tabpanel')).toContainText('이 기능의 정보를 불러오지 못했습니다');
+  await expect(page.getByRole('tabpanel')).toContainText('로그 앱 정보를 불러오지 못했습니다');
   await expect(page.getByRole('tabpanel').getByRole('button', { name: '다시 시도' })).toBeVisible();
 });
 

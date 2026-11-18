@@ -6,6 +6,7 @@ import { ServerCapabilityPlaceholder } from '../../features/servers/components/S
 import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerInfrastructureTab } from '../../features/servers/components/ServerInfrastructureTab';
+import { ServerLogsTab } from '../../features/servers/components/ServerLogsTab';
 import { ServerOverviewTab } from '../../features/servers/components/ServerOverviewTab';
 import { ServerUptimeTab } from '../../features/servers/components/ServerUptimeTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
@@ -149,6 +150,9 @@ export function ServerDetailPage() {
             : active === 'infrastructure'
               ? <ServerInfrastructureTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
                 stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
+              : active === 'logs'
+                ? <ServerLogsTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)}
+                  stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />
               : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
               unknown={row.unknownCapabilities.includes(active)} stale={Boolean(error)} onRetry={() => void reload()} refreshToken={refreshToken} />}
       </div>
