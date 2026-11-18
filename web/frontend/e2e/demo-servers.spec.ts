@@ -3,6 +3,7 @@ import { mockRouter } from '../src/services/mockRouter';
 import type { MockScenario } from '../src/mocks/demoScenario';
 import type {
   InfrastructureResource, LogPattern, LogServiceSummary, ObservedService, Project, Server, TimelineIncident, UptimeMonitor,
+  UptimeMonitorMetric, UptimeMonitorSummary,
 } from '../src/services/api';
 
 // mockRouter는 window가 없으면 attention 시나리오이다. 다른 시나리오는 sessionStorage를 흉내 내서 고른다.
@@ -82,6 +83,37 @@ test('log summary and patterns narrow to one server', () => {
   expect(patterns.length).toBeGreaterThan(0);
   expect(patterns.every(row => appIds.includes(row.serviceId!))).toBe(true);
   expect(mockRouter<LogServiceSummary[]>('/logs/summary').length).toBeGreaterThan(summaries.length);
+});
+
+test('the demo outage stays one consistent episode', () => {
+  const read = () => mockRouter<UptimeMonitor[]>('/services?type=http,tcp&include=checks').find(row => row.id === 'uptime_mock_checkout')!;
+  const first = read();
+  expect(first.status).toBe('unhealthy');
+  expect(first.recentChecks![0].status).toBe('failure');
+  expect(read().activeIncident!.startedAt).toBe(first.activeIncident!.startedAt);
+  const since = Date.parse(first.activeIncident!.startedAt);
+  const metrics = mockRouter<UptimeMonitorMetric[]>('/services/uptime_mock_checkout/metrics');
+  expect(metrics.filter(row => Date.parse(row.checkedAt) >= since).every(row => row.status === 'failure')).toBe(true);
+  expect(mockRouter<UptimeMonitorSummary>('/services/uptime_mock_checkout/metrics/summary').failedChecks).toBeGreaterThan(0);
+  const normal = inScenario('normal', () => mockRouter<UptimeMonitor[]>('/services?type=http,tcp&include=checks').find(row => row.id === 'uptime_mock_checkout')!);
+  expect(normal.status).toBe('healthy');
+  expect(normal.activeIncident).toBeUndefined();
+  expect(normal.recentChecks!.every(row => row.status === 'success')).toBe(true);
+  expect(inScenario('normal', () => mockRouter<UptimeMonitorMetric[]>('/services/uptime_mock_checkout/metrics')).every(row => row.status === 'success')).toBe(true);
+});
+
+test('server responses are copies and groups must exist', () => {
+  const before = mockRouter<Server[]>('/servers');
+  const created = mockRouter<Server>('/servers', 'POST', json({ name: 'e2e-copy' }));
+  expect(mockRouter<Server>(`/servers/${created.id}`)).not.toBe(mockRouter<Server>(`/servers/${created.id}`));
+  mockRouter(`/servers/${created.id}`, 'PUT', json({ name: 'e2e-copy-renamed' }));
+  const after = mockRouter<Server[]>('/servers');
+  expect(after).not.toBe(before);
+  expect(after.find(row => row.id === created.id)!.name).toBe('e2e-copy-renamed');
+  expect(created.name).toBe('e2e-copy');
+  expect(() => mockRouter('/servers', 'POST', json({ name: 'e2e-orphan', projectId: 'project_missing' }))).toThrow(expect.objectContaining({ code: 'VALIDATION_ERROR', message: 'group not found' }));
+  expect(() => mockRouter(`/servers/${created.id}`, 'PUT', json({ name: 'e2e-copy', projectId: 'project_missing' }))).toThrow(expect.objectContaining({ code: 'VALIDATION_ERROR' }));
+  mockRouter(`/servers/${created.id}`, 'DELETE');
 });
 
 test('server writes follow the backend rules', () => {

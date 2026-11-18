@@ -854,11 +854,19 @@ const mockServers: Server[] = ([
 }));
 
 // attention 시나리오에서 장애 중인 업타임 모니터. normal 시나리오에서는 정상이다.
+// 장애는 고정된 한 시각에 시작한다. 지속 시간이 늘어나고 그 뒤의 체크는 모두 실패다.
 const outageMonitorId = 'uptime_mock_checkout';
+const outageStart = nowAgent - 6 * 60_000;
+const outageApplies = (monitorId: string, scenario: MockScenario) => monitorId === outageMonitorId && scenario !== 'normal';
 const outageIncident = (monitor: Pick<UptimeMonitor, 'name' | 'serverId' | 'id'>): TimelineIncident => ({
   source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}`,
-  startedAt: new Date(Date.now() - 6 * 60_000).toISOString(), durationSec: 6 * 60, active: true, message: 'connection timed out',
+  startedAt: new Date(outageStart).toISOString(), durationSec: Math.round((Date.now() - outageStart) / 1000), active: true, message: 'connection timed out',
 });
+
+function summarizeChecks(serviceId: string, metrics: UptimeMonitorMetric[]): UptimeMonitorSummary {
+  const values = metrics.filter(row => row.status === 'success').map(row => row.responseTime);
+  return { serviceId, totalChecks: metrics.length, successfulChecks: values.length, failedChecks: metrics.length - values.length, uptime: metrics.length ? values.length / metrics.length * 100 : 0, avgResponseTime: values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0, minResponseTime: values.length ? Math.min(...values) : 0, maxResponseTime: metrics.length ? Math.max(...metrics.map(row => row.responseTime)) : 0 };
+}
 
 const serverNameKey = (name: string) => name.trim().toLowerCase();
 const findServer = (id?: string) => mockServers.find(server => server.id === id);
@@ -883,6 +891,7 @@ function writeServer(input: Partial<ServerInput>, id?: string): Server {
   const name = String(input.name ?? '').trim();
   if (!name || name.length > 200) throw new ApiError('name is required and must be at most 200 characters', 'VALIDATION_ERROR', 400);
   const projectId = input.projectId || undefined;
+  if (projectId && !mockProjects.some(project => project.id === projectId)) throw new ApiError('group not found', 'VALIDATION_ERROR', 400);
   if (mockServers.some(server => server.id !== id && sameServerName(server, name, projectId))) {
     throw new ApiError('server name already exists in this group', 'SERVER_NAME_TAKEN', 409);
   }
@@ -1103,9 +1112,7 @@ const monitorData = new Map(mockUptimeMonitors.map((monitor, index) => {
     metrics: mockUptimeMetrics, summary: mockUptimeSummary, history: mockUptimeHistory, incidents: mockUptimeIncidents, failures: mockUptimeFailures,
   }] as const;
   const metrics = demoMonitorMetrics(monitor, index);
-  const successful = metrics.filter(row => row.status === 'success');
-  const values = successful.map(row => row.responseTime);
-  const summary: UptimeMonitorSummary = { serviceId: monitor.id, totalChecks: metrics.length, successfulChecks: successful.length, failedChecks: metrics.length - successful.length, uptime: metrics.length ? successful.length / metrics.length * 100 : 0, avgResponseTime: values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0, minResponseTime: values.length ? Math.min(...values) : 0, maxResponseTime: metrics.length ? Math.max(...metrics.map(row => row.responseTime)) : 0 };
+  const summary = summarizeChecks(monitor.id, metrics);
   const history: UptimeMonitorHistory = { percentage: summary.uptime, days: !metrics.length ? [] : Array.from({ length: 90 }, (_, i) => ({ date: new Date(nowAgent - i * 86_400_000).toISOString().slice(0, 10), uptime: i === 0 ? summary.uptime : 100, status: i === 0 && summary.failedChecks ? 'partial' : 'up' })) };
   const incidents: TimelineIncident[] = summary.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}`, startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(), durationSec: 480, active: false, message: 'upstream deadline exceeded' }] : [];
   return [monitor.id, { metrics, summary, history, incidents, failures: [] as UptimeMonitorMetric[] }] as const;
@@ -1227,6 +1234,15 @@ function scenarioMonitors(scenario: MockScenario): UptimeMonitor[] {
 }
 
 // 장애 중인 모니터의 진행 중인 장애를 이력 앞에 붙인다. 경로는 지금 소속된 서버를 따른다.
+// 장애 중이면 outageStart 이후의 체크를 실패로 바꾼다.
+function monitorChecks(monitorId: string, scenario: MockScenario): UptimeMonitorMetric[] {
+  const metrics = monitorData.get(monitorId)?.metrics ?? [];
+  if (!outageApplies(monitorId, scenario)) return metrics;
+  const monitor = mockUptimeMonitors.find(({ id }) => id === monitorId);
+  return metrics.map(check => Date.parse(check.checkedAt) < outageStart ? check
+    : { ...check, status: 'failure' as const, responseTime: monitor?.timeout ?? check.responseTime, statusCode: undefined, errorMessage: 'connection timed out' });
+}
+
 function monitorIncidents(monitor: UptimeMonitor): TimelineIncident[] {
   const incidents = [...(monitor.status === 'unhealthy' && monitor.id === outageMonitorId ? [outageIncident(monitor)] : []), ...(monitorData.get(monitor.id)?.incidents ?? [])];
   return incidents.map(incident => ({ ...incident, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}` }));
@@ -1549,11 +1565,11 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const serverMatch = endpoint.match(/^\/servers\/([^/]+)$/);
     const serverMergeMatch = endpoint.match(/^\/servers\/([^/]+)\/merge$/);
     if (method === 'POST' && endpoint === '/servers') {
-      return writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput) as T;
+      return { ...writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput) } as T;
     }
     if (method === 'PUT' && serverMatch) {
       if (!findServer(serverMatch[1])) serverNotFound();
-      return writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput, serverMatch[1]) as T;
+      return { ...writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput, serverMatch[1]) } as T;
     }
     if (method === 'DELETE' && serverMatch) {
       const serverId = serverMatch[1];
@@ -1582,7 +1598,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       }
       mockServers.splice(mockServers.findIndex(server => server.id === sourceId), 1);
       target.updatedAt = new Date().toISOString();
-      return target as T;
+      return { ...target } as T;
     }
     if (method === 'DELETE' && uptimeMatch) {
       const index = mockUptimeMonitors.findIndex(({ id }) => id === uptimeMatch[1]);
@@ -1665,9 +1681,9 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       infrastructureResourceCount: infrastructureResources.filter((resource) => resource.projectId === project.id).length,
     })) as T;
   }
-  if (endpoint === '/servers') return scenarioServers(scenario) as T;
+  if (endpoint === '/servers') return scenarioServers(scenario).map(server => ({ ...server })) as T;
   const serverDetailMatch = endpoint.match(/^\/servers\/([^/?]+)$/);
-  if (serverDetailMatch) return (scenarioServers(scenario).find(server => server.id === serverDetailMatch[1]) ?? serverNotFound()) as T;
+  if (serverDetailMatch) return { ...(scenarioServers(scenario).find(server => server.id === serverDetailMatch[1]) ?? serverNotFound()) } as T;
   if (endpoint === '/infrastructure-resources') {
     const agentResources: InfrastructureResource[] = scenarioAgents(scenario)
       .filter(agent => agent.version && agent.profile?.capabilities.includes('infrastructure'))
@@ -1743,10 +1759,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (endpoint === '/services?type=http,tcp') return scenarioMonitors(scenario) as T;
   if (endpoint === '/services?type=http,tcp&include=checks') return scenarioMonitors(scenario).map(monitor => {
     const activeIncident = monitor.isActive && monitor.status === 'unhealthy' ? monitorIncidents(monitor).find(incident => incident.active) : undefined;
-    const failingSince = activeIncident ? Date.parse(activeIncident.startedAt) : Infinity;
-    const recentChecks = (monitorData.get(monitor.id)?.metrics.slice(0, 10) ?? []).map(check => Date.parse(check.checkedAt) < failingSince ? check
-      : { ...check, status: 'failure' as const, responseTime: monitor.timeout, statusCode: undefined, errorMessage: activeIncident?.message });
-    return { ...monitor, recentChecks, activeIncident };
+    return { ...monitor, recentChecks: monitorChecks(monitor.id, scenario).slice(0, 10), activeIncident };
   }) as T;
   if (/^\/logs\/summary(?:\?|$)/.test(endpoint)) return mockLogSummary(scenario, new URLSearchParams(endpoint.split('?')[1]).get('serverId') ?? '') as T;
   if (/^\/logs\/patterns(?:\?|$)/.test(endpoint)) {
@@ -1757,9 +1770,10 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (uptimeDataMatch) {
     const data = monitorData.get(uptimeDataMatch[1]);
     const part = uptimeDataMatch[2];
-    if (part === 'metrics/summary') return (data?.metrics.length ? data.summary : null) as T;
-    if (part === 'metrics/history') return mockUptimeBuckets(new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '24h', data?.metrics ?? []) as T;
-    if (part === 'metrics') return (data?.metrics ?? []).slice(0, Number(new URLSearchParams(endpoint.split('?')[1]).get('limit') ?? 100)) as T;
+    const checks = monitorChecks(uptimeDataMatch[1], scenario);
+    if (part === 'metrics/summary') return (!checks.length ? null : outageApplies(uptimeDataMatch[1], scenario) ? summarizeChecks(uptimeDataMatch[1], checks) : data?.summary) as T;
+    if (part === 'metrics/history') return mockUptimeBuckets(new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '24h', checks) as T;
+    if (part === 'metrics') return checks.slice(0, Number(new URLSearchParams(endpoint.split('?')[1]).get('limit') ?? 100)) as T;
     if (part === 'uptime') return (data?.history ?? { percentage: 100, days: [] }) as T;
     if (part === 'failures') return (data?.failures ?? []) as T;
     const monitor = scenarioMonitors(scenario).find(({ id }) => id === uptimeDataMatch[1]);
