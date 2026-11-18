@@ -13,6 +13,11 @@ export const SERVER_CAPABILITIES: readonly { key: ServerCapability; label: strin
   { key: 'metrics', label: '메트릭' },
 ];
 
+// 삭제 뒤 목록으로 돌아갈 때 사용자가 마지막으로 보던 검색어와 필터를 되살린다. 새로고침하면 사라진다.
+let serversSearch = '';
+export function rememberServersSearch(search: string) { serversSearch = search; }
+export function serversListPath(): string { return `${SERVERS_PATH}${serversSearch}`; }
+
 export function serverPath(serverId: string, capability?: ServerCapability, targetId?: string): string {
   return [SERVERS_PATH, serverId, capability, capability && targetId]
     .filter((part): part is string => Boolean(part))

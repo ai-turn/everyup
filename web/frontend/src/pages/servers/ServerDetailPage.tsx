@@ -7,7 +7,7 @@ import { MergeServerDialog } from '../../features/servers/components/MergeServer
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerOverviewTab } from '../../features/servers/components/ServerOverviewTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
-import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, type ServerCapability } from '../../features/servers/serverPaths';
+import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, serversListPath, type ServerCapability } from '../../features/servers/serverPaths';
 import { capabilityStateLabel, capabilityTargets, type ServerRow } from '../../features/servers/serverStatus';
 import { useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
@@ -55,7 +55,7 @@ export function ServerDetailPage() {
   useAutoRefresh(reload, 30_000);
   const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
 
-  // 서버를 만들거나 합친 뒤에 이 화면으로 오면 포커스를 탭 패널로 옮긴다.
+  // 서버를 만든 뒤에 이 화면으로 오면 포커스를 탭 패널로 옮긴다.
   const [dialog, setDialog] = useState<'settings' | 'merge' | 'delete' | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const found = Boolean(row);
@@ -141,11 +141,11 @@ export function ServerDetailPage() {
           onMerge={() => setDialog('merge')} onDelete={() => setDialog('delete')} />
       )}
       {dialog === 'merge' && (
-        <MergeServerDialog row={row} rows={rows} projects={projects} onClose={() => setDialog(null)}
-          onMerged={(targetServerId) => { setDialog(null); reload(); navigate(serverPath(targetServerId), { replace: true, state: { focusPanel: true } }); }} />
+        <MergeServerDialog row={row} rows={rows} projects={projects} onClose={() => setDialog(null)} onReload={reload} />
       )}
       {dialog === 'delete' && (
-        <DeleteServerDialog row={row} onClose={() => setDialog(null)} onDeleted={() => { setDialog(null); navigate(SERVERS_PATH); }} />
+        <DeleteServerDialog row={row} onClose={() => setDialog(null)} onFailed={reload}
+          onDeleted={() => { setDialog(null); navigate(serversListPath(), { replace: true }); }} />
       )}
     </div>
   );

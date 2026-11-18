@@ -8,25 +8,7 @@ import { getErrorMessage } from '../../../utils/errors';
 import { hasTargets, type ServerRow } from '../serverStatus';
 import { useServerForm } from '../useServerForm';
 import { ServerFields } from './ServerFields';
-
-/** 합치기와 삭제의 확인 창이 옮겨지거나 지워질 대상을 종류별로 보여 준다. 0개인 종류는 뺀다. */
-export function TargetCountList({ row }: { row: ServerRow }) {
-  const counts = ([
-    ['업타임 모니터', row.targets.monitors.length],
-    ['앱', row.targets.apps.length],
-    ['인프라 리소스', row.targets.infrastructure ? 1 : 0],
-  ] as const).filter(([, count]) => count > 0);
-  return (
-    <>
-      {counts.length > 0 && (
-        <ul className="list-disc space-y-1 pl-5 type-body text-text-base">
-          {counts.map(([label, count]) => <li key={label}>{label} {count}개</li>)}
-        </ul>
-      )}
-      {row.unknownCapabilities.length > 0 && <p className="mt-2 type-body text-text-muted">일부 대상 목록을 불러오지 못해 개수가 빠졌을 수 있습니다.</p>}
-    </>
-  );
-}
+import { TargetCountList } from './TargetCountList';
 
 export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete }: {
   row: ServerRow;
@@ -68,27 +50,34 @@ export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete 
         <fieldset disabled={saving} className="space-y-4 p-6">
           <ServerFields form={form} idPrefix="server-settings" />
         </fieldset>
+        {/* 서버 자체를 바꾸는 조작은 입력란 아래에 떼어 두고, 저장 줄은 맨 아래에 둔다.
+            오른쪽 아래 끝(주 액션 자리)에 삭제가 오지 않게 한다. 중립 표면에 붉은 글자의 조작이다(DESIGN.md §9.2). */}
+        <section aria-label="서버 관리" className="space-y-4 border-t border-ui-border px-6 py-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.</p>
+            <Button type="button" variant="secondary" onClick={onMerge} disabled={saving}>다른 서버 합치기</Button>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">연결된 대상과 수집된 데이터를 함께 삭제합니다.</p>
+            <Button type="button" variant="destructive" onClick={onDelete} disabled={saving}>서버 삭제</Button>
+          </div>
+        </section>
         <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button>
           <Button type="submit" loading={saving}>저장</Button>
         </div>
       </form>
-      {/* 서버 자체를 없애는 조작은 저장 폼과 떼어 둔다. 중립 표면에 붉은 글자의 조작이다(DESIGN.md §9.2). */}
-      <section aria-label="서버 관리" className="space-y-4 border-t border-ui-border px-6 py-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">이 서버의 대상을 모두 다른 서버로 옮기고 이 서버를 삭제합니다.</p>
-          <Button type="button" variant="secondary" onClick={onMerge} disabled={saving}>다른 서버와 합치기</Button>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">연결된 대상과 수집된 데이터를 함께 삭제합니다.</p>
-          <Button type="button" variant="destructive" onClick={onDelete} disabled={saving}>서버 삭제</Button>
-        </div>
-      </section>
     </dialog>
   );
 }
 
-export function DeleteServerDialog({ row, onClose, onDeleted }: { row: ServerRow; onClose: () => void; onDeleted: () => void }) {
+export function DeleteServerDialog({ row, onClose, onDeleted, onFailed }: {
+  row: ServerRow;
+  onClose: () => void;
+  onDeleted: () => void;
+  /** 실패해도 일부가 지워졌을 수 있다. 창을 연 채로 서버 데이터를 다시 불러온다. */
+  onFailed: () => void;
+}) {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,18 +91,22 @@ export function DeleteServerDialog({ row, onClose, onDeleted }: { row: ServerRow
     } catch (cause) {
       setError(getErrorMessage(cause));
       setDeleting(false);
+      onFailed();
     }
   };
 
   return (
-    <ConfirmDialog isOpen onClose={onClose} onConfirm={() => void remove()} title="서버를 삭제할까요?" confirmLabel="삭제" variant="danger" isProcessing={deleting}
+    <ConfirmDialog isOpen onClose={onClose} onConfirm={() => void remove()} title={`${row.server.name} 서버를 삭제할까요?`} confirmLabel="삭제" variant="danger" isProcessing={deleting}
       message={hasTargets(row.targets) ? (
         <div className="space-y-3">
           <p>다음 대상이 함께 삭제됩니다.</p>
-          <TargetCountList row={row} />
+          <TargetCountList rows={[row]} />
           <p>수집된 데이터도 함께 삭제됩니다.</p>
         </div>
-      ) : <p>이 서버에는 연결된 대상이 없습니다.</p>}
+      ) : row.unknownCapabilities.length > 0
+        // 알려진 대상이 없어도 불러오지 못한 목록에 있을 수 있다. 없다고 단정하지 않는다.
+        ? <p>대상 목록을 불러오지 못해 함께 삭제될 대상을 확인하지 못했습니다. 연결된 대상이 있으면 함께 삭제됩니다.</p>
+        : <p>이 서버에는 연결된 대상이 없습니다.</p>}
       description={error && <span role="alert" className="text-status-error">{error}</span>}
     />
   );

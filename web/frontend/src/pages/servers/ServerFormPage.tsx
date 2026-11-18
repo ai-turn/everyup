@@ -31,8 +31,8 @@ export function ServerFormPage() {
           <ServerFields form={form} idPrefix="new-server" />
         </fieldset>
         <div className="mt-6 flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={() => navigate(SERVERS_PATH)} disabled={saving}>취소</Button>
-          <Button type="submit" loading={saving}><MaterialIcon name="add" />서버 만들기</Button>
+          <Button type="button" variant="secondary" onClick={() => navigate(SERVERS_PATH, { replace: true })} disabled={saving}>취소</Button>
+          <Button type="submit" loading={saving}><MaterialIcon name="add" />서버 추가</Button>
         </div>
       </form>
     </div>

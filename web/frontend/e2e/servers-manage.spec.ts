@@ -11,6 +11,12 @@ async function openSettings(page: Page) {
   return page.getByRole('dialog', { name: '서버 설정' });
 }
 
+async function openMerge(page: Page) {
+  const settings = await openSettings(page);
+  await settings.getByRole('button', { name: '다른 서버 합치기' }).click();
+  return page.getByRole('dialog', { name: '다른 서버 합치기' });
+}
+
 async function choose(page: Page, scope: ReturnType<Page['getByRole']>, label: string, option: string | RegExp) {
   await scope.getByRole('combobox', { name: label }).click();
   await page.getByRole('option', { name: option }).click();
@@ -23,7 +29,7 @@ test('creating a server opens its overview and lists it', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: '서버 추가' })).toBeVisible();
 
   const name = page.getByRole('textbox', { name: '이름' });
-  const submit = page.getByRole('button', { name: '서버 만들기' });
+  const submit = page.getByRole('button', { name: '서버 추가', exact: true });
   // 비어 있거나 공백뿐인 이름은 브라우저 검증이 막는다.
   await submit.click();
   await expect(name).toHaveJSProperty('validity.valid', false);
@@ -51,7 +57,7 @@ test('a name taken in the same group is shown under the name field', async ({ pa
   const name = page.getByRole('textbox', { name: '이름' });
   await name.fill('edge-host-01');
   await choose(page, page.locator('form'), '그룹', 'Production');
-  await page.getByRole('button', { name: '서버 만들기' }).click();
+  await page.getByRole('button', { name: '서버 추가', exact: true }).click();
   await expect(page.getByText('이 그룹에 같은 이름의 서버가 있습니다')).toBeVisible();
   await expect(name).toHaveValue('edge-host-01');
   await expect(name).toHaveAttribute('aria-invalid', 'true');
@@ -60,79 +66,122 @@ test('a name taken in the same group is shown under the name field', async ({ pa
   await expect(page).toHaveURL(/\/servers\/new$/);
 });
 
-test('server settings rename the server and change its group', async ({ page }) => {
-  await page.goto('./servers/server_mock_payments_api');
+test('server settings rename the server and change its group, keeping the description', async ({ page }) => {
+  // Public status에는 설명이 있다. 수정은 전체 교체이므로 설명을 빠뜨리면 지워진다.
+  await page.goto('./servers/server_mock_public_status');
   await expect(serverHeader(page)).toContainText('Production');
+  await expect(serverHeader(page)).toContainText('외부 상태 페이지');
 
   let dialog = await openSettings(page);
-  await expect(dialog.getByRole('textbox', { name: '이름' })).toHaveValue('payments-api');
-  await dialog.getByRole('textbox', { name: '이름' }).fill('payments-core');
+  await expect(dialog.getByRole('textbox', { name: '이름' })).toHaveValue('Public status');
+  await dialog.getByRole('textbox', { name: '이름' }).fill('status-page');
   await dialog.getByRole('button', { name: '저장' }).click();
   await expect(dialog).toBeHidden();
-  await expect(page.getByRole('heading', { level: 1, name: 'payments-core' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'status-page' })).toBeVisible();
   await expect(page.getByText('서버 설정을 저장했습니다')).toBeVisible();
 
   dialog = await openSettings(page);
+  await expect(dialog.getByRole('textbox', { name: '설명' })).toHaveValue('외부 상태 페이지');
   await choose(page, dialog, '그룹', 'Backoffice');
   await dialog.getByRole('button', { name: '저장' }).click();
   await expect(dialog).toBeHidden();
   await expect(serverHeader(page)).toContainText('Backoffice');
-  // 수정은 전체 교체다. 그룹만 바꿔도 이름이 유지된다.
-  await expect(page.getByRole('heading', { level: 1, name: 'payments-core' })).toBeVisible();
+  await expect(serverHeader(page)).toContainText('외부 상태 페이지');
+  await expect(page.getByRole('heading', { level: 1, name: 'status-page' })).toBeVisible();
 });
 
-test('merging moves the targets to the chosen server and removes this one', async ({ page }) => {
-  await page.goto('./servers');
-  await serverLink(page, 'payments-api').click();
-  await expect(page.getByRole('heading', { level: 1, name: 'payments-api' })).toBeVisible();
+test('settings put server management above the save row', async ({ page }) => {
+  await page.goto('./servers/server_mock_public_status');
+  const dialog = await openSettings(page);
+  // 오른쪽 아래 끝(주 액션 자리)은 저장이다. 삭제가 그 자리에 오지 않는다.
+  await expect(dialog.getByRole('button').last()).toHaveText('저장');
+  const remove = (await dialog.getByRole('button', { name: '서버 삭제' }).boundingBox())!;
+  const save = (await dialog.getByRole('button', { name: '저장' }).boundingBox())!;
+  expect(remove.y).toBeLessThan(save.y);
+});
 
-  const settings = await openSettings(page);
-  await settings.getByRole('button', { name: '다른 서버와 합치기' }).click();
-  const merge = page.getByRole('dialog', { name: '다른 서버와 합치기' });
-  await expect(merge).toBeVisible();
-  await choose(page, merge, '대상 서버', 'staging-empty (미분류)');
-  await expect(merge).toContainText('이 서버의 대상을 모두 staging-empty으로 옮기고 이 서버를 삭제합니다.');
-  await expect(merge.getByRole('listitem')).toHaveText(['업타임 모니터 1개', '앱 1개']);
+test('merging brings the chosen servers into this one and removes them', async ({ page }) => {
+  await page.goto('./servers');
+  await serverLink(page, 'staging-empty').click();
+  await expect(page.getByRole('heading', { level: 1, name: 'staging-empty' })).toBeVisible();
+
+  const merge = await openMerge(page);
+  await expect(merge).toContainText('선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.');
+  await expect(merge.getByRole('checkbox', { name: /^staging-empty/ })).toHaveCount(0);
+  const payments = merge.getByRole('checkbox', { name: /^payments-api \(Production\)/ });
+  await expect(payments).toHaveAccessibleName(/업타임 모니터 1개, 앱 1개/);
+  await payments.check();
+  await merge.getByRole('checkbox', { name: /^Mail relay \(Backoffice\)/ }).check();
+  await expect(merge.getByRole('list', { name: '대상 개수' }).getByRole('listitem')).toHaveText(['업타임 모니터 2개', '앱 1개']);
+  await expect(merge).toContainText('선택한 서버 2개는 삭제됩니다.');
   await merge.getByRole('button', { name: '합치기' }).click();
 
+  await expect(merge).toBeHidden();
+  await expect(page.getByText('서버 2개를 합쳤습니다')).toBeVisible();
   await expect(page).toHaveURL(/\/servers\/server_mock_staging_empty$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'staging-empty' })).toBeVisible();
-  await expect(page.getByText('서버를 합쳤습니다')).toBeVisible();
-  await expect(page.getByRole('tabpanel')).toBeFocused();
   const tabs = page.getByRole('tablist', { name: '서버 기능' });
-  await expect(tabs.getByRole('tab', { name: /업타임.*모니터 1개/ })).toBeVisible();
+  await expect(tabs.getByRole('tab', { name: /업타임.*모니터 2개/ })).toBeVisible();
   await expect(tabs.getByRole('tab', { name: /로그.*앱 1개/ })).toBeVisible();
 
   await page.goBack();
   await expect(page).toHaveURL(/\/servers$/);
   await expect(serverLink(page, 'staging-empty')).toBeVisible();
   await expect(serverLink(page, 'payments-api')).toHaveCount(0);
+  await expect(serverLink(page, 'Mail relay')).toHaveCount(0);
 });
 
-test('servers that already have infrastructure cannot take another one', async ({ page }) => {
+test('a server with infrastructure cannot take another one', async ({ page }) => {
   await page.goto('./servers/server_mock_edge_host_01');
-  const settings = await openSettings(page);
-  await settings.getByRole('button', { name: '다른 서버와 합치기' }).click();
-  const merge = page.getByRole('dialog', { name: '다른 서버와 합치기' });
-  await merge.getByRole('combobox', { name: '대상 서버' }).click();
-  await expect(page.getByRole('option', { name: /^db-primary-01 \(Production\).*인프라 리소스가 이미 있습니다/ })).toBeDisabled();
-  await expect(page.getByRole('option', { name: /^batch-host-01/ })).toBeDisabled();
-  await expect(page.getByRole('option', { name: 'staging-empty (미분류)' })).toBeEnabled();
-  await expect(page.getByRole('option', { name: /^edge-host-01/ })).toHaveCount(0);
+  const merge = await openMerge(page);
+  const db = merge.getByRole('checkbox', { name: /^db-primary-01 \(Production\)/ });
+  await expect(db).toBeDisabled();
+  await expect(db).toHaveAccessibleName(/인프라 리소스가 이미 있습니다/);
+  await expect(merge.getByRole('checkbox', { name: /^batch-host-01/ })).toBeDisabled();
+  await expect(merge.getByRole('checkbox', { name: /^staging-empty \(미분류\)/ })).toBeEnabled();
 });
 
-test('deleting a server lists what goes with it and returns to the list', async ({ page }) => {
-  await page.goto('./servers');
+test('only one server with infrastructure can be chosen', async ({ page }) => {
+  await page.goto('./servers/server_mock_staging_empty');
+  const merge = await openMerge(page);
+  const checkbox = (name: string) => merge.getByRole('checkbox', { name: new RegExp(`^${name}`) });
+  for (const name of ['db-primary-01', 'batch-host-01', 'edge-host-01', 'staging-host-01']) await expect(checkbox(name)).toBeEnabled();
+  await checkbox('db-primary-01').check();
+  for (const name of ['batch-host-01', 'edge-host-01', 'staging-host-01']) await expect(checkbox(name)).toBeDisabled();
+  await expect(checkbox('db-primary-01')).toBeEnabled();
+  await expect(checkbox('payments-api')).toBeEnabled();
+  await checkbox('db-primary-01').uncheck();
+  await expect(checkbox('batch-host-01')).toBeEnabled();
+});
+
+test('deleting a server lists what goes with it and returns to the list as it was', async ({ page }) => {
+  await page.goto('./servers?group=project_mock_backoffice');
   await serverLink(page, 'batch-host-01').click();
   const settings = await openSettings(page);
   await settings.getByRole('button', { name: '서버 삭제' }).click();
-  const confirm = page.getByRole('dialog', { name: '서버를 삭제할까요?' });
+  const confirm = page.getByRole('dialog', { name: 'batch-host-01 서버를 삭제할까요?' });
   await expect(confirm.getByRole('listitem')).toHaveText(['업타임 모니터 1개', '앱 2개', '인프라 리소스 1개']);
   await expect(confirm).toContainText('수집된 데이터도 함께 삭제됩니다.');
   await confirm.getByRole('button', { name: '삭제' }).click();
 
-  await expect(page).toHaveURL(/\/servers$/);
+  // 보던 목록의 필터가 남고, 삭제된 서버의 주소는 기록에서 바뀌었다.
+  await expect(page).toHaveURL(/\/servers\?group=project_mock_backoffice$/);
   await expect(page.getByText('서버를 삭제했습니다')).toBeVisible();
-  await expect(serverLink(page, 'edge-host-01')).toBeVisible();
+  await expect(serverLink(page, 'Mail relay')).toBeVisible();
+  await expect(serverLink(page, 'edge-host-01')).toHaveCount(0);
   await expect(serverLink(page, 'batch-host-01')).toHaveCount(0);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/servers\?group=project_mock_backoffice$/);
+});
+
+test('a server whose target lists failed is not called empty when deleting', async ({ page }) => {
+  // 부분 수집 실패에서는 앱 목록이 빠진다. 앱만 가진 inventory-api는 알려진 대상이 0개다.
+  await page.goto('./servers/server_mock_inventory_api');
+  await page.getByRole('combobox', { name: '데모 시나리오' }).click();
+  await page.getByRole('option', { name: '부분 수집 실패', exact: true }).click();
+  await expect(page.getByText('일부 정보를 불러오지 못했습니다')).toBeVisible();
+  const settings = await openSettings(page);
+  await settings.getByRole('button', { name: '서버 삭제' }).click();
+  const confirm = page.getByRole('dialog', { name: 'inventory-api 서버를 삭제할까요?' });
+  await expect(confirm).toContainText('대상 목록을 불러오지 못해 함께 삭제될 대상을 확인하지 못했습니다.');
+  await expect(confirm).not.toContainText('연결된 대상이 없습니다');
 });

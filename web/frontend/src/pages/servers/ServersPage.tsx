@@ -4,7 +4,7 @@ import {
   Button, ButtonLink, EmptyState, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select, StatusLight, type StatusTone,
 } from '../../components/common';
 import { ServerTable } from '../../features/servers/components/ServerTable';
-import { NEW_SERVER_PATH } from '../../features/servers/serverPaths';
+import { NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
 import { STATE_LABEL, type ServerRow } from '../../features/servers/serverStatus';
 import { useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
@@ -41,6 +41,7 @@ export function ServersPage() {
   const location = useLocation();
   const navigationType = useNavigationType();
   // 첫 기록의 key는 항상 default라 key만으로는 이동을 놓친다. 주소도 함께 본다.
+  useEffect(() => { rememberServersSearch(location.search); }, [location.search]);
   const seen = `${location.key}${location.search}`;
   const [seenLocation, setSeenLocation] = useState(seen);
   if (seen !== seenLocation) {

@@ -80,6 +80,16 @@ const worst = (states: StatusTone[]): StatusTone | null =>
 export const hasTargets = (targets: ServerTargets) =>
   targets.monitors.length > 0 || targets.apps.length > 0 || Boolean(targets.infrastructure);
 
+export interface TargetCounts { monitors: number; apps: number; infrastructure: number }
+
+export const countTargets = (targets: ServerTargets): TargetCounts =>
+  ({ monitors: targets.monitors.length, apps: targets.apps.length, infrastructure: targets.infrastructure ? 1 : 0 });
+
+/** 종류별 개수를 문구로. 0개인 종류는 뺀다. */
+export const targetCountLabels = (counts: TargetCounts): string[] =>
+  ([['업타임 모니터', counts.monitors], ['앱', counts.apps], ['인프라 리소스', counts.infrastructure]] as const)
+    .filter(([, count]) => count > 0).map(([label, count]) => `${label} ${count}개`);
+
 
 // 앱을 여는 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API)로 고른다.
 const appCapability = (app: ObservedService): ServerCapability =>

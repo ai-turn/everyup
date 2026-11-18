@@ -26,7 +26,7 @@ export function ServerFields({ form, idPrefix }: { form: ReturnType<typeof useSe
       {projects === 'error' ? (
         <Field label="그룹">
           <div role="alert" className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <p className="type-body text-text-muted">그룹 목록을 불러오지 못했습니다. 그룹은 지금 값 그대로 저장됩니다.</p>
+            <p className="type-body text-text-muted">그룹 목록을 불러오지 못했습니다. {draft.projectId ? '그룹은 바뀌지 않습니다.' : '미분류로 저장됩니다.'}</p>
             <Button type="button" variant="secondary" size="sm" onClick={() => { setProjects(null); setAttempt((n) => n + 1); }}>다시 시도</Button>
           </div>
         </Field>
