@@ -109,8 +109,8 @@ export interface ServerCapabilityTabProps {
   row: ServerRow;
   /** 경로의 :targetId. 없으면 탭의 첫 화면 */
   targetId?: string;
-  /** 대상이 추가·삭제·이동된 뒤 서버 데이터를 다시 불러온다 */
-  onChanged: () => void;
+  /** 대상이 추가·삭제·이동된 뒤 서버 데이터를 다시 불러온다. 다시 불러온 결과가 반영되면 끝난다. */
+  onChanged: () => Promise<void>;
   /** 이 기능의 대상 목록을 불러오지 못했다. 연결 안내 대신 불러오지 못했다는 안내를 보여 준다. */
   unknown?: boolean;
   onRetry?: () => void;

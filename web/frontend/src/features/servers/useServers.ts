@@ -14,7 +14,8 @@ export function useServers(): {
   /** 대상 목록 가운데 불러오지 못한 종류의 라벨. 비어 있으면 전부 성공 */
   failed: string[];
   updatedAt: Date | null;
-  reload: () => void;
+  /** 다시 불러온다. 결과를 반영한 뒤에 끝난다(실패해도 거부하지 않는다). */
+  reload: () => Promise<void>;
 } {
   const [rows, setRows] = useState<ServerRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +28,7 @@ export function useServers(): {
   const reload = useCallback(() => {
     const id = ++latest.current;
     setLoading(true);
-    void Promise.allSettled([
+    return Promise.allSettled([
       api.getServers(), api.getUptimeMonitors(true), api.getObservedServices(), api.getInfrastructureResources(), api.getLogSummary(),
     ]).then(([servers, monitors, apps, infrastructure, logSummaries]) => {
       if (id !== latest.current) return;
@@ -46,7 +47,7 @@ export function useServers(): {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(reload, 0);
+    const timer = window.setTimeout(() => void reload(), 0);
     return () => window.clearTimeout(timer);
   }, [reload]);
 

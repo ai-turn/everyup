@@ -90,7 +90,7 @@ test('a server without targets offers to connect the first capability', async ({
   await expect(panel.getByRole('region', { name: '연결할 수 있는 기능' })).toHaveCount(0);
   await panel.getByRole('button', { name: '업타임 모니터 추가' }).click();
   await expect(page).toHaveURL(/\/servers\/server_mock_staging_empty\/uptime$/);
-  await expect(page.getByRole('tabpanel')).toContainText('연결된 대상이 없습니다');
+  await expect(page.getByRole('tabpanel')).toContainText('이 서버의 업타임 모니터를 추가하세요');
 });
 
 test('unknown capability falls back to the overview, unknown server says so', async ({ page }) => {

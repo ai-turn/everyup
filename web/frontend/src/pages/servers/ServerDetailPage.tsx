@@ -6,6 +6,7 @@ import { ServerCapabilityPlaceholder } from '../../features/servers/components/S
 import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerOverviewTab } from '../../features/servers/components/ServerOverviewTab';
+import { ServerUptimeTab } from '../../features/servers/components/ServerUptimeTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
 import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, serversListPath, type ServerCapability } from '../../features/servers/serverPaths';
 import { capabilityStateLabel, capabilityTargets, type ServerRow } from '../../features/servers/serverStatus';
@@ -132,8 +133,10 @@ export function ServerDetailPage() {
       <div ref={panelRef} tabIndex={-1} role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
         {active === 'overview'
           ? <ServerOverviewTab row={row} onOpen={(capability) => open(capability)} />
-          : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
-            unknown={row.unknownCapabilities.includes(active)} onRetry={reload} />}
+          : active === 'uptime'
+            ? <ServerUptimeTab row={row} targetId={targetId} onChanged={reload} unknown={row.unknownCapabilities.includes(active)} onRetry={() => void reload()} />
+            : <ServerCapabilityPlaceholder key={active} row={row} capability={active} targetId={targetId} onChanged={reload}
+              unknown={row.unknownCapabilities.includes(active)} onRetry={() => void reload()} />}
       </div>
       {/* 대화 상자를 겹쳐 열지 않는다. 설정에서 합치기나 삭제를 고르면 설정을 닫고 그 대화 상자를 연다. */}
       {dialog === 'settings' && (

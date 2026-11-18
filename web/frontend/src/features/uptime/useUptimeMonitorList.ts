@@ -3,7 +3,8 @@ import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { api, type UptimeMonitor } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
-export function useUptimeMonitorList(suspended: boolean) {
+/** enabled가 false이면 불러오지 않는다. 목록을 부모가 가지고 있을 때(서버 상세) 쓴다. */
+export function useUptimeMonitorList(suspended: boolean, enabled = true) {
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -11,20 +12,24 @@ export function useUptimeMonitorList(suspended: boolean) {
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const pending = useRef<Promise<void> | null>(null);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
   const load = useCallback(() => {
     if (pending.current) return pending.current;
     setRefreshing(true);
     pending.current = api.getUptimeMonitors(true).then((result) => {
+      if (!alive.current) return;
       setMonitors(result ?? []);
       setError(null);
       setUpdatedAt(new Date());
     }).catch((cause: unknown) => {
-      setError(getErrorMessage(cause));
+      if (alive.current) setError(getErrorMessage(cause));
     }).finally(() => {
+      pending.current = null;
+      if (!alive.current) return;
       setLoading(false);
       setRefreshing(false);
-      pending.current = null;
     });
     return pending.current;
   }, []);
@@ -36,10 +41,11 @@ export function useUptimeMonitorList(suspended: boolean) {
   }, [load]);
 
   useEffect(() => {
+    if (!enabled) return;
     const timer = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timer);
-  }, [load]);
-  useAutoRefresh(() => void load(), 30_000, autoRefresh && !suspended);
+  }, [load, enabled]);
+  useAutoRefresh(() => void load(), 30_000, enabled && autoRefresh && !suspended);
 
   const changeAutoRefresh = (enabled: boolean) => {
     setAutoRefresh(enabled);

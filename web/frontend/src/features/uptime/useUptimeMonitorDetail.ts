@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type TimelineIncident, type UptimeMonitor, type UptimeMonitorHistory, type UptimeMonitorMetric, type UptimeMonitorSummary } from '../../services/api';
 import { ApiError, getErrorMessage } from '../../utils/errors';
 
@@ -20,6 +20,9 @@ type DetailState = {
 export function useUptimeMonitorDetail(monitorId: string) {
   const [state, setState] = useState<DetailState>({ monitor: null, metrics: null, summary: null, history: null, incidents: null, failures: null, errors: {}, notFound: false, loading: true, refreshing: false, updatedAt: null });
   const pending = useRef<Promise<void> | null>(null);
+  // 서버 상세에서 화살표 키로 탭을 지나가면 마운트 직후 언마운트된다. 그 뒤에 온 응답은 버린다.
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const load = useCallback(() => {
     if (pending.current) return pending.current;
     setState((current) => ({ ...current, refreshing: true }));
@@ -31,6 +34,7 @@ export function useUptimeMonitorDetail(monitorId: string) {
       api.getUptimeMonitorIncidents(monitorId, 90),
       api.getUptimeMonitorFailures(monitorId, 90),
     ]).then(([monitor, metrics, summary, history, incidents, failures]) => {
+      if (!alive.current) return;
       const notFound = monitor.status === 'rejected' && monitor.reason instanceof ApiError && monitor.reason.status === 404;
       setState((current) => ({
         monitor: monitor.status === 'fulfilled' ? monitor.value : notFound ? null : current.monitor,
