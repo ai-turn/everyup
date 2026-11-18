@@ -118,3 +118,35 @@ test('a group with healthy targets and a paused monitor reads healthy', async ({
   await expect(dots.first()).toBeAttached();
   for (const dot of await dots.all()) await expect(dot).toHaveClass(/bg-status-healthy-fill/);
 });
+
+test('an app with a metric over its threshold makes its server need attention and says why', async ({ page }) => {
+  const fresh = new Date().toISOString();
+  await page.route('**/api/v1/**', async (route) => {
+    const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+    const data = path === '/servers' ? [server('metrics', 'metrics-01'), server('quiet', 'quiet-01')]
+      : path === '/observed-services' ? [
+        app('m-app', 'billing-api', 'metrics', { signals: ['logs', 'metrics'] }),
+        app('q-app', 'search-api', 'quiet', { signals: ['metrics'] }),
+      ]
+        : path === '/observed-services/metric-catalog' ? [
+          { serviceId: 'm-app', metricName: 'http.server.request.duration', metricType: 'histogram', unit: 's', lastAt: fresh, lastReceivedAt: fresh, breached: true },
+          { serviceId: 'q-app', metricName: 'jvm.memory.used', metricType: 'gauge', unit: 'By', lastAt: fresh, lastReceivedAt: fresh },
+        ] : [];
+    await route.fulfill({ json: { success: true, data } });
+  });
+  await page.goto('./servers');
+  const rows = page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr');
+  // 확인 필요가 정상보다 앞이다.
+  await expect(rows.first()).toContainText('metrics-01');
+  await expect(rows.first().getByRole('cell').nth(1)).toContainText('확인 필요');
+  await expect(rows.first().getByRole('cell').nth(1)).toContainText('billing-api 임계값 초과 응답 시간');
+  await expect(rows.nth(1).getByRole('cell').nth(1)).toContainText('정상');
+
+  await rows.first().getByRole('link', { name: 'metrics-01' }).click();
+  // 메트릭 탭에만 상태 점이 붙는다. 로그 탭의 상태는 로그 수신 여부다.
+  const tabs = page.getByRole('tablist', { name: '서버 기능' });
+  await expect(tabs.getByRole('tab', { name: /^메트릭/ }).getByRole('img', { name: '임계값 초과' })).toBeVisible();
+  await expect(tabs.getByRole('tab', { name: /^로그/ }).getByRole('img')).toHaveCount(0);
+  await expect(page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByRole('link', { name: 'billing-api 임계값 초과 응답 시간' }))
+    .toHaveAttribute('href', /\/servers\/metrics\/metrics\/m-app$/);
+});

@@ -14,11 +14,12 @@ import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatu
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
+import { readLatest } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
 
 /** 로그 탭: 로그 앱이 없으면 연결 안내, 있으면 서버 범위의 요약과 패턴, 앱 목록. 주소에 앱이 있으면 그 앱의 로그. */
-export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot }: ServerCapabilityTabProps) {
+export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot, forgetTarget }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
   // 설정 안내의 "로그 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
@@ -54,7 +55,9 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
   const move = async (id: string, to: string) => {
     const app = row.targets.apps.find((candidate) => candidate.id === id);
     if (!app) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 앱이 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
-    await api.updateObservedService(app.id, { name: app.name, serverId: to, signals: app.signals });
+    // 화면의 앱이 아니라 지금의 앱으로 요청을 만든다. 그 사이의 신호 연결 해제를 되돌리지 않게.
+    const latest = await readLatest(() => api.getObservedService(app.id), '이동');
+    await api.updateObservedService(app.id, { name: latest.name, serverId: to, signals: latest.signals });
     markMoved();
     await onChanged();
     closeMove();
@@ -62,7 +65,9 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     show(serverPath(to, 'logs', app.id));
   };
 
-  const removed = async () => {
+  // 다시 불러오기가 실패해도 지운 앱(해제한 신호)이 이전 목록에 남지 않게 먼저 반영한다.
+  const removed = async (id: string, remaining: ObservedService | null) => {
+    forgetTarget?.('apps', id, remaining ?? undefined);
     await onChanged();
     show(listPath);
   };
@@ -92,7 +97,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
       return (
         <DirectLogsPanel key={current.id} serviceId={current.id} service={current} back={{ label: '로그 탭으로', to: listPath }}
           listLink={<TabBackLink label="앱 목록" to={listPath} />}
-          onRemoved={() => void removed()} onChanged={onChanged} refreshToken={refreshToken}
+          onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       );
     }

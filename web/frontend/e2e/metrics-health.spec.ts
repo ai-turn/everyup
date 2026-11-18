@@ -47,10 +47,8 @@ test('a new receipt does not disguise an old measurement and health failures sta
   await expect(page.getByText('메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.')).toHaveCount(0);
 });
 
-// fixme: 옛 메트릭 목록은 임계값을 넘은 지표가 있는 서비스를 앞에 두고 그 사실을 행에 적었다. 서버 화면의 앱 상태(appState)는
-// 수신 여부만 보므로, 메트릭 탭에서 앱이 여럿이면 임계값 초과와 관계없이 이름순으로 고르고 앱 선택에도 표시가 없다.
-// 서버 목록과 서버 상태에도 메트릭 임계값은 반영되지 않는다. 기대 동작: 임계값을 넘은 앱이 상태가 가장 나쁜 앱으로 먼저 열리고, 앱 선택에 그 상태가 보인다.
-test.fixme('the metrics tab opens the app with a flagged metric first and marks it in the app selector', async ({ page }) => {
+// 임계값을 넘은 지표가 있는 앱은 메트릭 기능에서 확인 필요다. 옛 메트릭 목록처럼 그 앱이 먼저 열리고 앱 선택에 그 까닭이 보인다.
+test('the metrics tab opens the app with a flagged metric first and marks it in the app selector', async ({ page }) => {
   const state = await metricsFixture(page);
   const fresh = new Date().toISOString();
   state.names.splice(0, state.names.length,

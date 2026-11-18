@@ -31,7 +31,7 @@ export function DirectApiPanel({ serviceId, service: given, onRemoved, back, ext
   /** 서버 상세가 이미 불러온 앱. 주면 따로 불러오지 않는다. */
   service?: ObservedService;
   /** 삭제나 API 요청 연결 해제가 끝난 뒤 */
-  onRemoved: () => void;
+  onRemoved: (remaining: ObservedService | null) => void;
   /** 불러오지 못했을 때 돌아갈 곳. 서버 탭에서는 label을 링크 문구 그대로 쓴다. */
   back: { label: string; to: string };
   /** 알림 규칙과 삭제 사이에 놓을 추가 조작(예: 다른 서버로 옮기기) */

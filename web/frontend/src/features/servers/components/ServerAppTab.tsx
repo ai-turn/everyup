@@ -2,15 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, LoadErrorBanner, MaterialIcon } from '../../../components/common';
-import { api } from '../../../services/api';
+import { api, type ObservedService } from '../../../services/api';
 import { DirectApiPanel } from '../../telemetry/components/DirectApiPanel';
 import { DirectMetricsPanel } from '../../telemetry/components/DirectMetricsPanel';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
-import { appState, capabilityStateLabel, capabilityTargets, worst, type ServerCapabilityTabProps } from '../serverStatus';
+import { appCapabilityState, capabilityTargets, worst, type ServerCapabilityTabProps } from '../serverStatus';
 import { AppSelector } from './AppSelector';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
+import { readLatest } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
 const COPY = {
@@ -25,7 +26,7 @@ const COPY = {
 } as const;
 
 /** API 요청 탭과 메트릭 탭: 앱이 없으면 연결 안내, 하나면 그 앱, 여럿이면 앱 선택과 선택한 앱. 여러 앱을 합친 화면은 없다. */
-export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot, capability }: ServerCapabilityTabProps & { capability: 'api' | 'metrics' }) {
+export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot, capability, forgetTarget }: ServerCapabilityTabProps & { capability: 'api' | 'metrics' }) {
   const navigate = useNavigate();
   const location = useLocation();
   const copy = COPY[capability];
@@ -36,7 +37,8 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
   const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => row.targets.apps.find((app) => app.id === id), Boolean(unknown || stale));
   const ids = new Set(capabilityTargets(row.targets, capability).map((target) => target.id));
   const apps = row.targets.apps.filter((app) => ids.has(app.id))
-    .map((app) => ({ app, state: appState(app).state }))
+    // 메트릭 탭에서는 임계값을 넘은 앱이 확인 필요다. 기본 선택(가장 나쁜 앱)과 앱 선택의 표시가 이를 따른다.
+    .map((app) => ({ app, ...appCapabilityState(row, capability, app) }))
     .sort((a, b) => a.app.name.localeCompare(b.app.name));
   const firstScreen = serverPath(serverId, capability);
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
@@ -76,7 +78,9 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
   const move = async (id: string, to: string) => {
     const app = row.targets.apps.find((candidate) => candidate.id === id);
     if (!app) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 앱이 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
-    await api.updateObservedService(app.id, { name: app.name, serverId: to, signals: app.signals });
+    // 화면의 앱이 아니라 지금의 앱으로 요청을 만든다. 그 사이의 신호 연결 해제를 되돌리지 않게.
+    const latest = await readLatest(() => api.getObservedService(app.id), '이동');
+    await api.updateObservedService(app.id, { name: latest.name, serverId: to, signals: latest.signals });
     markMoved();
     await onChanged();
     closeMove();
@@ -84,7 +88,9 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
     show(serverPath(to, capability, app.id));
   };
 
-  const removed = async () => {
+  // 다시 불러오기가 실패해도 지운 앱(해제한 신호)이 이전 목록에 남지 않게 먼저 반영한다.
+  const removed = async (id: string, remaining: ObservedService | null) => {
+    forgetTarget?.('apps', id, remaining ?? undefined);
     await onChanged();
     show(firstScreen);
   };
@@ -121,12 +127,12 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
         {/* 앱이 하나면 고를 것이 없으므로 줄째 없다. 추가 버튼은 탭 줄의 조작 자리에 있다. */}
         {apps.length > 1 && (
           <AppSelector ariaLabel={`${copy.label} 앱`} value={current.id}
-            apps={apps.map(({ app, state }) => ({ id: app.id, name: app.name, state, stateLabel: capabilityStateLabel(capability, state) }))}
+            apps={apps.map(({ app, state, label }) => ({ id: app.id, name: app.name, state, stateLabel: label }))}
             // 다른 앱의 필터가 넘어가지 않게 쿼리를 버린다.
             onChange={(id) => navigate(serverPath(serverId, capability, id))} />
         )}
         <Panel key={current.id} serviceId={current.id} service={current} back={{ label: '서버 개요', to: serverPath(serverId) }}
-          onRemoved={() => void removed()} onChanged={onChanged} refreshToken={refreshToken}
+          onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       </div>
     );

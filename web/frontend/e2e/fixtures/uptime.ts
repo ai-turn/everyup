@@ -69,7 +69,7 @@ export async function uptimeFixture(page: Page) {
     } else if (path === '/servers') data = [state.server];
     else if (path === `/servers/${state.server.id}`) data = state.server;
     // 서버 화면이 서버 데이터와 함께 불러오는 다른 대상들. 이 fixture의 서버에는 앱, 인프라, 그룹, 로그가 없다.
-    else if (['/observed-services', '/infrastructure-resources', '/projects', '/logs/summary'].includes(path)) data = [];
+    else if (['/observed-services', '/infrastructure-resources', '/projects', '/logs/summary', '/observed-services/metric-catalog'].includes(path)) data = [];
     else if (path === '/agents/services/all') data = state.services;
     else if (path === '/services') data = url.searchParams.get('include') === 'checks' ? state.monitors.map((item) => ({
       ...item, recentChecks: item.recentChecks ?? state.metrics.filter((metric) => metric.serviceId === item.id).slice(0, 10),

@@ -121,9 +121,9 @@ test('partial failure keeps the rows and says what is missing', async ({ page })
   await expect(rowOf(page, 'edge-host-01')).toBeVisible();
   await expect(dataRows(page)).toHaveCount(9);
   // 앱 목록이 실패했으므로 앱만 가진 서버의 오류 로그는 알 수 없다.
-  // 앱만 가진 inventory-api는 앱 목록이 빠지면 대상이 없는 서버로 계산되어 대기다.
+  // 앱만 가진 inventory-api는 앱 목록이 빠지면 확인할 수 있는 대상이 없어 대기다. 대상이 없다고 단정하지 않고 까닭을 적는다.
   const inventory = rowOf(page, 'inventory-api');
-  await expect(inventory.getByRole('cell').nth(1)).toHaveText('대기');
+  await expect(inventory.getByRole('cell').nth(1)).toHaveText('대기앱 확인 불가');
   await expect(inventory.getByRole('cell').nth(5)).toHaveText('-불러오지 못함');
 });
 

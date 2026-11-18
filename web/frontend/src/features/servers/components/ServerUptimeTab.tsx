@@ -12,18 +12,16 @@ import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
+import { readLatest } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
 
 /** 업타임 탭: 모니터가 없으면 연결 안내, 하나면 그 상세, 여럿이면 목록. 주소에 모니터가 있으면 그 상세. */
-export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot, autoRefresh }: ServerCapabilityTabProps) {
+export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot, autoRefresh, forgetTarget }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
   const serverId = row.server.id;
-  // 상세에서 삭제한 모니터. 삭제 뒤의 다시 불러오기가 실패하면 이전 목록에 남아 있으므로 여기서 뺀다.
-  // 성공한 목록에는 어차피 없다.
-  const [deleted, setDeleted] = useState<ReadonlySet<string>>(new Set());
-  const monitors = deleted.size ? row.targets.monitors.filter((monitor) => !deleted.has(monitor.id)) : row.targets.monitors;
+  const monitors = row.targets.monitors;
   const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => monitors.find((monitor) => monitor.id === id), Boolean(unknown || stale));
   const firstScreen = serverPath(serverId, 'uptime');
   // 목록에서 연 상세는 그 목록의 주소(검색어, 필터, 보기 방식)로 돌아간다.
@@ -44,7 +42,9 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
   const move = async (id: string, to: string) => {
     const monitor = monitors.find((candidate) => candidate.id === id);
     if (!monitor) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 모니터가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
-    await api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { serverId: to }));
+    // 화면의 모니터가 아니라 지금의 모니터로 요청을 만든다. 그 사이의 일시정지를 되돌리지 않게.
+    const latest = await readLatest(() => api.getUptimeMonitor(monitor.id), '이동');
+    await api.updateUptimeMonitor(monitor.id, monitorInput(latest, { serverId: to }));
     markMoved();
     await onChanged();
     closeMove();
@@ -52,10 +52,10 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     show(serverPath(to, 'uptime', monitor.id));
   };
 
-  // 다시 불러온 뒤에 뺀다. 먼저 빼면 이동하기 전에 "이 서버의 모니터가 아닙니다"가 잠깐 보인다.
+  // 삭제 뒤의 다시 불러오기가 실패해도 지운 모니터가 이전 목록에서 다시 보이지 않게 먼저 뺀다(행은 다시 불러온 뒤에 바뀐다).
   const removed = async (id: string) => {
+    forgetTarget?.('monitors', id);
     await onChanged();
-    setDeleted((current) => new Set(current).add(id));
     show(listPath);
   };
 

@@ -22,7 +22,7 @@ export function DirectLogsPanel({ serviceId, service: given, onRemoved, back, li
   /** 서버 상세가 이미 불러온 앱. 주면 따로 불러오지 않는다. */
   service?: ObservedService;
   /** 삭제나 로그 연결 해제가 끝난 뒤 */
-  onRemoved: () => void;
+  onRemoved: (remaining: ObservedService | null) => void;
   /** 불러오지 못했을 때 돌아갈 곳. 서버 탭에서는 label을 링크 문구 그대로 쓴다. */
   back: { label: string; to: string };
   /** 서버 탭: 패널 제목 위에 모든 폭에서 보이는 앱 목록 복귀 링크 */

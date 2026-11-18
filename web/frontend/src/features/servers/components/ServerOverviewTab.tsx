@@ -6,7 +6,7 @@ import { formatDuration } from '../../../utils/incidentFormat';
 import { WARNING_PCT } from '../../infra/usage';
 import { RecentUptimeChecks } from '../../uptime/components/RecentUptimeChecks';
 import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from '../serverPaths';
-import { capabilityStateLabel, capabilityTargets, capabilityUnverified, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
+import { capabilityLabel, capabilityTargets, capabilityUnverified, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
 
 const percent = (value: number | undefined, digits: number) => value === undefined ? '-' : `${value.toFixed(digits)}%`;
 const count = (value: number) => `${value}개`;
@@ -46,7 +46,7 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
     <section aria-labelledby={headingId} className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
       <div className="sm:w-40 sm:shrink-0">
         <h2 id={headingId} className="type-card-title text-text-base">{label}</h2>
-        <div className="mt-1"><StatusLight tone={tone} label={known ? capabilityStateLabel(capability, tone) : '확인 불가'} /></div>
+        <div className="mt-1"><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
       </div>
       <div className="min-w-0 flex-1 space-y-4">
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">

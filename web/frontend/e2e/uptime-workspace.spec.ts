@@ -89,7 +89,8 @@ test('30 second polling can be paused and coalesces pending refreshes', async ({
   try {
     await page.clock.fastForward(30_000);
     await expect.poll(reads).toBe(initial + 2);
-    await page.clock.fastForward(60_000);
+    // 한 주기(30초) 안에는 끝나지 않은 요청을 기다린다. 넘기면 버려진 것으로 본다(servers-refresh.spec.ts).
+    await page.clock.fastForward(29_000);
     expect(reads()).toBe(initial + 2);
     await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeDisabled();
   } finally { state.holds.clear(); gate.resolve(); }

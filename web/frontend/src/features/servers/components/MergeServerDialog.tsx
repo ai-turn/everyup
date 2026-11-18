@@ -5,7 +5,7 @@ import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type Project } from '../../../services/api';
 import { ApiError, getErrorMessage } from '../../../utils/errors';
-import { countTargets, hasTargets, targetCountLabels, type ServerRow } from '../serverStatus';
+import { capabilityUnverified, countTargets, hasTargets, targetCountLabels, type ServerRow } from '../serverStatus';
 import { TargetCountList } from './TargetCountList';
 
 const INFRA_TAKEN = '인프라 리소스가 이미 있습니다';
@@ -39,7 +39,8 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMe
   const selected = candidates.filter((candidate) => checked.has(candidate.server.id));
 
   // 서버 하나에 인프라 리소스는 하나다. 인프라 목록을 모르면 미리 막지 않고 백엔드의 거부(409)에 맡긴다.
-  const infraUnknown = rows.some((candidate) => candidate.unknownCapabilities.includes('infrastructure'));
+  // 이전 목록인 인프라도 모르는 것으로 본다(그 사이에 옮겨졌을 수 있다).
+  const infraUnknown = rows.some((candidate) => capabilityUnverified(candidate, 'infrastructure'));
   const infraTaken = !infraUnknown && (Boolean(row.targets.infrastructure) || selected.some((candidate) => candidate.targets.infrastructure));
   const blocked = (candidate: ServerRow) => infraTaken && Boolean(candidate.targets.infrastructure) && !checked.has(candidate.server.id);
 

@@ -232,6 +232,25 @@ test.describe('with an intercepted API', () => {
     expect(move.body).toMatchObject({ serverId: 's2', isActive: false });
   });
 
+  test('moving after a pause whose reload failed keeps the monitor paused', async ({ page }) => {
+    const state = await twoMonitors(page);
+    await page.goto('./servers/s1/uptime/http-monitor');
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+    // 일시정지 뒤의 모니터 목록 조회가 실패한다. 서버 데이터에는 일시정지 전의 모니터(isActive: true)가 남는다.
+    state.failures.set('GET /services', 500);
+    await panel(page).getByRole('button', { name: '일시정지', exact: true }).click();
+    await expect(panel(page).getByRole('button', { name: '재개', exact: true })).toBeEnabled();
+    await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^업타임/ })).toContainText('확인 불가');
+    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
+    await dialog.getByRole('radio', { name: /web-02/ }).check();
+    await dialog.getByRole('button', { name: '옮기기' }).click();
+    await expect.poll(() => state.requests.filter((request) => request.method === 'PUT').length).toBe(2);
+    // 이동 요청은 화면의 옛 모니터가 아니라 다시 읽은 모니터로 만든다. 일시정지를 되돌리지 않는다.
+    const move = state.requests.filter((request) => request.method === 'PUT').at(-1)!;
+    expect(move.body).toMatchObject({ serverId: 's2', isActive: false });
+  });
+
   test('a monitor deleted elsewhere while the move dialog is open closes it with a notice', async ({ page }) => {
     const state = await twoMonitors(page);
     await page.goto('./servers/s1/uptime/http-monitor');

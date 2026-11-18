@@ -10,6 +10,7 @@ import {
   type TelemetrySignal,
 } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
+import { readLatest } from '../../../utils/readLatest';
 import { DirectTelemetrySetupResult, type TelemetryConnectionResult } from './DirectTelemetrySetupResult';
 
 interface DirectTelemetrySetupDialogProps {
@@ -89,10 +90,13 @@ export function DirectTelemetrySetupDialog({
           : { name: name.trim(), projectId: projectId || undefined, signals: [signal] });
         setResult({ kind: 'issued', service });
       } else if (selected) {
+        // 목록을 받은 뒤에 앱의 신호가 바뀌었을 수 있다. 지금의 앱에 신호를 더한다(그 사이의 연결 해제를 되돌리지 않게).
+        const latest = await readLatest(() => api.getObservedService(selected.id), '연결');
+        const signals = latest.signals.includes(signal) ? latest.signals : [...latest.signals, signal];
         // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
-        const service = await api.updateObservedService(selected.id, serverId
-          ? { name: selected.name, serverId, signals: [...selected.signals, signal] }
-          : { name: selected.name, projectId: selected.projectId, signals: [...selected.signals, signal] });
+        const service = await api.updateObservedService(latest.id, serverId
+          ? { name: latest.name, serverId, signals }
+          : { name: latest.name, projectId: latest.projectId, signals });
         setResult({ kind: 'attached', service, signal });
       }
     } catch (error) {

@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { Button, ConfirmDialog, MaterialIcon, type StatusTone } from '../../components/common';
 import { api, type ObservedService, type ObservedServiceSetup, type Project, type TelemetrySignal } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { readLatest } from '../../utils/readLatest';
 import { appState, capabilityStateLabel } from '../servers/serverStatus';
 import { RotatedTelemetryKeyDialog } from './components/RotatedTelemetryKeyDialog';
 import { serviceRemoval, signalLabel } from './signals';
@@ -15,7 +16,7 @@ const CAPABILITY = { logs: 'logs', traces: 'api', metrics: 'metrics' } as const;
  * 로그·API·메트릭 앱 패널의 공통 로직: 앱 조회, 키 재발급, 연결 중지, 삭제 또는 신호 연결 해제, 확인 대화 상자.
  * 그룹 배정은 옛 상세(assignProject)에서만 다룬다. 서버 화면에서는 그룹을 서버가 정한다.
  */
-export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal, onRemoved: () => void, options: {
+export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal, onRemoved: (remaining: ObservedService | null) => void, options: {
   /** 서버 상세가 이미 불러온 앱. 주면 따로 불러오지 않는다(갱신의 주체는 서버 상세 하나다). */
   service?: ObservedService;
   /** 연결 중지나 키 재발급으로 앱이 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
@@ -51,6 +52,9 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<ObservedServiceSetup | null>(null);
+  // 삭제·연결 해제의 판정에 쓴 앱. 확인 창을 열 때 다시 읽는다(화면의 앱은 이미 바뀐 신호 목록을 모를 수 있다).
+  const [removalTarget, setRemovalTarget] = useState<ObservedService | null>(null);
+  const [checkingRemoval, setCheckingRemoval] = useState(false);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   // 주어진 앱이 최신이다. 직접 불러온 앱은 조작의 응답으로 바뀐다.
@@ -73,23 +77,57 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
     return () => { current = false; };
   }, [serviceId, signal, hasGiven, loadKey]);
 
+  const removalVerb = (target: ObservedService) => serviceRemoval(target, signal, scope).kind === 'detach' ? '연결 해제' : '삭제';
+
+  const openRemoval = async () => {
+    if (!service) return;
+    setCheckingRemoval(true);
+    try {
+      const latest = await readLatest(() => api.getObservedService(service.id), removalVerb(service));
+      if (!alive.current) return;
+      if (!latest.signals.includes(signal)) {
+        toast.error(`이미 ${signalLabel(signal)} 연결이 해제되었습니다`);
+        void onChanged?.();
+        return;
+      }
+      setRemovalTarget(latest);
+      setConfirmAction('delete');
+    } catch (requestError) {
+      toast.error(getErrorMessage(requestError));
+    } finally {
+      if (alive.current) setCheckingRemoval(false);
+    }
+  };
+
   const runConfirmedAction = async () => {
     if (!service || !confirmAction) return;
     setProcessing(true);
     try {
       if (confirmAction === 'delete') {
-        const removal = serviceRemoval(service, signal, scope);
+        const judged = removalTarget ?? service;
+        // 실행 직전에 다시 읽는다. 확인 창을 연 뒤에 신호 목록이 바뀌었으면 실행하지 않고 바뀐 판정으로 다시 확인받는다.
+        const latest = await readLatest(() => api.getObservedService(service.id), removalVerb(judged));
+        if (latest.signals.length !== judged.signals.length || latest.signals.some((item) => !judged.signals.includes(item))) {
+          if (!alive.current) return;
+          setRemovalTarget(latest);
+          setProcessing(false);
+          toast.error('그 사이에 연결된 데이터가 바뀌었습니다. 내용을 다시 확인하세요.');
+          if (!latest.signals.includes(signal)) setConfirmAction(null);
+          return;
+        }
+        const removal = serviceRemoval(latest, signal, scope);
+        let remaining: ObservedService | null = null;
         if (removal.kind === 'detach') {
           // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
-          await api.updateObservedService(service.id, standalone
-            ? { name: service.name, projectId: service.projectId ?? undefined, signals: removal.signals }
-            : { name: service.name, serverId: service.serverId, signals: removal.signals });
+          remaining = await api.updateObservedService(latest.id, standalone
+            ? { name: latest.name, projectId: latest.projectId ?? undefined, signals: removal.signals }
+            : { name: latest.name, serverId: latest.serverId, signals: removal.signals });
         } else {
           await api.deleteObservedService(service.id);
         }
         toast.success(removal.done);
         // 화면이 바뀔 때까지 조작을 막아 둔다(processing을 풀지 않는다).
-        onRemoved();
+        onRemoved(remaining);
         return;
       }
       if (confirmAction === 'rotate') {
@@ -148,11 +186,13 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   };
 
   const removal = service ? serviceRemoval(service, signal, scope) : null;
+  // 확인 창의 문구는 다시 읽은 앱으로 정한다.
+  const confirmRemoval = removalTarget ? serviceRemoval(removalTarget, signal, scope) : removal;
   const confirmCopy = {
     rotate: { title: 'API Key를 재발급할까요?', message: `현재 키는 즉시 폐기됩니다. 이 ${standalone ? '서비스' : '앱'}의 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.`, label: '재발급', variant: 'primary' as const },
     // 키는 앱 단위다. 연결을 중지하면 이 탭의 신호만이 아니라 앱의 모든 신호가 막힌다.
     revoke: { title: '직접 수집 연결을 중지할까요?', message: '이 키를 사용하는 모든 데이터의 수집을 즉시 차단합니다. 저장된 데이터는 유지됩니다.', label: '연결 중지', variant: 'danger' as const },
-    delete: { title: removal?.title ?? '', message: removal?.message ?? '', label: removal?.button, variant: 'danger' as const },
+    delete: { title: confirmRemoval?.title ?? '', message: confirmRemoval?.message ?? '', label: confirmRemoval?.button, variant: 'danger' as const },
   };
   const selectedConfirm = confirmAction ? confirmCopy[confirmAction] : null;
   const state = service ? appState(service).state : 'idle';
@@ -173,13 +213,13 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
       collection: { tone: state, label: capabilityStateLabel(CAPABILITY[signal], state) },
     },
     removalButton: removal && (
-      <Button collapseLabel variant="destructive" disabled={processing} onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />{removal.button}</Button>
+      <Button collapseLabel variant="destructive" disabled={processing} loading={checkingRemoval} onClick={() => void openRemoval()}><MaterialIcon name="delete_outline" />{removal.button}</Button>
     ),
     dialogs: (
       <>
         <ConfirmDialog
           isOpen={Boolean(selectedConfirm)}
-          onClose={() => setConfirmAction(null)}
+          onClose={() => { setConfirmAction(null); setRemovalTarget(null); }}
           onConfirm={() => void runConfirmedAction()}
           title={selectedConfirm?.title ?? ''}
           message={selectedConfirm?.message ?? ''}

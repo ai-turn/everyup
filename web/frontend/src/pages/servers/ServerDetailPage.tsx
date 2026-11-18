@@ -11,7 +11,7 @@ import { ServerOverviewTab } from '../../features/servers/components/ServerOverv
 import { ServerUptimeTab } from '../../features/servers/components/ServerUptimeTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
 import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, serversListPath, type ServerCapability } from '../../features/servers/serverPaths';
-import { capabilityStateLabel, capabilityTargets, capabilityUnverified, type ServerCapabilityTabProps, type ServerRow } from '../../features/servers/serverStatus';
+import { capabilityLabel, capabilityTargets, capabilityUnverified, type ServerCapabilityTabProps, type ServerRow } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
@@ -42,7 +42,7 @@ export function ServerDetailPage() {
   const pendingKeyboard = useRef<string | null>(null);
   useEffect(() => { pendingKeyboard.current = null; }, [location]);
 
-  const { rows, error, failed, updatedAt, reload, poll, loading, loaded } = useServers();
+  const { rows, error, failed, updatedAt, reload, poll, refresh: joinRefresh, busy, loaded, loading, forgetTarget } = useServers();
   const row = rows.find((candidate) => candidate.server.id === serverId);
 
   // 그룹 이름은 보조 정보다. 실패하면 그룹 칸만 숨긴다.
@@ -59,10 +59,17 @@ export function ServerDetailPage() {
   // 옛 업타임 목록처럼 화면 상태라 새로고침하면 다시 켜진다.
   const [autoRefresh, setAutoRefresh] = useState(true);
   useAutoRefresh(poll, 30_000, autoRefresh);
-  const changeAutoRefresh = (enabled: boolean) => { setAutoRefresh(enabled); if (enabled) poll(); };
+  // 다시 켜면 서버 데이터와 함께 열린 패널의 데이터도 바로 다시 불러온다(옛 패널의 스위치와 같다).
+  const changeAutoRefresh = (enabled: boolean) => {
+    setAutoRefresh(enabled);
+    if (enabled) { poll(); setRefreshToken((token) => token + 1); }
+  };
   // 머리말의 새로고침은 하나다. 서버 데이터와 함께 열린 패널의 데이터도 다시 불러온다.
   const [refreshToken, setRefreshToken] = useState(0);
-  const { spinning, trigger: handleRefresh } = useSpinAction(() => { refresh(); setRefreshToken((token) => token + 1); });
+  // 진행 중인 다시 불러오기가 있으면 새로 보내지 않고 합류한다. 직접 누른 것이라 회전은 바로 보인다.
+  const { spinning, trigger: handleRefresh } = useSpinAction(() => {
+    void joinRefresh(); setProjectsKey((key) => key + 1); setRefreshToken((token) => token + 1);
+  });
 
   // 서버를 만든 뒤에 이 화면으로 오면 포커스를 탭 패널로 옮긴다.
   const [dialog, setDialog] = useState<'settings' | 'merge' | 'delete' | null>(null);
@@ -122,14 +129,14 @@ export function ServerDetailPage() {
       return {
         key, label,
         srDetail: `, ${TARGET_NOUN[key]} ${capabilityTargets(row.targets, key).length}개`,
-        ...(state === 'error' || state === 'warn' ? { tone: state, toneLabel: capabilityStateLabel(key, state) } : {}),
+        ...(state === 'error' || state === 'warn' ? { tone: state, toneLabel: capabilityLabel(row, key, state) } : {}),
       };
     }),
   ];
 
   // 이전 목록으로 그린 기능은 stale이다. unknown은 이전 목록도 없을 때뿐이다.
   const tabProps = (key: ServerCapability): ServerCapabilityTabProps => ({
-    row, targetId, onChanged: reload, onRetry: () => void reload(), refreshToken, actionSlot, autoRefresh,
+    row, targetId, onChanged: reload, onRetry: () => void reload(), refreshToken, actionSlot, autoRefresh, forgetTarget,
     unknown: row.unknownCapabilities.includes(key), stale: Boolean(error) || row.staleCapabilities.includes(key),
   });
 
@@ -137,7 +144,8 @@ export function ServerDetailPage() {
   // 화살표 키로 연달아 옮기면 기록 하나를 덮어써서, 뒤로 가기 한 번이면 키보드 탐색을 시작한 탭으로 돌아간다.
   const open = (tab: ServerTab, source?: 'keyboard') => {
     const next = tab === 'overview' ? serverPath(row.server.id) : serverPath(row.server.id, tab);
-    if (next === (pendingKeyboard.current ?? location.pathname)) return;
+    // 쿼리가 있거나 대상 화면이면 같은 탭을 눌러도 쿼리 없는 첫 화면으로 간다(설계 6.4절).
+    if (next === (pendingKeyboard.current ?? `${location.pathname}${location.search}`)) return;
     const keyboard = source === 'keyboard';
     const previousKeyboard = pendingKeyboard.current !== null || (location.state as { tabKeys?: boolean } | null)?.tabKeys === true;
     pendingKeyboard.current = keyboard ? next : null;
@@ -146,7 +154,7 @@ export function ServerDetailPage() {
 
   return (
     <div>
-      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || loading} onSettings={() => setDialog('settings')}
+      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')}
         updatedAt={updatedAt} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh} />
       {error && <div className="mb-4"><LoadErrorBanner title="서버 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} /></div>}
       {!error && failed.length > 0 && (

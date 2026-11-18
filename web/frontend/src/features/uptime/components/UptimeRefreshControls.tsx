@@ -11,9 +11,11 @@ interface Props {
   disabled?: boolean;
   /** 묶음의 접근 가능한 이름. 서버 화면은 서버 데이터의 갱신이다. */
   label?: string;
+  /** 데스크톱에서 스위치 줄을 낮춘다(서버 머리말의 상태 줄: 원인 링크와 같은 높이). 누르는 영역은 Toggle이 44px로 넓힌다. */
+  compact?: boolean;
 }
 
-export function UptimeRefreshControls({ updatedAt, refreshing, autoRefresh, onAutoRefreshChange, onRefresh, disabled, label = '업타임 갱신' }: Props) {
+export function UptimeRefreshControls({ updatedAt, refreshing, autoRefresh, onAutoRefreshChange, onRefresh, disabled, label = '업타임 갱신', compact = false }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-3" role="group" aria-label={label}>
       <p className="type-caption text-text-muted" aria-live="polite">
@@ -23,9 +25,8 @@ export function UptimeRefreshControls({ updatedAt, refreshing, autoRefresh, onAu
           </Tooltip>
         ) : '갱신 기록 없음'}
       </p>
-      {/* 스위치의 누르는 영역은 Toggle이 44px로 넓힌다. 데스크톱에서는 상태 줄의 다른 항목(원인 링크)과 같은 높이다. */}
       {onAutoRefreshChange && (
-        <div className="flex min-h-11 items-center gap-2 sm:min-h-6">
+        <div className={`flex min-h-11 items-center gap-2 ${compact ? 'sm:min-h-6' : 'sm:min-h-10'}`}>
           <Toggle checked={Boolean(autoRefresh)} onChange={onAutoRefreshChange} disabled={disabled} ariaLabel="30초마다 자동 갱신" />
           <span className="type-caption text-text-muted">30초마다 자동 갱신</span>
         </div>

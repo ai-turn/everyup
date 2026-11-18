@@ -1,10 +1,11 @@
 import type { StatusTone } from '../../components/common/statusTone';
-import type { InfrastructureResource, LogServiceSummary, ObservedService, Server, UptimeMonitor } from '../../services/api';
+import type { InfrastructureResource, LogServiceSummary, ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../../services/api';
 import { formatDuration } from '../../utils/incidentFormat';
 import { isCollectorFresh } from '../../utils/operationalStatus';
 import { peakUsage, WARNING_PCT } from '../infra/usage';
+import { metricTitle } from '../metrics/metricPresentation';
 import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
-import { serverPath, type ServerCapability } from './serverPaths';
+import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from './serverPaths';
 
 // 서버 목록, 서버 개요, 그룹 화면이 같은 판정을 쓴다. 따로 계산하면 목록은 "정상"인데 그룹은 "장애"인 대상이 생긴다.
 
@@ -80,6 +81,27 @@ export interface ServerRow {
    * (서버 상태, 원인, 기능별 상태, 수치에 쓰지 않는다). 서버 목록 자체를 불러오지 못한 경우는 여기에 들어가지 않는다.
    */
   staleCapabilities: ServerCapability[];
+  /** 임계값을 넘은 지표가 있는 앱의 ID(지금 불러온 앱 가운데 연결이 켜진 것). 메트릭 기능에서 확인 필요다. */
+  breachedApps: string[];
+}
+
+/** 메트릭의 확인 필요는 두 가지 까닭이 있다. 임계값 초과가 데이터 대기보다 먼저 보인다. */
+const BREACHED_LABEL = '임계값 초과';
+
+/**
+ * 앱의 기능별 상태와 문구. 메트릭은 임계값을 넘은 지표가 있으면 확인 필요(임계값 초과)다.
+ * 로그와 API 요청은 그 신호의 수신 여부만 본다.
+ */
+export function appCapabilityState(row: ServerRow, capability: 'logs' | 'api' | 'metrics', app: ObservedService): { state: StatusTone; label: string } {
+  if (capability === 'metrics' && row.breachedApps.includes(app.id)) return { state: 'warn', label: BREACHED_LABEL };
+  const { state } = appState(app);
+  return { state, label: capabilityStateLabel(capability, state) };
+}
+
+/** 기능 전체의 상태 문구(탭의 상태 점, 개요의 기능 행). 메트릭의 확인 필요는 임계값 초과인 앱이 있으면 그 까닭을 쓴다. */
+export function capabilityLabel(row: ServerRow, capability: ServerCapability, state: StatusTone): string {
+  if (capability === 'metrics' && state === 'warn' && capabilityTargets(row.targets, 'metrics').some((app) => row.breachedApps.includes(app.id))) return BREACHED_LABEL;
+  return capabilityStateLabel(capability, state);
 }
 
 export type ServerMetric = 'cpu' | 'memory' | 'disk' | 'uptime' | 'errorLogs';
@@ -131,6 +153,8 @@ export interface ServerCapabilityTabProps {
   refreshToken: number;
   /** 머리말의 `30초마다 자동 갱신` 스위치. 패널이 자기 데이터를 주기적으로 갱신하면 이 값을 따른다. */
   autoRefresh: boolean;
+  /** 삭제·연결 해제한 대상을 서버 데이터의 이전 목록에 반영한다(useServers.forgetTarget). */
+  forgetTarget?: (kind: 'monitors' | 'apps' | 'infrastructure', id: string, next?: ObservedService) => void;
   /** 탭 줄 오른쪽의 조작 자리. 대상이 연결된 탭이 추가 버튼을 여기로 포털한다(TabAction). 그려지기 전에는 null이다. */
   actionSlot?: HTMLElement | null;
 }
@@ -141,6 +165,8 @@ export function buildServerRows(input: {
   apps: ObservedService[] | null;
   infrastructure: InfrastructureResource[] | null;
   logSummaries: LogServiceSummary[] | null;
+  /** 모든 앱의 지표 목록(임계값 초과 판정용). null은 조회 실패: 수신 여부만으로 판정한다. */
+  metricCatalog?: ObservedServiceMetricName[] | null;
   /** 다시 불러오다 실패해서 이전에 성공한 목록을 준 종류 */
   stale?: { monitors?: boolean; apps?: boolean; infrastructure?: boolean };
 }): ServerRow[] {
@@ -150,6 +176,12 @@ export function buildServerRows(input: {
     apps: Boolean(input.apps) && !input.stale?.apps,
     infrastructure: Boolean(input.infrastructure) && !input.stale?.infrastructure,
   };
+  // 앱마다 임계값을 넘은 지표. 옛 메트릭 목록과 같이 연결을 끈 앱은 판정하지 않는다.
+  const breaches = new Map<string, ObservedServiceMetricName[]>();
+  for (const metric of input.metricCatalog ?? []) {
+    if (metric.breached) breaches.set(metric.serviceId, [...(breaches.get(metric.serviceId) ?? []), metric]);
+  }
+  const breachedOf = (app: ObservedService) => (app.isActive && app.signals.includes('metrics') ? breaches.get(app.id) ?? [] : []);
   return input.servers.map((server): ServerRow => {
     const monitors = input.monitors?.filter((monitor) => monitor.serverId === server.id) ?? [];
     const apps = input.apps?.filter((app) => app.serverId === server.id) ?? [];
@@ -172,15 +204,30 @@ export function buildServerRows(input: {
       }),
       ...(current.infrastructure ? [infrastructureState(current.infrastructure)].map((result) => ({ ...result, text: result.detail, to: serverPath(server.id, 'infrastructure') })) : []),
       ...current.apps.map((app) => {
+        const breached = breachedOf(app);
+        if (breached.length > 0) {
+          // 옛 메트릭 목록의 표현: 까닭(임계값 초과)과 첫 지표 이름, 나머지 개수.
+          const text = `${app.name} ${BREACHED_LABEL} ${metricTitle(breached[0])}${breached.length > 1 ? ` 외 ${breached.length - 1}개` : ''}`;
+          return { state: 'warn' as const, detail: BREACHED_LABEL, text, to: serverPath(server.id, 'metrics', app.id) };
+        }
         const result = appState(app);
         return { ...result, text: `${app.name} ${result.detail}`, to: serverPath(server.id, appCapability(app), app.id) };
       }),
     ];
     const state = worst(candidates.map((candidate) => candidate.state)) ?? 'idle';
-    // 대기도 까닭을 적는다. 대상이 없으면 링크 없는 문구다. 대상 목록을 불러오지 못했으면 없다고 단정하지 않는다.
+    // 확인할 수 없는 기능: 목록을 불러오지 못했거나(대상이 있는지 모른다, 앱은 기능을 모르므로 "앱") 이전 목록에 대상이 있다.
+    const unverified = [
+      ...(!input.monitors || (!known.monitors && monitors.length > 0) ? ['업타임'] : []),
+      ...(!input.infrastructure || (!known.infrastructure && infrastructure) ? ['인프라'] : []),
+      ...(!input.apps ? ['앱'] : known.apps ? [] : SERVER_CAPABILITIES
+        .filter(({ key }) => key !== 'uptime' && key !== 'infrastructure' && apps.some((app) => app.signals.includes(SIGNAL_OF[key as 'logs' | 'api' | 'metrics'])))
+        .map(({ label }) => label)),
+    ];
+    // 대기도 까닭을 적는다. 대상이 없으면 링크 없는 문구다. 확인할 수 없는 기능이 있으면 대상이 없다고 단정하지 않고 그 기능을 적는다.
     const culprit = state === 'healthy' ? undefined
       : candidates.find((candidate) => candidate.state === state)
-        ?? (known.monitors && known.apps && known.infrastructure ? { text: '연결한 대상 없음', to: undefined } : undefined);
+        ?? (unverified.length > 0 ? { text: `${unverified.join(', ')} 확인 불가`, to: undefined }
+          : known.monitors && known.apps && known.infrastructure ? { text: '연결한 대상 없음', to: undefined } : undefined);
 
     const appsWith = (capability: 'logs' | 'api' | 'metrics') => current.apps.filter((app) => app.signals.includes(SIGNAL_OF[capability]));
     const logApps = appsWith('logs');
@@ -199,7 +246,7 @@ export function buildServerRows(input: {
         infrastructure: current.infrastructure ? infrastructureState(current.infrastructure).state : null,
         logs: worst(logApps.map((app) => appState(app).state)),
         api: worst(appsWith('api').map((app) => appState(app).state)),
-        metrics: worst(appsWith('metrics').map((app) => appState(app).state)),
+        metrics: worst(appsWith('metrics').map((app) => (breachedOf(app).length > 0 ? 'warn' : appState(app).state))),
       },
       cpu: current.infrastructure?.cpuUsage,
       memory: current.infrastructure?.memoryUsage,
@@ -217,6 +264,7 @@ export function buildServerRows(input: {
         ...(input.infrastructure ? [] : ['infrastructure'] as const),
         ...(input.apps ? [] : ['logs', 'api', 'metrics'] as const),
       ],
+      breachedApps: current.apps.filter((app) => breachedOf(app).length > 0).map((app) => app.id),
       staleCapabilities: [
         ...(input.monitors && !known.monitors ? ['uptime'] as const : []),
         ...(input.infrastructure && !known.infrastructure ? ['infrastructure'] as const : []),

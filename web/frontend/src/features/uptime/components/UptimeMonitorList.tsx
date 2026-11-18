@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import {
   Button, ConfirmDialog, EmptyState, ListToolbar, ListViewToggle, MaterialIcon, SearchInput, StatusLight,
 } from '../../../components/common';
 import { useListView } from '../../../hooks/useListView';
 import { api, type UptimeMonitor, type UptimeMonitorInput } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
+import { readLatest } from '../../../utils/readLatest';
 import { monitorInput } from '../monitorInput';
 import { UPTIME_STATE_LIGHT, uptimeState, type UptimeState } from '../uptimeState';
 import { useUptimeMonitorList } from '../useUptimeMonitorList';
@@ -55,8 +56,16 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
   const location = useLocation();
   // 입력값은 로컬 상태가 쥔다. URL(?q=)은 react-router가 transition 안에서 반영해 값이 한 박자 늦게 돌아오므로,
   // URL에 직접 묶으면 한글 조합 중 글자가 덮여 '결제'가 'ㄱ겨결결ㅈ제제'가 됐다. URL은 공유·복귀용 사본이다.
-  // ponytail: URL→입력은 마운트 때만 읽는다. 같은 화면에서 ?q=만 바뀌는 이동이 생기면 그때 동기화를 더한다.
   const [query, setQueryInput] = useState(() => searchParams.get('q') ?? '');
+  // 이 목록이 쓰는 주소 변경은 모두 replace다. 그 밖의 이동(선택된 탭을 다시 눌러 첫 화면으로, 뒤로 가기)이면 검색창이 주소의 q를 따른다.
+  // ServersPage와 같은 방식. 첫 기록의 key는 항상 default라 주소도 함께 본다.
+  const navigationType = useNavigationType();
+  const seen = `${location.key}${location.search}`;
+  const [seenLocation, setSeenLocation] = useState(seen);
+  if (seen !== seenLocation) {
+    setSeenLocation(seen);
+    if (navigationType !== 'REPLACE') setQueryInput(searchParams.get('q') ?? '');
+  }
   const status = parseStatus(searchParams.get('status'));
   const { view, setView } = useListView();
   const setParam = (key: string, value: string | null) => {
@@ -104,11 +113,17 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
     await afterChange();
   };
 
+  // 목록의 모니터는 최대 한 주기 전의 것이다. 요청은 다시 읽은 모니터로 만들어 그 사이의 수정이나 이동을 되돌리지 않는다.
+  const updateActive = async (monitor: UptimeMonitor, isActive: boolean) => {
+    const latest = await readLatest(() => api.getUptimeMonitor(monitor.id), isActive ? '재개' : '일시정지');
+    return api.updateUptimeMonitor(monitor.id, monitorInput(latest, { isActive }));
+  };
+
   const setActive = async (monitor: UptimeMonitor) => {
     if (changingMonitor) return;
     setChangingMonitor(monitor.id);
     try {
-      await api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { isActive: !monitor.isActive }));
+      await updateActive(monitor, !monitor.isActive);
       await afterChange();
     } catch (cause) {
       toast.error(getErrorMessage(cause));
@@ -200,11 +215,11 @@ export function UptimeMonitorList({ filter, hrefFor, createDefaults, renderContr
         <div role="region" aria-label="선택한 대상 작업" className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-2">
           <p className="mr-auto type-body text-text-base"><span className="font-medium tabular-nums">{selectedMonitors.length}</span>개 선택</p>
           <Button size="sm" variant="secondary" disabled={bulkDisabled || toPause.length === 0} loading={bulkWorking}
-            onClick={() => void runBulk(toPause, (monitor) => api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { isActive: false })), '일시정지')}>
+            onClick={() => void runBulk(toPause, (monitor) => updateActive(monitor, false), '일시정지')}>
             <MaterialIcon name="pause" />일시정지
           </Button>
           <Button size="sm" variant="secondary" disabled={bulkDisabled || toResume.length === 0}
-            onClick={() => void runBulk(toResume, (monitor) => api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { isActive: true })), '재개')}>
+            onClick={() => void runBulk(toResume, (monitor) => updateActive(monitor, true), '재개')}>
             <MaterialIcon name="play_arrow" />재개
           </Button>
           <Button size="sm" variant="destructive" disabled={bulkDisabled} onClick={() => setConfirmingDelete(true)}>

@@ -53,7 +53,7 @@ export function ServersPage() {
   const search = query.trim().toLowerCase();
   const status = parseStatus(params.get('status'));
   const requestedGroup = params.get('group');
-  const { rows, loading, error, failed, updatedAt, reload, poll } = useServers();
+  const { rows, loading, error, failed, updatedAt, reload, poll, refresh: joinRefresh } = useServers();
   // 그룹 이름과 Docker 환경 안내는 보조 정보다. 실패해도 목록은 그린다.
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [hasDockerEnvironments, setHasDockerEnvironments] = useState(false);
@@ -69,7 +69,7 @@ export function ServersPage() {
     return () => { alive = false; };
   }, [extrasKey]);
 
-  const refresh = () => { reload(); setExtrasKey((key) => key + 1); };
+  const refresh = () => { void joinRefresh(); setExtrasKey((key) => key + 1); };
   useAutoRefresh(poll, 30_000);
   const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
 
