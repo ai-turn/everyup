@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MaterialIcon } from '../common';
 import { SCRIM_PANEL, useOverlay } from '../../hooks/useOverlay';
-import { api, type AgentServiceFlat, type ConnectedAgent } from '../../services/api';
+import { api, type AgentServiceFlat, type ConnectedAgent, type Server } from '../../services/api';
 import { NAV_SECTIONS } from './navSections';
-import { ALL_LOGS_PATH } from '../../features/servers/serverPaths';
+import { ALL_LOGS_PATH, serverPath } from '../../features/servers/serverPaths';
 
 // Fired by the sidebar search button; ⌘K/Ctrl+K toggles directly.
 export const OPEN_PALETTE_EVENT = 'everyup:command-palette';
@@ -26,6 +26,7 @@ export function CommandPalette() {
   const [index, setIndex] = useState(0);
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
+  const [servers, setServers] = useState<Server[]>([]);
   const [dataStatus, setDataStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -66,13 +67,14 @@ export function CommandPalette() {
     if (!open) return;
     const loadTimer = window.setTimeout(() => {
       setDataStatus('loading');
-      Promise.all([api.getAgents(), api.getAllAgentServicesFlat()])
-        .then(([agts, svcs]) => {
-          setAgents(agts ?? []);
-          setServices(svcs ?? []);
-          setDataStatus('idle');
-        })
-        .catch(() => setDataStatus('error'));
+      // 하나가 실패해도 불러온 대상은 검색할 수 있게 한다.
+      void Promise.allSettled([api.getAgents(), api.getAllAgentServicesFlat(), api.getServers()])
+        .then(([agts, svcs, srvs]) => {
+          if (agts.status === 'fulfilled') setAgents(agts.value ?? []);
+          if (svcs.status === 'fulfilled') setServices(svcs.value ?? []);
+          if (srvs.status === 'fulfilled') setServers(srvs.value ?? []);
+          setDataStatus([agts, svcs, srvs].every((result) => result.status === 'fulfilled') ? 'idle' : 'error');
+        });
     }, 0);
     return () => window.clearTimeout(loadTimer);
   }, [open]);
@@ -84,6 +86,9 @@ export function CommandPalette() {
     })),
     // 사이드바에 없는 서버 섹션의 화면(설계 6.6)
     { id: 'page-logs', icon: 'article', label: '전체 로그', meta: '서버', to: ALL_LOGS_PATH },
+    ...servers.map((server) => ({
+      id: `server-${server.id}`, icon: 'dns', label: server.name, meta: '서버', to: serverPath(server.id),
+    })),
     ...agents.map((a) => ({
       id: `agent-${a.id}`, icon: 'folder_open', label: a.name, meta: 'Docker 환경', to: `/agents/${a.id}`,
     })),
@@ -91,7 +96,7 @@ export function CommandPalette() {
       id: `svc-${s.agentId}-${s.key}`, icon: '', label: s.name, meta: s.agentName,
       to: `/services/${s.agentId}/${encodeURIComponent(s.key)}`, healthy: s.healthy,
     })),
-  ], [agents, services]);
+  ], [agents, servers, services]);
 
   const filtered = useMemo(() => {
     if (!query) return items;
@@ -152,7 +157,7 @@ export function CommandPalette() {
             aria-label="검색"
             aria-controls="command-palette-results"
             aria-activedescendant={filtered[index] ? `command-palette-option-${filtered[index].id}` : undefined}
-            placeholder="Docker 환경, 서비스, 페이지 검색…"
+            placeholder="서버, Docker 환경, 서비스, 페이지 검색…"
             className="flex-1 bg-transparent py-3.5 text-sm max-sm:text-base text-text-base outline-none placeholder:text-text-dim"
           />
           <kbd className="shrink-0 font-sans px-1.5 py-0.5 rounded border border-ui-border type-label-sm text-text-dim">

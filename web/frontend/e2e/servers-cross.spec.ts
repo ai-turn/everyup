@@ -1,0 +1,203 @@
+import { expect, test, type Page } from '@playwright/test';
+import type { Project, Server } from '../src/services/api';
+
+// 여러 서버를 가로지르는 화면(설계 6.6): 개요, 그룹, 알림 규칙, 명령 팔레트.
+// 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표(attention 시나리오)를 따른다.
+const EDGE = 'server_mock_edge_host_01';
+const crumbs = (page: Page) => page.getByRole('navigation', { name: '현재 위치', exact: true });
+const sidebarCurrent = (page: Page) => page.locator('aside a[aria-current="page"]');
+const attention = (page: Page) => page.getByRole('region', { name: '현재 확인 필요' });
+const groupMembers = (page: Page) => page.getByRole('table', { name: '그룹 구성 그리드', exact: true }).locator('tbody tr');
+const serverGroup = (page: Page) => page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByText(/^그룹 /);
+
+test.beforeEach(async ({ page }) => { await page.setViewportSize({ width: 1440, height: 900 }); });
+
+test('an outage on the overview opens its server tab and is linked to its incident once', async ({ page }) => {
+  await page.goto('./');
+  const path = `/servers/${EDGE}/uptime/uptime_mock_checkout`;
+  const items = attention(page).locator(`a[href$="${path}"]`);
+  await expect(items).toHaveCount(1);
+  // 서버 이름을 함께 쓰고, 장애 이력의 진행 중 장애와 이어져 경과 시간이 보인다.
+  await expect(items).toContainText('edge-host-01 / Checkout API');
+  await expect(items).toContainText('경과');
+  // 일시정지한 모니터(Redis TCP)는 서버 목록에서처럼 문제가 아니다.
+  await expect(attention(page)).not.toContainText('Redis TCP');
+  await items.click();
+  await expect(page).toHaveURL(new RegExp(`${path}$`));
+  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'Checkout API' })).toBeVisible();
+});
+
+test('the overview and the server list agree on which servers need attention', async ({ page }) => {
+  // 서버 목록의 상태 필터로 서버 이름을 모은다(앱 안에서 이동해 같은 데이터를 본다).
+  const names = async (status: string) => {
+    await page.goto(`./servers?status=${status}`);
+    const links = page.getByRole('table', { name: '서버 그리드' }).locator('tbody a[data-row-link]');
+    await expect(links.first()).toBeVisible();
+    return links.allInnerTexts();
+  };
+  const flagged = [...await names('error'), ...await names('warn')];
+  const healthy = await names('healthy');
+  expect(flagged.length).toBeGreaterThan(0);
+  await page.goto('./');
+  await expect(attention(page).getByRole('link').first()).toBeVisible();
+  const titles = await attention(page).getByRole('link').evaluateAll((links) => links.map((link) => link.querySelector('.type-label')?.textContent ?? ''));
+  const servers = (title: string) => title.split(' / ')[0];
+  for (const name of flagged) expect(titles.map(servers)).toContain(name);
+  for (const name of healthy) expect(titles.map(servers)).not.toContain(name);
+});
+
+test('the overview scope lists servers and Docker environments, with all logs beside the attention list', async ({ page }) => {
+  await page.goto('./');
+  const scope = page.getByRole('navigation', { name: '모니터링 범위' });
+  await expect(scope.getByRole('link', { name: /^서버 \d+$/ })).toHaveAttribute('href', /\/servers$/);
+  await expect(scope.getByRole('link', { name: /^Docker 환경 \d+$/ })).toHaveAttribute('href', /\/environments$/);
+  for (const old of ['업타임 모니터', '직접 연결 서비스', '인프라 리소스']) await expect(scope).not.toContainText(old);
+  await attention(page).getByRole('link', { name: '전체 로그', exact: true }).click();
+  await expect(page).toHaveURL(/\/logs$/);
+});
+
+test('a group lists its servers with the server list status and keeps the group while inside a server', async ({ page }) => {
+  await page.goto('./servers');
+  // 서버 목록 행의 원인 문구(StatusLight 아래 줄)
+  const listCause = await page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr').filter({ hasText: 'edge-host-01' })
+    .getByText(/응답 없음/).first().innerText();
+  await page.getByRole('link', { name: '그룹', exact: true }).click();
+  await page.getByRole('link', { name: 'Production', exact: true }).click();
+  const member = groupMembers(page).filter({ hasText: 'edge-host-01' });
+  await expect(member).toContainText('서버');
+  await expect(member).toContainText('장애');
+  await expect(member).toContainText(listCause);
+  // 직접 대상(모니터, 앱, 인프라)은 서버에 들어 있으므로 따로 나오지 않는다.
+  await expect(groupMembers(page).getByRole('link', { name: 'Checkout API', exact: true })).toHaveCount(0);
+  await member.getByRole('link', { name: 'edge-host-01', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}$`));
+  await expect(crumbs(page)).toHaveText(/^그룹.*Production.*edge-host-01$/);
+  await expect(sidebarCurrent(page)).toHaveText('그룹');
+  // 탭을 옮기고 대상으로 들어가도 그룹 안이다.
+  await page.getByRole('tab', { name: /^업타임/ }).click();
+  await page.getByRole('link', { name: 'Checkout API', exact: true }).first().click();
+  await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime/uptime_mock_checkout`));
+  await expect(crumbs(page)).toHaveText(/^그룹.*Production.*edge-host-01.*Checkout API$/);
+  await expect(sidebarCurrent(page)).toHaveText('그룹');
+});
+
+test('a Docker environment in a group opens its environment screen', async ({ page }) => {
+  await page.goto('./projects/project_mock_production');
+  await groupMembers(page).filter({ hasText: 'Docker 환경' }).getByRole('link', { name: 'prod-server', exact: true }).click();
+  await expect(page).toHaveURL(/\/agents\/agent_demo_01$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
+});
+
+test('adding a server to a group shows the group on the server', async ({ page }) => {
+  await page.goto('./projects/project_mock_staging');
+  await page.getByRole('button', { name: '대상 추가', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: '대상 추가', exact: true });
+  // Docker 환경과 서버만 다룬다.
+  await expect(dialog.locator('legend')).toHaveText(['Docker 환경', '서버']);
+  await dialog.locator('label').filter({ hasText: 'Mail relay' }).click();
+  await dialog.getByRole('button', { name: '추가', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  // mock의 변경은 앱 안에서만 남으므로 링크로 들어간다.
+  await groupMembers(page).getByRole('link', { name: 'Mail relay', exact: true }).click();
+  await expect(serverGroup(page)).toHaveText('그룹 Staging');
+});
+
+test('the rule form names direct targets with their server, and a server tab preselects its target', async ({ page }) => {
+  await page.goto(`./servers/${EDGE}/uptime/uptime_mock_checkout`);
+  await page.getByRole('tabpanel').getByRole('link', { name: '알림 규칙', exact: true }).click();
+  await page.getByRole('button', { name: '규칙 추가', exact: true }).click();
+  const target = page.getByRole('combobox', { name: '대상', exact: true });
+  await expect(target).toHaveText('edge-host-01 / Checkout API');
+  await target.click();
+  await expect(page.getByRole('option', { name: 'edge-host-01 / Checkout API', exact: true })).toHaveCount(1);
+  await expect(page.getByRole('option', { name: /^(업타임|직접 연결|Collector) \// })).toHaveCount(0);
+});
+
+test('the command palette finds servers', async ({ page }) => {
+  await page.goto('./');
+  await page.getByRole('button', { name: /^검색/ }).first().click();
+  const palette = page.getByRole('dialog', { name: '검색' });
+  await expect(palette.getByRole('textbox')).toHaveAttribute('placeholder', '서버, Docker 환경, 서비스, 페이지 검색…');
+  await palette.getByRole('textbox').fill('edge-host');
+  const option = palette.getByRole('option', { name: /edge-host-01/ });
+  await expect(option).toContainText('서버');
+  await option.click();
+  await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}$`));
+});
+
+test.describe('against the API', () => {
+  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  const at = '2026-11-01T00:00:00Z';
+  const project: Project = { id: 'p1', name: 'Staging', agentCount: 0, monitorCount: 0, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 0, createdAt: at, updatedAt: at };
+
+  test('adding servers to a group reads each server first and keeps the dialog open on a name clash', async ({ page }) => {
+    // 목록의 이름은 옛 이름이고, 다시 읽으면 새 이름이다. 요청은 다시 읽은 서버로 만든다.
+    const servers: Server[] = [
+      { id: 's1', name: 'web-01 (old)', description: 'old', createdAt: at, updatedAt: at },
+      { id: 's2', name: 'api-01', createdAt: at, updatedAt: at },
+    ];
+    const puts: { id: string; body: unknown }[] = [];
+    await page.route('**/api/v1/**', async (route) => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname.replace('/api/v1', '');
+      const match = path.match(/^\/servers\/([^/]+)$/);
+      if (match && request.method() === 'PUT') {
+        puts.push({ id: match[1], body: request.postDataJSON() });
+        if (match[1] === 's2') {
+          await route.fulfill({ status: 409, json: { success: false, error: { code: 'SERVER_NAME_TAKEN', message: 'server name already exists in this group' } } });
+          return;
+        }
+        servers[0] = { ...servers[0], projectId: 'p1' };
+        await route.fulfill({ json: { success: true, data: servers[0] } });
+        return;
+      }
+      if (match) {
+        const found = servers.find((row) => row.id === match[1])!;
+        await route.fulfill({ json: { success: true, data: match[1] === 's1' ? { ...found, name: 'web-01', description: 'new' } : found } });
+        return;
+      }
+      const data = path === '/projects' ? [project] : path === '/servers' ? servers : [];
+      await route.fulfill({ json: { success: true, data } });
+    });
+    await page.goto('./projects/p1');
+    // 빈 그룹은 빈 화면에도 같은 버튼이 있다.
+    await page.getByRole('button', { name: '대상 추가', exact: true }).first().click();
+    const dialog = page.getByRole('dialog', { name: '대상 추가', exact: true });
+    await dialog.locator('label').filter({ hasText: 'web-01 (old)' }).click();
+    await dialog.locator('label').filter({ hasText: 'api-01' }).click();
+    await dialog.getByRole('button', { name: '추가', exact: true }).click();
+    // 실패한 서버와 까닭을 대화 상자에 보이고 닫지 않는다. 성공한 서버는 반영된다.
+    await expect(dialog.getByRole('alert')).toContainText('1개를 추가하지 못했습니다');
+    await expect(dialog.getByRole('alert')).toContainText('api-01: 이 그룹에 같은 이름의 서버가 있습니다');
+    await expect(groupMembers(page).filter({ hasText: 'web-01' })).toHaveCount(1);
+    await expect(dialog.locator('label').filter({ hasText: 'api-01' }).getByRole('checkbox')).toBeChecked();
+    expect(puts.find((put) => put.id === 's1')?.body).toEqual({ name: 'web-01', description: 'new', projectId: 'p1' });
+  });
+
+  test('a failed target list on the overview is not read as nothing to check', async ({ page }) => {
+    const servers: Server[] = [{ id: 's1', name: 'web-01', createdAt: at, updatedAt: at }];
+    await page.route('**/api/v1/**', async (route) => {
+      const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+      if (path === '/services') {
+        await route.fulfill({ status: 503, json: { success: false, error: { code: 'INTERNAL_ERROR', message: 'down' } } });
+        return;
+      }
+      await route.fulfill({ json: { success: true, data: path === '/servers' ? servers : [] } });
+    });
+    await page.goto('./');
+    await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
+    await expect(page.getByText(/불러오지 못한 영역: .*업타임/)).toBeVisible();
+    await expect(attention(page)).not.toContainText('현재 확인이 필요한 이상이 없습니다');
+    await expect(attention(page)).toContainText('전체가 정상인지는 아직 알 수 없습니다');
+  });
+
+  test('an overview with no servers or Docker environments offers to add a server or connect Docker', async ({ page }) => {
+    await page.route('**/api/v1/**', (route) => route.fulfill({ json: { success: true, data: [] } }));
+    await page.goto('./');
+    await expect(page.getByRole('heading', { name: '아직 모니터링 대상이 없습니다' })).toBeVisible();
+    await expect(page.getByRole('link', { name: '서버 추가', exact: true })).toHaveAttribute('href', /\/servers\/new$/);
+    await expect(page.getByRole('link', { name: 'Docker 연결', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: '업타임 모니터 추가' })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'OpenTelemetry 직접 연결' })).toHaveCount(0);
+  });
+});

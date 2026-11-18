@@ -19,9 +19,11 @@ import {
     type ConnectedAgent,
     type ObservedService,
     type InfrastructureResource,
+    type Server,
     type UptimeMonitor,
     type TelemetrySignal,
 } from '../../../services/api';
+import { directTargetLabel } from '../ruleDisplay';
 
 const ruleSchema = z.object({
     name: z.string().trim().min(1, '규칙 이름을 입력하세요'),
@@ -259,6 +261,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const [directServices, setDirectServices] = useState<ObservedService[]>([]);
     const [infrastructureResources, setInfrastructureResources] = useState<InfrastructureResource[]>([]);
     const [uptimeMonitors, setUptimeMonitors] = useState<UptimeMonitor[]>([]);
+    const [servers, setServers] = useState<Server[]>([]);
     const [customMessage, setCustomMessage] = useState('');
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitted } } = useForm<RuleFormValues>({
@@ -299,6 +302,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
         api.getInfrastructureResources().then(rows => setInfrastructureResources(rows ?? [])).catch(() => { });
         // 헬스체크 규칙은 업타임 모니터 하나를 대상으로 할 수 있다(서버는 service_id로 평가한다).
         api.getUptimeMonitors().then(rows => setUptimeMonitors(rows ?? [])).catch(() => { });
+        // 직접 대상의 이름 앞에 서버 이름을 붙인다. 못 불러오면 대상 이름만 보인다.
+        api.getServers().then(rows => setServers(rows ?? [])).catch(() => { });
     }, [isEdit, initial?.ruleCategory, initial?.serviceId, setValue]);
 
     useEffect(() => {
@@ -448,12 +453,12 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
         : directServices.find(service => service.id === watchedServiceId);
     const targetLabel = isEndpoint || isLog || isRequest || isMetric
         ? (selectedDirectService
-            ? selectedDirectService.name
+            ? directTargetLabel(selectedDirectService, servers)
             : watchedAgentId && watchedServiceKey
             ? (selectedAgentService ? `${selectedAgentService.agentName} / ${selectedAgentService.name}` : watchedServiceKey)
             : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'))
         : watchedCategory === 'resource' && watchedAgentId
-            ? (selectedInfrastructureResource?.name ?? selectedAgent?.name ?? watchedAgentId)
+            ? (selectedInfrastructureResource ? directTargetLabel(selectedInfrastructureResource, servers) : selectedAgent?.name ?? watchedAgentId)
             : (watchedAgentId ? (selectedAgent?.name ?? watchedAgentId) : '전체 인프라');
 
     // 서버는 채널을 고르지 않으면 켜진 채널 전부로, 고른 채널도 켜진 것에만 보낸다.
@@ -551,12 +556,12 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         ))}
                                         {availableDirectServices.map(service => (
                                             <option key={`direct:::${service.id}`} value={`direct:::${service.id}`}>
-                                                직접 연결 / {service.name}
+                                                {directTargetLabel(service, servers)}
                                             </option>
                                         ))}
                                         {isEndpoint && uptimeMonitors.map(monitor => (
                                             <option key={`direct:::${monitor.id}`} value={`direct:::${monitor.id}`}>
-                                                업타임 / {monitor.name}
+                                                {directTargetLabel(monitor, servers)}
                                             </option>
                                         ))}
                                     </Select>
@@ -570,7 +575,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         <option value="">전체 인프라</option>
                                         {infrastructureResources.map(resource => (
                                             <option key={resource.id} value={resource.id}>
-                                                {resource.adapter === 'otel-collector' ? 'Collector' : 'Docker'} / {resource.name}
+                                                {resource.adapter === 'otel-collector' ? directTargetLabel(resource, servers) : `Docker / ${resource.name}`}
                                             </option>
                                         ))}
                                     </Select>
