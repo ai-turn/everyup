@@ -38,7 +38,7 @@ export function FormSidePanel({ open, icon, title, onClose, footer, children }: 
                     <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-action shrink-0">
                         <MaterialIcon size={20} name={icon} />
                     </div>
-                    <h3 className="flex-1 min-w-0 truncate type-card-title text-text-base">{title}</h3>
+                    <h2 className="flex-1 min-w-0 truncate type-card-title text-text-base">{title}</h2>
                     <IconButton icon="close" label="닫기" tone="quiet" onClick={onClose} />
                 </div>
 

@@ -110,7 +110,8 @@ export function ServerDetailPage() {
       return <EmptyState icon="sync_problem" title="서버를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />;
     }
     return (
-      <EmptyState icon="search_off" title="서버를 찾을 수 없습니다" description="삭제되었거나 주소가 잘못되었습니다.">
+      // 화면 전체가 이 안내라 제목이 h1이다.
+      <EmptyState icon="search_off" title="서버를 찾을 수 없습니다" description="삭제되었거나 주소가 잘못되었습니다." headingLevel="h1">
         <ButtonLink to={SERVERS_PATH}>서버 목록</ButtonLink>
       </EmptyState>
     );

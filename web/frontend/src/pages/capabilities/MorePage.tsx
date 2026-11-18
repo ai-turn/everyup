@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom';
 import { MaterialIcon, PageHeader } from '../../components/common';
 import { NAV_SECTIONS } from '../../components/layout/navSections';
+import { ALL_LOGS_PATH } from '../../features/servers/serverPaths';
 
 // 모바일 셸(Header + BottomNavMobile)에서 사이드바를 대신한다 — 하단 내비에 없는 섹션은 전부 여기 나온다.
-const LINKS = NAV_SECTIONS.filter((section) => section.mobile === 'more');
+// 전체 로그는 사이드바에 없는 서버 섹션의 화면이라(설계 6.6) 모바일에서는 여기서 들어간다.
+const LINKS = [
+  { to: ALL_LOGS_PATH, label: '전체 로그', icon: 'article', description: '모든 서버의 로그 요약과 패턴을 봅니다.' },
+  ...NAV_SECTIONS.filter((section) => section.mobile === 'more'),
+];
 
 export function MorePage() {
 

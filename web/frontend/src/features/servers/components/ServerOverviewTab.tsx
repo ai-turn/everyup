@@ -1,11 +1,11 @@
 import { useId } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, EmptyState, StatusLight, type StatusTone } from '../../../components/common';
 import type { UptimeMonitor } from '../../../services/api';
 import { formatDuration } from '../../../utils/incidentFormat';
 import { WARNING_PCT } from '../../infra/usage';
 import { RecentUptimeChecks } from '../../uptime/components/RecentUptimeChecks';
-import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from '../serverPaths';
+import { ADD_MONITOR_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability } from '../serverPaths';
 import { capabilityLabel, capabilityTargets, capabilityUnverified, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
 
 const percent = (value: number | undefined, digits: number) => value === undefined ? '-' : `${value.toFixed(digits)}%`;
@@ -72,6 +72,7 @@ export function ServerOverviewTab({ row, onOpen }: {
   row: ServerRow;
   onOpen: (capability: ServerCapability) => void;
 }) {
+  const navigate = useNavigate();
   // 대상 목록을 불러오지 못했거나 이전 목록인 기능은 지금 상태를 모른다. 경고가 아니므로 대기 톤으로, 연결된 기능들 다음에 둔다.
   const unknown = (key: ServerCapability) => capabilityUnverified(row, key);
   const connected = SERVER_CAPABILITIES
@@ -83,12 +84,10 @@ export function ServerOverviewTab({ row, onOpen }: {
   if (connected.length === 0) {
     return (
       <EmptyState icon="dns" headingLevel="h2" title="아직 연결한 기능이 없습니다" description="업타임 모니터는 설치 없이 바로 추가할 수 있습니다.">
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button onClick={() => onOpen('uptime')}>업타임 모니터 추가</Button>
-          {connectable.filter(({ key }) => key !== 'uptime').map(({ key, label }) => (
-            <Button key={key} variant="secondary" onClick={() => onOpen(key)}>{label} 연결</Button>
-          ))}
-        </div>
+        {/* 업타임 탭으로 옮기면서 추가 대화 상자를 연다. 같은 뜻의 버튼을 탭에서 한 번 더 누르지 않게. */}
+        <Button onClick={() => navigate(serverPath(row.server.id, 'uptime'), { state: { [ADD_MONITOR_STATE]: true } })}>업타임 모니터 추가</Button>
+        {/* 다른 기능의 선택지는 탭 줄의 "연결 전" 표시가 이미 보여 준다. */}
+        <p className="mt-3 type-body text-text-muted">다른 기능은 각 탭에서 연결합니다.</p>
       </EmptyState>
     );
   }

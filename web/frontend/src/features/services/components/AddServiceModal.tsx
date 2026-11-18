@@ -25,6 +25,7 @@ import { ConnectionAddressField } from './ConnectionAddressField';
 import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { env } from '../../../config/env';
 import { QUICKSTART_URL } from '../../../components/layout/DemoHelpLinks';
+import { formatClock } from '../../../utils/incidentFormat';
 
 interface Props {
   onClose: () => void;
@@ -429,7 +430,7 @@ export function AddServiceModal({
   const installCommand = buildInstallCommand(webBaseUrl, joinCode);
   const codeUnavailable = !joinCode || refreshingCode || codeExpired;
   const expiryLabel = expiresAt
-    ? new Date(expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    ? formatClock(expiresAt)
     : '';
   const reinstalled = !existingAgent || Boolean(expiresAt && setupStatus?.lastEnrolledAt && new Date(setupStatus.lastEnrolledAt).getTime() >= new Date(expiresAt).getTime() - 600_000);
   const connected = !setupError && Boolean(setupStatus?.connected && setupStatus.configApplied && reinstalled);

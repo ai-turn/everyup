@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button, EmptyState, ListViewToggle, MaterialIcon, PageHeader } from '../../components/common';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useListView } from '../../hooks/useListView';
@@ -20,6 +21,7 @@ export function LogsPage() {
   const [span, setSpan] = useState<[number, number]>([0, 0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasDockerEnvironments, setHasDockerEnvironments] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = () => setReloadKey(key => key + 1);
 
@@ -28,9 +30,11 @@ export function LogsPage() {
     Promise.all([
       // 패턴과 서버 이름은 보조 정보라, 실패해도 앱 목록은 그린다. 행의 링크는 앱의 serverId로 만든다.
       api.getObservedServices('logs'), api.getServers().catch(() => null), api.getLogSummary(), api.getLogPatterns().catch(() => null),
+      api.getAgents().catch(() => null),
     ])
-      .then(([apps, servers, summaries, patternRows]) => {
+      .then(([apps, servers, summaries, patternRows, agents]) => {
         if (!alive) return;
+        setHasDockerEnvironments((agents ?? []).length > 0);
         const serverNames = new Map((servers ?? []).map(server => [server.id, server.name]));
         // 서버가 없는 앱은 열 화면이 없다. 백엔드는 모든 직접 연결 앱을 서버에 묶는다(설계 5.3).
         const base: LogServiceRow[] = (apps ?? []).flatMap(app => app.serverId ? [{
@@ -68,8 +72,16 @@ export function LogsPage() {
         <EmptyState icon="article" title="로그를 보내는 앱이 없습니다" description="서버 화면의 로그 탭에서 앱을 OpenTelemetry로 연결하면 여기에 모입니다." headingLevel="h2"
           action={{ label: '서버 목록', to: SERVERS_PATH }} />
       ) : (
-        <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} title="앱" noun="앱" onRetryPatterns={reload}
-          viewToggle={<ListViewToggle view={view} onChange={setView} />} />
+        <>
+          <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} title="앱" noun="앱" onRetryPatterns={reload}
+            viewToggle={<ListViewToggle view={view} onChange={setView} />} />
+          {/* 이 화면은 직접 연결한 앱만 모은다. Docker Collector의 로그를 여기서 찾는 사용자에게 자리를 알린다. */}
+          {hasDockerEnvironments && (
+            <p className="mt-8 type-body text-text-muted">
+              Docker 서비스의 로그는 Docker 환경에 있습니다. <Link to="/environments" className="text-action link-underline">Docker 환경</Link>
+            </p>
+          )}
+        </>
       )}
     </div>
   );

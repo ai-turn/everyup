@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, LoadErrorBanner, MaterialIcon } from '../../../components/common';
 import { UptimeMonitorDialog } from '../../uptime/components/UptimeMonitorDialog';
 import { UptimeMonitorList } from '../../uptime/components/UptimeMonitorList';
 import { UptimeMonitorPanel } from '../../uptime/components/UptimeMonitorPanel';
 import { monitorInput } from '../../uptime/monitorInput';
 import { api, type UptimeMonitorInput } from '../../../services/api';
-import { CONNECT_LABEL, serverPath } from '../serverPaths';
+import { ADD_MONITOR_STATE, CONNECT_LABEL, serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
@@ -19,7 +19,13 @@ import { TabBackLink } from './TabBackLink';
 /** 업타임 탭: 모니터가 없으면 연결 안내, 하나면 그 상세, 여럿이면 목록. 주소에 모니터가 있으면 그 상세. */
 export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, actionSlot, autoRefresh, forgetTarget }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
-  const [adding, setAdding] = useState(false);
+  const location = useLocation();
+  const addRequested = (location.state as Record<string, unknown> | null)?.[ADD_MONITOR_STATE] === true;
+  const [adding, setAdding] = useState(addRequested);
+  // 개요의 첫 버튼이 넘긴 표시는 한 번만 쓴다. 기록에서 지워서 새로고침이나 뒤로 가기로 대화 상자가 다시 열리지 않게 한다.
+  useEffect(() => {
+    if (addRequested) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [addRequested, location.pathname, location.search, navigate]);
   const serverId = row.server.id;
   const monitors = row.targets.monitors;
   const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => monitors.find((monitor) => monitor.id === id), Boolean(unknown || stale));
@@ -100,7 +106,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     }
     // 목록은 서버 상세가 불러온 모니터를 쓴다. 갱신의 주체는 서버 상세 하나다. 보기 전환은 탭 줄의 조작 자리에서 추가 버튼 앞이다.
     return (
-      <UptimeMonitorList monitors={monitors} stale={stale} onRetry={onRetry} onDeleted={(ids) => ids.forEach((id) => forgetTarget?.('monitors', id))} searchLabel="모니터 검색"
+      <UptimeMonitorList monitors={monitors} stale={stale} onDeleted={(ids) => ids.forEach((id) => forgetTarget?.('monitors', id))} searchLabel="모니터 검색"
         hrefFor={(monitor) => serverPath(serverId, 'uptime', monitor.id)} onChanged={onChanged}
         renderControls={({ viewToggle }) => <TabAction slot={actionSlot}>{viewToggle}{addButton}</TabAction>} />
     );

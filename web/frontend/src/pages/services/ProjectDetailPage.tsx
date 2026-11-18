@@ -29,7 +29,7 @@ import { CollectorCapabilityDialog } from '../../features/services/components/Co
 import { AgentServiceRequestTrends } from '../../features/healthcheck/components/AgentServiceRequestTrends';
 import { AgentCheckHistoryBar } from '../../features/healthcheck/components/AgentCheckHistoryBar';
 import { getErrorMessage } from '../../utils/errors';
-import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
+import { formatClock, formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 
 // 인프라를 수집할 때만 그려져야 지표를 받는다 — 페이지 본체에서 훅을 부르면 항상 요청한다.
 function HostGauges({ hostId, refreshKey }: { hostId: string; refreshKey: number }) {
@@ -400,7 +400,7 @@ export function ProjectDetailPage() {
                   {events.map((e) => (
                     <div key={e.id} className="flex items-baseline gap-2 py-1.5">
                       <span className="text-xs text-text-dim w-10 shrink-0">
-                        {new Date(e.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {formatClock(e.time)}
                       </span>
                       <span className={`h-1.5 w-1.5 rounded-full shrink-0 translate-y-px ${
                         e.type === 'alert_sent' ? 'bg-status-error-fill'

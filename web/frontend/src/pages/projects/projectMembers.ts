@@ -4,6 +4,7 @@ import { isCollectorFresh } from '../../utils/operationalStatus';
 import { serverPath } from '../../features/servers/serverPaths';
 import { STATE_LABEL, STATE_ORDER, worst, type ServerRow } from '../../features/servers/serverStatus';
 import { readLatest } from '../../utils/readLatest';
+import { COLLECTION_STATUS_LABEL } from '../../components/common/collectionStatus';
 import { ApiError, getErrorMessage } from '../../utils/errors';
 
 // 그룹 목록의 상태 요약과 그룹 상세의 구성원 목록이 같은 판정을 쓰도록 한곳에 둔다.
@@ -38,8 +39,8 @@ export function sourcesForProject(projectId: string, all: ProjectSources): Proje
 // 서버의 상태와 원인은 서버 목록과 같은 행(ServerRow)을 쓴다.
 export function projectMembers({ agents, services, servers }: ProjectSources): Member[] {
   return [
-    ...agents.map((agent): Member => ({ assignment: { kind: 'agent', item: agent }, key: `agent-${agent.id}`, to: `/agents/${agent.id}`, icon: 'deployed_code', type: 'Docker 환경', name: agent.name, detail: isCollectorFresh(agent.lastSeenAt) ? '데이터 유입 중' : '데이터 지연', state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
-    ...services.filter((service) => !service.healthy).map((service): Member => ({ key: `service-${service.agentId}-${service.key}`, to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`, icon: 'deployed_code', type: 'Docker 서비스', name: service.name, detail: '장애', state: 'error' })),
+    ...agents.map((agent): Member => ({ assignment: { kind: 'agent', item: agent }, key: `agent-${agent.id}`, to: `/agents/${agent.id}`, icon: 'deployed_code', type: 'Docker 환경', name: agent.name, detail: COLLECTION_STATUS_LABEL[isCollectorFresh(agent.lastSeenAt) ? 'collecting' : 'delayed'], state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
+    ...services.filter((service) => !service.healthy).map((service): Member => ({ key: `service-${service.agentId}-${service.key}`, to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`, icon: 'deployed_code', type: `${service.agentName}의 Docker 서비스`, name: service.name, detail: '장애', state: 'error' })),
     ...servers.map((row): Member => ({ assignment: { kind: 'server', item: row.server }, key: `server-${row.server.id}`, to: serverPath(row.server.id), icon: 'dns', type: '서버', name: row.server.name, detail: STATE_LABEL[row.state], cause: row.cause?.text, state: row.state })),
   ].sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);
 }

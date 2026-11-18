@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button, MaterialIcon, StatusLight, Tooltip } from '../../../components/common';
 import type { UptimeMonitor } from '../../../services/api';
-import { formatDuration } from '../../../utils/incidentFormat';
+import { formatDuration, formatFullDateTime } from '../../../utils/incidentFormat';
 import { tableRowLinkHandlers } from '../../../utils/tableRowLink';
 import { uptimeState } from '../uptimeState';
 import { RecentUptimeChecks } from './RecentUptimeChecks';
@@ -31,8 +31,8 @@ function MonitorStatus({ monitor, error }: { monitor: UptimeMonitor; error: bool
   const incident = !error && monitor.isActive && monitor.status === 'unhealthy' && monitor.activeIncident?.active ? monitor.activeIncident : undefined;
   return (
     <div className="space-y-1">
-      {error ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
-      {incident && <Tooltip content={`장애 시작 ${new Date(incident.startedAt).toLocaleString()}, ${formatDuration(incident.durationSec)} 지속${incident.message ? `. ${incident.message}` : ''}`} focusable>
+      {error ? <StatusLight tone="idle" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
+      {incident && <Tooltip content={`장애 시작 ${formatFullDateTime(incident.startedAt)}, ${formatDuration(incident.durationSec)} 지속${incident.message ? `. ${incident.message}` : ''}`} focusable>
         <p className="truncate type-caption tabular-nums text-status-error">{formatDuration(incident.durationSec)} 지속</p>
       </Tooltip>}
     </div>

@@ -20,12 +20,13 @@ type ProjectData = { project: Project | null; projects: Project[]; docker: Docke
 
 const EMPTY_DOCKER: DockerSources = { agents: [], services: [] };
 
+// 카드 보기의 대상 링크. 카드의 모서리를 따라 둥글게 둔다(카드에 overflow-hidden을 걸면 포커스 링의 좌우가 잘린다).
 function MemberLink({ to, icon, type, name, detail, cause, state, returnTo, onOpen }: Omit<Member, 'key' | 'assignment'> & { returnTo: string; onOpen: () => void }) {
-  const stateClass = { healthy: 'text-status-healthy', warn: 'text-status-warn', error: 'text-status-error', idle: 'text-status-idle' }[state];
   return (
-    <Link to={to} state={{ returnTo }} onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 transition-colors hover:bg-ui-hover-soft">
-      <MaterialIcon size={20} name={icon} className={`shrink-0 ${stateClass}`} />
-      <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-0.5 block truncate text-xs text-text-muted">{type} · {detail}</span>{cause && <span className="mt-0.5 block truncate text-xs text-text-muted">{cause}</span>}</span>
+    <Link to={to} state={{ returnTo }} onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-ui-hover-soft">
+      {/* 종류 아이콘은 분류라 표 보기처럼 중립색이다(§5.3). 상태는 표 보기와 같은 StatusLight가 말한다. */}
+      <MaterialIcon size={20} name={icon} className="shrink-0 text-text-muted" />
+      <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-0.5 block truncate text-xs text-text-muted">{type}</span><span className="mt-1 block"><StatusLight tone={state} label={detail} /></span>{cause && <span className="mt-0.5 block truncate text-xs text-text-muted">{cause}</span>}</span>
       <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
     </Link>
   );
@@ -164,7 +165,7 @@ export function ProjectOverviewPage() {
       {totalTargets === 0 ? membersUnknown ? null : <section><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="서버와 Docker 환경을 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
         <section>
           <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
-          {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center overflow-hidden rounded-xl border border-ui-border-soft bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
+          {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center rounded-xl border border-ui-border-soft bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
             <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="그룹 구성 그리드" columns={[
               // 종류 아이콘은 분류라 중립색이다(§5.3). 상태는 현황 열의 StatusLight가 말한다(§5.1).
               { key: 'name', label: '대상', render: row => <div className="flex min-w-0 items-start gap-3"><MaterialIcon size={20} name={row.icon} className="mt-0.5 shrink-0 text-text-muted" /><div className="min-w-0"><Link to={row.to} state={{ returnTo }} onClick={() => openMember(row.to)} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.type}</p><div className="mt-2 md:hidden"><MemberStatus member={row} /></div></div></div> },

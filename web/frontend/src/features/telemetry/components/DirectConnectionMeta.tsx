@@ -1,5 +1,6 @@
 import { Button, DetailMeta, MaterialIcon, StatusLight, type DetailMetaField, type StatusTone } from '../../../components/common';
 import type { ReactNode } from 'react';
+import { formatDateTime } from '../../../utils/incidentFormat';
 
 // 서버 탭의 직접 연결(Logs·Metrics·API·Collector) 상세의 연결 메타데이터. 수집 키·마지막 수집은
 // 대상의 속성이지 본문이 아니라서 카드가 아니라 제목 아래 DetailMeta로 둔다.
@@ -51,7 +52,7 @@ export function DirectConnectionMeta({
         <>
           <StatusLight {...collection} />
           {statusDetail}
-          <span>마지막 수집 {lastSeenAt ? new Date(lastSeenAt).toLocaleString('ko-KR', { hour12: false }) : '아직 없음'}</span>
+          <span>마지막 수집 {lastSeenAt ? formatDateTime(lastSeenAt) : '아직 없음'}</span>
           {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 원리 */}
           {isActive && <Button variant="ghost" onClick={onRevoke}><MaterialIcon name="block" />연결 중지</Button>}
           {statusAside && <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{statusAside}</div>}

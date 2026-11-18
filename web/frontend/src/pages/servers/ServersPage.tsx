@@ -109,10 +109,12 @@ export function ServersPage() {
   return (
     <div>
       <PageHeader menu compactActions title="서버">
-        {/* 여러 서버를 가로지르는 로그 요약(설계 6.6). 사이드바에 없는 화면이라 여기서 들어간다. */}
-        <ButtonLink collapseLabel variant="ghost" to={ALL_LOGS_PATH}><MaterialIcon name="article" />전체 로그</ButtonLink>
+        {/* 여러 서버를 가로지르는 로그 요약(설계 6.6). 사이드바에 없는 화면이라 여기서 들어간다.
+            모바일에서도 이름을 보인다(아이콘만으로는 무엇인지 알 수 없다). 그 대신 모바일의 서버 추가는 아이콘(+)만 남긴다.
+            셋 다 글자이면 320px에서 제목이 글자마다 줄바꿈되었다. */}
+        <ButtonLink variant="ghost" to={ALL_LOGS_PATH}><MaterialIcon name="article" />전체 로그</ButtonLink>
         <Button collapseLabel onClick={handleRefresh}><MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침</Button>
-        <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />서버 추가</ButtonLink>
+        <ButtonLink collapseLabel to={NEW_SERVER_PATH}><MaterialIcon name="add" />서버 추가</ButtonLink>
       </PageHeader>
 
       {hasRows && (

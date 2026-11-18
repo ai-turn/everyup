@@ -74,7 +74,7 @@ test('a successful empty registry shows the genuine empty state', async ({ page 
 });
 
 // 모니터 목록을 다시 불러오지 못하면 이전 목록을 "확인 불가"로 남기고 "이전에 불러온" 안내를 보인다(설계 6.7절).
-// 서버 머리말의 일부 실패 안내도 role="status"이므로 패널 안의 안내만 본다.
+// 안내는 서버 머리말 아래의 일부 실패 안내 하나이다(목록 위에 두 번째 안내를 그리지 않는다).
 test('a failed refresh retains previous targets without presenting stale health as current', async ({ page }) => {
   const state: UptimeState = { monitors: [monitor('healthy-monitor', 'healthy'), monitor('other-monitor', 'healthy')], failed: false };
   await mockUptimeApi(page, state);
@@ -85,11 +85,11 @@ test('a failed refresh retains previous targets without presenting stale health 
   const staleCard = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'healthy-monitor', exact: true }) });
   await expect(staleCard.getByText('확인 불가', { exact: true })).toBeVisible();
   await expect(staleCard.getByText('정상', { exact: true })).toHaveCount(0);
-  await expect(panel(page).getByRole('status')).toContainText('이전에 불러온');
+  await expect(page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' })).toContainText('이전에 불러온');
   await expect(staleCard.getByRole('button', { name: 'healthy-monitor 일시정지', exact: true })).toBeDisabled();
   state.failed = false;
-  await panel(page).getByRole('button', { name: '다시 시도', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' }).getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(staleCard.getByText('일시정지', { exact: true })).toBeVisible();
   await expect(staleCard.getByRole('button', { name: 'healthy-monitor 재개', exact: true })).toBeEnabled();
-  await expect(panel(page).getByRole('status')).toHaveCount(0);
+  await expect(page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' })).toHaveCount(0);
 });

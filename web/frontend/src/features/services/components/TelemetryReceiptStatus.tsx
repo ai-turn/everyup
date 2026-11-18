@@ -5,6 +5,7 @@ import { CollectionStatusBadge, LoadErrorBanner } from '../../../components/comm
 import type { SignalReceipt } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
 import { appReceiptNote, lastReceipt, receiptState } from '../../telemetry/signals';
+import { formatFullDateTime } from '../../../utils/incidentFormat';
 
 const labels: Record<string, string> = { logs: '로그', metrics: '메트릭', traces: 'API 트레이스', infrastructure: '인프라', uptime: '컨테이너 상태' };
 
@@ -15,7 +16,7 @@ export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; e
       return <li key={signal} className="flex flex-wrap items-center gap-2 type-body text-text-secondary">
         <CollectionStatusBadge status={receiptState(last)} />
         {labels[signal] ?? signal}
-        <Tooltip content={last ? new Date(last).toLocaleString() : undefined} focusable><span className="text-text-muted">
+        <Tooltip content={last ? formatFullDateTime(last) : undefined} focusable><span className="text-text-muted">
           {last ? `마지막 수신 ${formatDistanceToNow(new Date(last), { addSuffix: true, locale: ko })}` : '아직 수신 기록 없음'}
         </span></Tooltip>
       </li>;

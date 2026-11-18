@@ -46,7 +46,8 @@ test('the redirect replaces the old address, so back does not return to it', asy
 
 test('a missing target explains itself and links to the server list', async ({ page }) => {
   await page.goto('./metrics/missing');
-  await expect(page.getByRole('heading', { level: 1, name: '대상을 찾을 수 없습니다' })).toBeVisible();
+  // 제목은 옛 주소가 가리킨 종류를 말한다.
+  await expect(page.getByRole('heading', { level: 1, name: '앱을 찾을 수 없습니다' })).toBeVisible();
   await page.getByRole('link', { name: '서버 목록', exact: true }).click();
   await expect(page).toHaveURL(/\/servers$/);
 });
@@ -58,7 +59,7 @@ test.describe('against the API', () => {
     const state = await uptimeFixture(page);
     state.failures.set('GET /services/gone', 404);
     await page.goto('./uptime/gone');
-    await expect(page.getByRole('heading', { level: 1, name: '대상을 찾을 수 없습니다' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '업타임 모니터를 찾을 수 없습니다' })).toBeVisible();
     await expect(page.getByRole('button', { name: '다시 시도' })).toHaveCount(0);
 
     state.failures.set('GET /services/http-monitor', 500);
@@ -84,6 +85,6 @@ test.describe('against the API', () => {
     // 어느 환경에도 없는 ID는 찾을 수 없다.
     state.failures.set('GET /infrastructure-resources/gone', 404);
     await page.goto('./infrastructure/gone');
-    await expect(page.getByRole('heading', { level: 1, name: '대상을 찾을 수 없습니다' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '인프라 리소스를 찾을 수 없습니다' })).toBeVisible();
   });
 });

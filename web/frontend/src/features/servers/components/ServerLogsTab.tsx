@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, ListViewToggle, LoadErrorBanner, MaterialIcon } from '../../../components/common';
 import { useListView } from '../../../hooks/useListView';
 import { api, type LogPattern, type LogServiceSummary, type ObservedService } from '../../../services/api';
@@ -9,7 +9,7 @@ import { LogServiceOverview } from '../../logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries } from '../../logs/logServiceRows';
 import { DirectLogsPanel } from '../../telemetry/components/DirectLogsPanel';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
-import { CONNECT_LABEL, serverPath } from '../serverPaths';
+import { ALL_LOGS_PATH, CONNECT_LABEL, serverPath } from '../serverPaths';
 import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
@@ -102,7 +102,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     if (current) {
       return (
         <DirectLogsPanel key={current.id} service={current}
-          listLink={<TabBackLink label="앱 목록" to={listPath} />}
+          listLink={<TabBackLink label={listPath.startsWith(ALL_LOGS_PATH) ? '전체 로그' : '앱 목록'} to={listPath} />}
           onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       );
@@ -177,7 +177,11 @@ function ServerLogOverview({ serverId, apps, refreshToken }: {
       {error && <LoadErrorBanner role="status" title="로그 요약을 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={retry} />}
       <LogServiceOverview rows={next.rows} patterns={data.patterns === null ? null : next.patterns} span={next.span} view={view} returnTo={returnTo}
         title="앱" noun="앱" onRetryPatterns={retry}
-        viewToggle={<ListViewToggle view={view} onChange={setView} />} />
+        viewToggle={<>
+          {/* 여러 서버를 차례로 훑는 길. 전체 로그는 사이드바에 없다. */}
+          <Link to={ALL_LOGS_PATH} className="inline-flex min-h-11 items-center type-body text-action link-underline sm:min-h-6">모든 서버의 로그</Link>
+          <ListViewToggle view={view} onChange={setView} />
+        </>} />
     </div>
   );
 }

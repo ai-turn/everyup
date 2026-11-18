@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MaterialIcon } from '../common';
 import { SCRIM_PANEL, useOverlay } from '../../hooks/useOverlay';
-import { api, type AgentServiceFlat, type ConnectedAgent, type Server } from '../../services/api';
+import { api, type AgentServiceFlat, type ConnectedAgent, type ObservedService, type Project, type Server, type UptimeMonitor } from '../../services/api';
 import { NAV_SECTIONS } from './navSections';
 import { ALL_LOGS_PATH, serverPath } from '../../features/servers/serverPaths';
+import { appCapability } from '../../features/servers/serverStatus';
 
 // Fired by the sidebar search button; ⌘K/Ctrl+K toggles directly.
 export const OPEN_PALETTE_EVENT = 'everyup:command-palette';
@@ -27,6 +28,9 @@ export function CommandPalette() {
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
   const [servers, setServers] = useState<Server[]>([]);
+  const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
+  const [apps, setApps] = useState<ObservedService[]>([]);
+  const [groups, setGroups] = useState<Project[]>([]);
   const [dataStatus, setDataStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -68,18 +72,27 @@ export function CommandPalette() {
     const loadTimer = window.setTimeout(() => {
       setDataStatus('loading');
       // 하나가 실패해도 불러온 대상은 검색할 수 있게 한다.
-      void Promise.allSettled([api.getAgents(), api.getAllAgentServicesFlat(), api.getServers()])
-        .then(([agts, svcs, srvs]) => {
+      const lists = [api.getAgents(), api.getAllAgentServicesFlat(), api.getServers(), api.getUptimeMonitors(), api.getObservedServices(), api.getProjects()] as const;
+      void Promise.allSettled(lists)
+        .then((results) => {
+          const [agts, svcs, srvs, mons, obs, prjs] = results;
           if (agts.status === 'fulfilled') setAgents(agts.value ?? []);
           if (svcs.status === 'fulfilled') setServices(svcs.value ?? []);
           if (srvs.status === 'fulfilled') setServers(srvs.value ?? []);
-          setDataStatus([agts, svcs, srvs].every((result) => result.status === 'fulfilled') ? 'idle' : 'error');
+          if (mons.status === 'fulfilled') setMonitors(mons.value ?? []);
+          if (obs.status === 'fulfilled') setApps(obs.value ?? []);
+          if (prjs.status === 'fulfilled') setGroups(prjs.value ?? []);
+          setDataStatus(results.every((result) => result.status === 'fulfilled') ? 'idle' : 'error');
         });
     }, 0);
     return () => window.clearTimeout(loadTimer);
   }, [open]);
 
-  const items: PaletteItem[] = useMemo(() => [
+  const items: PaletteItem[] = useMemo(() => {
+    const serverNames = new Map(servers.map((server) => [server.id, server.name]));
+    // 모니터와 앱은 서버의 대상이다. 서버 이름을 몰라도(서버 목록 조회 실패) 대상은 찾을 수 있다.
+    const ownerOf = (serverId: string, noun: string) => (serverNames.has(serverId) ? `${serverNames.get(serverId)}의 ${noun}` : noun);
+    return [
     ...NAV_SECTIONS.map((section) => ({
       id: `page-${section.to.slice(1) || 'home'}`, icon: section.icon, label: section.label, to: section.to,
       ...(section.to === '/' ? { meta: '홈' } : {}),
@@ -89,14 +102,26 @@ export function CommandPalette() {
     ...servers.map((server) => ({
       id: `server-${server.id}`, icon: 'dns', label: server.name, meta: '서버', to: serverPath(server.id),
     })),
+    ...monitors.flatMap((monitor) => monitor.serverId ? [{
+      id: `monitor-${monitor.id}`, icon: 'monitor_heart', label: monitor.name, meta: ownerOf(monitor.serverId, '모니터'),
+      to: serverPath(monitor.serverId, 'uptime', monitor.id),
+    }] : []),
+    ...apps.flatMap((app) => app.serverId ? [{
+      id: `app-${app.id}`, icon: 'hub', label: app.name, meta: ownerOf(app.serverId, '앱'), to: serverPath(app.serverId, appCapability(app), app.id),
+    }] : []),
+    // 아이콘은 사이드바와 같다: 서버 dns, Docker 환경 deployed_code, 그룹 folder_open.
     ...agents.map((a) => ({
-      id: `agent-${a.id}`, icon: 'folder_open', label: a.name, meta: 'Docker 환경', to: `/agents/${a.id}`,
+      id: `agent-${a.id}`, icon: 'deployed_code', label: a.name, meta: 'Docker 환경', to: `/agents/${a.id}`,
+    })),
+    ...groups.map((group) => ({
+      id: `group-${group.id}`, icon: 'folder_open', label: group.name, meta: '그룹', to: `/projects/${group.id}`,
     })),
     ...services.map((s) => ({
       id: `svc-${s.agentId}-${s.key}`, icon: '', label: s.name, meta: s.agentName,
       to: `/services/${s.agentId}/${encodeURIComponent(s.key)}`, healthy: s.healthy,
     })),
-  ], [agents, servers, services]);
+    ];
+  }, [agents, apps, groups, monitors, servers, services]);
 
   const filtered = useMemo(() => {
     if (!query) return items;
@@ -178,7 +203,7 @@ export function CommandPalette() {
                 aria-selected={i === index}
                 onClick={() => go(item)}
                 onMouseMove={() => setIndex(i)}
-                className={`w-full flex items-center gap-2 px-4 py-2 text-left transition-colors ${
+                className={`w-full flex min-h-11 items-center gap-2 px-4 py-2 text-left transition-colors sm:min-h-0 ${
                   i === index
                     ? 'bg-primary/10 text-action'
                     : 'text-text-secondary'

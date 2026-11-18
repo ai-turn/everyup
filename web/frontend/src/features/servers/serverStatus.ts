@@ -1,6 +1,6 @@
 import type { StatusTone } from '../../components/common/statusTone';
 import type { InfrastructureResource, LogServiceSummary, ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../../services/api';
-import { formatDuration } from '../../utils/incidentFormat';
+import { formatDateTime, formatDuration } from '../../utils/incidentFormat';
 import { isCollectorFresh } from '../../utils/operationalStatus';
 import { peakUsage, WARNING_PCT } from '../infra/usage';
 import { metricTitle } from '../metrics/metricPresentation';
@@ -41,7 +41,7 @@ export function monitorState(monitor: UptimeMonitor): TargetState {
 export function appState(service: ObservedService): TargetState {
   if (!service.isActive) return { state: 'idle', detail: '연결 비활성화됨' };
   if (!service.lastSeenAt) return { state: 'warn', detail: '데이터 대기 중' };
-  return { state: 'healthy', detail: `마지막 수신 ${new Date(service.lastSeenAt).toLocaleString()}` };
+  return { state: 'healthy', detail: `마지막 수신 ${formatDateTime(service.lastSeenAt)}` };
 }
 
 const USAGE = [['cpuUsage', 'CPU'], ['memoryUsage', '메모리'], ['diskUsage', '디스크']] as const;
@@ -73,6 +73,8 @@ export interface TargetIssue {
   to: string;
   /** 모니터는 마지막 체크, 인프라는 마지막 수신, 앱은 마지막 수신이나 연결한 때 */
   observedAt?: string;
+  /** 사용률 때문에 확인 필요일 때 그 기준(%) */
+  threshold?: number;
 }
 
 export interface ServerRow {
@@ -142,8 +144,8 @@ export const targetCountLabels = (counts: TargetCounts): string[] =>
     .filter(([, count]) => count > 0).map(([label, count]) => `${label} ${count}개`);
 
 
-// 앱을 여는 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API)로 고른다.
-const appCapability = (app: ObservedService): ServerCapability =>
+// 앱을 여는 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API)로 고른다. 명령 팔레트도 같은 탭으로 연다.
+export const appCapability = (app: ObservedService): ServerCapability =>
   app.signals.includes('logs') ? 'logs' : app.signals.includes('metrics') ? 'metrics' : 'api';
 
 const SIGNAL_OF: Record<'logs' | 'api' | 'metrics', ObservedService['signals'][number]> = { logs: 'logs', api: 'traces', metrics: 'metrics' };
@@ -222,7 +224,7 @@ export function buildServerRows(input: {
       }),
       ...(current.infrastructure ? [current.infrastructure].map((resource) => {
         const result = infrastructureState(resource);
-        return { kind: 'infrastructure' as const, id: resource.id, name: resource.name, state: result.state, detail: result.detail, text: result.detail, to: serverPath(server.id, 'infrastructure'), observedAt: resource.lastSeenAt };
+        return { kind: 'infrastructure' as const, id: resource.id, name: resource.name, state: result.state, detail: result.detail, text: result.detail, to: serverPath(server.id, 'infrastructure'), observedAt: resource.lastSeenAt, threshold: result.threshold };
       }) : []),
       ...current.apps.map((app) => {
         const breached = breachedOf(app);

@@ -12,6 +12,7 @@ import type {
   AgentServiceSnapshot,
   ConnectedAgent,
 } from '../../../services/api';
+import { formatDateTime } from '../../../utils/incidentFormat';
 
 const PROFILE_CAPABILITIES: { capability: AgentCollectionCapability; label: string }[] = [
   { capability: 'uptime', label: '업타임' },
@@ -262,7 +263,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           <div className="text-right text-xs text-text-dim">
             <p>{host || '호스트 정보 확인 중'} · {report.host.btf ? 'BTF 있음' : 'BTF 없음'}</p>
             <p className="mt-0.5">
-              {new Date(report.checkedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} 확인
+              {formatDateTime(report.checkedAt)} 확인
             </p>
           </div>
         )}

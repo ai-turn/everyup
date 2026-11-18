@@ -8,21 +8,34 @@ interface SelectOption {
   value: string;
   label: string;
   disabled: boolean;
+  /** 감싼 <optgroup>의 label. 목록에서 묶음 제목으로 보인다. */
+  group?: string;
 }
 
 function textFromNode(node: ReactNode): string {
   return Children.toArray(node).map((child) => typeof child === 'string' || typeof child === 'number' ? String(child) : '').join('');
 }
 
-function optionsFromChildren(children: ReactNode): SelectOption[] {
+function optionsFromChildren(children: ReactNode, group?: string): SelectOption[] {
   return Children.toArray(children).flatMap((child) => {
     if (!isValidElement(child)) return [];
-    const props = child.props as { value?: string | number; disabled?: boolean; children?: ReactNode };
-    if (child.type === 'optgroup') return optionsFromChildren(props.children);
+    const props = child.props as { value?: string | number; disabled?: boolean; label?: string; children?: ReactNode };
+    if (child.type === 'optgroup') return optionsFromChildren(props.children, props.label);
     if (child.type !== 'option') return [];
     const label = textFromNode(props.children);
-    return [{ value: String(props.value ?? label), label, disabled: Boolean(props.disabled) }];
+    return [{ value: String(props.value ?? label), label, disabled: Boolean(props.disabled), group }];
   });
+}
+
+/** 이어지는 같은 묶음의 선택지를 모은다. 묶음이 없는 선택지(전체 등)는 group이 없다. */
+function sectionsOf(options: SelectOption[]): { group?: string; options: SelectOption[] }[] {
+  const sections: { group?: string; options: SelectOption[] }[] = [];
+  for (const option of options) {
+    const last = sections[sections.length - 1];
+    if (last && last.group === option.group) last.options.push(option);
+    else sections.push({ group: option.group, options: [option] });
+  }
+  return sections;
 }
 
 type SelectProps = Omit<ComponentPropsWithoutRef<'select'>, 'size'> & {
@@ -157,13 +170,24 @@ export function Select({
       </button></Tooltip>
       {open && createPortal(
         <div ref={menuRef} id={menuId} role="listbox" aria-label={ariaLabel} style={{ top: position.top, left: position.left, width: position.width }} className="fixed z-[60] max-h-64 overflow-y-auto rounded-lg border border-ui-border bg-ui-raised p-1 shadow-lg">
-          {options.map((option) => {
-            const isSelected = option.value === selectedValue;
+          {sectionsOf(options).map((section, index) => {
+            const items = section.options.map((option) => {
+              const isSelected = option.value === selectedValue;
+              // 모바일에서 누르는 높이 44px. 데스크톱은 36px 그대로다.
+              return (
+                <button key={option.value} type="button" role="option" aria-selected={isSelected} disabled={option.disabled} onClick={() => selectValue(option.value)} className={`flex min-h-11 w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 ${isSelected ? 'bg-primary/10 font-medium text-action' : 'text-text-secondary hover:bg-ui-hover'}`}>
+                  <span className="min-w-0 flex-1 truncate">{option.label}</span>
+                  {isSelected && <MaterialIcon size={20} name="check" className="ml-2 shrink-0" />}
+                </button>
+              );
+            });
+            if (section.group === undefined) return items;
+            // 네이티브 <optgroup>과 같이 묶음 제목은 고를 수 없다. 이름은 group의 aria-label이 말한다.
             return (
-              <button key={option.value} type="button" role="option" aria-selected={isSelected} disabled={option.disabled} onClick={() => selectValue(option.value)} className={`flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isSelected ? 'bg-primary/10 font-medium text-action' : 'text-text-secondary hover:bg-ui-hover'}`}>
-                <span className="min-w-0 flex-1 truncate">{option.label}</span>
-                {isSelected && <MaterialIcon size={20} name="check" className="ml-2 shrink-0" />}
-              </button>
+              <div key={`group-${index}`} role="group" aria-label={section.group}>
+                <div aria-hidden="true" className="px-3 pb-1 pt-2 type-label-sm text-text-muted">{section.group}</div>
+                {items}
+              </div>
             );
           })}
         </div>,

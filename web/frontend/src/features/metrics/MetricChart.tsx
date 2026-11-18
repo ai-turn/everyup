@@ -14,6 +14,7 @@ import { useMetricQuery, type MetricWindow } from './useMetricQuery';
 import { useMetricRead, type MetricSource } from './useMetricRead';
 import { metricFlags, metricIdentity, metricTitle } from './metricPresentation';
 import { MetricExplorerControls } from './MetricExplorerControls';
+import { formatDateTime } from '../../utils/incidentFormat';
 export type { MetricSource } from './useMetricRead';
 
 const NO_POINTS: OtelMetricPoint[] = [];
@@ -127,10 +128,10 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         {expanded && <dl aria-label="메트릭 정보" className="mb-3 flex flex-wrap gap-x-5 gap-y-2 type-caption text-text-muted">
           <div className="flex flex-wrap items-baseline gap-1.5">
             <dt>마지막 측정</dt>
-            <dd><time dateTime={meta.lastAt}>{new Date(meta.lastAt).toLocaleString('ko-KR', { hour12: false })}</time></dd>
+            <dd><time dateTime={meta.lastAt}>{formatDateTime(meta.lastAt)}</time></dd>
           </div>
           <div className="flex flex-wrap items-baseline gap-1.5">
-            <dt>마지막 수신</dt><dd>{meta.lastReceivedAt ? <time dateTime={meta.lastReceivedAt}>{new Date(meta.lastReceivedAt).toLocaleString('ko-KR', { hour12: false })}</time> : '기록 없음'}</dd>
+            <dt>마지막 수신</dt><dd>{meta.lastReceivedAt ? <time dateTime={meta.lastReceivedAt}>{formatDateTime(meta.lastReceivedAt)}</time> : '기록 없음'}</dd>
           </div>
           <div className="flex flex-wrap items-baseline gap-1.5">
             <dt>조회 구간</dt>

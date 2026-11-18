@@ -112,7 +112,7 @@ test.describe('mobile', () => {
 
     await bottom.getByRole('link', { name: '더보기', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: '더보기' })).toBeVisible();
-    await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText(['Docker 환경', '그룹', '환경 설정']);
+    await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText(['전체 로그', 'Docker 환경', '그룹', '환경 설정']);
   });
 });
 

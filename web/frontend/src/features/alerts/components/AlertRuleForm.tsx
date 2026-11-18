@@ -451,6 +451,22 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const selectedDirectService = isEndpoint
         ? uptimeMonitors.find(monitor => monitor.id === watchedServiceId)
         : directServices.find(service => service.id === watchedServiceId);
+    // 대상 선택지는 종류(Docker 환경, 서버)로 묶고 묶음 안에서 라벨순이다. 문구는 그대로 "부모 / 대상"이다.
+    const byLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label, 'ko');
+    const dockerTargets = agentServices.map(svc => ({ value: `${svc.agentId}:::${svc.key}`, label: `${svc.agentName} / ${svc.name}` })).sort(byLabel);
+    const serverTargets = [...availableDirectServices, ...(isEndpoint ? uptimeMonitors : [])]
+        .map(target => ({ value: `direct:::${target.id}`, label: directTargetLabel(target, servers) })).sort(byLabel);
+    const dockerResources = infrastructureResources.filter(resource => resource.adapter !== 'otel-collector')
+        .map(resource => ({ value: resource.id, label: `Docker / ${resource.name}` })).sort(byLabel);
+    const serverResources = infrastructureResources.filter(resource => resource.adapter === 'otel-collector')
+        .map(resource => ({ value: resource.id, label: directTargetLabel(resource, servers) })).sort(byLabel);
+    const targetGroups = (docker: { value: string; label: string }[], direct: { value: string; label: string }[]) =>
+        ([['Docker 환경', docker], ['서버', direct]] as const).filter(([, items]) => items.length > 0).map(([label, items]) => (
+            <optgroup key={label} label={label}>
+                {items.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
+            </optgroup>
+        ));
+
     const targetLabel = isEndpoint || isLog || isRequest || isMetric
         ? (selectedDirectService
             ? directTargetLabel(selectedDirectService, servers)
@@ -549,21 +565,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
 
                                     >
                                         <option value="">{isRequest ? '서비스 선택' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'}</option>
-                                        {agentServices.map(svc => (
-                                            <option key={`${svc.agentId}:::${svc.key}`} value={`${svc.agentId}:::${svc.key}`}>
-                                                {svc.agentName} / {svc.name}
-                                            </option>
-                                        ))}
-                                        {availableDirectServices.map(service => (
-                                            <option key={`direct:::${service.id}`} value={`direct:::${service.id}`}>
-                                                {directTargetLabel(service, servers)}
-                                            </option>
-                                        ))}
-                                        {isEndpoint && uptimeMonitors.map(monitor => (
-                                            <option key={`direct:::${monitor.id}`} value={`direct:::${monitor.id}`}>
-                                                {directTargetLabel(monitor, servers)}
-                                            </option>
-                                        ))}
+                                        {targetGroups(dockerTargets, serverTargets)}
                                     </Select>
                                 ) : (
                                     <Select
@@ -573,11 +575,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
 
                                     >
                                         <option value="">전체 인프라</option>
-                                        {infrastructureResources.map(resource => (
-                                            <option key={resource.id} value={resource.id}>
-                                                {resource.adapter === 'otel-collector' ? directTargetLabel(resource, servers) : `Docker / ${resource.name}`}
-                                            </option>
-                                        ))}
+                                        {targetGroups(dockerResources, serverResources)}
                                     </Select>
                                 )}
                             </Field>
@@ -613,7 +611,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                                 type="button"
                                                 onClick={() => handleMetricChange(m)}
                                                 aria-pressed={watchedMetric === m}
-                                                className={`px-3 py-2 rounded-lg text-sm border-2 transition-colors ${
+                                                className={`min-h-11 px-3 py-2 rounded-lg text-sm border-2 transition-colors sm:min-h-0 ${
                                                     watchedMetric === m
                                                         ? 'border-primary bg-primary/10 text-action'
                                                         : 'border-ui-border-soft text-text-muted hover:border-ui-border'
@@ -718,7 +716,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                             <p className="type-body text-text-muted">수신할 때마다 평가합니다. 같은 시리즈는 일정 시간(기본 5분)에 한 번만 보냅니다.</p>
                         ) : (
                             <div>
-                                <Button type="button" variant="ghost" size="sm" onClick={() => applyRecommended(watchedMetric)}>
+                                <Button type="button" variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={() => applyRecommended(watchedMetric)}>
                                     <MaterialIcon name="tune" />
                                     권장값 채우기
                                 </Button>

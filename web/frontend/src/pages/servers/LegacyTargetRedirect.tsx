@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { EmptyState, MaterialIcon } from '../../components/common';
+import { ButtonLink, EmptyState, MaterialIcon } from '../../components/common';
 import { serverPath, SERVERS_PATH, type ServerCapability } from '../../features/servers/serverPaths';
 import { api } from '../../services/api';
 import { ApiError, getErrorMessage } from '../../utils/errors';
+
+// 찾지 못한 대상의 종류. 옛 주소가 무엇을 가리켰는지 말한다.
+const MISSING_TITLE: Record<ServerCapability, string> = {
+  uptime: '업타임 모니터를 찾을 수 없습니다', infrastructure: '인프라 리소스를 찾을 수 없습니다', logs: '앱을 찾을 수 없습니다', api: '앱을 찾을 수 없습니다', metrics: '앱을 찾을 수 없습니다',
+};
 
 const lookup = (kind: ServerCapability, id: string): Promise<{ serverId?: string } | null> =>
   kind === 'uptime' ? api.getUptimeMonitor(id)
@@ -52,8 +57,13 @@ export function LegacyTargetRedirect({ kind }: { kind: ServerCapability }) {
 
   if (result === 'missing') {
     return (
-      <EmptyState icon="search_off" title="대상을 찾을 수 없습니다" description="삭제되었거나 주소가 잘못되었습니다. 서버 목록에서 찾아보세요." headingLevel="h1"
-        action={{ label: '서버 목록', to: SERVERS_PATH }} />
+      // 알림 링크로 왔다면 대상은 없어도 장애는 개요에 있을 수 있다.
+      <EmptyState icon="search_off" title={MISSING_TITLE[kind]} description="삭제되었거나 주소가 잘못되었습니다. 서버 목록에서 찾아보세요." headingLevel="h1">
+        <div className="flex flex-wrap justify-center gap-2">
+          <ButtonLink to={SERVERS_PATH}>서버 목록</ButtonLink>
+          <ButtonLink variant="secondary" to="/#attention">개요에서 현재 장애 보기</ButtonLink>
+        </div>
+      </EmptyState>
     );
   }
   if (result) {

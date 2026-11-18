@@ -16,6 +16,9 @@ export const SERVER_CAPABILITIES: readonly { key: ServerCapability; label: strin
 ];
 
 /** 연결 안내의 주 버튼과 탭 줄의 추가 버튼이 같이 쓰는 문구(DESIGN.md §4.1 액션 앵커). */
+/** 개요의 첫 버튼이 업타임 탭으로 옮기면서 넘기는 router state의 키. 탭이 모니터 추가 대화 상자를 한 번 연다. */
+export const ADD_MONITOR_STATE = 'addMonitor';
+
 export const CONNECT_LABEL: Record<ServerCapability, string> = {
   uptime: '모니터 추가', infrastructure: '인프라 연결', logs: '로그 연결', api: 'API 연결', metrics: '메트릭 연결',
 };

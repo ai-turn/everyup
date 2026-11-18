@@ -1,6 +1,6 @@
 import { Tooltip } from '../../../components/common';
 import type { TimelineIncident, UptimeMonitor, UptimeMonitorMetric } from '../../../services/api';
-import { formatDuration, formatIncidentTime } from '../../../utils/incidentFormat';
+import { formatDuration, formatFullDateTime, formatIncidentTime } from '../../../utils/incidentFormat';
 
 interface Props {
   monitor: UptimeMonitor;
@@ -34,7 +34,7 @@ export function UptimeLatestCheck({ monitor, metrics, incidents, incidentsError 
       {latest && (
         <span role="group" aria-label="최근 체크" className="break-all">
           최근 체크 {result}{' '}
-          <Tooltip content={new Date(latest.checkedAt).toLocaleString()} focusable>
+          <Tooltip content={formatFullDateTime(latest.checkedAt)} focusable>
             <span className="tabular-nums text-text-muted">({formatIncidentTime(latest.checkedAt)})</span>
           </Tooltip>
         </span>

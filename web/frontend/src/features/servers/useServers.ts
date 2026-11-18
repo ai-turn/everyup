@@ -18,7 +18,7 @@ export function partialFailureMessage(failed: FailedTargets[]): string {
   const join = (stale: boolean) => failed.filter((item) => item.stale === stale).map((item) => item.label).join(', ');
   return [
     join(false) && `${join(false)} 정보를 제외한 결과입니다.`,
-    join(true) && `${join(true)} 정보는 이전에 불러온 것입니다.`,
+    join(true) && `${join(true)} 정보는 이전에 불러온 것입니다. 최신 상태는 확인할 수 없습니다.`,
   ].filter(Boolean).join(' ');
 }
 

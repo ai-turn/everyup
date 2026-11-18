@@ -1,4 +1,5 @@
 import { Toggle, Tooltip } from '../../../components/common';
+import { formatClock, formatFullDateTime } from '../../../utils/incidentFormat';
 
 interface Props {
   updatedAt: Date | null;
@@ -13,8 +14,8 @@ export function UptimeRefreshControls({ updatedAt, autoRefresh, onAutoRefreshCha
     <div className="flex flex-wrap items-center gap-3" role="group" aria-label="서버 데이터 갱신">
       <p className="type-caption text-text-muted" aria-live="polite">
         {updatedAt ? (
-          <Tooltip content={`마지막 갱신 ${updatedAt.toLocaleString()}`} focusable>
-            <span>{updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} 갱신</span>
+          <Tooltip content={`마지막 갱신 ${formatFullDateTime(updatedAt)}`} focusable>
+            <span>{formatClock(updatedAt, true)} 갱신</span>
           </Tooltip>
         ) : '갱신 기록 없음'}
       </p>

@@ -21,17 +21,18 @@ const parseStatus = (value: string | null): UptimeState | null =>
  * 모니터는 서버 상세가 불러온 것을 받는다. 목록은 따로 불러오거나 갱신하지 않고, 변경한 뒤에는 onChanged로 서버 상세가 다시 불러온다.
  * 추가 버튼은 탭이 그린다. 탭은 모니터가 둘 이상일 때만 이 목록을 보인다.
  */
-export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged, stale = false, onRetry, onDeleted, searchLabel }: {
+export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged, stale = false, onDeleted, searchLabel }: {
   monitors: UptimeMonitor[];
   hrefFor: (monitor: UptimeMonitor) => string;
   /** 보기 전환을 그릴 자리 */
   renderControls: (controls: { viewToggle: ReactNode }) => ReactNode;
   /** 변경한 뒤. 약속을 돌려주면 끝날 때까지 조작을 막아 둔다(옛 값으로 다시 누르지 않게). */
   onChanged: () => void | Promise<void>;
-  /** 받은 모니터가 이전에 불러온 것이다(다시 불러오지 못했다). 조작을 막고 다시 시도를 보인다. */
+  /**
+   * 받은 모니터가 이전에 불러온 것이다(다시 불러오지 못했다). 행을 확인 불가로 두고 조작을 막는다.
+   * 이전 정보라는 안내와 다시 시도는 서버 머리말 아래의 안내 하나가 맡는다.
+   */
   stale?: boolean;
-  /** stale일 때 다시 시도 */
-  onRetry?: () => void;
   /** 일괄 삭제에 성공한 모니터. 부모가 다시 불러오기 전에 이전 목록에서 뺀다(다시 불러오기가 실패해도 다시 보이지 않게). */
   onDeleted?: (ids: string[]) => void;
   /** 검색창의 안내 문구이자 접근 가능한 이름 */
@@ -155,21 +156,6 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
           </section>
         )}
       </ListToolbar>
-
-      {stale && (
-        <section role="status" className="mb-6 flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <MaterialIcon name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
-            <div>
-              <p className="type-label text-text-base">업타임 정보를 불러오지 못했습니다</p>
-              <p className="mt-1 type-body text-text-muted">
-                {hasTargets ? '목록은 이전에 불러온 정보입니다. 최신 상태는 확인할 수 없습니다.' : '모니터 상태를 확인할 수 없습니다.'}
-              </p>
-            </div>
-          </div>
-          <Button variant="secondary" size="sm" className="min-w-28" onClick={onRetry}>다시 시도</Button>
-        </section>
-      )}
 
       {selectedMonitors.length > 0 && (
         <div role="region" aria-label="선택한 대상 작업" className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-2">

@@ -4,6 +4,7 @@ import { api, type AuditEvent } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import { env } from '../../../config/env';
 import { SectionCard } from './SectionCard';
+import { formatFullDateTime } from '../../../utils/incidentFormat';
 
 const BODY_VIEW_ACTION = 'trace.body.view';
 // Audit rows are human actions kept for the body-capture retention window, so
@@ -61,7 +62,7 @@ export function AuditLogSection() {
                   <span className="text-xs text-text-muted">{`본문 ${count}건`}</span>
                 )}
                 <span className="text-xs text-text-dim">
-                  {new Date(event.createdAt).toLocaleString()}
+                  {formatFullDateTime(event.createdAt)}
                 </span>
               </li>
             );

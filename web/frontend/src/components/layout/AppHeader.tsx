@@ -50,7 +50,8 @@ export function AppHeader() {
                 {crumb.to && !last ? (
                   <Link
                     to={crumb.to}
-                    className="truncate type-label text-text-muted transition-colors hover:text-action"
+                    // 누르는 높이 24px(20px 글자 + 위아래 2px). 머리말은 h-16 고정이라 높이가 바뀌지 않는다.
+                    className="truncate py-0.5 type-label text-text-muted transition-colors hover:text-action"
                   >
                     {crumb.label}
                   </Link>

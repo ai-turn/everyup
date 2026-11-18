@@ -50,13 +50,13 @@ test('the overview and the server list agree on which servers need attention', a
   for (const name of calm) expect(servers).not.toContain(name);
 });
 
-test('the overview scope lists servers and Docker environments, with all logs beside the attention list', async ({ page }) => {
+test('the overview scope lists servers and Docker environments, with all logs on the scope line', async ({ page }) => {
   await page.goto('./');
   const scope = page.getByRole('navigation', { name: '모니터링 범위' });
   await expect(scope.getByRole('link', { name: /^서버 \d+$/ })).toHaveAttribute('href', /\/servers$/);
   await expect(scope.getByRole('link', { name: /^Docker 환경 \d+$/ })).toHaveAttribute('href', /\/environments$/);
   for (const old of ['업타임 모니터', '직접 연결 서비스', '인프라 리소스']) await expect(scope).not.toContainText(old);
-  await attention(page).getByRole('link', { name: '전체 로그', exact: true }).click();
+  await scope.getByRole('link', { name: '전체 로그', exact: true }).click();
   await expect(page).toHaveURL(/\/logs$/);
 });
 
@@ -123,7 +123,8 @@ test('the command palette finds servers', async ({ page }) => {
   const palette = page.getByRole('dialog', { name: '검색' });
   await expect(palette.getByRole('textbox')).toHaveAttribute('placeholder', '서버, Docker 환경, 서비스, 페이지 검색…');
   await palette.getByRole('textbox').fill('edge-host');
-  const option = palette.getByRole('option', { name: /edge-host-01/ });
+  // 그 서버의 모니터와 앱도 보조 문구(edge-host-01의 모니터)로 걸린다. 서버 자신은 이름이 edge-host-01로 시작한다.
+  const option = palette.getByRole('option', { name: /^edge-host-01/ });
   await expect(option).toContainText('서버');
   await option.click();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}$`));

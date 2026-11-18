@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import type { UptimeMonitorMetric } from '../../../services/api';
 import { Tooltip } from '../../../components/common';
+import { formatFullDateTime, formatIncidentTime } from '../../../utils/incidentFormat';
 
 export function RecentUptimeChecks({ metrics, paused = false, stale = false }: { metrics: UptimeMonitorMetric[]; paused?: boolean; stale?: boolean }) {
   const [selected, setSelected] = useState<number | null>(null);
@@ -9,12 +10,10 @@ export function RecentUptimeChecks({ metrics, paused = false, stale = false }: {
   const index = Math.min(selected ?? checks.length - 1, checks.length - 1);
   const check = checks[index];
   const checkedAt = new Date(check.checkedAt);
-  const time = checkedAt.toDateString() === new Date().toDateString()
-    ? checkedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-    : checkedAt.toLocaleDateString([], { month: 'numeric', day: 'numeric' });
+  const time = formatIncidentTime(check.checkedAt);
   const result = [paused ? '정지 전 기록' : '', time, check.status === 'failure' ? '실패' : check.statusCode ? '' : '정상',
     check.statusCode ? `HTTP ${check.statusCode}` : '', check.status === 'success' ? `${Math.round(check.responseTime).toLocaleString()}ms` : check.errorMessage].filter(Boolean);
-  const detail = `${stale ? '이전에 불러온 기록입니다. ' : ''}최근 체크 ${checks.length}회. ${checkedAt.toLocaleString()} ${check.status === 'success' ? '정상' : '실패'}, ${result.join(', ')}`;
+  const detail = `${stale ? '이전에 불러온 기록입니다. ' : ''}최근 체크 ${checks.length}회. ${formatFullDateTime(checkedAt)} ${check.status === 'success' ? '정상' : '실패'}, ${result.join(', ')}`;
   const move = (event: KeyboardEvent) => {
     const next = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: checks.length - 1 }[event.key];
     if (next === undefined) return;

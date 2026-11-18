@@ -17,12 +17,12 @@ test('manual refresh keeps filters, a failed refresh is reported and recovery re
   state.failures.set('GET /services', 500);
   // 새로고침은 서버 머리말에 하나다.
   await page.getByRole('button', { name: '새로고침', exact: true }).click();
-  // 이전에 불러온 목록이 있으면 실패 안내는 목록 위에 나오고 목록은 남는다(옛 목록 화면과 같은 문구).
-  await expect(page.getByText('업타임 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  // 이전에 불러온 목록이 있으면 서버 머리말 아래에 이전 정보라는 안내가 하나 나오고 목록은 남는다.
+  await expect(page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' })).toContainText('업타임 정보는 이전에 불러온 것입니다. 최신 상태는 확인할 수 없습니다.');
   state.failures.clear();
   state.monitors[0].status = 'unhealthy';
-  await panel(page).getByRole('button', { name: '다시 시도', exact: true }).click();
-  await expect(page.getByText('업타임 정보를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
+  await page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' }).getByRole('button', { name: '다시 시도', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' })).toHaveCount(0);
   await expect(page.getByRole('article').getByText('장애', { exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('Public');
   await expect(page).toHaveURL(/view=card/);
@@ -45,7 +45,7 @@ test('a failed refresh keeps its last successful timestamp and the previous list
   await expect(page.getByRole('article').getByText('확인 불가', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Public API 일시정지' })).toBeDisabled();
   state.failures.clear();
-  await panel(page).getByRole('button', { name: '다시 시도', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' }).getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(stamp).not.toHaveText(previous!);
 });
 

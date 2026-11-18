@@ -5,7 +5,7 @@ import { useAutoRefresh } from '../../../hooks/useAutoRefresh';
 import { useHeldToken } from '../../../hooks/useHeldToken';
 import { api, type TimelineIncident, type UptimeMonitor, type UptimeMonitorInput, type UptimeMonitorMetric } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
-import { formatDuration, formatIncidentTime } from '../../../utils/incidentFormat';
+import { formatDuration, formatFullDateTime, formatIncidentTime } from '../../../utils/incidentFormat';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
 import { monitorInput } from '../monitorInput';
@@ -102,7 +102,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
                 return (
                   <tr key={row.key} className="transition-colors hover:bg-ui-hover-soft">
                     <td className="px-2 py-2.5"><StatusLight tone={tone} label={label} /></td>
-                    <Tooltip content={new Date(row.at).toLocaleString()} focusable><td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatIncidentTime(row.at)}</td></Tooltip>
+                    <Tooltip content={formatFullDateTime(row.at)} focusable><td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatIncidentTime(row.at)}</td></Tooltip>
                     <td className="px-2 py-2.5 tabular-nums text-text-base">{row.durationSec === undefined ? '-' : formatDuration(row.durationSec)}</td>
                     <Tooltip content={row.message} focusable><td className="truncate px-2 py-2.5 font-mono text-xs text-text-muted">{row.message || '-'}</td></Tooltip>
                   </tr>
@@ -274,7 +274,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
       </div>
       <DetailMeta
         status={<>
-          {errors.monitor ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
+          {errors.monitor ? <StatusLight tone="idle" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
           <UptimeLatestCheck monitor={monitor} metrics={metrics} incidents={incidents}
             incidentsError={errors.monitor ? '모니터 상태를 갱신한 뒤 다시 확인하세요.' : errors.incidents} />
           <ActiveToggleButton active={monitor.isActive} disabled={actionsDisabled} loading={processing} onClick={() => void toggleActive()} />

@@ -35,7 +35,9 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
     const headerSlot = menu && desktop ? slot : null;
     const inlineChildren = headerSlot || !children ? undefined
         : menu ? <ControlDefaultsContext.Provider value={MOBILE_MENU}>{children}</ControlDefaultsContext.Provider> : children;
-    const inlineMeta = headerSlot ? undefined : meta;
+    // meta 안의 조작(개요의 새로고침)도 children과 같이 모바일에서 테두리 버튼이 기본이다.
+    const inlineMeta = headerSlot || !meta ? undefined
+        : menu ? <ControlDefaultsContext.Provider value={MOBILE_MENU}>{meta}</ControlDefaultsContext.Provider> : meta;
 
     // h1만 남으면(sr-only) 데스크톱에서 띠의 여백·구분선을 0으로 접는다.
     // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
