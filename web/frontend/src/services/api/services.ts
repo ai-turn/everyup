@@ -143,6 +143,7 @@ export interface UptimeMonitor {
   id: string;
   name: string;
   projectId?: string;
+  serverId: string;
   type: UptimeMonitorType;
   isActive: boolean;
   url: string;
@@ -168,6 +169,7 @@ export interface UptimeMonitor {
 
 export interface UptimeMonitorInput {
   name: string;
+  serverId?: string;
   type: UptimeMonitorType;
   url?: string;
   host?: string;
@@ -251,10 +253,11 @@ export const servicesApi = {
     request<void>(`/services/${id}`, { method: 'DELETE' }),
 
   // Logs page: both cover the last 24 hours.
-  getLogSummary: () => request<LogServiceSummary[]>('/logs/summary'),
-  /** One Docker environment's patterns, or direct connections' without agentId. */
-  getLogPatterns: (agentId?: string, limit = 10) =>
-    request<LogPattern[]>(`/logs/patterns?limit=${limit}${agentId ? `&agentId=${encodeURIComponent(agentId)}` : ''}`),
+  getLogSummary: (serverId?: string) =>
+    request<LogServiceSummary[]>(`/logs/summary${serverId ? `?serverId=${encodeURIComponent(serverId)}` : ''}`),
+  /** One Docker environment's or one server's patterns, or all direct connections' without either. */
+  getLogPatterns: ({ agentId, serverId, limit = 10 }: { agentId?: string; serverId?: string; limit?: number } = {}) =>
+    request<LogPattern[]>(`/logs/patterns?limit=${encodeURIComponent(limit)}${agentId ? `&agentId=${encodeURIComponent(agentId)}` : ''}${serverId ? `&serverId=${encodeURIComponent(serverId)}` : ''}`),
 
   getTrace: (traceId: string) =>
     request<TraceDetail>(`/traces/${traceId}`),

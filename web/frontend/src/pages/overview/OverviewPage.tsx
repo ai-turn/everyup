@@ -120,7 +120,7 @@ export function OverviewPage() {
         id: `monitor-${monitor.id}`,
         title: monitor.name,
         detail: '업타임 모니터가 장애를 보고했습니다',
-        to: `/uptime/${monitor.id}`,
+        to: `/servers/${monitor.serverId}/uptime/${monitor.id}`,
         tone: 'error' as const,
         icon: 'error_outline',
         observedAt: monitor.lastCheckAt,

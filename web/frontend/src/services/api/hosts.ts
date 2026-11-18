@@ -35,6 +35,8 @@ export interface InfrastructureResource {
   id: string;
   name: string;
   projectId?: string;
+  /** Docker 환경에서 온 리소스(everyup-agent)에는 없다. */
+  serverId?: string;
   adapter: InfrastructureAdapter;
   isActive: boolean;
   apiKeyMasked?: string;
@@ -49,6 +51,7 @@ export interface InfrastructureResource {
 export interface InfrastructureResourceInput {
   name: string;
   projectId?: string;
+  serverId?: string;
 }
 
 export interface InfrastructureResourceSetup extends InfrastructureResource {

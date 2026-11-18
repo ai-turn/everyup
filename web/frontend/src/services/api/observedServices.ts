@@ -22,6 +22,7 @@ export interface ObservedService {
   id: string;
   name: string;
   projectId?: string;
+  serverId: string;
   signals: TelemetrySignal[];
   logLevelFilter?: LogLevel[];
   apiExcludePaths?: string[];
@@ -35,6 +36,7 @@ export interface ObservedService {
 export interface ObservedServiceInput {
   name: string;
   projectId?: string;
+  serverId?: string;
   signals: TelemetrySignal[];
 }
 

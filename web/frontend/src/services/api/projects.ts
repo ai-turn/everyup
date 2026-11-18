@@ -8,6 +8,7 @@ export interface Project {
   monitorCount: number;
   observedServiceCount: number;
   infrastructureResourceCount: number;
+  serverCount: number;
   createdAt: string;
   updatedAt: string;
 }
