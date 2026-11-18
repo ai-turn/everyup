@@ -1,6 +1,6 @@
 import { Tooltip } from '../../../components/common/Tooltip';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button, CopyButton, ICON_ACTION_SM, IconButton, MaterialIcon } from '../../../components/common';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
 import { useOverlay, SCRIM_PANEL } from '../../../hooks/useOverlay';
@@ -9,6 +9,7 @@ import { api, TraceDetail, TraceSpan, LogEntry, ApiRequest } from '../../../serv
 import { LEVEL_BASE, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import { statusClass } from '../../api-requests/useRequestQuery';
 import { spanKindBadge } from '../spanKind';
+import { serverPath, SERVERS_PATH } from '../../servers/serverPaths';
 
 interface TracePanelProps {
   traceId: string;
@@ -20,14 +21,14 @@ export type TraceTarget =
   | { kind: 'agent'; agentId: string; serviceKey: string }
   | { kind: 'direct'; observedServiceId: string };
 
-function traceTargetPath(target: TraceTarget, tab: 'logs' | 'requests', traceId: string): string {
+// 직접 연결한 앱은 서버 탭 안에서만 보이므로 지금 주소의 서버(serverId)에서 같은 앱의 다른 탭으로 간다.
+function traceTargetPath(target: TraceTarget, tab: 'logs' | 'requests', traceId: string, serverId?: string): string {
   const query = `traceId=${encodeURIComponent(traceId)}`;
   if (target.kind === 'agent') {
     return `/services/${target.agentId}/${encodeURIComponent(target.serviceKey)}?tab=${tab}&${query}`;
   }
-  return tab === 'logs'
-    ? `/logs/${target.observedServiceId}?${query}`
-    : `/api/${target.observedServiceId}?${query}`;
+  if (!serverId) return SERVERS_PATH;
+  return `${serverPath(serverId, tab === 'logs' ? 'logs' : 'api', target.observedServiceId)}?${query}`;
 }
 
 function formatDuration(ms: number): string {
@@ -228,13 +229,14 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
   const { copy } = useClipboardCopy();
 
   const navigate = useNavigate();
+  const { serverId } = useParams<{ serverId?: string }>();
   const [data, setData] = useState<TraceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const jumpTo = (tab: 'logs' | 'requests') => {
     onClose();
-    navigate(traceTargetPath(target, tab, traceId));
+    navigate(traceTargetPath(target, tab, traceId, serverId));
   };
 
   const panelRef = useRef<HTMLDivElement>(null);

@@ -26,7 +26,7 @@ export function metricGroup(metric: OtelMetricName) {
 
 export interface MetricStatus { tone: StatusTone; label: string }
 
-export function metricCollection(active: boolean, receivedAt?: string, measuredAt?: string, now = Date.now()): MetricStatus {
+function metricCollection(active: boolean, receivedAt?: string, measuredAt?: string, now = Date.now()): MetricStatus {
   if (!active) return { tone: 'idle', label: '수집 중지' };
   if (!receivedAt) return { tone: 'idle', label: measuredAt ? '수신 시각 미확인' : '수신 대기' };
   if (now - Date.parse(receivedAt) > 300_000) return { tone: 'warn', label: '5분 이상 수신 없음' };
@@ -52,7 +52,3 @@ export function metricFlags(metric: OtelMetricName, now = Date.now()): MetricSta
   if (collection.tone !== 'healthy') flags.push(collection);
   return flags;
 }
-
-/** The list's 확인 필요 — same per-metric flags as the detail. A stopped service has nothing to check. */
-export const flaggedMetrics = <T extends OtelMetricName>(active: boolean, metrics: T[], now = Date.now()): T[] =>
-  active ? metrics.filter(metric => metricFlags(metric, now).length > 0) : [];

@@ -27,11 +27,14 @@ test('existing collector gains metrics from its Docker environment', async ({ pa
   await expect(page.getByText(/사용: 업타임, 로그, 메트릭/)).toBeVisible();
 });
 
+// 로그 연결은 서버의 로그 탭에서 한다(전체 로그 화면의 로그 연결 버튼은 없앴다). db-primary-01에는 로그 앱이 없다.
+const LOGS_TAB = './servers/server_mock_db_primary_01/logs';
+
 test('direct setup uses an external endpoint and waits for actual data', async ({ page }) => {
-  await page.goto('./logs');
-  await page.getByRole('button', { name: '로그 연결', exact: true }).click();
+  await page.goto(LOGS_TAB);
+  await page.getByRole('tabpanel').getByRole('button', { name: '로그 연결', exact: true }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('서비스 이름').fill('new-log-service');
+  await dialog.getByLabel('앱 이름').fill('new-log-service');
   await dialog.getByRole('button', { name: '추가', exact: true }).click();
   await expect(dialog.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
   const env = dialog.locator('pre');
@@ -54,14 +57,14 @@ test('direct setup uses an external endpoint and waits for actual data', async (
   await expect(dialog.getByRole('button', { name: '환경 변수 복사' })).toBeDisabled();
 });
 
-test('menu connection offers direct targets only', async ({ page }) => {
-  await page.goto('./logs');
-  await page.getByRole('button', { name: '로그 연결', exact: true }).click();
+test('server connection offers direct targets only', async ({ page }) => {
+  await page.goto(LOGS_TAB);
+  await page.getByRole('tabpanel').getByRole('button', { name: '로그 연결', exact: true }).click();
   const dialog = page.getByRole('dialog');
   // Container stdout logs are a Docker environment's job, not this dialog's.
   await expect(dialog.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/environments$/);
-  await dialog.getByRole('button', { name: '기존 서비스', exact: true }).click();
-  await dialog.getByRole('combobox', { name: '서비스' }).click();
+  await dialog.getByRole('button', { name: '기존 앱', exact: true }).click();
+  await dialog.getByRole('combobox', { name: '앱' }).click();
   await expect(page.getByRole('option', { name: /Docker|prod-server/ })).toHaveCount(0);
   // Only services that do not send logs yet can take them on.
   await expect(page.getByRole('option', { name: 'catalog-worker' })).toBeVisible();

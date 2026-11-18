@@ -9,7 +9,7 @@ import { LEVEL_BASE, LEVEL_FILL, LEVEL_TEXT } from '../../healthcheck/logLevelSt
 import type { LogHistogramBucket, LogPattern, LogServiceSummary } from '../../../services/api';
 import type { LogPatternRow, LogServiceRow } from '../logServiceRows';
 
-// 로그 메뉴와 Docker 환경 상세가 같은 서비스별 24시간 요약·반복 패턴을 그린다.
+// 전체 로그, 서버 로그 탭, Docker 환경 상세가 같은 서비스별 24시간 요약·반복 패턴을 그린다.
 
 const HOUR_MS = 60 * 60 * 1000;
 const SPARKLINE_MIN_SCALE = 10;
@@ -145,7 +145,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
 
 const PATTERN_PREVIEW = 5;
 
-export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스', noun = '서비스', titleHidden = false, viewToggle, onRetryPatterns }: {
+export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스', noun = '서비스', viewToggle, onRetryPatterns }: {
   rows: LogServiceRow[];
   /** null이면 패턴만 불러오지 못한 상태 — 서비스 목록은 그대로 그린다. */
   patterns: LogPatternRow[] | null;
@@ -155,9 +155,7 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
   title?: string;
   /** 행이 가리키는 대상의 이름(개수 문구, 이름 열). 서버 화면은 앱이라고 부른다. */
   noun?: string;
-  /** 로그 메뉴 첫 화면: 메뉴 이름을 되풀이하므로 제목을 스크린리더에만 둔다 */
-  titleHidden?: boolean;
-  /** 보기 전환 — 제목이 보일 때(그룹 상세) 제목 줄 오른쪽에 둔다. 로그 메뉴는 헤더에 둔다. */
+  /** 보기 전환 — 제목 줄 오른쪽에 둔다. */
   viewToggle?: ReactNode;
   /** 패턴만 불러오지 못했을 때 다시 시도 */
   onRetryPatterns?: () => void;
@@ -170,13 +168,13 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
     // 서비스 목록과 반복 패턴은 성격이 다른 두 섹션이라 개요처럼 section-stack(32px + 옅은 선)으로 나눈다.
     <div className="section-stack">
       <section>
-        {titleHidden ? <h2 className="sr-only">{title}</h2> : <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="type-section-title text-text-base">{title}</h2>
           <div className="flex flex-wrap items-center justify-end gap-3">
             <span className="text-xs text-text-dim">{`최근 24시간 · ${noun} ${rows.length}개`}</span>
             {viewToggle}
           </div>
-        </div>}
+        </div>
         {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{statusRows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
           <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
             { key: 'name', label: noun, render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs xl:hidden"><LatestLine wrap summary={row.summary} known={row.collection === 'collecting'} /></div></> },

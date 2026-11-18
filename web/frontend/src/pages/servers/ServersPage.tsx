@@ -4,7 +4,7 @@ import {
   Button, ButtonLink, EmptyState, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select, StatusLight, type StatusTone,
 } from '../../components/common';
 import { ServerTable } from '../../features/servers/components/ServerTable';
-import { NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
+import { ALL_LOGS_PATH, NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
 import { STATE_LABEL, type ServerRow } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRefreshControls';
@@ -109,6 +109,8 @@ export function ServersPage() {
   return (
     <div>
       <PageHeader menu compactActions title="서버">
+        {/* 여러 서버를 가로지르는 로그 요약(설계 6.6). 사이드바에 없는 화면이라 여기서 들어간다. */}
+        <ButtonLink collapseLabel variant="ghost" to={ALL_LOGS_PATH}><MaterialIcon name="article" />전체 로그</ButtonLink>
         <Button collapseLabel onClick={handleRefresh}><MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침</Button>
         <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />서버 추가</ButtonLink>
       </PageHeader>
@@ -134,7 +136,7 @@ export function ServersPage() {
             </Select>
           )}
           {/* 서버 상세의 머리말과 같은 표기. 자동 갱신 스위치는 서버 상세에만 둔다. */}
-          <div className="ml-auto"><UptimeRefreshControls label="서버 데이터 갱신" updatedAt={updatedAt} refreshing={false} /></div>
+          <div className="ml-auto"><UptimeRefreshControls updatedAt={updatedAt} /></div>
         </ListToolbar>
       )}
 

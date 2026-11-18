@@ -10,8 +10,8 @@ interface EmptyStateProps {
   action?: { label: string; onClick: () => void } | { label: string; to: string };
   /** Action slot for triggers that own their own state (e.g. a dialog opener). */
   children?: ReactNode;
-  /** 제목의 단계. 페이지에서 h1 다음에 바로 오면 h2를 넘긴다. */
-  headingLevel?: 'h2' | 'h3';
+  /** 제목의 단계. 페이지에서 h1 다음에 바로 오면 h2를 넘긴다. 화면 전체가 이 안내이면 h1이다. */
+  headingLevel?: 'h1' | 'h2' | 'h3';
 }
 
 export function EmptyState({ icon, title, description, action, children, headingLevel: Heading = 'h3' }: EmptyStateProps) {

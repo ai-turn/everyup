@@ -87,8 +87,8 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
       );
     }
     return (
-      <InfrastructurePanel key={resource.id} resourceId={resource.id} resource={resource} serverName={row.server.name} hideGroup refreshToken={refreshToken}
-        back={{ label: '서버 개요', to: serverPath(serverId) }} onChanged={onChanged} onDeleted={() => void removed(resource.id)}
+      <InfrastructurePanel key={resource.id} resource={resource} serverName={row.server.name} refreshToken={refreshToken}
+        onChanged={onChanged} onDeleted={() => void removed(resource.id)}
         extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(resource.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
     );
   };

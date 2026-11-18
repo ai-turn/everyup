@@ -101,7 +101,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     }
     if (current) {
       return (
-        <DirectLogsPanel key={current.id} serviceId={current.id} service={current} back={{ label: '로그 탭으로', to: listPath }}
+        <DirectLogsPanel key={current.id} service={current}
           listLink={<TabBackLink label="앱 목록" to={listPath} />}
           onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />

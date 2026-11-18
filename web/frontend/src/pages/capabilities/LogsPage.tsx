@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Button, EmptyState, ListViewToggle, MaterialIcon, PageHeader } from '../../components/common';
+import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useListView } from '../../hooks/useListView';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries, type LogPatternRow, type LogServiceRow } from '../../features/logs/logServiceRows';
-import { MonitoringConnection } from '../../features/services/components/MonitoringConnection';
+import { serverPath, SERVERS_PATH } from '../../features/servers/serverPaths';
 import { api } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
+/**
+ * 전체 로그: 여러 서버를 가로지르는 로그 요약과 반복 패턴(설계 6.6). 장애가 어느 서버에서 났는지 모를 때 본다.
+ * 직접 연결한 앱만 나온다. Docker Collector의 로그는 Docker 환경에 있다(ADR 0007).
+ */
 export function LogsPage() {
+  useBreadcrumb([{ label: '전체 로그' }]);
   const { view, setView, returnTo } = useListView();
   const [rows, setRows] = useState<LogServiceRow[]>([]);
   const [patterns, setPatterns] = useState<LogPatternRow[] | null>([]);
@@ -20,17 +26,20 @@ export function LogsPage() {
   useEffect(() => {
     let alive = true;
     Promise.all([
-      // 패턴은 보조 정보라, 실패해도 서비스 목록은 그린다.
-      api.getObservedServices('logs'), api.getLogSummary(), api.getLogPatterns().catch(() => null),
+      // 패턴은 보조 정보라, 실패해도 앱 목록은 그린다.
+      api.getObservedServices('logs'), api.getServers(), api.getLogSummary(), api.getLogPatterns().catch(() => null),
     ])
-      .then(([directServices, summaries, patternRows]) => {
+      .then(([apps, servers, summaries, patternRows]) => {
         if (!alive) return;
-        const base: LogServiceRow[] = (directServices ?? []).map(service => ({
-          key: logScopeKey({ serviceId: service.id }),
-          name: service.name,
-          stopped: !service.isActive,
-          to: `/logs/${service.id}?range=24h`,
-        }));
+        const serverNames = new Map((servers ?? []).map(server => [server.id, server.name]));
+        // 서버가 없는 앱은 열 화면이 없다. 백엔드는 모든 직접 연결 앱을 서버에 묶는다(설계 5.3).
+        const base: LogServiceRow[] = (apps ?? []).flatMap(app => app.serverId ? [{
+          key: logScopeKey({ serviceId: app.id }),
+          name: app.name,
+          subtitle: serverNames.get(app.serverId),
+          stopped: !app.isActive,
+          to: `${serverPath(app.serverId, 'logs', app.id)}?range=24h`,
+        }] : []);
         const next = withLogSummaries(base, summaries ?? [], patternRows ?? []);
         setError(null);
         setSpan(next.span);
@@ -44,25 +53,22 @@ export function LogsPage() {
 
   return (
     <div>
-      <PageHeader menu title="로그">
-        <Button collapseLabel onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
-        {rows.length > 0 && <ListViewToggle view={view} onChange={setView} />}
-        <MonitoringConnection capability="logs" onConnected={reload} />
+      {/* 사이드바에 없는 화면이라 제목을 숨기지 않는다. 로그 연결은 서버의 로그 탭에서 한다. */}
+      <PageHeader compactActions title="전체 로그">
+        <Button collapseLabel variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
       </PageHeader>
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map(item => <div key={item} className="h-48 animate-pulse rounded-xl bg-ui-hover-soft" />)}
         </div>
       ) : error ? (
-        <EmptyState icon="error_outline" title="로그를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
+        <EmptyState icon="error_outline" title="로그를 불러오지 못했습니다" description={error} headingLevel="h2" action={{ label: '다시 시도', onClick: reload }} />
       ) : rows.length === 0 ? (
-        <EmptyState icon="article" title="아직 로그 서비스가 없습니다" description="앱을 OpenTelemetry로 직접 연결하면 여기에 표시됩니다.">
-          <div className="flex flex-col items-center gap-4">
-            <MonitoringConnection capability="logs" onConnected={reload} />
-          </div>
-        </EmptyState>
+        <EmptyState icon="article" title="로그를 보내는 앱이 없습니다" description="서버 화면의 로그 탭에서 앱을 OpenTelemetry로 연결하면 여기에 모입니다." headingLevel="h2"
+          action={{ label: '서버 목록', to: SERVERS_PATH }} />
       ) : (
-        <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} titleHidden onRetryPatterns={reload} />
+        <LogServiceOverview rows={rows} patterns={patterns} span={span} view={view} returnTo={returnTo} title="앱" noun="앱" onRetryPatterns={reload}
+          viewToggle={<ListViewToggle view={view} onChange={setView} />} />
       )}
     </div>
   );

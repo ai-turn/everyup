@@ -2,6 +2,8 @@
 
 export const SERVERS_PATH = '/servers';
 export const NEW_SERVER_PATH = '/servers/new';
+/** 여러 서버를 가로지르는 로그 요약. 사이드바에서는 서버 섹션에 속한다(설계 6.6). */
+export const ALL_LOGS_PATH = '/logs';
 
 export type ServerCapability = 'uptime' | 'infrastructure' | 'logs' | 'api' | 'metrics';
 

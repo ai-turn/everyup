@@ -137,7 +137,7 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
             // 다른 앱의 필터가 넘어가지 않게 쿼리를 버린다.
             onChange={(id) => navigate(serverPath(serverId, capability, id))} />
         )}
-        <Panel key={current.id} serviceId={current.id} service={current} back={{ label: '서버 개요', to: serverPath(serverId) }}
+        <Panel key={current.id} service={current}
           onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       </div>

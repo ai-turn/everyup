@@ -2,10 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import { Button, ButtonLink, COLLECTION_STATUS_LABEL, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
-import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useHeldToken } from '../../../hooks/useHeldToken';
 import { useInfraMetrics } from '../../../hooks/useInfra';
-import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../../services/api';
+import { api, type InfrastructureResource, type InfrastructureResourceSetup } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { InfrastructureCollectorKeyDialog } from '../../infrastructure/components/InfrastructureCollectorKeyDialog';
@@ -22,95 +21,38 @@ const CONFIRM_COPY = {
   delete: { title: '인프라 리소스를 삭제할까요?', message: '저장된 호스트 메트릭 이력과 대상별 리소스 알림 규칙을 함께 삭제합니다.', label: '삭제', variant: 'danger' as const },
 };
 
-function ResourceCrumb({ name }: { name: string }) {
-  useBreadcrumb([{ label: name }]);
-  return null;
-}
-
-/** 인프라 리소스 하나의 상세 본문. 리소스 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function InfrastructurePanel({ resourceId, resource: given, serverName, onDeleted, back, extraActions, hideGroup = false, onChanged, standalone = false, refreshToken = 0 }: {
-  resourceId: string;
-  /** 서버 상세가 이미 불러온 리소스. 주면 따로 불러오지 않는다(갱신의 주체는 서버 상세 하나다). */
-  resource?: InfrastructureResource;
-  /** 서버 탭: 리소스 이름이 이와 같으면 다시 적지 않는다(서버 이름이 이미 h1이다). */
+/** 서버 인프라 탭의 리소스 상세 본문. 리소스는 서버마다 하나라 제목은 스크린리더에만 두고, 조작은 상태 줄 오른쪽에 둔다. */
+export function InfrastructurePanel({ resource, serverName, onDeleted, extraActions, onChanged, refreshToken = 0 }: {
+  /** 서버 상세가 불러온 리소스. 패널은 따로 불러오지 않는다(갱신의 주체는 서버 상세 하나다). */
+  resource: InfrastructureResource;
+  /** 리소스 이름이 이와 같으면 다시 적지 않는다(서버 이름이 이미 h1이다). */
   serverName?: string;
   /** 삭제가 끝난 뒤 */
   onDeleted: () => void;
-  /** 불러오지 못했을 때 돌아갈 곳. 서버 탭에서는 label을 링크 문구 그대로 쓴다. */
-  back: { label: string; to: string };
   /** 알림 규칙과 삭제 사이에 놓을 추가 조작(예: 다른 서버로 옮기기) */
   extraActions?: ReactNode;
-  /** 서버 화면에서는 그룹을 서버가 정하므로 그룹 선택을 숨긴다 */
-  hideGroup?: boolean;
   /** 연결 중지나 키 재발급으로 리소스가 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
   onChanged?: () => void | Promise<void>;
-  /** 옛 인프라 상세(/infrastructure/:id)처럼 패널이 페이지 전체일 때: 제목이 h1이고 경로 표시와 새로고침을 패널이 갖는다. Task 13에서 없앤다. */
-  standalone?: boolean;
   /** 화면의 새로고침을 누를 때마다 바뀐다. 바뀌면 사용률 추이를 다시 불러온다. */
   refreshToken?: number;
 }) {
-  const [fetched, setFetched] = useState<InfrastructureResource | null>(null);
-  const resource = given ?? fetched;
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [projectId, setProjectId] = useState('');
-  // 서버 탭은 기간을 주소(range)에 둔다(설계 6.7). 옛 상세는 화면 상태다.
+  // 기간은 주소(range)에 둔다(설계 6.7).
   const [searchParams, setSearchParams] = useSearchParams();
-  const [localRange, setLocalRange] = useState<GlobalTimeRange>('6h');
-  const range = standalone ? localRange : parseTimeRange(searchParams.get('range')) ?? '6h';
-  const setRange = (value: GlobalTimeRange) => {
-    if (standalone) setLocalRange(value);
-    else setSearchParams((current) => { const next = new URLSearchParams(current); next.set('range', value); return next; });
-  };
+  const range = parseTimeRange(searchParams.get('range')) ?? '6h';
+  const setRange = (value: GlobalTimeRange) => setSearchParams((current) => { const next = new URLSearchParams(current); next.set('range', value); return next; });
   const [refreshKey, setRefreshKey] = useState(0);
-  const [loading, setLoading] = useState(!given);
-  const [error, setError] = useState<string | null>(null);
-  const [loadKey, setLoadKey] = useState(0);
-  const [savingProject, setSavingProject] = useState(false);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<InfrastructureResourceSetup | null>(null);
   // 마운트 때의 refreshToken은 첫 조회와 같으므로 합쳐도 처음에 한 번만 불러온다.
   // 변경 요청이 진행 중일 때의 새로고침 신호는 버린다(변경 전의 응답이 변경 뒤의 화면을 덮지 않게).
-  const { data: metrics, loading: metricsLoading, error: metricsError } = useInfraMetrics(resourceId, range, refreshKey + useHeldToken(refreshToken, processing));
+  const { data: metrics, loading: metricsLoading, error: metricsError } = useInfraMetrics(resource.id, range, refreshKey + useHeldToken(refreshToken, processing));
   const refresh = () => setRefreshKey((value) => value + 1);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
-  const hasGiven = Boolean(given);
-  useEffect(() => {
-    if (hasGiven) return;
-    let current = true;
-    setLoading(true);
-    setError(null);
-    Promise.all([api.getInfrastructureResource(resourceId), hideGroup ? Promise.resolve(null) : api.getProjects()])
-      .then(([row, projectRows]) => {
-        if (!current) return;
-        setFetched(row);
-        setProjectId(row.projectId ?? '');
-        setProjects(projectRows ?? []);
-      })
-      .catch((requestError: unknown) => { if (current) setError(getErrorMessage(requestError)); })
-      .finally(() => { if (current) setLoading(false); });
-    return () => { current = false; };
-  }, [resourceId, hideGroup, hasGiven, loadKey]);
-
-  // 옛 화면의 그룹 배정. serverId를 보내지 않아 백엔드가 소속 서버의 그룹을 바꾼다(설계 5.5).
-  const saveProject = async () => {
-    if (!resource) return;
-    setSavingProject(true);
-    try {
-      const updated = await api.updateInfrastructureResource(resource.id, { name: resource.name, projectId: projectId || undefined });
-      if (alive.current) setFetched(updated);
-      toast.success('그룹 배정을 저장했습니다.');
-    } catch (requestError) {
-      toast.error(getErrorMessage(requestError));
-    } finally {
-      if (alive.current) setSavingProject(false);
-    }
-  };
-
   const runConfirmedAction = async () => {
-    if (!resource || !confirmAction) return;
+    if (!confirmAction) return;
     setProcessing(true);
     try {
       if (confirmAction === 'delete') {
@@ -123,12 +65,10 @@ export function InfrastructurePanel({ resourceId, resource: given, serverName, o
       if (confirmAction === 'rotate') {
         const setup = await api.rotateInfrastructureResourceKey(resource.id);
         if (!alive.current) return;
-        setFetched(setup);
         setRotatedSetup(setup);
       } else {
-        const updated = await api.revokeInfrastructureResourceKey(resource.id);
+        await api.revokeInfrastructureResourceKey(resource.id);
         if (!alive.current) return;
-        setFetched(updated);
         toast.success('Collector 연결을 중지했습니다.');
       }
       // 다시 불러온 결과가 반영된 뒤에 닫는다. 먼저 닫으면 그동안 옛 상태와 누를 수 있는 버튼이 보였다.
@@ -144,20 +84,7 @@ export function InfrastructurePanel({ resourceId, resource: given, serverName, o
     }
   };
 
-  if (loading) return <div aria-busy="true" className="h-96 animate-pulse rounded-xl bg-ui-hover-soft" />;
-  if (!resource) {
-    return (
-      <EmptyState icon="error_outline" title="인프라 리소스를 불러오지 못했습니다" description={error ?? undefined} headingLevel={standalone ? 'h3' : 'h2'}>
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button onClick={() => setLoadKey((key) => key + 1)}>다시 시도</Button>
-          <ButtonLink variant="secondary" to={back.to}>{standalone ? `${back.label}로 돌아가기` : back.label}</ButtonLink>
-        </div>
-      </EmptyState>
-    );
-  }
-
   const selectedConfirm = confirmAction ? CONFIRM_COPY[confirmAction] : null;
-  const Heading = standalone ? 'h1' : 'h2';
   // 이동, 편집, 파괴 순서(DESIGN.md §4.1)
   const actions = <>
     <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'infrastructure', resourceId: resource.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
@@ -171,53 +98,30 @@ export function InfrastructurePanel({ resourceId, resource: given, serverName, o
   const reason = state.state === 'healthy' ? null
     : state.threshold !== undefined ? `${state.detail}, 기준 ${state.threshold}%`
       : state.state === 'warn' ? COLLECTION_STATUS_LABEL[infraCollection(resource)] : state.detail;
-  const serverStatus = standalone ? undefined : {
-    collection: { tone: state.state, label: STATE_LABEL[state.state] },
-    statusDetail: <>
-      {reason && <span>{reason}</span>}
-      {resource.name !== serverName && <span className="text-text-dim">{resource.name}</span>}
-    </>,
-    statusAside: <>{rangePicker}{actions}</>,
-  };
 
   return (
     <div className="space-y-5">
-      {standalone && <ResourceCrumb name={resource.name} />}
-      {standalone ? (
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <Heading className="min-w-0 wrap-anywhere text-text-base type-page-title">{resource.name}</Heading>
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div>
-        </div>
-      ) : (
-        // 리소스는 서버마다 하나이고 이름이 서버 이름과 같은 경우가 많다. 제목은 스크린리더에만 두고 조작은 상태 줄 오른쪽이다.
-        <Heading className="sr-only">인프라</Heading>
-      )}
+      {/* 리소스는 서버마다 하나이고 이름이 서버 이름과 같은 경우가 많다. 제목은 스크린리더에만 두고 조작은 상태 줄 오른쪽이다. */}
+      <h2 className="sr-only">인프라</h2>
       {/* 연결 중지는 DirectConnectionMeta가 상태 바로 옆에 둔다. */}
       <DirectConnectionMeta
         isActive={resource.isActive}
-        collection={infraCollection(resource)}
-        {...serverStatus}
-        collapsed={!standalone}
+        collection={{ tone: state.state, label: STATE_LABEL[state.state] }}
+        statusDetail={<>
+          {reason && <span>{reason}</span>}
+          {resource.name !== serverName && <span className="text-text-dim">{resource.name}</span>}
+        </>}
+        statusAside={<>{rangePicker}{actions}</>}
+        collapsed
         collapseOnMobile
         // 서버 화면 안에서 "서버 정보"는 서버 자체의 정보로 읽힌다.
-        collapseLabel={standalone ? '서버 정보' : '연결 정보'}
+        collapseLabel="연결 정보"
         apiKeyMasked={resource.apiKeyMasked}
         lastSeenAt={resource.lastSeenAt}
         detail={{ label: '연결 방식', value: 'OpenTelemetry Collector' }}
         onRotateKey={() => setConfirmAction('rotate')}
         onRevoke={() => setConfirmAction('revoke')}
-        {...(hideGroup ? {} : {
-          projects, projectId, savedProjectId: resource.projectId ?? '',
-          onProjectChange: setProjectId, onSaveProject: () => void saveProject(), savingProject,
-        })}
       />
-      {/* 서버 상세에서는 머리말의 새로고침 하나가 패널까지 갱신한다(refreshToken). */}
-      {standalone && (
-        <div className="flex flex-wrap items-center gap-2">
-          {rangePicker}
-          <Button collapseLabel variant="secondary" onClick={refresh}><MaterialIcon name="refresh" />새로고침</Button>
-        </div>
-      )}
 
       {/* 현재 값·위험 표시는 차트 머리에 있다. 같은 지표를 게이지 줄로 한 번 더 그리지 않는다. */}
       <InfraTrends
@@ -227,7 +131,7 @@ export function InfrastructurePanel({ resourceId, resource: given, serverName, o
         range={range}
         error={metricsError}
         onRetry={refresh}
-        showHeading={standalone}
+        showHeading={false}
         empty={resource.lastSeenAt ? undefined : (
           <EmptyState
             icon="schedule"

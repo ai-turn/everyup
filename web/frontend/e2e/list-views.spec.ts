@@ -3,7 +3,7 @@ import { expect, test, type Locator } from '@playwright/test';
 const menus = [
   ['projects', '그룹', '그룹 그리드'],
   ['environments', 'Docker 환경', 'Docker 환경 그리드'],
-  ['logs', '로그', '로그 서비스 그리드'],
+  ['logs', '전체 로그', '앱 그리드'],
   // 옛 인프라, API 요청, 메트릭 목록은 서버 목록이 대신한다. 서버 목록에는 보기 전환이 없다.
   ['alerts?tab=channels', '알림', '알림 채널 그리드'],
   ['alerts?tab=rules', '알림', '알림 규칙 그리드'],
@@ -112,7 +112,8 @@ test('a target opened from a group stays inside the group until leaving it', asy
   const sidebarCurrent = page.locator('aside a[aria-current="page"]');
   await page.goto('./projects/project_mock_staging');
   await page.getByRole('link', { name: 'Redis TCP', exact: true }).click();
-  await expect(page).toHaveURL(/\/uptime\//);
+  // 그룹 화면의 링크는 아직 옛 주소이고(Task 14), 옛 주소는 서버 화면으로 바뀐다. 그룹 맥락은 함께 옮겨 간다.
+  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/uptime\/uptime_mock_redis$/);
   await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
   await expect(sidebarCurrent).toHaveText('그룹');
   // 새로고침해도 그룹 안이다.
@@ -120,11 +121,11 @@ test('a target opened from a group stays inside the group until leaving it', asy
   await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
   await crumbs.getByRole('link', { name: 'Staging', exact: true }).click();
   await expect(page).toHaveURL(/\/projects\/project_mock_staging$/);
-  // 그룹을 떠나 업타임 메뉴에서 같은 대상을 열면 업타임 맥락이다.
-  await page.goto('./uptime');
+  // 그룹을 떠나 서버 화면에서 같은 대상을 열면 서버 맥락이다.
+  await page.goto('./servers/server_mock_staging_host_01/uptime');
   await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
-  await expect(crumbs).toHaveText(/^업타임.*Redis TCP$/);
-  await expect(sidebarCurrent).toHaveText('업타임');
+  await expect(crumbs).toHaveText(/^서버.*Redis TCP$/);
+  await expect(sidebarCurrent).toHaveText('서버');
 });
 
 test('alert target and local search stay intact while switching views', async ({ page }) => {
@@ -193,8 +194,8 @@ test('Docker environments nest their services and collapse per environment', asy
 });
 
 // URL(?q=)에 입력값을 직접 묶으면 react-router transition이 값을 한 박자 늦게 돌려줘 한글 조합이 깨졌다(ㄱ겨결결ㅈ제제).
-// 옛 메트릭 목록의 검색은 서버 목록의 검색이 대신한다.
-for (const [route, name] of [['environments', '서비스 또는 Docker 환경 검색'], ['uptime', '서비스 또는 대상 검색'], ['servers', '서버 또는 대상 검색']] as const) {
+// 옛 메트릭 목록의 검색은 서버 목록의 검색이, 옛 업타임 목록의 검색은 서버 업타임 탭의 모니터 검색이 대신한다.
+for (const [route, name] of [['environments', '서비스 또는 Docker 환경 검색'], ['servers/server_mock_edge_host_01/uptime', '모니터 검색'], ['servers', '서버 또는 대상 검색']] as const) {
   test(`${route} search keeps Korean IME composition and fast typing, mirrored to ?q=`, async ({ page }) => {
     await page.goto(`./${route}`);
     const input = page.getByRole('textbox', { name, exact: true });

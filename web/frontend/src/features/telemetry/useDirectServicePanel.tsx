@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { Button, ConfirmDialog, MaterialIcon, type StatusTone } from '../../components/common';
-import { api, type ObservedService, type ObservedServiceSetup, type Project, type TelemetrySignal } from '../../services/api';
+import { api, type ObservedService, type ObservedServiceSetup, type TelemetrySignal } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { readLatest, TargetGoneError } from '../../utils/readLatest';
 import { appState, capabilityStateLabel } from '../servers/serverStatus';
@@ -13,42 +13,21 @@ type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
 const CAPABILITY = { logs: 'logs', traces: 'api', metrics: 'metrics' } as const;
 
 /**
- * 로그·API·메트릭 앱 패널의 공통 로직: 앱 조회, 키 재발급, 연결 중지, 삭제 또는 신호 연결 해제, 확인 대화 상자.
- * 그룹 배정은 옛 상세(assignProject)에서만 다룬다. 서버 화면에서는 그룹을 서버가 정한다.
+ * 서버 탭의 로그·API·메트릭 앱 패널의 공통 로직: 키 재발급, 연결 중지, 삭제 또는 신호 연결 해제, 확인 대화 상자.
+ * 앱은 서버 상세가 불러온 것을 받는다(갱신의 주체는 서버 상세 하나다). 그룹은 서버가 정한다.
  */
-export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal, onRemoved: (remaining: ObservedService | null) => void, options: {
-  /** 서버 상세가 이미 불러온 앱. 주면 따로 불러오지 않는다(갱신의 주체는 서버 상세 하나다). */
-  service?: ObservedService;
+export function useDirectServicePanel(service: ObservedService, signal: TelemetrySignal, onRemoved: (remaining: ObservedService | null) => void,
   /** 연결 중지나 키 재발급으로 앱이 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
-  onChanged?: () => void | Promise<void>;
-  /** 옛 상세(/logs/:id 등)의 요청: serverId를 보내지 않는다. Task 13에서 없앤다. */
-  standalone?: boolean;
-  /** 옛 상세의 그룹 배정 칸. 옛 API·메트릭 상세의 e2e가 기대한다. Task 13에서 없앤다. */
-  assignProject?: boolean;
-} = {}): {
-  service: ObservedService | null;
-  loading: boolean;
-  error: string | null;
-  reload: () => void;
+  onChanged?: () => void | Promise<void>): {
   /** 키 재발급, 연결 중지, 삭제 요청이 진행 중이다. 패널은 이 동안 새로고침 신호로 다시 불러오지 않는다. */
   processing: boolean;
-  /** DirectConnectionMeta에 그대로 넘길 연결 관련 props (그룹 관련 props는 포함하지 않는다) */
+  /** DirectConnectionMeta에 그대로 넘길 연결 관련 props */
   connection: { isActive: boolean; apiKeyMasked?: string; lastSeenAt?: string | null; onRotateKey: () => void; onRevoke: () => void; collection: { tone: StatusTone; label: string } };
   /** 삭제 또는 "신호 연결 해제" 버튼 */
   removalButton: ReactNode;
   /** 확인 대화 상자와 재발급된 키 대화 상자. 패널이 렌더링 트리에 넣는다 */
   dialogs: ReactNode;
-  /** assignProject일 때 DirectConnectionMeta에 넘길 그룹 칸 props. 아니면 비어 있다. */
-  projectFields: {
-    projects?: Project[]; projectId?: string; savedProjectId?: string; onProjectChange?: (projectId: string) => void; onSaveProject?: () => void;
-    savingProject?: boolean; projectsLoading?: boolean; projectsError?: string | null; onRetryProjects?: () => void;
-  };
 } {
-  const { service: given, onChanged, standalone = false, assignProject = false } = options;
-  const [fetched, setFetched] = useState<ObservedService | null>(null);
-  const [loading, setLoading] = useState(!given);
-  const [error, setError] = useState<string | null>(null);
-  const [loadKey, setLoadKey] = useState(0);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [processing, setProcessing] = useState(false);
   const [rotatedSetup, setRotatedSetup] = useState<ObservedServiceSetup | null>(null);
@@ -57,30 +36,10 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   const [checkingRemoval, setCheckingRemoval] = useState(false);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  // 주어진 앱이 최신이다. 직접 불러온 앱은 조작의 응답으로 바뀐다.
-  const service = given ?? fetched;
-  // 서버 화면은 대상을 앱이라 부른다.
-  const scope = standalone ? 'menu' : 'server';
 
-  const hasGiven = Boolean(given);
-  useEffect(() => {
-    if (hasGiven) return;
-    let current = true;
-    api.getObservedService(serviceId)
-      .then((row) => {
-        if (!current) return;
-        if (row.signals.includes(signal)) setFetched(row);
-        else setError(`이 서비스에는 ${signalLabel(signal)} 기능이 연결되어 있지 않습니다.`);
-      })
-      .catch((requestError: unknown) => { if (current) setError(getErrorMessage(requestError)); })
-      .finally(() => { if (current) setLoading(false); });
-    return () => { current = false; };
-  }, [serviceId, signal, hasGiven, loadKey]);
-
-  const removalVerb = (target: ObservedService) => serviceRemoval(target, signal, scope).kind === 'detach' ? '연결 해제' : '삭제';
+  const removalVerb = (target: ObservedService) => serviceRemoval(target, signal).kind === 'detach' ? '연결 해제' : '삭제';
 
   const openRemoval = async () => {
-    if (!service) return;
     setCheckingRemoval(true);
     try {
       const latest = await readLatest(() => api.getObservedService(service.id), removalVerb(service));
@@ -102,7 +61,7 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   };
 
   const runConfirmedAction = async () => {
-    if (!service || !confirmAction) return;
+    if (!confirmAction) return;
     setProcessing(true);
     try {
       if (confirmAction === 'delete') {
@@ -117,13 +76,11 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
           if (!latest.signals.includes(signal)) setConfirmAction(null);
           return;
         }
-        const removal = serviceRemoval(latest, signal, scope);
+        const removal = serviceRemoval(latest, signal);
         let remaining: ObservedService | null = null;
         if (removal.kind === 'detach') {
           // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
-          remaining = await api.updateObservedService(latest.id, standalone
-            ? { name: latest.name, projectId: latest.projectId ?? undefined, signals: removal.signals }
-            : { name: latest.name, serverId: latest.serverId, signals: removal.signals });
+          remaining = await api.updateObservedService(latest.id, { name: latest.name, serverId: latest.serverId, signals: removal.signals });
         } else {
           await api.deleteObservedService(service.id);
         }
@@ -135,12 +92,10 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
       if (confirmAction === 'rotate') {
         const setup = await api.rotateObservedServiceKey(service.id);
         if (!alive.current) return;
-        setFetched(setup);
         setRotatedSetup(setup);
       } else {
-        const updated = await api.revokeObservedServiceKey(service.id);
+        await api.revokeObservedServiceKey(service.id);
         if (!alive.current) return;
-        setFetched(updated);
         toast.success('직접 수집 연결을 중지했습니다.');
       }
       await onChanged?.();
@@ -159,66 +114,29 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
     }
   };
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [projectsLoading, setProjectsLoading] = useState(assignProject);
-  const [projectsError, setProjectsError] = useState<string | null>(null);
-  const [projectsKey, setProjectsKey] = useState(0);
-  // null이면 저장된 그룹 그대로다.
-  const [projectDraft, setProjectDraft] = useState<string | null>(null);
-  const [savingProject, setSavingProject] = useState(false);
-  useEffect(() => {
-    if (!assignProject) return;
-    let current = true;
-    api.getProjects()
-      .then((rows) => { if (current) setProjects(rows ?? []); }, (requestError: unknown) => { if (current) setProjectsError(getErrorMessage(requestError)); })
-      .finally(() => { if (current) setProjectsLoading(false); });
-    return () => { current = false; };
-  }, [assignProject, projectsKey]);
-
-  const saveProject = async () => {
-    if (!service) return;
-    setSavingProject(true);
-    try {
-      const updated = await api.updateObservedService(service.id, { name: service.name, projectId: projectDraft || undefined, signals: service.signals });
-      if (!alive.current) return;
-      setFetched(updated);
-      setProjectDraft(null);
-      toast.success('그룹 배정을 저장했습니다.');
-    } catch (requestError) {
-      toast.error(getErrorMessage(requestError));
-    } finally {
-      if (alive.current) setSavingProject(false);
-    }
-  };
-
-  const removal = service ? serviceRemoval(service, signal, scope) : null;
+  const removal = serviceRemoval(service, signal);
   // 확인 창의 문구는 다시 읽은 앱으로 정한다.
-  const confirmRemoval = removalTarget ? serviceRemoval(removalTarget, signal, scope) : removal;
+  const confirmRemoval = removalTarget ? serviceRemoval(removalTarget, signal) : removal;
   const confirmCopy = {
-    rotate: { title: 'API Key를 재발급할까요?', message: `현재 키는 즉시 폐기됩니다. 이 ${standalone ? '서비스' : '앱'}의 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.`, label: '재발급', variant: 'primary' as const },
+    rotate: { title: 'API Key를 재발급할까요?', message: '현재 키는 즉시 폐기됩니다. 이 앱의 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.', label: '재발급', variant: 'primary' as const },
     // 키는 앱 단위다. 연결을 중지하면 이 탭의 신호만이 아니라 앱의 모든 신호가 막힌다.
     revoke: { title: '직접 수집 연결을 중지할까요?', message: '이 키를 사용하는 모든 데이터의 수집을 즉시 차단합니다. 저장된 데이터는 유지됩니다.', label: '연결 중지', variant: 'danger' as const },
-    delete: { title: confirmRemoval?.title ?? '', message: confirmRemoval?.message ?? '', label: confirmRemoval?.button, variant: 'danger' as const },
+    delete: { title: confirmRemoval.title, message: confirmRemoval.message, label: confirmRemoval.button, variant: 'danger' as const },
   };
   const selectedConfirm = confirmAction ? confirmCopy[confirmAction] : null;
-  const state = service ? appState(service).state : 'idle';
+  const state = appState(service).state;
 
   return {
-    service,
-    loading: !service && loading,
-    error,
-    // 다시 시도의 로딩 표시는 여기서 켠다. 처음 불러올 때는 초기값이 켜 둔다.
-    reload: () => { setLoading(true); setError(null); setLoadKey((key) => key + 1); },
     processing,
     connection: {
-      isActive: service?.isActive ?? false,
-      apiKeyMasked: service?.apiKeyMasked,
-      lastSeenAt: service?.lastSeenAt,
+      isActive: service.isActive,
+      apiKeyMasked: service.apiKeyMasked,
+      lastSeenAt: service.lastSeenAt,
       onRotateKey: () => setConfirmAction('rotate'),
       onRevoke: () => setConfirmAction('revoke'),
       collection: { tone: state, label: capabilityStateLabel(CAPABILITY[signal], state) },
     },
-    removalButton: removal && (
+    removalButton: (
       <Button collapseLabel variant="destructive" disabled={processing} loading={checkingRemoval} onClick={() => void openRemoval()}><MaterialIcon name="delete_outline" />{removal.button}</Button>
     ),
     dialogs: (
@@ -236,16 +154,5 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
         {rotatedSetup && <RotatedTelemetryKeyDialog setup={rotatedSetup} onClose={() => setRotatedSetup(null)} />}
       </>
     ),
-    projectFields: assignProject ? {
-      projects,
-      projectId: projectDraft ?? service?.projectId ?? '',
-      savedProjectId: service?.projectId ?? '',
-      onProjectChange: setProjectDraft,
-      onSaveProject: () => void saveProject(),
-      savingProject,
-      projectsLoading,
-      projectsError,
-      onRetryProjects: () => { setProjectsLoading(true); setProjectsError(null); setProjectsKey((key) => key + 1); },
-    } : {},
   };
 }

@@ -100,8 +100,8 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     }
     // 목록은 서버 상세가 불러온 모니터를 쓴다. 갱신의 주체는 서버 상세 하나다. 보기 전환은 탭 줄의 조작 자리에서 추가 버튼 앞이다.
     return (
-      <UptimeMonitorList monitors={monitors} stale={stale} onRetry={onRetry} onDeleted={(ids) => ids.forEach((id) => forgetTarget?.('monitors', id))} filter={(monitor) => monitor.serverId === serverId} searchLabel="모니터 검색"
-        hrefFor={(monitor) => serverPath(serverId, 'uptime', monitor.id)} createDefaults={{ serverId }} onChanged={onChanged}
+      <UptimeMonitorList monitors={monitors} stale={stale} onRetry={onRetry} onDeleted={(ids) => ids.forEach((id) => forgetTarget?.('monitors', id))} searchLabel="모니터 검색"
+        hrefFor={(monitor) => serverPath(serverId, 'uptime', monitor.id)} onChanged={onChanged}
         renderControls={({ viewToggle }) => <TabAction slot={actionSlot}>{viewToggle}{addButton}</TabAction>} />
     );
   };

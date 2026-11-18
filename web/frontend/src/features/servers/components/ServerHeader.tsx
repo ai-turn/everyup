@@ -64,7 +64,7 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
               {/* 상태 줄의 오른쪽 끝. 좁은 화면에서는 상태 줄 아래로 흐른다. 모든 탭에서 같은 자리라 머리말의 높이가 같다.
                   갱신 중 표시는 새로고침 버튼의 회전이 맡는다(글자가 바뀌면 줄바꿈 위치가 흔들린다). */}
               <div className="ml-auto">
-                <UptimeRefreshControls label="서버 데이터 갱신" updatedAt={updatedAt} refreshing={false} compact
+                <UptimeRefreshControls updatedAt={updatedAt}
                   autoRefresh={autoRefresh} onAutoRefreshChange={onAutoRefreshChange} />
               </div>
             </>}

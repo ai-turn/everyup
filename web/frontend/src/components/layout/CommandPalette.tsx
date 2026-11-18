@@ -4,6 +4,7 @@ import { MaterialIcon } from '../common';
 import { SCRIM_PANEL, useOverlay } from '../../hooks/useOverlay';
 import { api, type AgentServiceFlat, type ConnectedAgent } from '../../services/api';
 import { NAV_SECTIONS } from './navSections';
+import { ALL_LOGS_PATH } from '../../features/servers/serverPaths';
 
 // Fired by the sidebar search button; ⌘K/Ctrl+K toggles directly.
 export const OPEN_PALETTE_EVENT = 'everyup:command-palette';
@@ -81,6 +82,8 @@ export function CommandPalette() {
       id: `page-${section.to.slice(1) || 'home'}`, icon: section.icon, label: section.label, to: section.to,
       ...(section.to === '/' ? { meta: '홈' } : {}),
     })),
+    // 사이드바에 없는 서버 섹션의 화면(설계 6.6)
+    { id: 'page-logs', icon: 'article', label: '전체 로그', meta: '서버', to: ALL_LOGS_PATH },
     ...agents.map((a) => ({
       id: `agent-${a.id}`, icon: 'folder_open', label: a.name, meta: 'Docker 환경', to: `/agents/${a.id}`,
     })),

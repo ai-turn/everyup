@@ -13,12 +13,11 @@ type DetailState = {
   notFound: boolean;
   loading: boolean;
   refreshing: boolean;
-  updatedAt: Date | null;
 };
 
 // The page is keyed by monitorId: a late result belongs only to that instance.
 export function useUptimeMonitorDetail(monitorId: string) {
-  const [state, setState] = useState<DetailState>({ monitor: null, metrics: null, summary: null, history: null, incidents: null, failures: null, errors: {}, notFound: false, loading: true, refreshing: false, updatedAt: null });
+  const [state, setState] = useState<DetailState>({ monitor: null, metrics: null, summary: null, history: null, incidents: null, failures: null, errors: {}, notFound: false, loading: true, refreshing: false });
   const pending = useRef<Promise<void> | null>(null);
   // 서버 상세에서 화살표 키로 탭을 지나가면 마운트 직후 언마운트된다. 그 뒤에 온 응답은 버린다.
   const alive = useRef(true);
@@ -43,7 +42,6 @@ export function useUptimeMonitorDetail(monitorId: string) {
         history: history.status === 'fulfilled' ? history.value : current.history,
         incidents: incidents.status === 'fulfilled' ? incidents.value ?? [] : current.incidents,
         failures: failures.status === 'fulfilled' ? failures.value ?? [] : current.failures,
-        updatedAt: monitor.status === 'fulfilled' ? new Date() : current.updatedAt,
         errors: {
           monitor: monitor.status === 'rejected' ? getErrorMessage(monitor.reason) : undefined,
           metrics: metrics.status === 'rejected' ? getErrorMessage(metrics.reason) : undefined,

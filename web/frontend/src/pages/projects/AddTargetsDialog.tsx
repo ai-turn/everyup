@@ -69,7 +69,7 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
         <>
           <div className="px-6 py-8">
             <p className="type-label text-text-base">추가할 수 있는 대상이 없습니다</p>
-            <p className="mt-1 type-body text-text-muted">업타임, 로그, 인프라 같은 메뉴에서 대상을 먼저 등록하면 여기에 나타납니다.</p>
+            <p className="mt-1 type-body text-text-muted">서버 화면의 탭에서 대상을 먼저 등록하면 여기에 나타납니다.</p>
           </div>
           <div className="flex justify-end border-t border-ui-border px-6 py-4"><Button variant="quiet" onClick={close}>닫기</Button></div>
         </>

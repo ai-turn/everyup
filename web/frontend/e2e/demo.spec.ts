@@ -77,13 +77,13 @@ test.describe('live demo', () => {
 
     await expect(page.getByRole('combobox', { name: '데모 시나리오' })).toBeVisible();
     await expect(page.getByRole('link', { name: '개요', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: '그룹', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: '서버', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: '알림', exact: true })).toBeVisible();
     await page.getByRole('link', { name: '더보기', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: '더보기' })).toBeVisible();
     await expect(page.getByRole('link', { name: '더보기', exact: true })).toHaveAttribute('aria-current', 'page');
     // 사이드바가 없는 폭에서는 더보기가 하단 내비 밖의 섹션에 닿는 유일한 경로다.
-    for (const section of ['Docker 환경', '업타임', '로그', '인프라', 'API 요청', '메트릭', '환경 설정']) {
+    for (const section of ['Docker 환경', '그룹', '환경 설정']) {
       await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
     }
   });
