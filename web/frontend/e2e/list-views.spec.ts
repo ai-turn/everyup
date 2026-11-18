@@ -4,9 +4,7 @@ const menus = [
   ['projects', '그룹', '그룹 그리드'],
   ['environments', 'Docker 환경', 'Docker 환경 그리드'],
   ['logs', '로그', '로그 서비스 그리드'],
-  ['infrastructure', '인프라', '인프라 대상 그리드'],
-  ['api', 'API 요청', 'API 대상 그리드'],
-  ['metrics', '메트릭', '메트릭 서비스 그리드'],
+  // 옛 인프라, API 요청, 메트릭 목록은 서버 목록이 대신한다. 서버 목록에는 보기 전환이 없다.
   ['alerts?tab=channels', '알림', '알림 채널 그리드'],
   ['alerts?tab=rules', '알림', '알림 규칙 그리드'],
   ['alerts?tab=history', '알림', '발송 이력 그리드'],
@@ -195,7 +193,8 @@ test('Docker environments nest their services and collapse per environment', asy
 });
 
 // URL(?q=)에 입력값을 직접 묶으면 react-router transition이 값을 한 박자 늦게 돌려줘 한글 조합이 깨졌다(ㄱ겨결결ㅈ제제).
-for (const [route, name] of [['environments', '서비스 또는 Docker 환경 검색'], ['uptime', '서비스 또는 대상 검색'], ['metrics', '서비스 또는 메트릭 이름으로 찾기']] as const) {
+// 옛 메트릭 목록의 검색은 서버 목록의 검색이 대신한다.
+for (const [route, name] of [['environments', '서비스 또는 Docker 환경 검색'], ['uptime', '서비스 또는 대상 검색'], ['servers', '서버 또는 대상 검색']] as const) {
   test(`${route} search keeps Korean IME composition and fast typing, mirrored to ?q=`, async ({ page }) => {
     await page.goto(`./${route}`);
     const input = page.getByRole('textbox', { name, exact: true });

@@ -88,9 +88,11 @@ test('instrumentation requires explicit targets and invalidates changed previews
 
 test('mobile infrastructure setup stays within the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('./infrastructure');
+  // 데모: payments-api 서버에는 인프라가 없어 연결 안내가 보인다.
+  await page.goto('./servers/server_mock_payments_api/infrastructure');
   await page.getByRole('button', { name: '인프라 연결', exact: true }).click();
-  await expect(page.getByRole('dialog').getByLabel('인프라 이름')).toBeVisible();
+  // 서버 탭의 대화 상자는 이름을 묻지 않는다(서버 이름을 쓴다). 첫 화면의 마지막 조작이 보이는지 본다.
+  await expect(page.getByRole('dialog', { name: 'OpenTelemetry Collector 연결' }).getByRole('button', { name: '추가', exact: true })).toBeVisible();
   const bounds = await page.getByRole('dialog').boundingBox();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);

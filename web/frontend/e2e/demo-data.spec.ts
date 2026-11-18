@@ -98,12 +98,13 @@ test('visitor can explore the added groups and service-specific telemetry', asyn
   await page.goto('./projects/project_mock_backoffice');
   await expect(page.getByRole('heading', { level: 1, name: 'Backoffice' })).toBeVisible();
   await expect(page.getByRole('link', { name: /notification-worker/ })).toBeVisible();
-  await page.goto('./logs/observed_mock_orders');
-  await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();
+  // 서버 화면의 h1은 서버 이름이고 앱 이름은 패널의 h2다. 서버는 src/mocks/SCENARIOS.md를 따른다.
+  await page.goto('./servers/server_mock_edge_host_01/logs/observed_mock_orders');
+  await expect(page.getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
   await expect(page.getByText('orders-api: inventory.internal deadline exceeded after 1032ms', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Checkout session created', { exact: false })).toHaveCount(0);
-  await page.goto('./api/observed_mock_inventory');
-  await expect(page.getByRole('heading', { level: 1, name: 'inventory-api' })).toBeVisible();
+  await page.goto('./servers/server_mock_inventory_api/api');
+  await expect(page.getByRole('heading', { level: 2, name: 'inventory-api' })).toBeVisible();
   await expect(page.getByRole('button', { name: /POST 200 \/v1\/inventory\/4200/ })).toBeVisible();
   await page.getByRole('button', { name: '다음', exact: true }).click();
   await expect(page.getByText('48건 중 26~48', { exact: true })).toBeVisible();

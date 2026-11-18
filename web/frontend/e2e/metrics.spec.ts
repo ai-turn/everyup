@@ -15,15 +15,10 @@ test('metric values are scaled to a readable unit before ticks are picked', () =
   expect(metricDisplayUnit('{request}', 3).unit).toBe('');
 });
 
-test('metric list shows one card per service and the detail shows every metric at once', async ({ page }) => {
-  await page.goto('./metrics?view=card');
-  // The retained catalog includes every metric; catalog-worker exports three.
-  await expect(page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true })).toHaveCount(1);
-  await expect(page.getByRole('link').filter({ has: page.getByRole('heading', { name: 'catalog-worker', exact: true }) }).getByRole('group', { name: '메트릭' })).toContainText('3');
-  // Docker Collector metrics stay in their Docker Environment (ADR 0007).
-  await expect(page.getByRole('heading', { level: 3, name: 'api', exact: true })).toHaveCount(0);
-
-  await page.getByRole('heading', { level: 3, name: 'catalog-worker', exact: true }).click();
+// 데모: catalog-worker는 db-primary-01의 하나뿐인 메트릭 앱이라 탭 주소에 앱이 없다(SCENARIOS.md).
+test('the metrics tab shows every metric of its app at once and a panel title opens that metric alone', async ({ page }) => {
+  await page.goto('./servers/server_mock_db_primary_01/metrics');
+  await expect(page.getByRole('heading', { level: 2, name: 'catalog-worker', exact: true })).toBeVisible();
   const panels = ['처리 중인 요청', '응답 시간', 'JVM 메모리 사용량'];
   for (const name of panels) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   await expect(page.getByText('gauge, MB', { exact: true })).toBeVisible();
@@ -39,45 +34,26 @@ test('metric list shows one card per service and the detail shows every metric a
   for (const name of panels) await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
 });
 
-test('catalog search keeps the full count, matches metric names and persists in the URL', async ({ page }) => {
-  await metricsFixture(page);
-  await page.goto('http://127.0.0.1:4174/metrics?view=card');
-  const card = (name: string) => page.getByRole('link').filter({ has: page.getByRole('heading', { name, exact: true }) });
-  await expect(card('billing-api').getByRole('group', { name: '메트릭' })).toContainText('3');
-  await expect(card('waiting-worker').getByRole('group', { name: '메트릭' })).toContainText('0');
-  await expect(card('waiting-worker')).toContainText('아직 수신한 메트릭이 없습니다');
-  const search = page.getByRole('textbox', { name: '서비스 또는 메트릭 이름으로 찾기' });
-  await search.fill('JVM');
-  await expect(page).toHaveURL(/q=JVM/);
-  await expect(page.getByRole('heading', { name: 'waiting-worker', exact: true })).toHaveCount(0);
-  // A metric-name match says which metric matched.
-  await expect(card('billing-api')).toContainText('jvm.memory.used');
-  await page.reload();
-  await expect(search).toHaveValue('JVM');
-  await search.fill('no-matching-metric');
-  await expect(page.getByRole('heading', { name: '일치하는 서비스가 없습니다' })).toBeVisible();
-  await page.getByRole('button', { name: '검색 초기화' }).click();
-  await expect(page.getByRole('heading', { name: 'waiting-worker', exact: true })).toBeVisible();
-});
-
-test('catalog HTTP failure recovers through retry instead of leaving an empty list', async ({ page }) => {
+test('a failed first load of the apps recovers through retry instead of leaving an empty tab', async ({ page }) => {
   const state = await metricsFixture(page);
-  state.failures.add('/observed-services/metric-catalog');
-  await page.goto('http://127.0.0.1:4174/metrics?view=card');
-  await expect(page.getByRole('heading', { name: '메트릭을 불러오지 못했습니다' })).toBeVisible();
+  state.failures.add('/observed-services');
+  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics');
+  const panel = page.getByRole('tabpanel');
+  await expect(panel.getByText('메트릭 앱 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  await expect(panel.getByText('이 서버의 메트릭을 연결하세요', { exact: true })).toHaveCount(0);
   state.failures.clear();
-  await page.getByRole('button', { name: '다시 시도', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'billing-api', exact: true })).toBeVisible();
-  await expect(page.getByRole('link').filter({ has: page.getByRole('heading', { name: 'billing-api', exact: true }) }).getByRole('group', { name: '메트릭' })).toContainText('3');
+  await panel.getByRole('button', { name: '다시 시도', exact: true }).click();
+  await expect(panel.getByRole('heading', { level: 2, name: 'billing-api', exact: true })).toBeVisible();
+  await expect(panel.locator('.recharts-wrapper')).toHaveCount(2);
 });
 
 test('metric names, chart and optional groups have independent HTTP failure states', async ({ page }) => {
   const state = await metricsFixture(page);
+  // 그룹 목록은 서버 머리말의 보조 정보다. 실패해도 메트릭은 그대로 조사한다.
   state.failures.add('/projects');
   state.failures.add('/observed-services/metrics-service/otel-metrics/health');
   state.failures.add('points:jvm.memory.used');
-  await page.goto('http://127.0.0.1:4174/metrics/metrics-service');
-  await expect(page.getByText('그룹 목록을 불러오지 못했습니다', { exact: true })).toBeVisible();
+  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics/metrics-service');
   const namesError = page.getByRole('heading', { name: '메트릭 목록을 불러오지 못했습니다' });
   await expect(namesError).toBeVisible();
   await expect(page.getByText('수신한 메트릭이 없습니다', { exact: false })).toHaveCount(0);
@@ -89,14 +65,11 @@ test('metric names, chart and optional groups have independent HTTP failure stat
   state.failures.delete('points:jvm.memory.used');
   await memory.getByRole('button', { name: '다시 시도' }).click();
   await expect(memory.locator('.recharts-wrapper')).toBeVisible();
-  state.failures.delete('/projects');
-  await page.getByRole('button', { name: '다시 시도', exact: true }).click();
-  await expect(page.getByRole('combobox', { name: '그룹 배정' })).toBeVisible();
 });
 
 test('refresh keeps existing charts visible while names are loading', async ({ page }) => {
   const state = await metricsFixture(page);
-  await page.goto('http://127.0.0.1:4174/metrics/metrics-service');
+  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics/metrics-service');
   await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
   const initialReads = state.requests.filter(path => path === '/observed-services/metrics-service/otel-metrics/health').length;
   let release = () => {};
@@ -114,7 +87,7 @@ test('refresh keeps existing charts visible while names are loading', async ({ p
 test('histogram distribution failure is explicit and retries without hiding the chart', async ({ page }) => {
   const state = await metricsFixture(page);
   state.failures.add('/observed-services/metrics-service/otel-metrics/quantiles');
-  await page.goto('http://127.0.0.1:4174/metrics/metrics-service?metric=http.server.request.duration');
+  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics/metrics-service?metric=http.server.request.duration');
   await expect(page.getByText('선택한 시리즈의 기간 분포를 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(page.locator('.recharts-wrapper')).toBeVisible();
   state.failures.clear();
@@ -123,11 +96,12 @@ test('histogram distribution failure is explicit and retries without hiding the 
   await expect(page.getByText('선택한 시리즈의 기간 분포를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
 });
 
+// 데모: payments-api 서버에는 메트릭 앱이 없다(SCENARIOS.md).
 test('metrics connection creates setup instructions and waits for actual metric receipt', async ({ page }) => {
-  await page.goto('./metrics');
+  await page.goto('./servers/server_mock_payments_api/metrics');
   await page.getByRole('button', { name: '메트릭 연결', exact: true }).first().click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('서비스 이름').fill('new-metrics-service');
+  await dialog.getByLabel('앱 이름').fill('new-metrics-service');
   await dialog.getByRole('button', { name: '추가', exact: true }).click();
   await expect(dialog.locator('pre')).toContainText('OTEL_SERVICE_NAME=new-metrics-service');
   await expect(dialog.locator('pre')).toContainText('OTEL_TRACES_EXPORTER=none');
@@ -135,6 +109,7 @@ test('metrics connection creates setup instructions and waits for actual metric 
   await expect(dialog.locator('pre')).not.toContainText('OTEL_METRICS_EXPORTER=none');
   await expect(dialog.getByRole('region', { name: '데이터 수신 확인' })).toContainText('수신 대기');
   await dialog.getByRole('button', { name: '메트릭 보기', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'new-metrics-service' })).toBeVisible();
+  await expect(page).toHaveURL(/\/servers\/server_mock_payments_api\/metrics\/[^/?]+$/);
+  await expect(page.getByRole('heading', { level: 2, name: 'new-metrics-service' })).toBeVisible();
   await expect(page.getByRole('heading', { name: '메트릭 수신 대기', exact: true })).toBeVisible();
 });

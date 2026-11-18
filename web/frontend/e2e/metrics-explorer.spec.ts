@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { metricsFixture } from './fixtures/metrics';
 
-const detail = 'http://127.0.0.1:4174/metrics/metrics-service';
+// 서버 화면의 메트릭 탭. 이 서버에는 메트릭 앱이 둘이라 주소에 앱을 둔다.
+const detail = 'http://127.0.0.1:4174/servers/server-1/metrics/metrics-service';
 const name = 'http.server.request.duration';
 
 test('series beyond the default six can be selected and restored with the same distribution filters', async ({ page }) => {
