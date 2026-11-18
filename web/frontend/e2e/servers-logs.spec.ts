@@ -10,6 +10,8 @@ const panel = (page: Page) => page.getByRole('tabpanel');
 const appLinks = (page: Page) => page.getByRole('table', { name: '앱 그리드' }).locator('tbody a[data-row-link]');
 const patterns = (page: Page) => panel(page).locator('section', { has: page.getByRole('heading', { name: '자주 발생한 오류·경고' }) }).getByRole('link');
 const serverRows = (page: Page) => page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr');
+// 서버 머리말의 그룹 칸. 앱 수정 요청에서 serverId가 빠지면 백엔드(와 mock)가 서버의 그룹을 해제한다.
+const serverGroup = (page: Page) => page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).locator('dd');
 
 test('a server with several log apps lists only its own apps and patterns', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/logs`);
@@ -86,8 +88,9 @@ test('connecting logs to an empty server keeps the key guidance open and the app
   await expect(emptyRow).toContainText('staging-logs 데이터 대기 중');
 });
 
-test('adding logs to an existing app offers only this server\'s apps and keeps the app here', async ({ page }) => {
+test('adding logs to an existing app offers only this server\'s apps and keeps the app and the group here', async ({ page }) => {
   await page.goto(`./servers/${DB}/logs`);
+  await expect(serverGroup(page)).toHaveText('Production');
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 로그를 연결하세요' })).toBeVisible();
   await panel(page).getByRole('button', { name: '로그 연결' }).click();
   const dialog = page.getByRole('dialog', { name: '로그 연결' });
@@ -102,6 +105,7 @@ test('adding logs to an existing app offers only this server\'s apps and keeps t
   await expect(panel(page).getByRole('heading', { level: 2, name: 'catalog-worker' })).toBeVisible();
   // 로그와 메트릭을 함께 가지므로 삭제가 아니라 로그 연결 해제다.
   await expect(panel(page).getByRole('button', { name: '로그 연결 해제' })).toBeVisible();
+  await expect(serverGroup(page)).toHaveText('Production');
 });
 
 test('moving an app goes to its new server and it leaves the old one', async ({ page }) => {
@@ -131,17 +135,21 @@ test('another server\'s app id says it is not this server\'s app', async ({ page
   await expect(panel(page).getByRole('link', { name: '이 서버의 로그 보기' })).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/logs$`));
 });
 
-test('detaching logs from an app with metrics returns to the first screen without it', async ({ page }) => {
+test('detaching logs from an app with metrics returns to the first screen without it and keeps the group', async ({ page }) => {
   await page.goto(`./servers/${BATCH}/logs/observed_mock_notifications`);
+  await expect(serverGroup(page)).toHaveText('Backoffice');
   await panel(page).getByRole('button', { name: '로그 연결 해제' }).click();
   await page.getByRole('dialog', { name: '로그 연결을 해제할까요?' }).getByRole('button', { name: '로그 연결 해제' }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${BATCH}/logs$`));
   await expect(appLinks(page)).toHaveText(['billing-worker']);
   await expect(panel(page)).toBeFocused();
+  await expect(serverGroup(page)).toHaveText('Backoffice');
 });
 
-test('stopping the connection sits beside the status and shows the app as inactive', async ({ page }) => {
+test('stopping the connection sits in the status row and shows the app as inactive', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/logs/observed_mock_checkout`);
+  // 연결 중지는 제목 줄이 아니라 상태 표시와 같은 줄(같은 부모)에 있다.
+  await expect(panel(page).getByRole('button', { name: '연결 중지' }).locator('xpath=..')).toContainText('수집 중');
   await panel(page).getByRole('button', { name: '연결 중지' }).click();
   await page.getByRole('dialog', { name: '직접 수집 연결을 중지할까요?' }).getByRole('button', { name: '연결 중지' }).click();
   await expect(panel(page).getByText('연결 비활성화됨', { exact: true })).toBeVisible();

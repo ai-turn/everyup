@@ -131,7 +131,8 @@ function ServerLogOverview({ serverId, apps, refreshToken, onAdd }: {
     return () => { alive = false; };
   }, [serverId, appKey, refreshToken, loadKey]);
 
-  const retry = () => setLoadKey((key) => key + 1);
+  // 오류를 지워서 처음 실패한 뒤의 다시 시도는 로딩 자리 표시로 돌아간다. 이전 결과가 있으면 그대로 보인다.
+  const retry = () => { setError(null); setLoadKey((key) => key + 1); };
 
   // 이전 결과가 있으면 다시 불러오다 실패해도 그대로 두고 알린다.
   if (!data) {

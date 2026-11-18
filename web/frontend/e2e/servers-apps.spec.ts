@@ -121,8 +121,11 @@ test('moving a metrics app goes to its new server', async ({ page }) => {
   await expect(panel(page)).toBeFocused();
 });
 
-test('detaching metrics from an app with logs returns to the first screen without it', async ({ page }) => {
+test('detaching metrics from an app with logs returns to the first screen without it and keeps the group', async ({ page }) => {
   await page.goto(`./servers/${BATCH}/metrics/observed_mock_notifications`);
+  // 서버 머리말의 그룹 칸. 수정 요청에서 serverId가 빠지면 백엔드(와 mock)가 서버의 그룹을 해제한다.
+  const serverGroup = page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).locator('dd');
+  await expect(serverGroup).toHaveText('Backoffice');
   await panel(page).getByRole('button', { name: '메트릭 연결 해제' }).click();
   await page.getByRole('dialog', { name: '메트릭 연결을 해제할까요?' }).getByRole('button', { name: '메트릭 연결 해제' }).click();
   // 남은 앱이 하나라 선택 컨트롤 없이 그 앱을 보여 준다.
@@ -130,6 +133,7 @@ test('detaching metrics from an app with logs returns to the first screen withou
   await expect(panel(page).getByRole('heading', { level: 2, name: 'billing-worker' })).toBeVisible();
   await expect(metricApps(page)).toHaveCount(0);
   await expect(panel(page)).toBeFocused();
+  await expect(serverGroup).toHaveText('Backoffice');
 });
 
 test('the app selector fits 320px without horizontal scroll', async ({ page }) => {

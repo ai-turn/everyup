@@ -35,8 +35,6 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
   removalButton: ReactNode;
   /** 확인 대화 상자와 재발급된 키 대화 상자. 패널이 렌더링 트리에 넣는다 */
   dialogs: ReactNode;
-  /** 다른 서버로 옮긴다 */
-  move: (serverId: string) => Promise<void>;
   /** assignProject일 때 DirectConnectionMeta에 넘길 그룹 칸 props. 아니면 비어 있다. */
   projectFields: {
     projects?: Project[]; projectId?: string; savedProjectId?: string; onProjectChange?: (projectId: string) => void; onSaveProject?: () => void;
@@ -145,15 +143,11 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
     }
   };
 
-  const move = async (serverId: string) => {
-    if (!service) throw new Error('앱 정보를 불러오지 못했습니다.');
-    await api.updateObservedService(service.id, { name: service.name, serverId, signals: service.signals });
-  };
-
   const removal = service ? serviceRemoval(service, signal) : null;
   const confirmCopy = {
-    rotate: { title: 'API Key를 재발급할까요?', message: '현재 키는 즉시 폐기됩니다. 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.', label: '재발급', variant: 'primary' as const },
-    revoke: { title: '직접 수집 연결을 중지할까요?', message: `이 키를 사용한 새 ${signalLabel(signal)} 수집이 즉시 차단됩니다. 저장된 데이터는 유지됩니다.`, label: '연결 중지', variant: 'danger' as const },
+    rotate: { title: 'API Key를 재발급할까요?', message: '현재 키는 즉시 폐기됩니다. 이 서비스의 모든 OpenTelemetry Exporter에 새 키를 반영해야 합니다.', label: '재발급', variant: 'primary' as const },
+    // 키는 앱 단위다. 연결을 중지하면 이 탭의 신호만이 아니라 앱의 모든 신호가 막힌다.
+    revoke: { title: '직접 수집 연결을 중지할까요?', message: '이 키를 사용하는 모든 데이터의 수집을 즉시 차단합니다. 저장된 데이터는 유지됩니다.', label: '연결 중지', variant: 'danger' as const },
     delete: { title: removal?.title ?? '', message: removal?.message ?? '', label: removal?.button, variant: 'danger' as const },
   };
   const selectedConfirm = confirmAction ? confirmCopy[confirmAction] : null;
@@ -191,7 +185,6 @@ export function useDirectServicePanel(serviceId: string, signal: TelemetrySignal
         {rotatedSetup && <RotatedTelemetryKeyDialog setup={rotatedSetup} onClose={() => setRotatedSetup(null)} />}
       </>
     ),
-    move,
     projectFields: assignProject ? {
       projects,
       projectId: projectDraft ?? service?.projectId ?? '',
