@@ -37,7 +37,7 @@ export function sourcesForProject(projectId: string, all: ProjectSources): Proje
 // 서버의 상태와 원인은 서버 목록과 같은 행(ServerRow)을 쓴다.
 export function projectMembers({ agents, services, servers }: ProjectSources): Member[] {
   return [
-    ...agents.map((agent): Member => ({ assignment: { kind: 'agent', item: agent }, key: `agent-${agent.id}`, to: `/agents/${agent.id}`, icon: 'dns', type: 'Docker 환경', name: agent.name, detail: isCollectorFresh(agent.lastSeenAt) ? '데이터 유입 중' : '데이터 지연', state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
+    ...agents.map((agent): Member => ({ assignment: { kind: 'agent', item: agent }, key: `agent-${agent.id}`, to: `/agents/${agent.id}`, icon: 'deployed_code', type: 'Docker 환경', name: agent.name, detail: isCollectorFresh(agent.lastSeenAt) ? '데이터 유입 중' : '데이터 지연', state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
     ...services.filter((service) => !service.healthy).map((service): Member => ({ key: `service-${service.agentId}-${service.key}`, to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`, icon: 'deployed_code', type: 'Docker 서비스', name: service.name, detail: '장애', state: 'error' })),
     ...servers.map((row): Member => ({ assignment: { kind: 'server', item: row.server }, key: `server-${row.server.id}`, to: serverPath(row.server.id), icon: 'dns', type: '서버', name: row.server.name, detail: STATE_LABEL[row.state], cause: row.cause?.text, state: row.state })),
   ].sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);

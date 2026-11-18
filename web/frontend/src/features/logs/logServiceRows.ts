@@ -12,6 +12,8 @@ export interface LogServiceRow {
   key: string;
   name: string;
   subtitle?: string;
+  /** 여러 서버를 가로지르는 목록(전체 로그)에서만: 패턴 행에 앱 이름과 함께 보인다. */
+  serverName?: string;
   /** 직접 연결을 꺼 둔 상태. */
   stopped?: boolean;
   /** 서비스 로그 화면 — 카드가 센 것과 같은 24시간 창으로 연다. */

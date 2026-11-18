@@ -131,7 +131,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
           <Tooltip content={pattern.message}><p className="truncate font-mono text-sm text-text-base">{pattern.message}</p></Tooltip>
           {/* 줄바꿈은 항목 사이에서만 — "처음 2일 / 전"처럼 시간 표현이 갈라지지 않게 */}
           <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-text-dim">
-            <span>{row.name}</span><span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span>
+            <span>{row.name}</span>{row.serverName && <span>서버 {row.serverName}</span>}<span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span>
             {isNew
               ? <strong className="whitespace-nowrap font-medium text-text-secondary">신규 · 처음 {ago(pattern.firstSeen)}</strong>
               : <span className="whitespace-nowrap">처음 {ago(pattern.firstSeen)}</span>}

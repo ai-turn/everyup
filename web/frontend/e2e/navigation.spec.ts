@@ -71,6 +71,17 @@ test.describe('desktop', () => {
     await expect(mainNav(page).getByRole('link', { name: '서버', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 
+  test('all logs names the server of each recurring pattern, a server tab does not', async ({ page }) => {
+    await page.goto('./logs');
+    const patterns = page.locator('section', { has: page.getByRole('heading', { name: '자주 발생한 오류·경고' }) });
+    const checkout = patterns.getByRole('link').filter({ hasText: 'checkout-api' }).first();
+    await expect(checkout).toContainText('서버 edge-host-01');
+    await page.goto(`./servers/${EDGE}/logs`);
+    const tabPatterns = page.locator('section', { has: page.getByRole('heading', { name: '자주 발생한 오류·경고' }) });
+    await expect(tabPatterns.getByRole('link').first()).toBeVisible();
+    await expect(tabPatterns.getByText(/^서버 /)).toHaveCount(0);
+  });
+
   test('the command palette finds servers and all logs, not the old menus', async ({ page }) => {
     await page.goto('./alerts');
     await page.getByRole('button', { name: /^검색/ }).click();
@@ -124,5 +135,24 @@ test.describe('Docker-only setup', () => {
     await expect(page.getByRole('heading', { name: '로그를 보내는 앱이 없습니다' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Docker API', exact: true })).toHaveCount(0);
     await expect(page.getByRole('link', { name: '서버 목록', exact: true })).toHaveAttribute('href', /\/servers$/);
+  });
+});
+
+// 서버 이름은 보조 정보다. 서버 목록을 불러오지 못해도 앱과 그 서버 주소의 링크는 보인다.
+test.describe('all logs without server names', () => {
+  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 900 } });
+
+  test('a failed server lookup leaves the app list and its server links', async ({ page }) => {
+    const state = await uptimeFixture(page);
+    const at = new Date().toISOString();
+    state.responses.set('GET /observed-services', [{ id: 'app-1', name: 'billing-api', serverId: 'server-1', signals: ['logs'], isActive: true, logLevelFilter: ['error', 'warn', 'info'], lastSeenAt: at, createdAt: at, updatedAt: at }]);
+    state.failures.set('GET /servers', 500);
+    await page.goto('./');
+    await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: '서버', exact: true }).click();
+    await page.getByRole('link', { name: '전체 로그', exact: true }).click();
+    await expect(page.getByRole('heading', { name: '로그를 불러오지 못했습니다' })).toHaveCount(0);
+    const link = page.getByRole('table', { name: '앱 그리드' }).getByRole('link', { name: 'billing-api', exact: true });
+    await expect(link).toHaveAttribute('href', /\/servers\/server-1\/logs\/app-1\?range=24h$/);
+    expect(state.requests.some((request) => request.method === 'GET' && request.path === '/servers')).toBe(true);
   });
 });

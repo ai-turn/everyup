@@ -26,8 +26,8 @@ export function LogsPage() {
   useEffect(() => {
     let alive = true;
     Promise.all([
-      // 패턴은 보조 정보라, 실패해도 앱 목록은 그린다.
-      api.getObservedServices('logs'), api.getServers(), api.getLogSummary(), api.getLogPatterns().catch(() => null),
+      // 패턴과 서버 이름은 보조 정보라, 실패해도 앱 목록은 그린다. 행의 링크는 앱의 serverId로 만든다.
+      api.getObservedServices('logs'), api.getServers().catch(() => null), api.getLogSummary(), api.getLogPatterns().catch(() => null),
     ])
       .then(([apps, servers, summaries, patternRows]) => {
         if (!alive) return;
@@ -37,6 +37,7 @@ export function LogsPage() {
           key: logScopeKey({ serviceId: app.id }),
           name: app.name,
           subtitle: serverNames.get(app.serverId),
+          serverName: serverNames.get(app.serverId),
           stopped: !app.isActive,
           to: `${serverPath(app.serverId, 'logs', app.id)}?range=24h`,
         }] : []);
