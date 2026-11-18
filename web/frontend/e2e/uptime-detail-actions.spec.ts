@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { deferred, uptimeFixture } from './fixtures/uptime';
+import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
 test.use({ baseURL: 'http://127.0.0.1:4174/' });
 const panel = (page: import('@playwright/test').Page) => page.getByRole('tabpanel');
@@ -40,8 +40,9 @@ test('[10] detail pause/resume blocks competing controls and recovers from failu
     await expect(pause).toBeEnabled();
     const writes = state.requests.filter((request) => request.method === 'PUT');
     expect(writes).toHaveLength(3);
-    expect(writes[1].body).toMatchObject({ isActive: false, method: 'GET', expectedStatus: 200, url: 'https://api.example.com/health' });
-    expect(writes[2].body).toMatchObject({ isActive: true });
+    const sent = { name: 'Public API', serverId: 'server-1', type: 'http', url: 'https://api.example.com/health', method: 'GET', expectedStatus: 200, timeout: 5000, interval: 30 };
+    expect(writes[1].body).toEqual({ ...sent, isActive: false });
+    expect(writes[2].body).toEqual({ ...sent, isActive: true });
   } finally { gate.resolve(); }
 });
 
@@ -85,4 +86,46 @@ test('[11] deleting identifies the monitor, cancels safely, and retries a failed
     expect(state.requests.filter((request) => request.method === 'DELETE')).toHaveLength(2);
     expect(state.monitors.some((monitor) => monitor.id === 'http-monitor')).toBe(false);
   } finally { gate.resolve(); }
+});
+
+test('pause and edit are built from the monitor as it is now, not as the panel last loaded it', async ({ page }) => {
+  const state = await uptimeFixture(page);
+  const puts = () => state.requests.filter((request) => request.method === 'PUT');
+  const moved = monitor('http-monitor', { serverId: 'server-2', timeout: 9000 });
+  await page.goto('./servers/server-1/uptime/http-monitor');
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+
+  // 다른 창에서 이 모니터를 다른 서버로 옮기고 타임아웃을 바꿨다. 패널은 아직 다시 불러오지 않았다.
+  state.responses.set('GET /services/http-monitor', moved);
+  await page.getByRole('button', { name: '수정', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: '업타임 수정' });
+  await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('Renamed');
+  await dialog.getByRole('spinbutton', { name: '주기 (초)' }).fill('60');
+  await dialog.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  // 사용자가 입력한 값(이름, 주기, 대화 상자의 타임아웃)이 다시 읽은 값 위에 덮인다. 서버는 다시 읽은 값이다.
+  expect(puts()[0].body).toEqual({
+    name: 'Renamed', serverId: 'server-2', type: 'http', url: 'https://api.example.com/health', method: 'GET', expectedStatus: 200, timeout: 5000, interval: 60, isActive: true,
+  });
+
+  state.monitors = state.monitors.map((item) => item.id === 'http-monitor' ? monitor('http-monitor') : item);
+  state.responses.clear();
+  await page.goto('./servers/server-1/uptime/http-monitor');
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  state.responses.set('GET /services/http-monitor', moved);
+  await page.getByRole('button', { name: '일시정지', exact: true }).click();
+  await expect.poll(() => puts().length).toBe(2);
+  expect(puts()[1].body).toEqual({
+    name: 'Public API', serverId: 'server-2', type: 'http', url: 'https://api.example.com/health', method: 'GET', expectedStatus: 200, timeout: 9000, interval: 30, isActive: false,
+  });
+
+  // 이미 지워졌으면 요청을 보내지 않고 알린다.
+  state.responses.clear();
+  state.monitors = state.monitors.map((item) => item.id === 'http-monitor' ? monitor('http-monitor') : item);
+  await page.goto('./servers/server-1/uptime/http-monitor');
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  state.failures.set('GET /services/http-monitor', 404);
+  await page.getByRole('button', { name: '일시정지', exact: true }).click();
+  await expect(page.getByText('대상이 삭제되어 일시정지할 수 없습니다')).toBeVisible();
+  expect(puts()).toHaveLength(2);
 });

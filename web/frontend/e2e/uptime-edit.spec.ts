@@ -41,8 +41,10 @@ for (const type of ['http', 'tcp'] as const) {
       await expect(page.getByRole('heading', { name: 'Renamed', exact: true })).toBeVisible();
       const writes = state.requests.filter((request) => request.method === 'PUT');
       expect(writes).toHaveLength(2);
-      expect(writes[1].body).toMatchObject({ name: 'Renamed', type, interval: 45, timeout: 3200, method: 'HEAD', expectedStatus: 204, isActive: false });
-      expect(writes[1].body).toMatchObject(type === 'http' ? { url: 'https://custom.example.com' } : { host: 'custom.example.com', port: 6443 });
+      expect(writes[1].body).toEqual({
+        name: 'Renamed', serverId: 'server-1', type, interval: 45, timeout: 3200, method: 'HEAD', expectedStatus: 204, isActive: false,
+        ...(type === 'http' ? { url: 'https://custom.example.com' } : { host: 'custom.example.com', port: 6443 }),
+      });
     } finally { gate.resolve(); }
   });
 }

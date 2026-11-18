@@ -5,6 +5,7 @@ import { useAutoRefresh } from '../../../hooks/useAutoRefresh';
 import { useHeldToken } from '../../../hooks/useHeldToken';
 import { api, type TimelineIncident, type UptimeMonitor, type UptimeMonitorInput, type UptimeMonitorMetric } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
+import { readLatest, TargetGoneError } from '../../../utils/readLatest';
 import { formatDuration, formatFullDateTime, formatIncidentTime } from '../../../utils/incidentFormat';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
@@ -195,11 +196,19 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
     void load();
   }, [token, load]);
 
+  // 이미 지워졌으면 서버 데이터를 다시 불러와 화면에서 뺀다. 안내는 호출한 쪽(토스트)이 한다.
+  const goneThenRethrow = (cause: unknown): never => {
+    if (cause instanceof TargetGoneError) void onChanged?.();
+    throw cause;
+  };
+
   const updateMonitor = async (input: UptimeMonitorInput) => {
     if (!monitor) return;
     setSaving(true);
     try {
-      await api.updateUptimeMonitor(monitor.id, { ...input, serverId: monitor.serverId, method: monitor.method, expectedStatus: input.expectedStatus ?? monitor.expectedStatus, isActive: monitor.isActive });
+      // 패널의 모니터가 아니라 지금의 모니터 위에 입력한 값을 덮는다. 그 사이의 이동이나 일시정지를 되돌리지 않게.
+      const latest = await readLatest(() => api.getUptimeMonitor(monitor.id), '수정').catch(goneThenRethrow);
+      await api.updateUptimeMonitor(latest.id, { ...monitorInput(latest), ...input, expectedStatus: input.expectedStatus ?? latest.expectedStatus });
       await load();
       await onChanged?.();
     } finally {
@@ -211,7 +220,8 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
     if (!monitor || processing || refreshing || errors.monitor) return;
     setProcessing(true);
     try {
-      await api.updateUptimeMonitor(monitor.id, monitorInput(monitor, { isActive: !monitor.isActive }));
+      const latest = await readLatest(() => api.getUptimeMonitor(monitor.id), monitor.isActive ? '일시정지' : '재개').catch(goneThenRethrow);
+      await api.updateUptimeMonitor(latest.id, monitorInput(latest, { isActive: !monitor.isActive }));
       await load();
       await onChanged?.();
     } catch (actionError) {
