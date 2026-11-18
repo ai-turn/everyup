@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import type { ObservedService, Server, UptimeMonitor } from '../src/services/api';
+import type { ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../src/services/api';
 import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
 // 서버 데이터의 갱신: 갱신 시각, 자동 갱신 스위치, 겹치는 요청, 다시 불러오기에 실패한 종류의 이전 목록 유지(Task 11b).
@@ -15,7 +15,11 @@ const serverHeader = (page: Page) => page.locator('header', { has: page.getByRol
 const stamp = (page: Page) => page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p');
 const refresh = (page: Page) => page.getByRole('button', { name: '새로고침', exact: true });
 
-async function mockServer(page: Page, options: { infrastructure?: boolean; monitors?: UptimeMonitor[]; project?: boolean } = {}) {
+async function mockServer(page: Page, options: {
+  infrastructure?: boolean; monitors?: UptimeMonitor[]; project?: boolean;
+  /** apps는 a1 말고 더 둘 앱, signals는 a1의 신호 */
+  apps?: ObservedService[]; signals?: ObservedService['signals']; catalog?: ObservedServiceMetricName[];
+} = {}) {
   const group = { id: 'p1', name: 'payments', createdAt: at, updatedAt: at };
   const own = options.project ? { ...server, projectId: group.id } : server;
   const state = {
@@ -24,7 +28,7 @@ async function mockServer(page: Page, options: { infrastructure?: boolean; monit
     holds: new Map<string, Promise<void>>(),
     requests: [] as string[],
     writes: [] as { method: string; path: string; body: Record<string, unknown> | null }[],
-    app: { ...app } as ObservedService | null,
+    app: { ...app, ...(options.signals ? { signals: options.signals } : {}) } as ObservedService | null,
     infrastructure: options.infrastructure
       ? { id: 'r1', name: 'web-01', serverId: 's1', isActive: true, apiKeyMasked: 'evup_****0001', adapter: 'otel-collector', lastSeenAt: new Date().toISOString(), createdAt: at, updatedAt: at }
       : null,
@@ -50,7 +54,9 @@ async function mockServer(page: Page, options: { infrastructure?: boolean; monit
     }
     // 앱 패널(로그, API 요청)이 부르는 객체 응답. 나머지는 빈 목록이다.
     const data = path === '/servers' ? [own] : path === '/services' ? options.monitors ?? [] : path === '/projects' ? (options.project ? [group] : [])
-      : path === '/observed-services' ? (state.app ? [state.app] : [])
+      : path === '/observed-services' ? [...(state.app ? [state.app] : []), ...(options.apps ?? [])]
+      : path === '/observed-services/metric-catalog' ? options.catalog ?? []
+      : path.endsWith('/otel-metrics/health') ? { metrics: [], checkedAt: at }
       : path === '/infrastructure-resources' ? (state.infrastructure ? [state.infrastructure] : [])
         : path === '/infrastructure-resources/r1' || path === '/infrastructure-resources/r1/revoke-key' ? state.infrastructure
           : path === '/observed-services/a1/revoke-key' ? state.app
@@ -452,4 +458,68 @@ test('a server whose failing monitor could not be checked is not called healthy 
   await page.goto('./servers/s1');
   await expect(serverHeader(page).getByText('장애', { exact: true })).toBeVisible();
   await expect(serverHeader(page).getByRole('link', { name: /Checkout 응답 없음/ })).toBeVisible();
+});
+
+test('a failed infrastructure refresh leaves the panel unverified, neither healthy nor delayed', async ({ page }) => {
+  const state = await mockServer(page, { infrastructure: true });
+  await page.clock.install();
+  await page.goto('./servers/s1/infrastructure');
+  const statusLine = panel(page).getByText('연결 중지', { exact: true }).locator('xpath=ancestor::div[1]');
+  await expect(panel(page).getByText('정상', { exact: true })).toBeVisible();
+  state.failures.add('/infrastructure-resources');
+  await refresh(page).click();
+  await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  await expect(statusLine.getByText('확인 불가', { exact: true })).toBeVisible();
+  await expect(panel(page).getByText('정상', { exact: true })).toHaveCount(0);
+  // 실패한 것은 조회다. 시간이 지나도 이전 수신 시각으로 수집 지연이라고 하지 않는다.
+  await page.clock.fastForward(150_000);
+  await expect(statusLine.getByText('확인 불가', { exact: true })).toBeVisible();
+  await expect(panel(page).getByText(/수집 지연|확인 필요/)).toHaveCount(0);
+  await expect(panel(page).getByText(/^마지막 수집/)).toHaveCount(0);
+  // 회복하면 지금의 상태로 돌아온다.
+  state.failures.clear();
+  await refresh(page).click();
+  await expect(statusLine.getByText('확인 불가', { exact: true })).toHaveCount(0);
+  await expect(panel(page).getByText(/^마지막 수집/)).toBeVisible();
+});
+
+test('a failed app refresh leaves the app panels and the app selector unverified', async ({ page }) => {
+  const second: ObservedService = { ...app, id: 'a2', name: 'billing-api', signals: ['logs', 'traces', 'metrics'] };
+  const state = await mockServer(page, { apps: [second] });
+  await page.goto('./servers/s1/api');
+  const selector = panel(page).getByRole('group', { name: 'API 요청 앱' });
+  await expect(selector.getByRole('button', { name: /orders-api/ })).toBeVisible();
+  await expect(selector).not.toContainText('확인 불가');
+  state.failures.add('/observed-services');
+  await refresh(page).click();
+  await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  for (const name of ['orders-api', 'billing-api']) {
+    await expect(selector.getByRole('button', { name: new RegExp(name) }).getByRole('img', { name: '확인 불가' })).toBeAttached();
+  }
+  const unverified = (scope: ReturnType<typeof panel>) => scope.getByText('연결 중지', { exact: true }).locator('xpath=ancestor::div[1]').getByText('확인 불가', { exact: true });
+  await expect(unverified(panel(page))).toBeVisible();
+  await expect(panel(page).getByText('수집 중', { exact: true })).toHaveCount(0);
+
+  await tablist(page).getByRole('tab', { name: /^메트릭/ }).click();
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'billing-api' })).toBeVisible();
+  await expect(unverified(panel(page))).toBeVisible();
+  await tablist(page).getByRole('tab', { name: /^로그/ }).click();
+  await page.getByRole('table', { name: '앱 그리드' }).getByRole('link', { name: 'orders-api' }).click();
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
+  await expect(unverified(panel(page))).toBeVisible();
+  await expect(panel(page).getByText(/^마지막 수집/)).toHaveCount(0);
+});
+
+test('the metrics panel of an app over a threshold says so, like its tab', async ({ page }) => {
+  const fresh = new Date().toISOString();
+  await mockServer(page, {
+    signals: ['metrics'],
+    catalog: [{ serviceId: 'a1', metricName: 'http.server.request.duration', metricType: 'histogram', unit: 's', lastAt: fresh, lastReceivedAt: fresh, breached: true }],
+  });
+  await page.goto('./servers/s1/metrics');
+  await expect(tablist(page).getByRole('tab', { name: /^메트릭/ }).getByRole('img', { name: '임계값 초과' })).toBeVisible();
+  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
+  const statusLine = panel(page).getByText('연결 중지', { exact: true }).locator('xpath=ancestor::div[1]');
+  await expect(statusLine.getByText('임계값 초과', { exact: true })).toBeVisible();
+  await expect(statusLine.getByText('수집 중', { exact: true })).toHaveCount(0);
 });

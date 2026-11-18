@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
-import { Button, ButtonLink, COLLECTION_STATUS_LABEL, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
 import { useHeldToken } from '../../../hooks/useHeldToken';
 import { useInfraMetrics } from '../../../hooks/useInfra';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { InfrastructureCollectorKeyDialog } from '../../infrastructure/components/InfrastructureCollectorKeyDialog';
-import { infrastructureState, STATE_LABEL } from '../../servers/serverStatus';
+import type { PanelStatus } from '../../servers/serverStatus';
 import { DirectConnectionMeta } from '../../telemetry/components/DirectConnectionMeta';
-import { infraCollection } from '../usage';
 import { InfraTrends } from './InfraTrends';
 
 type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
@@ -22,9 +21,11 @@ const CONFIRM_COPY = {
 };
 
 /** 서버 인프라 탭의 리소스 상세 본문. 리소스는 서버마다 하나라 제목은 스크린리더에만 두고, 조작은 상태 줄 오른쪽에 둔다. */
-export function InfrastructurePanel({ resource, serverName, onDeleted, extraActions, onChanged, refreshToken = 0 }: {
+export function InfrastructurePanel({ resource, status, serverName, onDeleted, extraActions, onChanged, refreshToken = 0 }: {
   /** 서버 상세가 불러온 리소스. 패널은 따로 불러오지 않는다(갱신의 주체는 서버 상세 하나다). */
   resource: InfrastructureResource;
+  /** 상태 줄. 탭이 탭의 점과 같은 판정으로 정한다. */
+  status: PanelStatus;
   /** 리소스 이름이 이와 같으면 다시 적지 않는다(서버 이름이 이미 h1이다). */
   serverName?: string;
   /** 삭제가 끝난 뒤 */
@@ -92,13 +93,6 @@ export function InfrastructurePanel({ resource, serverName, onDeleted, extraActi
     <Button collapseLabel variant="destructive" disabled={processing} onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
   </>;
   const rangePicker = <TimeRangePicker value={range} onChange={setRange} />;
-  // 서버 탭: 탭의 상태 점과 같은 판정(infrastructureState)과 그 원인을 보인다. 수집 여부는 마지막 수집이 말한다.
-  const state = infrastructureState(resource);
-  // 사용률이면 그 값과 기준, 수집 문제면 목록과 같은 수집 상태 문구(수신 대기, 수집 지연). "확인 필요 데이터 확인 필요"처럼 되풀이하지 않는다.
-  const reason = state.state === 'healthy' ? null
-    : state.threshold !== undefined ? `${state.detail}, 기준 ${state.threshold}%`
-      : state.state === 'warn' ? COLLECTION_STATUS_LABEL[infraCollection(resource)] : state.detail;
-
   return (
     <div className="space-y-5">
       {/* 리소스는 서버마다 하나이고 이름이 서버 이름과 같은 경우가 많다. 제목은 스크린리더에만 두고 조작은 상태 줄 오른쪽이다. */}
@@ -106,11 +100,8 @@ export function InfrastructurePanel({ resource, serverName, onDeleted, extraActi
       {/* 연결 중지는 DirectConnectionMeta가 상태 바로 옆에 둔다. */}
       <DirectConnectionMeta
         isActive={resource.isActive}
-        collection={{ tone: state.state, label: STATE_LABEL[state.state] }}
-        statusDetail={<>
-          {reason && <span>{reason}</span>}
-          {resource.name !== serverName && <span className="text-text-dim">{resource.name}</span>}
-        </>}
+        status={status}
+        statusDetail={resource.name !== serverName && <span className="text-text-dim">{resource.name}</span>}
         statusAside={<>{rangePicker}{actions}</>}
         collapsed
         collapseOnMobile

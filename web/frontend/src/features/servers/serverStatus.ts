@@ -1,8 +1,9 @@
+import { COLLECTION_STATUS_LABEL } from '../../components/common/collectionStatus';
 import type { StatusTone } from '../../components/common/statusTone';
 import type { InfrastructureResource, LogServiceSummary, ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../../services/api';
 import { formatDateTime, formatDuration } from '../../utils/incidentFormat';
 import { isCollectorFresh } from '../../utils/operationalStatus';
-import { peakUsage, WARNING_PCT } from '../infra/usage';
+import { infraCollection, peakUsage, WARNING_PCT } from '../infra/usage';
 import { metricTitle } from '../metrics/metricPresentation';
 import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
 import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from './serverPaths';
@@ -116,6 +117,34 @@ export function appCapabilityState(row: ServerRow, capability: 'logs' | 'api' | 
   if (capability === 'metrics' && row.breachedApps.includes(app.id)) return { state: 'warn', label: BREACHED_LABEL };
   const { state } = appState(app);
   return { state, label: capabilityStateLabel(capability, state) };
+}
+
+/** 패널의 상태 줄. 탭이 탭의 점과 같은 판정으로 정해서 넘긴다. */
+export interface PanelStatus {
+  tone: StatusTone;
+  label: string;
+  /** 상태 뒤의 원인(인프라의 사용률과 기준, 수집 상태) */
+  detail?: string;
+  /** 대상이 이전에 불러온 정보다. 상태는 확인 불가이고 마지막 수집 시각도 지금의 값처럼 보이지 않는다. */
+  stale: boolean;
+}
+
+const UNVERIFIED: PanelStatus = { tone: 'idle', label: '확인 불가', stale: true };
+
+export function appPanelStatus(row: ServerRow, capability: 'logs' | 'api' | 'metrics', app: ObservedService, stale: boolean): PanelStatus {
+  if (stale) return UNVERIFIED;
+  const { state, label } = appCapabilityState(row, capability, app);
+  return { tone: state, label, stale: false };
+}
+
+export function infrastructurePanelStatus(resource: InfrastructureResource, stale: boolean): PanelStatus {
+  if (stale) return UNVERIFIED;
+  const { state, detail, threshold } = infrastructureState(resource);
+  // 사용률이면 그 값과 기준, 수집 문제면 목록과 같은 수집 상태 문구(수신 대기, 수집 지연). "확인 필요 데이터 확인 필요"처럼 되풀이하지 않는다.
+  const reason = state === 'healthy' ? undefined
+    : threshold !== undefined ? `${detail}, 기준 ${threshold}%`
+      : state === 'warn' ? COLLECTION_STATUS_LABEL[infraCollection(resource)] : detail;
+  return { tone: state, label: STATE_LABEL[state], detail: reason, stale: false };
 }
 
 /** 기능 전체의 상태 문구(탭의 상태 점, 개요의 기능 행). 메트릭의 확인 필요는 임계값 초과인 앱이 있으면 그 까닭을 쓴다. */

@@ -8,6 +8,7 @@ import { useRequestQuery, useRequestWindow } from '../../api-requests/useRequest
 import { DirectServiceRequestsTab } from '../../healthcheck/components/AgentServiceRequestsTab';
 import { DirectServiceTracesTab } from '../../healthcheck/components/AgentServiceTracesTab';
 import { receiptCollection, signalList } from '../signals';
+import type { PanelStatus } from '../../servers/serverStatus';
 import { useDirectServicePanel } from '../useDirectServicePanel';
 import { DirectConnectionMeta } from './DirectConnectionMeta';
 
@@ -15,9 +16,11 @@ import { DirectConnectionMeta } from './DirectConnectionMeta';
 const VIEW_OPTIONS = [{ label: '요청', value: 'requests' }, { label: '트레이스', value: 'traces' }] as const;
 
 /** 서버 API 요청 탭에서 앱 하나의 요청과 트레이스. 앱 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function DirectApiPanel({ service, onRemoved, extraActions, onChanged, refreshToken = 0 }: {
+export function DirectApiPanel({ service, status, onRemoved, extraActions, onChanged, refreshToken = 0 }: {
   /** 서버 상세가 불러온 앱. 패널은 따로 불러오지 않는다. */
   service: ObservedService;
+  /** 상태 줄. 탭이 탭의 점과 같은 판정으로 정한다. */
+  status: PanelStatus;
   /** 삭제나 API 요청 연결 해제가 끝난 뒤 */
   onRemoved: (remaining: ObservedService | null) => void;
   /** 알림 규칙과 삭제 사이에 놓을 추가 조작(예: 다른 서버로 옮기기) */
@@ -55,9 +58,10 @@ export function DirectApiPanel({ service, onRemoved, extraActions, onChanged, re
           {removalButton}
         </div>
       </div>
-      {/* 상태는 앱 선택의 상태와 같은 판정(appState)이다. 연결 정보는 접고, 보기와 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
+      {/* 상태는 탭이 넘긴다(탭의 점, 앱 선택과 같은 판정). 연결 정보는 접고, 보기와 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
       <DirectConnectionMeta
         {...connection}
+        status={status}
         detail={{ label: '수집 데이터', value: signalList(service.signals) }}
         collapseOnMobile
         collapseLabel="연결 정보"

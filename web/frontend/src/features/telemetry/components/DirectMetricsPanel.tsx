@@ -7,13 +7,16 @@ import { DirectServiceMetricsTab } from '../../healthcheck/components/AgentServi
 import { useMetricHealth } from '../../metrics/useMetricHealth';
 import { useMetricQuery } from '../../metrics/useMetricQuery';
 import { signalList } from '../signals';
+import type { PanelStatus } from '../../servers/serverStatus';
 import { useDirectServicePanel } from '../useDirectServicePanel';
 import { DirectConnectionMeta } from './DirectConnectionMeta';
 
 /** 서버 메트릭 탭에서 앱 하나의 메트릭. 앱 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function DirectMetricsPanel({ service, onRemoved, extraActions, onChanged, refreshToken = 0 }: {
+export function DirectMetricsPanel({ service, status, onRemoved, extraActions, onChanged, refreshToken = 0 }: {
   /** 서버 상세가 불러온 앱. 패널은 따로 불러오지 않는다. */
   service: ObservedService;
+  /** 상태 줄. 탭이 탭의 점과 같은 판정으로 정한다. */
+  status: PanelStatus;
   /** 삭제나 메트릭 연결 해제가 끝난 뒤 */
   onRemoved: (remaining: ObservedService | null) => void;
   /** 알림 규칙과 삭제 사이에 놓을 추가 조작(예: 다른 서버로 옮기기) */
@@ -41,9 +44,10 @@ export function DirectMetricsPanel({ service, onRemoved, extraActions, onChanged
           {removalButton}
         </div>
       </div>
-      {/* 상태는 앱 선택의 상태와 같은 판정(appState)이다. 연결 정보는 접고, 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
+      {/* 상태는 탭이 넘긴다(탭의 점, 앱 선택과 같은 판정). 연결 정보는 접고, 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
       <DirectConnectionMeta
         {...connection}
+        status={status}
         detail={{ label: '수집 데이터', value: signalList(service.signals) }}
         collapseOnMobile
         collapseLabel="연결 정보"

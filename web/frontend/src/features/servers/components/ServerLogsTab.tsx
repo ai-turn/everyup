@@ -10,7 +10,7 @@ import { logScopeKey, withLogSummaries } from '../../logs/logServiceRows';
 import { DirectLogsPanel } from '../../telemetry/components/DirectLogsPanel';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
 import { ALL_LOGS_PATH, CONNECT_LABEL, serverPath } from '../serverPaths';
-import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
+import { appPanelStatus, capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
@@ -102,7 +102,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     }
     if (current) {
       return (
-        <DirectLogsPanel key={current.id} service={current}
+        <DirectLogsPanel key={current.id} service={current} status={appPanelStatus(row, 'logs', current, Boolean(stale))}
           listLink={<TabBackLink label={listPath.startsWith(ALL_LOGS_PATH) ? '전체 로그' : '앱 목록'} to={listPath} />}
           onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />

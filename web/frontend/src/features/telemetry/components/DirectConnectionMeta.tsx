@@ -1,6 +1,7 @@
-import { Button, DetailMeta, MaterialIcon, StatusLight, type DetailMetaField, type StatusTone } from '../../../components/common';
+import { Button, DetailMeta, MaterialIcon, StatusLight, type DetailMetaField } from '../../../components/common';
 import type { ReactNode } from 'react';
 import { formatDateTime } from '../../../utils/incidentFormat';
+import type { PanelStatus } from '../../servers/serverStatus';
 
 // 서버 탭의 직접 연결(Logs·Metrics·API·Collector) 상세의 연결 메타데이터. 수집 키·마지막 수집은
 // 대상의 속성이지 본문이 아니라서 카드가 아니라 제목 아래 DetailMeta로 둔다.
@@ -24,8 +25,8 @@ interface DirectConnectionMetaProps {
   statusDetail?: ReactNode;
   /** 상태 줄 오른쪽 끝(기간 선택, 조작). 좁으면 상태 줄 아래로 흐른다. */
   statusAside?: ReactNode;
-  /** 서버 탭의 상태 점과 같은 판정의 점과 문구. 연결을 멈춘 상태의 문구도 갖고 있다. */
-  collection: { tone: StatusTone; label: string };
+  /** 탭이 정한 상태(탭의 상태 점과 같은 판정). 이전 정보이면 마지막 수집 시각을 숨긴다. */
+  status: PanelStatus;
 }
 
 export function DirectConnectionMeta({
@@ -41,7 +42,7 @@ export function DirectConnectionMeta({
   collapsed = false,
   statusDetail,
   statusAside,
-  collection,
+  status,
 }: DirectConnectionMetaProps) {
   return (
     <DetailMeta
@@ -50,9 +51,10 @@ export function DirectConnectionMeta({
       collapsed={collapsed}
       status={
         <>
-          <StatusLight {...collection} />
+          <StatusLight tone={status.tone} label={status.label} />
+          {status.detail && <span>{status.detail}</span>}
           {statusDetail}
-          <span>마지막 수집 {lastSeenAt ? formatDateTime(lastSeenAt) : '아직 없음'}</span>
+          {!status.stale && <span>마지막 수집 {lastSeenAt ? formatDateTime(lastSeenAt) : '아직 없음'}</span>}
           {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다 — 수집 키 옆 키 재발급과 같은 원리 */}
           {isActive && <Button variant="ghost" onClick={onRevoke}><MaterialIcon name="block" />연결 중지</Button>}
           {statusAside && <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{statusAside}</div>}

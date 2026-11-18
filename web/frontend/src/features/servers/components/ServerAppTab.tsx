@@ -7,7 +7,7 @@ import { DirectApiPanel } from '../../telemetry/components/DirectApiPanel';
 import { DirectMetricsPanel } from '../../telemetry/components/DirectMetricsPanel';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
-import { appCapabilityState, capabilityTargets, worst, type ServerCapabilityTabProps } from '../serverStatus';
+import { appCapabilityState, appPanelStatus, capabilityTargets, worst, type ServerCapabilityTabProps } from '../serverStatus';
 import { AppSelector } from './AppSelector';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
@@ -133,11 +133,15 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
         {/* 앱이 하나면 고를 것이 없으므로 줄째 없다. 추가 버튼은 탭 줄의 조작 자리에 있다. */}
         {apps.length > 1 && (
           <AppSelector ariaLabel={`${copy.label} 앱`} value={current.id}
-            apps={apps.map(({ app, state, label }) => ({ id: app.id, name: app.name, state, stateLabel: label }))}
+            // 이전 정보이면 패널의 상태 줄과 같이 확인 불가다.
+            apps={apps.map(({ app }) => {
+              const status = appPanelStatus(row, capability, app, Boolean(stale));
+              return { id: app.id, name: app.name, state: status.tone, stateLabel: status.label };
+            })}
             // 다른 앱의 필터가 넘어가지 않게 쿼리를 버린다.
             onChange={(id) => navigate(serverPath(serverId, capability, id))} />
         )}
-        <Panel key={current.id} service={current}
+        <Panel key={current.id} service={current} status={appPanelStatus(row, capability, current, Boolean(stale))}
           onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       </div>

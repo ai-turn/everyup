@@ -7,13 +7,16 @@ import { alertRulesPath } from '../../alerts/alertTarget';
 import { DirectServiceLogsTab } from '../../healthcheck/components/AgentServiceLogsTab';
 import { LogIngestLevels } from '../../logs/components/LogIngestLevels';
 import { signalList } from '../signals';
+import type { PanelStatus } from '../../servers/serverStatus';
 import { useDirectServicePanel } from '../useDirectServicePanel';
 import { DirectConnectionMeta } from './DirectConnectionMeta';
 
 /** 서버 로그 탭에서 앱 하나의 로그 본문. 앱 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function DirectLogsPanel({ service, onRemoved, listLink, extraActions, onChanged, refreshToken = 0 }: {
+export function DirectLogsPanel({ service, status, onRemoved, listLink, extraActions, onChanged, refreshToken = 0 }: {
   /** 서버 상세가 불러온 앱. 패널은 따로 불러오지 않는다. */
   service: ObservedService;
+  /** 상태 줄. 탭이 탭의 점과 같은 판정으로 정한다. */
+  status: PanelStatus;
   /** 삭제나 로그 연결 해제가 끝난 뒤 */
   onRemoved: (remaining: ObservedService | null) => void;
   /** 패널 제목 위에 모든 폭에서 보이는 앱 목록 복귀 링크 */
@@ -47,6 +50,7 @@ export function DirectLogsPanel({ service, onRemoved, listLink, extraActions, on
       {/* 연결 중지는 DirectConnectionMeta가 상태 바로 옆에 둔다. 연결 정보는 확인하는 값이라 접고, 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
       <DirectConnectionMeta
         {...connection}
+        status={status}
         detail={{ label: '수집 데이터', value: signalList(service.signals) }}
         extraFields={[{ label: '수집 레벨', value: <LogIngestLevels observedServiceId={service.id} /> }]}
         collapseOnMobile

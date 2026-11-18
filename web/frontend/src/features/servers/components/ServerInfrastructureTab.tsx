@@ -6,7 +6,7 @@ import { api } from '../../../services/api';
 import { InfrastructurePanel } from '../../infra/components/InfrastructurePanel';
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
-import type { ServerCapabilityTabProps } from '../serverStatus';
+import { infrastructurePanelStatus, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt } from './ConnectPrompt';
 import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
 import { readLatest, TargetGoneError } from '../../../utils/readLatest';
@@ -87,7 +87,7 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
       );
     }
     return (
-      <InfrastructurePanel key={resource.id} resource={resource} serverName={row.server.name} refreshToken={refreshToken}
+      <InfrastructurePanel key={resource.id} resource={resource} status={infrastructurePanelStatus(resource, Boolean(stale))} serverName={row.server.name} refreshToken={refreshToken}
         onChanged={onChanged} onDeleted={() => void removed(resource.id)}
         extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(resource.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
     );

@@ -1,16 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, MaterialIcon, type StatusTone } from '../../components/common';
+import { Button, ConfirmDialog, MaterialIcon } from '../../components/common';
 import { api, type ObservedService, type ObservedServiceSetup, type TelemetrySignal } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { readLatest, TargetGoneError } from '../../utils/readLatest';
-import { appState, capabilityStateLabel } from '../servers/serverStatus';
 import { RotatedTelemetryKeyDialog } from './components/RotatedTelemetryKeyDialog';
 import { serviceRemoval, signalLabel } from './signals';
 
 type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
-
-const CAPABILITY = { logs: 'logs', traces: 'api', metrics: 'metrics' } as const;
 
 /**
  * 서버 탭의 로그·API·메트릭 앱 패널의 공통 로직: 키 재발급, 연결 중지, 삭제 또는 신호 연결 해제, 확인 대화 상자.
@@ -22,7 +19,7 @@ export function useDirectServicePanel(service: ObservedService, signal: Telemetr
   /** 키 재발급, 연결 중지, 삭제 요청이 진행 중이다. 패널은 이 동안 새로고침 신호로 다시 불러오지 않는다. */
   processing: boolean;
   /** DirectConnectionMeta에 그대로 넘길 연결 관련 props */
-  connection: { isActive: boolean; apiKeyMasked?: string; lastSeenAt?: string | null; onRotateKey: () => void; onRevoke: () => void; collection: { tone: StatusTone; label: string } };
+  connection: { isActive: boolean; apiKeyMasked?: string; lastSeenAt?: string | null; onRotateKey: () => void; onRevoke: () => void };
   /** 삭제 또는 "신호 연결 해제" 버튼 */
   removalButton: ReactNode;
   /** 확인 대화 상자와 재발급된 키 대화 상자. 패널이 렌더링 트리에 넣는다 */
@@ -124,7 +121,6 @@ export function useDirectServicePanel(service: ObservedService, signal: Telemetr
     delete: { title: confirmRemoval.title, message: confirmRemoval.message, label: confirmRemoval.button, variant: 'danger' as const },
   };
   const selectedConfirm = confirmAction ? confirmCopy[confirmAction] : null;
-  const state = appState(service).state;
 
   return {
     processing,
@@ -134,7 +130,6 @@ export function useDirectServicePanel(service: ObservedService, signal: Telemetr
       lastSeenAt: service.lastSeenAt,
       onRotateKey: () => setConfirmAction('rotate'),
       onRevoke: () => setConfirmAction('revoke'),
-      collection: { tone: state, label: capabilityStateLabel(CAPABILITY[signal], state) },
     },
     removalButton: (
       <Button collapseLabel variant="destructive" disabled={processing} loading={checkingRemoval} onClick={() => void openRemoval()}><MaterialIcon name="delete_outline" />{removal.button}</Button>
