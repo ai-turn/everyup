@@ -1,6 +1,7 @@
 import type { StatusTone } from '../../components/common';
 import { api, type AgentServiceFlat, ConnectedAgent, InfrastructureResource, ObservedService, UptimeMonitor } from '../../services/api';
 import { isCollectorFresh } from '../../utils/operationalStatus';
+import { appState, infrastructureState, monitorState, STATE_LABEL, STATE_ORDER } from '../../features/servers/serverStatus';
 
 // 그룹 목록의 상태 요약과 그룹 상세의 구성원 목록이 같은 판정을 쓰도록 한곳에 둔다.
 // 둘이 따로 계산하면 목록은 "정상"인데 상세는 "장애"인 그룹이 생긴다.
@@ -24,9 +25,8 @@ export type ProjectSources = {
   infrastructure: InfrastructureResource[];
 };
 
-// 문제가 먼저 — 장애, 수집 지연, 비활성, 정상. 대상이 많아도 장애가 목록 아래에 묻히지 않게 해서
+// 문제가 먼저(STATE_ORDER) — 대상이 많아도 장애가 목록 아래에 묻히지 않게 해서
 // 이 화면의 KPI 카드(장애 수·수집 확인 필요 수)를 대신한다. 같은 상태 안에서는 유형 순서를 지킨다(안정 정렬).
-export const STATE_ORDER: Record<MemberState, number> = { error: 0, warn: 1, idle: 2, healthy: 3 };
 
 // Docker 서비스는 그룹에 직접 배정되지 않고 Docker 환경의 그룹을 따른다(ADR 0003).
 export function sourcesForProject(projectId: string, all: ProjectSources): ProjectSources {
@@ -47,15 +47,14 @@ const directKind = (service: ObservedService) => service.signals.includes('logs'
   : { to: `/api/${service.id}`, icon: 'api', type: 'API 요청' };
 
 // key에 유형을 붙인다 — Docker 호스트의 인프라 리소스는 환경과 같은 id를 쓴다.
-// 직접 연결 서비스는 lastSeenAt이 오래돼도 정상으로 둔다 — 로그·트레이스는 사건이 있을 때만 오므로
-// 조용한 것이 장애가 아니다. 개요 화면도 "한 번도 수신하지 않음"만 확인 대상으로 센다.
+// 대상별 판정은 서버 목록과 같은 함수를 쓴다(features/servers/serverStatus).
 export function projectMembers({ agents, services, monitors, observedServices, infrastructure }: ProjectSources): Member[] {
   return [
     ...agents.map((agent): Member => ({ assignment: { kind: 'agent', item: agent }, key: `agent-${agent.id}`, to: `/agents/${agent.id}`, icon: 'dns', type: 'Docker 환경', name: agent.name, detail: isCollectorFresh(agent.lastSeenAt) ? '데이터 유입 중' : '데이터 지연', state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
     ...services.filter((service) => !service.healthy).map((service): Member => ({ key: `service-${service.agentId}-${service.key}`, to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`, icon: 'deployed_code', type: 'Docker 서비스', name: service.name, detail: '장애', state: 'error' })),
-    ...monitors.map((monitor): Member => ({ assignment: { kind: 'monitor', item: monitor }, key: `monitor-${monitor.id}`, to: `/uptime/${monitor.id}`, icon: 'monitor_heart', type: '업타임', name: monitor.name, detail: monitor.status === 'unhealthy' ? '장애' : monitor.status === 'healthy' ? '정상' : '상태 확인 중', state: monitor.status === 'unhealthy' ? 'error' : monitor.status === 'healthy' ? 'healthy' : 'idle' })),
-    ...observedServices.map((service): Member => ({ assignment: { kind: 'direct', item: service }, key: `direct-${service.id}`, ...directKind(service), name: service.name, detail: service.isActive ? (service.lastSeenAt ? `마지막 수신 ${new Date(service.lastSeenAt).toLocaleString()}` : '데이터 대기 중') : '연결 비활성화됨', state: service.isActive ? (service.lastSeenAt ? 'healthy' : 'warn') : 'idle' })),
-    ...infrastructure.map((resource): Member => ({ assignment: isDirectInfrastructure(resource) ? { kind: 'infra', item: resource } : undefined, key: `infra-${resource.id}`, to: `/infrastructure/${resource.id}`, icon: 'memory', type: '인프라', name: resource.name, detail: resource.isActive ? (isCollectorFresh(resource.lastSeenAt) ? '데이터 유입 중' : '데이터 확인 필요') : 'Collector 비활성화됨', state: resource.isActive ? (isCollectorFresh(resource.lastSeenAt) ? 'healthy' : 'warn') : 'idle' })),
+    ...monitors.map((monitor): Member => ({ assignment: { kind: 'monitor', item: monitor }, key: `monitor-${monitor.id}`, to: `/uptime/${monitor.id}`, icon: 'monitor_heart', type: '업타임', name: monitor.name, ...monitorState(monitor) })),
+    ...observedServices.map((service): Member => ({ assignment: { kind: 'direct', item: service }, key: `direct-${service.id}`, ...directKind(service), name: service.name, ...appState(service) })),
+    ...infrastructure.map((resource): Member => ({ assignment: isDirectInfrastructure(resource) ? { kind: 'infra', item: resource } : undefined, key: `infra-${resource.id}`, to: `/infrastructure/${resource.id}`, icon: 'memory', type: '인프라', name: resource.name, ...infrastructureState(resource) })),
   ].sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);
 }
 
@@ -88,8 +87,6 @@ export function setTargetGroup(target: AssignableTarget, projectId?: string): Pr
     case 'infra': return api.updateInfrastructureResource(target.item.id, { name: target.item.name, projectId });
   }
 }
-
-const STATE_LABEL: Record<MemberState, string> = { error: '장애', warn: '확인 필요', idle: '대기', healthy: '정상' };
 
 // 그룹 목록용 한 줄 요약. 가장 나쁜 상태가 점 색을 정한다.
 export function summarizeMembers(members: Member[]): { tone: MemberState; label: string } {

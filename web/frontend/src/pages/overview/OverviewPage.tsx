@@ -15,6 +15,7 @@ import { isCollectorFresh } from '../../utils/operationalStatus';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
+import { serverPath } from '../../features/servers/serverPaths';
 
 const OverviewPrototype = import.meta.env.DEV ? lazy(() => import('./Overview.prototype').then((module) => ({ default: module.OverviewPrototype }))) : null;
 
@@ -120,7 +121,7 @@ export function OverviewPage() {
         id: `monitor-${monitor.id}`,
         title: monitor.name,
         detail: '업타임 모니터가 장애를 보고했습니다',
-        to: `/servers/${monitor.serverId}/uptime/${monitor.id}`,
+        to: serverPath(monitor.serverId, 'uptime', monitor.id),
         tone: 'error' as const,
         icon: 'error_outline',
         observedAt: monitor.lastCheckAt,

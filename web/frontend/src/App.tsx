@@ -28,6 +28,7 @@ const DirectInfrastructureDetailPage = lazy(() => import('./pages/capabilities/D
 const MorePage              = lazy(() => import('./pages/capabilities/MorePage').then(m => ({ default: m.MorePage })));
 const ProjectsPage          = lazy(() => import('./pages/projects/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
 const ProjectOverviewPage   = lazy(() => import('./pages/projects/ProjectOverviewPage').then(m => ({ default: m.ProjectOverviewPage })));
+const ServersPage           = lazy(() => import('./pages/servers/ServersPage').then(m => ({ default: m.ServersPage })));
 
 function PageLoader() {
   return (
@@ -65,6 +66,7 @@ function App() {
               <Route element={<MainLayout />}>
                 <Route index element={<OverviewPage />} />
                 <Route path="/environments" element={<ServiceGridPage />} />
+                <Route path="/servers" element={<ServersPage />} />
                 <Route path="/agents" element={<Navigate to="/environments" replace />} />
                 <Route path="/services" element={<Navigate to="/uptime" replace />} />
                 <Route path="/uptime" element={<AgentServiceCapabilityPage />} />
