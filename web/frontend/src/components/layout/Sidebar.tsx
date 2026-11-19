@@ -10,6 +10,7 @@ import { DemoScenarioSwitcher } from './DemoScenarioSwitcher';
 import { DemoHelpLinks } from './DemoHelpLinks';
 import { NAV_SECTIONS } from './navSections';
 import { useCurrentSection } from '../../hooks/useGroupTrail';
+import { uptimeState } from '../../features/uptime/uptimeState';
 
 interface NavItemProps {
   to: string;
@@ -60,9 +61,10 @@ export function Sidebar() {
   }, [loadStatus]);
   useAutoRefresh(() => void loadStatus(), 30_000);
 
-  // 개요의 "(N) 장애"(탭 제목)와 같은 기준 — Docker 서비스만 세면 업타임 모니터 장애가 빠져 두 숫자가 갈렸다.
+  // 개요의 "장애 N"과 탭 제목 "(N) 장애"와 같은 판정이다 — Docker 서비스만 세면 업타임 모니터 장애가 빠져 두 숫자가 갈렸다.
+  // 모니터는 서버 목록과 같은 uptimeState로 센다(일시정지한 모니터의 마지막 상태는 장애가 아니다).
   const failureCount = services.filter((service) => !service.healthy).length
-    + monitors.filter((monitor) => monitor.status === 'unhealthy').length;
+    + monitors.filter((monitor) => uptimeState(monitor) === 'down').length;
 
   // 활성 항목 = 첫 크럼과 같은 섹션(담김 관계, DESIGN.md §3.4) — 서비스 상세는 Docker 환경이다.
   // 그룹에서 연 대상이면 그룹이다(useGroupTrail).
@@ -70,10 +72,13 @@ export function Sidebar() {
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-ui-border bg-bg-surface lg:flex">
-      <Link to="/" className="group flex h-16 shrink-0 items-center gap-2 px-4">
-        <img src={logo} alt="" className="h-9 w-9 object-contain" />
-        <span className="text-lg font-bold tracking-tight text-text-base transition-colors group-hover:text-action">EveryUp</span>
-      </Link>
+      {/* 링크를 가장자리에서 띄워 포커스 링(2px + 2px)이 화면과 사이드바 경계에 잘리지 않게 한다. 로고의 자리는 그대로다. */}
+      <div className="flex h-16 shrink-0 items-center px-3">
+        <Link to="/" className="group flex items-center gap-2 rounded-lg px-1">
+          <img src={logo} alt="" className="h-9 w-9 object-contain" />
+          <span className="text-lg font-bold tracking-tight text-text-base transition-colors group-hover:text-action">EveryUp</span>
+        </Link>
+      </div>
 
       {env.isDemoMode && (
         // 중립 표면 — 아래 검색 버튼과 같은 bg-main + ui-border. 파란 틴트 상자는 §9.3 금지 패턴이라 사이드바에서 혼자 튀었다.
@@ -96,7 +101,8 @@ export function Sidebar() {
         <kbd className="font-sans rounded border border-ui-border px-1 py-0.5 type-label-sm">{navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl K'}</kbd>
       </button>
 
-      <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3" aria-label="주 메뉴">
+      {/* 스크롤 영역은 포커스 링도 자른다. 위아래 여백에 첫·마지막 항목의 링이 들어간다. */}
+      <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-1" aria-label="주 메뉴">
         {NAV_SECTIONS.map((section, i) => (
           <Fragment key={section.to}>
             {section.group && section.group !== NAV_SECTIONS[i - 1]?.group && (

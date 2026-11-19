@@ -8,8 +8,13 @@ import { MetricChart, type MetricSource } from '../../metrics/MetricChart';
 import { useMetricQuery, useMetricWindow } from '../../metrics/useMetricQuery';
 import { metricFlags, metricGroup, metricHealthCollection, metricIdentity, metricTitle } from '../../metrics/metricPresentation';
 import { useMetricHealth, type MetricHealthState } from '../../metrics/useMetricHealth';
+import { formatClock, formatDateTime } from '../../../utils/incidentFormat';
 
-interface CommonProps { refreshKey?: number; range: GlobalTimeRange; active?: boolean }
+interface CommonProps {
+  refreshKey?: number; range: GlobalTimeRange; active?: boolean;
+  /** 대상을 부르는 이름. 서버 화면은 앱이라고 부른다. */
+  noun?: string;
+}
 interface AgentProps extends CommonProps { agentId: string; serviceKey: string }
 interface DirectProps extends CommonProps {
   observedServiceId: string;
@@ -21,7 +26,7 @@ interface DirectProps extends CommonProps {
 
 const GROUPS = ['고정한 지표', '요청과 응답', '작업과 메시지', '런타임과 리소스', '사용자 정의 지표'];
 
-function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, empty, showCollection }: CommonProps & { source: MetricSource; state: MetricHealthState; empty?: ReactNode; showCollection: boolean }) {
+function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, empty, showCollection, noun = '서비스' }: CommonProps & { source: MetricSource; state: MetricHealthState; empty?: ReactNode; showCollection: boolean }) {
   const { health, loading, error, retry } = state;
   const query = useMetricQuery();
   const window = useMetricWindow(range, refreshKey);
@@ -71,9 +76,9 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
 
   return <div className="space-y-5">
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption text-text-muted" aria-label="메트릭 수집 현황">
-      {/* 직접 상세는 헤더가 같은 판정으로 수집 상태와 마지막 수신을 보인다. */}
+      {/* 서버 메트릭 탭은 패널의 상태 줄(DirectConnectionMeta)이 수집 상태와 마지막 수집을 보인다. 여기서는 Docker 서비스만 그린다. */}
       {showCollection && <StatusLight {...collection} />}<span>{names.length}개 지표</span>
-      {showCollection && <span>마지막 수신 {receivedAt ? <time dateTime={receivedAt}>{new Date(receivedAt).toLocaleString('ko-KR', { hour12: false })}</time> : '기록 없음'}</span>}
+      {showCollection && <span>마지막 수신 {receivedAt ? <time dateTime={receivedAt}>{formatDateTime(receivedAt)}</time> : '기록 없음'}</span>}
       {loading && <span role="status">상태 갱신 중…</span>}
     </div>
     {error && <LoadErrorBanner title="메트릭 상태를 새로고침하지 못했습니다" message="이전 상태를 표시합니다." onRetry={retry} retryLabel="목록 다시 시도" />}
@@ -84,14 +89,14 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
         {opened && <ButtonLink variant="secondary" size="sm" to={alertRuleNewPath(alertTarget, { category: 'metric', metricName: opened.metricName })}><MaterialIcon name="notifications" />알림 추가</ButtonLink>}
       </div>
       {opened ? chart(opened, true) : matches.length > 1 ? <div className="space-y-3"><p className="type-body text-text-muted">같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.</p>{matches.map(meta => <Button key={metricIdentity(meta)} variant="secondary" onClick={() => openMetric(meta)} className="h-auto min-h-11 flex-wrap gap-x-3 py-2"><span className="min-w-0 break-all">{meta.metricName}</span><span>{meta.metricType}</span><span>{meta.unit || '단위 없음'}</span></Button>)}</div>
-        : <EmptyState icon="search" title="메트릭을 찾을 수 없습니다" description="선택한 메트릭이 이 서비스의 저장된 목록에 없습니다." action={{ label: '전체 메트릭', onClick: closeMetric }} />}
+        : <EmptyState icon="search" title="메트릭을 찾을 수 없습니다" description={`선택한 메트릭이 이 ${noun}의 저장된 목록에 없습니다.`} action={{ label: '전체 메트릭', onClick: closeMetric }} />}
     </> : <>
       {flagged.length > 0 && <details className="rounded-xl border border-ui-border-soft bg-bg-surface p-4" open>
         <summary className="cursor-pointer type-label text-text-base">확인 필요 · {flagged.length}개 지표</summary>
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 type-caption text-text-muted">
           <span>전체 지표 기준</span>
           <span>최근 5분 원값 임계값과 수신 상태로 판단</span>
-          <span>{new Date(health.checkedAt).toLocaleTimeString('ko-KR', { hour12: false })} 확인</span>
+          <span>{formatClock(health.checkedAt, true)} 확인</span>
         </div>
         <div className="mt-3 max-h-48 overflow-y-auto" aria-label="확인이 필요한 메트릭">
           {flagged.map(meta => <button key={metricIdentity(meta)} type="button" onClick={() => openMetric(meta)} className="flex min-h-11 w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-left hover:text-action">

@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { NAV_SECTIONS, sectionFor, type NavTarget } from '../components/layout/navSections';
 
 // 그룹 상세에서 연 대상 화면은 그룹 안에 머문 것으로 보여 준다: 사이드바는 "그룹", breadcrumb은
-// 그룹 › Staging › 대상, 돌아가기는 그 그룹이다. 대상 화면은 업타임·로그 등 각 메뉴의 상세를 그대로 쓴다.
+// 그룹 › Staging › 대상, 돌아가기는 그 그룹이다. 대상 화면은 서버 화면을 그대로 쓴다.
 //
 // 라우터 state가 아니라 sessionStorage에 둔다. 상세 화면이 기간(6H·24H)이나 탭을 바꾸면
 // setSearchParams가 state 없이 이동해서 그룹 맥락이 중간에 사라지기 때문이다.
 // 연 대상의 경로 안에 있는 동안만 유효하고, 그룹 화면도 대상 화면도 아닌 곳으로 가면 지운다.
-// 그래서 나중에 업타임 메뉴에서 같은 대상을 열면 업타임 맥락으로 보인다.
+// 그래서 나중에 서버 화면에서 같은 대상을 열면 서버 맥락으로 보인다.
 
 export type GroupTrail = { id: string; name: string; path: string };
 
@@ -33,8 +33,11 @@ export function useGroupTrail(): GroupTrail | null {
   const { pathname } = useLocation();
   const trail = read();
   const active = trail && within(pathname, trail.path) ? trail : null;
-  const stale = Boolean(trail && !active && pathname !== `/projects/${trail.id}`);
-  useEffect(() => {
+  // 그룹 화면으로 돌아와도 지운다. 대상 경로가 서버 전체(/servers/:id)라서, 남겨 두면 그 뒤에 다른 곳에서 같은 서버로 바로 가도
+  // 그룹 맥락이 된다. 구성원을 누르면 openFromGroup이 다시 남긴다(누른 뒤 곧바로 이동하므로 그 사이에 지워지지 않는다).
+  const stale = Boolean(trail && !active);
+  // 방어적 처리로 그리기 전에 지운다(useLayoutEffect). 순서 문제를 고치려는 것이 아니라, 지난 맥락이 한 번이라도 그려질 여지를 줄인다.
+  useLayoutEffect(() => {
     if (stale) try { sessionStorage.removeItem(KEY); } catch { /* 무시 */ }
   }, [stale]);
   return active;

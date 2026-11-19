@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import type { AlertTarget } from './alertTarget';
 import type { StatusTone } from '../../components/common';
-import { api, type AlertRule, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService, type UptimeMonitor } from '../../services/api';
+import { api, type AlertRule, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService, type Server, type UptimeMonitor } from '../../services/api';
 
 /** 규칙 대상의 이름을 찾는 목록들. 헬스체크 규칙의 serviceId는 업타임 모니터일 수 있다. */
 export interface TargetNames {
@@ -11,11 +11,13 @@ export interface TargetNames {
   directServices: ObservedService[];
   infrastructureResources: InfrastructureResource[];
   uptimeMonitors: UptimeMonitor[];
+  /** 직접 대상의 이름 앞에 붙일 서버 이름 */
+  servers: Server[];
   /** 모든 목록을 받았는가. 하나라도 실패하면 이름이 없어도 지워졌다고 단정하지 않는다. */
   complete: boolean;
 }
 
-const EMPTY_NAMES: TargetNames = { agentServices: [], agents: [], directServices: [], infrastructureResources: [], uptimeMonitors: [], complete: false };
+const EMPTY_NAMES: TargetNames = { agentServices: [], agents: [], directServices: [], infrastructureResources: [], uptimeMonitors: [], servers: [], complete: false };
 
 /** 대상 이름 목록을 규칙 조회와 따로 받는다. 이름 하나가 실패해도 규칙 목록은 그대로 보인다(A-05). */
 export function useTargetNames(): TargetNames {
@@ -28,7 +30,8 @@ export function useTargetNames(): TargetNames {
       api.getObservedServices(),
       api.getInfrastructureResources(),
       api.getUptimeMonitors(),
-    ]).then(([agentServices, agents, directServices, infrastructureResources, uptimeMonitors]) => {
+      api.getServers(),
+    ]).then(([agentServices, agents, directServices, infrastructureResources, uptimeMonitors, servers]) => {
       if (!active) return;
       const rows = <T,>(result: PromiseSettledResult<T[] | null | undefined>): T[] => result.status === 'fulfilled' ? result.value ?? [] : [];
       setNames({
@@ -37,6 +40,8 @@ export function useTargetNames(): TargetNames {
         directServices: rows(directServices),
         infrastructureResources: rows(infrastructureResources),
         uptimeMonitors: rows(uptimeMonitors),
+        servers: rows(servers),
+        // 서버 이름은 대상이 있는지와 관계없다. 서버 목록만 실패하면 이름 앞의 서버가 빠질 뿐이다.
         complete: [agentServices, agents, directServices, infrastructureResources, uptimeMonitors].every(result => result.status === 'fulfilled'),
       });
     });
@@ -45,17 +50,33 @@ export function useTargetNames(): TargetNames {
   return names;
 }
 
+/** 직접 대상(모니터, 앱, Collector 리소스)의 라벨: `서버 이름 / 대상 이름`. 서버를 찾지 못하면 대상 이름만 쓴다. */
+export function directTargetLabel(target: { name: string; serverId?: string }, servers: Server[]): string {
+  const server = servers.find(row => row.id === target.serverId);
+  return server ? `${server.name} / ${target.name}` : target.name;
+}
+
+/** 서버 화면 쪽 대상(앱, 모니터)을 ID로 찾아 라벨을 만든다. */
+function directName(id: string, names: TargetNames): string | undefined {
+  const target = names.directServices.find(service => service.id === id) ?? names.uptimeMonitors.find(monitor => monitor.id === id);
+  return target && directTargetLabel(target, names.servers);
+}
+
+// Docker 환경의 리소스는 서버가 없으므로 이름만 쓴다(directTargetLabel이 그렇게 한다).
+function infrastructureName(id: string, names: TargetNames): string | undefined {
+  const resource = names.infrastructureResources.find(row => row.id === id);
+  return resource && directTargetLabel(resource, names.servers);
+}
+
 // 이름을 찾지 못하면 지워진 대상이다. 이름 목록을 다 받지 못했을 때는 id만 보인다(지워졌는지 모름).
 function missingTarget(id: string, names: TargetNames): string {
   return names.complete ? `삭제된 대상 (${id})` : id;
 }
 
 export function targetLabel(rule: AlertRule, names: TargetNames): string {
-  const { agentServices, agents, directServices, infrastructureResources, uptimeMonitors } = names;
+  const { agentServices, agents } = names;
   if (rule.type === 'service' || rule.type === 'log' || rule.type === 'request') {
-    if (rule.serviceId) return directServices.find(service => service.id === rule.serviceId)?.name
-      ?? uptimeMonitors.find(monitor => monitor.id === rule.serviceId)?.name
-      ?? missingTarget(rule.serviceId, names);
+    if (rule.serviceId) return directName(rule.serviceId, names) ?? missingTarget(rule.serviceId, names);
     if (rule.agentId && rule.serviceKey) {
       const svc = agentServices.find(s => s.agentId === rule.agentId && s.key === rule.serviceKey);
       return svc ? `${svc.agentName} / ${svc.name}` : missingTarget(rule.serviceKey, names);
@@ -64,19 +85,17 @@ export function targetLabel(rule: AlertRule, names: TargetNames): string {
     if (rule.type === 'request' && rule.agentId) return agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId, names);
     return rule.type === 'log' ? '전체 로그 서비스' : rule.metric === 'otel_metric' ? '모든 서비스' : '전체 헬스체크';
   }
-  if (rule.agentId) return infrastructureResources.find(resource => resource.id === rule.agentId)?.name ?? agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId, names);
+  if (rule.agentId) return infrastructureName(rule.agentId, names) ?? agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId, names);
   return '전체 인프라';
 }
 
 /** 대상 필터 줄의 이름. */
 export function alertTargetName(target: AlertTarget, names: TargetNames): string {
   if (target.kind === 'direct') {
-    return names.directServices.find(service => service.id === target.serviceId)?.name
-      ?? names.uptimeMonitors.find(monitor => monitor.id === target.serviceId)?.name
-      ?? missingTarget(target.serviceId, names);
+    return directName(target.serviceId, names) ?? missingTarget(target.serviceId, names);
   }
   if (target.kind === 'infrastructure') {
-    return names.infrastructureResources.find(resource => resource.id === target.resourceId)?.name ?? missingTarget(target.resourceId, names);
+    return infrastructureName(target.resourceId, names) ?? missingTarget(target.resourceId, names);
   }
   const service = names.agentServices.find(item => item.agentId === target.agentId && item.key === target.serviceKey);
   return service ? `${service.agentName} / ${service.name}` : missingTarget(target.serviceKey, names);

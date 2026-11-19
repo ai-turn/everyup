@@ -7,7 +7,7 @@ import {
   niceTicks, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
 import { Tooltip as HintTooltip } from '../../../components/common/Tooltip';
-import { formatDuration } from '../../../utils/incidentFormat';
+import { formatDateTime, formatDuration } from '../../../utils/incidentFormat';
 
 export interface ResponseSlot {
   t: number;
@@ -52,6 +52,8 @@ interface ResponseTimeCardProps {
   unavailable?: boolean;
   notice?: ReactNode;
   controls?: ReactNode;
+  /** 카드 제목의 단계. 상세 패널처럼 h2 아래에 놓이면 h3를 넘긴다. 안쪽 제목은 한 단계 아래다. */
+  headingLevel?: 'h2' | 'h3';
 }
 
 const number = (value: number) => Math.round(value).toLocaleString();
@@ -107,7 +109,8 @@ function ResponseTooltip({ point, color, messages }: { point?: ResponsePoint; co
   );
 }
 
-export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents = [], failures = [], thresholds = [], loading = false, unavailable = false, notice, controls }: ResponseTimeCardProps) {
+export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents = [], failures = [], thresholds = [], loading = false, unavailable = false, notice, controls, headingLevel = 'h2' }: ResponseTimeCardProps) {
+  const SubHeading = headingLevel === 'h2' ? 'h3' : 'h4';
   const theme = useChartTheme();
   const id = useId();
   const [focused, setFocused] = useState<string | null>(null);
@@ -147,11 +150,10 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
     .filter((event) => point.t <= event.to && point.end > event.from && event.message).map((event) => event.message))];
   const missing = points.some((point, index) => point.missing && index > 0 && index < points.length - 1);
   const timezone = new Intl.DateTimeFormat('ko-KR', { timeZoneName: 'short' }).formatToParts(window[1]).find((part) => part.type === 'timeZoneName')?.value;
-  const dateTime = (t: number) => new Date(t).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
-  const at = (t: number) => new Date(t).toDateString() === new Date(window[1]).toDateString() ? formatTimeTick(t) : dateTime(t);
+  const at = (t: number) => new Date(t).toDateString() === new Date(window[1]).toDateString() ? formatTimeTick(t) : formatDateTime(t);
 
   return (
-    <ChartCard as="h2" title="응답 시간" unit={caption} right={controls}>
+    <ChartCard as={headingLevel} title="응답 시간" unit={caption} right={controls}>
       {notice}
       {unavailable ? null : loading ? <ChartSkeleton /> : total === 0 ? <ChartEmpty /> : (
         <>
@@ -198,12 +200,13 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
               {failureBuckets.length > 0 && <span className="inline-flex items-center gap-1.5"><span className="h-3 border-l border-dashed border-status-error" />단발 실패</span>}
               {missing && <span>빈 구간은 수집 데이터 없음</span>}
             </div>
-            <span className="tabular-nums">{dateTime(window[0])} ~ {dateTime(window[1])} · {timezone}</span>
+            <span className="tabular-nums">{formatDateTime(window[0])} ~ {formatDateTime(window[1])} · {timezone}</span>
           </div>
           {events.length > 0 && (
             <div className="mt-6">
-              <h3 className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</h3>
-              <ul aria-label="이 기간의 실패" className="max-h-48 overflow-y-auto">
+              <SubHeading className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
+              {/* 스크롤 영역이 행의 포커스 링을 자르지 않게 여백을 두고 같은 만큼 끌어당긴다. */}
+              <ul aria-label="이 기간의 실패" className="-m-1 max-h-48 overflow-y-auto p-1">
                 {events.map((event) => (
                   <li key={event.key} data-response-event={event.kind} tabIndex={0}
                     onMouseEnter={() => setFocused(event.key)} onMouseLeave={() => setFocused(null)} onFocus={() => setFocused(event.key)} onBlur={() => setFocused(null)}

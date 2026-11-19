@@ -48,7 +48,7 @@ export function SettingsPage() {
   const saveSetting = async (patch: Parameters<typeof api.updateSettings>[0], rollback: () => void) => {
     try {
       await api.updateSettings(patch);
-      toast.success('저장되었습니다.');
+      toast.success('저장되었습니다');
     } catch (error) {
       rollback();
       toast.error(getErrorMessage(error));

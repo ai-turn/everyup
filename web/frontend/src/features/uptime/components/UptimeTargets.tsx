@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button, MaterialIcon, StatusLight, Tooltip } from '../../../components/common';
 import type { UptimeMonitor } from '../../../services/api';
-import { formatDuration } from '../../../utils/incidentFormat';
+import { formatDuration, formatFullDateTime } from '../../../utils/incidentFormat';
 import { tableRowLinkHandlers } from '../../../utils/tableRowLink';
 import { uptimeState } from '../uptimeState';
 import { RecentUptimeChecks } from './RecentUptimeChecks';
@@ -13,6 +13,8 @@ interface Props {
   monitors: UptimeMonitor[];
   error: boolean;
   returnTo: string;
+  /** 모니터 상세의 주소 */
+  hrefFor: (monitor: UptimeMonitor) => string;
   loading: boolean;
   changingMonitor: string | null;
   onSetActive: (monitor: UptimeMonitor) => void;
@@ -29,8 +31,8 @@ function MonitorStatus({ monitor, error }: { monitor: UptimeMonitor; error: bool
   const incident = !error && monitor.isActive && monitor.status === 'unhealthy' && monitor.activeIncident?.active ? monitor.activeIncident : undefined;
   return (
     <div className="space-y-1">
-      {error ? <StatusLight tone="warn" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
-      {incident && <Tooltip content={`장애 시작 ${new Date(incident.startedAt).toLocaleString()}, ${formatDuration(incident.durationSec)} 지속${incident.message ? `. ${incident.message}` : ''}`} focusable>
+      {error ? <StatusLight tone="idle" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
+      {incident && <Tooltip content={`장애 시작 ${formatFullDateTime(incident.startedAt)}, ${formatDuration(incident.durationSec)} 지속${incident.message ? `. ${incident.message}` : ''}`} focusable>
         <p className="truncate type-caption tabular-nums text-status-error">{formatDuration(incident.durationSec)} 지속</p>
       </Tooltip>}
     </div>
@@ -50,7 +52,7 @@ function CheckMethod({ monitor }: { monitor: UptimeMonitor }) {
 }
 
 export function UptimeTargets(props: Props) {
-  const { view, error, returnTo } = props;
+  const { view, error, returnTo, hrefFor } = props;
   const targets = [...props.monitors].sort((a, b) => stateOrder[uptimeState(a)] - stateOrder[uptimeState(b)]);
   const action = (monitor: UptimeMonitor) => (
     <Button size="sm" variant={monitor.isActive ? 'quiet' : 'ghost'} className="min-h-11 min-w-11 px-2"
@@ -65,7 +67,7 @@ export function UptimeTargets(props: Props) {
 
   if (view === 'card') {
     return <div className="@container"><div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
-      {targets.map((monitor) => <UptimeTargetCard key={monitor.id} to={`/uptime/${monitor.id}`} returnTo={returnTo}
+      {targets.map((monitor) => <UptimeTargetCard key={monitor.id} to={hrefFor(monitor)} returnTo={returnTo}
         title={monitor.name} status={<MonitorStatus monitor={monitor} error={error} />} endpoint={address(monitor)}
         meta={<div className="relative w-full space-y-4">
           <dl className="grid grid-cols-2 gap-3 type-caption text-text-muted">
@@ -106,7 +108,7 @@ export function UptimeTargets(props: Props) {
         <tr key={monitor.id} {...tableRowLinkHandlers} className="table-row-link align-middle transition-colors hover:bg-ui-hover-soft">
           <td className="px-3 py-3"><MonitorStatus monitor={monitor} error={error} /></td>
           <td className="min-w-0 px-3 py-3">
-            <Tooltip content={monitor.name}><Link data-row-link to={`/uptime/${monitor.id}`} state={{ returnTo }} className="block truncate font-medium text-action">{monitor.name}</Link></Tooltip>
+            <Tooltip content={monitor.name}><Link data-row-link to={hrefFor(monitor)} state={{ returnTo }} className="block truncate font-medium text-action">{monitor.name}</Link></Tooltip>
             <Tooltip content={address(monitor)} focusable><p className="mt-1 truncate font-mono text-xs text-text-muted">{address(monitor)}</p></Tooltip>
             <div className="mt-2 space-y-2 @3xl:hidden">
               <p className="flex flex-wrap gap-x-3 gap-y-1 type-caption text-text-muted">

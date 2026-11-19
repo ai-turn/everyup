@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { metricsFixture } from './fixtures/metrics';
 
-const detail = 'http://127.0.0.1:4174/metrics/metrics-service';
+// 서버 화면의 메트릭 탭. 이 서버에는 메트릭 앱이 둘이라 주소에 앱을 둔다.
+const detail = 'http://127.0.0.1:4174/servers/server-1/metrics/metrics-service';
 
 test('all-metric health includes an unrendered metric and pins survive reload', async ({ page }) => {
   const state = await metricsFixture(page);
@@ -46,26 +47,27 @@ test('a new receipt does not disguise an old measurement and health failures sta
   await expect(page.getByText('메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.')).toHaveCount(0);
 });
 
-test('the list counts flagged metrics like the detail and puts that service first', async ({ page }) => {
+// 임계값을 넘은 지표가 있는 앱은 메트릭 기능에서 확인 필요다. 옛 메트릭 목록처럼 그 앱이 먼저 열리고 앱 선택에 그 까닭이 보인다.
+test('the metrics tab opens the app with a flagged metric first and marks it in the app selector', async ({ page }) => {
   const state = await metricsFixture(page);
   const fresh = new Date().toISOString();
+  state.names.splice(0, state.names.length,
+    { metricName: 'http.server.request.duration', metricType: 'histogram', unit: 's', lastAt: fresh, lastReceivedAt: fresh, breached: true },
+    { metricName: 'jvm.memory.used', metricType: 'gauge', unit: 'By', lastAt: fresh, lastReceivedAt: fresh },
+  );
   state.catalog.splice(0, state.catalog.length,
     { serviceId: 'metrics-service', metricName: 'http.server.request.duration', metricType: 'histogram', unit: 's', lastAt: fresh, lastReceivedAt: fresh, breached: true },
     { serviceId: 'metrics-service', metricName: 'jvm.memory.used', metricType: 'gauge', unit: 'By', lastAt: fresh, lastReceivedAt: fresh },
     { serviceId: 'waiting-service', metricName: 'jvm.memory.used', metricType: 'gauge', unit: 'By', lastAt: fresh, lastReceivedAt: fresh },
   );
-  // Name order would put billing-api first anyway; rename it so only the flag can lift it.
+  // 두 앱 모두 수신 중이라 수신 여부로는 같은 상태다. 이름순이면 waiting-worker가 먼저이므로 임계값만이 이 앱을 앞에 둘 수 있다.
   state.service.name = 'zz-billing-api';
-  await page.goto('http://127.0.0.1:4174/metrics');
-  const rows = page.getByRole('table', { name: '메트릭 서비스 그리드' }).getByRole('row');
-  const flagged = rows.nth(1);
-  await expect(flagged).toContainText('zz-billing-api');
-  await expect(flagged.getByText('1', { exact: true })).toHaveClass(/text-status-error/);
-  await expect(flagged).toContainText('임계값 초과');
-  await expect(flagged).toContainText('응답 시간');
-  await expect(rows.nth(2)).toContainText('이상 없음');
-
-  await page.getByRole('combobox', { name: '서비스 정렬' }).click();
-  await page.getByRole('option', { name: '이름순' }).click();
-  await expect(rows.nth(1)).toContainText('waiting-worker');
+  state.service.lastSeenAt = fresh;
+  state.waiting.lastSeenAt = fresh;
+  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics');
+  await expect(page).toHaveURL(/\/servers\/server-1\/metrics\/metrics-service$/);
+  const selector = page.getByRole('group', { name: '메트릭 앱', exact: true });
+  await expect(selector.getByRole('button', { name: /zz-billing-api/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(selector).toContainText('임계값 초과');
+  await expect(page.getByRole('heading', { level: 2, name: 'zz-billing-api', exact: true })).toBeVisible();
 });

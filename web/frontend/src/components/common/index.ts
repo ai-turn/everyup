@@ -16,6 +16,7 @@ export { CopyButton, COPY_ACTION_PRIMARY, COPY_ACTION_SUBTLE } from './CopyButto
 export { StatusLight, type StatusTone } from './StatusLight';
 export { StatusBadge } from './StatusBadge';
 export { CollectionStatusBadge, type CollectionStatus } from './CollectionStatusBadge';
+export { COLLECTION_STATUS_LABEL } from './collectionStatus';
 export { Toggle } from './Toggle';
 export { EmptyState } from './EmptyState';
 export { LoadErrorBanner } from './LoadErrorBanner';
@@ -23,6 +24,8 @@ export { ConfirmDialog } from './ConfirmDialog';
 export { TimeRangePicker, type GlobalTimeRange } from './TimeRangePicker';
 export { parseTimeRange } from './timeRange';
 export { SegmentedControl } from './SegmentedControl';
+export { Tabs, type TabItem } from './Tabs';
+export { tabId, tabPanelId } from './tabIds';
 export { Pagination } from './Pagination';
 export { SummaryCard } from './SummaryCard';
 export { Tooltip, TooltipProvider } from './Tooltip';

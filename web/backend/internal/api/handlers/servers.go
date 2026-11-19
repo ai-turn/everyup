@@ -43,9 +43,15 @@ func (h *ServerHandler) GetByID(c *fiber.Ctx) error {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
 	if server == nil {
-		return projectNotFound(c)
+		return serverNotFound(c)
 	}
 	return c.JSON(fiber.Map{"success": true, "data": server})
+}
+
+func serverNotFound(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": fiber.Map{
+		"code": "NOT_FOUND", "message": "server not found",
+	}})
 }
 
 func (h *ServerHandler) Create(c *fiber.Ctx) error {
@@ -123,7 +129,7 @@ func (h *ServerHandler) Merge(c *fiber.Ctx) error {
 	}
 	if err := h.repo.Merge(sourceID, request.TargetServerID); err != nil {
 		if errors.Is(err, database.ErrServerMissing) {
-			return projectNotFound(c)
+			return serverNotFound(c)
 		}
 		return serverWriteError(c, err)
 	}
@@ -132,7 +138,7 @@ func (h *ServerHandler) Merge(c *fiber.Ctx) error {
 		return internalError(c, "DATABASE_ERROR", err)
 	}
 	if server == nil {
-		return projectNotFound(c)
+		return serverNotFound(c)
 	}
 	return c.JSON(fiber.Map{"success": true, "data": server})
 }

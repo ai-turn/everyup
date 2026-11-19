@@ -1,10 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
-import type { ApiRequest, ObservedService } from '../src/services/api';
+import type { ApiRequest, ObservedService, Server } from '../src/services/api';
 
 test.use({ baseURL: 'http://127.0.0.1:4174/' });
 
+// 서버 화면은 이 서버의 API 요청 탭(/servers/server-1/api)에서 앱을 보여 준다.
+const server: Server = { id: 'server-1', name: 'web-01', createdAt: '2026-11-01T00:00:00Z', updatedAt: '2026-11-01T00:00:00Z' };
+
 const service: ObservedService = {
-  id: 'api-test', name: 'orders-api', signals: ['traces'], isActive: true,
+  id: 'api-test', name: 'orders-api', serverId: server.id, signals: ['traces'], isActive: true,
   createdAt: '2026-11-01T00:00:00Z', updatedAt: '2026-11-01T00:00:00Z', apiExcludePaths: ['/health'],
 };
 
@@ -17,10 +20,16 @@ interface ApiState {
   truncated?: boolean;
   requests?: ApiRequest[];
   received?: boolean;
+  /** 로그는 받았다(lastSeenAt과 로그 수신 기록이 있다). 트레이스 수신은 received가 따로 정한다. */
+  logsReceived?: boolean;
   serviceName?: string;
   beforeRequests?: (url: URL) => Promise<void>;
   queries: URL[];
 }
+
+const current = (state: ApiState): ObservedService => ({
+  ...service, name: state.serviceName ?? service.name, ...(state.logsReceived ? { lastSeenAt: new Date().toISOString() } : {}),
+});
 
 async function mockApi(page: Page, state: ApiState) {
   await page.route('**/api/v1/**', async route => {
@@ -36,10 +45,13 @@ async function mockApi(page: Page, state: ApiState) {
       await route.fulfill({ status: 503, json: { success: false, error: { code: 'DATABASE_ERROR' } } });
       return;
     }
+    // 그 밖의 요청(서버 화면이 함께 불러오는 모니터, 인프라, 로그 요약 등)은 빈 목록이다. 이 서버에는 앱 하나만 있다.
     let data: unknown = [];
-    if (path === '/observed-services' && route.request().method() === 'POST') data = { ...service, name: route.request().postDataJSON().name, apiKey: 'test-only-key' };
-    else if (path === '/observed-services') data = [{ ...service, name: state.serviceName ?? service.name }];
-    else if (path === '/observed-services/api-test') data = { ...service, name: state.serviceName ?? service.name };
+    if (path === '/servers') data = [server];
+    else if (path === `/servers/${server.id}`) data = server;
+    else if (path === '/observed-services' && route.request().method() === 'POST') data = { ...service, name: route.request().postDataJSON().name, apiKey: 'test-only-key' };
+    else if (path === '/observed-services') data = [current(state)];
+    else if (path === '/observed-services/api-test') data = current(state);
     else if (path.endsWith('/api-exclusions')) data = { paths: ['/health'] };
     else if (path.endsWith('/request-status-summary')) data = { count2xx: 2, count3xx: 0, count4xx: 1, count5xx: 1, countOther: 0, top5xxMethod: 'GET', top5xxPath: '/orders/:id', top5xxCount: 1, errorCount: 1, p95: 20, timed: 4 };
     else if (path.endsWith('/request-stats')) data = { buckets: state.requests?.length ? [{ time: new Date(Date.now() - 60_000).toISOString(), count: 4, errorCount: 2, p50: 20, p95: 20, p99: 20, timed: 4 }] : [], truncated: state.truncated ?? false };
@@ -59,7 +71,10 @@ async function mockApi(page: Page, state: ApiState) {
       const offset = Number(url.searchParams.get('offset') ?? 0);
       data = { data: rows.slice(offset, offset + 25), total: rows.length };
     }
-    else if (path.endsWith('/setup-status')) data = state.received ? [{ serviceName: service.name, signal: 'traces', firstReceivedAt: new Date().toISOString(), lastReceivedAt: new Date().toISOString() }] : [];
+    else if (path.endsWith('/setup-status')) {
+      const receipt = (signal: string) => ({ serviceName: service.name, signal, firstReceivedAt: new Date().toISOString(), lastReceivedAt: new Date().toISOString() });
+      data = [...(state.received ? [receipt('traces')] : []), ...(state.logsReceived ? [receipt('logs')] : [])];
+    }
     else if (path === '/settings/connection') data = { publicUrl: 'https://monitor.example.com' };
     await route.fulfill({ json: { success: true, data } });
   });
@@ -68,17 +83,18 @@ async function mockApi(page: Page, state: ApiState) {
 test('API targets recover after a failed load', async ({ page }) => {
   const state: ApiState = { failList: true, queries: [] };
   await mockApi(page, state);
-  await page.goto('./api');
-  await expect(page.getByText('API 데이터를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  await page.goto('./servers/server-1/api');
+  const panel = page.getByRole('tabpanel');
+  await expect(panel.getByText('API 요청 앱 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
   state.failList = false;
-  await page.getByRole('button', { name: '다시 시도', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'orders-api', exact: true })).toBeVisible();
-  await expect(page.getByText('API 데이터를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
+  await panel.getByRole('button', { name: '다시 시도', exact: true }).click();
+  await expect(panel.getByRole('heading', { level: 2, name: 'orders-api', exact: true })).toBeVisible();
+  await expect(panel.getByText('API 요청 앱 정보를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
 });
 
 test('limited statistics do not display a partial period as a complete chart', async ({ page }) => {
   await mockApi(page, { truncated: true, queries: [] });
-  await page.goto('./api/api-test');
+  await page.goto('./servers/server-1/api/api-test');
   await expect(page.getByText('조회 범위의 요청이 많아 추이를 표시하지 못했습니다', { exact: true })).toBeVisible();
   await expect(page.getByRole('group', { name: '표시할 지표' })).toHaveCount(0);
 });
@@ -86,7 +102,7 @@ test('limited statistics do not display a partial period as a complete chart', a
 test('request failures remain distinct from zero results and recover on retry', async ({ page }) => {
   const state: ApiState = { failRequests: true, received: true, queries: [] };
   await mockApi(page, state);
-  await page.goto('./api/api-test');
+  await page.goto('./servers/server-1/api/api-test');
   const results = page.getByRole('region', { name: '요청 결과' });
   await expect(results.getByText('API 요청을 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(results.getByText('이 기간에 수집된 HTTP 요청이 없습니다', { exact: true })).toHaveCount(0);
@@ -97,10 +113,9 @@ test('request failures remain distinct from zero results and recover on retry', 
 
 test('group options failing do not block request investigation', async ({ page }) => {
   await mockApi(page, { failOptions: true, queries: [] });
-  await page.goto('./api/api-test');
+  await page.goto('./servers/server-1/api/api-test');
   await expect(page.getByRole('heading', { name: 'orders-api', exact: true })).toBeVisible();
   await expect(page.getByRole('region', { name: '요청 결과' })).toBeVisible();
-  await expect(page.getByText('그룹 목록을 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'API 제외 경로' })).toBeHidden();
 });
 
@@ -121,7 +136,7 @@ test('request paths advertise their trace panel and support pointer and keyboard
   await mockApi(page, { requests: rows, queries: [] });
   for (const width of [360, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('./api/api-test');
+    await page.goto('./servers/server-1/api/api-test');
     const table = page.getByRole('table', { name: 'API 요청 목록' });
     const trigger = table.getByRole('button', { name: 'GET 200 /v1/payments 트레이스 상세 열기', exact: true });
     await expect(trigger.getByText('트레이스 상세', { exact: true })).toHaveCount(0);
@@ -163,25 +178,31 @@ test('request paths advertise their trace panel and support pointer and keyboard
 test('investigation range, filters, pagination and tabs survive reload', async ({ page }) => {
   const state: ApiState = { requests: requestRows(), queries: [] };
   await mockApi(page, state);
-  await page.goto('./api/api-test?range=24h&keep=yes');
+  await page.goto('./servers/server-1/api/api-test?range=24h&keep=yes');
   const results = page.getByRole('region', { name: '요청 결과' });
   await expect(results.getByText('전체 35건', { exact: true })).toBeVisible();
   await results.getByRole('button', { name: '다음', exact: true }).click();
   await expect(page).toHaveURL(/page=2/);
   await page.reload();
   await expect(results.getByText('/orders/25', { exact: true })).toBeVisible();
-  await page.getByRole('tab', { name: '트레이스', exact: true }).click();
+  // 서버 탭 안에서 요청/트레이스 전환은 탭 줄이 아니라 상태 줄의 전환 버튼이다(주소의 tab=traces는 같다).
+  const views = page.getByRole('group', { name: '요청/트레이스 보기', exact: true });
+  const requestsView = views.getByRole('button', { name: '요청', exact: true });
+  const tracesView = views.getByRole('button', { name: '트레이스', exact: true });
+  await tracesView.click();
   await page.getByRole('button', { name: '느린순', exact: true }).click();
   await page.reload();
-  await expect(page.getByRole('tab', { name: '트레이스', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(tracesView).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', { name: '느린순', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('tab', { name: 'API 요청', exact: true }).click();
+  await requestsView.click();
   await expect(results.getByText('/orders/25', { exact: true })).toBeVisible();
-  await page.getByRole('tab', { name: 'API 요청', exact: true }).focus();
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('tab', { name: '트레이스', exact: true })).toHaveAttribute('aria-selected', 'true');
-  await page.keyboard.press('Home');
-  await expect(page.getByRole('tab', { name: 'API 요청', exact: true })).toHaveAttribute('aria-selected', 'true');
+  // 키보드로도 전환한다. 전환 버튼 묶음은 화살표 키가 아니라 Tab으로 옮겨 Enter, Space로 누른다.
+  await tracesView.focus();
+  await page.keyboard.press('Enter');
+  await expect(tracesView).toHaveAttribute('aria-pressed', 'true');
+  await requestsView.focus();
+  await page.keyboard.press('Space');
+  await expect(requestsView).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: '에러만', exact: true }).click();
   await expect(results.getByText('검색 결과 2건', { exact: true })).toBeVisible();
   await expect(results.getByText('/orders/0', { exact: true })).toBeVisible();
@@ -197,7 +218,7 @@ test('investigation range, filters, pagination and tabs survive reload', async (
 
 test('trace and path filters are visible, removable and preserve the range', async ({ page }) => {
   await mockApi(page, { requests: requestRows(), queries: [] });
-  await page.goto('./api/api-test?range=1h&traceId=trace-0&q=orders');
+  await page.goto('./servers/server-1/api/api-test?range=1h&traceId=trace-0&q=orders');
   await expect(page.getByLabel('적용한 요청 필터')).toContainText('traceId: trace-0');
   await expect(page.getByRole('textbox', { name: '요청 경로 검색' })).toHaveValue('orders');
   await page.getByRole('button', { name: '필터 해제', exact: true }).click();
@@ -209,16 +230,19 @@ test('trace and path filters are visible, removable and preserve the range', asy
 });
 
 test('API connection recovers options and distinguishes registration from data receipt', async ({ page }) => {
-  const state: ApiState = { failOptions: true, queries: [] };
+  const state: ApiState = { queries: [] };
   await page.clock.install();
   await mockApi(page, state);
-  await page.goto('./api');
+  await page.goto('./servers/server-1/api');
+  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'orders-api', exact: true })).toBeVisible();
+  // 서버 탭의 대화 상자는 그룹을 고르지 않는다(그룹은 서버가 정한다). 대화 상자가 불러오는 선택지는 이 서버의 기존 앱 목록이다.
+  state.failList = true;
   await page.getByRole('button', { name: 'API 연결', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'API 직접 연결' });
+  const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });
   await expect(dialog.getByText('연결 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
-  state.failOptions = false;
+  state.failList = false;
   await dialog.getByRole('button', { name: '다시 시도', exact: true }).click();
-  await dialog.getByRole('textbox', { name: '서비스 이름', exact: true }).fill('new-api');
+  await dialog.getByRole('textbox', { name: '앱 이름', exact: true }).fill('new-api');
   await dialog.getByRole('button', { name: '추가', exact: true }).click();
   await expect(dialog.getByRole('heading', { name: 'API 연결이 준비되었습니다', exact: true })).toBeVisible();
   const receipt = dialog.getByRole('region', { name: '데이터 수신 확인' });
@@ -233,28 +257,12 @@ test('API connection recovers options and distinguishes registration from data r
   await expect(receipt).toContainText('수집 중');
 });
 
-test('an individual summary failure keeps its target visible and retries only that summary', async ({ page }) => {
-  const state: ApiState = { failSummary: true, queries: [] };
-  await mockApi(page, state);
-  await page.goto('./api?range=24h');
-  const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'orders-api', exact: true }) });
-  await expect(row).toContainText('요약을 불러오지 못했습니다');
-  await expect(row.getByRole('cell').nth(2)).toHaveText('-');
-  const listRequests = state.queries.filter(url => url.pathname.endsWith('/observed-services')).length;
-  state.failSummary = false;
-  await row.getByRole('button', { name: '다시 시도', exact: true }).click();
-  await expect(row.getByRole('cell').nth(2)).toHaveText('4');
-  expect(state.queries.filter(url => url.pathname.endsWith('/observed-services')).length).toBe(listRequests);
-  const query = state.queries.find(url => url.pathname.endsWith('/request-status-summary'))!;
-  expect(Date.parse(query.searchParams.get('to')!) - Date.parse(query.searchParams.get('from')!)).toBe(24 * 3_600_000);
-});
-
 test('late request responses cannot replace a newer search result', async ({ page }) => {
   let release = () => {};
   const gate = new Promise<void>(resolve => { release = resolve; });
   const state: ApiState = { requests: requestRows(), queries: [], beforeRequests: url => url.searchParams.has('search') ? Promise.resolve() : gate };
   await mockApi(page, state);
-  await page.goto('./api/api-test');
+  await page.goto('./servers/server-1/api/api-test');
   const search = page.getByRole('textbox', { name: '요청 경로 검색' });
   await search.fill('/orders/0');
   await search.press('Enter');
@@ -274,10 +282,10 @@ test('long service names and request paths remain accessible on narrow screens',
   await mockApi(page, { serviceName: '아주 긴 주문 처리 서비스 '.repeat(8), requests: rows, queries: [] });
   for (const width of [360, 1024]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('./api');
-    await expect(page.getByRole('table', { name: 'API 대상 그리드' })).toBeVisible();
+    // 서버 화면에는 앱 목록 표가 없다. 긴 앱 이름은 패널의 제목에서 줄바꿈되어 페이지를 넓히지 않는다.
+    await page.goto('./servers/server-1/api/api-test');
+    await expect(page.getByRole('heading', { level: 2, name: '아주 긴 주문 처리 서비스 '.repeat(8).trim(), exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    await page.goto('./api/api-test');
     const path = page.getByRole('button', { name: `GET 200 ${rows[0].path} 트레이스 상세 열기`, exact: true });
     await expect(path).toBeVisible();
     await expect(path).not.toHaveAttribute('title');
@@ -287,20 +295,38 @@ test('long service names and request paths remain accessible on narrow screens',
   }
 });
 
-test('a service that never received traces says so in the list and opens setup guidance', async ({ page }) => {
-  await mockApi(page, { queries: [] });
-  await page.goto('./api');
-  const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'orders-api', exact: true }) });
-  await expect(row).toContainText('수신 대기');
-  await page.goto('./api/api-test');
+// 로그는 받아서 lastSeenAt이 있지만 트레이스는 받은 적이 없는 앱. 패널의 안내는 트레이스 수신 기록을 따른다.
+test('an app that never received traces says so in its panel and opens setup guidance', async ({ page }) => {
+  await mockApi(page, { logsReceived: true, queries: [] });
+  await page.goto('./servers/server-1/api/api-test');
   await expect(page.getByText('아직 수신한 API 트레이스가 없습니다', { exact: true })).toBeVisible();
   await expect(page.locator('details').filter({ hasText: '수집 설정 안내' })).toHaveAttribute('open', '');
+});
+
+// 옛 API 목록의 "요약 하나가 실패해도 대상은 보이고 그 요약만 다시 시도한다"를 패널의 상태코드 분포로 옮겼다.
+test('a status distribution failure keeps the app and its requests visible and retries only the distribution', async ({ page }) => {
+  const state: ApiState = { failSummary: true, requests: requestRows(), received: true, queries: [] };
+  await mockApi(page, state);
+  await page.goto('./servers/server-1/api/api-test');
+  const panel = page.getByRole('tabpanel');
+  const failure = panel.getByRole('status').filter({ hasText: '상태코드 분포를 불러오지 못했습니다' });
+  await expect(failure).toBeVisible();
+  await expect(panel.getByRole('heading', { level: 2, name: 'orders-api', exact: true })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'API 요청 목록' })).toBeVisible();
+  await expect(page.getByRole('region', { name: '요청 결과' })).toContainText('전체 35건');
+  const requestReads = state.queries.filter(url => url.pathname.endsWith('/requests')).length;
+  state.failSummary = false;
+  await failure.getByRole('button', { name: '다시 시도', exact: true }).click();
+  const distribution = page.getByRole('group', { name: '상태코드로 요청 목록 거르기' });
+  await expect(distribution.getByRole('button', { name: /^2xx/ })).toBeVisible();
+  await expect(panel.getByText('상태코드 분포를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
+  expect(state.queries.filter(url => url.pathname.endsWith('/requests')).length).toBe(requestReads);
 });
 
 test('endpoint rows and status classes filter the request list', async ({ page }) => {
   const state: ApiState = { requests: requestRows(), received: true, queries: [] };
   await mockApi(page, state);
-  await page.goto('./api/api-test');
+  await page.goto('./servers/server-1/api/api-test');
   const results = page.getByRole('region', { name: '요청 결과' });
   await expect(results).toContainText('전체 35건');
   const endpoint = page.getByRole('button', { name: 'POST /orders 요청만 보기', exact: true });

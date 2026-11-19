@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, EmptyState, IconButton, Input, ListViewToggle, MaterialIcon, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { Button, ConfirmDialog, EmptyState, IconButton, Input, ListViewToggle, LoadErrorBanner, MaterialIcon, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { useListView } from '../../hooks/useListView';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import { api, type Project, type ProjectInput } from '../../services/api';
@@ -54,7 +55,7 @@ function ProjectCard({ project, returnTo, status, counts, onEdit, onDelete }: {
   project: Project;
   returnTo: string;
   status: ReactNode;
-  counts: [string, number][];
+  counts: [string, number | string][];
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -66,23 +67,25 @@ function ProjectCard({ project, returnTo, status, counts, onEdit, onDelete }: {
         status={<div className="flex gap-1"><IconButton icon="edit" label="그룹 수정" size="sm" onClick={onEdit} /><IconButton icon="delete_outline" label="그룹 삭제" size="sm" tone="danger" onClick={onDelete} /></div>}
       />
       <p className="mt-3 type-body text-text-muted">{project.description || '설명이 없습니다'}</p>
-      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3">
         {counts.map(([label, count]) => <div key={label} className="rounded-md bg-ui-hover-soft p-3"><p className="text-xs text-text-dim">{label}</p><p className="mt-1 type-stat text-text-base">{count}</p></div>)}
       </div>
     </article>
   );
 }
 
-type ListSources = Omit<ProjectSources, 'services'> & { services: ProjectSources['services'] | null };
-const COUNTS = [['agent', 'Docker 환경'], ['monitor', '업타임'], ['direct', '직접 서비스'], ['infra', 'Collector']] as const;
+type DockerSources = { agents: ProjectSources['agents']; services: ProjectSources['services'] | null };
+const COUNTS = [['agent', 'Docker 환경'], ['server', '서버']] as const;
 
 export function ProjectsPage() {
   const { view, setView, returnTo } = useListView();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   // 상태 요약은 그룹 상세와 같은 입력으로 계산한다. Docker 서비스를 불러오지 못하면 services가 null이다.
-  // 장애를 모른 채 "정상"이라고 말하지 않는다.
-  const [sources, setSources] = useState<ListSources>({ agents: [], services: [], monitors: [], observedServices: [], infrastructure: [] });
+  // 장애를 모른 채 "정상"이라고 말하지 않는다. 서버는 서버 목록과 같은 훅에서 온다.
+  const [docker, setDocker] = useState<DockerSources>({ agents: [], services: [] });
+  // 오류 로그 수를 보여 주지 않으므로 로그 요약은 불러오지 않는다.
+  const servers = useServers({ logSummary: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null | undefined>(undefined);
@@ -92,9 +95,9 @@ export function ProjectsPage() {
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const [projectRows, agentRows, monitorRows, directRows, infrastructureRows, serviceRows] = await Promise.all([api.getProjects(), api.getAgents(), api.getUptimeMonitors(), api.getObservedServices(), api.getInfrastructureResources(), api.getAllAgentServicesFlat().catch(() => null)]);
+      const [projectRows, agentRows, serviceRows] = await Promise.all([api.getProjects(), api.getAgents(), api.getAllAgentServicesFlat().catch(() => null)]);
       setProjects(projectRows ?? []);
-      setSources({ agents: agentRows ?? [], services: serviceRows, monitors: monitorRows ?? [], observedServices: directRows ?? [], infrastructure: infrastructureRows ?? [] });
+      setDocker({ agents: agentRows ?? [], services: serviceRows });
     } catch (requestError) { setError(getErrorMessage(requestError)); }
     finally { setLoading(false); }
   }, []);
@@ -114,16 +117,18 @@ export function ProjectsPage() {
     finally { setDeletingProject(false); }
   };
 
-  // Collector는 직접 등록한 인프라만 센다. Docker 호스트의 인프라는 Docker 환경 숫자에 이미 들어 있다.
-  const countsOf = (project: Project): [string, number][] => {
-    const own = assignableTargets(sourcesForProject(project.id, { ...sources, services: [] }));
-    return COUNTS.map(([kind, label]) => [label, own.filter(target => target.kind === kind).length]);
+  // 서버 목록을 불러오지 못했으면 그룹의 서버를 모른다. 0개나 "정상"이라고 말하지 않는다.
+  const serversUnknown = !servers.loaded;
+  const countsOf = (project: Project): [string, number | string][] => {
+    const own = assignableTargets(sourcesForProject(project.id, { ...docker, services: [], servers: servers.rows }));
+    return COUNTS.map(([kind, label]) => [label, kind === 'server' && serversUnknown ? '-' : own.filter(target => target.kind === kind).length]);
   };
   const renderStatus = (project: Project) => {
-    if (!sources.services) return <StatusLight tone="idle" label="상태 확인 불가" />;
-    const { tone, label } = summarizeMembers(projectMembers(sourcesForProject(project.id, { ...sources, services: sources.services })));
+    if (!docker.services || serversUnknown) return <StatusLight tone="idle" label="상태 확인 불가" />;
+    const { tone, label } = summarizeMembers(projectMembers(sourcesForProject(project.id, { ...docker, services: docker.services, servers: servers.rows })));
     return <StatusLight tone={tone} label={label} />;
   };
+  const serverFailures = [...(servers.error ? [{ label: '서버', stale: servers.loaded }] : []), ...servers.failed];
 
   return <div>
     <PageHeader menu title="그룹">
@@ -131,13 +136,14 @@ export function ProjectsPage() {
       <Button onClick={() => setEditing(null)}><MaterialIcon name="add" />추가</Button>
     </PageHeader>
     {projects.length > 0 && <h2 className="sr-only">그룹 목록</h2>}
-    {loading ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1].map(item => <div key={item} className="h-72 animate-pulse rounded-xl bg-ui-hover-soft" />)}</div> : error ? <EmptyState icon="error_outline" title="그룹을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} /> : projects.length === 0 ? <EmptyState icon="folder_open" title="아직 그룹이 없습니다" description="필요할 때 모니터링 대상을 묶어 보세요." action={{ label: '추가', onClick: () => setEditing(null) }} /> : view === 'grid' ? <ResourceTable rows={projects} rowKey={project => project.id} ariaLabel="그룹 그리드"
+    {!loading && !error && projects.length > 0 && serverFailures.length > 0 && <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(serverFailures)} onRetry={() => void servers.reload()} retrying={servers.loading} /></div>}
+    {loading || (!servers.loaded && !servers.error) ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1].map(item => <div key={item} className="h-72 animate-pulse rounded-xl bg-ui-hover-soft" />)}</div> : error ? <EmptyState icon="error_outline" title="그룹을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} /> : projects.length === 0 ? <EmptyState icon="folder_open" title="아직 그룹이 없습니다" description="필요할 때 모니터링 대상을 묶어 보세요." action={{ label: '추가', onClick: () => setEditing(null) }} /> : view === 'grid' ? <ResourceTable rows={projects} rowKey={project => project.id} ariaLabel="그룹 그리드"
       columns={[
         { key: 'name', label: '그룹', render: project => <><Link to={`/projects/${project.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{project.name}</Link><p className="mt-1 line-clamp-2 break-words type-caption text-text-muted">{project.description || '설명 없음'}</p><div className="mt-2 md:hidden">{renderStatus(project)}</div><p className="mt-2 type-caption text-text-muted md:hidden">{countsOf(project).map(([label, count]) => `${label} ${count}`).join(', ')}</p></> },
         { key: 'status', label: '상태', className: 'hidden md:table-cell', render: renderStatus },
         ...COUNTS.map(([kind, label], index) => ({ key: kind, label, className: 'hidden w-28 md:table-cell', align: 'right' as const, render: (project: Project) => countsOf(project)[index][1] })),
       ]} /> : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{projects.map(project => <ProjectCard key={project.id} project={project} returnTo={returnTo} status={renderStatus(project)} counts={countsOf(project)} onEdit={() => setEditing(project)} onDelete={() => setDeleting(project)} />)}</div>}
     {editing !== undefined && <ProjectDialog project={editing} onClose={() => setEditing(undefined)} onSave={saveProject} />}
-    <ConfirmDialog isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} onConfirm={() => void deleteProject()} title="그룹을 삭제할까요?" message="배정된 Docker 환경, 업타임 모니터, 직접 서비스와 Collector는 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
+    <ConfirmDialog isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} onConfirm={() => void deleteProject()} title="그룹을 삭제할까요?" message="배정된 서버와 Docker 환경은 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
   </div>;
 }

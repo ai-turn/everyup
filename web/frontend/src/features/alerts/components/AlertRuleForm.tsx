@@ -19,9 +19,11 @@ import {
     type ConnectedAgent,
     type ObservedService,
     type InfrastructureResource,
+    type Server,
     type UptimeMonitor,
     type TelemetrySignal,
 } from '../../../services/api';
+import { directTargetLabel } from '../ruleDisplay';
 
 const ruleSchema = z.object({
     name: z.string().trim().min(1, '규칙 이름을 입력하세요'),
@@ -259,6 +261,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const [directServices, setDirectServices] = useState<ObservedService[]>([]);
     const [infrastructureResources, setInfrastructureResources] = useState<InfrastructureResource[]>([]);
     const [uptimeMonitors, setUptimeMonitors] = useState<UptimeMonitor[]>([]);
+    const [servers, setServers] = useState<Server[]>([]);
     const [customMessage, setCustomMessage] = useState('');
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitted } } = useForm<RuleFormValues>({
@@ -299,6 +302,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
         api.getInfrastructureResources().then(rows => setInfrastructureResources(rows ?? [])).catch(() => { });
         // 헬스체크 규칙은 업타임 모니터 하나를 대상으로 할 수 있다(서버는 service_id로 평가한다).
         api.getUptimeMonitors().then(rows => setUptimeMonitors(rows ?? [])).catch(() => { });
+        // 직접 대상의 이름 앞에 서버 이름을 붙인다. 못 불러오면 대상 이름만 보인다.
+        api.getServers().then(rows => setServers(rows ?? [])).catch(() => { });
     }, [isEdit, initial?.ruleCategory, initial?.serviceId, setValue]);
 
     useEffect(() => {
@@ -446,14 +451,30 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const selectedDirectService = isEndpoint
         ? uptimeMonitors.find(monitor => monitor.id === watchedServiceId)
         : directServices.find(service => service.id === watchedServiceId);
+    // 대상 선택지는 종류(Docker 환경, 서버)로 묶고 묶음 안에서 라벨순이다. 문구는 그대로 "부모 / 대상"이다.
+    const byLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label, 'ko');
+    const dockerTargets = agentServices.map(svc => ({ value: `${svc.agentId}:::${svc.key}`, label: `${svc.agentName} / ${svc.name}` })).sort(byLabel);
+    const serverTargets = [...availableDirectServices, ...(isEndpoint ? uptimeMonitors : [])]
+        .map(target => ({ value: `direct:::${target.id}`, label: directTargetLabel(target, servers) })).sort(byLabel);
+    const dockerResources = infrastructureResources.filter(resource => resource.adapter !== 'otel-collector')
+        .map(resource => ({ value: resource.id, label: `Docker / ${resource.name}` })).sort(byLabel);
+    const serverResources = infrastructureResources.filter(resource => resource.adapter === 'otel-collector')
+        .map(resource => ({ value: resource.id, label: directTargetLabel(resource, servers) })).sort(byLabel);
+    const targetGroups = (docker: { value: string; label: string }[], direct: { value: string; label: string }[]) =>
+        ([['Docker 환경', docker], ['서버', direct]] as const).filter(([, items]) => items.length > 0).map(([label, items]) => (
+            <optgroup key={label} label={label}>
+                {items.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
+            </optgroup>
+        ));
+
     const targetLabel = isEndpoint || isLog || isRequest || isMetric
         ? (selectedDirectService
-            ? selectedDirectService.name
+            ? directTargetLabel(selectedDirectService, servers)
             : watchedAgentId && watchedServiceKey
             ? (selectedAgentService ? `${selectedAgentService.agentName} / ${selectedAgentService.name}` : watchedServiceKey)
             : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'))
         : watchedCategory === 'resource' && watchedAgentId
-            ? (selectedInfrastructureResource?.name ?? selectedAgent?.name ?? watchedAgentId)
+            ? (selectedInfrastructureResource ? directTargetLabel(selectedInfrastructureResource, servers) : selectedAgent?.name ?? watchedAgentId)
             : (watchedAgentId ? (selectedAgent?.name ?? watchedAgentId) : '전체 인프라');
 
     // 서버는 채널을 고르지 않으면 켜진 채널 전부로, 고른 채널도 켜진 것에만 보낸다.
@@ -544,21 +565,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
 
                                     >
                                         <option value="">{isRequest ? '서비스 선택' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'}</option>
-                                        {agentServices.map(svc => (
-                                            <option key={`${svc.agentId}:::${svc.key}`} value={`${svc.agentId}:::${svc.key}`}>
-                                                {svc.agentName} / {svc.name}
-                                            </option>
-                                        ))}
-                                        {availableDirectServices.map(service => (
-                                            <option key={`direct:::${service.id}`} value={`direct:::${service.id}`}>
-                                                직접 연결 / {service.name}
-                                            </option>
-                                        ))}
-                                        {isEndpoint && uptimeMonitors.map(monitor => (
-                                            <option key={`direct:::${monitor.id}`} value={`direct:::${monitor.id}`}>
-                                                업타임 / {monitor.name}
-                                            </option>
-                                        ))}
+                                        {targetGroups(dockerTargets, serverTargets)}
                                     </Select>
                                 ) : (
                                     <Select
@@ -568,11 +575,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
 
                                     >
                                         <option value="">전체 인프라</option>
-                                        {infrastructureResources.map(resource => (
-                                            <option key={resource.id} value={resource.id}>
-                                                {resource.adapter === 'otel-collector' ? 'Collector' : 'Docker'} / {resource.name}
-                                            </option>
-                                        ))}
+                                        {targetGroups(dockerResources, serverResources)}
                                     </Select>
                                 )}
                             </Field>
@@ -608,7 +611,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                                 type="button"
                                                 onClick={() => handleMetricChange(m)}
                                                 aria-pressed={watchedMetric === m}
-                                                className={`px-3 py-2 rounded-lg text-sm border-2 transition-colors ${
+                                                className={`min-h-11 px-3 py-2 rounded-lg text-sm border-2 transition-colors sm:min-h-0 ${
                                                     watchedMetric === m
                                                         ? 'border-primary bg-primary/10 text-action'
                                                         : 'border-ui-border-soft text-text-muted hover:border-ui-border'
@@ -713,7 +716,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                             <p className="type-body text-text-muted">수신할 때마다 평가합니다. 같은 시리즈는 일정 시간(기본 5분)에 한 번만 보냅니다.</p>
                         ) : (
                             <div>
-                                <Button type="button" variant="ghost" size="sm" onClick={() => applyRecommended(watchedMetric)}>
+                                <Button type="button" variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={() => applyRecommended(watchedMetric)}>
                                     <MaterialIcon name="tune" />
                                     권장값 채우기
                                 </Button>

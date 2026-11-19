@@ -30,7 +30,7 @@ for (const scenario of ['정상 운영', '확인 필요']) {
     await page.goto('./');
     await page.getByRole('combobox', { name: '데모 시나리오' }).click();
     await page.getByRole('option', { name: scenario, exact: true }).click();
-    const status = scenario === '정상 운영' ? page.getByText('현재 확인이 필요한 이상이 없습니다') : page.getByRole('region', { name: '현재 확인 필요' }).getByText('확인 필요 1건', { exact: true });
+    const status = scenario === '정상 운영' ? page.getByText('현재 확인이 필요한 이상이 없습니다') : page.getByRole('region', { name: '현재 확인 필요' }).getByText(/^장애 2, 확인 필요 4$/);
     await expect(status).toBeVisible();
     await page.clock.fastForward(180_000);
     await page.getByRole('button', { name: '새로고침', exact: true }).click();

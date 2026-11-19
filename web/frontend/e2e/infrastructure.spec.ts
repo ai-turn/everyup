@@ -1,20 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-// 인프라 메뉴 점검(plans/infra-menu-ux-evaluation-results.md)에서 고친 동작.
-test('infrastructure list puts the busiest host first and marks warning levels', async ({ page }) => {
-  await page.goto('./infrastructure?view=grid');
-  const table = page.getByRole('table', { name: '인프라 대상 그리드' });
-  // db-primary-01 메모리 84.6% > batch-host-01 CPU 76.1% > edge-host-01 메모리 72.8% > staging-host-01
-  await expect(table.locator('tbody tr a[data-row-link]')).toHaveText(['db-primary-01', 'batch-host-01', 'edge-host-01', 'staging-host-01']);
-  // 행 안에 모바일 요약과 메모리 열이 함께 있다 — 데스크톱에서 보이는 것은 열 쪽이다.
-  await expect(table.locator('tbody tr').first().getByText('84.6% 주의').last()).toBeVisible();
-});
+// 인프라 메뉴 점검(plans/infra-menu-ux-evaluation-results.md)에서 고친 동작. 서버 구성은 src/mocks/SCENARIOS.md를 따른다.
+// 옛 인프라 목록(사용률 순 정렬)은 서버 목록이 대신한다. 상태가 나쁜 순서와 사용률 원인은 servers-list.spec.ts가 확인한다.
 
 test('infrastructure detail shows that host\'s own values in the chart headers', async ({ page }) => {
-  await page.goto('./infrastructure/infra_mock_db_01');
+  await page.goto('./servers/server_mock_db_primary_01/infrastructure');
   const memory = page.locator('section', { has: page.getByRole('heading', { name: '메모리', exact: true }) });
   await expect(memory.getByText('84.6%')).toBeVisible();
-  await expect(page.getByText('수집 중').first()).toBeVisible();
+  // 상태는 연결 여부(연결 활성)가 아니라 수집한 값으로 말한다. 서버 탭에서는 서버 목록과 같은 판정과 그 원인이다.
+  const panel = page.getByRole('tabpanel');
+  await expect(panel.getByText('메모리 84.6%, 기준 70%', { exact: true })).toBeVisible();
+  await expect(panel.getByText(/^마지막 수집/)).toBeVisible();
   await expect(page.getByText('연결 활성')).toHaveCount(0);
   await expect(memory.getByText('주의')).toBeVisible();
 
@@ -24,16 +20,23 @@ test('infrastructure detail shows that host\'s own values in the chart headers',
   await expect(memory.getByText(/사용률 84\.6 %/)).toBeVisible();
 });
 
+// 데모: payments-api 서버에는 인프라가 없다.
 test('a host that has not sent metrics yet says it is waiting, not empty charts', async ({ page }) => {
-  await page.goto('./infrastructure');
+  await page.goto('./servers/server_mock_payments_api/infrastructure');
+  const connectPrompt = page.getByRole('tabpanel').getByRole('heading', { level: 2, name: '이 서버의 인프라를 연결하세요' });
+  await expect(connectPrompt).toBeVisible();
   await page.getByRole('button', { name: '인프라 연결', exact: true }).first().click();
-  const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('인프라 이름').fill('fresh-host');
+  // 서버 탭에서는 이름을 묻지 않고 서버 이름(payments-api)으로 만든다.
+  const dialog = page.getByRole('dialog', { name: 'OpenTelemetry Collector 연결' });
   await dialog.getByRole('button', { name: '추가' }).click();
   await expect(dialog.getByText('Collector를 실행하면 30초 안에 첫 메트릭이 들어옵니다.', { exact: false })).toBeVisible();
-  // "인프라 보기"는 방금 만든 호스트의 상세로 간다.
+  // "인프라 보기"는 방금 만든 리소스의 상세로 간다. 서버마다 리소스가 하나라 탭 주소가 곧 그 상세다.
   await dialog.getByRole('button', { name: '인프라 보기' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'fresh-host' })).toBeVisible();
+  // 같은 탭 주소에 머물므로 주소 대신 대화 상자가 닫히고 본문이 연결 안내에서 상세로 바뀐 것을 본다.
+  await expect(dialog).toHaveCount(0);
+  await expect(connectPrompt).toHaveCount(0);
+  await expect(page).toHaveURL(/\/servers\/server_mock_payments_api\/infrastructure$/);
+  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: '인프라', exact: true })).toBeAttached();
   await expect(page.getByRole('heading', { name: 'Collector 수신 대기' })).toBeVisible();
   await expect(page.getByText('수신 대기').first()).toBeVisible();
 });

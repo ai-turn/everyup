@@ -18,7 +18,7 @@ export function ApiExclusionsSettings({ serviceId, paths, onSaved }: { serviceId
       setDraft(normalized);
       setSaved(normalized);
       onSaved(result.paths ?? []);
-      toast.success('API 제외 경로를 저장했습니다.');
+      toast.success('API 제외 경로를 저장했습니다');
     } catch (error) {
       setError(getErrorMessage(error));
       toast.error(getErrorMessage(error));

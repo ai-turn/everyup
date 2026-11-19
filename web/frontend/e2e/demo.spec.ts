@@ -77,13 +77,13 @@ test.describe('live demo', () => {
 
     await expect(page.getByRole('combobox', { name: '데모 시나리오' })).toBeVisible();
     await expect(page.getByRole('link', { name: '개요', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: '그룹', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: '서버', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: '알림', exact: true })).toBeVisible();
     await page.getByRole('link', { name: '더보기', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: '더보기' })).toBeVisible();
     await expect(page.getByRole('link', { name: '더보기', exact: true })).toHaveAttribute('aria-current', 'page');
     // 사이드바가 없는 폭에서는 더보기가 하단 내비 밖의 섹션에 닿는 유일한 경로다.
-    for (const section of ['Docker 환경', '업타임', '로그', '인프라', 'API 요청', '메트릭', '환경 설정']) {
+    for (const section of ['Docker 환경', '그룹', '환경 설정']) {
       await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
     }
   });
@@ -104,6 +104,11 @@ test.describe('live demo', () => {
     await page.getByRole('option', { name: '정상 운영' }).click();
 
     await expect(page.getByText('현재 확인이 필요한 이상이 없습니다')).toBeVisible();
+    // 서버 목록도 같은 판정이다. 장애나 확인 필요인 서버가 없다.
+    await page.getByRole('link', { name: '서버', exact: true }).first().click();
+    const rows = page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr');
+    await expect(rows.first()).toBeVisible();
+    await expect(rows.filter({ hasText: /장애|확인 필요/ })).toHaveCount(0);
   });
 
   test('overview timeline lists outages from both history sources', async ({ page }) => {
@@ -130,9 +135,9 @@ test.describe('live demo', () => {
     await page.getByRole('option', { name: '부분 수집 실패' }).click();
 
     await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
-    // 성공한 영역이 남아 있는지를 '모니터링 범위' 줄로 확인한다. `직접 연결 서비스`는
-    // 사이드바 메뉴명과 겹치지 않아 스코프 없이도 유일하다.
-    await expect(page.getByRole('navigation', { name: '모니터링 범위' })).toBeVisible();
-    await expect(page.getByText('직접 연결 서비스', { exact: true })).toBeVisible();
+    // 성공한 영역이 남아 있는지를 '모니터링 범위' 줄로 확인한다. 이 시나리오는 앱 목록만 실패하므로 서버 수는 보인다.
+    const scope = page.getByRole('navigation', { name: '모니터링 범위' });
+    await expect(scope).toBeVisible();
+    await expect(scope.getByRole('link', { name: /^서버 \d+$/ })).toBeVisible();
   });
 });

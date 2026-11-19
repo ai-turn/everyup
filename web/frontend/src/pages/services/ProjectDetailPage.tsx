@@ -29,7 +29,7 @@ import { CollectorCapabilityDialog } from '../../features/services/components/Co
 import { AgentServiceRequestTrends } from '../../features/healthcheck/components/AgentServiceRequestTrends';
 import { AgentCheckHistoryBar } from '../../features/healthcheck/components/AgentCheckHistoryBar';
 import { getErrorMessage } from '../../utils/errors';
-import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
+import { formatClock, formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 
 // 인프라를 수집할 때만 그려져야 지표를 받는다 — 페이지 본체에서 훅을 부르면 항상 요청한다.
 function HostGauges({ hostId, refreshKey }: { hostId: string; refreshKey: number }) {
@@ -141,14 +141,14 @@ export function ProjectDetailPage() {
   const [events, setEvents] = useState<AgentEvent[]>([]);
   // Representative OTel metric per service name (project cards); non-critical.
   const [metrics, setMetrics] = useState<Record<string, OtelServiceMetric>>({});
-  // 로그 메뉴가 Docker 서비스를 보여 주지 않으므로(ADR 0007) 같은 24시간 요약을 여기서 그린다.
+  // 서버 화면과 전체 로그는 Docker 서비스를 보여 주지 않으므로(ADR 0011) 같은 24시간 요약을 여기서 그린다.
   const [logData, setLogData] = useState<{ summaries: LogServiceSummary[]; patterns: LogPattern[] } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
     if (!agentId) return;
     setLoadError(null);
-    Promise.all([api.getLogSummary(), api.getLogPatterns(agentId)])
+    Promise.all([api.getLogSummary(), api.getLogPatterns({ agentId })])
       .then(([summaries, patterns]) => setLogData({ summaries: summaries ?? [], patterns: patterns ?? [] }))
       .catch(() => {});
     api.getAgentIncidents(agentId).then((d) => setIncidents(d ?? [])).catch(() => {});
@@ -336,7 +336,7 @@ export function ProjectDetailPage() {
       )}
       </section>
 
-      {/* 인프라 메뉴는 직접 연결한 호스트만 보여 준다(ADR 0007) — 이 Collector의 호스트 지표는 여기서 본다. */}
+      {/* 서버의 인프라 탭은 직접 연결한 호스트만 보여 준다(ADR 0011). 이 Collector의 호스트 지표는 여기서 본다. */}
       {agentId && collects('infrastructure') && (
         <section>
           <h2 className="mb-3 type-section-title text-text-base">인프라</h2>
@@ -400,7 +400,7 @@ export function ProjectDetailPage() {
                   {events.map((e) => (
                     <div key={e.id} className="flex items-baseline gap-2 py-1.5">
                       <span className="text-xs text-text-dim w-10 shrink-0">
-                        {new Date(e.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {formatClock(e.time)}
                       </span>
                       <span className={`h-1.5 w-1.5 rounded-full shrink-0 translate-y-px ${
                         e.type === 'alert_sent' ? 'bg-status-error-fill'

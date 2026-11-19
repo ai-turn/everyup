@@ -4,6 +4,7 @@ import { alertsApi } from './alerts';
 import { agentsApi } from './agents';
 import { projectsApi } from './projects';
 import { observedServicesApi } from './observedServices';
+import { serversApi } from './servers';
 
 /**
  * 중앙 API 클라이언트 싱글톤.
@@ -19,6 +20,7 @@ export const api = {
   ...agentsApi,
   ...projectsApi,
   ...observedServicesApi,
+  ...serversApi,
 };
 
 // Re-export all types — 기존 import 경로 유지
@@ -114,6 +116,7 @@ export type {
   AppSettings,
 } from './alerts';
 export type { Project, ProjectInput } from './projects';
+export type { Server, ServerInput, ServerUpdate } from './servers';
 export type {
   TelemetrySignal,
   ObservedService,

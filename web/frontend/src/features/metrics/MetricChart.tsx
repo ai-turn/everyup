@@ -14,6 +14,7 @@ import { useMetricQuery, type MetricWindow } from './useMetricQuery';
 import { useMetricRead, type MetricSource } from './useMetricRead';
 import { metricFlags, metricIdentity, metricTitle } from './metricPresentation';
 import { MetricExplorerControls } from './MetricExplorerControls';
+import { formatDateTime } from '../../utils/incidentFormat';
 export type { MetricSource } from './useMetricRead';
 
 const NO_POINTS: OtelMetricPoint[] = [];
@@ -99,7 +100,8 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           </button></HintTooltip>
         )}
         // A metric name is an identifier, so it reads in mono like other code.
-        titleClassName={title === name ? "font-mono text-sm" : undefined}
+        // 제목 칸이 말줄임으로 넘침을 자르므로 버튼의 포커스 링이 들어갈 여백을 두고 같은 만큼 끌어당긴다.
+        titleClassName={`${title === name ? 'font-mono text-sm' : ''} ${expanded ? '' : '-m-1 p-1'}`}
         wrapTitle={expanded}
         className="min-w-0"
         // 격자를 훑을 때 어느 패널이 확인 필요인지 보이게 상태를 제목 줄에 둔다(단독 보기는 아래 줄).
@@ -126,10 +128,10 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         {expanded && <dl aria-label="메트릭 정보" className="mb-3 flex flex-wrap gap-x-5 gap-y-2 type-caption text-text-muted">
           <div className="flex flex-wrap items-baseline gap-1.5">
             <dt>마지막 측정</dt>
-            <dd><time dateTime={meta.lastAt}>{new Date(meta.lastAt).toLocaleString('ko-KR', { hour12: false })}</time></dd>
+            <dd><time dateTime={meta.lastAt}>{formatDateTime(meta.lastAt)}</time></dd>
           </div>
           <div className="flex flex-wrap items-baseline gap-1.5">
-            <dt>마지막 수신</dt><dd>{meta.lastReceivedAt ? <time dateTime={meta.lastReceivedAt}>{new Date(meta.lastReceivedAt).toLocaleString('ko-KR', { hour12: false })}</time> : '기록 없음'}</dd>
+            <dt>마지막 수신</dt><dd>{meta.lastReceivedAt ? <time dateTime={meta.lastReceivedAt}>{formatDateTime(meta.lastReceivedAt)}</time> : '기록 없음'}</dd>
           </div>
           <div className="flex flex-wrap items-baseline gap-1.5">
             <dt>조회 구간</dt>

@@ -44,8 +44,9 @@ const BASE =
   // aria-disabled에는 hover·누름 반응을 걸지 않는다(variant의 not-aria-disabled:). 예전처럼 투명으로
   // 덮어쓰면 primary는 hover 때 채움이 사라져 흰 글자만 남았다.
   'aria-disabled:opacity-50 aria-disabled:cursor-not-allowed ' +
-  // loading 중엔 스피너만 남기고 호출부의 아이콘은 숨긴다
-  'aria-busy:[&>svg:not(:first-child)]:hidden';
+  // loading 중엔 스피너만 남기고 호출부의 아이콘은 숨긴다. MaterialIcon은 svg를 span으로 감싸므로 svg를 가진 span을 고른다
+  // (예전의 `&>svg`는 아무것도 고르지 못해 아이콘이 두 개 보였다). 라벨 span에는 svg가 없다.
+  'aria-busy:[&>span:has(>svg):not(:first-child)]:hidden';
 
 type Variant = keyof typeof VARIANTS;
 type Size = keyof typeof SIZES;

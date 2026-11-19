@@ -41,7 +41,7 @@ export function LogIngestLevels(source: Source) {
         : await api.setAgentServiceLogFilter(agentId!, serviceKey!, draft);
       setSaved((r?.levels ?? []) as LogLevel[]);
       setDraft(null);
-      toast.success('수집 레벨을 저장했습니다.');
+      toast.success('수집 레벨을 저장했습니다');
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {

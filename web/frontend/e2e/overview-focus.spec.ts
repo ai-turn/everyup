@@ -36,7 +36,7 @@ for (const { width, height, reducedMotion } of [
     // 본문의 첫 링크로 가고, 아래 Shift+Tab 순회가 헤더의 새로고침까지 거슬러 닿는지 확인한다.
     await page.keyboard.press('Tab');
     // 모바일은 AppHeader가 없어 새로고침이 본문 첫 요소로 남는다.
-    await expect(width >= 1024 ? page.locator('main').getByRole('link', { name: /^Docker 환경/ }) : refresh).toBeFocused();
+    await expect(width >= 1024 ? page.locator('main').getByRole('link', { name: /^서버/ }) : refresh).toBeFocused();
 
     let visitedProject = false;
     for (let step = 0; step < 20; step++) {

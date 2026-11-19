@@ -23,7 +23,11 @@ export function HealthCheckDetailPage() {
 
 function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKey: string | null }) {
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const location = useLocation();
+  // 서버 상세와 같다: 화살표 키로 연달아 옮기면 기록 하나를 덮어써서, 뒤로 가기 한 번이면 키보드 탐색을 시작한 탭으로 돌아간다.
+  // 키를 빠르게 연달아 누르면 다음 키가 새 주소로 다시 그려지기 전에 오므로 아직 그려지지 않은 키보드 이동을 기억한다.
+  const pendingKeyboard = useRef(false);
+  useEffect(() => { pendingKeyboard.current = false; }, [location]);
 
   const [service, setService] = useState<AgentServiceFlat | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,11 +116,14 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
       tab={tab}
       traceId={searchParams.get('traceId') ?? undefined}
       initialRange={parseTimeRange(searchParams.get('range'))}
-      onTabChange={(nextTab) => {
+      onTabChange={(nextTab, source) => {
         const next = new URLSearchParams(searchParams);
         if (nextTab === 'uptime') next.delete('tab');
         else next.set('tab', nextTab);
-        setSearchParams(next);
+        const keyboard = source === 'keyboard';
+        const previousKeyboard = pendingKeyboard.current || (location.state as { tabKeys?: boolean } | null)?.tabKeys === true;
+        pendingKeyboard.current = keyboard;
+        setSearchParams(next, { replace: keyboard && previousKeyboard, state: keyboard ? { tabKeys: true } : null });
       }}
     />
     </>

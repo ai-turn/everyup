@@ -15,19 +15,14 @@ const SettingsPage          = lazy(() => import('./pages/settings/SettingsPage')
 const NotFoundPage          = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const LoginPage             = lazy(() => import('./pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
 const ChannelFormPage       = lazy(() => import('./pages/alerts/ChannelFormPage').then(m => ({ default: m.ChannelFormPage })));
-const AgentServiceCapabilityPage = lazy(() => import('./pages/capabilities/AgentServiceCapabilityPage').then(m => ({ default: m.AgentServiceCapabilityPage })));
-const UptimeMonitorDetailPage = lazy(() => import('./pages/uptime/UptimeMonitorDetailPage').then(m => ({ default: m.UptimeMonitorDetailPage })));
 const LogsPage              = lazy(() => import('./pages/capabilities/LogsPage').then(m => ({ default: m.LogsPage })));
-const DirectLogsDetailPage  = lazy(() => import('./pages/capabilities/DirectLogsDetailPage').then(m => ({ default: m.DirectLogsDetailPage })));
-const ApiPage               = lazy(() => import('./pages/capabilities/ApiPage').then(m => ({ default: m.ApiPage })));
-const DirectApiDetailPage   = lazy(() => import('./pages/capabilities/DirectApiDetailPage').then(m => ({ default: m.DirectApiDetailPage })));
-const MetricsPage           = lazy(() => import('./pages/capabilities/MetricsPage').then(m => ({ default: m.MetricsPage })));
-const DirectMetricsDetailPage = lazy(() => import('./pages/capabilities/DirectMetricsDetailPage').then(m => ({ default: m.DirectMetricsDetailPage })));
-const InfrastructurePage    = lazy(() => import('./pages/capabilities/InfrastructurePage').then(m => ({ default: m.InfrastructurePage })));
-const DirectInfrastructureDetailPage = lazy(() => import('./pages/capabilities/DirectInfrastructureDetailPage').then(m => ({ default: m.DirectInfrastructureDetailPage })));
 const MorePage              = lazy(() => import('./pages/capabilities/MorePage').then(m => ({ default: m.MorePage })));
 const ProjectsPage          = lazy(() => import('./pages/projects/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
 const ProjectOverviewPage   = lazy(() => import('./pages/projects/ProjectOverviewPage').then(m => ({ default: m.ProjectOverviewPage })));
+const ServersPage           = lazy(() => import('./pages/servers/ServersPage').then(m => ({ default: m.ServersPage })));
+const ServerDetailPage      = lazy(() => import('./pages/servers/ServerDetailPage').then(m => ({ default: m.ServerDetailPage })));
+const ServerFormPage        = lazy(() => import('./pages/servers/ServerFormPage').then(m => ({ default: m.ServerFormPage })));
+const LegacyTargetRedirect  = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyTargetRedirect })));
 
 function PageLoader() {
   return (
@@ -65,18 +60,20 @@ function App() {
               <Route element={<MainLayout />}>
                 <Route index element={<OverviewPage />} />
                 <Route path="/environments" element={<ServiceGridPage />} />
+                <Route path="/servers" element={<ServersPage />} />
+                <Route path="/servers/new" element={<ServerFormPage />} />
+                <Route path="/servers/:serverId" element={<ServerDetailPage />} />
+                <Route path="/servers/:serverId/:capability" element={<ServerDetailPage />} />
+                <Route path="/servers/:serverId/:capability/:targetId" element={<ServerDetailPage />} />
                 <Route path="/agents" element={<Navigate to="/environments" replace />} />
-                <Route path="/services" element={<Navigate to="/uptime" replace />} />
-                <Route path="/uptime" element={<AgentServiceCapabilityPage />} />
-                <Route path="/uptime/:monitorId" element={<UptimeMonitorDetailPage />} />
+                {/* 옛 기능별 메뉴의 주소(설계 6.2). 목록은 서버 목록으로, 대상은 그 대상의 서버 화면으로 보낸다. */}
+                {['/services', '/uptime', '/infrastructure', '/api', '/metrics'].map((path) => <Route key={path} path={path} element={<Navigate to="/servers" replace />} />)}
+                <Route path="/uptime/:id" element={<LegacyTargetRedirect kind="uptime" />} />
+                <Route path="/logs/:id" element={<LegacyTargetRedirect kind="logs" />} />
+                <Route path="/api/:id" element={<LegacyTargetRedirect kind="api" />} />
+                <Route path="/metrics/:id" element={<LegacyTargetRedirect kind="metrics" />} />
+                <Route path="/infrastructure/:id" element={<LegacyTargetRedirect kind="infrastructure" />} />
                 <Route path="/logs" element={<LogsPage />} />
-                <Route path="/logs/:serviceId" element={<DirectLogsDetailPage />} />
-                <Route path="/infrastructure" element={<InfrastructurePage />} />
-                <Route path="/infrastructure/:resourceId" element={<DirectInfrastructureDetailPage />} />
-                <Route path="/api" element={<ApiPage />} />
-                <Route path="/api/:serviceId" element={<DirectApiDetailPage />} />
-                <Route path="/metrics" element={<MetricsPage />} />
-                <Route path="/metrics/:serviceId" element={<DirectMetricsDetailPage />} />
                 <Route path="/more" element={<MorePage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:projectId" element={<ProjectOverviewPage />} />

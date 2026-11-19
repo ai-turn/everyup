@@ -22,7 +22,7 @@ export interface AgentHealthCheckDetailViewProps {
   traceId?: string;
   /** Opening range when a link names one (`?range=`); the picker owns it after that. */
   initialRange?: GlobalTimeRange;
-  onTabChange: (tab: DetailTab) => void;
+  onTabChange: (tab: DetailTab, source?: 'keyboard') => void;
 }
 
 // Container uptime from an ISO start time; null when absent or the zero stamp.

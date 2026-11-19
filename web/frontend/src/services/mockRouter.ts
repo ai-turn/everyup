@@ -39,6 +39,8 @@ import type {
   UptimeMonitorSummary,
   UptimeMonitorHistory,
   Project,
+  Server,
+  ServerInput,
   ObservedService,
   ObservedServiceInput,
   ObservedServiceSetup,
@@ -662,20 +664,21 @@ function mockLogHistogram(endpoint: string) {
 
 // Hourly error/warn buckets for the logs page cards, newest last: errors keyed by
 // hours ago, plus a warn every `warnEvery` hours.
-function mockLogScopes(scenario: MockScenario) {
+// serverId가 있으면 백엔드처럼 그 서버의 앱만 센다(Docker 서비스는 빠진다).
+function mockLogScopes(scenario: MockScenario, serverId = '') {
   return [
-    ...scenarioServices(scenario).map(service => ({
+    ...(serverId ? [] : scenarioServices(scenario)).map(service => ({
       agentId: service.agentId, serviceName: service.name,
       data: serviceTelemetry.get(`${service.agentId}/${service.key}`),
     })),
-    ...scenarioObservedServices(scenario).filter(service => service.signals.includes('logs')).map(service => ({
+    ...scenarioObservedServices(scenario).filter(service => service.signals.includes('logs') && (!serverId || service.serverId === serverId)).map(service => ({
       serviceId: service.id, serviceName: service.name, data: serviceTelemetry.get(service.id),
     })),
   ];
 }
 
-function mockLogSummary(scenario: MockScenario): LogServiceSummary[] {
-  return mockLogScopes(scenario).map(({ data, ...scope }) => {
+function mockLogSummary(scenario: MockScenario, serverId = ''): LogServiceSummary[] {
+  return mockLogScopes(scenario, serverId).map(({ data, ...scope }) => {
     const rows = data?.logs ?? [];
     const recent = rows.filter(log => new Date(log.createdAt).getTime() >= nowAgent - 86_400_000);
     const buckets = new Map<string, LogServiceSummary['buckets'][number]>();
@@ -696,8 +699,8 @@ function mockLogSummary(scenario: MockScenario): LogServiceSummary[] {
   });
 }
 
-function mockLogPatterns(scenario: MockScenario, agentId: string): LogPattern[] {
-  return mockLogScopes(scenario).filter(scope => ('agentId' in scope ? scope.agentId : '') === agentId)
+function mockLogPatterns(scenario: MockScenario, agentId: string, serverId = ''): LogPattern[] {
+  return mockLogScopes(scenario, serverId).filter(scope => ('agentId' in scope ? scope.agentId : '') === agentId)
     .flatMap(({ data, ...scope }) => {
       const groups = new Map<string, LogPattern>();
       for (const log of data?.logs ?? []) {
@@ -723,26 +726,26 @@ const mockLatencyHistory = (base: number, swing: number) =>
 
 const mockUptimeMonitors: UptimeMonitor[] = [
   {
-    id: 'uptime_mock_store', name: 'Storefront', projectId: 'project_mock_production', type: 'http', isActive: true,
+    id: 'uptime_mock_store', name: 'Storefront', serverId: 'server_mock_edge_host_01', type: 'http', isActive: true,
     url: 'https://store.example.com/health', method: 'GET', expectedStatus: 200,
     timeout: 5000, interval: 30, status: 'healthy', responseTime: 128,
     uptime: 99.98, latencyHistory: mockLatencyHistory(128, 24), certExpiresAt: new Date(nowAgent + 83 * 86_400_000).toISOString(), lastCheckAt: new Date(nowAgent - 18_000).toISOString(),
   },
-  // 업타임 메뉴는 직접 등록한 모니터만 보여 준다(ADR 0007) — 데모 목록이 비어 보이지 않게 둘을 더 둔다.
+  // 서버의 업타임 탭은 직접 등록한 모니터만 보여 준다(ADR 0011). 데모 목록이 비어 보이지 않게 둘을 더 둔다.
   {
-    id: 'uptime_mock_checkout', name: 'Checkout API', projectId: 'project_mock_production', type: 'http', isActive: true,
+    id: 'uptime_mock_checkout', name: 'Checkout API', serverId: 'server_mock_edge_host_01', type: 'http', isActive: true,
     url: 'https://checkout.example.com/healthz', method: 'GET', expectedStatus: 200,
     timeout: 5000, interval: 30, status: 'healthy', responseTime: 214,
     uptime: 99.91, latencyHistory: mockLatencyHistory(214, 40), certExpiresAt: new Date(nowAgent + 9 * 86_400_000).toISOString(), lastCheckAt: new Date(nowAgent - 9_000).toISOString(),
   },
   {
-    id: 'uptime_mock_smtp', name: 'Mail relay', projectId: 'project_mock_backoffice', type: 'tcp', isActive: true,
+    id: 'uptime_mock_smtp', name: 'Mail relay', serverId: 'server_mock_mail_relay', type: 'tcp', isActive: true,
     url: 'smtp.example.com', port: 587, method: 'GET', expectedStatus: 200,
     timeout: 3000, interval: 60, status: 'healthy', responseTime: 41,
     uptime: 100, latencyHistory: mockLatencyHistory(41, 6), lastCheckAt: new Date(nowAgent - 32_000).toISOString(),
   },
   {
-    id: 'uptime_mock_redis', name: 'Redis TCP', projectId: 'project_mock_staging', type: 'tcp', isActive: false,
+    id: 'uptime_mock_redis', name: 'Redis TCP', serverId: 'server_mock_staging_host_01', type: 'tcp', isActive: false,
     url: 'cache.example.com', port: 6379, method: 'GET', expectedStatus: 200,
     timeout: 3000, interval: 60, status: 'unknown',
   },
@@ -804,7 +807,7 @@ function mockUptimeBuckets(range: string, metrics = mockUptimeMetrics): ServiceH
 
 // 8분간의 연속 실패. 수집 공백은 장애 이력으로 만들지 않는다.
 const mockUptimeIncidents: TimelineIncident[] = [{
-  source: 'uptime', targetName: 'Storefront', targetPath: '/uptime/uptime_mock_store',
+  source: 'uptime', targetName: 'Storefront', targetPath: '/servers/server_mock_edge_host_01/uptime/uptime_mock_store',
   startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(),
   durationSec: 480, active: false, message: 'upstream timeout',
 }];
@@ -828,17 +831,119 @@ const mockProjects: Project[] = [
   {
     id: 'project_mock_production', name: 'Production', description: '고객 서비스',
     agentCount: 0, monitorCount: 0, observedServiceCount: 0,
-    infrastructureResourceCount: 0,
+    infrastructureResourceCount: 0, serverCount: 0,
     createdAt: new Date(nowAgent - 7 * 86_400_000).toISOString(), updatedAt: new Date(nowAgent).toISOString(),
   },
   ...additionalProjects,
 ];
 
+// 구성 표는 mocks/SCENARIOS.md에 있다. 서버의 그룹은 묶인 대상들이 원래 가지던 그룹과 같다.
+const mockServers: Server[] = ([
+  ['edge_host_01', 'edge-host-01', 'project_mock_production', '주문 처리 호스트'],
+  ['db_primary_01', 'db-primary-01', 'project_mock_production'],
+  ['payments_api', 'payments-api', 'project_mock_production'],
+  ['inventory_api', 'inventory-api', 'project_mock_production'],
+  ['public_status', 'Public status', 'project_mock_production', '외부 상태 페이지'],
+  ['batch_host_01', 'batch-host-01', 'project_mock_backoffice'],
+  ['mail_relay', 'Mail relay', 'project_mock_backoffice'],
+  ['staging_host_01', 'staging-host-01', 'project_mock_staging'],
+  ['staging_empty', 'staging-empty', undefined],
+] as const).map(([id, name, projectId, description]) => ({
+  id: `server_mock_${id}`, name, projectId, description,
+  createdAt: new Date(nowAgent - 7 * 86_400_000).toISOString(), updatedAt: new Date(nowAgent - 86_400_000).toISOString(),
+}));
+
+// attention 시나리오에서 장애 중인 업타임 모니터. normal 시나리오에서는 정상이다.
+// 장애는 고정된 한 시각에 시작한다. 지속 시간이 늘어나고 그 뒤의 체크는 모두 실패다.
+const outageMonitorId = 'uptime_mock_checkout';
+const outageStart = nowAgent - 6 * 60_000;
+const outageApplies = (monitorId: string, scenario: MockScenario) => monitorId === outageMonitorId && scenario !== 'normal';
+const outageIncident = (monitor: Pick<UptimeMonitor, 'name' | 'serverId' | 'id'>): TimelineIncident => ({
+  source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}`,
+  startedAt: new Date(outageStart).toISOString(), durationSec: Math.round((Date.now() - outageStart) / 1000), active: true, message: 'connection timed out',
+});
+
+function summarizeChecks(serviceId: string, metrics: UptimeMonitorMetric[]): UptimeMonitorSummary {
+  const values = metrics.filter(row => row.status === 'success').map(row => row.responseTime);
+  return { serviceId, totalChecks: metrics.length, successfulChecks: values.length, failedChecks: metrics.length - values.length, uptime: metrics.length ? values.length / metrics.length * 100 : 0, avgResponseTime: values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0, minResponseTime: values.length ? Math.min(...values) : 0, maxResponseTime: metrics.length ? Math.max(...metrics.map(row => row.responseTime)) : 0 };
+}
+
+const serverNameKey = (name: string) => name.trim().toLowerCase();
+const findServer = (id?: string) => mockServers.find(server => server.id === id);
+const serverHasInfrastructure = (serverId: string) => mockInfrastructureResources.some(resource => resource.serverId === serverId);
+const sameServerName = (server: Server, name: string, projectId?: string) =>
+  serverNameKey(server.name) === serverNameKey(name) && (server.projectId ?? '') === (projectId ?? '');
+
+// 대상의 그룹은 저장값이 아니라 소속 서버의 그룹이다(설계 5.3).
+function withGroup<T extends { serverId?: string; projectId?: string }>(target: T): T {
+  return { ...target, projectId: findServer(target.serverId)?.projectId };
+}
+
+function serverNotFound(): never {
+  throw new ApiError('server not found', 'NOT_FOUND', 404);
+}
+
+function serverHasInfrastructureError(): never {
+  throw new ApiError('server already has an infrastructure resource', 'SERVER_HAS_INFRASTRUCTURE', 409);
+}
+
+function writeServer(input: Partial<ServerInput>, id?: string): Server {
+  const name = String(input.name ?? '').trim();
+  if (!name || name.length > 200) throw new ApiError('name is required and must be at most 200 characters', 'VALIDATION_ERROR', 400);
+  const projectId = input.projectId || undefined;
+  if (projectId && !mockProjects.some(project => project.id === projectId)) throw new ApiError('group not found', 'VALIDATION_ERROR', 400);
+  if (mockServers.some(server => server.id !== id && sameServerName(server, name, projectId))) {
+    throw new ApiError('server name already exists in this group', 'SERVER_NAME_TAKEN', 409);
+  }
+  const now = new Date().toISOString();
+  const fields = { name, description: input.description?.trim() || undefined, projectId, updatedAt: now };
+  const existing = findServer(id);
+  if (existing) return Object.assign(existing, fields);
+  if (id) serverNotFound();
+  const server: Server = { id: mockId('server_mock'), ...fields, createdAt: now };
+  mockServers.push(server);
+  return server;
+}
+
+// 대상이 들어갈 서버가 있는지, 인프라 리소스라면 그 서버에 이미 인프라 리소스가 없는지 확인한다.
+function checkTargetServer(serverId: string, infrastructure: boolean) {
+  if (!findServer(serverId)) throw new ApiError('server not found', 'VALIDATION_ERROR', 400);
+  if (infrastructure && serverHasInfrastructure(serverId)) serverHasInfrastructureError();
+}
+
+// 설계 5.4: serverId가 없으면 (이름, 그룹)이 같은 서버에 넣고, 없으면 대상의 이름으로 서버를 만든다.
+// 인프라 리소스가 이미 있는 서버는 고르지 않고 ` (2)`, ` (3)`을 붙인 새 서버를 만든다.
+function resolveTargetServer(serverId: string | undefined, name: string, projectId: string | undefined, infrastructure: boolean): string {
+  if (serverId) {
+    checkTargetServer(serverId, infrastructure);
+    return serverId;
+  }
+  const match = mockServers.find(server => sameServerName(server, name, projectId || undefined));
+  if (match && !(infrastructure && serverHasInfrastructure(match.id))) return match.id;
+  let candidate = name.trim();
+  for (let n = 2; mockServers.some(server => sameServerName(server, candidate, projectId || undefined)); n += 1) candidate = `${name.trim()} (${n})`;
+  return writeServer({ name: candidate, projectId }).id;
+}
+
+// 백엔드가 받는 본문. 화면의 타입은 serverId를 강제하지만, 백엔드는 옛 화면의 요청(serverId 없이 projectId)도 받는다.
+type WireInput<T extends { serverId: string }> = Omit<T, 'serverId'> & { serverId?: string; projectId?: string };
+
+// 대상 수정: serverId가 있으면 이동이고, 없으면 기존 화면의 요청이라 projectId를 소속 서버의 그룹으로 기록한다(설계 5.5).
+function updateTargetServer(target: { serverId?: string }, input: { serverId?: string; projectId?: string }, infrastructure: boolean) {
+  if (input.serverId) {
+    if (input.serverId !== target.serverId) checkTargetServer(input.serverId, infrastructure);
+    target.serverId = input.serverId;
+    return;
+  }
+  const server = findServer(target.serverId);
+  if (server) Object.assign(server, { projectId: input.projectId || undefined, updatedAt: new Date().toISOString() });
+}
+
 const mockObservedServices: ObservedService[] = [
   {
     id: 'observed_mock_checkout',
     name: 'checkout-api',
-    projectId: 'project_mock_production',
+    serverId: 'server_mock_edge_host_01',
     signals: ['logs'],
     logLevelFilter: ['error', 'warn', 'info'],
     isActive: true,
@@ -850,7 +955,7 @@ const mockObservedServices: ObservedService[] = [
   {
     id: 'observed_mock_catalog',
     name: 'catalog-worker',
-    projectId: 'project_mock_production',
+    serverId: 'server_mock_db_primary_01',
     signals: ['metrics'],
     isActive: true,
     apiKeyMasked: 'evup_****c8d1',
@@ -861,7 +966,7 @@ const mockObservedServices: ObservedService[] = [
   {
     id: 'observed_mock_payments',
     name: 'payments-api',
-    projectId: 'project_mock_production',
+    serverId: 'server_mock_payments_api',
     signals: ['traces', 'logs'],
     isActive: true,
     apiKeyMasked: 'evup_****a741',
@@ -886,7 +991,7 @@ const mockInfrastructureResources: InfrastructureResource[] = [
   {
     id: 'infra_mock_edge_01',
     name: 'edge-host-01',
-    projectId: 'project_mock_production',
+    serverId: 'server_mock_edge_host_01',
     adapter: 'otel-collector',
     isActive: true,
     apiKeyMasked: 'evup_****4e91',
@@ -973,11 +1078,24 @@ function mockRequestEndpoints(endpoint: string) {
 // 방금 추가해 아직 수신하지 않은 Collector — 백엔드처럼 info는 NO_DATA, 이력은 빈 배열이다.
 const awaitingFirstMetric = (id: string) => mockInfrastructureResources.some(row => row.id === id && !row.lastSeenAt);
 
+// 정상 운영 시나리오는 서버 목록과 개요 모두 문제가 없어야 한다. 사용률 경고(WARNING_PCT 70%)를 넘던 값과,
+// 차트의 흔들림(CPU ±12, 메모리 ±4, mockHostMetrics)이 70%에 닿던 값을 낮춘다. 다른 시나리오의 값은 그대로다.
+const NORMAL_USAGE: Record<string, Pick<InfrastructureResource, 'cpuUsage' | 'memoryUsage'>> = {
+  infra_mock_edge_01: { cpuUsage: 47.6, memoryUsage: 58.4 },
+  infra_mock_db_01: { memoryUsage: 61.2 },
+  infra_mock_worker_01: { cpuUsage: 46.3 },
+};
+
+const withScenarioUsage = <T extends InfrastructureResource>(resource: T, scenario: MockScenario): T =>
+  scenario === 'normal' && NORMAL_USAGE[resource.id] ? { ...resource, ...NORMAL_USAGE[resource.id] } : resource;
+
 function mockHostInfo(id: string) {
   if (awaitingFirstMetric(id)) throw new ApiError('No metric data yet for this host.', 'NO_DATA', 503);
-  const resource = mockInfrastructureResources.find(row => row.id === id);
+  const stored = mockInfrastructureResources.find(row => row.id === id);
+  // 목록(scenarioInfrastructureResources)과 같은 값이어야 현재 값과 차트가 어긋나지 않는다.
+  const resource = stored && withScenarioUsage(stored, getDemoScenario());
   const agent = mockAgents.find(row => row.id === id);
-  const index = resource ? mockInfrastructureResources.indexOf(resource) : Math.max(0, mockAgents.findIndex(row => row.id === id));
+  const index = stored ? mockInfrastructureResources.indexOf(stored) : Math.max(0, mockAgents.findIndex(row => row.id === id));
   const cpu = resource?.cpuUsage ?? [67.4, 18.5, 76.1, 28.4][index] ?? 25;
   const memory = resource?.memoryUsage ?? [72.8, 31.8, 62.4, 42.1][index] ?? 40;
   const disk = resource?.diskUsage ?? [41.2, 22.1, 35.7, 28.3][index] ?? 30;
@@ -1010,11 +1128,9 @@ const monitorData = new Map(mockUptimeMonitors.map((monitor, index) => {
     metrics: mockUptimeMetrics, summary: mockUptimeSummary, history: mockUptimeHistory, incidents: mockUptimeIncidents, failures: mockUptimeFailures,
   }] as const;
   const metrics = demoMonitorMetrics(monitor, index);
-  const successful = metrics.filter(row => row.status === 'success');
-  const values = successful.map(row => row.responseTime);
-  const summary: UptimeMonitorSummary = { serviceId: monitor.id, totalChecks: metrics.length, successfulChecks: successful.length, failedChecks: metrics.length - successful.length, uptime: metrics.length ? successful.length / metrics.length * 100 : 0, avgResponseTime: values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0, minResponseTime: values.length ? Math.min(...values) : 0, maxResponseTime: metrics.length ? Math.max(...metrics.map(row => row.responseTime)) : 0 };
+  const summary = summarizeChecks(monitor.id, metrics);
   const history: UptimeMonitorHistory = { percentage: summary.uptime, days: !metrics.length ? [] : Array.from({ length: 90 }, (_, i) => ({ date: new Date(nowAgent - i * 86_400_000).toISOString().slice(0, 10), uptime: i === 0 ? summary.uptime : 100, status: i === 0 && summary.failedChecks ? 'partial' : 'up' })) };
-  const incidents: TimelineIncident[] = summary.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/uptime/${monitor.id}`, startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(), durationSec: 480, active: false, message: 'upstream deadline exceeded' }] : [];
+  const incidents: TimelineIncident[] = summary.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}`, startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(), durationSec: 480, active: false, message: 'upstream deadline exceeded' }] : [];
   return [monitor.id, { metrics, summary, history, incidents, failures: [] as UptimeMonitorMetric[] }] as const;
 }));
 
@@ -1047,10 +1163,15 @@ function randomHex(bytes: number): string {
   return s;
 }
 
+// 같은 밀리초에 두 번 만들어도 겹치지 않게 순번을 붙인다.
+let mockIdSequence = 0;
+const mockId = (prefix: string) => `${prefix}_${Date.now()}${(mockIdSequence += 1)}`;
+
 const initialAgentIds = new Set(mockAgents.map(agent => agent.id));
 const initialMonitorIds = new Set(mockUptimeMonitors.map(monitor => monitor.id));
 const initialObservedIds = new Set(mockObservedServices.map(service => service.id));
 const initialInfrastructureIds = new Set(mockInfrastructureResources.map(resource => resource.id));
+const initialServerIds = new Set(mockServers.map(server => server.id));
 
 // Preserve the fixture's intended age instead of letting collection silently expire.
 function fixtureTime(timestamp: string): string {
@@ -1124,8 +1245,27 @@ function scenarioServices(scenario: MockScenario): AgentServiceFlat[] {
 }
 
 function scenarioMonitors(scenario: MockScenario): UptimeMonitor[] {
-  if (scenario === 'empty') return mockUptimeMonitors.filter(monitor => !initialMonitorIds.has(monitor.id));
-  return mockUptimeMonitors;
+  if (scenario === 'empty') return mockUptimeMonitors.filter(monitor => !initialMonitorIds.has(monitor.id)).map(withGroup);
+  return mockUptimeMonitors.map(monitor => withGroup(monitor.id === outageMonitorId && scenario !== 'normal' ? { ...monitor, status: 'unhealthy' } : monitor));
+}
+
+// 장애 중인 모니터의 진행 중인 장애를 이력 앞에 붙인다. 경로는 지금 소속된 서버를 따른다.
+// 장애 중이면 outageStart 이후의 체크를 실패로 바꾼다.
+function monitorChecks(monitorId: string, scenario: MockScenario): UptimeMonitorMetric[] {
+  const metrics = monitorData.get(monitorId)?.metrics ?? [];
+  if (!outageApplies(monitorId, scenario)) return metrics;
+  const monitor = mockUptimeMonitors.find(({ id }) => id === monitorId);
+  return metrics.map(check => Date.parse(check.checkedAt) < outageStart ? check
+    : { ...check, status: 'failure' as const, responseTime: monitor?.timeout ?? check.responseTime, statusCode: undefined, errorMessage: 'connection timed out' });
+}
+
+function monitorIncidents(monitor: UptimeMonitor): TimelineIncident[] {
+  const incidents = [...(monitor.status === 'unhealthy' && monitor.id === outageMonitorId ? [outageIncident(monitor)] : []), ...(monitorData.get(monitor.id)?.incidents ?? [])];
+  return incidents.map(incident => ({ ...incident, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}` }));
+}
+
+function scenarioServers(scenario: MockScenario): Server[] {
+  return scenario === 'empty' ? mockServers.filter(server => !initialServerIds.has(server.id)) : mockServers;
 }
 
 // Outage history for the overview timeline. `normal` keeps the resolved
@@ -1133,7 +1273,7 @@ function scenarioMonitors(scenario: MockScenario): UptimeMonitor[] {
 // duplicates the attention panel — the point is showing that it has been quiet.
 function scenarioTimeline(scenario: MockScenario): TimelineIncident[] {
   if (scenario === 'empty') return [];
-  const uptime = scenarioMonitors(scenario).flatMap(monitor => monitorData.get(monitor.id)?.incidents ?? []);
+  const uptime = scenarioMonitors(scenario).flatMap(monitorIncidents);
   const docker: TimelineIncident[] = mockAgentIncidents.filter(incident => scenario !== 'normal' || !incident.active).map(incident => ({
     source: 'docker', targetName: incident.serviceName,
     targetPath: `/services/${incident.agentId}/${encodeURIComponent(incident.key)}`,
@@ -1147,9 +1287,9 @@ function scenarioTimeline(scenario: MockScenario): TimelineIncident[] {
 function scenarioObservedServices(scenario: MockScenario): ObservedService[] {
   const services = scenario === 'empty' ? mockObservedServices.filter(service => !initialObservedIds.has(service.id)) : mockObservedServices;
   const fresh = new Date(Date.now() - 20_000).toISOString();
-  return services.map(service => initialObservedIds.has(service.id) ? { ...service,
+  return services.map(service => withGroup(initialObservedIds.has(service.id) ? { ...service,
     lastSeenAt: scenario === 'normal' ? fresh : service.lastSeenAt ? fixtureTime(service.lastSeenAt) : undefined,
-    updatedAt: fixtureTime(service.updatedAt) } : service);
+    updatedAt: fixtureTime(service.updatedAt) } : service));
 }
 
 // 확인 필요 시나리오: 첫 메트릭 서비스의 첫 지표는 임계값 초과, 둘째 지표는 7분째 수신 없음 — 목록의 확인 필요순과 상세의 확인 필요 목록을 데모로 보인다.
@@ -1165,9 +1305,9 @@ function scenarioMetricHealth(scenario: MockScenario, serviceId: string, metrics
 function scenarioInfrastructureResources(scenario: MockScenario): InfrastructureResource[] {
   const resources = scenario === 'empty' ? mockInfrastructureResources.filter(resource => !initialInfrastructureIds.has(resource.id)) : mockInfrastructureResources;
   const fresh = new Date(Date.now() - 20_000).toISOString();
-  return resources.map(resource => initialInfrastructureIds.has(resource.id) ? { ...resource,
+  return resources.map(resource => withGroup(initialInfrastructureIds.has(resource.id) ? { ...withScenarioUsage(resource, scenario),
     lastSeenAt: scenario === 'normal' ? fresh : resource.lastSeenAt ? fixtureTime(resource.lastSeenAt) : undefined,
-    updatedAt: fixtureTime(resource.updatedAt) } : resource);
+    updatedAt: fixtureTime(resource.updatedAt) } : resource));
 }
 
 function normalizeMockAgentProfile(profile?: Partial<AgentProfile>): AgentProfile {
@@ -1251,7 +1391,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   // Mutations in mock mode: mutate the in-memory fixtures so flows feel real.
   if (method !== 'GET') {
     const projectMatch = endpoint.match(/^\/projects\/([^/]+)$/);
-    const projectMemberMatch = endpoint.match(/^\/projects\/([^/]+)\/(agents|monitors)\/([^/]+)$/);
+    const projectMemberMatch = endpoint.match(/^\/projects\/([^/]+)\/agents\/([^/]+)$/);
     const observedMatch = endpoint.match(/^\/observed-services\/([^/]+)$/);
     const observedLogFilterMatch = endpoint.match(/^\/observed-services\/([^/]+)\/log-filter$/);
     const observedApiExclusionsMatch = endpoint.match(/^\/observed-services\/([^/]+)\/api-exclusions$/);
@@ -1261,12 +1401,12 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const infrastructureRotateMatch = endpoint.match(/^\/infrastructure-resources\/([^/]+)\/rotate-key$/);
     const infrastructureRevokeMatch = endpoint.match(/^\/infrastructure-resources\/([^/]+)\/revoke-key$/);
     if (method === 'POST' && endpoint === '/infrastructure-resources') {
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as InfrastructureResourceInput;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<InfrastructureResourceInput>;
       const now = new Date().toISOString();
       const resource: InfrastructureResourceSetup = {
-        id: `infra_mock_${Date.now()}`,
+        id: mockId('infra_mock'),
         name: parsed.name,
-        projectId: parsed.projectId,
+        serverId: resolveTargetServer(parsed.serverId, parsed.name, parsed.projectId, true),
         adapter: 'otel-collector',
         isActive: true,
         apiKeyMasked: 'everyup_ab.....demo',
@@ -1275,25 +1415,27 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         updatedAt: now,
       };
       mockInfrastructureResources.push(resource);
-      return resource as T;
+      return withGroup(resource) as T;
     }
     if (method === 'POST' && infrastructureRotateMatch) {
       const resource = mockInfrastructureResources.find(row => row.id === infrastructureRotateMatch[1]);
       if (!resource) return null as T;
       resource.isActive = true;
       resource.apiKeyMasked = 'everyup_ab.....new1';
-      return { ...resource, apiKey: `everyup_${randomHex(32)}` } as T;
+      return { ...withGroup(resource), apiKey: `everyup_${randomHex(32)}` } as T;
     }
     if (method === 'POST' && infrastructureRevokeMatch) {
       const resource = mockInfrastructureResources.find(row => row.id === infrastructureRevokeMatch[1]);
       if (resource) resource.isActive = false;
-      return resource as T;
+      return (resource && withGroup(resource)) as T;
     }
     if (method === 'PUT' && infrastructureMatch) {
       const resource = mockInfrastructureResources.find(row => row.id === infrastructureMatch[1]);
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as InfrastructureResourceInput;
-      if (resource) Object.assign(resource, parsed, { projectId: parsed.projectId || undefined, updatedAt: new Date().toISOString() });
-      return resource as T;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<InfrastructureResourceInput>;
+      if (!resource) return null as T;
+      updateTargetServer(resource, parsed, true);
+      Object.assign(resource, { name: parsed.name, updatedAt: new Date().toISOString() });
+      return withGroup(resource) as T;
     }
     if (method === 'DELETE' && infrastructureMatch) {
       const index = mockInfrastructureResources.findIndex(row => row.id === infrastructureMatch[1]);
@@ -1301,12 +1443,12 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       return undefined as T;
     }
     if (method === 'POST' && endpoint === '/observed-services') {
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as ObservedServiceInput;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<ObservedServiceInput>;
       const now = new Date().toISOString();
       const service: ObservedServiceSetup = {
-        id: `observed_mock_${Date.now()}`,
+        id: mockId('observed_mock'),
         name: parsed.name,
-        projectId: parsed.projectId,
+        serverId: resolveTargetServer(parsed.serverId, parsed.name, parsed.projectId, false),
         signals: parsed.signals,
         logLevelFilter: ['error', 'warn', 'info'],
         isActive: true,
@@ -1318,19 +1460,19 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       mockObservedServices.push(service);
       mockDirectLogFilters.set(service.id, ['error', 'warn', 'info']);
       mockDirectApiExclusions.set(service.id, []);
-      return service as T;
+      return withGroup(service) as T;
     }
     if (method === 'POST' && observedRotateMatch) {
       const service = mockObservedServices.find(row => row.id === observedRotateMatch[1]);
       if (!service) return null as T;
       service.isActive = true;
       service.apiKeyMasked = 'evup_****new1';
-      return { ...service, apiKey: `evup_direct_${randomHex(24)}` } as T;
+      return { ...withGroup(service), apiKey: `evup_direct_${randomHex(24)}` } as T;
     }
     if (method === 'POST' && observedRevokeMatch) {
       const service = mockObservedServices.find(row => row.id === observedRevokeMatch[1]);
       if (service) service.isActive = false;
-      return service as T;
+      return (service && withGroup(service)) as T;
     }
     if (method === 'PUT' && observedLogFilterMatch) {
       const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as { levels?: string[] };
@@ -1348,9 +1490,11 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     }
     if (method === 'PUT' && observedMatch) {
       const service = mockObservedServices.find(row => row.id === observedMatch[1]);
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as ObservedServiceInput;
-      if (service) Object.assign(service, parsed, { projectId: parsed.projectId || undefined, updatedAt: new Date().toISOString() });
-      return service as T;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<ObservedServiceInput>;
+      if (!service) return null as T;
+      updateTargetServer(service, parsed, false);
+      Object.assign(service, { name: parsed.name, signals: parsed.signals, updatedAt: new Date().toISOString() });
+      return withGroup(service) as T;
     }
     if (method === 'DELETE' && observedMatch) {
       const index = mockObservedServices.findIndex(row => row.id === observedMatch[1]);
@@ -1362,30 +1506,18 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     if (method === 'POST' && endpoint === '/projects') {
       const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as Partial<Project>;
       const now = new Date().toISOString();
-      const project: Project = { id: `project_mock_${Date.now()}`, name: String(parsed.name ?? '새 Project'), description: parsed.description, agentCount: 0, monitorCount: 0, observedServiceCount: 0, infrastructureResourceCount: 0, createdAt: now, updatedAt: now };
+      const project: Project = { id: `project_mock_${Date.now()}`, name: String(parsed.name ?? '새 Project'), description: parsed.description, agentCount: 0, monitorCount: 0, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 0, createdAt: now, updatedAt: now };
       mockProjects.push(project);
       return project as T;
     }
     if (method === 'PUT' && projectMemberMatch) {
-      const [, projectId, kind, memberId] = projectMemberMatch;
-      if (kind === 'agents') {
-        const agent = mockAgents.find(({ id }) => id === memberId);
-        if (agent) agent.projectId = projectId;
-      } else {
-        const monitor = mockUptimeMonitors.find(({ id }) => id === memberId);
-        if (monitor) monitor.projectId = projectId;
-      }
+      const agent = mockAgents.find(({ id }) => id === projectMemberMatch[2]);
+      if (agent) agent.projectId = projectMemberMatch[1];
       return undefined as T;
     }
     if (method === 'DELETE' && projectMemberMatch) {
-      const [, , kind, memberId] = projectMemberMatch;
-      if (kind === 'agents') {
-        const agent = mockAgents.find(({ id }) => id === memberId);
-        if (agent) delete agent.projectId;
-      } else {
-        const monitor = mockUptimeMonitors.find(({ id }) => id === memberId);
-        if (monitor) delete monitor.projectId;
-      }
+      const agent = mockAgents.find(({ id }) => id === projectMemberMatch[2]);
+      if (agent) delete agent.projectId;
       return undefined as T;
     }
     if (method === 'PUT' && projectMatch) {
@@ -1397,17 +1529,17 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       const index = mockProjects.findIndex(({ id }) => id === projectMatch[1]);
       if (index !== -1) mockProjects.splice(index, 1);
       mockAgents.forEach((agent) => { if (agent.projectId === projectMatch[1]) delete agent.projectId; });
-      mockUptimeMonitors.forEach((monitor) => { if (monitor.projectId === projectMatch[1]) delete monitor.projectId; });
-      mockObservedServices.forEach((service) => { if (service.projectId === projectMatch[1]) delete service.projectId; });
-      mockInfrastructureResources.forEach((resource) => { if (resource.projectId === projectMatch[1]) delete resource.projectId; });
+      mockServers.forEach((server) => { if (server.projectId === projectMatch[1]) delete server.projectId; });
       return undefined as T;
     }
     const uptimeMatch = endpoint.match(/^\/services\/([^/]+)$/);
     if (method === 'POST' && endpoint === '/services') {
       const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as Partial<UptimeMonitorInput>;
+      const name = String(parsed.name ?? '새 업타임');
       const monitor: UptimeMonitor = {
-        id: `uptime_mock_${Date.now()}`,
-        name: String(parsed.name ?? '새 업타임'),
+        id: mockId('uptime_mock'),
+        name,
+        serverId: resolveTargetServer(parsed.serverId, name, undefined, false),
         type: parsed.type === 'tcp' ? 'tcp' : 'http',
         isActive: parsed.isActive ?? true,
         url: String(parsed.url ?? parsed.host ?? ''),
@@ -1424,12 +1556,53 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         const now = new Date().toISOString();
         mockAlertRules.push({ id: `rule_${monitor.id}`, name: `${monitor.name} 다운`, type: 'service', serviceId: monitor.id, metric: 'http_status', operator: 'gte', threshold: 400, duration: mockAppSettings.alerts.consecutiveFailures, severity: 'critical', isEnabled: true, isSystem: false, cooldown: 0, channelIds: [], createdAt: now, updatedAt: now });
       }
-      return monitor as T;
+      return withGroup(monitor) as T;
     }
     if (method === 'PUT' && uptimeMatch) {
       const monitor = mockUptimeMonitors.find(({ id }) => id === uptimeMatch[1]);
-      if (monitor) Object.assign(monitor, JSON.parse(typeof body === 'string' ? body : '{}'));
-      return monitor as T;
+      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as Partial<UptimeMonitorInput>;
+      if (!monitor) return null as T;
+      if (parsed.serverId) updateTargetServer(monitor, parsed, false);
+      Object.assign(monitor, { ...parsed, serverId: monitor.serverId });
+      return withGroup(monitor) as T;
+    }
+    const serverMatch = endpoint.match(/^\/servers\/([^/]+)$/);
+    const serverMergeMatch = endpoint.match(/^\/servers\/([^/]+)\/merge$/);
+    if (method === 'POST' && endpoint === '/servers') {
+      return { ...writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput) } as T;
+    }
+    if (method === 'PUT' && serverMatch) {
+      if (!findServer(serverMatch[1])) serverNotFound();
+      return { ...writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput, serverMatch[1]) } as T;
+    }
+    if (method === 'DELETE' && serverMatch) {
+      const serverId = serverMatch[1];
+      if (!findServer(serverId)) serverNotFound();
+      // 백엔드처럼 소속 대상을 종류별로 지운 뒤에 서버를 지운다.
+      for (const list of [mockUptimeMonitors, mockObservedServices, mockInfrastructureResources] as { id: string; serverId?: string }[][]) {
+        for (let index = list.length - 1; index >= 0; index -= 1) {
+          if (list[index].serverId !== serverId) continue;
+          mockDirectLogFilters.delete(list[index].id);
+          mockDirectApiExclusions.delete(list[index].id);
+          list.splice(index, 1);
+        }
+      }
+      mockServers.splice(mockServers.findIndex(server => server.id === serverId), 1);
+      return undefined as T;
+    }
+    if (method === 'POST' && serverMergeMatch) {
+      const sourceId = serverMergeMatch[1];
+      const { targetServerId } = JSON.parse(typeof body === 'string' ? body : '{}') as { targetServerId?: string };
+      if (!targetServerId || targetServerId === sourceId) throw new ApiError('targetServerId is required and must differ from the server', 'VALIDATION_ERROR', 400);
+      const target = findServer(targetServerId);
+      if (!findServer(sourceId) || !target) serverNotFound();
+      if (serverHasInfrastructure(sourceId) && serverHasInfrastructure(targetServerId)) serverHasInfrastructureError();
+      for (const row of [...mockUptimeMonitors, ...mockObservedServices, ...mockInfrastructureResources]) {
+        if (row.serverId === sourceId) row.serverId = targetServerId;
+      }
+      mockServers.splice(mockServers.findIndex(server => server.id === sourceId), 1);
+      target.updatedAt = new Date().toISOString();
+      return { ...target } as T;
     }
     if (method === 'DELETE' && uptimeMatch) {
       const index = mockUptimeMonitors.findIndex(({ id }) => id === uptimeMatch[1]);
@@ -1502,14 +1675,19 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const monitors = scenarioMonitors(scenario);
     const observedServices = scenarioObservedServices(scenario);
     const infrastructureResources = scenarioInfrastructureResources(scenario);
+    const servers = scenarioServers(scenario);
     return mockProjects.map((project) => ({
     ...project,
+      serverCount: servers.filter((server) => server.projectId === project.id).length,
       agentCount: agents.filter((agent) => agent.projectId === project.id).length,
       monitorCount: monitors.filter((monitor) => monitor.projectId === project.id).length,
       observedServiceCount: observedServices.filter((service) => service.projectId === project.id).length,
       infrastructureResourceCount: infrastructureResources.filter((resource) => resource.projectId === project.id).length,
     })) as T;
   }
+  if (endpoint === '/servers') return scenarioServers(scenario).map(server => ({ ...server })) as T;
+  const serverDetailMatch = endpoint.match(/^\/servers\/([^/?]+)$/);
+  if (serverDetailMatch) return { ...(scenarioServers(scenario).find(server => server.id === serverDetailMatch[1]) ?? serverNotFound()) } as T;
   if (endpoint === '/infrastructure-resources') {
     const agentResources: InfrastructureResource[] = scenarioAgents(scenario)
       .filter(agent => agent.version && agent.profile?.capabilities.includes('infrastructure'))
@@ -1584,25 +1762,32 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   }
   if (endpoint === '/services?type=http,tcp') return scenarioMonitors(scenario) as T;
   if (endpoint === '/services?type=http,tcp&include=checks') return scenarioMonitors(scenario).map(monitor => {
-    const data = monitorData.get(monitor.id);
-    return { ...monitor, recentChecks: data?.metrics.slice(0, 10) ?? [],
-      activeIncident: monitor.isActive && monitor.status === 'unhealthy' ? data?.incidents.find(incident => incident.active) : undefined };
+    const activeIncident = monitor.isActive && monitor.status === 'unhealthy' ? monitorIncidents(monitor).find(incident => incident.active) : undefined;
+    return { ...monitor, recentChecks: monitorChecks(monitor.id, scenario).slice(0, 10), activeIncident };
   }) as T;
-  if (endpoint === '/logs/summary') return mockLogSummary(scenario) as T;
-  if (endpoint.startsWith('/logs/patterns')) return mockLogPatterns(scenario, new URLSearchParams(endpoint.split('?')[1]).get('agentId') ?? '') as T;
+  if (/^\/logs\/summary(?:\?|$)/.test(endpoint)) return mockLogSummary(scenario, new URLSearchParams(endpoint.split('?')[1]).get('serverId') ?? '') as T;
+  if (/^\/logs\/patterns(?:\?|$)/.test(endpoint)) {
+    const query = new URLSearchParams(endpoint.split('?')[1]);
+    return mockLogPatterns(scenario, query.get('agentId') ?? '', query.get('serverId') ?? '') as T;
+  }
   const uptimeDataMatch = endpoint.match(/^\/services\/([^/]+)\/(metrics\/summary|metrics\/history|metrics|uptime|failures|incidents)(?:\?|$)/);
   if (uptimeDataMatch) {
     const data = monitorData.get(uptimeDataMatch[1]);
     const part = uptimeDataMatch[2];
-    if (part === 'metrics/summary') return (data?.metrics.length ? data.summary : null) as T;
-    if (part === 'metrics/history') return mockUptimeBuckets(new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '24h', data?.metrics ?? []) as T;
-    if (part === 'metrics') return (data?.metrics ?? []).slice(0, Number(new URLSearchParams(endpoint.split('?')[1]).get('limit') ?? 100)) as T;
+    const checks = monitorChecks(uptimeDataMatch[1], scenario);
+    if (part === 'metrics/summary') return (!checks.length ? null : outageApplies(uptimeDataMatch[1], scenario) ? summarizeChecks(uptimeDataMatch[1], checks) : data?.summary) as T;
+    if (part === 'metrics/history') return mockUptimeBuckets(new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '24h', checks) as T;
+    if (part === 'metrics') return checks.slice(0, Number(new URLSearchParams(endpoint.split('?')[1]).get('limit') ?? 100)) as T;
     if (part === 'uptime') return (data?.history ?? { percentage: 100, days: [] }) as T;
     if (part === 'failures') return (data?.failures ?? []) as T;
-    return (data?.incidents ?? []) as T;
+    const monitor = scenarioMonitors(scenario).find(({ id }) => id === uptimeDataMatch[1]);
+    return (monitor ? monitorIncidents(monitor) : data?.incidents ?? []) as T;
   }
   const uptimeDetailMatch = endpoint.match(/^\/services\/([^/?]+)$/);
-  if (uptimeDetailMatch) return (mockUptimeMonitors.find(({ id }) => id === uptimeDetailMatch[1]) ?? null) as T;
+  if (uptimeDetailMatch) {
+    const monitor = mockUptimeMonitors.find(({ id }) => id === uptimeDetailMatch[1]);
+    return (scenarioMonitors(scenario).find(({ id }) => id === uptimeDetailMatch[1]) ?? (monitor ? withGroup(monitor) : null)) as T;
+  }
   const traceMatch = endpoint.match(/^\/traces\/([^/?]+)/);
   if (traceMatch) {
     const traceId = decodeURIComponent(traceMatch[1]);

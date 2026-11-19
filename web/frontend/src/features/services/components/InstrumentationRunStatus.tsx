@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import type { InstrumentationRun } from '../instrumentationApi';
 import { useSetupStatus } from '../useSetupStatus';
+import { formatFullDateTime } from '../../../utils/incidentFormat';
 
 const statuses: Record<InstrumentationRun['status'], string> = { planned: '서버에서 명령 실행 대기', applying: '설정 적용 및 검증 중', verified: '설정 적용 검증 완료', failed: '적용 전 검사 실패', rolled_back: '이전 설정으로 복구됨', rollback_failed: '복구 실패, 서버 확인 필요' };
 const reasons: Record<string, string> = { preflight_failed: 'Compose 경로·프로젝트·실행 상태를 확인하세요.', restart_failed: '서비스 재시작에 실패했습니다.', verification_failed: '컨테이너 상태·상세 수집 옵션·볼륨·네트워크 검사에 실패했습니다.', manual_rollback: '수동 복구 명령이 실행됐습니다.' };
@@ -24,7 +25,7 @@ export function InstrumentationRunStatus({ agentId, runId }: { agentId: string; 
     <h4 className="type-label text-text-base">{runId ? '상세 수집 적용 결과' : '최근 상세 수집 적용 기록'}</h4>
     {error ? <p role="alert" className="type-body text-status-warn">{error}</p> : run && <>
       <p className="type-body text-text-secondary">{run.project} · {run.targets.map(target => target.name).join(', ')}</p>
-      <Tooltip content={new Date(run.updatedAt).toLocaleString()} focusable><p className={`type-body ${failed ? 'text-status-error' : 'text-text-secondary'}`}>
+      <Tooltip content={formatFullDateTime(run.updatedAt)} focusable><p className={`type-body ${failed ? 'text-status-error' : 'text-text-secondary'}`}>
         {statuses[run.status]} · {formatDistanceToNow(new Date(run.updatedAt), { addSuffix: true, locale: ko })}
       </p></Tooltip>
       {run.reason && <p className={`type-body ${failed ? 'text-status-error' : 'text-status-warn'}`}>{reasons[run.reason] ?? run.reason}</p>}

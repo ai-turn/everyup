@@ -34,6 +34,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   INFRASTRUCTURE_PROJECT_NOT_FOUND: '인프라 리소스에 배정할 그룹을 찾을 수 없습니다.',
   HOST_EXISTS: '이미 존재하는 호스트 ID입니다.',
   SERVICE_EXISTS: '이미 존재하는 서비스 ID입니다.',
+  SERVER_NAME_TAKEN: '같은 이름의 서버가 이미 있습니다. 그룹(미분류 포함)마다 이름이 달라야 합니다.',
+  SERVER_HAS_INFRASTRUCTURE: '이 서버에는 이미 인프라 리소스가 있습니다.',
   SSRF_BLOCKED: '보안상 허용되지 않는 주소입니다.',
   NO_COLLECTOR: 'Collector가 등록되지 않았습니다.',
   COLLECT_FAILED: '시스템 정보 수집에 실패했습니다.',

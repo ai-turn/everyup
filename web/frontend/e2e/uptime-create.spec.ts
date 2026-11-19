@@ -6,8 +6,8 @@ test.use({ baseURL: 'http://127.0.0.1:4174/' });
 for (const [name, url] of [['   ', 'https://example.com'], ['Probe', 'not-a-url'], ['Probe', 'ftp://files.example.com']]) {
   test(`[06] HTTP rejects invalid name/URL ${name}:${url} before submission`, async ({ page }) => {
     const state = await uptimeFixture(page);
-    await page.goto('./uptime');
-    await page.getByRole('button', { name: '추가', exact: true }).click();
+    await page.goto('./servers/server-1/uptime');
+    await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: '업타임 추가' });
     await dialog.getByRole('textbox', { name: '이름', exact: true }).fill(name);
     await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill(url);
@@ -19,8 +19,8 @@ for (const [name, url] of [['   ', 'https://example.com'], ['Probe', 'not-a-url'
 
 test('[06] HTTP fields retain drafts through a failed save and block edits while saving', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./uptime');
-  await page.getByRole('button', { name: '추가', exact: true }).click();
+  await page.goto('./servers/server-1/uptime');
+  await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: '업타임 추가' });
   const name = dialog.getByRole('textbox', { name: '이름', exact: true });
   const url = dialog.getByRole('textbox', { name: 'URL', exact: true });
@@ -59,7 +59,9 @@ test('[06] HTTP fields retain drafts through a failed save and block edits while
     state.failures.clear();
     await save.click();
     await expect(dialog).toHaveCount(0);
-    await expect(page.getByRole('link', { name: 'HTTP Probe', exact: true })).toBeVisible();
+    // 서버 탭은 만든 모니터의 상세를 연다.
+    await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/created-2$/);
+    await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'HTTP Probe', exact: true })).toBeVisible();
     const writes = state.requests.filter((request) => request.method === 'POST');
     expect(writes).toHaveLength(2);
     expect(writes[1].body).toMatchObject({ name: 'HTTP Probe', type: 'http', url: 'https://probe.example.com/health', interval: 60, timeout: 2500 });
@@ -68,8 +70,8 @@ test('[06] HTTP fields retain drafts through a failed save and block edits while
 
 test('[06] cancelling an HTTP draft performs no write and reopens cleanly', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./uptime');
-  const add = page.getByRole('button', { name: '추가', exact: true });
+  await page.goto('./servers/server-1/uptime');
+  const add = page.getByRole('button', { name: '모니터 추가', exact: true });
   await add.click();
   const dialog = page.getByRole('dialog', { name: '업타임 추가' });
   await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('discard');
@@ -84,8 +86,8 @@ test('[06] cancelling an HTTP draft performs no write and reopens cleanly', asyn
 
 test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves TCP after failure', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./uptime');
-  await page.getByRole('button', { name: '추가', exact: true }).click();
+  await page.goto('./servers/server-1/uptime');
+  await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: '업타임 추가' });
   const type = dialog.getByRole('combobox');
   await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('TCP Probe');
@@ -123,6 +125,9 @@ test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves T
   state.failures.clear();
   await save.click();
   await expect(dialog).toHaveCount(0);
+  // 서버 탭은 만든 모니터의 상세를 연다. 목록의 표시는 목록으로 돌아가서 확인한다.
+  await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/created-2$/);
+  await page.getByRole('tabpanel').getByRole('link', { name: '모니터 목록', exact: true }).click();
   const gridRow = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row').filter({ has: page.getByRole('link', { name: 'TCP Probe', exact: true }) });
   await expect(gridRow.getByText('db.example.com:5432', { exact: true }).filter({ visible: true })).toBeVisible();
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();
@@ -130,5 +135,5 @@ test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves T
   await expect(card.getByText('db.example.com:5432', { exact: true })).toBeVisible();
   const writes = state.requests.filter((request) => request.method === 'POST');
   expect(writes).toHaveLength(2);
-  expect(writes[1].body).toEqual({ name: 'TCP Probe', type: 'tcp', host: 'db.example.com', port: 5432, interval: 5, timeout: 1000 });
+  expect(writes[1].body).toEqual({ name: 'TCP Probe', type: 'tcp', host: 'db.example.com', port: 5432, interval: 5, timeout: 1000, serverId: 'server-1' });
 });

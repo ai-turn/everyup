@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useHeaderActionSlot } from '../../contexts/BreadcrumbContext';
 import { ControlDefaultsContext } from './controlSize';
+import { Tooltip } from './Tooltip';
 
 interface PageHeaderProps {
     title: string;
@@ -14,6 +15,8 @@ interface PageHeaderProps {
     children?: React.ReactNode;
     /** 목록의 주 액션을 좁은 화면에서도 제목 옆에 둔다. */
     compactActions?: boolean;
+    /** 긴 제목을 한 줄로 말줄임한다(compactActions와 함께: 버튼이 줄어들지 않고 제목이 줄어든다). 기본은 줄바꿈. */
+    truncateTitle?: boolean;
     /**
      * 메뉴 첫 화면(DESIGN.md §3.4). 데스크톱(`lg`+)은 `AppHeader` 크럼이 이름을 이미 말하므로 h1을
      * 시각적으로만 숨기고(`lg:sr-only`), 주 액션(children)과 meta는 `AppHeader` 오른쪽으로 옮긴다 —
@@ -26,18 +29,20 @@ interface PageHeaderProps {
 const DESKTOP_HEADER = { size: 'sm', variant: 'secondary' } as const;
 const MOBILE_MENU = { variant: 'secondary' } as const;
 
-export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false, menu = false }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false, truncateTitle = false, menu = false }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
     const slot = useHeaderActionSlot();
     const headerSlot = menu && desktop ? slot : null;
     const inlineChildren = headerSlot || !children ? undefined
         : menu ? <ControlDefaultsContext.Provider value={MOBILE_MENU}>{children}</ControlDefaultsContext.Provider> : children;
-    const inlineMeta = headerSlot ? undefined : meta;
+    // meta 안의 조작(개요의 새로고침)도 children과 같이 모바일에서 테두리 버튼이 기본이다.
+    const inlineMeta = headerSlot || !meta ? undefined
+        : menu ? <ControlDefaultsContext.Provider value={MOBILE_MENU}>{meta}</ControlDefaultsContext.Provider> : meta;
 
     // h1만 남으면(sr-only) 데스크톱에서 띠의 여백·구분선을 0으로 접는다.
     // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
     const collapseOnDesktop = menu && !subtitle && !aside && !inlineChildren && !inlineMeta;
-    const titleClass = `wrap-anywhere type-page-title text-text-base ${menu ? 'lg:sr-only' : ''}`;
+    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text-base ${menu ? 'lg:sr-only' : ''}`;
 
     return (
         <>
@@ -45,7 +50,8 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
             <div className={`mb-6 border-b border-ui-border-soft pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
                 <div className="min-w-0 flex-1">
                     <div className={compactActions ? 'flex items-center justify-between gap-3' : ''}>
-                        <h1 className={titleClass}>{title}</h1>
+                        {/* 말줄임한 제목은 서버 설명처럼 공통 툴팁으로 전체를 보인다. */}
+                        {truncateTitle ? <Tooltip content={title}><h1 className={titleClass}>{title}</h1></Tooltip> : <h1 className={titleClass}>{title}</h1>}
                         {compactActions && inlineChildren && <div className="flex shrink-0 items-center gap-2">{inlineChildren}</div>}
                     </div>
                     {(subtitle || (!compactActions && inlineChildren)) && (

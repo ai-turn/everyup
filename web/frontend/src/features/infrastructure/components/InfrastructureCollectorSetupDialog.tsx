@@ -1,33 +1,39 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, Input, MaterialIcon, Select, IconButton } from '../../../components/common';
+import { Button, MaterialIcon, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
-import { api, type InfrastructureResource, type InfrastructureResourceSetup, type Project } from '../../../services/api';
+import { api, type InfrastructureResource, type InfrastructureResourceSetup } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { InfrastructureCollectorSetupResult } from './InfrastructureCollectorSetupResult';
 
 export function InfrastructureCollectorSetupDialog({
   onClose,
   onCreated,
+  onIssued,
+  serverId,
+  serverName,
 }: {
   onClose: () => void;
   onCreated: (resource: InfrastructureResource) => void;
+  /** 리소스를 만들고 키를 발급한 직후. 안내를 보고 닫기(X)로 닫아도 만든 것이 있다고 알 수 있다. */
+  onIssued?: () => void;
+  /** 리소스를 만들 서버. 그룹은 서버의 것이다. */
+  serverId: string;
+  /** 리소스는 서버마다 하나라 이름을 묻지 않고 서버 이름을 쓴다. */
+  serverName: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
-  const [name, setName] = useState('');
-  const [projectId, setProjectId] = useState('');
-  const [projects, setProjects] = useState<Project[]>([]);
   const [setup, setSetup] = useState<InfrastructureResourceSetup | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { ref.current?.showModal(); }, []);
-  useEffect(() => { api.getProjects().then(rows => setProjects(rows ?? [])).catch(() => {}); }, []);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
     try {
-      setSetup(await api.createInfrastructureResource({ name: name.trim(), projectId: projectId || undefined }));
+      setSetup(await api.createInfrastructureResource({ name: serverName, serverId }));
+      onIssued?.();
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -61,23 +67,12 @@ export function InfrastructureCollectorSetupDialog({
         <InfrastructureCollectorSetupResult setup={setup} title="Collector 연결이 준비되었습니다" onDone={done} />
       ) : (
         <form onSubmit={submit} className="space-y-5 p-6">
-          <label className="block space-y-1.5" htmlFor="collector-resource-name">
-            <span className="type-label text-text-secondary">인프라 이름</span>
-            <Input id="collector-resource-name" required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="edge-host-01" />
-          </label>
-          <label className="block space-y-1.5" htmlFor="collector-project">
-            <span className="type-label text-text-secondary">그룹</span>
-            <Select id="collector-project" value={projectId} onChange={event => setProjectId(event.target.value)}>
-              <option value="">미분류</option>
-              {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
-            </Select>
-          </label>
           <div className="rounded-md bg-ui-hover-soft p-4 text-sm text-text-muted">
             추가하면 Collector 설정 파일과 한 번만 표시되는 API Key를 발급합니다.
           </div>
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
             <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
-            <Button type="submit" disabled={!name.trim()} loading={submitting}><MaterialIcon name="add" />추가</Button>
+            <Button type="submit" loading={submitting}><MaterialIcon name="add" />추가</Button>
           </div>
         </form>
       )}

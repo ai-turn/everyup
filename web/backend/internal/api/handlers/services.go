@@ -81,7 +81,7 @@ func (h *ServiceHandler) GetAll(c *fiber.Ctx) error {
 		if service.IsActive && service.Status == models.StatusUnhealthy {
 			if incident, exists := activeIncidents[service.ID]; exists {
 				episode := uptimeEpisode(database.UptimeIncident{
-					ServiceID: service.ID, ServiceName: service.Name,
+					ServiceID: service.ID, ServiceName: service.Name, ServerID: service.ServerID,
 					Message: incident.Message, StartedAt: incident.StartedAt,
 				}, time.Now())
 				service.ActiveIncident = &episode

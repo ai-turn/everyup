@@ -3,11 +3,11 @@ import { expect, test, type Locator } from '@playwright/test';
 const menus = [
   ['projects', '그룹 그리드'],
   ['environments', 'Docker 환경 그리드'],
-  ['uptime', '업타임 그리드'],
-  ['logs', '로그 서비스 그리드'],
-  ['infrastructure', '인프라 대상 그리드'],
-  ['api', 'API 대상 그리드'],
-  ['metrics', '메트릭 서비스 그리드'],
+  // 옛 업타임 목록은 서버 업타임 탭의 모니터 목록이 대신한다(모니터가 둘인 서버).
+  ['servers/server_mock_edge_host_01/uptime', '업타임 그리드'],
+  ['logs', '앱 그리드'],
+  // 옛 인프라, API 요청, 메트릭 목록은 서버 목록이 대신한다.
+  ['servers', '서버 그리드'],
   ['agents/agent_demo_01', 'Docker 서비스 그리드'],
   ['projects/project_mock_production', '그룹 구성 그리드'],
 ] as const;

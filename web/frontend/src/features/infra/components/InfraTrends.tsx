@@ -35,11 +35,13 @@ interface InfraTrendsProps {
   onRetry?: () => void;
   /** 한 번도 수신하지 않은 호스트처럼 보여 줄 차트가 없을 때. 없으면 기본 문구. */
   empty?: ReactNode;
+  /** `인프라 추세` 제목과 기간 문구. 서버 탭은 탭 이름과 바로 위의 기간 선택이 같은 말을 하므로 끈다. */
+  showHeading?: boolean;
 }
 
 const RANGE_MS: Record<GlobalTimeRange, number> = { '1h': 3_600_000, '6h': 21_600_000, '24h': 86_400_000 };
 
-export function InfraTrends({ hostId, charts, loading, range, error, onRetry, empty }: InfraTrendsProps) {
+export function InfraTrends({ hostId, charts, loading, range, error, onRetry, empty, showHeading = true }: InfraTrendsProps) {
   // Charts share a crosshair (syncId); only the hovered one shows its tooltip box.
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -60,7 +62,7 @@ export function InfraTrends({ hostId, charts, loading, range, error, onRetry, em
 
   return (
     <>
-      <div className="mb-4 flex items-start justify-between gap-4">
+      {showHeading && <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h2 className="type-section-title tracking-tight text-text-base">
             인프라 추세
@@ -69,7 +71,7 @@ export function InfraTrends({ hostId, charts, loading, range, error, onRetry, em
             {rangeLabel[range]}
           </p>
         </div>
-      </div>
+      </div>}
 
       {loading ? (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

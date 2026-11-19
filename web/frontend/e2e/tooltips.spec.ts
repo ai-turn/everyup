@@ -88,7 +88,8 @@ test.describe('shared tooltip interactions', () => {
 });
 
 test('application hint controls no longer render browser title attributes', async ({ page }) => {
-  for (const route of ['api', 'api/observed_mock_orders', 'uptime', 'logs', 'alerts', 'metrics', 'settings']) {
+  // 옛 API 요청, 메트릭 화면은 서버 목록과 서버 상세의 탭이 대신한다(서버는 src/mocks/SCENARIOS.md).
+  for (const route of ['servers', 'servers/server_mock_edge_host_01/api', 'servers/server_mock_edge_host_01/uptime', 'logs', 'alerts', 'servers/server_mock_db_primary_01/metrics', 'settings']) {
     await page.goto(`./${route}`);
     await expect(page.locator('h1').first()).toBeVisible();
     await expect(page.locator('[title]')).toHaveCount(0);

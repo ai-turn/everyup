@@ -28,6 +28,8 @@ interface UptimeOverviewProps {
   onSelectDate?: (date: string | null) => void;
   /** 띠 아래 같은 카드에 붙는 내용 — 모니터 상세의 장애 이력. */
   children?: ReactNode;
+  /** 화면 낭독기용 제목의 단계. 상세 패널처럼 h2 아래에 놓이면 h3를 넘긴다. */
+  headingLevel?: 'h2' | 'h3';
 }
 
 /** 큰 수치 한 줄. 모니터 상세는 이것만 따로 맨 위 카드에 두고, 띠는 아래로 내린다. */
@@ -44,7 +46,7 @@ export function UptimeStats({ stats }: { stats: UptimeOverviewStat[] }) {
   );
 }
 
-export function UptimeOverview({ stats, days, historyUptime, loading = false, error, className = '', selectedDate = null, onSelectDate, children }: UptimeOverviewProps) {
+export function UptimeOverview({ stats, days, historyUptime, loading = false, error, className = '', selectedDate = null, onSelectDate, children, headingLevel: Heading = 'h2' }: UptimeOverviewProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const slots = useMemo(() => {
     const today = new Date();
@@ -85,7 +87,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
   // Datadog-style header: the numbers read first, large, with no title above them.
   return (
     <section className={className}>
-      <h2 className="sr-only">업타임 현황</h2>
+      <Heading className="sr-only">업타임 현황</Heading>
       {stats.length > 0 && <UptimeStats stats={stats} />}
 
       <div className={`${stats.length > 0 ? 'mt-6' : ''} mb-2 flex flex-wrap justify-between gap-3 type-caption text-text-muted`}>

@@ -26,7 +26,7 @@ test('[01 audit] Docker environment states paused, unseen and delayed snapshots 
 test('Uptime lists independent monitors only (ADR 0007)', async ({ page }) => {
   const state = await uptimeFixture(page);
   state.services = [dockerService(), dockerService({ key: 'worker', name: 'Liveness worker', checkType: 'docker', endpoint: '' })];
-  await page.goto('./uptime');
+  await page.goto('./servers/server-1/uptime');
   const rows = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row');
 
   await expect(rows.filter({ hasText: 'Public API' }).getByRole('cell', { name: 'HTTP', exact: true })).toBeVisible();
@@ -37,10 +37,10 @@ test('Uptime lists independent monitors only (ADR 0007)', async ({ page }) => {
   await expect(page.getByRole('combobox', { name: '검사 출처' })).toHaveCount(0);
 });
 
-test('empty Uptime points Docker users to their Docker environment', async ({ page }) => {
+test('an empty server uptime tab shows its add prompt and the sidebar still reaches Docker environments', async ({ page }) => {
   const state = await uptimeFixture(page); state.monitors = [];
-  await page.goto('./uptime');
-  await expect(page.getByRole('heading', { name: '표시할 업타임 대상이 없습니다' })).toBeVisible();
+  await page.goto('./servers/server-1/uptime');
+  await expect(page.getByRole('heading', { name: '이 서버의 업타임 모니터를 추가하세요' })).toBeVisible();
   await page.getByRole('link', { name: 'Docker 환경', exact: true }).last().click();
   await expect(page).toHaveURL(/\/environments$/);
 });
@@ -51,7 +51,7 @@ test('Uptime list shows 24h uptime and average response, and 0% is not "no data"
     monitor('http-monitor', { uptime: 99.5, responseTime: 1200, latencyHistory: [1100, 1200, 1300] }),
     monitor('down-monitor', { name: 'Down API', status: 'unhealthy', uptime: 0 }),
   ];
-  await page.goto('./uptime');
+  await page.goto('./servers/server-1/uptime');
   const rows = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row');
   await expect(rows.filter({ hasText: 'Public API' })).toContainText('99.50%');
   await expect(rows.filter({ hasText: 'Public API' })).toContainText('1,200ms');
