@@ -1,7 +1,7 @@
 import { Tooltip } from '../../components/common/Tooltip';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader } from '../../components/common';
+import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader, RefreshIconButton } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
@@ -246,9 +246,7 @@ export function OverviewPage() {
             <span className="type-caption text-text-muted">
               {formatClock(updatedAt, true)} 갱신 · 30초마다 자동 갱신
             </span>
-            <Button collapseLabel onClick={handleRefresh}>
-              <MaterialIcon size={20} name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
-            </Button>
+            <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
           </div>
         )}
       />
