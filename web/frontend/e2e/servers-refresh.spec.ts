@@ -60,6 +60,8 @@ async function mockServer(page: Page, options: {
       : path === '/infrastructure-resources' ? (state.infrastructure ? [state.infrastructure] : [])
         : path === '/infrastructure-resources/r1' || path === '/infrastructure-resources/r1/revoke-key' ? state.infrastructure
           : path === '/observed-services/a1/revoke-key' ? state.app
+          : path === '/observed-services/a1/rotate-key' ? { ...state.app, apiKey: 'evup_rotated_app_key' }
+          : path === '/infrastructure-resources/r1/rotate-key' ? { ...state.infrastructure, apiKey: 'evup_rotated_infra_key' }
             : path.endsWith('/request-stats') ? { buckets: [], truncated: false }
               : path.endsWith('/request-endpoints') ? { endpoints: [], truncated: false }
                 : path.endsWith('/request-status-summary') ? { count2xx: 0, count3xx: 0, count4xx: 0, count5xx: 0, countOther: 0 }
@@ -567,4 +569,36 @@ test.describe('with an English browser', () => {
     await expect(log).toContainText('15:21:53');
     await expect(log).not.toContainText(twelveHour);
   });
+});
+
+test('a rotated key stays on screen through a reload of the server data until closed', async ({ page }) => {
+  const state = await mockServer(page, { infrastructure: true });
+  for (const [path, key] of [['./servers/s1/logs/a1', 'evup_rotated_app_key'], ['./servers/s1/infrastructure', 'evup_rotated_infra_key']] as const) {
+    await page.goto(path);
+    await panel(page).locator('summary', { hasText: '연결 정보' }).click();
+    await panel(page).getByRole('button', { name: '키 재발급' }).click();
+    await page.getByRole('dialog', { name: 'API Key를 재발급할까요?' }).getByRole('button', { name: '재발급', exact: true }).click();
+    const shown = page.getByRole('dialog', { name: 'API Key 재발급' });
+    await expect(shown.getByText(key, { exact: true })).toBeVisible();
+    // 화면이 다시 보이면 서버 데이터를 다시 불러온다. 한 번만 보이는 키는 그대로 남는다.
+    const reads = state.serverReads();
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect.poll(state.serverReads).toBeGreaterThan(reads);
+    await expect(refresh(page)).toBeEnabled();
+    await expect(shown.getByText(key, { exact: true })).toBeVisible();
+    await shown.getByRole('button', { name: '닫기' }).first().click();
+    await expect(shown).toHaveCount(0);
+  }
+});
+
+test('the header refresh reloads the open infrastructure trends and app logs', async ({ page }) => {
+  const state = await mockServer(page, { infrastructure: true });
+  for (const [path, panelRequest] of [['./servers/s1/infrastructure', '/hosts/r1/system/metrics'], ['./servers/s1/logs/a1', '/observed-services/a1/logs']] as const) {
+    await page.goto(path);
+    await expect.poll(state.count(panelRequest)).toBeGreaterThan(0);
+    await expect(refresh(page)).toBeEnabled();
+    const before = state.count(panelRequest)();
+    await refresh(page).click();
+    await expect.poll(state.count(panelRequest)).toBe(before + 1);
+  }
 });

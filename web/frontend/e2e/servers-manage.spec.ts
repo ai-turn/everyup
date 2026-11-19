@@ -188,3 +188,44 @@ test('a server whose target lists failed is not called empty when deleting', asy
   await expect(confirm).toContainText('대상 목록을 불러오지 못해 함께 삭제될 대상을 확인하지 못했습니다.');
   await expect(confirm).not.toContainText('연결된 대상이 없습니다');
 });
+
+test.describe('against the API', () => {
+  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 } });
+
+  test('a merge that stops on the second server says how far it got and retries only the rest', async ({ page }) => {
+    const at = '2026-11-01T00:00:00Z';
+    let servers = ['web-01', 'api-02', 'api-03', 'api-04'].map((name, index) => ({ id: `s${index + 1}`, name, createdAt: at, updatedAt: at }));
+    const merges: string[] = [];
+    let failOn: string | null = 's3';
+    await page.route('**/api/v1/**', async (route) => {
+      const request = route.request();
+      const path = new URL(request.url()).pathname.replace('/api/v1', '');
+      const merge = path.match(/^\/servers\/([^/]+)\/merge$/);
+      if (request.method() === 'POST' && merge) {
+        merges.push(merge[1]);
+        if (merge[1] === failOn) {
+          await route.fulfill({ status: 500, json: { success: false, error: { code: 'DATABASE_ERROR', message: 'Fixture request failed' } } });
+          return;
+        }
+        servers = servers.filter((server) => server.id !== merge[1]);
+        await route.fulfill({ json: { success: true, data: servers[0] } });
+        return;
+      }
+      await route.fulfill({ json: { success: true, data: path === '/servers' ? servers : [] } });
+    });
+    await page.goto('./servers/s1');
+    const merge = await openMerge(page);
+    for (const name of ['api-02', 'api-03', 'api-04']) await merge.getByRole('checkbox', { name: new RegExp(`^${name}`) }).check();
+    await merge.getByRole('button', { name: '합치기' }).click();
+    await expect(merge.getByRole('alert')).toContainText('서버 1개를 합친 뒤 api-03에서 멈췄습니다.');
+    // 합쳐진 서버는 다시 불러온 목록에서도, 선택에서도 빠진다.
+    await expect(merge.getByRole('checkbox', { name: /^api-02/ })).toHaveCount(0);
+    await expect(merge).toContainText('선택한 서버 2개는 삭제됩니다.');
+    expect(merges).toEqual(['s2', 's3']);
+
+    failOn = null;
+    await merge.getByRole('button', { name: '합치기' }).click();
+    await expect(merge).toBeHidden();
+    expect(merges).toEqual(['s2', 's3', 's3', 's4']);
+  });
+});
