@@ -2,14 +2,11 @@ import type { ReactNode } from 'react';
 import { Button, EmptyState, Pagination } from '../../components/common';
 import type { ApiRequest } from '../../services/api';
 import { statusClass } from './useRequestQuery';
-
-function requestTime(time: string) {
-  return new Date(time).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-}
+import { formatDateTime } from '../../utils/incidentFormat';
 
 function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSelect: (traceId: string) => void }) {
   const traceId = req.traceId;
-  const time = requestTime(req.createdAt);
+  const time = formatDateTime(req.createdAt);
   const duration = req.durationMs > 0 ? `${req.durationMs.toLocaleString()}ms` : null;
   return <tr className="transition-colors hover:bg-ui-hover-soft">
     <td className="min-w-0 px-4 py-2">

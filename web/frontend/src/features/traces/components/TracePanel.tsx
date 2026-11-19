@@ -10,6 +10,7 @@ import { LEVEL_BASE, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import { statusClass } from '../../api-requests/useRequestQuery';
 import { spanKindBadge } from '../spanKind';
 import { serverPath } from '../../servers/serverPaths';
+import { formatClock } from '../../../utils/incidentFormat';
 
 interface TracePanelProps {
   traceId: string;
@@ -36,10 +37,6 @@ function formatDuration(ms: number): string {
   if (ms < 1) return '<1ms';
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(2)}s`;
-}
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', { hour12: false });
 }
 
 function statusBadge(code: string | undefined): string {
@@ -704,7 +701,7 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
               {log.level}
             </span>
             <span className="text-text-muted shrink-0 mt-0.5">
-              {formatTime(log.createdAt)}
+              {formatClock(log.createdAt, true)}
             </span>
             <span className="text-text-secondary break-all flex-1 min-w-0">
               {log.message}

@@ -7,7 +7,7 @@ import {
   niceTicks, thresholdLines, timeXAxisProps, tooltipCursor, useChartTheme, yAxisProps,
 } from '../../../components/charts';
 import { Tooltip as HintTooltip } from '../../../components/common/Tooltip';
-import { formatDuration } from '../../../utils/incidentFormat';
+import { formatDateTime, formatDuration } from '../../../utils/incidentFormat';
 
 export interface ResponseSlot {
   t: number;
@@ -150,8 +150,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
     .filter((event) => point.t <= event.to && point.end > event.from && event.message).map((event) => event.message))];
   const missing = points.some((point, index) => point.missing && index > 0 && index < points.length - 1);
   const timezone = new Intl.DateTimeFormat('ko-KR', { timeZoneName: 'short' }).formatToParts(window[1]).find((part) => part.type === 'timeZoneName')?.value;
-  const dateTime = (t: number) => new Date(t).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
-  const at = (t: number) => new Date(t).toDateString() === new Date(window[1]).toDateString() ? formatTimeTick(t) : dateTime(t);
+  const at = (t: number) => new Date(t).toDateString() === new Date(window[1]).toDateString() ? formatTimeTick(t) : formatDateTime(t);
 
   return (
     <ChartCard as={headingLevel} title="응답 시간" unit={caption} right={controls}>
@@ -201,7 +200,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
               {failureBuckets.length > 0 && <span className="inline-flex items-center gap-1.5"><span className="h-3 border-l border-dashed border-status-error" />단발 실패</span>}
               {missing && <span>빈 구간은 수집 데이터 없음</span>}
             </div>
-            <span className="tabular-nums">{dateTime(window[0])} ~ {dateTime(window[1])} · {timezone}</span>
+            <span className="tabular-nums">{formatDateTime(window[0])} ~ {formatDateTime(window[1])} · {timezone}</span>
           </div>
           {events.length > 0 && (
             <div className="mt-6">

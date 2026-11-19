@@ -6,6 +6,7 @@ import { TracePanel } from '../../traces/components/TracePanel';
 import { spanKindBadge } from '../../traces/spanKind';
 import { LEVEL_CHIP } from '../logLevelStyle';
 import { useRequestQuery, useRequestWindow, type RequestWindow } from '../../api-requests/useRequestQuery';
+import { formatDateTime } from '../../../utils/incidentFormat';
 
 interface SharedProps {
   refreshKey: number;
@@ -37,12 +38,6 @@ function formatDuration(ms: number): string {
   if (ms < 1) return '<1ms';
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(2)}s`;
-}
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleString('ko-KR', {
-    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
-  });
 }
 
 function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindow }: SharedProps & { source: TraceSource }) {
@@ -159,7 +154,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
                       <span className="sm:hidden">{trace.kind}</span>
                       <span className="sm:hidden">{formatDuration(trace.durationMs)}</span>
                       <span className="sm:hidden">Span {trace.spanCount}</span>
-                      <span>{formatTime(trace.startTime)}</span>
+                      <span>{formatDateTime(trace.startTime)}</span>
                     </div>
                   </td>
                   <td className="hidden px-4 py-2.5 sm:table-cell">
@@ -167,7 +162,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
                   </td>
                   <td className="hidden px-4 py-2.5 text-right text-xs tabular-nums text-text-secondary sm:table-cell">{formatDuration(trace.durationMs)}</td>
                   <td className="hidden px-4 py-2.5 text-right text-xs tabular-nums text-text-muted sm:table-cell">{trace.spanCount}</td>
-                  <td className="hidden whitespace-nowrap px-4 py-2.5 text-right text-xs tabular-nums text-text-dim lg:table-cell">{formatTime(trace.startTime)}</td>
+                  <td className="hidden whitespace-nowrap px-4 py-2.5 text-right text-xs tabular-nums text-text-dim lg:table-cell">{formatDateTime(trace.startTime)}</td>
                 </tr>
               ))}
             </tbody>

@@ -13,6 +13,7 @@ import { api, type LogEntry, type LogHistogramBucket, type LogLevel } from '../.
 import { getErrorMessage } from '../../../utils/errors';
 import { TracePanel } from '../../traces/components/TracePanel';
 import { LEVEL_BASE, LEVEL_TEXT } from '../logLevelStyle';
+import { formatDateTime } from '../../../utils/incidentFormat';
 
 interface BaseProps {
   refreshKey: number;
@@ -172,14 +173,6 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
   );
 }
 
-// ko-KR fixed like the chart axes — the browser locale made rows and axes disagree.
-function formatTime(ts: string) {
-  return new Date(ts).toLocaleString('ko-KR', {
-    month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
-  });
-}
-
 // Scalar entries of one metadata section. Nested values stay in the raw JSON —
 // only a scalar makes sense as an exact-match filter or a key=value line.
 function scalarEntries(log: LogEntry, section: 'attributes' | 'resource'): [string, string][] {
@@ -210,7 +203,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
     >
       {/* Time leads so the list scans in time order; on phones it takes its own line. */}
       <div className="flex flex-wrap items-start gap-x-3 gap-y-1 sm:flex-nowrap">
-        <time dateTime={log.createdAt} className="mt-0.5 w-full shrink-0 text-xs tabular-nums text-text-dim sm:w-auto">{formatTime(log.createdAt)}</time>
+        <time dateTime={log.createdAt} className="mt-0.5 w-full shrink-0 text-xs tabular-nums text-text-dim sm:w-auto">{formatDateTime(log.createdAt)}</time>
         <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
           {log.level}
         </span>

@@ -13,6 +13,7 @@ import { TimeRangePicker } from '../../../components/common/TimeRangePicker';
 import { LoadErrorBanner } from '../../../components/common';
 import { getErrorMessage } from '../../../utils/errors';
 import { useRequestWindow, type RequestWindow, type StatusClass } from '../../api-requests/useRequestQuery';
+import { formatClock } from '../../../utils/incidentFormat';
 
 type TimeRange = '1h' | '6h' | '24h';
 // Bucket width per range keeps ~30-60 points on the chart.
@@ -308,7 +309,7 @@ function ServiceRequestTrends({
                 {tile.value}
                 <span className="ml-0.5 type-caption text-text-dim">{tile.unit}</span>
               </span>
-              {tile.id === 'latency' && latestPoint && <span className="type-caption text-text-muted">{new Date(latestPoint.t).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}~{new Date(Math.min(latestPoint.t + bucketMs, timeWindow[1])).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>}
+              {tile.id === 'latency' && latestPoint && <span className="type-caption text-text-muted">{formatClock(latestPoint.t)}~{formatClock(Math.min(latestPoint.t + bucketMs, timeWindow[1]))}</span>}
             </button>
           );
         })}
@@ -380,7 +381,7 @@ function deployFooter(row: ChartPoint | undefined, deploys: AgentEvent[], bucket
   });
   if (hits.length === 0) return null;
   return hits.map((d) => {
-    const at = new Date(d.time).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const at = formatClock(d.time);
     const previous = typeof d.metadata?.previousImage === 'string' ? d.metadata.previousImage : '';
     // Same image ref = recreated on the same tag or restarted by hand.
     const what = previous && previous !== d.message ? `배포 ${previous} → ${d.message}` : `재시작 ${d.message ?? ''}`;

@@ -540,3 +540,31 @@ test('only the screens that show error log counts ask for the log summary', asyn
   await expect(page.getByRole('table', { name: '서버 그리드' })).toBeVisible();
   await expect.poll(summaries).toBe(1);
 });
+
+test.describe('with an English browser', () => {
+  test.use({ locale: 'en-US' });
+
+  test('trace and log times use the 24-hour clock of the rest of the screen', async ({ page }) => {
+    await mockServer(page);
+    const afternoon = new Date();
+    afternoon.setHours(15, 21, 53, 0);
+    const startTime = afternoon.toISOString();
+    // mockServer보다 나중에 건 가로채기가 먼저 걸린다.
+    await page.route('**/api/v1/observed-services/a1/traces*', (route) => route.fulfill({ json: { success: true, data: [
+      { traceId: 't1', name: 'GET /orders', kind: 'SERVER', startTime, durationMs: 12, spanCount: 1, errorCount: 0 },
+    ] } }));
+    await page.route('**/api/v1/observed-services/a1/logs*', (route) => route.fulfill({ json: { success: true, data: {
+      data: [{ id: 1, serviceId: 'a1', level: 'error', message: 'order failed', createdAt: startTime }], total: 1,
+    } } }));
+    const twelveHour = /AM|PM|오전|오후/;
+    await page.goto('./servers/s1/api?tab=traces');
+    const trace = panel(page).getByRole('button', { name: /GET \/orders/ }).or(panel(page).getByRole('row', { name: /GET \/orders/ })).first();
+    await expect(trace).toBeVisible();
+    await expect(trace).toContainText('15:21:53');
+    await expect(trace).not.toContainText(twelveHour);
+    await page.goto('./servers/s1/logs/a1');
+    const log = panel(page).locator('div', { has: page.getByText('order failed', { exact: true }) }).last().locator('time');
+    await expect(log).toContainText('15:21:53');
+    await expect(log).not.toContainText(twelveHour);
+  });
+});
