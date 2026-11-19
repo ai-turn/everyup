@@ -10,20 +10,28 @@ import { partialFailureMessage, useServers } from '../../features/servers/useSer
 import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRefreshControls';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
-import { api, type Project } from '../../services/api';
+import { api, type ObservedServiceMetricName, type Project } from '../../services/api';
+import { metricTitle } from '../../features/metrics/metricPresentation';
 
 const STATUS_FILTERS: StatusTone[] = ['error', 'warn', 'idle', 'healthy'];
 const parseStatus = (value: string | null) => STATUS_FILTERS.find((status) => status === value) ?? null;
 const NO_GROUP = 'none';
 
 // 서버 이름이 아니라 소속 대상이 일치하면 그 대상의 이름을 돌려준다. 서버 이름이 일치하면 빈 배열.
-function matchTargets(row: ServerRow, query: string): string[] | null {
+// 옛 메트릭 목록처럼 지표 이름으로도 찾는다. 일치한 지표는 "앱 이름 지표 이름"으로 보인다.
+function matchTargets(row: ServerRow, query: string, catalog: ObservedServiceMetricName[]): string[] | null {
   if (!query || row.server.name.toLowerCase().includes(query)) return [];
   const { monitors, apps, infrastructure } = row.targets;
+  const metrics = catalog.flatMap((metric) => {
+    const app = apps.find((candidate) => candidate.id === metric.serviceId);
+    const title = metricTitle(metric);
+    return app && (metric.metricName.toLowerCase().includes(query) || title.toLowerCase().includes(query)) ? [`${app.name} ${title}`] : [];
+  });
   const names = [
     ...monitors.filter((monitor) => monitor.name.toLowerCase().includes(query) || monitor.url.toLowerCase().includes(query)).map((monitor) => monitor.name),
     ...apps.filter((app) => app.name.toLowerCase().includes(query)).map((app) => app.name),
     ...(infrastructure?.name.toLowerCase().includes(query) ? [infrastructure.name] : []),
+    ...new Set(metrics),
   ];
   return names.length ? names : null;
 }
@@ -63,7 +71,7 @@ export function ServersPage() {
   const search = query.trim().toLowerCase();
   const status = parseStatus(params.get('status'));
   const requestedGroup = params.get('group');
-  const { rows, loading, loaded, error, failed, updatedAt, reload, poll, refresh: joinRefresh } = useServers();
+  const { rows, loading, loaded, error, failed, metricCatalog, updatedAt, reload, poll, refresh: joinRefresh } = useServers();
   // 그룹 이름과 Docker 환경 안내는 보조 정보다. 실패해도 목록은 그린다.
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [hasDockerEnvironments, setHasDockerEnvironments] = useState(false);
@@ -106,13 +114,13 @@ export function ServersPage() {
     const list = rows.filter((row) => {
       if (status && row.state !== status) return false;
       if (group && (group === NO_GROUP ? Boolean(row.server.projectId) : row.server.projectId !== group)) return false;
-      const matched = matchTargets(row, search);
+      const matched = matchTargets(row, search, metricCatalog);
       if (matched === null) return false;
       found.set(row.server.id, matched);
       return true;
     });
     return { visible: list, matches: found };
-  }, [rows, status, group, search]);
+  }, [rows, status, group, search, metricCatalog]);
   const counts = Object.fromEntries(STATUS_FILTERS.map((key) => [key, rows.filter((row) => row.state === key).length])) as Record<StatusTone, number>;
   const hasRows = rows.length > 0;
 

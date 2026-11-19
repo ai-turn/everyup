@@ -152,3 +152,21 @@ test('an app with a metric over its threshold makes its server need attention an
   await expect(page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByRole('link', { name: 'billing-api 임계값 초과 응답 시간' }))
     .toHaveAttribute('href', /\/servers\/metrics\/metrics\/m-app$/);
 });
+
+test('the server list search also finds metric names and shows the matching metric', async ({ page }) => {
+  const fresh = new Date().toISOString();
+  await page.route('**/api/v1/**', async (route) => {
+    const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+    const data = path === '/servers' ? [server('metrics', 'metrics-01'), server('quiet', 'quiet-01')]
+      : path === '/observed-services' ? [app('q-app', 'search-api', 'quiet', { signals: ['metrics'] })]
+        : path === '/observed-services/metric-catalog' ? [
+          { serviceId: 'q-app', metricName: 'jvm.memory.used', metricType: 'gauge', unit: 'By', lastAt: fresh, lastReceivedAt: fresh },
+        ] : [];
+    await route.fulfill({ json: { success: true, data } });
+  });
+  await page.goto('./servers?q=jvm.memory');
+  const rows = page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr');
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText('quiet-01');
+  await expect(rows.first()).toContainText('search-api');
+});

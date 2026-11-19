@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, type InfrastructureResource, type LogServiceSummary, type ObservedService, type UptimeMonitor } from '../../services/api';
+import { api, type InfrastructureResource, type LogServiceSummary, type ObservedService, type ObservedServiceMetricName, type UptimeMonitor } from '../../services/api';
 
 /** 이보다 빨리 끝나는 다시 불러오기는 진행 중으로 보이지 않는다(30초마다 버튼이 깜빡이지 않게). */
 const BUSY_AFTER_MS = 300;
@@ -52,6 +52,8 @@ export function useServers({ logSummary = true }: {
   error: string | null;
   /** 대상 목록 가운데 불러오지 못한 종류. 비어 있으면 전부 성공 */
   failed: FailedTargets[];
+  /** 모든 앱의 지표 목록(마지막으로 불러온 것). 서버 목록의 검색이 지표 이름도 찾는다. */
+  metricCatalog: ObservedServiceMetricName[];
   /**
    * 서버 목록과 대상 목록(모니터, 앱, 인프라)을 마지막으로 성공해서 불러온 시각. 그중 하나라도 실패하면 바뀌지 않는다.
    * 로그 요약과 메트릭 지표 목록은 이전 결과를 보여 주지 않으므로(실패하면 "불러오지 못함") 판정에서 뺀다.
@@ -78,6 +80,7 @@ export function useServers({ logSummary = true }: {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [failed, setFailed] = useState<FailedTargets[]>([]);
+  const [metricCatalog, setMetricCatalog] = useState<ObservedServiceMetricName[]>([]);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   // 자동 갱신과 새로고침이 겹치면 마지막 요청의 결과만 쓴다.
   const latest = useRef(0);
@@ -138,6 +141,7 @@ export function useServers({ logSummary = true }: {
         stale: { monitors: !fresh.monitors, apps: !fresh.apps, infrastructure: !fresh.infrastructure },
       };
       setRows(buildServerRows(lastBuild.current));
+      if (metricCatalog.status === 'fulfilled') setMetricCatalog(metricCatalog.value ?? []);
       const failures = ([[monitors, '업타임', lists.monitors], [apps, '앱', lists.apps], [infrastructure, '인프라', lists.infrastructure],
         [logSummaries, '로그 요약', null], [metricCatalog, '메트릭 임계값', null]] as const)
         .filter(([result]) => result.status === 'rejected').map(([, label, list]) => ({ label, stale: list !== null }));
@@ -173,5 +177,5 @@ export function useServers({ logSummary = true }: {
   }, []);
   const forgetTarget = forget as ForgetTarget;
 
-  return { forgetTarget, rows, loading, busy, loaded, error, failed, updatedAt, reload, poll, refresh };
+  return { forgetTarget, rows, loading, busy, loaded, error, failed, metricCatalog, updatedAt, reload, poll, refresh };
 }
