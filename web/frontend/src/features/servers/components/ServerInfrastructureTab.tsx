@@ -1,20 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, LoadErrorBanner, MaterialIcon } from '../../../components/common';
 import { api } from '../../../services/api';
 import { InfrastructurePanel } from '../../infra/components/InfrastructurePanel';
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
 import { CONNECT_LABEL, serverPath } from '../serverPaths';
 import { infrastructurePanelStatus, type ServerCapabilityTabProps } from '../serverStatus';
-import { ConnectPrompt } from './ConnectPrompt';
-import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
+import { ConnectPrompt, PanelPlaceholder } from './ConnectPrompt';
+import { MOVE_TARGET_UNCERTAIN, useLeavingTarget, useMoveTarget } from '../useMoveTarget';
 import { readLatest, TargetGoneError } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
 /** 인프라 탭: 서버마다 리소스가 하나뿐이라 없으면 연결 안내, 있으면 그 상세다. 추가할 것이 없어 탭 줄의 조작 자리는 비어 있다. */
 export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, forgetTarget }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const [adding, setAdding] = useState(false);
   // 설정 안내의 "인프라 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
@@ -22,15 +23,16 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
   const issued = useRef(false);
   const serverId = row.server.id;
   const resource = row.targets.infrastructure;
+  const { leaving, leave, mounted } = useLeavingTarget();
   const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => resource?.id === id ? resource : undefined, Boolean(unknown || stale));
   const firstScreen = serverPath(serverId, 'infrastructure');
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
 
-  // 리소스는 하나라 대상 주소가 없다.
+  // 리소스는 하나라 대상 주소가 없다. 기간(?range=) 같은 쿼리는 유지한다.
   useEffect(() => {
-    if (targetId) navigate(firstScreen, { replace: true });
-  }, [targetId, firstScreen, navigate]);
+    if (targetId) navigate(`${firstScreen}${search}`, { replace: true });
+  }, [targetId, firstScreen, search, navigate]);
 
   const openSetup = () => { created.current = false; issued.current = false; setAdding(true); };
 
@@ -41,7 +43,7 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
     await onChanged();
     setAdding(false);
     toast.success('인프라 리소스를 추가했습니다');
-    show(firstScreen);
+    if (mounted.current) show(firstScreen);
   };
   const closeSetup = () => {
     if (created.current) return;
@@ -61,22 +63,25 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
     });
     const updated = await api.updateInfrastructureResource(current.id, { name: current.name, serverId: to });
     markMoved();
+    leave();
     // 다시 불러오기가 실패해도 옮긴 리소스가 이 서버에 남지 않게 한다.
     forgetTarget?.('infrastructure', current.id, updated);
     await onChanged();
     closeMove();
     toast.success('인프라 리소스를 옮겼습니다');
-    show(serverPath(to, 'infrastructure'));
+    if (mounted.current) show(serverPath(to, 'infrastructure'));
   };
 
-  // 다시 불러오기가 실패해도 지운 리소스가 이전 목록에 남지 않게 먼저 뺀다.
+  // 다시 불러오기가 실패해도 지운 리소스가 이전 목록에 남지 않게 먼저 뺀다. 화면을 옮길 때까지 자리 표시를 둔다.
   const removed = async (id: string) => {
+    leave();
     forgetTarget?.('infrastructure', id);
     await onChanged();
-    show(firstScreen);
+    if (mounted.current) show(firstScreen);
   };
 
   const content = () => {
+    if (leaving) return <PanelPlaceholder />;
     if (unknown) return <LoadErrorBanner inline title="인프라 정보를 불러오지 못했습니다" onRetry={onRetry} />;
     if (!resource) {
       return (

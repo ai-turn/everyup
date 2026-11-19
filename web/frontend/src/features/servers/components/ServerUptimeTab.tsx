@@ -9,9 +9,9 @@ import { monitorInput } from '../../uptime/monitorInput';
 import { api, type UptimeMonitorInput } from '../../../services/api';
 import { ADD_MONITOR_STATE, CONNECT_LABEL, serverPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
-import { ConnectPrompt, TabAction } from './ConnectPrompt';
+import { ConnectPrompt, PanelPlaceholder, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
-import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
+import { MOVE_TARGET_UNCERTAIN, useLeavingTarget, useMoveTarget } from '../useMoveTarget';
 import { readLatest, TargetGoneError } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
@@ -28,6 +28,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
   }, [addRequested, location.pathname, location.search, navigate]);
   const serverId = row.server.id;
   const monitors = row.targets.monitors;
+  const { leaving, leave, mounted } = useLeavingTarget();
   const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => monitors.find((monitor) => monitor.id === id), Boolean(unknown || stale));
   const firstScreen = serverPath(serverId, 'uptime');
   // 목록에서 연 상세는 그 목록의 주소(검색어, 필터, 보기 방식)로 돌아간다.
@@ -42,7 +43,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     await onChanged();
     setAdding(false);
     toast.success('업타임 모니터를 추가했습니다');
-    show(serverPath(serverId, 'uptime', created.id));
+    if (mounted.current) show(serverPath(serverId, 'uptime', created.id));
   };
 
   const move = async (id: string, to: string) => {
@@ -56,19 +57,22 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
     });
     const updated = await api.updateUptimeMonitor(monitor.id, monitorInput(latest, { serverId: to }));
     markMoved();
+    leave();
     // 다시 불러오기가 실패해도 옮긴 모니터가 이 서버의 목록에 남지 않게 한다.
     forgetTarget?.('monitors', monitor.id, updated);
     await onChanged();
     closeMove();
     toast.success('업타임 모니터를 옮겼습니다');
-    show(serverPath(to, 'uptime', monitor.id));
+    if (mounted.current) show(serverPath(to, 'uptime', monitor.id));
   };
 
-  // 삭제 뒤의 다시 불러오기가 실패해도 지운 모니터가 이전 목록에서 다시 보이지 않게 먼저 뺀다(행은 다시 불러온 뒤에 바뀐다).
+  // 삭제 뒤의 다시 불러오기가 실패해도 지운 모니터가 이전 목록에서 다시 보이지 않게 먼저 뺀다. 행은 바로 바뀌므로
+  // 화면을 옮길 때까지 자리 표시를 둔다(leave).
   const removed = async (id: string) => {
+    leave();
     forgetTarget?.('monitors', id);
     await onChanged();
-    show(listPath);
+    if (mounted.current) show(listPath);
   };
 
   const current = targetId ? monitors.find((monitor) => monitor.id === targetId) : monitors.length === 1 ? monitors[0] : undefined;
@@ -78,6 +82,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
   const several = monitors.length > 1;
 
   const content = () => {
+    if (leaving) return <PanelPlaceholder />;
     // 이전 목록에 모니터가 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
     if (unknown || (stale && monitors.length === 0)) return <LoadErrorBanner inline title="업타임 모니터 정보를 불러오지 못했습니다" onRetry={onRetry} />;
     if (targetId && !current) {

@@ -116,7 +116,7 @@ export type {
   AppSettings,
 } from './alerts';
 export type { Project, ProjectInput } from './projects';
-export type { Server, ServerInput } from './servers';
+export type { Server, ServerInput, ServerUpdate } from './servers';
 export type {
   TelemetrySignal,
   ObservedService,

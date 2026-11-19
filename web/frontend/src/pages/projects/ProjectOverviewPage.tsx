@@ -51,6 +51,8 @@ export function ProjectOverviewPage() {
   const [deleting, setDeleting] = useState(false);
   const [deletingProject, setDeletingProject] = useState(false);
   const [adding, setAdding] = useState(false);
+  // 빼는 중인 구성원(key). 연속으로 눌러 같은 요청이 두 번 나가지 않게 그 행의 버튼을 막는다.
+  const [removing, setRemoving] = useState<ReadonlySet<string>>(new Set());
   useBreadcrumb(data.project ? [{ label: data.project.name }] : []);
 
   // background: 자동 갱신·새로고침은 화면을 유지한 채 다시 불러온다 — 매번 스켈레톤으로 바꾸면 30초마다 페이지 전체가 깜빡인다.
@@ -129,17 +131,21 @@ export function ProjectOverviewPage() {
   // 대상 화면을 그룹 안에서 연 것으로 보이게 한다(useGroupTrail). 행 클릭도 이 링크를 누른다.
   const openMember = (to: string) => openFromGroup({ id: project.id, name: project.name, path: to.split('?')[0] });
   const removeMember = async (member: Member) => {
-    if (!member.assignment) return;
+    if (!member.assignment || removing.has(member.key)) return;
+    setRemoving((current) => new Set(current).add(member.key));
     try {
       await setTargetGroup(member.assignment);
       toast.success(`그룹에서 뺐습니다: ${member.name}`);
       await reloadAll();
     } catch (requestError) { toast.error(`${member.name}: ${groupChangeFailure(requestError)}`); }
+    finally {
+      setRemoving((current) => { const next = new Set(current); next.delete(member.key); return next; });
+    }
   };
   // Docker 서비스는 Docker 환경을 따르므로 따로 뺄 수 없다.
   // ✕ 아이콘은 대상 삭제로 읽혀서 "빼기"라고 쓴다. 대상은 지워지지 않고 미분류로 돌아간다.
   const removeButton = (member: Member) => member.assignment
-    ? <Button variant="quiet" aria-label={`${member.name} 그룹에서 빼기`} onClick={() => void removeMember(member)}>빼기</Button>
+    ? <Button variant="quiet" aria-label={`${member.name} 그룹에서 빼기`} loading={removing.has(member.key)} onClick={() => void removeMember(member)}>빼기</Button>
     : null;
 
   return (

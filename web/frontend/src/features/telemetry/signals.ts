@@ -1,7 +1,7 @@
 import type { CollectionStatus } from '../../components/common';
 import type { ObservedService, SignalReceipt, TelemetrySignal } from '../../services/api';
 
-/** 화면에 쓰는 데이터 유형 이름 (DESIGN.md §9: signal → 데이터 유형). 메뉴 이름과 맞춘다. */
+/** 화면에 쓰는 데이터 유형 이름 (DESIGN.md §9: signal → 데이터 유형). 연결 버튼(로그 연결, API 연결, 메트릭 연결)과 맞춘다. */
 const SIGNAL_LABELS: Record<string, string> = { logs: '로그', traces: 'API', metrics: '메트릭' };
 
 export const signalLabel = (signal: string) => SIGNAL_LABELS[signal] ?? signal;

@@ -53,7 +53,9 @@ export function SegmentedControl<T extends string>({
       {options.map((o) => {
         const active = o.value === value;
         return (
-          <Tooltip key={o.value} content={o.icon ? o.label : o.tone === 'healthy' ? o.toneLabel : undefined}><button
+          // scroll이면 긴 이름이 잘리므로(max-w-36) 전체 이름도 툴팁에 보인다.
+          <Tooltip key={o.value} content={o.icon ? o.label
+            : [scroll ? o.label : undefined, o.tone === 'healthy' ? o.toneLabel : undefined].filter(Boolean).join(', ') || undefined}><button
             aria-label={o.icon ? o.label : undefined}
             aria-pressed={active}
             onClick={() => onChange(o.value)}

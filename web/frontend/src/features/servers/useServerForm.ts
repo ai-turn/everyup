@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import type { ServerInput } from '../../services/api';
+import type { ServerUpdate } from '../../services/api';
 import { ApiError, getErrorMessage } from '../../utils/errors';
 import { groupChangeFailure } from '../../pages/projects/projectMembers';
 
@@ -17,7 +17,7 @@ export function useServerForm(initial: ServerDraft) {
   useEffect(() => { if (nameError) nameRef.current?.focus(); }, [nameError]);
 
   // 서버 수정은 전체 교체다. 세 값을 항상 모두 보내고, 그룹이 없으면 projectId를 빼서 해제한다.
-  const submit = async (save: (input: ServerInput) => Promise<void>) => {
+  const submit = async (save: (input: ServerUpdate) => Promise<void>) => {
     setSaving(true);
     setNameError(null);
     try {

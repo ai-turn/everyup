@@ -4,7 +4,7 @@ import { getErrorMessage } from '../../utils/errors';
 import type { MetricSource } from './useMetricRead';
 
 /**
- * 서비스의 전체 메트릭 health. 직접 상세는 페이지 헤더의 수집 상태와 본문 격자가 같은 응답을 쓰도록 페이지에서 부른다.
+ * 서비스의 전체 메트릭 health. 서버 메트릭 탭은 패널(DirectMetricsPanel)이, Docker 서비스 상세는 메트릭 탭이 불러 본문 격자에 넘긴다.
  * 대상이 바뀌면 이전 대상의 응답은 돌려주지 않는다.
  */
 export function useMetricHealth(source: MetricSource, refreshKey?: number) {

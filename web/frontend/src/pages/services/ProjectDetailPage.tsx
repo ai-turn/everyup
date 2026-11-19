@@ -141,7 +141,7 @@ export function ProjectDetailPage() {
   const [events, setEvents] = useState<AgentEvent[]>([]);
   // Representative OTel metric per service name (project cards); non-critical.
   const [metrics, setMetrics] = useState<Record<string, OtelServiceMetric>>({});
-  // 로그 메뉴가 Docker 서비스를 보여 주지 않으므로(ADR 0007) 같은 24시간 요약을 여기서 그린다.
+  // 서버 화면과 전체 로그는 Docker 서비스를 보여 주지 않으므로(ADR 0011) 같은 24시간 요약을 여기서 그린다.
   const [logData, setLogData] = useState<{ summaries: LogServiceSummary[]; patterns: LogPattern[] } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -336,7 +336,7 @@ export function ProjectDetailPage() {
       )}
       </section>
 
-      {/* 인프라 메뉴는 직접 연결한 호스트만 보여 준다(ADR 0007) — 이 Collector의 호스트 지표는 여기서 본다. */}
+      {/* 서버의 인프라 탭은 직접 연결한 호스트만 보여 준다(ADR 0011). 이 Collector의 호스트 지표는 여기서 본다. */}
       {agentId && collects('infrastructure') && (
         <section>
           <h2 className="mb-3 type-section-title text-text-base">인프라</h2>

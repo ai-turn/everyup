@@ -19,6 +19,8 @@ interface DirectTelemetrySetupDialogProps {
   description: string;
   onClose: () => void;
   onCreated: (service: ObservedService) => void;
+  /** 앱을 만들었거나 신호를 더했다(결과 화면이 열렸다). 닫기만 해도 다시 불러올 것이 생겼다. */
+  onIssued?: () => void;
   /** 새 앱을 이 서버에 만들고, 기존 앱 후보를 이 서버의 앱으로 좁힌다. 그룹은 서버의 것이다. */
   serverId: string;
 }
@@ -32,6 +34,7 @@ export function DirectTelemetrySetupDialog({
   description,
   onClose,
   onCreated,
+  onIssued,
   serverId,
 }: DirectTelemetrySetupDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -81,12 +84,14 @@ export function DirectTelemetrySetupDialog({
       if (mode === 'new') {
         const service = await api.createObservedService({ name: name.trim(), serverId, signals: [signal] });
         setResult({ kind: 'issued', service });
+        onIssued?.();
       } else if (selected) {
         // 목록을 받은 뒤에 앱의 신호가 바뀌었을 수 있다. 지금의 앱에 신호를 더한다(그 사이의 연결 해제를 되돌리지 않게).
         const latest = await readLatest(() => api.getObservedService(selected.id), '연결');
         const signals = latest.signals.includes(signal) ? latest.signals : [...latest.signals, signal];
         const service = await api.updateObservedService(latest.id, { name: latest.name, serverId, signals });
         setResult({ kind: 'attached', service, signal });
+        onIssued?.();
       }
     } catch (error) {
       toast.error(getErrorMessage(error));

@@ -11,7 +11,7 @@ import { getErrorMessage } from '../../utils/errors';
 
 /**
  * 전체 로그: 여러 서버를 가로지르는 로그 요약과 반복 패턴(설계 6.6). 장애가 어느 서버에서 났는지 모를 때 본다.
- * 직접 연결한 앱만 나온다. Docker Collector의 로그는 Docker 환경에 있다(ADR 0007).
+ * 서버에 속한 앱(직접 연결)만 나온다. Docker Collector의 로그는 Docker 환경에 있다(ADR 0011).
  */
 export function LogsPage() {
   useBreadcrumb([{ label: '전체 로그' }]);

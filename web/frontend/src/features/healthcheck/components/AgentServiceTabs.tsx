@@ -56,12 +56,13 @@ function TabContent({ tab, service, agentId, serviceKey, refreshKey, range, trac
 export function AgentServiceTabs({ initialTab = 'uptime', tab, onTabChange, ...props }: ServiceTabsProps & {
   initialTab?: DetailTab;
   tab?: DetailTab;
-  onTabChange?: (tab: DetailTab) => void;
+  /** source는 키보드(화살표, Home, End)로 바꾼 경우에만 'keyboard'다. */
+  onTabChange?: (tab: DetailTab, source?: 'keyboard') => void;
 }) {
   const [uncontrolledTab, setUncontrolledTab] = useState<DetailTab>(initialTab);
   const activeTab = tab ?? uncontrolledTab;
-  const changeTab = (nextTab: DetailTab) => {
-    onTabChange?.(nextTab);
+  const changeTab = (nextTab: DetailTab, source?: 'keyboard') => {
+    onTabChange?.(nextTab, source);
     if (tab === undefined) setUncontrolledTab(nextTab);
   };
   const idPrefix = `service-${props.serviceKey}`;

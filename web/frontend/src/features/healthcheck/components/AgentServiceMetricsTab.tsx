@@ -76,7 +76,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
 
   return <div className="space-y-5">
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption text-text-muted" aria-label="메트릭 수집 현황">
-      {/* 직접 상세는 헤더가 같은 판정으로 수집 상태와 마지막 수신을 보인다. */}
+      {/* 서버 메트릭 탭은 패널의 상태 줄(DirectConnectionMeta)이 수집 상태와 마지막 수집을 보인다. 여기서는 Docker 서비스만 그린다. */}
       {showCollection && <StatusLight {...collection} />}<span>{names.length}개 지표</span>
       {showCollection && <span>마지막 수신 {receivedAt ? <time dateTime={receivedAt}>{formatDateTime(receivedAt)}</time> : '기록 없음'}</span>}
       {loading && <span role="status">상태 갱신 중…</span>}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { STATUS_DOT, type StatusTone } from './statusTone';
 import { tabId, tabPanelId } from './tabIds';
+import { Tooltip } from './Tooltip';
 
 // 패널을 바꾸는 밑줄 탭. DESIGN.md §4.6.
 
@@ -61,8 +62,8 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
       {items.map((item, index) => {
         const selected = active === item.key;
         return (
-          <button
-            key={item.key}
+          // 상태 점은 색이라 화면을 보는 사용자에게도 문구를 툴팁으로 보인다(마우스와 키보드 포커스).
+          <Tooltip key={item.key} content={item.tone ? item.toneLabel : undefined}><button
             id={tabId(idPrefix, item.key)}
             type="button"
             role="tab"
@@ -86,7 +87,7 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
                 className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[item.tone]}`}
               />
             )}
-          </button>
+          </button></Tooltip>
         );
       })}
     </div>

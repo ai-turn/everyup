@@ -12,3 +12,12 @@ export function ConnectPrompt({ title, description, children }: { title: string;
 export function TabAction({ slot, children }: { slot?: HTMLElement | null; children: ReactNode }) {
   return slot ? createPortal(children, slot) : null;
 }
+
+/** 탭 본문의 자리 표시. 다른 화면으로 옮겨 가는 중이다. */
+export function PanelPlaceholder() {
+  return (
+    <div role="status" className="h-96 animate-pulse rounded-xl bg-ui-hover-soft">
+      <span className="sr-only">로딩 중…</span>
+    </div>
+  );
+}

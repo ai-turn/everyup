@@ -11,9 +11,9 @@ import { DirectLogsPanel } from '../../telemetry/components/DirectLogsPanel';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
 import { ALL_LOGS_PATH, CONNECT_LABEL, serverPath } from '../serverPaths';
 import { appPanelStatus, capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
-import { ConnectPrompt, TabAction } from './ConnectPrompt';
+import { ConnectPrompt, PanelPlaceholder, TabAction } from './ConnectPrompt';
 import { useListReturn } from '../useListReturn';
-import { MOVE_TARGET_UNCERTAIN, useMoveTarget } from '../useMoveTarget';
+import { MOVE_TARGET_UNCERTAIN, useLeavingTarget, useMoveTarget } from '../useMoveTarget';
 import { readLatest, TargetGoneError } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 import { TabBackLink } from './TabBackLink';
@@ -25,6 +25,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
   // 설정 안내의 "로그 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
   const serverId = row.server.id;
+  const { leaving, leave, mounted } = useLeavingTarget();
   const { moving, open: startMove, close: closeMove, markMoved } = useMoveTarget((id) => row.targets.apps.find((app) => app.id === id), Boolean(unknown || stale));
   const logIds = new Set(capabilityTargets(row.targets, 'logs').map((target) => target.id));
   const apps = row.targets.apps.filter((app) => logIds.has(app.id));
@@ -35,7 +36,9 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
 
-  const openSetup = () => { created.current = false; setAdding(true); };
+  // 대화 상자가 앱을 만들었거나 신호를 더했다. 만들지 않고 닫으면 다시 불러올 것이 없다.
+  const issued = useRef(false);
+  const openSetup = () => { created.current = false; issued.current = false; setAdding(true); };
 
   // 서버 데이터를 다시 불러온 뒤에 대화 상자를 닫고 이동한다. 먼저 이동하면 새 앱이 아직 이 서버의 것으로 보이지 않는다.
   const finishCreate = async (id: string) => {
@@ -44,13 +47,13 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     await onChanged();
     setAdding(false);
     toast.success('로그를 연결했습니다');
-    show(serverPath(serverId, 'logs', id));
+    if (mounted.current) show(serverPath(serverId, 'logs', id));
   };
   const closeSetup = () => {
     if (created.current) return;
     setAdding(false);
-    // 만든 뒤 닫기(X)로 닫았을 수도 있다.
-    void onChanged();
+    // 만든 뒤 닫기(X)로 닫았으면 새 앱을 불러온다.
+    if (issued.current) void onChanged();
   };
 
   const move = async (id: string, to: string) => {
@@ -64,25 +67,29 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     });
     const updated = await api.updateObservedService(app.id, { name: latest.name, serverId: to, signals: latest.signals });
     markMoved();
+    leave();
     // 다시 불러오기가 실패해도 옮긴 앱이 이 서버의 목록에 남지 않게 한다.
     forgetTarget?.('apps', app.id, updated);
     await onChanged();
     closeMove();
     toast.success('앱을 옮겼습니다');
-    show(serverPath(to, 'logs', app.id));
+    if (mounted.current) show(serverPath(to, 'logs', app.id));
   };
 
   // 다시 불러오기가 실패해도 지운 앱(해제한 신호)이 이전 목록에 남지 않게 먼저 반영한다.
+  // 행은 바로 바뀌므로 화면을 옮길 때까지 자리 표시를 둔다(leave).
   const removed = async (id: string, remaining: ObservedService | null) => {
+    leave();
     forgetTarget?.('apps', id, remaining ?? undefined);
     await onChanged();
-    show(listPath);
+    if (mounted.current) show(listPath);
   };
 
   const label = CONNECT_LABEL.logs;
   const current = targetId ? apps.find((app) => app.id === targetId) : undefined;
 
   const content = () => {
+    if (leaving) return <PanelPlaceholder />;
     // 이전 목록에 로그 앱이 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
     if (unknown || (stale && apps.length === 0)) return <LoadErrorBanner inline title="로그 앱 정보를 불러오지 못했습니다" onRetry={onRetry} />;
     if (targetId && !current) {
@@ -120,7 +127,7 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
         <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
       )}
       {adding && <DirectTelemetrySetupDialog signal="logs" capabilityLabel="로그" title="로그 연결" description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
-        serverId={serverId} onClose={closeSetup} onCreated={(service) => void finishCreate(service.id)} />}
+        serverId={serverId} onClose={closeSetup} onIssued={() => { issued.current = true; }} onCreated={(service) => void finishCreate(service.id)} />}
       {moving && <MoveTargetDialog kind="app" targetName={moving.name} signals={moving.signals} currentServerId={serverId}
         onClose={closeMove} onMove={(to) => move(moving.id, to)} />}
     </>
@@ -159,7 +166,7 @@ function ServerLogOverview({ serverId, apps, refreshToken }: {
   if (!data) {
     if (error) return <LoadErrorBanner inline title="로그 요약을 불러오지 못했습니다" message={error} onRetry={retry} />;
     return (
-      <div role="status" aria-busy="true" className="space-y-2">
+      <div role="status" className="space-y-2">
         <span className="sr-only">로딩 중…</span>
         {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
       </div>

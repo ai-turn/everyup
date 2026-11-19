@@ -47,7 +47,7 @@ function ServerListSkeleton() {
 
 export function ServersPage() {
   const [params, setParams] = useSearchParams();
-  // 입력값은 로컬 상태가 쥔다. URL에 직접 묶으면 한글 조합 중 글자가 덮인다(AgentServiceCapabilityPage와 같은 이유).
+  // 입력값은 로컬 상태가 쥔다. URL에 직접 묶으면 한글 조합 중 글자가 덮인다.
   const [query, setQueryInput] = useState(() => params.get('q') ?? '');
   // 이 화면이 쓰는 주소 변경은 모두 replace다. 그 밖의 이동(링크, 뒤로 가기)이면 검색창이 주소의 q를 따른다.
   const location = useLocation();

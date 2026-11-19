@@ -70,7 +70,8 @@ export function useDirectServicePanel(service: ObservedService, signal: Telemetr
           setRemovalTarget(latest);
           setProcessing(false);
           toast.error('그 사이에 연결된 데이터가 바뀌었습니다. 내용을 다시 확인하세요.');
-          if (!latest.signals.includes(signal)) setConfirmAction(null);
+          // 이 신호가 이미 해제되었으면 확인할 것이 없다. openRemoval의 같은 경우처럼 다시 불러와 화면에서 뺀다.
+          if (!latest.signals.includes(signal)) { setConfirmAction(null); void onChanged?.(); }
           return;
         }
         const removal = serviceRemoval(latest, signal);

@@ -731,7 +731,7 @@ const mockUptimeMonitors: UptimeMonitor[] = [
     timeout: 5000, interval: 30, status: 'healthy', responseTime: 128,
     uptime: 99.98, latencyHistory: mockLatencyHistory(128, 24), certExpiresAt: new Date(nowAgent + 83 * 86_400_000).toISOString(), lastCheckAt: new Date(nowAgent - 18_000).toISOString(),
   },
-  // 업타임 메뉴는 직접 등록한 모니터만 보여 준다(ADR 0007) — 데모 목록이 비어 보이지 않게 둘을 더 둔다.
+  // 서버의 업타임 탭은 직접 등록한 모니터만 보여 준다(ADR 0011). 데모 목록이 비어 보이지 않게 둘을 더 둔다.
   {
     id: 'uptime_mock_checkout', name: 'Checkout API', serverId: 'server_mock_edge_host_01', type: 'http', isActive: true,
     url: 'https://checkout.example.com/healthz', method: 'GET', expectedStatus: 200,
