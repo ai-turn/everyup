@@ -54,6 +54,9 @@ export default defineConfig({
     // 링크 미리보기는 절대 URL만 받는다
     ['meta', { property: 'og:image', content: 'https://ai-turn.github.io/everyup/images/everyup-main-ko.png' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    // 모바일 브라우저 주소창 색 = 페이지 바탕(custom.css --vp-c-bg)
+    ['meta', { name: 'theme-color', content: '#ffffff', media: '(prefers-color-scheme: light)' }],
+    ['meta', { name: 'theme-color', content: '#0d1117', media: '(prefers-color-scheme: dark)' }],
     // 한국어는 어절 단위로 줄바꿈 ("모니터/링" 방지)
     ['style', {}, 'html:lang(ko) { word-break: keep-all; }'],
   ],

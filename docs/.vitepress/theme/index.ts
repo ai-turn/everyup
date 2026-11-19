@@ -4,7 +4,7 @@ import DefaultTheme from 'vitepress/theme-without-fonts'
 // 공개 API가 아니라 내부 컴포넌트다(vitepress가 ./dist/*를 export). 버전을 올릴 때 경로를 확인할 것.
 import VPNavBarMenu from 'vitepress/dist/client/theme-default/components/VPNavBarMenu.vue'
 import HomeCarousel from './HomeCarousel.vue'
-import HomeConnectionLinks from './HomeConnectionLinks.vue'
+import HomeClosing from './HomeClosing.vue'
 import Topology from './Topology.vue'
 // 코드 글꼴(custom.css의 --vp-font-family-mono). 제품과 같은 패키지이고, unicode-range라 화면에 있는 글자의 subset만 받는다.
 import '@fontsource-variable/jetbrains-mono'
@@ -17,10 +17,10 @@ export default {
       // 상단 바: 기본 DOM 순서는 검색 → 메뉴라서, 메뉴를 왼쪽에 보여 주면 키보드 순서가 화면과 어긋난다.
       // 메뉴를 검색 앞에 다시 그리고 원래 메뉴는 custom.css에서 숨긴다.
       'nav-bar-content-before': () => h(VPNavBarMenu, { class: 'menu-lead' }),
-      'home-hero-actions-after': () => h(HomeConnectionLinks),
-      // 홈: 히어로 바로 아래에 제품 화면 캐러셀, 기능 카드 아래에 구성도 (기본 레이아웃에는 이 자리가 없다)
+      // 홈: 히어로 바로 아래에 제품 화면 캐러셀, 기능 카드 아래에 구성도와 마무리 섹션 (기본 레이아웃에는 이 자리가 없다)
+      // 홈 구성도는 설명문 없이 둔다: 핵심 사실(인바운드 포트 불필요)은 히어로 부제가 말한다
       'home-hero-after': () => h(HomeCarousel),
-      'home-features-after': () => h('div', { class: 'home-topology' }, [h(Topology)]),
+      'home-features-after': () => [h('div', { class: 'home-topology' }, [h(Topology, { noCaption: true })]), h(HomeClosing)],
     }),
   // 소개 페이지 마크다운에서 <Topology />로 쓴다
   enhanceApp({ app }) {
