@@ -49,13 +49,6 @@
   --vp-code-lang-color: var(--vp-c-text-2);
   /* 흰 바탕이어야 github-light-default 토큰이 전부 4.5:1을 넘는다(주석 #6e7781 = 4.55). 경계는 아래 보더가 맡는다. */
   --vp-code-block-bg: #ffffff;
-  --home-carousel-arrow-bg: rgba(255, 255, 255, 0.94);
-  --home-carousel-arrow-hover-bg: #ffffff;
-  --home-carousel-arrow-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
-  --home-carousel-dots-bg: rgba(28, 28, 32, 0.75);
-  --home-carousel-dot-bg: rgba(255, 255, 255, 0.7);
-  --home-carousel-dot-active-bg: #ffffff;
-  --home-carousel-dot-focus: #ffffff;
 }
 
 .vp-doc div[class*='language-'] {
@@ -97,9 +90,6 @@
   --vp-c-brand-3: #3f6fdb;
   --vp-c-brand-soft: rgba(63, 111, 219, 0.16);
   --vp-button-brand-hover-bg: #355fc0;
-  --home-carousel-arrow-bg: rgba(32, 33, 39, 0.92);
-  --home-carousel-arrow-hover-bg: rgb(40, 41, 48);
-  --home-carousel-arrow-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* 라이트 테마 스크린샷이 다크 배경에서 경계 없이 뜨지 않게 */
@@ -146,9 +136,8 @@ html:not(.dark) .only-dark {
   margin-inline: auto;
   max-width: 1152px;
 }
-/* 무대: 이미지 트랙 위에 화살표(양옆 세로 가운데)와 점(아래 가운데)을 겹친다 */
+/* 무대: 스크린샷만 담는다. 조작부(.home-carousel-nav)는 그 아래 줄이다 */
 .home-carousel-stage {
-  position: relative;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px; /* 제품 rounded-xl이 상한 */
@@ -176,112 +165,55 @@ html:not(.dark) .only-dark {
   width: 100%;
   height: auto;
 }
+.home-carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.home-carousel-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+/* 화면 이름 탭. 누르는 영역은 44px (WCAG 2.5.8, 휴대폰) */
+.home-carousel-tab,
 .home-carousel-arrow {
-  position: absolute;
-  top: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 50%;
-  background-color: var(--home-carousel-arrow-bg);
-  color: var(--vp-c-text-1);
-  box-shadow: var(--home-carousel-arrow-shadow);
-  transform: translateY(-50%);
-  transition: background-color 0.2s;
-}
-.home-carousel-arrow:hover {
-  background-color: var(--home-carousel-arrow-hover-bg);
-}
-.home-carousel-arrow.is-prev {
-  left: 16px;
-}
-.home-carousel-arrow.is-next {
-  right: 16px;
-}
-.home-carousel-dots {
-  position: absolute;
-  left: 50%;
-  bottom: 14px;
-  display: flex;
-  padding: 0 6px;
-  border-radius: 999px;
-  /* 흰 슬라이드 위에서도 비활성 점이 3:1을 넘도록(WCAG 1.4.11) 알약은 0.75, 점은 0.7 */
-  background-color: var(--home-carousel-dots-bg);
-  transform: translateX(-50%);
-}
-/* 점은 8px로 보이지만 누르는 영역은 24x32px (WCAG 2.5.8: 점 사이 간격이 0이라 폭 자체가 24px 이상이어야 한다) */
-.home-carousel-dot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 32px;
-}
-.home-carousel-dot::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  background-color: var(--home-carousel-dot-bg);
-  /* 폭(width)은 레이아웃 속성이라 애니메이션하지 않고 색만 전환한다 */
-  transition: background-color 0.2s;
-}
-.home-carousel-dot[aria-current='true']::before {
-  width: 18px;
-  background-color: var(--home-carousel-dot-active-bg);
-}
-.home-carousel-dot:focus-visible {
-  outline: 2px solid var(--home-carousel-dot-focus);
-  outline-offset: -4px;
-  border-radius: 6px;
-}
-.home-carousel-bar {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 24px;
-  margin-top: 14px;
-}
-.home-carousel-caption {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.6;
+  min-height: 44px;
+  border-radius: 8px;
   color: var(--vp-c-text-2);
+  transition: color 0.2s, background-color 0.2s;
 }
-.home-carousel-caption strong {
-  margin-right: 8px;
-  font-weight: 700;
-  color: var(--vp-c-text-1);
+.home-carousel-tab {
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 500;
 }
-.home-carousel-count {
+.home-carousel-arrow {
   flex: none;
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-  color: var(--vp-c-text-2);
+  width: 44px;
 }
-.home-carousel-demo {
-  margin-top: 4px;
-  font-size: 14px;
-  color: var(--vp-c-text-2);
+.home-carousel-tab:hover,
+.home-carousel-arrow:hover {
+  color: var(--vp-c-text-1);
+  background-color: var(--vp-c-bg-soft);
+}
+.home-carousel-tab[aria-current='true'] {
+  color: var(--vp-c-text-1);
+  font-weight: 700;
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-carousel-dot::before,
+  .home-carousel-tab,
   .home-carousel-arrow {
     transition: none;
   }
 }
-/* 휴대폰 폭에서는 1440px 데스크톱 화면을 읽을 수 없다. 구성도(Topology.vue)와 히어로의 라이브 데모 버튼이 대신한다.
-   display:none이라 lazy 이미지도 받지 않는다. */
+/* 휴대폰은 밀어서 넘기고, 탭이 두 줄로 접힌다. 화살표까지 두면 탭이 세 줄이 된다 */
 @media (max-width: 639px) {
-  .home-carousel {
-    display: none;
-  }
-}
-/* 터치 기기는 밀어서 넘기고 점으로 위치를 본다. 화살표는 스크린샷 가장자리만 가린다. */
-@media (hover: none) and (pointer: coarse) {
   .home-carousel-arrow {
     display: none;
   }
@@ -319,11 +251,6 @@ html:not(.dark) .only-dark {
 .topology {
   container-type: inline-size;
   margin: 0 auto;
-}
-.home-topology figcaption {
-  max-width: 640px;
-  margin-inline: auto;
-  text-align: center;
 }
 .vp-doc .topology {
   margin: 24px 0 48px;
@@ -500,6 +427,18 @@ html:not(.dark) .only-dark {
 }
 .topology a:hover {
   color: var(--vp-c-brand-2);
+}
+/* 터치 기기: 링크 글자(18~22px 높이)는 그대로 두고 누르는 영역만 위아래로 8px씩 넓힌다.
+   ponytail: 34~38px로 WCAG 2.5.8(24px)은 넘지만 44px은 아니다. 44px은 칩 간격을 늘려야 한다. */
+@media (hover: none) and (pointer: coarse) {
+  .topology a {
+    position: relative;
+  }
+  .topology a::before {
+    content: '';
+    position: absolute;
+    inset: -8px 0;
+  }
 }
 /* 영역 사이 연결. 세로로 쌓일 때는 아래를 향한다 */
 .topology-edge {
@@ -680,8 +619,9 @@ html:not(.dark) .only-dark {
 
 /* 히어로 버튼: 터치 대상 44px (기본 40px). 굵기는 제품 Button(font-medium)과 같은 500.
    VitePress 기본 600은 Spoqa에 없어 Bold(700)로 그려지고, 흰 글자가 뭉개져 보였다.
-   모서리도 제품 Button(rounded-lg)과 같은 8px. 기본은 알약 모양(20px)이다. */
-.VPHero .VPButton.medium {
+   모서리도 제품 Button(rounded-lg)과 같은 8px. 기본은 알약 모양(20px)이다.
+   홈 마무리 섹션(HomeClosing.vue)의 시작하기 버튼도 같은 모양이다. */
+:is(.VPHero, .home-closing) .VPButton.medium {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -703,9 +643,8 @@ html:not(.dark) .only-dark {
 }
 /* 아이콘은 mask라 글자색(currentColor)이나 brand를 그대로 받는다. 언어별 페이지가 같은 링크를 쓰므로 href로 고른다.
    →는 문서 안 이동, ↗는 새 탭(VPButton이 외부 링크에 target=_blank를 붙인다) */
-.VPHero .VPButton.brand::after,
-.VPHero .VPButton[href*='/demo/']::after,
-.VPHero .VPButton[href*='github.com']::before {
+:is(.VPHero, .home-closing) .VPButton.brand::after,
+.VPHero .VPButton[href*='/demo/']::after {
   content: '';
   flex: none;
   width: 20px;
@@ -714,13 +653,12 @@ html:not(.dark) .only-dark {
   mask: var(--hero-icon) center / contain no-repeat;
   transition: transform 0.2s;
 }
-.VPHero .VPButton.brand::after {
+:is(.VPHero, .home-closing) .VPButton.brand::after {
   --hero-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z'/%3E%3C/svg%3E");
 }
-.VPHero .VPButton.brand:hover::after {
+:is(.VPHero, .home-closing) .VPButton.brand:hover::after {
   transform: translateX(3px);
 }
-.VPHero .VPButton.alt::before,
 .VPHero .VPButton.alt::after {
   background-color: var(--vp-c-brand-1);
 }
@@ -730,11 +668,8 @@ html:not(.dark) .only-dark {
 .VPHero .VPButton[href*='/demo/']:hover::after {
   transform: translate(2px, -2px);
 }
-.VPHero .VPButton[href*='github.com']::before {
-  --hero-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5'/%3E%3C/svg%3E");
-}
 @media (prefers-reduced-motion: reduce) {
-  .VPHero .VPButton::after {
+  :is(.VPHero, .home-closing) .VPButton::after {
     transition: none;
   }
 }
@@ -745,15 +680,13 @@ html:not(.dark) .only-dark {
   font-size: 14px;
   color: var(--vp-c-text-2);
 }
-/* 캡션 속 링크: .vp-doc 밖(홈 캐러셀)에서는 링크 스타일을 받지 못해 글자와 구분되지 않았다 */
-.screenshot-caption a,
-.home-carousel-demo a {
+/* 캡션 속 링크 */
+.screenshot-caption a {
   color: var(--vp-c-brand-1);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.screenshot-caption a:hover,
-.home-carousel-demo a:hover {
+.screenshot-caption a:hover {
   color: var(--vp-c-brand-2);
 }
 

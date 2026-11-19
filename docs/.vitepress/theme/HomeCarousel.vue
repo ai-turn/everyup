@@ -6,21 +6,19 @@ import { useData, withBase } from 'vitepress'
 // 이미지는 /images/home/slide-<image>-light.webp 와 -dark.webp 짝 (데모 빌드 1440x900 캡처)이고,
 // 좁은 화면용 -720.webp 사본이 함께 있다.
 // 자동 넘김은 넣지 않는다 (읽는 중에 화면이 바뀌면 안 된다).
+// 조작부(화살표·화면 이름 탭)는 스크린샷 아래 한 줄에 둔다. 이미지 위에 겹치면 화면 내용을 가린다.
+// 이미지 아래 설명문은 두지 않는다: 탭의 화면 이름이 지금 보는 화면을 알려 준다.
 interface Slide {
   title: string
-  caption: string
   image: string
   alt: string
 }
-
-const DEMO = 'https://ai-turn.github.io/everyup/demo/'
 
 const { frontmatter, lang } = useData()
 const slides = computed<Slide[]>(() => frontmatter.value.carousel ?? [])
 const ko = computed(() => lang.value === 'ko')
 const track = ref<HTMLElement | null>(null)
 const index = ref(0)
-const current = computed(() => slides.value[index.value] ?? slides.value[0])
 
 const shot = (image: string, theme: 'light' | 'dark', suffix = '') => withBase(`/images/home/slide-${image}-${theme}${suffix}.webp`)
 const shotSet = (image: string, theme: 'light' | 'dark') => `${shot(image, theme, '-720')} 720w, ${shot(image, theme)} 1440w`
@@ -72,7 +70,6 @@ function onKey(e: KeyboardEvent) {
     aria-roledescription="carousel"
     :aria-label="ko ? '제품 화면' : 'Product screens'"
   >
-    <!-- 화살표와 점은 이미지 위에 겹친다: 화살표는 양옆 세로 가운데, 점은 아래 가운데 -->
     <div class="home-carousel-stage">
       <div
         ref="track"
@@ -118,36 +115,25 @@ function onKey(e: KeyboardEvent) {
           />
         </div>
       </div>
+    </div>
 
-      <button type="button" class="home-carousel-arrow is-prev" :aria-label="ko ? '이전 화면' : 'Previous screen'" @click="go(index - 1)">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
+    <div class="home-carousel-nav">
+      <button type="button" class="home-carousel-arrow" :aria-label="ko ? '이전 화면' : 'Previous screen'" @click="go(index - 1)">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
       </button>
-      <button type="button" class="home-carousel-arrow is-next" :aria-label="ko ? '다음 화면' : 'Next screen'" @click="go(index + 1)">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
-      </button>
-      <div class="home-carousel-dots">
+      <div class="home-carousel-tabs">
         <button
           v-for="(s, i) in slides"
           :key="s.image"
           type="button"
-          class="home-carousel-dot"
-          :aria-label="`${i + 1}: ${s.title}`"
+          class="home-carousel-tab"
           :aria-current="i === index ? 'true' : undefined"
           @click="go(i)"
-        />
+        >{{ s.title }}</button>
       </div>
+      <button type="button" class="home-carousel-arrow" :aria-label="ko ? '다음 화면' : 'Next screen'" @click="go(index + 1)">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
+      </button>
     </div>
-
-    <div class="home-carousel-bar">
-      <p class="home-carousel-caption" aria-live="polite">
-        <strong>{{ current.title }}</strong>
-        <span>{{ current.caption }}</span>
-      </p>
-      <span class="home-carousel-count" aria-hidden="true">{{ index + 1 }} / {{ slides.length }}</span>
-    </div>
-
-    <!-- 데모는 같은 origin(/everyup/demo/)이라 target이 없으면 VitePress 라우터가 문서 페이지로 가로채 404가 난다 -->
-    <p v-if="ko" class="home-carousel-demo">직접 조작해 보려면 <a :href="DEMO" target="_blank" rel="noreferrer">라이브 데모</a>를 여세요.</p>
-    <p v-else class="home-carousel-demo">The dashboard UI is Korean only. Try it in the <a :href="DEMO" target="_blank" rel="noreferrer">live demo</a>.</p>
   </section>
 </template>
