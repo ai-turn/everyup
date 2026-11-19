@@ -199,7 +199,9 @@ jobs:
 
   pages:
     needs: [changes, backend, agent, frontend, docs, compose-profile-smoke]
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.changes.outputs.pages == 'true'
+    # docs-only pushes skip docker-smoke; without a status check here that skip propagates through
+    # compose-profile-smoke and silently skips Pages too. !failure() still blocks on any failed need.
+    if: ${{ !cancelled() && !failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.changes.outputs.pages == 'true' }}
     permissions:
       contents: read
       pages: write
