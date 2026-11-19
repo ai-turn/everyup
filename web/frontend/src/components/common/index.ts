@@ -1,5 +1,5 @@
 export { Button, ButtonLink } from './Button';
-export { IconButton, ICON_ACTION, ICON_ACTION_SM } from './IconButton';
+export { IconButton, RefreshIconButton, ICON_ACTION, ICON_ACTION_SM } from './IconButton';
 export { Input } from './Input';
 export { Textarea } from './Textarea';
 export { Select } from './Select';

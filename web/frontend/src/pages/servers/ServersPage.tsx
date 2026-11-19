@@ -127,7 +127,6 @@ export function ServersPage() {
   return (
     <div>
       <PageHeader menu compactActions title="서버">
-        <Button collapseLabel onClick={handleRefresh}><MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침</Button>
         {/* 메뉴 첫 화면의 생성 버튼은 `추가` 하나다(DESIGN.md §4.1 액션 앵커). 대상은 화면 제목이 말한다. 그룹 목록과 같다. */}
         <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />추가</ButtonLink>
       </PageHeader>
@@ -156,7 +155,7 @@ export function ServersPage() {
               툴바 끝의 텍스트 링크로 둔다. 갱신 시각은 서버 상세의 머리말과 같은 표기이고, 자동 갱신 스위치는 서버 상세에만 둔다. */}
           <div className="ml-auto flex flex-wrap items-center gap-x-3">
             <Link to={ALL_LOGS_PATH} className="inline-flex min-h-11 items-center type-body text-action link-underline sm:min-h-6">전체 로그</Link>
-            <UptimeRefreshControls updatedAt={updatedAt} />
+            <UptimeRefreshControls updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} />
           </div>
         </ListToolbar>
       )}

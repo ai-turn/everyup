@@ -2,7 +2,7 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, DetailActionToolbar, EmptyState, ListViewToggle, MaterialIcon, PageHeader, ResourceTable, StatusLight } from '../../components/common';
+import { Button, ConfirmDialog, DetailActionToolbar, EmptyState, ListViewToggle, MaterialIcon, PageHeader, RefreshIconButton, ResourceTable, StatusLight } from '../../components/common';
 import { partialFailureMessage, useServers, type FailedTargets } from '../../features/servers/useServers';
 import { useListView } from '../../hooks/useListView';
 import { api, type Project } from '../../services/api';
@@ -154,9 +154,7 @@ export function ProjectOverviewPage() {
       <PageHeader title={project.name} subtitle={project.description || undefined} />
       <DetailActionToolbar
         controls={
-          <Button collapseLabel variant="secondary" onClick={handleRefresh}>
-            <MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
-          </Button>
+          <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
         }
         actions={
           <>

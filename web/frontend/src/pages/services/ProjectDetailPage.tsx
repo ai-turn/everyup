@@ -5,7 +5,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailActionToolbar, DetailMeta, EmptyState, ListViewToggle, PageHeader, ResourceCardHeader, ResourceTable } from '../../components/common';
+import { Button, DetailActionToolbar, DetailMeta, EmptyState, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
@@ -262,9 +262,7 @@ export function ProjectDetailPage() {
       />
       <DetailActionToolbar
         controls={
-          <Button collapseLabel variant="secondary" onClick={handleRefresh}>
-            <MaterialIcon name="refresh" className={spinning ? 'animate-spin' : ''} />새로고침
-          </Button>
+          <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
         }
         actions={agent && (
           <>

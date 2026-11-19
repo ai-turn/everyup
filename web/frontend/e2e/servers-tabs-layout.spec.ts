@@ -88,12 +88,17 @@ test.describe('at 1440x1000', () => {
     expect(await panel(page).evaluate((element) => element.contains(document.activeElement))).toBe(true);
   });
 
-  test('there is one refresh button and it sits on the server name line', async ({ page }) => {
+  test('refresh is one icon beside the update time and settings is an icon on the server name line', async ({ page }) => {
     await page.goto(`./servers/${EDGE}/logs/observed_mock_checkout`);
     const refresh = page.getByRole('button', { name: '새로고침', exact: true });
     await expect(refresh).toHaveCount(1);
+    // 갱신 시각·새로고침·자동 갱신이 한 묶음이다.
+    await expect(page.getByRole('group', { name: '서버 데이터 갱신' }).getByRole('button', { name: '새로고침', exact: true })).toBeVisible();
+    const settings = page.getByRole('button', { name: '서버 설정', exact: true });
+    // 아이콘 버튼이라 보이는 글자가 없다. 이름은 aria-label이 맡는다.
+    await expect(settings).toHaveText('');
     const title = (await page.getByRole('heading', { level: 1 }).boundingBox())!;
-    const button = (await refresh.boundingBox())!;
+    const button = (await settings.boundingBox())!;
     // 버튼의 세로 범위가 제목의 세로 범위와 겹친다.
     expect(button.y).toBeLessThan(title.y + title.height);
     expect(button.y + button.height).toBeGreaterThan(title.y);

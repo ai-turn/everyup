@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, EmptyState, ListViewToggle, MaterialIcon, PageHeader } from '../../components/common';
+import { EmptyState, ListViewToggle, PageHeader, RefreshIconButton } from '../../components/common';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useListView } from '../../hooks/useListView';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
@@ -60,7 +60,7 @@ export function LogsPage() {
     <div>
       {/* 사이드바에 없는 화면이라 제목을 숨기지 않는다. 로그 연결은 서버의 로그 탭에서 한다. */}
       <PageHeader compactActions title="전체 로그">
-        <Button collapseLabel variant="secondary" onClick={reload} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+        <RefreshIconButton onClick={reload} refreshing={loading} />
       </PageHeader>
       {loading ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

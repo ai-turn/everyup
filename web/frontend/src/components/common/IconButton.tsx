@@ -56,3 +56,14 @@ export function IconButton({
     </button></Tooltip>
   );
 }
+
+/**
+ * 화면 데이터를 다시 불러오는 아이콘 버튼. 상용 모니터링 도구처럼 갱신 시각 옆에 아이콘만 둔다(DESIGN.md §4.1).
+ * 불러오는 중에는 아이콘이 회전하고 눌리지 않는다.
+ */
+export function RefreshIconButton({ onClick, refreshing = false }: { onClick: () => void; refreshing?: boolean }) {
+  return (
+    <IconButton icon="refresh" label="새로고침" tone="quiet" onClick={onClick}
+      disabled={refreshing} aria-busy={refreshing || undefined} iconClassName={refreshing ? 'animate-spin' : undefined} />
+  );
+}

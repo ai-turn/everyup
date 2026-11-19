@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Button, DetailMeta, MaterialIcon, PageHeader, StatusLight, Tooltip } from '../../../components/common';
+import { DetailMeta, IconButton, MaterialIcon, PageHeader, StatusLight, Tooltip } from '../../../components/common';
 import { SERVERS_PATH, serverPath, type ServerCapability } from '../serverPaths';
 import { UptimeRefreshControls } from '../../uptime/components/UptimeRefreshControls';
 import { capabilityTargets, STATE_LABEL, type ServerRow } from '../serverStatus';
@@ -64,15 +64,15 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
               {/* 상태 줄의 오른쪽 끝. 좁은 화면에서는 상태 줄 아래로 흐른다. 모든 탭에서 같은 자리라 머리말의 높이가 같다.
                   갱신 중 표시는 새로고침 버튼의 회전이 맡는다(글자가 바뀌면 줄바꿈 위치가 흔들린다). */}
               <div className="ml-auto">
-                <UptimeRefreshControls updatedAt={updatedAt}
+                <UptimeRefreshControls updatedAt={updatedAt} onRefresh={onRefresh} refreshing={refreshing}
                   autoRefresh={autoRefresh} onAutoRefreshChange={onAutoRefreshChange} />
               </div>
             </>}
           />
         </>}
       >
-        <Button collapseLabel variant="secondary" loading={refreshing} onClick={onRefresh}><MaterialIcon name="refresh" />새로고침</Button>
-        <Button collapseLabel variant="secondary" onClick={onSettings}><MaterialIcon name="settings" />서버 설정</Button>
+        {/* 누구나 아는 아이콘이라 라벨 없이 둔다. 이름은 툴팁과 aria-label이 맡는다. 새로고침은 상태 줄의 갱신 시각 옆에 있다. */}
+        <IconButton icon="settings" label="서버 설정" tone="quiet" onClick={onSettings} />
       </PageHeader>
     </header>
   );

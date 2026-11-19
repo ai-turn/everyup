@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, DetailMeta, MaterialIcon, PageHeader, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, DetailMeta, MaterialIcon, PageHeader, RefreshIconButton, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
 import { LogIngestLevels } from '../../logs/components/LogIngestLevels';
 import { DockerUptimeStatus } from '../../uptime/components/DockerUptimeStatus';
 import type { AgentServiceFlat } from '../../../services/api';
@@ -108,9 +108,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
           <div role="group" aria-label="서비스 조회 및 알림" className="flex flex-wrap items-center gap-2 xl:justify-end">
             <TimeRangePicker value={range} onChange={setRange} />
             <div className="flex flex-wrap items-center gap-2">
-              <Button collapseLabel variant="secondary" loading={props.refreshing} onClick={props.onRefresh}>
-                <MaterialIcon name="refresh" />새로고침
-              </Button>
+              <RefreshIconButton onClick={props.onRefresh} refreshing={props.refreshing} />
               <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'agent', agentId, serviceKey })}>
                 <MaterialIcon name="notifications" />알림 규칙
               </ButtonLink>

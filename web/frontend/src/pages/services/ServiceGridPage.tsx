@@ -8,7 +8,7 @@ import { MaterialIcon } from '../../components/common/MaterialIcon';
 import { PageHeader } from '../../components/common/PageHeader';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
 import { SearchInput } from '../../components/common/SearchInput';
-import { ListToolbar, ListViewToggle, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { ListToolbar, ListViewToggle, RefreshIconButton, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { api, type AgentOverview, type AgentServiceFlat, type ConnectedAgent } from '../../services/api';
 import { PendingServiceCard } from '../../features/services/components/PendingServiceCard';
@@ -245,7 +245,7 @@ export function ServiceGridPage() {
       <PageHeader menu
         title="Docker 환경"
       >
-        <Button collapseLabel onClick={() => void load()} disabled={loading}><MaterialIcon name="refresh" />새로고침</Button>
+        <RefreshIconButton onClick={() => void load()} refreshing={loading} />
         {(services.length > 0 || agents.length > 0) && <ListViewToggle view={view} onChange={setView} />}
         <Button onClick={() => setShowAddModal(true)}>
           <MaterialIcon size={20} name="add" />
