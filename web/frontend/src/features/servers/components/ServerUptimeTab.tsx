@@ -78,7 +78,8 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
   const several = monitors.length > 1;
 
   const content = () => {
-    if (unknown) return <LoadErrorBanner inline title="업타임 모니터 정보를 불러오지 못했습니다" onRetry={onRetry} />;
+    // 이전 목록에 모니터가 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
+    if (unknown || (stale && monitors.length === 0)) return <LoadErrorBanner inline title="업타임 모니터 정보를 불러오지 못했습니다" onRetry={onRetry} />;
     if (targetId && !current) {
       // 다시 불러오지 못해 이전 정보만 있으면 "이 서버의 것이 아니다"라고 단정하지 않는다.
       if (stale) return <LoadErrorBanner inline title="이 모니터의 정보를 불러오지 못했습니다" onRetry={onRetry} />;

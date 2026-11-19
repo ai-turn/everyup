@@ -111,7 +111,10 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
     const failed = targets.filter((_, index) => results[index].status === 'rejected').map((monitor) => monitor.id);
     const firstError = results.find((result) => result.status === 'rejected')?.reason;
     if (failed.length > 0) toast.error(`${failed.length}개를 ${verb}하지 못했습니다. ${getErrorMessage(firstError)}`);
-    done?.(targets.filter((_, index) => results[index].status === 'fulfilled').map((monitor) => monitor.id));
+    const succeeded = targets.filter((_, index) => results[index].status === 'fulfilled').map((monitor) => monitor.id);
+    // 인프라와 앱의 삭제처럼 삭제는 결과를 알린다.
+    if (verb === '삭제' && succeeded.length > 0) toast.success(`업타임 모니터 ${succeeded.length}개를 삭제했습니다`);
+    done?.(succeeded);
     // 다시 불러온 결과가 반영된 뒤에 조작을 풀어 옛 상태로 다시 누르지 않게 한다.
     try {
       await afterChange();

@@ -147,7 +147,7 @@ export function OverviewPage() {
           tone: issue.state,
           icon: issue.state === 'error' ? 'error_outline' : ISSUE_ICON[issue.kind],
           observedAt: issue.observedAt,
-          warnRank: issue.threshold !== undefined ? 2 : row.breachedApps.includes(issue.id) ? 1 : 0,
+          warnRank: issue.threshold !== undefined ? 2 : issue.kind === 'app' && row.breachedApps.includes(issue.id) ? 1 : 0,
           timeLabel: issue.kind === 'monitor' || issue.threshold !== undefined ? undefined
             : app && !app.lastSeenAt ? `${formatIncidentTime(app.createdAt)} 연결`
               : issue.observedAt ? `마지막 수신 ${formatIncidentTime(issue.observedAt)}` : '수신 기록 없음',

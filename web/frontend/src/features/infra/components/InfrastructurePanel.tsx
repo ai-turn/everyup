@@ -58,7 +58,7 @@ export function InfrastructurePanel({ resource, status, serverName, onDeleted, e
     try {
       if (confirmAction === 'delete') {
         await api.deleteInfrastructureResource(resource.id);
-        toast.success('인프라 리소스를 삭제했습니다.');
+        toast.success('인프라 리소스를 삭제했습니다');
         // 화면이 바뀔 때까지 조작을 막아 둔다(processing을 풀지 않는다).
         onDeleted();
         return;
@@ -70,7 +70,7 @@ export function InfrastructurePanel({ resource, status, serverName, onDeleted, e
       } else {
         await api.revokeInfrastructureResourceKey(resource.id);
         if (!alive.current) return;
-        toast.success('Collector 연결을 중지했습니다.');
+        toast.success('Collector 연결을 중지했습니다');
       }
       // 다시 불러온 결과가 반영된 뒤에 닫는다. 먼저 닫으면 그동안 옛 상태와 누를 수 있는 버튼이 보였다.
       await onChanged?.();

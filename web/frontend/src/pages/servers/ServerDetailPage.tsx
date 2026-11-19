@@ -106,7 +106,8 @@ export function ServerDetailPage() {
         </div>
       );
     }
-    if (error && rows.length === 0) {
+    // 서버 목록을 불러오지 못한 동안에는 이전 행에 없다고 해서 없는 서버라고 단정하지 않는다.
+    if (error) {
       return <EmptyState icon="sync_problem" title="서버를 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />;
     }
     return (

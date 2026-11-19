@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import {
   Button, ButtonLink, EmptyState, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select, StatusLight, type StatusTone,
@@ -26,6 +26,16 @@ function matchTargets(row: ServerRow, query: string): string[] | null {
     ...(infrastructure?.name.toLowerCase().includes(query) ? [infrastructure.name] : []),
   ];
   return names.length ? names : null;
+}
+
+// 툴바가 없는 화면(서버 없음, 조회 실패)에서도 전체 로그로 가는 길을 둔다. 툴바와 같은 텍스트 링크다.
+function EmptyActions({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+      {children}
+      <Link to={ALL_LOGS_PATH} className="inline-flex min-h-11 items-center type-body text-action link-underline sm:min-h-6">전체 로그</Link>
+    </div>
+  );
 }
 
 function ServerListSkeleton() {
@@ -152,11 +162,16 @@ export function ServersPage() {
 
       {/* 한 번도 불러오지 못했으면 서버가 없는 것이 아니라 아직 모르는 것이다(매달린 첫 요청을 버린 뒤에도). */}
       {!loaded && !error ? <ServerListSkeleton />
-        : error && !hasRows ? <EmptyState icon="sync_problem" title="서버 목록을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: reload }} />
+        : error && !hasRows ? (
+          <EmptyState icon="sync_problem" title="서버 목록을 불러오지 못했습니다" description={error}>
+            <EmptyActions><Button onClick={() => void reload()}>다시 시도</Button></EmptyActions>
+          </EmptyState>
+        )
           : !hasRows ? (
             <EmptyState icon="dns" headingLevel="h2" title="아직 서버가 없습니다"
-              description={`서버를 추가하고 업타임, 인프라, 로그, API 요청, 메트릭을 연결하세요.${hasDockerEnvironments ? ' Docker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.' : ''}`}
-              action={{ label: '서버 추가', to: NEW_SERVER_PATH }} />
+              description={`서버를 추가하고 업타임, 인프라, 로그, API 요청, 메트릭을 연결하세요.${hasDockerEnvironments ? ' Docker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.' : ''}`}>
+              <EmptyActions><ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink></EmptyActions>
+            </EmptyState>
           ) : (
             <section aria-label="서버" aria-busy={loading || undefined}>
               <h2 className="sr-only">서버 목록</h2>

@@ -25,7 +25,7 @@ export function serviceRemoval(service: ObservedService, signal: TelemetrySignal
       title: `${label} 연결을 해제할까요?`,
       message: `이 앱의 ${label} 데이터 수집을 멈추고 ${SIGNAL_TABS[signal]} 탭에서 뺍니다. ${signalList(others)} 수집은 그대로 유지되고, 이미 저장된 ${label} 데이터는 보관 기간이 지나면 삭제됩니다.`,
       signals: others,
-      done: `${label} 연결을 해제했습니다.`,
+      done: `${label} 연결을 해제했습니다`,
     };
   }
   return {
@@ -34,7 +34,7 @@ export function serviceRemoval(service: ObservedService, signal: TelemetrySignal
     title: '이 앱을 삭제할까요?',
     message: `${label} 데이터, 직접 수집 연결, 이 앱의 알림 규칙을 모두 삭제합니다. 되돌릴 수 없습니다.`,
     signals: [] as TelemetrySignal[],
-    done: '앱을 삭제했습니다.',
+    done: '앱을 삭제했습니다',
   };
 }
 

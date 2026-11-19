@@ -292,7 +292,9 @@ test.describe('with an intercepted API', () => {
     await page.getByRole('dialog', { name: '업타임을 삭제할까요?' }).getByRole('button', { name: '삭제', exact: true }).click();
     await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^업타임/ })).toContainText('확인 불가');
     await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toHaveCount(0);
-    await expect(panel(page).getByRole('button', { name: '모니터 추가', exact: true })).toBeEnabled();
+    // 모니터 목록을 다시 불러오지 못했으므로 연결 안내가 아니라 불러오지 못했다는 안내다(B2).
+    await expect(panel(page).getByText('업타임 모니터 정보를 불러오지 못했습니다')).toBeVisible();
+    await expect(panel(page).getByRole('button', { name: '다시 시도', exact: true })).toBeEnabled();
   });
 
   test('a failed reload after creating does not claim the monitor belongs elsewhere', async ({ page }) => {
@@ -308,11 +310,15 @@ test.describe('with an intercepted API', () => {
     state.failures.set('GET /servers', 500);
     await dialog.getByRole('button', { name: '추가', exact: true }).click();
     await expect(page).toHaveURL(/\/servers\/s1\/uptime\/created-0$/);
-    await expect(panel(page)).toContainText('이 모니터의 정보를 불러오지 못했습니다');
+    // 서버 목록만 실패했으므로 새로 받은 모니터 목록으로 행을 만든다(B1). 새 모니터는 이 서버의 것으로 보인다.
+    await expect(panel(page).getByRole('heading', { level: 2, name: 'Probe' })).toBeVisible();
     await expect(panel(page)).not.toContainText('이 서버의 모니터가 아닙니다');
+    const banner = page.getByRole('alert').filter({ hasText: '서버 정보를 새로 불러오지 못했습니다' });
+    await expect(banner).toBeVisible();
     state.failures.clear();
     state.responses.set('GET /servers', [s1]);
-    await panel(page).getByRole('button', { name: '다시 시도' }).click();
+    await banner.getByRole('button', { name: '다시 시도' }).click();
+    await expect(banner).toHaveCount(0);
     await expect(panel(page).getByRole('heading', { level: 2, name: 'Probe' })).toBeVisible();
   });
 });

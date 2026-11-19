@@ -108,7 +108,8 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
   if (!targetId && current && (shown?.key !== location.key || shown.id !== current.id)) setShown({ key: location.key, id: current.id });
 
   const content = () => {
-    if (unknown) return <LoadErrorBanner inline title={`${copy.label} 앱 정보를 불러오지 못했습니다`} onRetry={onRetry} />;
+    // 이전 목록에 앱이 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
+    if (unknown || (stale && apps.length === 0)) return <LoadErrorBanner inline title={`${copy.label} 앱 정보를 불러오지 못했습니다`} onRetry={onRetry} />;
     if (targetId && !current) {
       // 다시 불러오지 못해 이전 정보만 있으면 "이 서버의 것이 아니다"라고 단정하지 않는다.
       if (stale) return <LoadErrorBanner inline title="이 앱의 정보를 불러오지 못했습니다" onRetry={onRetry} />;

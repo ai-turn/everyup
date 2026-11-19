@@ -176,7 +176,7 @@ export function ProjectOverviewPage() {
         </section>
       )}
 
-      {adding && <AddTargetsDialog project={project} projects={data.projects} targets={assignableTargets(all)} onClose={() => setAdding(false)} onAdded={reloadAll} />}
+      {adding && <AddTargetsDialog project={project} projects={data.projects} targets={assignableTargets(all)} loadFailed={membersUnknown} onRetry={reloadAll} onClose={() => setAdding(false)} onAdded={reloadAll} />}
       {editing && <ProjectDialog project={project} onClose={() => setEditing(false)} onSave={async input => { await api.updateProject(project.id, input); await load(); }} />}
       <ConfirmDialog isOpen={deleting} onClose={() => setDeleting(false)} onConfirm={() => void deleteProject()} title="그룹을 삭제할까요?" message="배정된 서버와 Docker 환경은 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
     </div>

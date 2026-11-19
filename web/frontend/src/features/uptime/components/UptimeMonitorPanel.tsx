@@ -236,6 +236,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
     setProcessing(true);
     try {
       await api.deleteUptimeMonitor(monitor.id);
+      toast.success('업타임 모니터를 삭제했습니다');
       // 화면이 바뀔 때까지 조작을 막아 둔다(processing을 풀지 않는다).
       onDeleted();
     } catch (actionError) {

@@ -127,12 +127,14 @@ export function useServers({ logSummary = true }: {
         infrastructure: fresh.infrastructure ?? last.current.infrastructure,
       };
       last.current = lists;
-      // 다시 불러오다 실패하면 이전 행을 지우지 않는다. 화면이 이전 정보임을 알린다.
-      if (servers.status === 'rejected') { setError(getErrorMessage(servers.reason)); return; }
-      setError(null);
-      setLoaded(true);
+      // 서버 목록을 다시 불러오다 실패하면 이전 서버 목록을 쓴다. 화면이 이전 정보임을 알린다.
+      // 새로 받은 대상 목록은 버리지 않는다(머리말과 탭의 점이 최신 상태를 보이게). 처음부터 실패했으면 만들 행이 없다.
+      const serverList = servers.status === 'fulfilled' ? servers.value ?? [] : lastBuild.current?.servers;
+      if (servers.status === 'rejected') setError(getErrorMessage(servers.reason));
+      else { setError(null); setLoaded(true); }
+      if (!serverList) return;
       lastBuild.current = {
-        servers: servers.value ?? [], ...lists, logSummaries: logSummary ? settled(logSummaries as PromiseSettledResult<LogServiceSummary[] | null>) : undefined, metricCatalog: settled(metricCatalog),
+        servers: serverList, ...lists, logSummaries: logSummary ? settled(logSummaries as PromiseSettledResult<LogServiceSummary[] | null>) : undefined, metricCatalog: settled(metricCatalog),
         stale: { monitors: !fresh.monitors, apps: !fresh.apps, infrastructure: !fresh.infrastructure },
       };
       setRows(buildServerRows(lastBuild.current));
@@ -140,7 +142,7 @@ export function useServers({ logSummary = true }: {
         [logSummaries, '로그 요약', null], [metricCatalog, '메트릭 임계값', null]] as const)
         .filter(([result]) => result.status === 'rejected').map(([, label, list]) => ({ label, stale: list !== null }));
       setFailed(failures);
-      if ([monitors, apps, infrastructure].every((result) => result.status === 'fulfilled')) setUpdatedAt(new Date());
+      if ([servers, monitors, apps, infrastructure].every((result) => result.status === 'fulfilled')) setUpdatedAt(new Date());
     // 더 늦게 시작한 요청에 밀렸으면 그 요청이 반영될 때까지 기다린다. 기다리는 쪽(생성 뒤의 이동 등)이 옛 행을 보지 않게.
     }).then(() => (id === latest.current ? undefined : inFlight.current ?? undefined));
     inFlight.current = done;

@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import type { ServerInput } from '../../services/api';
 import { ApiError, getErrorMessage } from '../../utils/errors';
+import { groupChangeFailure } from '../../pages/projects/projectMembers';
 
 // 서버 추가 화면과 서버 설정 대화 상자가 같은 입력과 같은 오류 처리를 쓴다.
-
-const NAME_TAKEN = '이 그룹에 같은 이름의 서버가 있습니다';
 
 interface ServerDraft { name: string; description: string; projectId: string }
 
@@ -24,7 +23,8 @@ export function useServerForm(initial: ServerDraft) {
     try {
       await save({ name: draft.name.trim(), description: draft.description.trim(), projectId: draft.projectId || undefined });
     } catch (error) {
-      if (error instanceof ApiError && error.code === 'SERVER_NAME_TAKEN') setNameError(NAME_TAKEN);
+      // 미분류이면 "이 그룹"이 아니라 미분류에 같은 이름이 있다.
+      if (error instanceof ApiError && error.code === 'SERVER_NAME_TAKEN') setNameError(groupChangeFailure(error, draft.projectId || undefined));
       else toast.error(getErrorMessage(error));
     } finally {
       setSaving(false);

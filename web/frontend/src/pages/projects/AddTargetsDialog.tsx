@@ -6,10 +6,13 @@ import { TARGET_KINDS, groupChangeFailure, setTargetGroup, targetKey, type Assig
 
 // 그룹 상세의 "대상 추가". 이미 이 그룹에 있는 대상은 빼고, 다른 그룹에 있는 대상은 현재 그룹을 보여 준 채
 // 고를 수 있게 한다(배정은 덮어쓰기라 그대로 옮겨진다). 미분류를 먼저 보여 준다.
-export function AddTargetsDialog({ project, projects, targets, onClose, onAdded }: {
+export function AddTargetsDialog({ project, projects, targets, loadFailed = false, onRetry, onClose, onAdded }: {
   project: Project;
   projects: Project[];
   targets: AssignableTarget[];
+  /** 서버나 Docker 환경 목록을 불러오지 못했다. 고를 대상이 없을 때 없다고 단정하지 않는다. */
+  loadFailed?: boolean;
+  onRetry?: () => Promise<void>;
   onClose: () => void;
   onAdded: () => Promise<void>;
 }) {
@@ -17,6 +20,7 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   // 넣지 못한 대상과 까닭. 성공한 대상은 반영하고 대화 상자를 닫지 않는다.
   const [failures, setFailures] = useState<{ name: string; reason: string }[]>([]);
   useEffect(() => { dialogRef.current?.showModal(); }, []);
@@ -70,11 +74,23 @@ export function AddTargetsDialog({ project, projects, targets, onClose, onAdded 
 
       {candidates.length === 0 ? (
         <>
-          <div className="px-6 py-8">
-            <p className="type-label text-text-base">추가할 수 있는 대상이 없습니다</p>
-            <p className="mt-1 type-body text-text-muted">서버나 Docker 환경을 먼저 등록하면 여기에 나타납니다.</p>
+          {loadFailed ? (
+            <div role="alert" className="px-6 py-8">
+              <p className="type-label text-text-base">대상 목록을 불러오지 못했습니다</p>
+              <p className="mt-1 type-body text-text-muted">서버나 Docker 환경 목록을 다시 불러온 뒤에 고를 수 있습니다.</p>
+            </div>
+          ) : (
+            <div className="px-6 py-8">
+              <p className="type-label text-text-base">추가할 수 있는 대상이 없습니다</p>
+              <p className="mt-1 type-body text-text-muted">서버나 Docker 환경을 먼저 등록하면 여기에 나타납니다.</p>
+            </div>
+          )}
+          <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
+            <Button variant="quiet" onClick={close}>닫기</Button>
+            {loadFailed && onRetry && (
+              <Button variant="secondary" loading={retrying} onClick={() => { setRetrying(true); void onRetry().finally(() => setRetrying(false)); }}>다시 시도</Button>
+            )}
           </div>
-          <div className="flex justify-end border-t border-ui-border px-6 py-4"><Button variant="quiet" onClick={close}>닫기</Button></div>
         </>
       ) : (
         <>

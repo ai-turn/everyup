@@ -93,7 +93,7 @@ export function useDirectServicePanel(service: ObservedService, signal: Telemetr
       } else {
         await api.revokeObservedServiceKey(service.id);
         if (!alive.current) return;
-        toast.success('직접 수집 연결을 중지했습니다.');
+        toast.success('직접 수집 연결을 중지했습니다');
       }
       await onChanged?.();
       if (!alive.current) return;

@@ -249,7 +249,9 @@ test('detaching the only API app while the server list fails closes the dialog a
   await expect(page.getByText('서버 정보를 새로 불러오지 못했습니다')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toHaveCount(0);
-  await expect(panel(page).getByRole('button', { name: 'API 연결' })).toBeEnabled();
+  // 서버 목록을 다시 불러오지 못했으므로 연결 안내가 아니라 불러오지 못했다는 안내다(B2).
+  await expect(panel(page).getByText('API 요청 앱 정보를 불러오지 못했습니다')).toBeVisible();
+  await expect(panel(page).getByRole('button', { name: '다시 시도', exact: true })).toBeEnabled();
 });
 
 test('the server list shows when its data was last refreshed', async ({ page }) => {
