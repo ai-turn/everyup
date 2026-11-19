@@ -1,4 +1,4 @@
-import { useState, useEffect, useId, useMemo } from 'react';
+import { useState, useEffect, useId, useMemo, type ReactNode } from 'react';
 import {
   ResponsiveContainer, ComposedChart, Area, Line, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine,
@@ -37,6 +37,8 @@ interface SharedProps {
   onStatusChange?: (status?: StatusClass) => void;
   /** 대상을 부르는 이름. 서버 화면은 앱이라고 부른다. */
   noun?: string;
+  /** 요청이 하나도 없을 때 그린다. 없으면 아무것도 그리지 않는다(아래 요청 목록이 빈 상태를 맡는 화면). */
+  empty?: ReactNode;
 }
 
 interface AgentProps extends SharedProps {
@@ -78,6 +80,7 @@ function ServiceRequestTrends({
   status: statusFilter,
   onStatusChange,
   noun = '서비스',
+  empty = null,
 }: SharedProps & { source: RequestTrendSource }) {
   const title = `${noun} 전체 추이`;
   const [localRange, setLocalRange] = useState<TimeRange>('6h');
@@ -194,7 +197,7 @@ function ServiceRequestTrends({
     </LoadErrorBanner></ChartCard>;
   }
   if (buckets.length === 0) {
-    return null; // empty state is handled by the request list below
+    return empty;
   }
 
   // Latency only exists when some bucket has timed requests — access-log-only
