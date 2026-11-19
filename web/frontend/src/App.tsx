@@ -78,6 +78,7 @@ function App() {
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:projectId" element={<ProjectOverviewPage />} />
                 <Route path="/agents/:agentId" element={<ProjectDetailPage />} />
+                <Route path="/agents/:agentId/:tab" element={<ProjectDetailPage />} />
                 <Route path="/services/:agentId/:key" element={<HealthCheckDetailPage />} />
                 <Route path="/alerts" element={<AlertsPage />} />
                 <Route path="/alerts/channels/new" element={<ChannelFormPage />} />

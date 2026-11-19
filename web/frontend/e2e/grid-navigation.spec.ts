@@ -61,7 +61,7 @@ for (const mode of ['modifier', 'middle'] as const) {
 }
 
 test('dragging row text selects it without opening the detail', async ({ page }) => {
-  await page.goto('./agents/agent_demo_01');
+  await page.goto('./agents/agent_demo_01/logs');
   const listUrl = page.url();
   const row = page.getByRole('table', { name: '로그 그리드' }).getByRole('row').filter({ has: page.getByRole('link', { name: 'payment-worker', exact: true }) });
   const subtitle = row.locator('td').first().locator('p').first();
