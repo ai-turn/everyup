@@ -60,6 +60,12 @@ func TestUptimeListIncludesBoundedChecksAndCurrentOutages(t *testing.T) {
 	if _, err := database.DB.Exec(`UPDATE services SET is_active = 0 WHERE id = 'paused'`); err != nil {
 		t.Fatal(err)
 	}
+	if err := database.NewServerRepository().Create(&models.Server{ID: "server-down", Name: "web-down"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.DB.Exec(`UPDATE services SET server_id = 'server-down' WHERE id = 'down'`); err != nil {
+		t.Fatal(err)
+	}
 	for _, id := range []string{"down", "healthy", "paused"} {
 		if err := database.NewIncidentRepository().Create(&models.Incident{ServiceID: id, Type: models.IncidentTypeDown, Message: id + " outage", StartedAt: now.AddDate(0, 0, -120)}); err != nil {
 			t.Fatal(err)
@@ -88,6 +94,10 @@ func TestUptimeListIncludesBoundedChecksAndCurrentOutages(t *testing.T) {
 	}
 	if down.ResponseTime != nil || down.ActiveIncident.DurationSec < 119*86400 {
 		t.Fatalf("timeout must not be latency; old active outages must remain visible: %+v", down)
+	}
+	// Same route shape as the timeline: the monitor under its server.
+	if down.ActiveIncident.TargetPath != "/servers/server-down/uptime/down" {
+		t.Fatalf("active incident targetPath = %q, want the server route", down.ActiveIncident.TargetPath)
 	}
 	if len(*byID["healthy"].RecentChecks) != 10 || byID["healthy"].ActiveIncident != nil || byID["paused"].ActiveIncident != nil {
 		t.Fatalf("healthy or paused monitor presented as an active outage: %+v", byID)
