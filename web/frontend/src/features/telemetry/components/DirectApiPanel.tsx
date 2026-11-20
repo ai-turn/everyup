@@ -47,7 +47,7 @@ export function DirectApiPanel({ service, status, onRemoved, extraActions, onCha
   }, [service.id, reloadKey]);
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {/* 제목이 위의 요소보다 아래의 상태 줄에 붙어 보이게 아래 간격을 줄이고 버튼 줄의 가운데에 맞춘다. */}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
         <h2 className="min-w-0 wrap-anywhere text-text-base type-section-title">{service.name}</h2>

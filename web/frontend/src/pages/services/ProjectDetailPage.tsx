@@ -5,7 +5,7 @@ import { Link, Navigate, useLocation, useParams, useNavigate } from 'react-route
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailActionToolbar, DetailMeta, EmptyState, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
+import { Button, DetailMeta, EmptyState, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable, SectionHeader, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
@@ -280,19 +280,17 @@ export function ProjectDetailPage() {
             fields={agent?.version ? [{ label: 'Version', value: `v${agent.version}` }] : []}
           />
         }
-      />
-      <DetailActionToolbar
-        controls={
-          <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
-        }
-        actions={agent && (
+        actions={
           <>
-            <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />Collector 설치</Button>
-            <Button collapseLabel variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API Key</Button>
-            <Button collapseLabel variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />상세 수집 설정</Button>
-            <Button collapseLabel variant="destructive" onClick={() => setDeleteConfirm(true)}><MaterialIcon name="delete_outline" />비활성화</Button>
+            <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
+            {agent && <>
+              <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />Collector 설치</Button>
+              <Button collapseLabel variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API Key</Button>
+              <Button collapseLabel variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />상세 수집 설정</Button>
+              <Button collapseLabel variant="destructive" onClick={() => setDeleteConfirm(true)}><MaterialIcon name="delete_outline" />비활성화</Button>
+            </>}
           </>
-        )}
+        }
       />
 
       <div className="mb-6">
@@ -330,13 +328,7 @@ export function ProjectDetailPage() {
 
           {/* Service health grid — 다른 섹션(인프라·로그)처럼 제목을 둔다. 보기 전환은 아래 로그 섹션에도 적용된다. */}
           <section>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="type-section-title text-text-base">서비스</h2>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-text-dim">{`${services.length}개`}</span>
-              <ListViewToggle view={view} onChange={setView} />
-            </div>
-          </div>
+          <SectionHeader title="서비스" meta={`${services.length}개`} actions={<ListViewToggle view={view} onChange={setView} />} />
           {services.length === 0 && !loadError ? (
             <EmptyState icon="inventory_2" title="수집된 서비스가 없습니다" />
           ) : (

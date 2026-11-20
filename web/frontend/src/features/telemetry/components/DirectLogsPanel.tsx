@@ -35,7 +35,7 @@ export function DirectLogsPanel({ service, status, onRemoved, listLink, extraAct
   const token = useHeldToken(refreshToken, processing);
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {listLink}
       {/* 제목이 위의 요소보다 아래의 상태 줄에 붙어 보이게 아래 간격을 줄이고 버튼 줄의 가운데에 맞춘다. */}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-3">

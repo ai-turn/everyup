@@ -45,7 +45,7 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
       <div className="sm:w-40 sm:shrink-0">
-        <h2 id={headingId} className="type-card-title text-text-base">{label}</h2>
+        <h2 id={headingId} className="type-section-title text-text-base">{label}</h2>
         <div className="mt-1"><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
       </div>
       <div className="min-w-0 flex-1 space-y-4">
@@ -99,7 +99,7 @@ export function ServerOverviewTab({ row, onOpen }: {
     .sort((a, b) => (b.activeIncident?.durationSec ?? 0) - (a.activeIncident?.durationSec ?? 0));
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {incidents.length > 1 && (
         <section aria-labelledby="server-incidents" className="flex items-start gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
           <span aria-hidden="true" className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-status-error-fill" />
@@ -123,7 +123,7 @@ export function ServerOverviewTab({ row, onOpen }: {
         </section>
         {connectable.length > 0 && (
           <section aria-labelledby="server-connectable" className="space-y-2">
-            <h2 id="server-connectable" className="type-card-title text-text-base">연결할 수 있는 기능</h2>
+            <h2 id="server-connectable" className="type-section-title text-text-base">연결할 수 있는 기능</h2>
             <div className="-mx-2 flex flex-wrap gap-x-2">
               {connectable.map(({ key, label }) => <Button key={key} variant="text" className="px-2" onClick={() => onOpen(key)}>{label}</Button>)}
             </div>

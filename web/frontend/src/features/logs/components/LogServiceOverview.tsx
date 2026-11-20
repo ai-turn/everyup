@@ -3,7 +3,7 @@ import { Tooltip } from '../../../components/common/Tooltip';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button, CollectionStatusBadge, ResourceCardHeader, ResourceTable, StatusLight, type CollectionStatus } from '../../../components/common';
+import { Button, CollectionStatusBadge, ResourceCardHeader, ResourceTable, SectionHeader, StatusLight, type CollectionStatus } from '../../../components/common';
 import { fillBuckets, formatTimeTick } from '../../../components/charts';
 import { LEVEL_BASE, LEVEL_FILL, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import type { LogHistogramBucket, LogPattern, LogServiceSummary } from '../../../services/api';
@@ -168,13 +168,7 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
     // 서비스 목록과 반복 패턴은 성격이 다른 두 섹션이라 개요처럼 section-stack(32px + 옅은 선)으로 나눈다.
     <div className="section-stack">
       <section>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="type-section-title text-text-base">{title}</h2>
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <span className="text-xs text-text-dim">{`최근 24시간 · ${noun} ${rows.length}개`}</span>
-            {viewToggle}
-          </div>
-        </div>
+        <SectionHeader title={title} meta={`최근 24시간 · ${noun} ${rows.length}개`} actions={viewToggle} />
         {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{statusRows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
           <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
             { key: 'name', label: noun, render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs xl:hidden"><LatestLine wrap summary={row.summary} known={row.collection === 'collecting'} /></div></> },
@@ -187,18 +181,16 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
       {/* 오류가 없으면 섹션째 숨긴다 — 위 카드가 이미 0건이라고 말한다. 실패는 숨기지 않는다 — "패턴 없음"으로 읽힌다. */}
       {(patterns === null || patterns.length > 0) && (
         <section>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            {/* 섹션 제목·보조 설명은 개요와 같은 크기(16px·12px, DESIGN.md §3.3). 20px이면 위 서비스 목록(제목 없음)보다 이 섹션이 더 무거웠다. */}
-            <h2 className="type-card-title text-text-base">자주 발생한 오류·경고</h2>
-            <span className="type-caption text-text-muted">최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다</span>
-          </div>
+          {/* 위 앱 목록과 같은 섹션 제목(20px, DESIGN.md §2.2). 보조 설명은 제목과 같은 기준선의 메타다. */}
+          <SectionHeader title="자주 발생한 오류·경고" meta="최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다" />
           {patterns === null ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
               <p className="type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
               {onRetryPatterns && <Button variant="secondary" size="sm" onClick={onRetryPatterns}>다시 시도</Button>}
             </div>
           ) : (
-            <ul>
+            // 행이 표처럼 px-4 hover 채움이라 표와 같이 펼쳐 글자를 정렬선에 맞춘다(§4.5).
+            <ul className="table-bleed">
               {shownPatterns!.map(({ pattern, row }) => (
                 <PatternRow key={`${row.key}|${pattern.fingerprint}`} pattern={pattern} row={row} windowStart={span[0]} />
               ))}

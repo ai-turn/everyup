@@ -137,7 +137,7 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
     if (!current) return <PanelPlaceholder />;
     const { Panel } = copy;
     return (
-      <div className="space-y-5">
+      <div className="page-stack">
         {/* 앱이 하나면 고를 것이 없으므로 줄째 없다. 추가 버튼은 탭 줄의 조작 자리에 있다. */}
         {apps.length > 1 && (
           <AppSelector ariaLabel={`${copy.label} 앱`} value={current.id}

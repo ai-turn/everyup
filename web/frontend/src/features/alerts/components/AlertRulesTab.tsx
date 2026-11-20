@@ -282,7 +282,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
             <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
       </div> : (
-        <div className="overflow-x-auto">
+        <div className="table-bleed overflow-x-auto">
           <table aria-label="알림 규칙 그리드" className="w-full min-w-[1180px] table-fixed text-sm">
             <thead>
               <tr className="border-b border-ui-border-soft">

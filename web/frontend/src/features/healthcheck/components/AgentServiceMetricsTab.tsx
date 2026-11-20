@@ -74,7 +74,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
     rules={meta.conflicting ? [] : rules.filter(rule => rule.metricName === meta.metricName)} expanded={expanded} onExpand={() => openMetric(meta)} showTooltip={expanded || hovered === metricIdentity(meta)} onHover={setHovered}
     pinned={pins.includes(metricIdentity(meta))} onPin={() => togglePin(meta)} pinDisabled={!pins.includes(metricIdentity(meta)) && pins.length >= 4} />;
 
-  return <div className="space-y-5">
+  return <div className="page-stack">
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2 type-caption text-text-muted" aria-label="메트릭 수집 현황">
       {/* 서버 메트릭 탭은 패널의 상태 줄(DirectConnectionMeta)이 수집 상태와 마지막 수집을 보인다. 여기서는 Docker 서비스만 그린다. */}
       {showCollection && <StatusLight {...collection} />}<span>{names.length}개 지표</span>

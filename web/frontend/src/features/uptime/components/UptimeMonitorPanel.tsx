@@ -267,10 +267,12 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
   const actionsDisabled = processing || refreshing || Boolean(errors.monitor);
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {listLink}
-      <div>
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      {/* 제목·주소와 아래 상태 줄은 한 머리말이라 블록 간격(24px)이 아니라 8px로 붙인다(Direct*Panel과 같다). */}
+      <div className="mb-2">
+        {/* 제목과 액션은 세로 가운데를 맞춘다(28px 제목 + 40px 버튼이 items-start로 6px 어긋났다). */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="min-w-0 wrap-anywhere text-text-base type-section-title">{monitor.name}</h2>
           {/* 이동, 편집, 파괴 순서. 수정과 삭제는 붙어 있는 짝이다(DESIGN.md §4.1). */}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">

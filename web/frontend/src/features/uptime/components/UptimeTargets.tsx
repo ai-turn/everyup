@@ -91,23 +91,23 @@ export function UptimeTargets(props: Props) {
     </div></div>;
   }
 
-  return <div className="@container">
+  return <div className="@container table-bleed">
     <table aria-label="업타임 그리드" className="w-full table-fixed text-left text-sm">
       <caption className="sr-only">장애 우선 목록입니다. 최근 체크 결과와 장애 지속 시간을 목록에서 확인하고, 이름을 눌러 상세로 이동합니다.</caption>
       <thead className="border-b border-ui-border-soft text-xs text-text-muted"><tr>
-        <th scope="col" className="w-24 px-3 py-3 font-medium @3xl:w-28">상태</th>
-        <th scope="col" className="px-3 py-3 font-medium">대상 · 체크 주소</th>
-        <th scope="col" className="hidden w-16 px-3 py-3 font-medium @3xl:table-cell">방식</th>
-        <th scope="col" className="hidden w-20 px-3 py-3 text-right font-medium @3xl:table-cell">수집 간격</th>
-        <th scope="col" className="hidden w-24 px-3 py-3 text-right font-medium @xl:table-cell">24h 업타임</th>
-        <th scope="col" className="hidden w-24 px-3 py-3 text-right font-medium @3xl:table-cell">평균 응답</th>
-        <th scope="col" className="hidden w-52 px-3 py-3 font-medium @3xl:table-cell @5xl:w-56">최근 체크</th>
+        <th scope="col" className="w-24 px-4 py-3 font-medium @3xl:w-28">상태</th>
+        <th scope="col" className="px-4 py-3 font-medium">대상 · 체크 주소</th>
+        <th scope="col" className="hidden w-16 px-4 py-3 font-medium @3xl:table-cell">방식</th>
+        <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium @3xl:table-cell">수집 간격</th>
+        <th scope="col" className="hidden w-24 px-4 py-3 text-right font-medium @xl:table-cell">24h 업타임</th>
+        <th scope="col" className="hidden w-24 px-4 py-3 text-right font-medium @3xl:table-cell">평균 응답</th>
+        <th scope="col" className="hidden w-52 px-4 py-3 font-medium @3xl:table-cell @5xl:w-56">최근 체크</th>
         <th scope="col" className="w-14 px-1 py-3 font-medium @5xl:w-28"><span className="sr-only">모니터 상태 변경</span></th>
       </tr></thead>
       <tbody>{targets.map((monitor) => (
         <tr key={monitor.id} {...tableRowLinkHandlers} className="table-row-link align-middle transition-colors hover:bg-ui-hover-soft">
-          <td className="px-3 py-3"><MonitorStatus monitor={monitor} error={error} /></td>
-          <td className="min-w-0 px-3 py-3">
+          <td className="px-4 py-3"><MonitorStatus monitor={monitor} error={error} /></td>
+          <td className="min-w-0 px-4 py-3">
             <Tooltip content={monitor.name}><Link data-row-link to={hrefFor(monitor)} state={{ returnTo }} className="block truncate font-medium text-action">{monitor.name}</Link></Tooltip>
             <Tooltip content={address(monitor)} focusable><p className="mt-1 truncate font-mono text-xs text-text-muted">{address(monitor)}</p></Tooltip>
             <div className="mt-2 space-y-2 @3xl:hidden">
@@ -119,11 +119,11 @@ export function UptimeTargets(props: Props) {
               <CheckHistory monitor={monitor} error={error} />
             </div>
           </td>
-          <td className="hidden px-3 py-3 @3xl:table-cell"><CheckMethod monitor={monitor} /></td>
-          <td className="hidden px-3 py-3 text-right tabular-nums text-text-muted @3xl:table-cell">{monitor.interval}초</td>
-          <td className="hidden px-3 py-3 text-right tabular-nums text-text-base @xl:table-cell">{uptimeText(monitor)}</td>
-          <td className="hidden whitespace-nowrap px-3 py-3 text-right tabular-nums text-text-base @3xl:table-cell">{latencyText(monitor)}</td>
-          <td className="hidden px-3 py-3 @3xl:table-cell"><CheckHistory monitor={monitor} error={error} /></td>
+          <td className="hidden px-4 py-3 @3xl:table-cell"><CheckMethod monitor={monitor} /></td>
+          <td className="hidden px-4 py-3 text-right tabular-nums text-text-muted @3xl:table-cell">{monitor.interval}초</td>
+          <td className="hidden px-4 py-3 text-right tabular-nums text-text-base @xl:table-cell">{uptimeText(monitor)}</td>
+          <td className="hidden whitespace-nowrap px-4 py-3 text-right tabular-nums text-text-base @3xl:table-cell">{latencyText(monitor)}</td>
+          <td className="hidden px-4 py-3 @3xl:table-cell"><CheckHistory monitor={monitor} error={error} /></td>
           <td className="px-1 py-3 text-right">{action(monitor)}</td>
         </tr>
       ))}</tbody>

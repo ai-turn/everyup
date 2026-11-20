@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { ControlDefaultsContext } from './controlSize';
 import { MaterialIcon } from './MaterialIcon';
 import { STATUS_DOT, type StatusTone } from './statusTone';
 import { Tooltip } from './Tooltip';
@@ -23,9 +25,12 @@ interface SegmentedOption<T extends string> {
   toneLabel?: string;
 }
 
+// 트랙을 포함한 바깥 높이가 같은 행의 Button·입력과 같아야 한다(DESIGN.md §4.1): sm 32 = Button sm,
+// md 44(모바일)·40(sm 이상) = Button md. 모바일 md는 선택 버튼이 44px(터치 영역)이라 트랙의 패딩·테두리가 높이를 더하면
+// 48px로 옆 버튼보다 4px 컸다. 그래서 모바일 md 트랙은 패딩·테두리 대신 높이를 차지하지 않는 안쪽 1px 선을 쓴다.
 const SIZES = {
   sm: 'h-7 px-3 text-xs',
-  md: 'h-11 px-3 text-sm sm:h-9', // 실제 터치 영역 44 / sm 이상 트랙 포함 40
+  md: 'h-11 px-3 text-sm sm:h-9',
 } as const;
 
 const ICON_SIZES = {
@@ -33,22 +38,30 @@ const ICON_SIZES = {
   md: 'h-11 w-11 sm:h-9 sm:w-9',
 } as const;
 
+const TRACK = {
+  sm: 'p-px border border-ui-border',
+  md: 'border-ui-border shadow-[inset_0_0_0_1px_var(--color-ui-border)] sm:p-px sm:border sm:shadow-none',
+} as const;
+
 export function SegmentedControl<T extends string>({
-  options, value, onChange, size = 'sm', ariaLabel, scroll = false,
+  options, value, onChange, size, ariaLabel, scroll = false,
 }: {
   options: readonly SegmentedOption<T>[];
   value: T;
   onChange: (value: T) => void;
+  /** 정하지 않으면 자리가 정한다: `AppHeader` 안(ControlDefaultsContext)은 sm, 본문은 md. */
   size?: keyof typeof SIZES;
   ariaLabel?: string;
   /** 줄바꿈하지 않는다. 넘치면 호출자가 감싼 영역(overflow-x-auto) 안에서 가로로 스크롤한다. */
   scroll?: boolean;
 }) {
+  const defaults = useContext(ControlDefaultsContext);
+  const resolved = size ?? defaults.size ?? 'md';
   return (
     <div
       role="group"
       aria-label={ariaLabel}
-      className={`inline-flex ${scroll ? 'flex-nowrap' : 'max-w-full flex-wrap'} items-center gap-0.5 rounded-lg p-px bg-ui-hover border border-ui-border`}
+      className={`inline-flex ${scroll ? 'flex-nowrap' : 'max-w-full flex-wrap'} items-center gap-0.5 rounded-lg bg-ui-hover ${TRACK[resolved]}`}
     >
       {options.map((o) => {
         const active = o.value === value;
@@ -59,7 +72,7 @@ export function SegmentedControl<T extends string>({
             aria-label={o.icon ? o.label : undefined}
             aria-pressed={active}
             onClick={() => onChange(o.value)}
-            className={`inline-flex ${scroll ? 'shrink-0' : 'min-w-0 max-w-full'} items-center justify-center gap-1.5 ${o.icon ? ICON_SIZES[size] : SIZES[size]} font-medium rounded-md transition-colors ${
+            className={`inline-flex ${scroll ? 'shrink-0' : 'min-w-0 max-w-full'} items-center justify-center gap-1.5 ${o.icon ? ICON_SIZES[resolved] : SIZES[resolved]} font-medium rounded-md transition-colors ${
             active
             ? 'bg-ui-raised text-text-base shadow-sm forced-colors:bg-[Highlight] forced-colors:text-[HighlightText]'
             : 'text-text-muted hover:text-text-base'
