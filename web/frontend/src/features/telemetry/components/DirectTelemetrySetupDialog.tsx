@@ -10,6 +10,7 @@ import {
 } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { readLatest } from '../../../utils/readLatest';
+import { Field } from '../../alerts/components/FormLayout';
 import { DirectTelemetrySetupResult, type TelemetryConnectionResult } from './DirectTelemetrySetupResult';
 
 interface DirectTelemetrySetupDialogProps {
@@ -47,6 +48,7 @@ export function DirectTelemetrySetupDialog({
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [optionsError, setOptionsError] = useState<string | null>(null);
   const [optionsRetryKey, setOptionsRetryKey] = useState(0);
+  const [fieldError, setFieldError] = useState<string | null>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -79,6 +81,14 @@ export function DirectTelemetrySetupDialog({
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    // 브라우저 기본 검증(말풍선) 대신 입력 아래에 오류를 둔다(폼은 noValidate, UI/UX 점검 A5).
+    // 이전에는 비어 있으면 추가 버튼이 이유 없이 비활성이었다.
+    const missing = mode === 'new' ? !name.trim() && '앱 이름을 입력하세요' : !selected && '앱을 선택하세요';
+    if (missing) {
+      setFieldError(missing);
+      document.getElementById(mode === 'new' ? `direct-${signal}-service-name` : `direct-${signal}-existing-service`)?.focus();
+      return;
+    }
     setSubmitting(true);
     try {
       if (mode === 'new') {
@@ -137,7 +147,7 @@ export function DirectTelemetrySetupDialog({
           onDone={done}
         />
       ) : (
-        <form onSubmit={submit} className="space-y-5 p-6">
+        <form onSubmit={submit} noValidate className="space-y-5 p-6">
           {optionsLoading && <p role="status" className="type-body text-text-muted">연결 정보를 확인하고 있습니다…</p>}
           {optionsError && <LoadErrorBanner inline title="연결 정보를 불러오지 못했습니다" message={optionsError} onRetry={() => setOptionsRetryKey(key => key + 1)} />}
           {signal === 'logs' && (
@@ -147,29 +157,25 @@ export function DirectTelemetrySetupDialog({
           )}
           {/* Offered only when some service can take this signal on. */}
           {existingServices.length > 0 && (
-            <SegmentedControl options={modeOptions} value={mode} onChange={setMode} size="md" ariaLabel="앱 선택 방식" />
+            <SegmentedControl options={modeOptions} value={mode} onChange={(next) => { setMode(next); setFieldError(null); }} size="md" ariaLabel="앱 선택 방식" />
           )}
 
           {mode === 'new' ? (
-            <div className="space-y-1.5">
-              <label className="block type-label text-text-secondary" htmlFor={`direct-${signal}-service-name`}>앱 이름</label>
-              <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" aria-describedby={`direct-${signal}-name-hint`} required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="예: orders-api" />
-              <p id={`direct-${signal}-name-hint`} className="type-body text-text-muted">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</p>
-            </div>
+            <Field label="앱 이름" htmlFor={`direct-${signal}-service-name`} required error={fieldError ?? undefined} hint="앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.">
+              <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" maxLength={200} invalid={Boolean(fieldError)} value={name} onChange={event => { setName(event.target.value); setFieldError(null); }} placeholder="예: orders-api" />
+            </Field>
           ) : (
-            <label className="block space-y-1.5" htmlFor={`direct-${signal}-existing-service`}>
-              <span className="type-label text-text-secondary">앱</span>
-              <Select id={`direct-${signal}-existing-service`} required value={existingId} onChange={event => setExistingId(event.target.value)}>
+            <Field label="앱" htmlFor={`direct-${signal}-existing-service`} required error={fieldError ?? undefined} hint={`기존 연결 키에 ${capabilityLabel} 권한을 추가합니다.`}>
+              <Select id={`direct-${signal}-existing-service`} value={existingId} onChange={event => { setExistingId(event.target.value); setFieldError(null); }}>
                 <option value="">앱 선택</option>
                 {existingServices.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}
               </Select>
-              <span className="block type-body text-text-muted">{`기존 연결 키에 ${capabilityLabel} 권한을 추가합니다.`}</span>
-            </label>
+            </Field>
           )}
 
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
             <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
-            <Button type="submit" disabled={optionsLoading || Boolean(optionsError) || (mode === 'new' ? !name.trim() : !selected)} loading={submitting}>
+            <Button type="submit" disabled={optionsLoading || Boolean(optionsError)} loading={submitting}>
               <MaterialIcon name="add" />
               추가
             </Button>

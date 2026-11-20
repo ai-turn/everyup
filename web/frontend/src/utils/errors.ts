@@ -40,7 +40,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   NO_COLLECTOR: 'Collector가 등록되지 않았습니다.',
   COLLECT_FAILED: '시스템 정보 수집에 실패했습니다.',
   UNKNOWN_ERROR: '알 수 없는 오류가 발생했습니다.',
+  // 클라이언트 쪽 분류(백엔드 코드가 아니다): 서버에 닿지 못한 요청, 코드 없이 5xx로 끝난 요청.
+  NETWORK_ERROR: '서버에 연결하지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도하세요.',
+  SERVER_ERROR: '서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.',
 };
+
+// 앱이 직접 만든 오류 문구는 한국어다. 그 밖의 원문(서버의 영어 메시지, 브라우저의 `Failed to fetch`)은
+// 사용자에게 그대로 보이지 않고 위 문구로 바꾼다(DESIGN.md §7 — 오류 배너의 설명은 사용자의 말이다).
+const HANGUL = /[가-힣]/;
+// fetch가 서버에 닿지 못하면 브라우저마다 다른 문구의 TypeError를 던진다(Chrome·Firefox·Safari).
+const NETWORK_FAILURE = /Failed to fetch|NetworkError|Load failed|Network request failed/i;
 
 /**
  * Structured API error that carries the error code from the backend.
@@ -62,19 +71,25 @@ export class ApiError extends Error {
  * Resolves a user-facing message from any error.
  *
  * Priority:
- * 1. ApiError with known code → mapped message
- * 2. ApiError with unknown code → raw error.message (backend fallback)
- * 3. Generic Error → error.message
- * 4. Unknown → generic fallback message
+ * 1. ApiError with a known code → mapped message
+ * 2. Network failure (fetch TypeError) → NETWORK_ERROR
+ * 3. Any other error whose message the app wrote in Korean → that message
+ * 4. ApiError with an unmapped code: 5xx → SERVER_ERROR, otherwise UNKNOWN_ERROR.
+ *    The raw backend message is never shown.
+ * 5. Anything else → UNKNOWN_ERROR
  */
 export function getErrorMessage(error: unknown): string {
-  if (error instanceof ApiError && error.code) {
-    return ERROR_MESSAGES[error.code] ?? error.message;
+  if (error instanceof ApiError && error.code && error.code !== 'UNKNOWN_ERROR' && ERROR_MESSAGES[error.code]) {
+    return ERROR_MESSAGES[error.code];
   }
-
-  if (error instanceof Error) {
+  if (error instanceof TypeError && NETWORK_FAILURE.test(error.message)) {
+    return ERROR_MESSAGES.NETWORK_ERROR;
+  }
+  if (error instanceof Error && HANGUL.test(error.message)) {
     return error.message;
   }
-
+  if (error instanceof ApiError && error.status && error.status >= 500) {
+    return ERROR_MESSAGES.SERVER_ERROR;
+  }
   return ERROR_MESSAGES.UNKNOWN_ERROR;
 }

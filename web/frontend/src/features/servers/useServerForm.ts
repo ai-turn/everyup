@@ -18,6 +18,12 @@ export function useServerForm(initial: ServerDraft) {
 
   // 서버 수정은 전체 교체다. 세 값을 항상 모두 보내고, 그룹이 없으면 projectId를 빼서 해제한다.
   const submit = async (save: (input: ServerUpdate) => Promise<void>) => {
+    // 브라우저 기본 검증(말풍선) 대신 입력 아래에 같은 모양의 오류를 둔다(폼은 noValidate, UI/UX 점검 A5).
+    if (!draft.name.trim()) {
+      setNameError('서버 이름을 입력하세요');
+      nameRef.current?.focus();
+      return;
+    }
     setSaving(true);
     setNameError(null);
     try {

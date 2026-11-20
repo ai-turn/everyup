@@ -5,6 +5,7 @@ import { getErrorMessage } from '../../../utils/errors';
 import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
 import { api, type AlertRule, type NotificationChannel } from '../../../services/api';
 import { alertTargetName, categoryLabel, compactTrigger, evaluationSummary, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames, type CategoryKey } from '../ruleDisplay';
+import { RuleTargetName } from './RuleTargetName';
 import { ChannelAvatars } from './ChannelAvatars';
 import { LoadErrorBanner } from '../../../components/common';
 import { AlertRuleForm, type AlertRuleFormInitial } from './AlertRuleForm';
@@ -277,7 +278,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
         {filteredRules.length === 0 ? <p className="p-5 type-body text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
-            <p className="mt-4 break-words type-body text-text-secondary">{targetLabel(rule, names)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
+            <p className="mt-4 break-words type-body text-text-secondary"><RuleTargetName rule={rule} names={names} /></p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
             <div className="mt-3"><ChannelAvatars rule={rule} channels={channels} /></div><p className="mt-3 type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p>
             <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
@@ -344,7 +345,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                         <Tooltip content={targetLabel(rule, names)}><span
                           className="block max-w-full truncate text-sm text-text-secondary"
                         >
-                          {targetLabel(rule, names)}
+                          <RuleTargetName rule={rule} names={names} stacked />
                         </span></Tooltip>
                       </td>
                       <td className="px-4 py-2.5 align-middle text-sm">

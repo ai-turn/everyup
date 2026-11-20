@@ -1,16 +1,13 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { IconButton, MaterialIcon } from '../common';
-import { api, type AgentServiceFlat, type UptimeMonitor } from '../../services/api';
 import { env } from '../../config/env';
 import logo from '../../assets/logo.webp';
 import { DemoScenarioSwitcher } from './DemoScenarioSwitcher';
 import { DemoHelpLinks } from './DemoHelpLinks';
 import { NAV_SECTIONS } from './navSections';
 import { useCurrentSection } from '../../hooks/useGroupTrail';
-import { uptimeState } from '../../features/uptime/uptimeState';
 
 interface NavItemProps {
   to: string;
@@ -41,30 +38,9 @@ function NavItem({ to, icon, label, active, badge }: NavItemProps) {
   );
 }
 
-export function Sidebar() {
+/** failureCount: 개요 항목의 장애 배지. MainLayout이 탭 제목과 같은 값을 넘긴다(useFailureCount). */
+export function Sidebar({ failureCount }: { failureCount: number }) {
   const { theme, toggleTheme } = useTheme();
-
-
-  const [services, setServices] = useState<AgentServiceFlat[]>([]);
-  const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
-
-  const loadStatus = useCallback(async () => {
-    // Navigation remains available even when its alert badge cannot load.
-    const [servicesResult, monitorsResult] = await Promise.allSettled([api.getAllAgentServicesFlat(), api.getUptimeMonitors()]);
-    if (servicesResult.status === 'fulfilled') setServices(servicesResult.value ?? []);
-    if (monitorsResult.status === 'fulfilled') setMonitors(monitorsResult.value ?? []);
-  }, []);
-
-  useEffect(() => {
-    const initialLoad = window.setTimeout(() => void loadStatus(), 0);
-    return () => window.clearTimeout(initialLoad);
-  }, [loadStatus]);
-  useAutoRefresh(() => void loadStatus(), 30_000);
-
-  // 개요의 "장애 N"과 탭 제목 "(N) 장애"와 같은 판정이다 — Docker 서비스만 세면 업타임 모니터 장애가 빠져 두 숫자가 갈렸다.
-  // 모니터는 서버 목록과 같은 uptimeState로 센다(일시정지한 모니터의 마지막 상태는 장애가 아니다).
-  const failureCount = services.filter((service) => !service.healthy).length
-    + monitors.filter((monitor) => uptimeState(monitor) === 'down').length;
 
   // 활성 항목 = 첫 크럼과 같은 섹션(담김 관계, DESIGN.md §3.4) — 서비스 상세는 Docker 환경이다.
   // 그룹에서 연 대상이면 그룹이다(useGroupTrail).

@@ -7,7 +7,8 @@ import { getChannelStyle } from '../utils/channelMeta';
 import { ChannelHealthMeta, ChannelTestResult, type ChannelTestOutcome } from './ChannelHealthMeta';
 import type { NotificationChannel, NotificationChannelHealth, AlertRule, NotificationHistory, NotificationStats } from '../../../services/api';
 import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
-import { alertTargetName, categoryLabel, compactTrigger, historyStatus, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames } from '../ruleDisplay';
+import { alertTargetName, categoryLabel, compactTrigger, historyStatus, ruleCategory, SEVERITY_ORDER, useTargetNames } from '../ruleDisplay';
+import { RuleTargetName } from './RuleTargetName';
 import { ChannelAvatars } from './ChannelAvatars';
 import { LoadErrorBanner } from '../../../components/common';
 import { SeverityBadge } from './SeverityBadge';
@@ -84,7 +85,7 @@ export function AlertsMobileView({
   const visibleRules = (alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules)
     .slice().sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 3) - (SEVERITY_ORDER[b.severity] ?? 3));
   const targetDescription = alertTarget ? alertTargetName(alertTarget, names) : undefined;
-  const ruleMeta = (rule: AlertRule) => `${rule.isSystem ? '시스템 규칙' : categoryLabel(ruleCategory(rule))} · ${targetLabel(rule, names)}`;
+  const ruleMeta = (rule: AlertRule) => <>{rule.isSystem ? '시스템 규칙' : categoryLabel(ruleCategory(rule))} · <RuleTargetName rule={rule} names={names} /></>;
   const ruleActions = (rule: AlertRule) => <>
     <IconButton icon="edit" label="규칙 수정" onClick={() => onEditRule(rule)} />
     <IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '규칙 삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} onClick={() => { if (!rule.isSystem) onDeleteRule(rule.id); }} />

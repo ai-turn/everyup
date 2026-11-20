@@ -282,17 +282,20 @@ export function ServiceGridPage() {
             <div key={i} className="h-44 rounded-xl bg-ui-hover animate-pulse" />
           ))}
         </div>
-      ) : !error && services.length === 0 && agents.length === 0 ? (
+      ) : services.length === 0 && agents.length === 0 ? (
+        // 불러오지 못해 목록이 비었으면 위 오류 배너만 둔다. 빈 상태(연결 안내)나 "검색 결과가 없습니다"는
+        // 사실이 아니다 — 검색하지 않았고, 연결된 환경이 없는지도 모른다(UI/UX 점검 A1).
+        error ? null : (
         <EmptyState
           icon="sensors"
           title="아직 연결된 Docker 환경이 없습니다"
           description="Docker 환경을 연결하면 컨테이너와 호스트가 자동으로 표시됩니다"
           action={{ label: 'Docker 연결', onClick: () => setShowAddModal(true) }}
-        />
+        />)
       ) : (
         <section>
         <h2 className="sr-only">Docker 환경 목록</h2>
-        {envRows.length === 0 ? <EmptyState icon="sensors" title="검색 결과가 없습니다" /> : view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
+        {envRows.length === 0 ? (error && !search.trim() ? null : <EmptyState icon="sensors" title="검색 결과가 없습니다" />) : view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
           { key: 'name', label: 'Docker 환경 · 서비스', render: row => row.kind === 'env' ? (
             // 펼침 버튼(20px)의 가운데(left-2.5)가 하위 행 연결선의 x다. -my-4 py-4로 셀 높이 전체를 덮어야 선이 행 사이에서 끊기지 않는다.
             <div className="relative -my-4 py-4">

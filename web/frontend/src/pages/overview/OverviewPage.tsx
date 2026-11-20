@@ -213,15 +213,6 @@ export function OverviewPage() {
   if (showAllAttention && warnItems.length <= WARN_PREVIEW) setShowAllAttention(false);
   const shownWarnItems = showAllAttention ? warnItems : warnItems.slice(0, WARN_PREVIEW);
 
-  // 백그라운드 탭에서도 장애가 보이도록 탭 제목에 장애 수를 붙인다.
-  const errorCount = outageItems.length;
-  useEffect(() => {
-    if (errorCount === 0) return;
-    const previous = document.title;
-    document.title = `(${errorCount}) 장애 · ${previous}`;
-    return () => { document.title = previous; };
-  }, [errorCount]);
-
   const totalTargets = agents.length + servers.rows.length;
 
   // 첫 로드에만 스켈레톤을 보인다 — 대상이 0개인 상태에서 30초마다 다시 깜빡이지 않게.

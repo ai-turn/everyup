@@ -1385,7 +1385,8 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (method === 'GET' && scenario === 'partial-failure' && (
     endpoint === '/agents/services/all' || endpoint === '/observed-services'
   )) {
-    throw new Error('Demo scenario: telemetry source is temporarily unavailable');
+    // 실제 백엔드가 코드 없이 503으로 끝난 경우와 같은 모양이다. 화면에는 원문이 아니라 사용자 문구가 보인다.
+    throw new ApiError('Demo scenario: telemetry source is temporarily unavailable', 'UNKNOWN_ERROR', 503);
   }
 
   // Mutations in mock mode: mutate the in-memory fixtures so flows feel real.

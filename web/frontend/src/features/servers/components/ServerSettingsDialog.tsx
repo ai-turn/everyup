@@ -42,7 +42,7 @@ export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete 
       onClick={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}
       className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
-      <form onSubmit={submit}>
+      <form onSubmit={submit} noValidate>
         <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
           <h2 id="server-settings-title" className="type-card-title text-text-base">서버 설정</h2>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
