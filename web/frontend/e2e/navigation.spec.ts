@@ -131,7 +131,7 @@ test.describe('Docker-only setup', () => {
     await expect(page.getByRole('heading', { name: '아직 서버가 없습니다' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Docker API', exact: true })).toHaveCount(0);
 
-    // 서버 목록이 비었거나 불러오지 못하면 툴바(전체 로그 링크가 있는 줄)가 없다. 명령 팔레트로 들어간다.
+    // 서버 목록이 비었거나 불러오지 못해도 머리말에 전체 로그가 있다. 명령 팔레트로도 들어간다.
     await page.getByRole('button', { name: /^검색/ }).first().click();
     await page.getByRole('dialog', { name: '검색' }).getByRole('option', { name: /^전체 로그/ }).click();
     await expect(page.getByRole('heading', { name: '로그를 보내는 앱이 없습니다' })).toBeVisible();
@@ -151,7 +151,7 @@ test.describe('all logs without server names', () => {
     state.failures.set('GET /servers', 500);
     await page.goto('./');
     await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: '서버', exact: true }).click();
-    // 서버 목록이 비었거나 불러오지 못하면 툴바(전체 로그 링크가 있는 줄)가 없다. 명령 팔레트로 들어간다.
+    // 서버 목록이 비었거나 불러오지 못해도 머리말에 전체 로그가 있다. 명령 팔레트로도 들어간다.
     await page.getByRole('button', { name: /^검색/ }).first().click();
     await page.getByRole('dialog', { name: '검색' }).getByRole('option', { name: /^전체 로그/ }).click();
     await expect(page.getByRole('heading', { name: '로그를 불러오지 못했습니다' })).toHaveCount(0);

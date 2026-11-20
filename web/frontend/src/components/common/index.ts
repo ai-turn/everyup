@@ -7,6 +7,7 @@ export { SearchInput } from './SearchInput';
 export { PageHeader } from './PageHeader';
 export { DetailMeta, type DetailMetaField } from './DetailMeta';
 export { ListToolbar } from './ListToolbar';
+export { FilterChips, type FilterChipOption } from './FilterChips';
 export { ListViewToggle, type ListView } from './ListViewToggle';
 export { ResourceTable, type ResourceColumn } from './ResourceTable';
 export { ResourceCardHeader } from './ResourceCardHeader';

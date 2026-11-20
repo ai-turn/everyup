@@ -91,7 +91,7 @@ test('status filters stay on one line each at 320px', async ({ page }) => {
   const filters = page.getByRole('group', { name: '상태로 거르기' }).getByRole('button');
   await expect(filters).toHaveCount(4);
   for (const button of await filters.all()) {
-    const label = button.locator('span').first();
+    const label = button.locator('span').nth(1);
     const { height } = (await label.boundingBox())!;
     expect(height).toBeLessThan(24);
   }
