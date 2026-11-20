@@ -31,8 +31,9 @@ const FIRST_CONTENT: [string, string, (page: Page) => Locator, number][] = [
   // 수치 타일의 첫 값(요청 수)
   ['api requests', `${EDGE}/api`, (page) => panel(page).getByRole('button', { name: /^요청 수/ }).locator('.type-kpi'), 659],
   // 첫 지표 차트 카드(앱 하나, 앱 둘)
-  ['metrics', `${EDGE}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 614],
-  ['metrics with two apps', `${BATCH}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 645],
+  // 메트릭 두 줄은 2026-11-20에 블록 간격을 24px로 맞추며(본문 래퍼 위 20→24, 블록 사이 20→24) 8px·12px 내려가 상한을 같이 올렸다.
+  ['metrics', `${EDGE}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 622],
+  ['metrics with two apps', `${BATCH}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 657],
 ];
 
 test.describe('at 1440x1000', () => {

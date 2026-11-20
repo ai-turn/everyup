@@ -1,7 +1,7 @@
 import { Tooltip } from '../../components/common/Tooltip';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader, RefreshIconButton } from '../../components/common';
+import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader, RefreshIconButton, SectionHeader } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
@@ -228,7 +228,7 @@ export function OverviewPage() {
   // 모양은 실제 배치(범위 스트립, 그 아래 확인 필요·이력 패널)를 따른다.
   if (!updatedAt || (!servers.loaded && !servers.error)) {
     return (
-      <div className="space-y-5" aria-busy="true">
+      <div className="page-stack" aria-busy="true">
         <PageHeader menu title="개요" />
         <div className="h-8 w-96 max-w-full animate-pulse rounded-md bg-ui-hover-soft" />
         <div className="h-80 animate-pulse rounded-lg bg-ui-hover-soft" />
@@ -237,7 +237,7 @@ export function OverviewPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {/* 연결 추가는 각 화면(서버, Docker 환경)의 일이다. 개요의 머리는 장애에 내준다. */}
       <PageHeader menu
         title="개요"
@@ -411,15 +411,16 @@ export function OverviewPage() {
 
 function GroupHeader({ title, count, countLabel, note }: { title: string; count: ReactNode; countLabel?: string; note?: string }) {
   return (
-    <div className="flex h-8 items-center gap-2">
-      {/* 섹션 제목이다(section-stack 선으로 나뉜다) — 그룹 제목용 12px이면 아래 행 이름(14px)보다 작아 위계가 뒤집혔다. */}
-      <h2 className="type-card-title text-text-base">{title}</h2>
-      {/* span의 aria-label은 대부분의 스크린리더가 읽지 않는다 — 숫자만이면 감추고 같은 뜻을 글로 둔다. */}
-      <span className="type-body tabular-nums text-text-muted">
+    // 섹션 제목이다(section-stack 선으로 나뉜다). 건수·범위는 제목과 같은 기준선의 메타다(DESIGN.md §2.2).
+    <SectionHeader
+      title={title}
+      className="min-h-8"
+      meta={(count != null || note) && <>
+        {/* span의 aria-label은 대부분의 스크린리더가 읽지 않는다 — 숫자만이면 감추고 같은 뜻을 글로 둔다. */}
         {countLabel ? <><span aria-hidden="true">{count}</span><span className="sr-only">{countLabel}</span></> : count}
-      </span>
-      {note && <span className="ml-auto min-w-0 truncate type-caption text-text-muted">{note}</span>}
-    </div>
+        {note && <span className="ml-3">{note}</span>}
+      </>}
+    />
   );
 }
 

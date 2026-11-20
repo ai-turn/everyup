@@ -234,7 +234,8 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
     <section className={className}>
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
+          {/* 진행 배지는 제목의 메타다 — 가운데가 아니라 기준선에 맞춘다(DESIGN.md §2.2). */}
+          <div className="flex items-baseline gap-2">
             <h2 className={`${compact ? 'type-label' : 'type-section-title'} text-text-base`}>모니터링 설정 가이드</h2>
             <span className={`rounded-full px-2 py-0.5 text-xs ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
               필수 {requiredReady}/{requiredTotal}

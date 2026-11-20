@@ -10,7 +10,7 @@ export { ListToolbar } from './ListToolbar';
 export { ListViewToggle, type ListView } from './ListViewToggle';
 export { ResourceTable, type ResourceColumn } from './ResourceTable';
 export { ResourceCardHeader } from './ResourceCardHeader';
-export { DetailActionToolbar } from './DetailActionToolbar';
+export { SectionHeader } from './SectionHeader';
 export { MaterialIcon } from './MaterialIcon';
 export { CopyButton, COPY_ACTION_PRIMARY, COPY_ACTION_SUBTLE } from './CopyButton';
 export { StatusLight, type StatusTone } from './StatusLight';

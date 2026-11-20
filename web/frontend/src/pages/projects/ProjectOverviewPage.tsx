@@ -2,7 +2,7 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, DetailActionToolbar, EmptyState, ListViewToggle, MaterialIcon, PageHeader, RefreshIconButton, ResourceTable, StatusLight } from '../../components/common';
+import { Button, ConfirmDialog, EmptyState, ListViewToggle, MaterialIcon, PageHeader, RefreshIconButton, ResourceTable, SectionHeader, StatusLight } from '../../components/common';
 import { partialFailureMessage, useServers, type FailedTargets } from '../../features/servers/useServers';
 import { useListView } from '../../hooks/useListView';
 import { api, type Project } from '../../services/api';
@@ -149,15 +149,14 @@ export function ProjectOverviewPage() {
     : null;
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {/* 상세 헤더에는 채움 부제를 두지 않는다(§4.1) — 사용자가 적은 설명이 있을 때만 */}
-      <PageHeader title={project.name} subtitle={project.description || undefined} />
-      <DetailActionToolbar
-        controls={
-          <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
-        }
+      <PageHeader
+        title={project.name}
+        subtitle={project.description || undefined}
         actions={
           <>
+            <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
             <Button collapseLabel onClick={() => setAdding(true)}><MaterialIcon name="add" />대상 추가</Button>
             <Button collapseLabel variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
             <Button collapseLabel variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
@@ -169,7 +168,7 @@ export function ProjectOverviewPage() {
 
       {totalTargets === 0 ? membersUnknown ? null : <section><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="서버와 Docker 환경을 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
         <section>
-          <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
+          <SectionHeader title="대상" description="장애를 먼저, 수집 지연을 그다음에 보여줍니다." actions={<ListViewToggle view={view} onChange={setView} />} />
           {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center rounded-xl border border-ui-border-soft bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
             <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="그룹 구성 그리드" columns={[
               // 종류 아이콘은 분류라 중립색이다(§5.3). 상태는 현황 열의 StatusLight가 말한다(§5.1).

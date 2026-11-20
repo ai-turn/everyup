@@ -116,7 +116,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
           </p>
         </div>
       ) : (
-        <div>
+        <div className="table-bleed">
           {/* 좁은 화면에서는 이름 열만 두고 소요·Span·시작을 이름 아래로 내린다(요청 표와 같은 방식). 537px 표가 잘렸다. */}
           <table aria-label="트레이스 목록" className="w-full table-fixed text-sm">
             <thead>

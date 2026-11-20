@@ -17,16 +17,17 @@ export function ResourceTable<T>({ rows, columns, rowKey, ariaLabel, renderDetai
   renderDetails?: (row: T) => ReactNode;
 }) {
   // 카드 셸·헤더 배경·행 구분선 없이 헤더 아래 옅은 선 하나만 둔다(DESIGN.md §3.1). 행은 hover 채움으로 드러난다.
-  return <div>
+  // table-bleed: 셀 패딩만큼 바깥으로 펼쳐 글자를 본문 정렬선에 맞춘다(§4.5).
+  return <div className="table-bleed">
     <table aria-label={ariaLabel} className="w-full table-fixed text-sm">
       <thead className="border-b border-ui-border-soft text-xs text-text-muted"><tr>{columns.map((column) =>
-        <th key={column.key} scope="col" className={`px-3 py-3 font-medium sm:px-4 ${column.align ? 'text-right' : 'text-left'} ${column.className ?? ''}`}>{column.label}</th>,
+        <th key={column.key} scope="col" className={`px-4 py-3 font-medium ${column.align ? 'text-right' : 'text-left'} ${column.className ?? ''}`}>{column.label}</th>,
       )}</tr></thead>
       <tbody>{rows.map((row) => {
         const details = renderDetails?.(row);
         return <Fragment key={rowKey(row)}><tr {...tableRowLinkHandlers} className="table-row-link align-top transition-colors hover:bg-ui-hover-soft">{columns.map((column) =>
-          <td key={column.key} className={`min-w-0 px-3 py-4 sm:px-4 ${column.align ? 'text-right tabular-nums' : 'text-left'} ${column.className ?? ''}`}>{column.render(row)}</td>,
-        )}</tr>{details && <tr><td colSpan={columns.length} className="p-3 sm:p-4">{details}</td></tr>}</Fragment>;
+          <td key={column.key} className={`min-w-0 px-4 py-4 ${column.align ? 'text-right tabular-nums' : 'text-left'} ${column.className ?? ''}`}>{column.render(row)}</td>,
+        )}</tr>{details && <tr><td colSpan={columns.length} className="p-4">{details}</td></tr>}</Fragment>;
       })}</tbody>
     </table>
   </div>;

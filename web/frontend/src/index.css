@@ -189,6 +189,21 @@
   }
 }
 
+/* 페이지 블록 사이 24px(DESIGN.md §3.7): 머리말 → 탭 → 패널, 패널 안의 블록. 20px(space-y-5)과 24px이 같은 관계에
+   섞여 있었다. 모달·패널 본문은 이 규칙이 아니다(space-y-5). Tailwind v4 space-y와 같은 방식(마지막이 아닌 자식의
+   아래 여백, :where로 명시도 0)이라 자식이 직접 준 여백(모바일 뒤로 링크의 mb-3 등)이 그대로 이긴다. */
+@utility page-stack {
+  :where(& > :not(:last-child)) {
+    margin-block-end: 1.5rem;
+  }
+}
+
+/* 테두리 없는 표(§3.1)의 글자를 본문 정렬선에 맞춘다. 셀 패딩(px-4)만큼 표를 바깥으로 펼쳐 첫 글자가 제목·툴바와
+   같은 x에서 시작하고, hover 채움은 그만큼 정렬선 밖으로 나간다. 셀 가로 패딩은 px-4로 고정한다. */
+@utility table-bleed {
+  margin-inline: -1rem;
+}
+
 @utility type-section-title {
   font-size: var(--text-xl);
   line-height: 1.75rem;

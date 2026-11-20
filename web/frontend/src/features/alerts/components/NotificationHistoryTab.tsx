@@ -240,7 +240,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
       {/* History Table */}
       {!error && <div className={view === 'card' ? 'space-y-3' : undefined}>
         {view === 'card' ? <HistoryCards rows={groupedRows} loading={loading} rules={rules} /> : (
-        <div className="overflow-x-auto">
+        <div className="table-bleed overflow-x-auto">
           <table aria-label="발송 이력 그리드" className="w-full min-w-[960px] table-fixed">
             <thead>
               <tr className="border-b border-ui-border-soft">

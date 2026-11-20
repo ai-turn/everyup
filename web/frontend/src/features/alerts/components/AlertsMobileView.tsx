@@ -97,7 +97,7 @@ export function AlertsMobileView({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="page-stack">
       {/* Header */}
       <PageHeader menu title="알림">
         {activeTab !== 'history' && (

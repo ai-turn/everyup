@@ -94,7 +94,7 @@ export function InfrastructurePanel({ resource, status, serverName, onDeleted, e
   </>;
   const rangePicker = <TimeRangePicker value={range} onChange={setRange} />;
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {/* 리소스는 서버마다 하나이고 이름이 서버 이름과 같은 경우가 많다. 제목은 스크린리더에만 두고 조작은 상태 줄 오른쪽이다. */}
       <h2 className="sr-only">인프라</h2>
       {/* 연결 중지는 DirectConnectionMeta가 상태 바로 옆에 둔다. */}

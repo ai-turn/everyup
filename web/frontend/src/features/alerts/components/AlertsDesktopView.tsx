@@ -137,7 +137,7 @@ export function AlertsDesktopView({
       </PageHeader>
 
       {/* Tabs */}
-      <div className="flex items-end mb-5">
+      <div className="flex items-end mb-6">
         <div role="tablist" aria-label="알림" className="flex gap-0">
           {tabs.map(tab => (
             <button
@@ -161,11 +161,11 @@ export function AlertsDesktopView({
           ))}
         </div>
         {/* 보기 전환은 바꾸는 대상(탭 내용) 바로 위에 둔다 — 헤더 아래 혼자 한 줄을 차지하지 않게 */}
-        <div className="ml-auto pb-2"><ListViewToggle size="sm" view={view} onChange={setView} /></div>
+        <div className="ml-auto pb-2"><ListViewToggle view={view} onChange={setView} /></div>
       </div>
 
       {/* 7일 발송 요약은 발송 이력의 머리다 — 탭 위에 있으면 규칙·채널 탭에서도 표보다 먼저, 더 크게 섰다. */}
-      {activeTab === 'history' && <div className="mb-5 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border-soft bg-bg-surface py-3.5">
+      {activeTab === 'history' && <div className="mb-6 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border-soft bg-bg-surface py-3.5">
         <div className="flex flex-col gap-0.5 px-5">
           <span className="text-xs text-text-muted">발송 (7일)</span>
           <span className="type-kpi text-text-base">{totalSent}</span>
@@ -308,7 +308,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
   </article>)}</div>;
 
   return (
-    <div className="overflow-x-auto">
+    <div className="table-bleed overflow-x-auto">
       <table aria-label="알림 채널 그리드" className="w-full min-w-[1000px] table-fixed">
         <thead>
           <tr className="border-b border-ui-border-soft">

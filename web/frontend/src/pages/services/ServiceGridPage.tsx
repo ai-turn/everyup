@@ -266,7 +266,7 @@ export function ServiceGridPage() {
         />
       } />
 
-      <div className="space-y-5">
+      <div className="page-stack">
 
       {/* Content */}
       {error && (

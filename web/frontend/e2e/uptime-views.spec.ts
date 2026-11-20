@@ -61,7 +61,9 @@ test('both views share state priority and mobile grid retains actions without ho
   const row = targets.getByRole('row').filter({ has: page.getByRole('link', { name: 'Public API', exact: true }) });
   await expect(row.getByRole('button', { name: 'Public API 일시정지', exact: true })).toBeVisible();
   await expect(row.getByText('https://api.example.com/health', { exact: true }).filter({ visible: true })).toBeVisible();
-  expect(await targets.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+  // 표는 table-bleed로 셀 패딩만큼 영역 밖으로 펼쳐진다(DESIGN.md §4.5). 넘침은 영역이 아니라 실제로 가로 스크롤이 생기는
+  // 본문 스크롤 컨테이너에서 잰다.
+  expect(await page.evaluate(() => { const scroller = document.querySelector('#main-content > div')!; return scroller.scrollWidth - scroller.clientWidth; })).toBeLessThanOrEqual(1);
   const names = await targets.getByRole('link').allTextContents();
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();
   await expect(targets.getByRole('article')).toHaveCount(2);

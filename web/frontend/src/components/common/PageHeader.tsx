@@ -12,6 +12,11 @@ interface PageHeaderProps {
     meta?: React.ReactNode;
     /** 넓은 화면에서 제목·메타데이터 우측에 놓을 대상 제어와 요약. */
     aside?: React.ReactNode;
+    /**
+     * 상세 화면의 대상 조작(새로고침, 설정, 편집, 파괴). 제목 줄 오른쪽에 두고 제목과 세로 가운데를 맞춘다.
+     * 조작만 담은 줄을 머리말 아래에 따로 두지 않는다(DESIGN.md §4.1 액션 앵커) — 본문 위에 빈 줄이 하나 더 생겼다.
+     */
+    actions?: React.ReactNode;
     children?: React.ReactNode;
     /** 목록의 주 액션을 좁은 화면에서도 제목 옆에 둔다. */
     compactActions?: boolean;
@@ -29,7 +34,7 @@ interface PageHeaderProps {
 const DESKTOP_HEADER = { size: 'sm', variant: 'secondary' } as const;
 const MOBILE_MENU = { variant: 'secondary' } as const;
 
-export function PageHeader({ title, subtitle, meta, aside, children, compactActions = false, truncateTitle = false, menu = false }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, menu = false }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
     const slot = useHeaderActionSlot();
     const headerSlot = menu && desktop ? slot : null;
@@ -41,7 +46,7 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
 
     // h1만 남으면(sr-only) 데스크톱에서 띠의 여백·구분선을 0으로 접는다.
     // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
-    const collapseOnDesktop = menu && !subtitle && !aside && !inlineChildren && !inlineMeta;
+    const collapseOnDesktop = menu && !subtitle && !aside && !actions && !inlineChildren && !inlineMeta;
     const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text-base ${menu ? 'lg:sr-only' : ''}`;
 
     return (
@@ -49,13 +54,18 @@ export function PageHeader({ title, subtitle, meta, aside, children, compactActi
             {headerSlot && (meta || children) && createPortal(<ControlDefaultsContext.Provider value={DESKTOP_HEADER}>{meta}{children}</ControlDefaultsContext.Provider>, headerSlot)}
             <div className={`mb-6 border-b border-ui-border-soft pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
                 <div className="min-w-0 flex-1">
-                    <div className={compactActions ? 'flex items-center justify-between gap-3' : ''}>
+                    {/* 제목 줄에 조작이 있으면 줄 높이를 버튼 높이(40px)로 두고 가운데를 맞춘다. aside는 넓은 화면에서
+                        제목 옆 위쪽에 붙으므로 같은 높이의 줄을 두어 첫 조작 줄과 가운데가 맞게 한다(32px 제목 + 40px 조작은 4px 어긋났다). */}
+                    <div className={compactActions ? 'flex items-center justify-between gap-3'
+                        : actions ? 'flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-2'
+                        : aside ? 'xl:flex xl:min-h-10 xl:items-center' : ''}>
                         {/* 말줄임한 제목은 서버 설명처럼 공통 툴팁으로 전체를 보인다. */}
                         {truncateTitle ? <Tooltip content={title}><h1 className={titleClass}>{title}</h1></Tooltip> : <h1 className={titleClass}>{title}</h1>}
                         {compactActions && inlineChildren && <div className="flex shrink-0 items-center gap-2">{inlineChildren}</div>}
+                        {actions && <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div>}
                     </div>
                     {(subtitle || (!compactActions && inlineChildren)) && (
-                        <div className="mt-2 flex flex-col gap-4 md:flex-row md:items-center">
+                        <div className="mt-1 flex flex-col gap-4 md:flex-row md:items-center">
                             {subtitle && <p className="min-w-0 type-body text-text-muted max-w-2xl">{subtitle}</p>}
                             {!compactActions && inlineChildren && (
                                 // 메뉴 첫 화면은 갱신 같은 보조 조작이 주 액션 앞에 온다 — 좁은 화면에서 쌓지 않고

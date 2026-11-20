@@ -62,7 +62,7 @@ export function SettingsDesktopView({
     <div>
       <PageHeader menu title="환경 설정" />
       {settingsError && (
-        <div role="alert" className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-secondary">
+        <div role="alert" className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-secondary">
           <MaterialIcon name="sync_problem" className="text-status-warn" />
           <span className="min-w-0 flex-1">일부 설정을 불러오지 못했습니다. {settingsError}</span>
           <Button size="sm" variant="secondary" onClick={onRetryLoad}>다시 시도</Button>

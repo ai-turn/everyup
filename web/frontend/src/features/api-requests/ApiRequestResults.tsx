@@ -58,7 +58,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
           action={filtered ? { label: '필터 해제', onClick: onClear } : undefined}
         />;
   } else {
-    content = <div>
+    content = <div className="table-bleed">
           <table aria-label="API 요청 목록" className="w-full table-fixed text-xs">
             <thead className="border-b border-ui-border-soft text-text-muted"><tr>
               <th scope="col" className="px-4 py-3 text-left font-medium">요청</th>
