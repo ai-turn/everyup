@@ -10,7 +10,7 @@ import (
 )
 
 // The history type filter takes a comma list, so one UI category can cover
-// several stored alert types (헬스체크 = endpoint + healthcheck).
+// several stored alert types (업타임 = endpoint + healthcheck).
 func TestNotificationHistory_AlertTypeList(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))

@@ -238,7 +238,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
           onChange={setCategoryFilter}
           options={[
             { value: 'all', label: '전체' },
-            { value: 'endpoint', label: '헬스체크' },
+            { value: 'endpoint', label: '업타임' },
             { value: 'request', label: 'API 요청' },
             { value: 'log', label: '로그' },
             { value: 'metric', label: '메트릭' },

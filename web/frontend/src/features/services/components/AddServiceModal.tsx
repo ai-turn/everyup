@@ -95,7 +95,7 @@ const PROFILE_OPTIONS: { label: string; value: AgentProfileKind }[] = [
 ];
 
 const CAPABILITY_OPTIONS: { capability: AgentCollectionCapability; label: string; description: string }[] = [
-  { capability: 'uptime', label: '업타임', description: 'Docker 서비스 상태와 헬스체크를 수집합니다.' },
+  { capability: 'uptime', label: '업타임', description: 'Docker 서비스 상태와 업타임 체크 결과를 수집합니다.' },
   { capability: 'logs', label: '로그', description: 'Docker stdout·stderr 로그를 읽습니다.' },
   { capability: 'infrastructure', label: '인프라', description: '호스트 CPU·메모리·디스크를 수집합니다.' },
   { capability: 'api', label: 'API', description: 'privileged eBPF Observer로 API 요청을 수집합니다.' },

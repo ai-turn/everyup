@@ -4,7 +4,7 @@ import type { AlertTarget } from './alertTarget';
 import type { StatusTone } from '../../components/common';
 import { api, type AlertRule, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type ObservedService, type Server, type UptimeMonitor } from '../../services/api';
 
-/** 규칙 대상의 이름을 찾는 목록들. 헬스체크 규칙의 serviceId는 업타임 모니터일 수 있다. */
+/** 규칙 대상의 이름을 찾는 목록들. 업타임 규칙의 serviceId는 업타임 모니터일 수 있다. */
 export interface TargetNames {
   agentServices: AgentServiceFlat[];
   agents: ConnectedAgent[];
@@ -83,7 +83,7 @@ export function targetLabel(rule: AlertRule, names: TargetNames): string {
     }
     // Request rules can also watch a whole Docker environment (API-created).
     if (rule.type === 'request' && rule.agentId) return agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId, names);
-    return rule.type === 'log' ? '전체 로그 서비스' : rule.metric === 'otel_metric' ? '모든 서비스' : '전체 헬스체크';
+    return rule.type === 'log' ? '전체 로그 서비스' : rule.metric === 'otel_metric' ? '모든 서비스' : '전체 업타임 대상';
   }
   if (rule.agentId) return infrastructureName(rule.agentId, names) ?? agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId, names);
   return '전체 인프라';
@@ -119,7 +119,7 @@ export type CategoryKey = 'all' | 'endpoint' | 'request' | 'log' | 'metric' | 'r
 
 export function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
   if (rule.isSystem) return 'system';
-  // 메트릭 규칙은 type이 service지만 헬스체크가 아니다 — metric으로 가른다.
+  // 메트릭 규칙은 type이 service지만 업타임이 아니다 — metric으로 가른다.
   if (rule.metric === 'otel_metric') return 'metric';
   if (rule.type === 'service') return 'endpoint';
   if (rule.type === 'request') return 'request';
@@ -128,7 +128,7 @@ export function ruleCategory(rule: AlertRule): Exclude<CategoryKey, 'all'> {
 }
 
 const CATEGORY_LABELS: Record<Exclude<CategoryKey, 'all'>, string> = {
-  endpoint: '헬스체크',
+  endpoint: '업타임',
   request: 'API 요청',
   log: '로그',
   metric: '메트릭',
@@ -209,7 +209,7 @@ export function evaluationSummary(rule: AlertRule): string {
     return '메트릭을 수신할 때마다 평가 · 같은 시리즈는 일정 시간에 한 번만 발송';
   }
   if (rule.type === 'service') {
-    return '헬스체크 결과가 조건에 맞을 때마다 평가';
+    return '업타임 체크 결과가 조건에 맞을 때마다 평가';
   }
   if (rule.type === 'log') {
     return '로그/API 이벤트마다 평가';

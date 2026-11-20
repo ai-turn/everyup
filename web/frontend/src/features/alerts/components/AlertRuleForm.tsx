@@ -287,7 +287,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
         api.getAgents().then(agts => setAgents(agts ?? [])).catch(() => { });
         api.getObservedServices().then(rows => {
             setDirectServices(rows ?? []);
-            // 대상만 넘어온 새 규칙은 그 서비스가 받는 신호로 카테고리를 고른다. 직접 연결 서비스가 아니면(업타임 모니터) 헬스체크 그대로다.
+            // 대상만 넘어온 새 규칙은 그 서비스가 받는 신호로 카테고리를 고른다. 직접 연결 서비스가 아니면(업타임 모니터) 업타임 그대로다.
             const signals = (rows ?? []).find(service => service.id === initial?.serviceId)?.signals;
             if (isEdit || initial?.ruleCategory || !signals) return;
             const category: RuleCategory = signals.includes('metrics') ? 'metric' : signals.includes('traces') ? 'request' : 'log';
@@ -300,7 +300,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
             if (preset.duration != null) setValue('duration', preset.duration);
         }).catch(() => { });
         api.getInfrastructureResources().then(rows => setInfrastructureResources(rows ?? [])).catch(() => { });
-        // 헬스체크 규칙은 업타임 모니터 하나를 대상으로 할 수 있다(서버는 service_id로 평가한다).
+        // 업타임 규칙은 업타임 모니터 하나를 대상으로 할 수 있다(서버는 service_id로 평가한다).
         api.getUptimeMonitors().then(rows => setUptimeMonitors(rows ?? [])).catch(() => { });
         // 직접 대상의 이름 앞에 서버 이름을 붙인다. 못 불러오면 대상 이름만 보인다.
         api.getServers().then(rows => setServers(rows ?? [])).catch(() => { });
@@ -472,7 +472,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
             ? directTargetLabel(selectedDirectService, servers)
             : watchedAgentId && watchedServiceKey
             ? (selectedAgentService ? `${selectedAgentService.agentName} / ${selectedAgentService.name}` : watchedServiceKey)
-            : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'))
+            : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 업타임 대상'))
         : watchedCategory === 'resource' && watchedAgentId
             ? (selectedInfrastructureResource ? directTargetLabel(selectedInfrastructureResource, servers) : selectedAgent?.name ?? watchedAgentId)
             : (watchedAgentId ? (selectedAgent?.name ?? watchedAgentId) : '전체 인프라');
@@ -517,7 +517,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                         <Field label="카테고리">
                             <div role="group" aria-label="카테고리" className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
                                 {([
-                                    { value: 'endpoint' as const, label: '헬스체크', icon: 'monitor_heart' },
+                                    { value: 'endpoint' as const, label: '업타임', icon: 'monitor_heart' },
                                     { value: 'request'  as const, label: 'API 요청', icon: 'speed' },
                                     { value: 'log'      as const, label: '로그',        icon: 'article' },
                                     { value: 'metric'   as const, label: '메트릭', icon: 'monitoring' },
@@ -564,7 +564,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         }}
 
                                     >
-                                        <option value="">{isRequest ? '서비스 선택' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'}</option>
+                                        <option value="">{isRequest ? '서비스 선택' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 업타임 대상'}</option>
                                         {targetGroups(dockerTargets, serverTargets)}
                                     </Select>
                                 ) : (

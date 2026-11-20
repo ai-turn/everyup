@@ -401,7 +401,7 @@ func (r *NotificationHistoryRepository) DeleteOlderThan(days int) (int64, error)
 }
 
 // alertTypeClause matches one stored alert type or a comma list of them, so a
-// UI category can span several types (헬스체크 = endpoint + healthcheck).
+// UI category can span several types (업타임 = endpoint + healthcheck).
 func alertTypeClause(value string) (string, []interface{}) {
 	var args []interface{}
 	for _, t := range strings.Split(value, ",") {

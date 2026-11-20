@@ -16,7 +16,7 @@ const defaults = (size = 20): SVGProps<SVGSVGElement> => ({
 
 /**
  * Health Check — 심박 펄스 라인 + 체크 표시.
- * 서비스의 생사 여부를 주기적으로 확인하는 헬스체크의 핵심을 표현.
+ * 서비스의 생사 여부를 주기적으로 확인하는 업타임 체크의 핵심을 표현.
  * 평탄한 라인에서 한 번 뛰는 펄스가 "살아있음"을 상징.
  */
 export function IconHealthCheck({ size, ...props }: IconProps) {
