@@ -491,6 +491,10 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 **서버와 Docker 환경의 아이콘은 다르다.** 서버 `dns`, Docker 환경 `deployed_code`, 그룹 `folder_open`. 둘 다 "모니터링 대상"이라 같은 아이콘이면 사이드바, 개요의 범위 줄, 명령 팔레트에서 구분되지 않는다. 세 곳이 같은 아이콘을 쓴다.
 
+#### 브라우저 탭 제목 (2026-11-20)
+
+`MainLayout`이 `현재 위치 · EveryUp`으로 만든다. 현재 위치는 `AppHeader`와 같은 크럼(`useLocationCrumbs`)의 마지막이다(`서버`, `edge-host-01`, `Checkout API`). 장애가 있으면 어느 화면에서든 앞에 `(N) 장애 · `를 붙인다 — N은 사이드바 개요 배지와 같은 값(`useFailureCount`)이다. 이전에는 모든 화면이 `EveryUp | Self-hosted Monitoring Platform`이었고 장애 수는 개요에서만 붙었다(UI/UX 점검 A3). 화면에서 `document.title`을 직접 바꾸지 않는다.
+
 #### `AppHeader` — 현재 위치 (데스크톱 전용, 2026-09-20)
 
 ```
@@ -1154,6 +1158,8 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 - `invalid` — 검증 실패. `border-status-error-fill` 보더 + `aria-invalid`. 메시지는 필드 아래 `type-body text-status-error` — 경고문이므로 14px(§2.2)이고, `red-500`은 흰 배경 3.8:1로 AA 미달이다
 - `warn` — 제출은 막지 않는 주의(예: 원격에서 안 통할 주소). `border-status-warn-fill` 보더
 
+**검증은 브라우저 말풍선이 아니라 필드 아래 문구다** (2026-11-20, UI/UX 점검 A5). 폼에 `noValidate`를 걸고 `required`·`pattern`·`min`·`max` 대신 제출할 때 직접 검사한다. 오류는 `Field`(`features/alerts/components/FormLayout.tsx`)의 `error`로 보이고, `Field`가 입력에 `aria-invalid`·`aria-describedby`를 잇는다. 첫 오류 칸으로 포커스를 옮기고, 그 칸을 고치면 오류를 지운다. 입력의 `title` 툴팁으로 규칙을 알리지 않는다. 이전에는 알림 폼만 이 방식이었고 서버·업타임·그룹·텔레메트리·로그인 폼은 브라우저 말풍선을 써서, 말풍선이 몇 초 뒤 사라지고 `title` 툴팁이 그 위에 겹쳤다. 문구는 마침표 없이 `서버 이름을 입력하세요`, `1~65535 사이의 포트를 입력하세요`처럼 할 일을 말한다.
+
 보더는 선이라 채움 역할(§1.4)이다. 2026-11-13까지 `border-red-500`·`border-amber-400` primitive였고, `Textarea`의 기본 보더는 `ui-control-border`가 아니라 장식용 `ui-border`(1.40:1)였다.
 
 **입력의 글자는 `sm` 미만에서 16px다** (`Input`·`Textarea`·`SearchInput`·명령 팔레트, `max-sm:text-base`). 버튼인 `Select` 트리거는 확대와 무관해서 `FIELD_SHELL`에는 넣지 않는다. iOS Safari는 글자가 16px 미만인 입력에 포커스하면 화면을 확대하고, 입력을 마쳐도 원래 배율로 돌아오지 않는다. 뷰포트에 `maximum-scale=1`을 거는 우회는 사용자의 확대 자체를 막으므로 쓰지 않는다(WCAG 1.4.4).
@@ -1236,6 +1242,14 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 `SCRIM_MODAL_DIALOG`가 따로 있는 이유는 `backdrop:` 접두가 유틸리티마다 필요한데 Tailwind JIT가 런타임 조합을 못 읽기 때문이다. **값을 바꿀 때 둘을 함께 고칠 것.**
 
 스크롤 잠금은 넣지 않았다. 이 앱은 `body`가 아니라 `MainLayout` 내부 컨테이너가 스크롤하는 구조라 `body` overflow를 잠가도 효과가 없고, 브라우저에서 실제 스크롤 누출이 재현되지 않았다. 누출이 확인되면 그때 잠글 대상을 정한다.
+
+### 오류 문구 (2026-11-20)
+
+사용자에게 보이는 오류 문구는 모두 `utils/errors.ts`의 `getErrorMessage`를 거친다 — 토스트, 조회 실패 배너의 설명, 폼 아래 문구. 서버의 원문 메시지(영어)와 브라우저 문구(`Failed to fetch`)는 그대로 보이지 않는다(UI/UX 점검 A2). 코드가 사전(`ERROR_MESSAGES`)에 있으면 그 문구, 서버에 닿지 못했으면 `서버에 연결하지 못했습니다…`, 코드 없이 5xx면 `서버 오류가 발생했습니다…`, 나머지는 `알 수 없는 오류가 발생했습니다.`다. 앱이 직접 쓴 한국어 문구는 그대로 지난다.
+
+이름을 찾지 못한 대상은 내부 ID만 맨 글자로 두지 않는다. `이름을 불러오지 못한 대상`(목록을 다 받지 못함) 또는 `삭제된 대상`(목록을 다 받았는데 없음) 뒤에 ID를 `text-text-dim`으로 붙인다(`RuleTargetName`). 한 줄로 말줄임하는 표 칸에서는 ID를 다음 줄에 둔다.
+
+조회에 실패해 목록이 비었으면 오류 배너만 둔다. 빈 상태(연결 안내)나 `검색 결과가 없습니다`를 함께 보이지 않는다 — 검색하지 않았고, 비었는지도 모른다(UI/UX 점검 A1).
 
 ### 토스트 (2026-11-13)
 

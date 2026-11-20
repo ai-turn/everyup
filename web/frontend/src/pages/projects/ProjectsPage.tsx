@@ -7,6 +7,7 @@ import { useListView } from '../../hooks/useListView';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import { api, type Project, type ProjectInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { Field } from '../../features/alerts/components/FormLayout';
 import { assignableTargets, projectMembers, sourcesForProject, summarizeMembers, type ProjectSources } from './projectMembers';
 
 export function ProjectDialog({ project, onClose, onSave }: {
@@ -17,11 +18,15 @@ export function ProjectDialog({ project, onClose, onSave }: {
   const [name, setName] = useState(project?.name ?? '');
   const [description, setDescription] = useState(project?.description ?? '');
   const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialogRef.current?.showModal(); }, []);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    // 브라우저 기본 검증(말풍선) 대신 입력 아래에 오류를 둔다(폼은 noValidate, UI/UX 점검 A5).
+    if (!name.trim()) { setNameError('그룹 이름을 입력하세요'); nameRef.current?.focus(); return; }
     setSaving(true);
     try { await onSave({ name, description }); onClose(); }
     catch (error) { toast.error(getErrorMessage(error)); }
@@ -38,11 +43,11 @@ export function ProjectDialog({ project, onClose, onSave }: {
       onClick={event => { if (event.target === event.currentTarget && !saving) onClose(); }}
       className={`m-auto w-full max-w-md overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
-      <form onSubmit={submit}>
+      <form onSubmit={submit} noValidate>
         <div className="border-b border-ui-border px-6 py-4"><h2 id="project-dialog-title" className="type-card-title text-text-base">{project ? '그룹 수정' : '그룹 추가'}</h2></div>
         <div className="space-y-4 p-6">
-          <label className="block space-y-1.5" htmlFor="project-name"><span className="type-label text-text-secondary">이름</span><Input id="project-name" required value={name} onChange={event => setName(event.target.value)} placeholder="예: Production" /></label>
-          <label className="block space-y-1.5" htmlFor="project-description"><span className="type-label text-text-secondary">설명</span><Input id="project-description" value={description} onChange={event => setDescription(event.target.value)} placeholder="선택 사항" /></label>
+          <Field label="이름" htmlFor="project-name" required error={nameError ?? undefined}><Input id="project-name" ref={nameRef} invalid={Boolean(nameError)} value={name} onChange={event => { setName(event.target.value); setNameError(null); }} placeholder="예: Production" /></Field>
+          <Field label="설명" htmlFor="project-description"><Input id="project-description" value={description} onChange={event => setDescription(event.target.value)} placeholder="선택 사항" /></Field>
         </div>
         <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4"><Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button><Button type="submit" loading={saving}>{project ? '저장' : '추가'}</Button></div>
       </form>

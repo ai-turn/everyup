@@ -68,37 +68,55 @@ function infrastructureName(id: string, names: TargetNames): string | undefined 
   return resource && directTargetLabel(resource, names.servers);
 }
 
-// 이름을 찾지 못하면 지워진 대상이다. 이름 목록을 다 받지 못했을 때는 id만 보인다(지워졌는지 모름).
-function missingTarget(id: string, names: TargetNames): string {
-  return names.complete ? `삭제된 대상 (${id})` : id;
+/** 규칙 대상의 표시. 이름을 찾지 못하면 `missingId`에 내부 ID를 둔다 — 화면은 설명 뒤에 흐린 글자로 붙인다. */
+export interface TargetParts {
+  label: string;
+  missingId?: string;
+}
+
+// 이름을 찾지 못하면 지워진 대상이다. 이름 목록을 다 받지 못했을 때는 지워졌는지 모르므로 그렇게 말한다.
+// 내부 ID만 맨 글자로 보이면 무엇인지 읽히지 않았다(UI/UX 점검 A2).
+function missingTarget(id: string, names: TargetNames): TargetParts {
+  return { label: names.complete ? '삭제된 대상' : '이름을 불러오지 못한 대상', missingId: id };
+}
+
+const found = (label: string | undefined): TargetParts | undefined => label === undefined ? undefined : { label };
+
+/** 검색·정렬·툴팁처럼 글자 하나가 필요한 자리의 대상 이름. ID는 괄호로 붙인다. */
+export function joinTargetParts({ label, missingId }: TargetParts): string {
+  return missingId ? `${label} (${missingId})` : label;
 }
 
 export function targetLabel(rule: AlertRule, names: TargetNames): string {
+  return joinTargetParts(targetParts(rule, names));
+}
+
+export function targetParts(rule: AlertRule, names: TargetNames): TargetParts {
   const { agentServices, agents } = names;
   if (rule.type === 'service' || rule.type === 'log' || rule.type === 'request') {
-    if (rule.serviceId) return directName(rule.serviceId, names) ?? missingTarget(rule.serviceId, names);
+    if (rule.serviceId) return found(directName(rule.serviceId, names)) ?? missingTarget(rule.serviceId, names);
     if (rule.agentId && rule.serviceKey) {
       const svc = agentServices.find(s => s.agentId === rule.agentId && s.key === rule.serviceKey);
-      return svc ? `${svc.agentName} / ${svc.name}` : missingTarget(rule.serviceKey, names);
+      return svc ? { label: `${svc.agentName} / ${svc.name}` } : missingTarget(rule.serviceKey, names);
     }
     // Request rules can also watch a whole Docker environment (API-created).
-    if (rule.type === 'request' && rule.agentId) return agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId, names);
-    return rule.type === 'log' ? '전체 로그 서비스' : rule.metric === 'otel_metric' ? '모든 서비스' : '전체 업타임 대상';
+    if (rule.type === 'request' && rule.agentId) return found(agents.find(a => a.id === rule.agentId)?.name) ?? missingTarget(rule.agentId, names);
+    return { label: rule.type === 'log' ? '전체 로그 서비스' : rule.metric === 'otel_metric' ? '모든 서비스' : '전체 업타임 대상' };
   }
-  if (rule.agentId) return infrastructureName(rule.agentId, names) ?? agents.find(a => a.id === rule.agentId)?.name ?? missingTarget(rule.agentId, names);
-  return '전체 인프라';
+  if (rule.agentId) return found(infrastructureName(rule.agentId, names) ?? agents.find(a => a.id === rule.agentId)?.name) ?? missingTarget(rule.agentId, names);
+  return { label: '전체 인프라' };
 }
 
 /** 대상 필터 줄의 이름. */
 export function alertTargetName(target: AlertTarget, names: TargetNames): string {
   if (target.kind === 'direct') {
-    return directName(target.serviceId, names) ?? missingTarget(target.serviceId, names);
+    return directName(target.serviceId, names) ?? joinTargetParts(missingTarget(target.serviceId, names));
   }
   if (target.kind === 'infrastructure') {
-    return infrastructureName(target.resourceId, names) ?? missingTarget(target.resourceId, names);
+    return infrastructureName(target.resourceId, names) ?? joinTargetParts(missingTarget(target.resourceId, names));
   }
   const service = names.agentServices.find(item => item.agentId === target.agentId && item.key === target.serviceKey);
-  return service ? `${service.agentName} / ${service.name}` : missingTarget(target.serviceKey, names);
+  return service ? `${service.agentName} / ${service.name}` : joinTargetParts(missingTarget(target.serviceKey, names));
 }
 
 // ─── 조건 문구 ──────────────────────────────────────────────────────────────

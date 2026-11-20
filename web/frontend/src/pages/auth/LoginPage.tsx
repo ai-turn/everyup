@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { env } from '../../config/env'
 import { Button, MaterialIcon, Input } from '../../components/common'
 import { IconHealthCheck } from '../../components/icons/SidebarIcons'
+import { Field } from '../../features/alerts/components/FormLayout'
+import { ApiError, getErrorMessage } from '../../utils/errors'
 
 export function LoginPage() {
   const { login, isAuthenticated } = useAuth()
@@ -19,6 +21,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showForgot, setShowForgot] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({})
 
   // Check if first-run setup is needed
   useEffect(() => {
@@ -38,6 +41,16 @@ export function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    // 브라우저 기본 검증(말풍선) 대신 입력 아래에 오류를 둔다(폼은 noValidate, UI/UX 점검 A5).
+    const errors = {
+      username: username.trim() ? undefined : '사용자 이름을 입력하세요',
+      password: !password ? '비밀번호를 입력하세요' : needsSetup && password.length < 8 ? '비밀번호는 8자 이상이어야 합니다' : undefined,
+    }
+    setFieldErrors(errors)
+    if (errors.username || errors.password) {
+      document.getElementById(errors.username ? 'login-username' : 'login-password')?.focus()
+      return
+    }
     setLoading(true)
     setError('')
 
@@ -55,7 +68,8 @@ export function LoginPage() {
         login(json.data)
         navigate(from, { replace: true })
       } else {
-        setError(json.error?.message || '오류가 발생했습니다')
+        // 서버 원문이 아니라 코드에 맞는 사용자 문구를 보인다(utils/errors.ts).
+        setError(getErrorMessage(new ApiError(json.error?.message ?? '', json.error?.code ?? 'UNKNOWN_ERROR', res.status)))
         setLoading(false)
       }
     } catch {
@@ -115,34 +129,28 @@ export function LoginPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div>
-                  <label htmlFor="login-username" className="block type-label text-text-muted mb-1.5">사용자 이름</label>
+              <form onSubmit={handleSubmit} noValidate className="space-y-3">
+                <Field label="사용자 이름" htmlFor="login-username" required error={fieldErrors.username}>
                   <Input
                     id="login-username"
                     type="text"
                     value={username}
-                    onChange={e => { setUsername(e.target.value); setError(''); }}
-                    required
+                    onChange={e => { setUsername(e.target.value); setError(''); setFieldErrors(current => ({ ...current, username: undefined })); }}
                     autoFocus
-                    invalid={!!error}
+                    invalid={!!error || !!fieldErrors.username}
                     placeholder="admin"
                   />
-                </div>
-                <div>
-                  <label htmlFor="login-password" className="block type-label text-text-muted mb-1.5">
-                    비밀번호{isSetup && ' (최소 8자 이상)'}
-                  </label>
+                </Field>
+                <Field label={isSetup ? '비밀번호 (최소 8자 이상)' : '비밀번호'} htmlFor="login-password" required error={fieldErrors.password}>
                   <Input
                     id="login-password"
                     type="password"
                     value={password}
-                    onChange={e => { setPassword(e.target.value); setError(''); }}
-                    required
-                    invalid={!!error}
+                    onChange={e => { setPassword(e.target.value); setError(''); setFieldErrors(current => ({ ...current, password: undefined })); }}
+                    invalid={!!error || !!fieldErrors.password}
                     placeholder={isSetup ? '최소 8자 이상' : '비밀번호'}
                   />
-                </div>
+                </Field>
                 {!isSetup && (
                   <div className="flex justify-end -mt-1">
                     <button
