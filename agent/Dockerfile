@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.27-alpine3.23@sha256:5d5113301ffcac84e2bfb20c42648803fecaea6789c89bb9b66884e18cbb30a7 AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine3.23@sha256:f70850ef6ce341e8b6427f677049145d63c0b7ce002d4d7e3d464828b1b96dcd AS build
 
 ARG TARGETOS=linux
 ARG TARGETARCH
@@ -15,7 +15,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
 # App-instrumentation bundle: Node auto-instrumentation + EveryUp register.js.
 # Copied into a shared volume at agent startup so app containers can load it
 # via NODE_OPTIONS without installing anything.
-FROM --platform=$BUILDPLATFORM node:24-alpine3.23@sha256:0efee1e068d21f6edcab7fa8c962fc4ecd50d4e28727bc23963379b63ee318ab AS instrumentation-node
+FROM --platform=$BUILDPLATFORM node:24-alpine3.23@sha256:3946fb783fdce8a2812136ea694bc95c698c4f4096f3fd18568dc27a8ac389dc AS instrumentation-node
 WORKDIR /bundle
 COPY instrumentation/node/package.json instrumentation/node/package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
