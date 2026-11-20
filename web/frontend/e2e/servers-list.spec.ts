@@ -14,7 +14,8 @@ async function chooseScenario(page: Page, label: string) {
 
 test('server list puts the failing server first with its cause', async ({ page }) => {
   await page.goto('./servers');
-  await expect(page.getByRole('heading', { level: 1, name: '서버' })).toBeAttached();
+  // 개수를 가진 제목은 크럼과 다른 말이라 데스크톱에서도 보인다.
+  await expect(page.getByRole('heading', { level: 1, name: '서버 9' })).toBeVisible();
   const first = dataRows(page).first();
   await expect(first.getByRole('link', { name: 'edge-host-01', exact: true })).toBeVisible();
   await expect(first.getByRole('cell').nth(1)).toContainText('장애');
@@ -24,17 +25,21 @@ test('server list puts the failing server first with its cause', async ({ page }
   await expect(rowOf(page, 'db-primary-01').getByRole('cell').nth(1)).toContainText('확인 필요');
   await expect(rowOf(page, 'db-primary-01').getByRole('cell').nth(1)).toContainText('메모리 84.6%');
 
-  // 대상이 없는 서버는 대기이고, 수치는 0이 아니라 수집 안 함이다.
+  // 대상이 없는 서버는 대기이고, 수치는 0이 아니라 수집 안 함이다. 해당 없는 칸은 비어 있고 화면 낭독기만 까닭을 읽는다.
   const empty = rowOf(page, 'staging-empty');
   await expect(empty.getByRole('cell').nth(1)).toContainText('대기');
-  // 화면 낭독기는 숨긴 글자를 읽고, 보이는 `-`는 건너뛴다. 마우스에는 같은 말이 툴팁으로 나온다.
   await expect(empty.getByText('수집 안 함', { exact: true })).toHaveCount(4);
-  const cpuCell = empty.getByRole('cell').nth(2);
-  await expect(cpuCell).toHaveText('-수집 안 함');
-  const dash = cpuCell.locator('[aria-hidden="true"]');
-  await expect(dash).toHaveText('-');
-  await dash.hover();
-  await expect(page.getByRole('tooltip')).toHaveText('수집 안 함');
+  await expect(empty.getByRole('cell').nth(2)).toHaveText('수집 안 함');
+  await expect(empty.getByRole('cell').nth(2).locator('[aria-hidden="true"]')).toHaveCount(0);
+
+  // 그룹은 열이 아니라 이름 아래 줄이고, 원인은 한 줄이다. 장애 행만 옅게 채운다.
+  await expect(page.getByRole('columnheader', { name: '그룹' })).toHaveCount(0);
+  await expect(first.getByRole('cell').first()).toContainText('Production');
+  const cause = first.getByRole('cell').nth(1).locator('p');
+  expect(await cause.evaluate((node) => getComputedStyle(node).whiteSpace)).toBe('nowrap');
+  const tint = (row: ReturnType<typeof rowOf>) => row.evaluate((node) => getComputedStyle(node).backgroundColor);
+  expect(await tint(first)).not.toBe('rgba(0, 0, 0, 0)');
+  expect(await tint(rowOf(page, 'db-primary-01'))).toBe('rgba(0, 0, 0, 0)');
 });
 
 test('search finds servers by their targets and keeps the query in the address', async ({ page }) => {
@@ -75,7 +80,14 @@ test('an unknown group in the address does not hide servers', async ({ page }) =
 
 test('status summary and group filter narrow the list', async ({ page }) => {
   await page.goto('./servers');
-  const down = page.getByRole('group', { name: '상태로 거르기' }).getByRole('button', { name: /장애/ });
+  const chips = page.getByRole('group', { name: '상태로 거르기' });
+  const down = chips.getByRole('button', { name: /장애/ });
+  // 칩은 키보드로도 고른다.
+  await down.focus();
+  await page.keyboard.press('Enter');
+  await expect(down).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('Space');
+  await expect(down).toHaveAttribute('aria-pressed', 'false');
   await down.click();
   await expect(down).toHaveAttribute('aria-pressed', 'true');
   await expect(page).toHaveURL(/[?&]status=error/);
@@ -92,6 +104,10 @@ test('status summary and group filter narrow the list', async ({ page }) => {
   await expect(dataRows(page)).toHaveCount(2);
   await expect(rowOf(page, 'batch-host-01')).toBeVisible();
   await expect(rowOf(page, 'Mail relay')).toBeVisible();
+  // 칩의 개수는 그룹과 검색을 따른다(상태 선택은 따르지 않는다).
+  await expect(chips.getByRole('button', { name: /확인 필요/ })).toHaveText(/확인 필요\s*1$/);
+  await expect(chips.getByRole('button', { name: /장애/ })).toHaveText(/장애\s*0$/);
+  await expect(chips.getByRole('button', { name: /정상/ })).toHaveText(/정상\s*1$/);
 });
 
 test('server name opens the server address', async ({ page }) => {
@@ -124,7 +140,11 @@ test('partial failure keeps the rows and says what is missing', async ({ page })
   // 앱만 가진 inventory-api는 앱 목록이 빠지면 확인할 수 있는 대상이 없어 대기다. 대상이 없다고 단정하지 않고 까닭을 적는다.
   const inventory = rowOf(page, 'inventory-api');
   await expect(inventory.getByRole('cell').nth(1)).toHaveText('대기앱 확인 불가');
-  await expect(inventory.getByRole('cell').nth(5)).toHaveText('-불러오지 못함');
+  // 조회에 실패한 칸은 빈 칸(해당 없음)이나 `-`(데이터 없음)와 다른 표시다.
+  const failedCell = inventory.getByRole('cell').nth(5);
+  await expect(failedCell).toHaveText('불러오지 못함');
+  await failedCell.locator('[aria-hidden="true"]').first().hover();
+  await expect(page.getByRole('tooltip')).toHaveText('불러오지 못함');
 });
 
 test('empty scenario guides adding a server', async ({ page }) => {

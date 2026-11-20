@@ -29,12 +29,17 @@ interface PageHeaderProps {
      * 상세 화면은 제목이 대상 이름·상태를 이끌므로 쓰지 않는다.
      */
     menu?: boolean;
+    /**
+     * 제목 뒤의 개수(`서버 9`). 크럼에 없는 정보라 반복이 아니므로 `menu`여도 데스크톱에서 h1을 보인다(DESIGN.md §3.4).
+     * `null`은 아직 모르는 개수다: 제목은 보이고 숫자만 비워, 불러온 뒤 머리말 높이가 바뀌지 않는다.
+     */
+    count?: number | null;
 }
 
 const DESKTOP_HEADER = { size: 'sm', variant: 'secondary' } as const;
 const MOBILE_MENU = { variant: 'secondary' } as const;
 
-export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, menu = false }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, menu = false, count }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
     const slot = useHeaderActionSlot();
     const headerSlot = menu && desktop ? slot : null;
@@ -46,8 +51,11 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
 
     // h1만 남으면(sr-only) 데스크톱에서 띠의 여백·구분선을 0으로 접는다.
     // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
-    const collapseOnDesktop = menu && !subtitle && !aside && !actions && !inlineChildren && !inlineMeta;
-    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text-base ${menu ? 'lg:sr-only' : ''}`;
+    const hideTitleOnDesktop = menu && count === undefined;
+    const collapseOnDesktop = hideTitleOnDesktop && !subtitle && !aside && !actions && !inlineChildren && !inlineMeta;
+    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text-base ${hideTitleOnDesktop ? 'lg:sr-only' : ''}`;
+    const heading = count === undefined || count === null ? title
+        : <>{title} <span className="font-medium tabular-nums text-text-muted">{count}</span></>;
 
     return (
         <>
@@ -60,7 +68,7 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
                         : actions ? 'flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-2'
                         : aside ? 'xl:flex xl:min-h-10 xl:items-center' : ''}>
                         {/* 말줄임한 제목은 서버 설명처럼 공통 툴팁으로 전체를 보인다. */}
-                        {truncateTitle ? <Tooltip content={title}><h1 className={titleClass}>{title}</h1></Tooltip> : <h1 className={titleClass}>{title}</h1>}
+                        {truncateTitle ? <Tooltip content={title}><h1 className={titleClass}>{heading}</h1></Tooltip> : <h1 className={titleClass}>{heading}</h1>}
                         {compactActions && inlineChildren && <div className="flex shrink-0 items-center gap-2">{inlineChildren}</div>}
                         {actions && <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div>}
                     </div>
