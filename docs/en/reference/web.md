@@ -86,7 +86,7 @@ days (`14`); the other three take a unit suffix such as `7d`, `12h`, or `30m`. W
 value is read as days.
 
 - **`EVERYUP_RETENTION_METRICS`** · default `7d`\
-  Health-check metrics
+  Uptime check records
 - **`EVERYUP_RETENTION_LOGS`** · default `3d`\
   Logs
 - **`EVERYUP_RETENTION_SYSTEMMETRICS`** · default `7d`\

@@ -11,10 +11,10 @@ import { useListView } from '../../../hooks/useListView';
 import { getErrorMessage } from '../../../utils/errors';
 import { LoadErrorBanner } from '../../../components/common';
 
-// 유형 이름은 규칙 탭의 카테고리와 같은 말을 쓴다(A-11). 헬스체크는 저장값 두 개(endpoint·healthcheck)를 묶는다.
+// 유형 이름은 규칙 탭의 카테고리와 같은 말을 쓴다(A-11). 업타임은 저장값 두 개(endpoint·healthcheck)를 묶는다.
 const HISTORY_TYPE_LABELS: Record<string, string> = {
-  endpoint: '헬스체크',
-  healthcheck: '헬스체크',
+  endpoint: '업타임',
+  healthcheck: '업타임',
   api_request: 'API 요청',
   log: '로그',
   otel_metric: '메트릭',
@@ -23,7 +23,7 @@ const HISTORY_TYPE_LABELS: Record<string, string> = {
 };
 
 const HISTORY_TYPE_FILTERS = [
-  { value: 'endpoint,healthcheck', label: '헬스체크' },
+  { value: 'endpoint,healthcheck', label: '업타임' },
   { value: 'api_request', label: 'API 요청' },
   { value: 'log', label: '로그' },
   { value: 'otel_metric', label: '메트릭' },

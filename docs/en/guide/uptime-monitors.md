@@ -62,5 +62,5 @@ is not represented as an outage or a 0ms response.
 ## Getting outage alerts
 
 An uptime monitor that goes down sends nothing unless an [alert rule](./notifications#rules)
-matches it. A rule with the **헬스체크** (Health check) category and an empty **대상** (Target)
+matches it. A rule with the **업타임** (Uptime) category and an empty **대상** (Target)
 applies to every uptime monitor and Docker service.
