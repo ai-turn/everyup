@@ -1490,6 +1490,8 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 2026-11-21 P1: 관계 토큰(`--spacing-intra` 등, §3.7)을 추가하고 공용 프리미티브(`Field`, `FormStep`, `OptionText`, `Stat`, `ListGroup`, `SectionHeader`, `PageHeader`, `ChartCard`, `SettingRow`, `page-stack`, `section-stack`)를 토큰 이름으로 바꿨다(측정 차이 0). 사용하지 않던 `SummaryCard`는 지웠다.
 
+2026-11-21 P2: `e2e/spacing-rhythm.spec.ts`가 14개 화면 × 1440·390에서 관계 표지(`data-gap`, `data-gap-after`)의 박스 간격이 토큰 ±1px인지, 근접성 불변식(intra < label < heading < item ≤ group < section)을 지키는지 잰다. 재시도 없이 돈다. 지금 어긋난 자리(`KNOWN_OFF`: 인프라 차트 캡션의 `-mt-2`, 알림 규칙 드로어의 inline-block `textarea`)와 표지가 아직 없는 화면(`KNOWN_EMPTY`: 서버 개요 탭, 모바일 발송 이력)은 spec에 적혀 있고, 고치는 단계에서 지운다. 목록과 실제가 다르면 실패한다.
+
 단계: P0 측정·래칫(이 표) → P1 관계 토큰과 프리미티브 → P2 관계 검사(e2e) → P3 부모가 간격을 갖게(S4·S5) → P4 메뉴별 세로 반 단계·숫자 간격(S2·S3·S8) → P5 글자 역할(S6·S7) → P6 모두 금지로 전환. 화면을 바꾸지 않는 단계는 `pnpm measure` 전후 비교(`node scripts/measure-layout.mjs --compare before.json after.json`)가 "차이 없음"이어야 한다.
 
 ### 해결됨 (2026-09-24) — 보편 디자인 시스템 대조 (버튼)
