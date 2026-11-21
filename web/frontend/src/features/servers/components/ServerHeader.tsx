@@ -20,8 +20,11 @@ function showingCause(row: ServerRow, to: string, pathname: string) {
   });
 }
 
-export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange }: {
+export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange, targetOpen = false }: {
   row: ServerRow;
+  /** 탭이 모니터·앱 하나를 보여 준다. 그 대상의 제목(24/700)이 서버 이름보다 앞서도록 서버 이름을 16px로 낮춘다. 제목 줄은
+   *  설정 버튼(40px) 높이라 머리말 높이는 그대로다 — 탭을 바꿔도 탭 줄이 움직이지 않는다(§4.6). */
+  targetOpen?: boolean;
   /** 그룹 목록을 불러오지 못했으면 undefined. 그룹 항목을 숨긴다. */
   groupName?: string;
   onRefresh: () => void;
@@ -49,6 +52,7 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
         title={row.server.name}
         compactActions
         truncateTitle
+        subordinateTitle={targetOpen}
         meta={<>
           {row.server.description && (
             <Tooltip content={row.server.description}><p className="mb-2 truncate type-body text-text-muted">{row.server.description}</p></Tooltip>

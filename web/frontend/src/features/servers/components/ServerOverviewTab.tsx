@@ -44,9 +44,14 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
     : [];
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-label sm:flex-row sm:items-start sm:gap-group">
-      <div className="space-y-intra sm:w-40 sm:shrink-0">
-        <h2 id={headingId} className="type-section-title text-text-base">{label}</h2>
-        <div><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
+      {/* 이동 링크는 제목·상태 바로 아래다. 행 오른쪽 끝(제목에서 약 1,070px)에 다섯 번 반복되면 무엇을 여는지 제목과 짝지어
+          읽기 어려웠다(2026-11-20 시각 점검 2.4). */}
+      <div className="space-y-label sm:w-40 sm:shrink-0">
+        <div className="space-y-intra">
+          <h2 id={headingId} className="type-section-title text-text-base">{label}</h2>
+          <div><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
+        </div>
+        <Link to={serverPath(row.server.id, capability)} className="inline-flex min-h-11 items-center type-label text-action link-underline sm:min-h-6">{label} 보기</Link>
       </div>
       <div className="min-w-0 flex-1 space-y-heading">
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -63,7 +68,6 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
           </div>
         )}
       </div>
-      <Link to={serverPath(row.server.id, capability)} className="inline-flex min-h-11 shrink-0 items-center type-label text-action link-underline sm:min-h-6">{label} 보기</Link>
     </section>
   );
 }

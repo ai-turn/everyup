@@ -50,7 +50,7 @@ export function DirectApiPanel({ service, status, onRemoved, extraActions, onCha
     <div className="page-stack">
       {/* 제목이 위의 요소보다 아래의 상태 줄에 붙어 보이게 아래 간격을 줄이고 버튼 줄의 가운데에 맞춘다. */}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="min-w-0 wrap-anywhere text-text-base type-section-title">{service.name}</h2>
+        <h2 className="min-w-0 wrap-anywhere text-text-base type-page-title">{service.name}</h2>
         {/* 이동, 편집, 파괴 순서(DESIGN.md §4.1) */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
