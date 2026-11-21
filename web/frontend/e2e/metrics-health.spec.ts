@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { metricsFixture } from './fixtures/metrics';
 
 // 서버 화면의 메트릭 탭. 이 서버에는 메트릭 앱이 둘이라 주소에 앱을 둔다.
-const detail = 'http://127.0.0.1:4174/servers/server-1/metrics/metrics-service';
+const detail = `${API_URL}servers/server-1/metrics/metrics-service`;
 
 test('all-metric health includes an unrendered metric and pins survive reload', async ({ page }) => {
   const state = await metricsFixture(page);
@@ -64,7 +65,7 @@ test('the metrics tab opens the app with a flagged metric first and marks it in 
   state.service.name = 'zz-billing-api';
   state.service.lastSeenAt = fresh;
   state.waiting.lastSeenAt = fresh;
-  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics');
+  await page.goto(`${API_URL}servers/server-1/metrics`);
   await expect(page).toHaveURL(/\/servers\/server-1\/metrics\/metrics-service$/);
   const selector = page.getByRole('group', { name: '메트릭 앱', exact: true });
   await expect(selector.getByRole('button', { name: /zz-billing-api/ })).toHaveAttribute('aria-pressed', 'true');

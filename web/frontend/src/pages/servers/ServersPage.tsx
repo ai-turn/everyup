@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  Button, ButtonLink, EmptyState, FilterChips, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select,
+  Button, ButtonLink, EmptyState, FilterChips, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, RefreshStatus, SearchInput, Select,
 } from '../../components/common';
 import { ServerTable } from '../../features/servers/components/ServerTable';
 import { ALL_LOGS_PATH, NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
 import { parseStateFilter, stateChipOptions, type ServerRow } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
-import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRefreshControls';
+
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useListSearch } from '../../hooks/useListSearch';
 import { useSpinAction } from '../../hooks/useSpinAction';
@@ -95,7 +95,7 @@ export function ServersPage() {
       <PageHeader menu title="서버" count={hasRows || (loaded && !error) ? rows.length : null}
         meta={
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {hasRows && <UptimeRefreshControls updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} />}
+            {hasRows && <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} />}
             {/* 여러 서버를 가로지르는 로그 요약(설계 6.6)은 사이드바에 없어 여기서 들어간다. 보조 이동이라 quiet다. */}
             <ButtonLink to={ALL_LOGS_PATH} variant="quiet">전체 로그</ButtonLink>
           </div>

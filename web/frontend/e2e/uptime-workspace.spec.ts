@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+test.use({ baseURL: API_URL, viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
 const panel = (page: Page) => page.getByRole('tabpanel');
 // 사이드바는 Docker 스냅샷과 모니터를 함께 조회한다. 그 요청 쌍을 빼고 목록 조회만 센다.
 // 쌍의 두 요청은 따로 도착하므로 한쪽만 온 순간에는 1이 어긋난다. 그래서 값은 expect.poll로만 읽는다.
@@ -35,7 +36,7 @@ test('a failed refresh keeps its last successful timestamp and the previous list
   const state = await uptimeFixture(page);
   await page.clock.install();
   await page.goto('./servers/server-1/uptime?q=Public&view=card');
-  const stamp = page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p');
+  const stamp = page.getByRole('group', { name: '데이터 갱신' }).locator('> p');
   await expect(stamp).toContainText('갱신');
   await expect(page.getByRole('article')).toHaveCount(1);
   const previous = await stamp.textContent();

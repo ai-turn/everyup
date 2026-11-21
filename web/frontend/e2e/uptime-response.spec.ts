@@ -1,7 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 const cardFor = (page: Page) => page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
 const step = 300_000;

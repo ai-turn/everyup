@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { deferred, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 for (const [name, url] of [['   ', 'https://example.com'], ['Probe', 'not-a-url'], ['Probe', 'ftp://files.example.com']]) {
   test(`[06] HTTP rejects invalid name/URL ${name}:${url} before submission`, async ({ page }) => {

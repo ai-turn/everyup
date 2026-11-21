@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { dockerService, monitor, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 test('[01 audit] Docker environment states paused, unseen and delayed snapshots apart', async ({ page }) => {
   const state = await uptimeFixture(page); state.monitors = [];

@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 import type { ObservedService, Server } from '../src/services/api';
 
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다. mock은 쓰기 요청을 메모리에 반영하지만
@@ -22,7 +24,9 @@ test('a server with one trace app shows that app\'s requests without a selector'
   await expect(panel(page).getByText('수집 중', { exact: true })).toBeVisible();
   // 추가 버튼은 탭 줄 오른쪽의 조작 자리에 있다.
   await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('button', { name: 'API 연결' })).toBeVisible();
-  await expect(panel(page).getByRole('button', { name: '다른 서버로 옮기기' })).toBeVisible();
+  // 옮기기는 머리말의 더보기 메뉴 안이다(DESIGN.md §4.1 상세 헤더).
+  await expect(await menuItem(panel(page), '다른 서버로 옮기기')).toBeVisible();
+  await page.keyboard.press('Escape');
   // 서버 화면의 그룹은 서버가 정한다. 머리말이 유일한 h1이고 새로고침도 머리말에만 있다.
   await expect(page.getByRole('combobox', { name: '그룹 배정' })).toHaveCount(0);
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
@@ -112,7 +116,7 @@ test('connecting API requests to an empty server keeps the key guidance and land
 
 test('moving a metrics app goes to its new server', async ({ page }) => {
   await page.goto(`./servers/${BATCH}/metrics/observed_mock_notifications`);
-  await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+  await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
   const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
   await dialog.getByRole('radio', { name: 'payments-api (Production)' }).check();
   await dialog.getByRole('button', { name: '옮기기' }).click();
@@ -129,7 +133,7 @@ test('detaching metrics from an app with logs returns to the first screen withou
   // 서버 머리말 상태 줄의 그룹. 수정 요청에서 serverId가 빠지면 백엔드(와 mock)가 서버의 그룹을 해제한다.
   const serverGroup = page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByText(/^그룹 /);
   await expect(serverGroup).toHaveText('그룹 Backoffice');
-  await panel(page).getByRole('button', { name: '메트릭 연결 해제' }).click();
+  await (await menuItem(panel(page), '메트릭 연결 해제')).click();
   await page.getByRole('dialog', { name: '메트릭 연결을 해제할까요?' }).getByRole('button', { name: '메트릭 연결 해제' }).click();
   // 남은 앱이 하나라 선택 컨트롤 없이 그 앱을 보여 준다.
   await expect(page).toHaveURL(new RegExp(`/servers/${BATCH}/metrics$`));
@@ -152,7 +156,7 @@ test('the app selector fits 320px without horizontal scroll', async ({ page }) =
 
 // 데모 데이터에 없는 앱 구성(앱이 늘어나는 서버, 이름이 긴 앱 4개, 앱 6개)은 API를 가로챈다.
 test.describe('app compositions outside the demo data', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  test.use({ baseURL: API_URL });
   const at = '2026-11-01T00:00:00Z';
   const server = (id: string, name: string): Server => ({ id, name, createdAt: at, updatedAt: at });
   const app = (id: string, name: string, serverId: string, changes: Partial<ObservedService> = {}): ObservedService =>

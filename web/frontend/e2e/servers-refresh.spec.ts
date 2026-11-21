@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 import type { ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../src/services/api';
 import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
 // 서버 데이터의 갱신: 갱신 시각, 자동 갱신 스위치, 겹치는 요청, 다시 불러오기에 실패한 종류의 이전 목록 유지(Task 11b).
-test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 } });
+test.use({ baseURL: API_URL, viewport: { width: 1440, height: 1000 } });
 
 const at = '2026-11-01T00:00:00Z';
 const server: Server = { id: 's1', name: 'web-01', createdAt: at, updatedAt: at };
@@ -12,7 +14,7 @@ const app: ObservedService = { id: 'a1', name: 'orders-api', serverId: 's1', sig
 const panel = (page: Page) => page.getByRole('tabpanel');
 const tablist = (page: Page) => page.getByRole('tablist', { name: '서버 기능' });
 const serverHeader = (page: Page) => page.locator('header', { has: page.getByRole('heading', { level: 1 }) });
-const stamp = (page: Page) => page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p');
+const stamp = (page: Page) => page.getByRole('group', { name: '데이터 갱신' }).locator('> p');
 const refresh = (page: Page) => page.getByRole('button', { name: '새로고침', exact: true });
 
 async function mockServer(page: Page, options: {
@@ -228,7 +230,7 @@ test('a deleted monitor stays out of the list when the reload of the server list
   await page.goto('./servers/server-1/uptime/http-monitor');
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
   state.failures.set('GET /servers', 500);
-  await panel(page).getByRole('button', { name: '삭제', exact: true }).click();
+  await (await menuItem(panel(page), '삭제')).click();
   await page.getByRole('dialog', { name: '업타임을 삭제할까요?' }).getByRole('button', { name: '삭제', exact: true }).click();
   await expect(page.getByText('서버 정보를 새로 불러오지 못했습니다')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -243,7 +245,7 @@ test('detaching the only API app while the server list fails closes the dialog a
   await page.goto('./servers/s1/api');
   await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
   state.failures.add('/servers');
-  await panel(page).getByRole('button', { name: /연결 해제$/ }).click();
+  await (await menuItem(panel(page), /연결 해제$/)).click();
   await page.getByRole('dialog').getByRole('button', { name: /연결 해제$/ }).click();
   await expect.poll(() => state.app?.signals).toEqual(['logs']);
   await expect(page.getByText('서버 정보를 새로 불러오지 못했습니다')).toBeVisible();
@@ -356,7 +358,7 @@ test('detaching logs after a traces detach whose reload failed deletes the app i
   await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
   // traces 연결을 해제한다. 그 뒤의 앱 목록 조회가 실패한다.
   state.failures.add('/observed-services');
-  await panel(page).getByRole('button', { name: /연결 해제$/ }).click();
+  await (await menuItem(panel(page), /연결 해제$/)).click();
   await page.getByRole('dialog').getByRole('button', { name: /연결 해제$/ }).click();
   await expect.poll(() => state.app?.signals).toEqual(['logs']);
   await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
@@ -369,7 +371,7 @@ test('detaching logs after a traces detach whose reload failed deletes the app i
   await page.getByRole('table', { name: '앱 그리드' }).getByRole('link', { name: 'orders-api' }).click();
   await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
   const writes = state.writes.length;
-  await panel(page).getByRole('button', { name: /^(삭제|로그 연결 해제)$/ }).click();
+  await (await menuItem(panel(page), /^(삭제|로그 연결 해제)$/)).click();
   const dialog = page.getByRole('dialog', { name: '이 앱을 삭제할까요?' });
   await expect(dialog).toBeVisible();
   await dialog.getByRole('button', { name: '삭제', exact: true }).click();
@@ -381,14 +383,13 @@ test('detaching logs after a traces detach whose reload failed deletes the app i
 test('the removal dialog judges from the app as it is now, not as the screen last loaded it', async ({ page }) => {
   const state = await mockServer(page);
   await page.goto('./servers/s1/logs/a1');
-  const detach = panel(page).getByRole('button', { name: '로그 연결 해제' });
-  await expect(detach).toBeVisible();
+  await expect(panel(page).getByRole('heading', { level: 2 })).toBeVisible();
   // 다른 곳에서 traces 연결이 해제되었고, 이 화면의 다시 불러오기는 실패한다. 화면의 앱은 [logs, traces]로 남는다.
   state.failures.add('/observed-services');
   state.app!.signals = ['logs'];
   await refresh(page).click();
   await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
-  await detach.click();
+  await (await menuItem(panel(page), '로그 연결 해제')).click();
   const dialog = page.getByRole('dialog', { name: '이 앱을 삭제할까요?' });
   await expect(dialog).toBeVisible();
   // 확인 창을 연 뒤에 다시 바뀌면 실행하지 않고 바뀐 판정으로 다시 확인받는다.

@@ -5,7 +5,7 @@ import { Link, Navigate, useLocation, useParams, useNavigate } from 'react-route
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailMeta, EmptyState, List, ListRow, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable, Section, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
+import { Button, DetailMeta, EmptyState, List, ListRow, ListViewToggle, OverflowMenu, PageHeader, RefreshStatus, ResourceCardHeader, ResourceTable, Section, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
@@ -149,6 +149,8 @@ export function ProjectDetailPage() {
   // 서버 화면과 전체 로그는 Docker 서비스를 보여 주지 않으므로(ADR 0011) 같은 24시간 요약을 여기서 그린다.
   const [logData, setLogData] = useState<{ summaries: LogServiceSummary[]; patterns: LogPattern[] } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const load = useCallback(async () => {
     if (!agentId) return;
@@ -165,6 +167,7 @@ export function ProjectDetailPage() {
       const [agents, all] = await Promise.all([api.getAgents(), api.getAllAgentServicesFlat()]);
       setAgent(agents.find((a) => a.id === agentId) ?? null);
       setServices((all ?? []).filter((s) => s.agentId === agentId));
+      setUpdatedAt(new Date());
     } catch (err) {
       setLoadError(getErrorMessage(err));
     } finally {
@@ -180,7 +183,7 @@ export function ProjectDetailPage() {
     setRefreshKey((key) => key + 1);
     void load();
   }, [load]);
-  useAutoRefresh(refresh, 30_000);
+  useAutoRefresh(refresh, 30_000, autoRefresh);
 
   const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
 
@@ -246,14 +249,15 @@ export function ProjectDetailPage() {
 
   return (
     <div className="space-y-section">
-      {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4) */}
-      <Link
-        to="/environments"
-        className="lg:hidden flex items-center gap-1.5 type-control text-text-muted hover:text-text-base transition-colors"
-      >
-        <MaterialIcon size={20} name="arrow_back" />
-        Docker 환경 목록
-      </Link>
+      {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4). 좁은 화면의 갱신 상태는 이 줄의
+          오른쪽 끝이다(넓은 화면은 상태 줄의 오른쪽 끝, §4.1 상세 헤더). */}
+      <div className="flex items-center justify-between gap-3 lg:hidden">
+        <Link to="/environments" className="flex items-center gap-1.5 type-control text-text-muted hover:text-text-base transition-colors">
+          <MaterialIcon size={20} name="arrow_back" />
+          Docker 환경 목록
+        </Link>
+        <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} autoRefresh={autoRefresh} onAutoRefreshChange={setAutoRefresh} />
+      </div>
 
       {loadError && (
         <section role="alert" className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -275,22 +279,24 @@ export function ProjectDetailPage() {
                 <span>서비스 {services.length}개</span>
                 <span>정상 {healthy}</span>
                 {!allHealthy && <span>장애 {services.length - healthy}</span>}
+                {/* 갱신 상태는 상태 줄의 오른쪽 끝이다(DESIGN.md §4.1 상세 헤더). */}
+                <div className="ml-auto max-lg:hidden">
+                  <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} autoRefresh={autoRefresh} onAutoRefreshChange={setAutoRefresh} />
+                </div>
               </>
             }
             fields={agent?.version ? [{ label: 'Version', value: `v${agent.version}` }] : []}
           />
         }
-        actions={
-          <>
-            <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
-            {agent && <>
-              <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />Collector 설치</Button>
-              <Button collapseLabel variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API Key</Button>
-              <Button collapseLabel variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />상세 수집 설정</Button>
-              <Button collapseLabel variant="destructive" onClick={() => setDeleteConfirm(true)}><MaterialIcon name="delete_outline" />비활성화</Button>
-            </>}
-          </>
-        }
+        // 주 조작 하나(Collector 설치)와 더보기다. 드물게 쓰는 조작과 파괴적 조작은 메뉴에 둔다(DESIGN.md §4.1 상세 헤더).
+        actions={agent && <>
+          <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />Collector 설치</Button>
+          <OverflowMenu items={[
+            { label: 'API Key', icon: 'key', onSelect: () => setShowKey(true) },
+            { label: '상세 수집 설정', icon: 'integration_instructions', onSelect: () => setShowInstrumentation(true) },
+            { label: '비활성화', icon: 'delete_outline', danger: true, onSelect: () => setDeleteConfirm(true) },
+          ]} />
+        </>}
       />
 
       {/* 탭 → 패널 24px(group). 머리말 → 탭은 PageHeader의 아래 여백이다. */}

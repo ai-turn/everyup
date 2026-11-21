@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다. mock은 쓰기 요청을 메모리에 반영하지만
@@ -64,7 +66,7 @@ test('adding the first monitor to an empty server opens it and the server is no 
 
 test('moving a monitor goes to its new server and it leaves the old one', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
-  await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+  await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
   const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
   // 현재 서버는 선택지에 없고, 선택지는 이름순이다.
   await expect(dialog.getByRole('radio', { name: /^edge-host-01/ })).toHaveCount(0);
@@ -94,7 +96,7 @@ test('moving a monitor goes to its new server and it leaves the old one', async 
 
 test('deleting a monitor returns to the first screen of the tab', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
-  await panel(page).getByRole('button', { name: '삭제' }).click();
+  await (await menuItem(panel(page), '삭제')).click();
   await page.getByRole('dialog', { name: '업타임을 삭제할까요?' }).getByRole('button', { name: '삭제' }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Checkout API' })).toBeVisible();
@@ -171,7 +173,7 @@ test('panel sections sit one level below the monitor name', async ({ page }) => 
 
 // 요청을 세거나 실패시켜야 하는 경우는 API를 가로채는 개발 서버에서 확인한다.
 test.describe('with an intercepted API', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  test.use({ baseURL: API_URL });
   const at = '2026-11-01T00:00:00Z';
   const s1 = { id: 's1', name: 'web-01', createdAt: at, updatedAt: at };
   const s2 = { id: 's2', name: 'web-02', createdAt: at, updatedAt: at };
@@ -219,7 +221,7 @@ test.describe('with an intercepted API', () => {
     state.holds.set('GET /services', gate.promise);
     await panel(page).getByRole('button', { name: '일시정지', exact: true }).click();
     await expect.poll(() => state.requests.filter((request) => request.method === 'PUT').length).toBe(1);
-    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
     const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
     await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
     gate.resolve();
@@ -241,7 +243,7 @@ test.describe('with an intercepted API', () => {
     await panel(page).getByRole('button', { name: '일시정지', exact: true }).click();
     await expect(panel(page).getByRole('button', { name: '재개', exact: true })).toBeEnabled();
     await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^업타임/ })).toContainText('확인 불가');
-    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
     const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
     await dialog.getByRole('radio', { name: /web-02/ }).check();
     await dialog.getByRole('button', { name: '옮기기' }).click();
@@ -254,7 +256,7 @@ test.describe('with an intercepted API', () => {
   test('a monitor deleted elsewhere while the move dialog is open closes it with a notice', async ({ page }) => {
     const state = await twoMonitors(page);
     await page.goto('./servers/s1/uptime/http-monitor');
-    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
     const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
     await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
     state.monitors = state.monitors.filter((item) => item.id !== 'http-monitor');
@@ -267,7 +269,7 @@ test.describe('with an intercepted API', () => {
   test('a failed monitor list while the move dialog is open does not call the monitor deleted', async ({ page }) => {
     const state = await twoMonitors(page);
     await page.goto('./servers/s1/uptime/http-monitor');
-    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
     const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
     await expect(dialog.getByRole('radio', { name: /web-02/ })).toBeVisible();
     // 모니터 목록만 다시 불러오지 못하면 이전 목록이 남고 업타임은 확인 불가다. 모니터가 삭제된 것이 아니다.
@@ -286,7 +288,7 @@ test.describe('with an intercepted API', () => {
     state.responses.set('GET /servers', [s1]);
     await page.goto('./servers/s1/uptime');
     await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
-    await panel(page).getByRole('button', { name: '삭제', exact: true }).click();
+    await (await menuItem(panel(page), '삭제')).click();
     // 삭제는 성공하고 그 뒤의 모니터 목록만 다시 불러오지 못한다. 이전 목록에는 지운 모니터가 남아 있다.
     state.failures.set('GET /services', 500);
     await page.getByRole('dialog', { name: '업타임을 삭제할까요?' }).getByRole('button', { name: '삭제', exact: true }).click();

@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import type { ObservedService, Server, UptimeMonitor } from '../src/services/api';
 import { monitor } from './fixtures/uptime';
 
 // 서버 상태의 합산과 문구. 데모 데이터에 없는 조합이라 API를 가로챈다.
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 const at = '2026-11-01T00:00:00Z';
 const server = (id: string, name: string): Server => ({ id, name, createdAt: at, updatedAt: at });

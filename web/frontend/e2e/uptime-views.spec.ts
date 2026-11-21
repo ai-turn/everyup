@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 test('grid is the default and switching views preserves search and reload', async ({ page }) => {
   await uptimeFixture(page);

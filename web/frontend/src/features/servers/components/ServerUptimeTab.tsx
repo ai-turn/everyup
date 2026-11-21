@@ -106,7 +106,7 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
         <UptimeMonitorPanel key={current.id} monitorId={current.id}
           back={several ? { label: '업타임 탭으로', to: listPath } : { label: '서버 개요', to: serverPath(serverId) }}
           onDeleted={() => void removed(current.id)} onChanged={onChanged} refreshToken={refreshToken} autoRefresh={autoRefresh}
-          extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
+          menuItems={[{ label: '다른 서버로 옮기기', icon: 'arrow_forward', onSelect: () => startMove(current.id) }]} />
       );
     }
     // 목록은 서버 상세가 불러온 모니터를 쓴다. 갱신의 주체는 서버 상세 하나다. 보기 전환은 탭 줄의 조작 자리에서 추가 버튼 앞이다.

@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { metricsFixture } from './fixtures/metrics';
 
 // 서버 화면의 메트릭 탭. 이 서버에는 메트릭 앱이 둘이라 주소에 앱을 둔다.
-const detail = 'http://127.0.0.1:4174/servers/server-1/metrics/metrics-service';
+const detail = `${API_URL}servers/server-1/metrics/metrics-service`;
 
 // 서버 탭의 패널은 연결 정보를 접어 둔다(설계 6.4). 그룹은 서버가 정하므로 그룹 배정이 없다.
 test('connection fields sit in the collapsed connection info, like the other server tab panels', async ({ page }) => {

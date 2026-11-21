@@ -151,7 +151,7 @@ export function ServerAppTab({ row, targetId, onChanged, unknown, stale, onRetry
         )}
         <Panel key={current.id} service={current} status={appPanelStatus(row, capability, current, Boolean(stale))}
           onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
-          extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
+          menuItems={[{ label: '다른 서버로 옮기기', icon: 'arrow_forward', onSelect: () => startMove(current.id) }]} />
       </div>
     );
   };

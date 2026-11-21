@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { mockRouter } from '../src/services/mockRouter';
 import type { AgentServiceFlat, ConnectedAgent, InfrastructureResource, Project, Server } from '../src/services/api';
 import { uptimeFixture } from './fixtures/uptime';
@@ -263,7 +264,7 @@ test.describe('times', () => {
 
   test('stamps and dates ignore the browser locale', async ({ page }) => {
     await page.goto(`./servers/${EDGE}`);
-    await expect(page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p')).toHaveText(/^\d{2}:\d{2}:\d{2} 갱신$/);
+    await expect(page.getByRole('group', { name: '데이터 갱신' }).locator('> p')).toHaveText(/^\d{2}:\d{2}:\d{2} 갱신$/);
     await page.goto('./');
     await expect(page.getByRole('region', { name: '최근 장애 이력' }).getByRole('listitem').first()).toBeVisible();
     const text = await page.getByRole('main').innerText();
@@ -273,7 +274,7 @@ test.describe('times', () => {
 });
 
 test.describe('fixtures', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 } });
+  test.use({ baseURL: API_URL, viewport: { width: 1440, height: 1000 } });
 
   /** 사용률 경고 서버 넷과 수집이 끊긴 서버 하나(가장 오래된 관찰). 수와 실패는 테스트가 바꾼다. */
   async function mockWarnings(page: Page) {

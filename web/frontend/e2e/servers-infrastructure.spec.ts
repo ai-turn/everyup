@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다. mock은 쓰기 요청을 메모리에 반영하지만
 // page.goto는 앱을 새로 띄워 그 메모리를 버린다. 변경 뒤에는 앱 안에서(뒤로 가기, 링크) 이동한다.
@@ -65,7 +67,7 @@ test('connecting infrastructure to an empty server shows the setup once and then
 
 test('moving infrastructure skips servers that have one and opens it on the new server', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/infrastructure`);
-  await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+  await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
   const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
   await expect(dialog.getByRole('radio', { name: /^db-primary-01/ })).toBeDisabled();
   await expect(dialog.getByRole('radio', { name: /^batch-host-01/ })).toBeDisabled();
@@ -89,7 +91,7 @@ test('moving infrastructure skips servers that have one and opens it on the new 
 
 test('deleting infrastructure returns the tab to the connect prompt', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/infrastructure`);
-  await panel(page).getByRole('button', { name: '삭제' }).click();
+  await (await menuItem(panel(page), '삭제')).click();
   await page.getByRole('dialog', { name: '인프라 리소스를 삭제할까요?' }).getByRole('button', { name: '삭제' }).click();
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 인프라를 연결하세요' })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/infrastructure$`));
@@ -113,7 +115,7 @@ test('the status line gives the usage and its threshold as the reason', async ({
 
 // 수집이 끊겼거나 아직 수신 전인 리소스는 데모 데이터에 없으므로 API를 가로챈다.
 test.describe('collection states outside the demo data', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  test.use({ baseURL: API_URL });
   const at = '2026-11-01T00:00:00Z';
   const resource = (changes: Record<string, unknown>) => ({
     id: 'r1', name: 'web-01', serverId: 's1', isActive: true, apiKeyMasked: 'evup_****0001', adapter: 'otel-collector', createdAt: at, updatedAt: at, ...changes,

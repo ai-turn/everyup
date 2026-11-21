@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 
 const menus = [
   ['projects', '그룹', '그룹 그리드'],
@@ -162,7 +163,7 @@ test('notification cards preserve the current page and filter without fetching a
     } else if (path === '/notification-history/stats') data = { totalSent: 60, totalFailed: 0, successRate: 100 };
     await route.fulfill({ json: { success: true, data } });
   });
-  await page.goto('http://127.0.0.1:4174/alerts?tab=history');
+  await page.goto(`${API_URL}alerts?tab=history`);
   const table = page.getByRole('table', { name: '발송 이력 그리드', exact: true });
   await expect(table.getByText('Record #1', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '다음', exact: true }).click();

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
-import { Button, ButtonLink, ConfirmDialog, EmptyState, MaterialIcon, TimeRangePicker, parseTimeRange, type GlobalTimeRange } from '../../../components/common';
+import { ButtonLink, ConfirmDialog, EmptyState, MaterialIcon, OverflowMenu, TimeRangePicker, parseTimeRange, type GlobalTimeRange, type OverflowMenuItem } from '../../../components/common';
 import { useHeldToken } from '../../../hooks/useHeldToken';
 import { useInfraMetrics } from '../../../hooks/useInfra';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup } from '../../../services/api';
@@ -21,7 +21,7 @@ const CONFIRM_COPY = {
 };
 
 /** 서버 인프라 탭의 리소스 상세 본문. 리소스는 서버마다 하나라 제목은 스크린리더에만 두고, 조작은 상태 줄 오른쪽에 둔다. */
-export function InfrastructurePanel({ resource, status, serverName, onDeleted, extraActions, onChanged, refreshToken = 0 }: {
+export function InfrastructurePanel({ resource, status, serverName, onDeleted, menuItems = [], onChanged, refreshToken = 0 }: {
   /** 서버 상세가 불러온 리소스. 패널은 따로 불러오지 않는다(갱신의 주체는 서버 상세 하나다). */
   resource: InfrastructureResource;
   /** 상태 줄. 탭이 탭의 점과 같은 판정으로 정한다. */
@@ -31,7 +31,7 @@ export function InfrastructurePanel({ resource, status, serverName, onDeleted, e
   /** 삭제가 끝난 뒤 */
   onDeleted: () => void;
   /** 알림 규칙과 삭제 사이에 놓을 추가 조작(예: 다른 서버로 옮기기) */
-  extraActions?: ReactNode;
+  menuItems?: OverflowMenuItem[];
   /** 연결 중지나 키 재발급으로 리소스가 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
   onChanged?: () => void | Promise<void>;
   /** 화면의 새로고침을 누를 때마다 바뀐다. 바뀌면 사용률 추이를 다시 불러온다. */
@@ -89,8 +89,7 @@ export function InfrastructurePanel({ resource, status, serverName, onDeleted, e
   // 이동, 편집, 파괴 순서(DESIGN.md §4.1)
   const actions = <>
     <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'infrastructure', resourceId: resource.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-    {extraActions}
-    <Button collapseLabel variant="destructive" disabled={processing} onClick={() => setConfirmAction('delete')}><MaterialIcon name="delete_outline" />삭제</Button>
+    <OverflowMenu items={[...menuItems, { label: '삭제', icon: 'delete_outline', danger: true, disabled: processing, onSelect: () => setConfirmAction('delete') }]} />
   </>;
   const rangePicker = <TimeRangePicker value={range} onChange={setRange} />;
   return (

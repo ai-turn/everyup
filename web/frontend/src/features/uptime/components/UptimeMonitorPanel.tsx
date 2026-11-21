@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, ButtonLink, ConfirmDialog, DetailMeta, MaterialIcon, SegmentedControl, StatusLight, Tooltip, type StatusTone } from '../../../components/common';
+import { Button, ButtonLink, ConfirmDialog, DetailMeta, MaterialIcon, OverflowMenu, SegmentedControl, StatusLight, Tooltip, type OverflowMenuItem, type StatusTone } from '../../../components/common';
 import { useAutoRefresh } from '../../../hooks/useAutoRefresh';
 import { useHeldToken } from '../../../hooks/useHeldToken';
 import { api, type TimelineIncident, type UptimeMonitor, type UptimeMonitorInput, type UptimeMonitorMetric } from '../../../services/api';
@@ -153,14 +153,14 @@ function ActiveToggleButton({ active, disabled, loading, onClick }: { active: bo
 }
 
 /** 업타임 모니터 하나의 상세 본문. 모니터 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, onChanged, refreshToken = 0, autoRefresh = true }: {
+export function UptimeMonitorPanel({ monitorId, onDeleted, back, menuItems = [], onChanged, refreshToken = 0, autoRefresh = true }: {
   monitorId: string;
   /** 삭제가 끝난 뒤 */
   onDeleted: () => void;
   /** 찾지 못했을 때 돌아갈 곳. label을 링크 문구 그대로 쓴다. */
   back: { label: string; to: string };
   /** 알림 규칙, 수정, 삭제 옆에 놓을 추가 조작(예: 다른 서버로 옮기기) */
-  extraActions?: ReactNode;
+  menuItems?: OverflowMenuItem[];
   /** 일시정지나 수정으로 모니터가 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
   onChanged?: () => void | Promise<void>;
   /** 화면의 새로고침을 누를 때마다 바뀐다. 바뀌면(마운트 때는 제외) 패널의 데이터를 다시 불러온다. */
@@ -273,12 +273,14 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
         {/* 제목과 액션은 세로 가운데를 맞춘다(28px 제목 + 40px 버튼이 items-start로 6px 어긋났다). */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="min-w-0 wrap-anywhere text-text-base type-page-title">{monitor.name}</h2>
-          {/* 이동, 편집, 파괴 순서. 수정과 삭제는 붙어 있는 짝이다(DESIGN.md §4.1). */}
+          {/* 주 조작 하나(수정)와 더보기(알림 규칙, 옮기기, 삭제)다(DESIGN.md §4.1 상세 헤더). */}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-            <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: monitor.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-            {extraActions}
             <Button collapseLabel variant="secondary" disabled={actionsDisabled} onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button collapseLabel variant="destructive" disabled={actionsDisabled} onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+            <OverflowMenu items={[
+              { label: '알림 규칙', icon: 'notifications', to: alertRulesPath({ kind: 'direct', serviceId: monitor.id }) },
+              ...menuItems,
+              { label: '삭제', icon: 'delete_outline', danger: true, disabled: actionsDisabled, onSelect: () => setDeleting(true) },
+            ]} />
           </div>
         </div>
         {/* 확인 대상만 제목 아래에 두고 나머지 속성은 접는다. */}

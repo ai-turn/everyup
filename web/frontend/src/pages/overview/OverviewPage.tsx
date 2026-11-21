@@ -1,7 +1,7 @@
 import { Tooltip } from '../../components/common/Tooltip';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, EmptyState, List, ListGroup, ListMore, ListRow, MaterialIcon, PageHeader, RefreshIconButton, Section } from '../../components/common';
+import { Button, ButtonLink, EmptyState, List, ListGroup, ListMore, ListRow, MaterialIcon, PageHeader, RefreshStatus, Section } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
@@ -10,7 +10,7 @@ import {
   type TimelineIncident,
 } from '../../services/api';
 import { isCollectorFresh } from '../../utils/operationalStatus';
-import { formatClock, formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
+import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import { ALL_LOGS_PATH, NEW_SERVER_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
@@ -93,7 +93,8 @@ export function OverviewPage() {
     const initialLoad = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(initialLoad);
   }, [load]);
-  useAutoRefresh(() => { void load(); poll(); }, 30_000);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  useAutoRefresh(() => { void load(); poll(); }, 30_000, autoRefresh);
   // 직접 누른 새로고침만 아이콘을 돌린다 — 30초 자동 갱신마다 버튼을 비활성으로 깜빡이지 않게 (상세 화면과 같은 방식).
   const { spinning, trigger: handleRefresh } = useSpinAction(loadAll);
 
@@ -232,14 +233,8 @@ export function OverviewPage() {
       {/* 연결 추가는 각 화면(서버, Docker 환경)의 일이다. 개요의 머리는 장애에 내준다. */}
       <PageHeader menu
         title="개요"
-        meta={updatedAt && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="type-caption text-text-muted">
-              {formatClock(updatedAt, true)} 갱신 · 30초마다 자동 갱신
-            </span>
-            <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
-          </div>
-        )}
+        // 갱신 상태는 상세 화면과 같은 RefreshStatus다(DESIGN.md §4.1 상세 헤더). 메뉴 화면이라 데스크톱은 AppHeader로 간다.
+        meta={updatedAt && <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} autoRefresh={autoRefresh} onAutoRefreshChange={setAutoRefresh} />}
       />
       {/* 확인 필요 수가 바뀔 때만 읽힌다(텍스트가 같으면 다시 알리지 않는다). */}
       <p className="sr-only" aria-live="polite">

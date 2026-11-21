@@ -33,6 +33,8 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const pending = useRef<Promise<void> | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const selectedTab = searchParams.get('tab');
@@ -50,6 +52,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
       const found = all.find((s) => s.agentId === agentId && s.key === serviceKey);
       setService(found ?? null);
       setLoadError(null);
+      setUpdatedAt(new Date());
     } catch (error) {
       setLoadError(getErrorMessage(error));
     } finally {
@@ -68,7 +71,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
     setRefreshKey((prev) => prev + 1);
   }, [fetchService]);
 
-  const { refresh } = useAutoRefresh(handleRefresh, 30_000, true);
+  const { refresh } = useAutoRefresh(handleRefresh, 30_000, autoRefresh);
 
   if (loading) {
     return (
@@ -113,6 +116,9 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
       refreshKey={refreshKey}
       onRefresh={refresh}
       refreshing={refreshing}
+      updatedAt={updatedAt}
+      autoRefresh={autoRefresh}
+      onAutoRefreshChange={setAutoRefresh}
       tab={tab}
       traceId={searchParams.get('traceId') ?? undefined}
       initialRange={parseTimeRange(searchParams.get('range'))}

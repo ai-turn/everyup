@@ -94,7 +94,7 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
     return (
       <InfrastructurePanel key={resource.id} resource={resource} status={infrastructurePanelStatus(resource, Boolean(stale))} serverName={row.server.name} refreshToken={refreshToken}
         onChanged={onChanged} onDeleted={() => void removed(resource.id)}
-        extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(resource.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
+        menuItems={[{ label: '다른 서버로 옮기기', icon: 'arrow_forward', onSelect: () => startMove(resource.id) }]} />
     );
   };
 

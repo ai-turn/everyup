@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { uptimeFixture } from './fixtures/uptime';
 
 // 옛 기능별 메뉴의 주소는 서버 화면으로 바뀐다(설계 6.2). 이미 보낸 알림과 북마크의 링크가 이 경로로 온다.
@@ -53,7 +54,7 @@ test('a missing target explains itself and links to the server list', async ({ p
 });
 
 test.describe('against the API', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  test.use({ baseURL: API_URL });
 
   test('a 404 is not found, a failed lookup offers a retry', async ({ page }) => {
     const state = await uptimeFixture(page);
