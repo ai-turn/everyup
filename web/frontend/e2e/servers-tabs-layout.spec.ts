@@ -19,33 +19,34 @@ const PHONE = { width: 390, height: 844 };
 
 const BATCH = 'server_mock_batch_host_01';   // 메트릭 앱 둘(앱 선택 줄이 있다)
 
-// 각 탭에서 사용자가 처음 보는 데이터 요소의 위쪽 좌표와 그 상한. 머리 요소가 이것을 첫 화면 밖으로 밀어내면 안 된다.
-// 상한은 1440×1000에서 잰 값에 30px 정도의 여유(글꼴 대체)를 둔 값이다. 600px을 넘는 탭도 그대로 적는다(보고서 참고).
+// 각 탭에서 사용자가 처음 보는 데이터 요소가 탭 줄 아래 몇 px에서 시작하는지와 그 상한. 패널 머리(제목·상태·연결 정보)가
+// 데이터를 밀어내면 실패한다. 상한은 1440×1000에서 잰 값에 30px 정도의 여유(글꼴 대체)를 둔 값이다.
+// 2026-11-21(간격 체계 P6): 화면 위쪽 절대 좌표 대신 탭 줄 아래 거리를 잰다. 서버 머리말이 바뀔 때마다 상한을 올려야 했다
+// (#140). 탭 줄의 위치는 아래 'the tab row does not move between tabs'가, 블록 사이 간격은 spacing-rhythm spec이 지킨다.
 const FIRST_CONTENT: [string, string, (page: Page) => Locator, number][] = [
   // 수치 타일의 첫 값(24시간 업타임)
-  ['monitor detail', `${EDGE}/uptime/uptime_mock_checkout`, (page) => panel(page).locator('section', { has: page.getByRole('heading', { name: '주요 지표' }) }).locator('dd').first(), 582],
+  ['monitor detail', `${EDGE}/uptime/uptime_mock_checkout`, (page) => panel(page).locator('section', { has: page.getByRole('heading', { name: '주요 지표' }) }).locator('dd').first(), 246],
   // 첫 차트 카드
-  ['infrastructure', `${EDGE}/infrastructure`, (page) => chartOf(panel(page).getByRole('heading', { name: 'CPU', exact: true })), 434],
+  ['infrastructure', `${EDGE}/infrastructure`, (page) => chartOf(panel(page).getByRole('heading', { name: 'CPU', exact: true })), 154],
   // 로그 발생량 차트 카드
-  ['log app detail', `${EDGE}/logs/observed_mock_checkout`, (page) => chartOf(panel(page).getByRole('heading', { name: '로그 발생량', exact: true })), 582],
+  ['log app detail', `${EDGE}/logs/observed_mock_checkout`, (page) => chartOf(panel(page).getByRole('heading', { name: '로그 발생량', exact: true })), 258],
   // 수치 타일의 첫 값(요청 수)
-  // 2026-11-21 카드 안쪽 정리로 26px 내려갔다: 기간 선택이 없는 차트 머리 줄 24→40, 타일 위 패딩 10→16, 라벨 → 값 1→3.
-  ['api requests', `${EDGE}/api`, (page) => panel(page).getByRole('button', { name: /^요청 수/ }).locator('.type-kpi'), 715],
+  ['api requests', `${EDGE}/api`, (page) => panel(page).getByRole('button', { name: /^요청 수/ }).locator('.type-kpi'), 409],
   // 첫 지표 차트 카드(앱 하나, 앱 둘)
-  // 메트릭 두 줄은 2026-11-20에 블록 간격을 24px로 맞추며(본문 래퍼 위 20→24, 블록 사이 20→24) 8px·12px 내려가 상한을 같이 올렸다.
-  ['metrics', `${EDGE}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 622],
-  ['metrics with two apps', `${BATCH}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 657],
+  ['metrics', `${EDGE}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 334],
+  ['metrics with two apps', `${BATCH}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 398],
 ];
 
 test.describe('at 1440x1000', () => {
   test.use({ viewport: DESKTOP });
 
   for (const [name, path, first, limit] of FIRST_CONTENT) {
-    test(`the ${name} data starts within its measured top`, async ({ page }) => {
+    test(`the ${name} data starts within its measured distance below the tabs`, async ({ page }) => {
       await page.goto(`./servers/${path}`);
       await expect(first(page)).toBeVisible();
-      const y = await top(first(page));
-      test.info().annotations.push({ type: 'first-content-y', description: `${name}: ${Math.round(y)}` });
+      const tabs = (await tablist(page).boundingBox())!;
+      const y = await top(first(page)) - (tabs.y + tabs.height);
+      test.info().annotations.push({ type: 'first-content-below-tabs', description: `${name}: ${Math.round(y)}` });
       expect(y).toBeLessThan(limit);
     });
   }

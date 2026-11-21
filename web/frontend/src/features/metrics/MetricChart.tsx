@@ -94,6 +94,8 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
     <div className="min-w-0 space-y-label">
       <ChartCard
         // 격자와 단독 보기 모두 표시 이름이 제목이고 원본 이름은 아래 줄이다 — 패널을 눌러도 제목이 바뀌지 않는다.
+        // 단독 보기의 원본 이름은 머리의 설명 줄이다(제목 → 4px).
+        description={expanded && title !== name ? <span className="break-all font-mono">{name}</span> : undefined}
         title={expanded ? title : (
           <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} aria-describedby={nameId} className="block h-11 max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline sm:h-10">
             {title}
@@ -113,7 +115,6 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         {/* 카드 본문: 차트 위아래의 줄은 8px(label), 맨 아래 수집 정보는 24px(group)이다. 간격은 이 두 묶음이 갖는다. */}
         <div className="page-stack">
           <div className="space-y-label">
-        {expanded && title !== name && <p className="-mt-2 break-all font-mono text-xs text-text-muted">{name}</p>}
         {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
         <div className="space-y-label">
           {/* 원본 이름은 이미 보이는 글자라 따로 Tab 지점을 두지 않는다. 격자는 잘리므로 마우스 힌트만 남긴다. */}
