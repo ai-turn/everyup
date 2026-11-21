@@ -78,7 +78,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
           ) : available ? (
             <>
               <div className="space-y-label">
-                <p className="text-xs text-text-muted">API Key</p>
+                <p className="type-caption text-text-muted">API Key</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 px-3 cell rounded-md bg-ui-hover-soft text-xs font-mono text-text-base break-all">
                     {apiKey}
@@ -87,7 +87,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
                 </div>
               </div>
               <div className="space-y-label">
-                <p className="text-xs text-text-muted">Docker Collector 설정</p>
+                <p className="type-caption text-text-muted">Docker Collector 설정</p>
                 <pre className="px-3 cell rounded-md bg-ui-hover-soft text-xs font-mono text-text-base overflow-x-auto">{`EVERYUP_AGENT_API_KEY=${apiKey}`}</pre>
               </div>
             </>

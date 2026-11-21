@@ -89,20 +89,20 @@ function ServiceCard({ service, metric, to, returnTo }: {
         status={<DockerUptimeStatus service={service} />}
       />
 
-      <div className="grid grid-cols-3 gap-3 text-sm">
+      <div className="grid grid-cols-3 gap-3 type-control">
         <div className="min-w-0">
-          <div className="text-xs text-text-dim">응답 시간</div>
+          <div className="type-caption text-text-dim">응답 시간</div>
           <div className="font-medium text-text-base truncate">{service.lastLatency ?? '-'}</div>
         </div>
         <div className="min-w-0">
-          <div className="text-xs text-text-dim">상태</div>
+          <div className="type-caption text-text-dim">상태</div>
           <div className={`${service.healthy ? 'text-status-healthy' : 'text-status-error'}`}>
             {service.lastStatus ?? '-'}
           </div>
         </div>
         {metric && (
           <div className="min-w-0">
-            <Tooltip content={metric.metricName}><div className="text-xs text-text-dim truncate">
+            <Tooltip content={metric.metricName}><div className="type-caption text-text-dim truncate">
               {metricLabel(metric.metricName)}
             </div></Tooltip>
             <div className="font-medium text-text-base truncate">
@@ -113,7 +113,7 @@ function ServiceCard({ service, metric, to, returnTo }: {
       </div>
 
       {!service.healthy && service.lastError && (
-        <p className="text-xs text-status-error truncate -mt-1">{service.lastError}</p>
+        <p className="type-caption text-status-error truncate -mt-1">{service.lastError}</p>
       )}
     </Link>
   );
@@ -249,7 +249,7 @@ export function ProjectDetailPage() {
       {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4) */}
       <Link
         to="/environments"
-        className="lg:hidden flex items-center gap-1.5 text-sm text-text-muted hover:text-text-base transition-colors"
+        className="lg:hidden flex items-center gap-1.5 type-control text-text-muted hover:text-text-base transition-colors"
       >
         <MaterialIcon size={20} name="arrow_back" />
         Docker 환경 목록
@@ -320,7 +320,7 @@ export function ProjectDetailPage() {
               <span className="type-label text-text-base truncate">
                 진행 중 장애: {banner.serviceName}
               </span>
-              <span className="text-xs text-text-muted shrink-0">
+              <span className="type-caption text-text-muted shrink-0">
                 {formatDuration(banner.durationSec)} {'경과'}
                 {activeIncidents.length > 1 && ` · +${activeIncidents.length - 1}`}
               </span>
@@ -392,7 +392,7 @@ export function ProjectDetailPage() {
                     <div className="space-y-intra">
                       {events.map((e) => (
                         <div key={e.id} className="flex items-baseline gap-2 py-1.5">
-                          <span className="text-xs text-text-dim w-10 shrink-0">
+                          <span className="type-caption text-text-dim w-10 shrink-0">
                             {formatClock(e.time)}
                           </span>
                           <span className={`h-1.5 w-1.5 rounded-full shrink-0 translate-y-px ${
@@ -400,7 +400,7 @@ export function ProjectDetailPage() {
                             : e.type === 'status_change' ? 'bg-status-warn-fill'
                             : 'bg-status-idle-fill'
                           }`} />
-                          <Tooltip content={e.message} focusable><span className="text-xs text-text-muted min-w-0 truncate">
+                          <Tooltip content={e.message} focusable><span className="type-caption text-text-muted min-w-0 truncate">
                             {e.message || e.type}
                           </span></Tooltip>
                         </div>

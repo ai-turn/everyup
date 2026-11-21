@@ -154,7 +154,7 @@ export function AlertsDesktopView({
               <span className="inline-flex items-center gap-1.5">
                 {tab.label}
                 {tab.count != null && (
-                  <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
+                  <span className="type-caption tabular-nums text-text-secondary">{tab.count}</span>
                 )}
               </span>
             </button>
@@ -337,7 +337,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                     </div>
                     <div className="min-w-0">
                       <p className="truncate type-body text-text-base">{channel.name}</p>
-                      <p className="truncate text-xs text-text-dim">
+                      <p className="truncate type-caption text-text-dim">
                         {getChannelSubtitle(channel.type)}
                       </p>
                     </div>
@@ -352,7 +352,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                     ariaLabel={channel.name}
                   />
                 </td>
-                <td className="px-4 cell text-sm tabular-nums">
+                <td className="px-4 cell type-control tabular-nums">
                   {total > 0 ? (
                     <span className="text-text-base">
                       {sent}
@@ -364,10 +364,10 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                     <span className="text-text-dim">이력 없음</span>
                   )}
                 </td>
-                <td className="px-4 cell text-sm text-text-secondary">
+                <td className="px-4 cell type-control text-text-secondary">
                   {`규칙 ${health?.ruleCount ?? 0}개`}
                 </td>
-                <td className="px-4 cell text-sm text-text-muted">
+                <td className="px-4 cell type-control text-text-muted">
                   {lastSent
                     ? <p>{formatDistanceToNow(lastSent, { addSuffix: true, locale: ko })}</p>
                     : !testResults[channel.id] && <span className="text-text-dim">테스트로 확인</span>}

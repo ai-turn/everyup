@@ -51,10 +51,12 @@ const RULES = [
   { name: '§3.7 S3 화면 코드의 mt-0.5', re: /(?<![\w-])mt-0\.5(?![\w.])/g, skip: /components[\\/]common[\\/]|ChannelPreview\.tsx$/, max: 0 },
   // S4 여백만 가진 감싸개. 간격은 부모의 gap·space-y가 정한다. 밀어내기(ml-auto 등)와 음수 여백(bleed 보정)은 간격이 아니라 뺀다.
   { name: '§3.7 S4 여백만 가진 감싸개', re: /className="(?:m[trblxyse]?-(?!auto\b)[\w.]+ ?)+"/g, max: 0 },
-  // S6 역할 없는 글자 크기(같은 클래스 문자열에 type-*·font-mono가 없다). 채널 미리보기는 외부 서비스 흉내라 뺀다.
-  { name: '§2.2 S6 역할 없는 text-xs/sm/base', strings: true, re: /(?<![\w-])text-(?:xs|sm|base)(?![\w-])/g, unless: /(?<![\w-])(?:type-[a-z-]+|font-mono)(?![\w-])/, skip: /ChannelPreview\.tsx$/, max: 155 },
-  // S7 행간 직접 지정. 행간은 type-* 역할이 정한다.
-  { name: '§2.2 S7 leading-* 직접 지정', re: /(?<![\w-])leading-[\w.[\]]+/g, max: 15 },
+  // S6 역할 없는 글자 크기(같은 클래스 문자열에 type-*·font-mono가 없다). 화면 코드만 센다: 프리미티브(components/common)의
+  // 크기 표(Button sm/md 등)는 컴포넌트 안쪽 값이고, 접두사가 붙은 크기(max-sm:text-base 입력의 iOS 확대 방지, focus:)는 컨트롤
+  // 조정이다. 채널 미리보기는 외부 서비스 흉내라 뺀다.
+  { name: '§2.2 S6 역할 없는 text-xs/sm/base', strings: true, re: /(?<![\w:-])text-(?:xs|sm|base)(?![\w-])/g, unless: /(?<![\w-])(?:type-[a-z-]+|font-mono)(?![\w-])/, skip: /components[\\/]common[\\/]|ChannelPreview\.tsx$/, max: 0 },
+  // S7 행간 직접 지정. 행간은 type-* 역할이 정한다. 프리미티브 안쪽(MaterialIcon의 leading-none, 툴팁)과 로고 워드마크(Header)는 뺀다.
+  { name: '§2.2 S7 leading-* 직접 지정', re: /(?<![\w-])leading-[\w.[\]]+/g, skip: /components[\\/]common[\\/]|components[\\/]layout[\\/]Header\.tsx$|ChannelPreview\.tsx$/, max: 0 },
   // S8 숫자 세로 간격. 쌓기(space-y, flex-col의 gap)는 관계 토큰(gap-heading 등)으로 쓴다.
   { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, skip: /ChannelPreview\.tsx$/, max: 0 },
 ];

@@ -20,7 +20,7 @@ export function BottomNavMobile() {
       {navItems.map((item) => (
         <Link key={item.to} to={item.to} aria-current={isActive(item.to) ? 'page' : undefined} className={`relative flex flex-1 flex-col items-center justify-center gap-intra rounded-lg transition-colors ${isActive(item.to) ? 'text-action' : 'text-text-dim'}`}>
           <MaterialIcon size={24} name={item.icon} />
-          <span className="whitespace-nowrap text-sm">{item.label}</span>
+          <span className="whitespace-nowrap type-control">{item.label}</span>
           {isActive(item.to) && <span className="absolute top-1.5 h-1 w-1 rounded-full bg-primary" />}
         </Link>
       ))}

@@ -61,8 +61,8 @@ export function SetupGuide({ type }: SetupGuideProps) {
                 <div className="px-3 pb-3 space-y-label">
                     <ol className="mt-3 space-y-label">
                         {steps.map((step, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-text-secondary">
-                                <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 text-action text-xs flex items-center justify-center">
+                            <li key={i} className="flex gap-2 type-body text-text-secondary">
+                                <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 text-action type-caption flex items-center justify-center">
                                     {i + 1}
                                 </span>
                                 <span className="pt-0.5">{step}</span>

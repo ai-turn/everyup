@@ -273,7 +273,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                   if (row.kind === 'group') {
                     return (
                       <tr key={`g-${row.key}`}>
-                        <td colSpan={6} className="px-4 pt-4 pb-1.5 text-xs text-text-muted">
+                        <td colSpan={6} className="px-4 pt-4 pb-1.5 type-caption text-text-muted">
                           {row.label}
                         </td>
                       </tr>
@@ -301,7 +301,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                           <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${channelStyle.bg}`}>
                             <ChannelIcon type={item.channelType} size={13} className={channelStyle.text} />
                           </div>
-                          <span className="truncate text-sm text-text-secondary">{item.channelName}</span>
+                          <span className="truncate type-control text-text-secondary">{item.channelName}</span>
                         </div>
                       </td>
                       <td className="space-y-intra px-4 cell">
@@ -313,7 +313,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                           <SeverityBadge severity={item.severity} />
                         )}
                       </td>
-                      <td className="px-4 cell text-right text-sm text-text-muted whitespace-nowrap">
+                      <td className="px-4 cell text-right type-control text-text-muted whitespace-nowrap">
                         {formatDistanceToNow(created, { addSuffix: true, locale: ko })}
                         <span className="text-text-dim"> · {format(created, 'HH:mm')}</span>
                       </td>
@@ -329,7 +329,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
         {/* Pagination */}
         {!loading && total > 0 && (
           <div className="flex items-center justify-between px-4 py-2.5">
-            <p className="text-xs text-text-muted">
+            <p className="type-caption text-text-muted">
               {`총 ${total}건 중 ${(page - 1) * PAGE_SIZE + 1}~${Math.min(page * PAGE_SIZE, total)}`}
             </p>
             <Pagination

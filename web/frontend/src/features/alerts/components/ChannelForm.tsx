@@ -253,7 +253,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                             <m.Icon size={26} className={active ? m.color : 'text-text-dim'} />
                                             {/* 선택지 카드의 제목 → 설명 4px(DESIGN.md §6) */}
                                             <span className="flex flex-col items-center">
-                                                <span className={`text-sm ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
+                                                <span className={`type-control ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
                                                 <span className="mt-1 type-caption-stack text-text-muted">{m.sub}</span>
                                             </span>
                                         </label>
@@ -357,17 +357,17 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 </div>
 
                                 {/* Config summary */}
-                                <div className="space-y-label text-sm">
+                                <div className="space-y-label type-control">
                                     {watchedType === 'telegram' ? (
                                         <>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-text-dim text-xs">Bot Token</span>
+                                                <span className="text-text-dim type-caption">Bot Token</span>
                                                 <span className="font-mono text-text-muted">
                                                     {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim">{keepsSecret ? '저장된 값' : '미입력'}</span>}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-text-dim text-xs">Chat ID</span>
+                                                <span className="text-text-dim type-caption">Chat ID</span>
                                                 <span className="font-mono text-text-muted">
                                                     {watchedChatId || <span className="text-text-dim">미입력</span>}
                                                 </span>
@@ -375,7 +375,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         </>
                                     ) : (
                                         <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg gap-3">
-                                            <span className="text-text-dim text-xs shrink-0">Webhook</span>
+                                            <span className="text-text-dim type-caption shrink-0">Webhook</span>
                                             <span className="font-mono text-text-muted truncate text-right">
                                                 {watchedWebhook
                                                     ? watchedWebhook.replace(/^https?:\/\//, '').slice(0, 32) + (watchedWebhook.length > 40 ? '…' : '')
@@ -403,7 +403,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 </div>
                             </div>
                             <div className="space-y-label">
-                                <p className="type-body text-text-muted leading-relaxed">
+                                <p className="type-body text-text-muted">
                                     현재 입력값으로 테스트 메시지를 보냅니다. 채널은 저장되지 않습니다.
                                 </p>
 

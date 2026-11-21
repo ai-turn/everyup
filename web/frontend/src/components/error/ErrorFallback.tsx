@@ -28,7 +28,7 @@ export function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
         </p>
 
         {import.meta.env.DEV && error && (
-          <pre className="text-left text-xs bg-ui-hover p-4 rounded-lg mb-4 overflow-auto max-h-32">
+          <pre className="text-left type-caption bg-ui-hover p-4 rounded-lg mb-4 overflow-auto max-h-32">
             {error.message}
           </pre>
         )}

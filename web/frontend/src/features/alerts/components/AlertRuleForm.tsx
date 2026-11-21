@@ -199,7 +199,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                 <button key={ch.id} type="button" onClick={() => handleToggleChannel(ch.id)} aria-pressed={selectedChannels.includes(ch.id)}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-colors ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-action' : 'border-ui-border-soft text-text-muted'}`}>
                                     <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
-                                    <span className="text-sm flex-1 text-left">{ch.name}</span>
+                                    <span className="type-control flex-1 text-left">{ch.name}</span>
                                 </button>
                             ))}
                             {selectedChannels.length === 0 && channels.length > 0 && (
@@ -239,7 +239,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                 </div>
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
                                     <p className="type-label-sm text-text-muted">알림 메시지</p>
-                                    <p className="mt-2 type-body leading-relaxed text-text-secondary">
+                                    <p className="mt-2 type-body text-text-secondary">
                                         {message || 'Server has been started'}
                                     </p>
                                 </div>
@@ -536,7 +536,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         }`}
                                     >
                                         <MaterialIcon size={20} name={cat.icon} />
-                                        <span className="text-sm whitespace-nowrap">{cat.label}</span>
+                                        <span className="type-control whitespace-nowrap">{cat.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -785,8 +785,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         }`}
                                     >
                                         <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
-                                        <span className="text-sm flex-1 text-left">{ch.name}</span>
-                                        <span className="text-sm text-text-dim">{getChannelName(ch.type)}</span>
+                                        <span className="type-control flex-1 text-left">{ch.name}</span>
+                                        <span className="type-control text-text-dim">{getChannelName(ch.type)}</span>
                                     </button>
                                 ))}
                             </div>
@@ -835,7 +835,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
 
                                 <div>
                                     <p className="type-label-sm text-text-muted mb-2">조건</p>
-                                    <p className="type-body leading-relaxed text-text-base">{previewSentence}</p>
+                                    <p className="type-body text-text-base">{previewSentence}</p>
                                 </div>
 
                                 {/* THEN block */}
@@ -844,9 +844,9 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                     <div className="rounded-xl bg-ui-hover-soft/50 px-3 py-3">
                                         <div className="flex items-center gap-2 mb-label">
                                             <SeverityBadge severity={watchedSeverity} />
-                                            <span className="text-sm text-text-muted truncate">{watchedName || '<규칙 이름>'}</span>
+                                            <span className="type-control text-text-muted truncate">{watchedName || '<규칙 이름>'}</span>
                                         </div>
-                                        <p className="type-body text-text-secondary leading-relaxed">
+                                        <p className="type-body text-text-secondary">
                                             {customMessage || buildDefaultMessage(watchedMetric, watchedOperator, watchedThreshold, watchedDuration)}
                                         </p>
                                     </div>
@@ -866,7 +866,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                             <div key={ch.id} className="flex items-center gap-2 px-3 py-1.5 bg-ui-hover-soft/50 rounded-lg">
                                                 <ChannelIcon type={ch.type} size={14} className={getChannelStyle(ch.type).text} />
                                                 <span className="type-label text-text-secondary flex-1 truncate">{ch.name}</span>
-                                                <span className="text-xs text-text-dim">{getChannelName(ch.type)}</span>
+                                                <span className="type-caption text-text-dim">{getChannelName(ch.type)}</span>
                                             </div>
                                         ))}
                                         {previewChannels.length > 5 && (

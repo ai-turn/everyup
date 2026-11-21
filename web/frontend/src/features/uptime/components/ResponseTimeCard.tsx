@@ -91,7 +91,7 @@ function responseAxis(values: number[]) {
 function ResponseTooltip({ point, color, messages }: { point?: ResponsePoint; color: string; messages: string[] }) {
   if (!point) return null;
   return (
-    <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-ui-border bg-ui-raised px-3.5 py-3 text-sm shadow-lg">
+    <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-ui-border bg-ui-raised px-3.5 py-3 type-control shadow-lg">
       <p className="mb-2 type-caption text-text-muted">{formatTimeLabel(point.t)} ~ {formatTimeTick(point.end)}</p>
       {point.missing ? <p className="text-text-secondary">수집 데이터 없음</p> : (
         <>
@@ -164,7 +164,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
             <dl aria-label="응답 시간 요약">
               <dt className="mb-label type-caption text-text-muted">선택 기간 평균</dt>
               <dd data-response-average className="type-kpi text-text-base">
-                {average === null ? '-' : number(average)}{average !== null && <span className="ml-1.5 text-sm font-normal tracking-normal text-text-muted">ms</span>}
+                {average === null ? '-' : number(average)}{average !== null && <span className="ml-1.5 type-control tracking-normal text-text-muted">ms</span>}
               </dd>
             </dl>
             <p data-response-counts className="type-caption text-text-muted">체크 <span className="tabular-nums text-text-secondary">{number(total)}회</span> 중 <span className={failed ? 'font-medium text-status-error' : ''}>실패 {number(failed)}회</span></p>

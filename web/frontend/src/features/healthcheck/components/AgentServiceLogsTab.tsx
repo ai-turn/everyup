@@ -203,7 +203,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
     >
       {/* Time leads so the list scans in time order; on phones it takes its own line. */}
       <div className="flex flex-wrap items-start gap-x-3 gap-y-1 sm:flex-nowrap">
-        <time dateTime={log.createdAt} className="icon-lead w-full shrink-0 text-xs tabular-nums text-text-dim sm:w-auto">{formatDateTime(log.createdAt)}</time>
+        <time dateTime={log.createdAt} className="icon-lead w-full shrink-0 type-caption tabular-nums text-text-dim sm:w-auto">{formatDateTime(log.createdAt)}</time>
         <span className={`${LEVEL_BASE} icon-lead ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
           {log.level}
         </span>
@@ -501,7 +501,7 @@ function ServiceLogsPanel(props: Props) {
 
       {/* Count */}
       {!loading && total > 0 && (
-        <p className="text-xs text-text-dim">
+        <p className="type-caption text-text-dim">
           {total.toLocaleString()}건 중 {((page - 1) * PAGE_SIZE + 1).toLocaleString()}~{Math.min(page * PAGE_SIZE, total).toLocaleString()}
         </p>
       )}

@@ -59,7 +59,7 @@ function collectionOf(summary: LogServiceSummary | undefined, windowStart: numbe
 function LevelCount({ label, value, tone, known }: { label: string; value: number; tone: string; known: boolean }) {
   return (
     <div>
-      <p className="text-xs text-text-dim">{label}</p>
+      <p className="type-caption text-text-dim">{label}</p>
       {known
         ? <p className={`type-stat ${value > 0 ? tone : 'text-text-base'}`}>{value.toLocaleString()}</p>
         : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><p className="type-stat text-text-dim">-</p></Tooltip>}
@@ -111,7 +111,7 @@ function LogCard({ row, window: span, returnTo }: { row: StatusRow; window: [num
         {/* 막대만으로는 시간 방향을 알 수 없었다 — 양 끝만 짧게 적는다. */}
         <div aria-hidden="true" className="flex justify-between type-caption text-text-dim"><span>24시간 전</span><span>지금</span></div>
       </div>
-      <div className="mt-3 flex min-w-0 items-baseline gap-2 text-xs">
+      <div className="mt-3 flex min-w-0 items-baseline gap-2 type-caption">
         <LatestLine summary={summary} known={known} />
       </div>
     </Link>
@@ -135,7 +135,7 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
             : <span className="whitespace-nowrap">처음 {ago(pattern.firstSeen)}</span>}
         </span>
       }
-      trailing={<span className="text-sm text-text-base">{pattern.count.toLocaleString()}회</span>}
+      trailing={<span className="type-control text-text-base">{pattern.count.toLocaleString()}회</span>}
     />
   );
 }
@@ -171,7 +171,7 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
             { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => <LogStatus row={row} /> },
             ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: StatusRow) => row.collection === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><span className="text-text-muted">-</span></Tooltip> })),
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },
-            { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 text-xs"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div> },
+            { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 type-caption"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div> },
           ]} />}
       </Section>
       {/* 오류가 없으면 섹션째 숨긴다 — 위 카드가 이미 0건이라고 말한다. 실패는 숨기지 않는다 — "패턴 없음"으로 읽힌다. */}

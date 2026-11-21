@@ -226,10 +226,10 @@ function AgentInstallCommand({
 }) {
   return (
     <details open={expanded} className="group">
-      <summary className="-mx-3 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-3 text-sm text-text-base transition-colors hover:bg-ui-hover-soft">
+      <summary className="-mx-3 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-3 type-control text-text-base transition-colors hover:bg-ui-hover-soft">
         <MaterialIcon size={20} name="terminal" className="text-action" />
         Docker Collector 설치 명령
-        <span className="ml-auto text-xs font-normal text-text-dim">
+        <span className="ml-auto type-caption text-text-dim">
           {env.isDemoMode ? '실행할 수 없는 예시 명령' : connected ? '재설치할 때 사용' : 'Linux Docker 서버에서 실행'}
         </span>
         <MaterialIcon size={20} name="expand_more" className="text-text-dim transition-transform group-open:rotate-180" />
@@ -268,7 +268,7 @@ function AgentInstallCommand({
           </pre>
         </div>
 
-        <div className="grid gap-2 text-xs text-text-muted sm:grid-cols-3">
+        <div className="grid gap-2 type-caption text-text-muted sm:grid-cols-3">
           {[
             ['rule', '환경 검사', 'Docker와 Compose 조건을 먼저 확인'],
             ['backup', '안전한 설치', '기존 설정을 백업하고 새 설정 저장'],

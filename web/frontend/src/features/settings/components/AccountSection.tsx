@@ -14,12 +14,12 @@ export function AccountSection() {
   return (
     <SectionCard title="계정 · 인증" subtitle="로그인 계정과 세션 정보">
       <div className="flex items-center gap-3">
-        <span className="w-10 h-10 rounded-full bg-ui-active flex items-center justify-center text-sm text-text-secondary shrink-0">
+        <span className="w-10 h-10 rounded-full bg-ui-active flex items-center justify-center type-control text-text-secondary shrink-0">
           {initials}
         </span>
         <div className="min-w-0 flex-1">
           <p className="type-label text-text-base truncate">{user.username}</p>
-          <p className="mt-intra flex flex-wrap gap-x-3 text-xs text-text-dim">
+          <p className="mt-intra flex flex-wrap gap-x-3 type-caption text-text-dim">
             <span>역할 {user.role}</span><span>세션 JWT 7일</span><span>로컬 비밀번호</span>
           </p>
         </div>

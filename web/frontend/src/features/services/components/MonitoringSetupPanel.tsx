@@ -131,7 +131,7 @@ function SetupStep({
   return (
     <div className="flex min-w-0 flex-col rounded-md bg-ui-hover-soft p-3">
       <div className="flex items-start gap-3">
-        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs ${appearance.circle}`}>
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full type-caption ${appearance.circle}`}>
           {state === 'ready' || state === 'issue' ? (
             <MaterialIcon size={20} name={appearance.icon} />
           ) : appearance.icon}
@@ -139,7 +139,7 @@ function SetupStep({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1.5">
             <h3 className="type-label text-text-base">{title}</h3>
-            <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs ${appearance.badge}`}>
+            <span className={`shrink-0 rounded px-1.5 py-0.5 type-caption ${appearance.badge}`}>
               {stateLabel}
             </span>
           </div>
@@ -242,7 +242,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           {/* 진행 배지는 제목의 메타다 — 가운데가 아니라 기준선에 맞춘다(DESIGN.md §2.2). */}
           <div className="flex items-baseline gap-2">
             <h2 className={`${compact ? 'type-label' : 'type-section-title'} text-text-base`}>모니터링 설정 가이드</h2>
-            <span className={`rounded-full px-2 py-0.5 text-xs ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
+            <span className={`rounded-full px-2 py-0.5 type-caption ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
               필수 {requiredReady}/{requiredTotal}
             </span>
           </div>
@@ -266,7 +266,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           )}
         </div>
         {report && (
-          <div className="space-y-intra text-right text-xs text-text-dim">
+          <div className="space-y-intra text-right type-caption text-text-dim">
             <p>{host || '호스트 정보 확인 중'} · {report.host.btf ? 'BTF 있음' : 'BTF 없음'}</p>
             <p>
               {formatDateTime(report.checkedAt)} 확인

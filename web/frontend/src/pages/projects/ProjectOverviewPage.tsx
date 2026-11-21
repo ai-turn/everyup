@@ -26,7 +26,7 @@ function MemberLink({ to, icon, type, name, detail, cause, state, returnTo, onOp
     <Link to={to} state={{ returnTo }} onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-ui-hover-soft">
       {/* 종류 아이콘은 분류라 표 보기처럼 중립색이다(§5.3). 상태는 표 보기와 같은 StatusLight가 말한다. */}
       <MaterialIcon size={20} name={icon} className="shrink-0 text-text-muted" />
-      <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-intra block truncate text-xs text-text-muted">{type}</span><span className="mt-1 block"><StatusLight tone={state} label={detail} /></span>{cause && <span className="mt-intra block truncate text-xs text-text-muted">{cause}</span>}</span>
+      <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-intra block truncate type-caption text-text-muted">{type}</span><span className="mt-1 block"><StatusLight tone={state} label={detail} /></span>{cause && <span className="mt-intra block truncate type-caption text-text-muted">{cause}</span>}</span>
       <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
     </Link>
   );

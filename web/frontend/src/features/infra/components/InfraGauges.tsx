@@ -52,7 +52,7 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
         <span className="type-kpi text-text-base">
           {displayValue}
         </span>
-        <span className="text-sm text-text-dim">{displayUnit}</span>
+        <span className="type-control text-text-dim">{displayUnit}</span>
       </div>
 
       {/* Rates (CPU·Network) read best as a trend; capacities (Memory·Disk) as fill. */}
@@ -66,7 +66,7 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
         )}
       </div>
 
-      <p className="truncate text-xs text-text-dim">{gauge.subtitle}</p>
+      <p className="truncate type-caption text-text-dim">{gauge.subtitle}</p>
     </article>
   );
 }

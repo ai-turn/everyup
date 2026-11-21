@@ -73,7 +73,7 @@ function ProjectCard({ project, returnTo, status, counts, onEdit, onDelete }: {
       />
       <p className="mt-3 type-body text-text-muted">{project.description || '설명이 없습니다'}</p>
       <div className="mt-5 grid grid-cols-2 gap-3">
-        {counts.map(([label, count]) => <div key={label} className="rounded-md bg-ui-hover-soft p-3"><p className="text-xs text-text-dim">{label}</p><p className="mt-1 type-stat text-text-base">{count}</p></div>)}
+        {counts.map(([label, count]) => <div key={label} className="rounded-md bg-ui-hover-soft p-3"><p className="type-caption text-text-dim">{label}</p><p className="mt-1 type-stat text-text-base">{count}</p></div>)}
       </div>
     </article>
   );

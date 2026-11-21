@@ -84,7 +84,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
                   <p className="type-label text-text-base truncate">
                     {event.message || (isAlert ? '장애 감지' : '복구 감지')}
                   </p>
-                  <p className="text-xs text-text-muted mt-intra">
+                  <p className="type-caption text-text-muted mt-intra">
                     {formatDistanceToNow(new Date(event.time), { addSuffix: true, locale: ko })}
                   </p>
                 </div>

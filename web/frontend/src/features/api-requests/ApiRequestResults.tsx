@@ -59,7 +59,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
         />;
   } else {
     content = <div className="table-bleed">
-          <table aria-label="API 요청 목록" className="w-full table-fixed text-xs">
+          <table aria-label="API 요청 목록" className="w-full table-fixed type-caption">
             <thead className="border-b border-ui-border-soft text-text-muted"><tr>
               <th scope="col" className="px-4 py-3 text-left font-medium">요청</th>
               <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium sm:table-cell">상태</th>

@@ -84,12 +84,12 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
         <div className="ml-auto"><SegmentedControl options={HISTORY_FILTERS} value={filter} onChange={setFilter} ariaLabel="장애 이력 구분" /></div>
       </div>
       {rows.length === 0 ? (
-        <div className="py-6 text-center text-sm text-text-dim">최근 90일 동안 기록된 장애가 없습니다</div>
+        <div className="py-6 text-center type-control text-text-dim">최근 90일 동안 기록된 장애가 없습니다</div>
       ) : visible.length === 0 ? (
-        <div className="py-6 text-center text-sm text-text-dim">조건에 맞는 이력이 없습니다</div>
+        <div className="py-6 text-center type-control text-text-dim">조건에 맞는 이력이 없습니다</div>
       ) : (
         <div className="-mx-2 overflow-x-auto">
-          <table className="w-full min-w-2xl table-fixed text-sm">
+          <table className="w-full min-w-2xl table-fixed type-control">
             <thead>
               <tr className="border-b border-ui-border-soft text-left type-caption text-text-muted">
                 <th className="w-32 px-2 py-2 font-normal">상태</th>
@@ -297,7 +297,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
       </div>
 
       {failedSources.length > 0 && (
-        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border-soft bg-bg-surface px-4 py-3 text-sm text-text-secondary">
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border-soft bg-bg-surface px-4 py-3 type-control text-text-secondary">
           <p>{failedSources.join(', ')} 조회에 실패했습니다. 이전에 불러온 데이터가 있으면 유지합니다.</p>
           <Button size="sm" variant="secondary" loading={refreshing} disabled={processing} onClick={() => void load()}>다시 시도</Button>
         </div>
