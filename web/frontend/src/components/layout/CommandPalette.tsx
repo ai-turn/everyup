@@ -4,8 +4,7 @@ import { MaterialIcon } from '../common';
 import { SCRIM_PANEL, useOverlay } from '../../hooks/useOverlay';
 import { api, type AgentServiceFlat, type ConnectedAgent, type ObservedService, type Project, type Server, type UptimeMonitor } from '../../services/api';
 import { NAV_SECTIONS } from './navSections';
-import { ALL_LOGS_PATH, serverPath } from '../../features/servers/serverPaths';
-import { appCapability } from '../../features/servers/serverStatus';
+import { ALL_LOGS_PATH, appPath, serverPath } from '../../features/servers/serverPaths';
 
 // Fired by the sidebar search button; ⌘K/Ctrl+K toggles directly.
 export const OPEN_PALETTE_EVENT = 'everyup:command-palette';
@@ -107,7 +106,7 @@ export function CommandPalette() {
       to: serverPath(monitor.serverId, 'uptime', monitor.id),
     }] : []),
     ...apps.flatMap((app) => app.serverId ? [{
-      id: `app-${app.id}`, icon: 'hub', label: app.name, meta: ownerOf(app.serverId, '앱'), to: serverPath(app.serverId, appCapability(app), app.id),
+      id: `app-${app.id}`, icon: 'hub', label: app.name, meta: ownerOf(app.serverId, '앱'), to: appPath(app.serverId, app.id),
     }] : []),
     // 아이콘은 사이드바와 같다: 서버 dns, Docker 환경 deployed_code, 그룹 folder_open.
     ...agents.map((a) => ({

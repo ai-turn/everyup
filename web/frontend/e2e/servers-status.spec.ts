@@ -151,7 +151,7 @@ test('an app with a metric over its threshold makes its server need attention an
   await expect(tabs.getByRole('tab', { name: /^메트릭/ }).getByRole('img', { name: '임계값 초과' })).toBeVisible();
   await expect(tabs.getByRole('tab', { name: /^로그/ }).getByRole('img')).toHaveCount(0);
   await expect(page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByRole('link', { name: 'billing-api 임계값 초과 응답 시간' }))
-    .toHaveAttribute('href', /\/servers\/metrics\/metrics\/m-app$/);
+    .toHaveAttribute('href', /\/servers\/metrics\/apps\/m-app\?tab=metrics$/);
 });
 
 test('the server list search also finds metric names and shows the matching metric', async ({ page }) => {

@@ -4,7 +4,8 @@ import type { ApiRequest, ObservedService, Server } from '../src/services/api';
 
 test.use({ baseURL: API_URL });
 
-// 서버 화면은 이 서버의 API 요청 탭(/servers/server-1/api)에서 앱을 보여 준다.
+// 서버의 API 요청 탭(/servers/server-1/api)은 앱 목록이고, 앱의 요청은 앱 페이지(/servers/server-1/apps/api-test?tab=requests)에 있다.
+// 옛 주소(/servers/server-1/api/api-test)는 앱 페이지로 넘어가므로 아래 테스트는 그 주소로 연다.
 const server: Server = { id: 'server-1', name: 'web-01', createdAt: '2026-11-01T00:00:00Z', updatedAt: '2026-11-01T00:00:00Z' };
 
 const service: ObservedService = {
@@ -89,7 +90,7 @@ test('API targets recover after a failed load', async ({ page }) => {
   await expect(panel.getByText('API 요청 앱 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
   state.failList = false;
   await panel.getByRole('button', { name: '다시 시도', exact: true }).click();
-  await expect(panel.getByRole('heading', { level: 2, name: 'orders-api', exact: true })).toBeVisible();
+  await expect(panel.getByRole('table', { name: 'API 요청 앱' }).getByRole('link', { name: 'orders-api', exact: true })).toBeVisible();
   await expect(panel.getByText('API 요청 앱 정보를 불러오지 못했습니다', { exact: true })).toHaveCount(0);
 });
 
@@ -186,24 +187,23 @@ test('investigation range, filters, pagination and tabs survive reload', async (
   await expect(page).toHaveURL(/page=2/);
   await page.reload();
   await expect(results.getByText('/orders/25', { exact: true })).toBeVisible();
-  // 서버 탭 안에서 요청/트레이스 전환은 탭 줄이 아니라 상태 줄의 전환 버튼이다(주소의 tab=traces는 같다).
-  const views = page.getByRole('group', { name: '요청/트레이스 보기', exact: true });
-  const requestsView = views.getByRole('button', { name: '요청', exact: true });
-  const tracesView = views.getByRole('button', { name: '트레이스', exact: true });
-  await tracesView.click();
+  // 요청과 트레이스는 앱 페이지의 두 탭이다(Docker 서비스 상세와 같다). 주소의 tab=traces가 트레이스 탭이다.
+  const tabs = page.getByRole('tablist', { name: '앱 데이터' });
+  const requestsTab = tabs.getByRole('tab', { name: /^API 요청/ });
+  const tracesTab = tabs.getByRole('tab', { name: /^트레이스/ });
+  await tracesTab.click();
   await page.getByRole('button', { name: '느린순', exact: true }).click();
   await page.reload();
-  await expect(tracesView).toHaveAttribute('aria-pressed', 'true');
+  await expect(tracesTab).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('button', { name: '느린순', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await requestsView.click();
+  await requestsTab.click();
   await expect(results.getByText('/orders/25', { exact: true })).toBeVisible();
-  // 키보드로도 전환한다. 전환 버튼 묶음은 화살표 키가 아니라 Tab으로 옮겨 Enter, Space로 누른다.
-  await tracesView.focus();
-  await page.keyboard.press('Enter');
-  await expect(tracesView).toHaveAttribute('aria-pressed', 'true');
-  await requestsView.focus();
-  await page.keyboard.press('Space');
-  await expect(requestsView).toHaveAttribute('aria-pressed', 'true');
+  // 키보드로도 전환한다. 탭 줄은 화살표 키로 옮긴다.
+  await requestsTab.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(tracesTab).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('ArrowLeft');
+  await expect(requestsTab).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('button', { name: '에러만', exact: true }).click();
   await expect(results.getByText('검색 결과 2건', { exact: true })).toBeVisible();
   await expect(results.getByText('/orders/0', { exact: true })).toBeVisible();
@@ -235,7 +235,7 @@ test('API connection recovers options and distinguishes registration from data r
   await page.clock.install();
   await mockApi(page, state);
   await page.goto('./servers/server-1/api');
-  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'orders-api', exact: true })).toBeVisible();
+  await expect(page.getByRole('table', { name: 'API 요청 앱' }).getByRole('link', { name: 'orders-api', exact: true })).toBeVisible();
   // 서버 탭의 대화 상자는 그룹을 고르지 않는다(그룹은 서버가 정한다). 대화 상자가 불러오는 선택지는 이 서버의 기존 앱 목록이다.
   state.failList = true;
   await page.getByRole('button', { name: 'API 연결', exact: true }).click();
@@ -283,9 +283,9 @@ test('long service names and request paths remain accessible on narrow screens',
   await mockApi(page, { serviceName: '아주 긴 주문 처리 서비스 '.repeat(8), requests: rows, queries: [] });
   for (const width of [360, 1024]) {
     await page.setViewportSize({ width, height: 900 });
-    // 서버 화면에는 앱 목록 표가 없다. 긴 앱 이름은 패널의 제목에서 줄바꿈되어 페이지를 넓히지 않는다.
+    // 긴 앱 이름은 앱 페이지의 제목에서 줄바꿈되어 페이지를 넓히지 않는다.
     await page.goto('./servers/server-1/api/api-test');
-    await expect(page.getByRole('heading', { level: 2, name: '아주 긴 주문 처리 서비스 '.repeat(8).trim(), exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '아주 긴 주문 처리 서비스 '.repeat(8).trim(), exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     const path = page.getByRole('button', { name: `GET 200 ${rows[0].path} 트레이스 상세 열기`, exact: true });
     await expect(path).toBeVisible();
@@ -312,7 +312,7 @@ test('a status distribution failure keeps the app and its requests visible and r
   const panel = page.getByRole('tabpanel');
   const failure = panel.getByRole('status').filter({ hasText: '상태코드 분포를 불러오지 못했습니다' });
   await expect(failure).toBeVisible();
-  await expect(panel.getByRole('heading', { level: 2, name: 'orders-api', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'orders-api', exact: true })).toBeVisible();
   await expect(page.getByRole('table', { name: 'API 요청 목록' })).toBeVisible();
   await expect(page.getByRole('region', { name: '요청 결과' })).toContainText('전체 35건');
   const requestReads = state.queries.filter(url => url.pathname.endsWith('/requests')).length;

@@ -1,15 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-// 데모: orders-api는 edge-host-01의 하나뿐인 API 앱이라 탭 주소에 앱이 없다(SCENARIOS.md).
+// 데모: orders-api는 edge-host-01의 하나뿐인 API 앱이다(SCENARIOS.md). 서버의 API 요청 탭은 앱 목록이고, 요청은 앱 페이지에 있다.
 // 옛 API 목록은 서버 목록이 대신한다. 서버 목록의 폭은 servers-list.spec.ts가 확인한다.
 const API_TAB = './servers/server_mock_edge_host_01/api';
+const API_APP = './servers/server_mock_edge_host_01/apps/observed_mock_orders?tab=requests';
 
 test('API detail and connection fit responsive layouts in both themes', async ({ page }, testInfo) => {
   test.setTimeout(60000);
   for (const width of [360, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const theme of ['light', 'dark']) {
-      await page.goto(`${API_TAB}?range=6h`);
+      await page.goto(`${API_APP}&range=6h`);
       await page.evaluate(value => document.documentElement.classList.toggle('dark', value === 'dark'), theme);
       await expect(page.getByRole('table', { name: 'API 요청 목록' })).toBeVisible();
       await expect(page.getByRole('heading', { name: '앱 전체 추이', exact: true })).toBeVisible();

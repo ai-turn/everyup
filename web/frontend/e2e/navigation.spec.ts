@@ -59,8 +59,8 @@ test.describe('desktop', () => {
     const row = grid.locator('tbody tr').filter({ has: page.getByRole('link', { name: 'checkout-api', exact: true }) });
     await expect(row).toContainText('edge-host-01');
     await row.getByRole('link', { name: 'checkout-api', exact: true }).click();
-    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/logs/observed_mock_checkout\\?range=24h$`));
-    await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'checkout-api' })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/apps/observed_mock_checkout\\?tab=logs&range=24h$`));
+    await expect(page.getByRole('heading', { level: 1, name: 'checkout-api' })).toBeVisible();
   });
 
   test('a trace opened in an app jumps to the same app in the same server', async ({ page }) => {
@@ -68,7 +68,7 @@ test.describe('desktop', () => {
     await page.getByRole('tabpanel').getByRole('button', { name: '트레이스', exact: true }).first().click();
     const trace = page.getByRole('dialog', { name: '트레이스 상세' });
     await trace.getByRole('button', { name: /^API 요청 \(/ }).click();
-    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/api/observed_mock_orders\\?traceId=[0-9a-f]+$`));
+    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/apps/observed_mock_orders\\?tab=requests&traceId=[0-9a-f]+$`));
     await expect(mainNav(page).getByRole('link', { name: '서버', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 
@@ -157,7 +157,7 @@ test.describe('all logs without server names', () => {
     await page.getByRole('dialog', { name: '검색' }).getByRole('option', { name: /^전체 로그/ }).click();
     await expect(page.getByRole('heading', { name: '로그를 불러오지 못했습니다' })).toHaveCount(0);
     const link = page.getByRole('table', { name: '앱 그리드' }).getByRole('link', { name: 'billing-api', exact: true });
-    await expect(link).toHaveAttribute('href', /\/servers\/server-1\/logs\/app-1\?range=24h$/);
+    await expect(link).toHaveAttribute('href', /\/servers\/server-1\/apps\/app-1\?tab=logs&range=24h$/);
     expect(state.requests.some((request) => request.method === 'GET' && request.path === '/servers')).toBe(true);
   });
 });

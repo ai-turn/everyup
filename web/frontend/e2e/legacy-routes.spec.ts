@@ -19,17 +19,41 @@ test('a monitor address goes to its server uptime tab', async ({ page }) => {
   await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'Documentation' })).toBeVisible();
 });
 
+// 앱은 자기 페이지가 있다(대상 상세, 2026-11-21). 옛 기능 메뉴의 앱 주소는 쿼리와 해시를 옮겨 앱 페이지의 그 탭으로 간다.
 test('a log address keeps its query and hash', async ({ page }) => {
   await page.goto('./logs/observed_mock_checkout?range=6h&pattern=abc#latest');
-  await expect(page).toHaveURL(/\/servers\/server_mock_edge_host_01\/logs\/observed_mock_checkout\?range=6h&pattern=abc#latest$/);
-  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'checkout-api' })).toBeVisible();
+  await expect(page).toHaveURL(/\/servers\/server_mock_edge_host_01\/apps\/observed_mock_checkout\?tab=logs&range=6h&pattern=abc#latest$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'checkout-api' })).toBeVisible();
 });
 
-test('api and metrics addresses go to the app in its server', async ({ page }) => {
+test('api and metrics addresses go to the app page, with the traces view as the traces tab', async ({ page }) => {
   await page.goto('./api/observed_mock_orders?tab=traces');
-  await expect(page).toHaveURL(/\/servers\/server_mock_edge_host_01\/api\/observed_mock_orders\?tab=traces$/);
+  await expect(page).toHaveURL(/\/servers\/server_mock_edge_host_01\/apps\/observed_mock_orders\?tab=traces$/);
+  await expect(page.getByRole('tab', { name: '트레이스' })).toHaveAttribute('aria-selected', 'true');
+  await page.goto('./api/observed_mock_orders?traceId=abc');
+  await expect(page).toHaveURL(/\/apps\/observed_mock_orders\?tab=requests&traceId=abc$/);
   await page.goto('./metrics/observed_mock_inventory?range=24h');
-  await expect(page).toHaveURL(/\/servers\/server_mock_inventory_api\/metrics\/observed_mock_inventory\?range=24h$/);
+  await expect(page).toHaveURL(/\/servers\/server_mock_inventory_api\/apps\/observed_mock_inventory\?tab=metrics&range=24h$/);
+});
+
+// 2026-11-21 이전의 서버 탭 안 앱 주소. 알림·북마크·공유한 링크가 이 경로로 온다.
+for (const [old, tab] of [['logs', 'logs'], ['api', 'requests'], ['metrics', 'metrics']] as const) {
+  test(`the old server ${old} tab address of an app goes to the app page ${tab} tab with its query and hash`, async ({ page }) => {
+    await page.goto('./servers');
+    await page.goto(`./servers/server_mock_edge_host_01/${old}/observed_mock_orders?traceId=t1&range=24h#x`);
+    await expect(page).toHaveURL(new RegExp(`/servers/server_mock_edge_host_01/apps/observed_mock_orders\\?tab=${tab}&traceId=t1&range=24h#x$`));
+    await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();
+    await expect(page.getByRole('tab', { selected: true })).toHaveText(tab === 'logs' ? '로그' : tab === 'requests' ? 'API 요청' : '메트릭');
+    // 바꾼 주소가 옛 주소를 대신해 뒤로 가기가 옛 주소로 돌아가지 않는다.
+    await page.goBack();
+    await expect(page).toHaveURL(/\/servers$/);
+  });
+}
+
+test('the old api tab address keeps its traces view as the traces tab', async ({ page }) => {
+  await page.goto('./servers/server_mock_edge_host_01/api/observed_mock_orders?tab=traces&range=1h');
+  await expect(page).toHaveURL(/\/apps\/observed_mock_orders\?tab=traces&range=1h$/);
+  await expect(page.getByRole('tab', { name: '트레이스' })).toHaveAttribute('aria-selected', 'true');
 });
 
 test('an infrastructure address goes to the server infrastructure tab', async ({ page }) => {

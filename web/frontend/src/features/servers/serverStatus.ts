@@ -6,7 +6,7 @@ import { isCollectorFresh } from '../../utils/operationalStatus';
 import { infraCollection, peakUsage, WARNING_PCT } from '../infra/usage';
 import { metricTitle } from '../metrics/metricPresentation';
 import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
-import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from './serverPaths';
+import { SERVER_CAPABILITIES, appPath, serverPath, type ServerCapability } from './serverPaths';
 import type { ForgetTarget } from './useServers';
 
 // 서버 목록, 서버 개요, 그룹 화면이 같은 판정을 쓴다. 따로 계산하면 목록은 "정상"인데 그룹은 "장애"인 대상이 생긴다.
@@ -182,8 +182,8 @@ export const targetCountLabels = (counts: TargetCounts): string[] =>
     .filter(([, count]) => count > 0).map(([label, count]) => `${label} ${count}개`);
 
 
-// 앱을 여는 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API)로 고른다. 명령 팔레트도 같은 탭으로 연다.
-export const appCapability = (app: ObservedService): ServerCapability =>
+// 앱 페이지의 첫 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API 요청)로 고른다.
+export const appCapability = (app: ObservedService): 'logs' | 'api' | 'metrics' =>
   app.signals.includes('logs') ? 'logs' : app.signals.includes('metrics') ? 'metrics' : 'api';
 
 const SIGNAL_OF: Record<'logs' | 'api' | 'metrics', ObservedService['signals'][number]> = { logs: 'logs', api: 'traces', metrics: 'metrics' };
@@ -271,10 +271,10 @@ export function buildServerRows(input: {
         if (breached.length > 0) {
           // 옛 메트릭 목록의 표현: 까닭(임계값 초과)과 첫 지표 이름, 나머지 개수.
           const detail = `${BREACHED_LABEL} ${metricTitle(breached[0])}${breached.length > 1 ? ` 외 ${breached.length - 1}개` : ''}`;
-          return { ...base, state: 'warn' as const, detail, text: `${app.name} ${detail}`, to: serverPath(server.id, 'metrics', app.id) };
+          return { ...base, state: 'warn' as const, detail, text: `${app.name} ${detail}`, to: appPath(server.id, app.id, 'metrics') };
         }
         const result = appState(app);
-        return { ...base, state: result.state, detail: result.detail, text: `${app.name} ${result.detail}`, to: serverPath(server.id, appCapability(app), app.id) };
+        return { ...base, state: result.state, detail: result.detail, text: `${app.name} ${result.detail}`, to: appPath(server.id, app.id) };
       }),
     ];
     // 확인할 수 없는 기능: 목록을 불러오지 못했거나(대상이 있는지 모른다, 앱은 기능을 모르므로 "앱") 이전 목록에 대상이 있다.

@@ -5,7 +5,7 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useListView } from '../../hooks/useListView';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries, type LogPatternRow, type LogServiceRow } from '../../features/logs/logServiceRows';
-import { serverPath, SERVERS_PATH } from '../../features/servers/serverPaths';
+import { appPath, SERVERS_PATH } from '../../features/servers/serverPaths';
 import { api } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -43,7 +43,7 @@ export function LogsPage() {
           subtitle: serverNames.get(app.serverId),
           serverName: serverNames.get(app.serverId),
           stopped: !app.isActive,
-          to: `${serverPath(app.serverId, 'logs', app.id)}?range=24h`,
+          to: `${appPath(app.serverId, app.id, 'logs')}&range=24h`,
         }] : []);
         const next = withLogSummaries(base, summaries ?? [], patternRows ?? []);
         setError(null);

@@ -9,7 +9,7 @@ import { api, TraceDetail, TraceSpan, LogEntry, ApiRequest } from '../../../serv
 import { LEVEL_BASE, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import { statusClass } from '../../api-requests/useRequestQuery';
 import { spanKindBadge } from '../spanKind';
-import { serverPath } from '../../servers/serverPaths';
+import { appPath } from '../../servers/serverPaths';
 import { formatClock } from '../../../utils/incidentFormat';
 
 interface TracePanelProps {
@@ -22,7 +22,7 @@ export type TraceTarget =
   | { kind: 'agent'; agentId: string; serviceKey: string }
   | { kind: 'direct'; observedServiceId: string };
 
-// 직접 연결한 앱은 서버 탭 안에서만 보이므로 지금 주소의 서버(serverId)에서 같은 앱의 다른 탭으로 간다.
+// 직접 연결한 앱은 그 앱의 페이지(지금 주소의 서버)에서 다른 탭으로 간다.
 // 서버를 모르면 옛 주소로 보낸다. LegacyTargetRedirect가 앱을 조회해 그 서버로 바꾼다.
 function traceTargetPath(target: TraceTarget, tab: 'logs' | 'requests', traceId: string, serverId?: string): string {
   const query = `traceId=${encodeURIComponent(traceId)}`;
@@ -30,7 +30,7 @@ function traceTargetPath(target: TraceTarget, tab: 'logs' | 'requests', traceId:
     return `/services/${target.agentId}/${encodeURIComponent(target.serviceKey)}?tab=${tab}&${query}`;
   }
   if (!serverId) return `/${tab === 'logs' ? 'logs' : 'api'}/${encodeURIComponent(target.observedServiceId)}?${query}`;
-  return `${serverPath(serverId, tab === 'logs' ? 'logs' : 'api', target.observedServiceId)}?${query}`;
+  return `${appPath(serverId, target.observedServiceId, tab)}&${query}`;
 }
 
 function formatDuration(ms: number): string {
