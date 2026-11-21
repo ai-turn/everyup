@@ -5,7 +5,7 @@ import { Link, Navigate, useLocation, useParams, useNavigate } from 'react-route
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailMeta, EmptyState, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable, SectionHeader, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
+import { Button, DetailMeta, EmptyState, List, ListRow, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable, SectionHeader, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
@@ -363,36 +363,29 @@ export function ProjectDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Incident history */}
               <section>
-                  <h3 className="type-card-title text-text-base mb-3">장애 이력 · 30일</h3>
+                  <h3 className="mb-4 type-card-title text-text-base">장애 이력 · 30일</h3>
                   {incidents.length === 0 ? (
                     <p className="type-body text-text-muted py-4 text-center">최근 30일간 장애가 없습니다</p>
                   ) : (
-                    <div className="-mx-3 space-y-0.5">
+                    <List>
                       {incidents.slice(0, 5).map((inc, i) => (
-                        <Link
+                        <ListRow
                           key={`${inc.key}-${inc.startedAt}-${i}`}
                           to={`/services/${agentId}/${encodeURIComponent(inc.key)}`}
-                          className="w-full flex items-start gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-ui-hover-soft"
-                        >
-                          <span className={`h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 ${inc.active ? 'bg-status-error-fill' : 'bg-status-healthy-fill'}`} />
-                          <span className="min-w-0 flex-1">
-                            <span className="block type-label-sm text-text-base truncate">{inc.serviceName}</span>
-                            <span className="block text-xs text-text-dim mt-0.5">
-                              {formatIncidentTime(inc.startedAt)} {'시작'} · {formatDuration(inc.durationSec)}
-                            </span>
-                          </span>
-                          <span className={`text-xs shrink-0 ${inc.active ? 'text-status-error' : 'text-status-healthy'}`}>
-                            {inc.active ? '진행중' : '해소'}
-                          </span>
-                        </Link>
+                          marker={<span className={`h-1.5 w-1.5 rounded-full ${inc.active ? 'bg-status-error-fill' : 'bg-status-healthy-fill'}`} />}
+                          title={inc.serviceName}
+                          detail={`${formatIncidentTime(inc.startedAt)} 시작 · ${formatDuration(inc.durationSec)}`}
+                          detailSize="caption"
+                          trailing={<span className={inc.active ? 'text-status-error' : 'text-status-healthy'}>{inc.active ? '진행중' : '해소'}</span>}
+                        />
                       ))}
-                    </div>
+                    </List>
                   )}
                 </section>
 
                 {/* Event timeline */}
                 <section>
-                  <h3 className="type-card-title text-text-base mb-3">타임라인</h3>
+                  <h3 className="mb-4 type-card-title text-text-base">타임라인</h3>
                   {events.length === 0 ? (
                     <p className="type-body text-text-muted py-4 text-center">최근 이벤트가 없습니다</p>
                   ) : (

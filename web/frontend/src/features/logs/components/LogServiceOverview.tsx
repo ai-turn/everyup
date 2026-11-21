@@ -3,7 +3,7 @@ import { Tooltip } from '../../../components/common/Tooltip';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button, CollectionStatusBadge, ResourceCardHeader, ResourceTable, SectionHeader, StatusLight, type CollectionStatus } from '../../../components/common';
+import { Button, CollectionStatusBadge, ResourceCardHeader, List, ListRow, ResourceTable, SectionHeader, StatusLight, type CollectionStatus } from '../../../components/common';
 import { fillBuckets, formatTimeTick } from '../../../components/charts';
 import { LEVEL_BASE, LEVEL_FILL, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import type { LogHistogramBucket, LogPattern, LogServiceSummary } from '../../../services/api';
@@ -121,25 +121,22 @@ function LogCard({ row, window: span, returnTo }: { row: StatusRow; window: [num
 function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: LogServiceRow; windowStart: number }) {
   const isNew = Date.parse(pattern.firstSeen) >= windowStart;
   return (
-    <li>
-      <Link
-        to={`${row.to}&pattern=${encodeURIComponent(pattern.fingerprint)}`}
-        className="flex items-start gap-3 rounded-md px-4 py-3 transition-colors hover:bg-ui-hover-soft"
-      >
-        <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[pattern.level] ?? LEVEL_TEXT.info}`}>{pattern.level}</span>
-        <div className="min-w-0 flex-1">
-          <Tooltip content={pattern.message}><p className="truncate font-mono text-sm text-text-base">{pattern.message}</p></Tooltip>
-          {/* 줄바꿈은 항목 사이에서만 — "처음 2일 / 전"처럼 시간 표현이 갈라지지 않게 */}
-          <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-text-dim">
-            <span>{row.name}</span>{row.serverName && row.serverName !== row.name && <span>서버 {row.serverName}</span>}<span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span>
-            {isNew
-              ? <strong className="whitespace-nowrap font-medium text-text-secondary">신규 · 처음 {ago(pattern.firstSeen)}</strong>
-              : <span className="whitespace-nowrap">처음 {ago(pattern.firstSeen)}</span>}
-          </p>
-        </div>
-        <span className="shrink-0 text-sm tabular-nums text-text-base">{pattern.count.toLocaleString()}회</span>
-      </Link>
-    </li>
+    <ListRow
+      to={`${row.to}&pattern=${encodeURIComponent(pattern.fingerprint)}`}
+      marker={<span className={`${LEVEL_BASE} ${LEVEL_TEXT[pattern.level] ?? LEVEL_TEXT.info}`}>{pattern.level}</span>}
+      title={<Tooltip content={pattern.message}><span className="block truncate font-mono font-normal">{pattern.message}</span></Tooltip>}
+      detailSize="caption"
+      detail={
+        // 줄바꿈은 항목 사이에서만 — "처음 2일 / 전"처럼 시간 표현이 갈라지지 않게
+        <span className="flex flex-wrap gap-x-3">
+          <span>{row.name}</span>{row.serverName && row.serverName !== row.name && <span>서버 {row.serverName}</span>}<span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span>
+          {isNew
+            ? <strong className="whitespace-nowrap font-medium text-text-secondary">신규 · 처음 {ago(pattern.firstSeen)}</strong>
+            : <span className="whitespace-nowrap">처음 {ago(pattern.firstSeen)}</span>}
+        </span>
+      }
+      trailing={<span className="text-sm text-text-base">{pattern.count.toLocaleString()}회</span>}
+    />
   );
 }
 
@@ -181,20 +178,19 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
       {/* 오류가 없으면 섹션째 숨긴다 — 위 카드가 이미 0건이라고 말한다. 실패는 숨기지 않는다 — "패턴 없음"으로 읽힌다. */}
       {(patterns === null || patterns.length > 0) && (
         <section>
-          {/* 위 앱 목록과 같은 섹션 제목(20px, DESIGN.md §2.2). 보조 설명은 제목과 같은 기준선의 메타다. */}
-          <SectionHeader title="자주 발생한 오류·경고" meta="최근 24시간 · 숫자·ID만 다른 메시지는 하나로 셉니다" />
+          {/* 위 앱 목록과 같은 섹션 제목(20px, DESIGN.md §2.2). 집계 방식은 긴 설명이라 메타가 아니라 제목 아래 설명 줄이다. */}
+          <SectionHeader title="자주 발생한 오류·경고" description="최근 24시간 기준이며, 숫자·ID만 다른 메시지는 하나로 셉니다." />
           {patterns === null ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
               <p className="type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
               {onRetryPatterns && <Button variant="secondary" size="sm" onClick={onRetryPatterns}>다시 시도</Button>}
             </div>
           ) : (
-            // 행이 표처럼 px-4 hover 채움이라 표와 같이 펼쳐 글자를 정렬선에 맞춘다(§4.5).
-            <ul className="table-bleed">
+            <List>
               {shownPatterns!.map(({ pattern, row }) => (
                 <PatternRow key={`${row.key}|${pattern.fingerprint}`} pattern={pattern} row={row} windowStart={span[0]} />
               ))}
-            </ul>
+            </List>
           )}
           {patterns && patterns.length > PATTERN_PREVIEW && (
             <Button variant="ghost" size="sm" className="mt-2" aria-expanded={showAllPatterns} onClick={() => setShowAllPatterns(value => !value)}>

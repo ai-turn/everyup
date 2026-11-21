@@ -353,6 +353,7 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 | 버튼·폼 라벨·조밀한 항목 제목 | `type-label` | 14 / 20px | 500 |
 | 표 헤더·배지·작은 버튼·키 표시 | `type-label-sm` | 12 / 16px | 500 |
 | 메타·시간·짧은 보조 값 | `type-caption` | 12 / 16px | 400 |
+| 쌓이는 12px 줄(두 줄 목록의 둘째 줄, 표 칸의 보조 줄) | `type-caption-stack` | 12 / 18px | 400 |
 | KPI 카드·요약 줄의 대표 수치 | `type-kpi` | 24 / 32px | 500, 고정폭 숫자 |
 | 목록 카드 안의 작은 통계 | `type-stat` | 18 / 28px | 500, 고정폭 숫자 |
 
@@ -432,7 +433,7 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 | 대상 | 규칙 |
 |---|---|
-| 페이지 섹션 | 카드로 감싸지 않는다. 섹션 제목(`SectionHeader`, 20px — §2.2. 그룹 제목은 `type-label-sm`) + `section-stack`(32px 간격 가운데 `ui-border-soft` 가로선 하나, 2026-11-15 추가). 선은 **섹션 경계에만** 긋는다. 차트 카드처럼 테두리가 있는 요소끼리는 선이 겹치므로 `space-y-8`만 쓴다. 헤더·툴바·배너처럼 섹션이 아닌 머리 요소끼리는 기존 `5` |
+| 페이지 섹션 | 카드로 감싸지 않는다. 섹션 제목(`SectionHeader`, 20px — §2.2. 하위 그룹 라벨은 `type-label` + `text-text-secondary`, §3.7 세로 위계) + `section-stack`(32px 간격 가운데 `ui-border-soft` 가로선 하나, 2026-11-15 추가). 선은 **섹션 경계에만** 긋는다. 차트 카드처럼 테두리가 있는 요소끼리는 선이 겹치므로 `space-y-8`만 쓴다. 헤더·툴바·배너처럼 섹션이 아닌 머리 요소끼리는 기존 `5` |
 | 페이지 머리 | `PageHeader` 아래 `ui-border-soft` 한 줄(본문과의 경계) |
 | 목록·표 | 바깥 카드 셸(`rounded-xl border bg-bg-surface`)을 쓰지 않는다. 헤더 행은 배경 없이 아래 `border-ui-border-soft` 한 줄만. 본문 행 사이 구분선(`divide-y`, 행 `border-t/b`)은 쓰지 않는다. 행은 `hover:bg-ui-hover-soft`로 드러낸다 |
 | 회색 띠 | 헤더·그룹 제목·카드 머리에 배경 띠(`bg-ui-table-header`, `bg-ui-hover` 헤더)를 깔지 않는다 |
@@ -574,6 +575,22 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 | `6` | 24px | **페이지 블록 사이** | 머리말 → 탭 → 패널, 탭 패널 안의 블록, 툴바 → 표. `page-stack` 유틸리티(본문 래퍼, 페이지·탭 패널의 루트)가 맡는다. Tailwind `space-y`와 같은 방식(마지막이 아닌 자식의 아래 여백, 명시도 0)이라 자식이 직접 준 여백이 이긴다. 2026-11-20까지 같은 관계에 20px(`space-y-5`)과 24px이 섞여 있었다 |
 | `8` | 32px | 카드 없이 놓인 페이지 섹션 사이 | 개요의 그룹, 상세의 지표 → 차트 → 이력, 설정 섹션(§3.1, 2026-11-15). 테두리가 하던 구분을 간격이 맡으므로 `5`보다 넓다 |
 
+**세로 위계 — 섹션 안 (2026-11-21)** — 위 표가 관계별 간격이라면, 이 표는 한 섹션 안에서 위계가 읽히게 하는 **보이는 간격**(글자 줄 상자 사이)이다. 소유자 피드백 "제목과 `장애`가 붙어 있고 글이 뭉친다"에서 왔다. 개요의 제목 → 하위 라벨이 5px, 하위 라벨 → 항목이 12px로 라벨이 제목 쪽에 붙어 있었고(#133에서 `SectionHeader`에 `min-h-8`을 넘겨 제목 아래 여백이 0이 됐다), 같은 두 줄 목록이 화면마다 항목 안 1~2px, 항목 사이 7~24px로 갈려 있었다.
+
+| 단계 | 값 | 관계 | 구현 |
+|------|-----|------|------|
+| V1 | 4px | 한 항목의 두 줄(이름 → 원인·메타) | `ListRow` 둘째 줄 `mt-0.5`(줄 상자 20/21 위) |
+| V2 | 8px | 하위 그룹 라벨 → 그 그룹의 항목 | `ListGroup` 라벨 `mb-2` |
+| V3 | 16px | 섹션 제목(·설명) → 첫 내용 | `SectionHeader` `mb-4`(고정, `className`으로 덮어쓰지 않는다) |
+| V4 | 20px | 두 줄 항목끼리 | `ListRow` `py-2.5` |
+| V5 | 24px | 같은 섹션 안 하위 그룹끼리 | 그룹 컨테이너 `space-y-6` |
+| V6 | 32px + 선 + 32px | 카드 없는 섹션끼리 | `section-stack` |
+
+- **불변식: V1 < V2 < V3 < V4 ≤ V5 < V6.** 라벨은 자기 항목에, 제목은 섹션 전체에 붙고, 그룹 경계는 항목 사이보다 넓다.
+- **hover 행은 패딩만큼 펼친다(`list-bleed`).** 행의 hover 채움 패딩(`px-3 py-2.5`)이 보이는 간격에 더해지면 같은 `mb-3`이 목록 앞에서 14px, 표 앞에서 29px로 보였다. 목록을 사방으로 펼쳐 글자는 본문 정렬선에 서고 V2·V3이 그대로 보인다. 가로 `table-bleed`와 같은 원리다.
+- **표는 이 표 밖이다.** `ResourceTable`은 행 안 4px(`mt-1` 보조 줄) / 행 사이 32px(`py-4`)로 이미 같은 비율이다. 표 머리(`th`)의 패딩 때문에 제목 → 표 머리는 보이는 값으로 약 33px다.
+- **쌓이는 줄은 행간 1.5.** 두 줄 항목의 둘째 줄과 여러 줄이 될 수 있는 한국어 글은 14/21(`type-body`) 또는 12/18(`type-caption-stack`)이다. `type-caption`(12/16)은 다른 글자 옆에 한 줄로 놓이는 메타에만 쓴다.
+
 - **`gap-1`(4px)은 조밀한 액션끼리만**이다 — 표 행·카드 헤더에 나란히 놓인 `IconButton sm`·`Button sm`. `gap-2.5`는 쓰지 않는다.
 - **인라인 아이콘과 메뉴 행을 가르는 기준**: 아이콘이 글자 한 줄에 붙어 다니면(메타 줄, 링크, 버튼 라벨) 짝이라 `1.5`다. 행 전체가 누르는 대상인 목록 항목(사이드바·명령 팔레트·드롭다운 메뉴)은 아이콘이 행을 이끄는 독립 요소라 `2`다. 둘이 `1`·`1.5`·`2`·`2.5` 네 값으로 갈려 있었다.
 - **선행 요소가 텍스트 블록을 이끌면 크기와 무관하게 `3`**이다 — 배너·안내 상자, `items-start`로 제목·설명을 이끄는 아이콘·타일·**상태 점**. 배너의 아이콘 + 문장이 `2`·`2.5`·`3`으로 갈려 있었다. 상태 점이 **한 줄 라벨**에 붙으면 블록이 아니라 짝이라 `1.5`다(`StatusLight`).
@@ -638,6 +655,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
 | **`SummaryCard`** | `label` `value` `detail` `tone?` | KPI 카드. 라벨 좌 / 숫자 우 1행 + 설명 1행 |
 | **`SectionHeader`** | `title` `meta?` `description?` `actions?` `id?` | 본문 1단계 섹션의 머리(§2.2). 20px 제목 + 기준선을 맞춘 메타 + 제목 줄과 가운데를 맞춘 조작 + 둘째 줄 설명. 2026-11-20에 `DetailActionToolbar`를 없애고 그 조작은 `PageHeader actions`로 옮겼다 |
+| **`List` · `ListRow` · `ListGroup` · `ListMore`** | `ListRow`: `to` `marker` `title` `detail?` `detailSize?` `trailing?` `trailingDetail?` | 두 줄 목록(§3.7 세로 위계). 개요의 현재 확인 필요·최근 장애 이력, Docker 환경의 장애 이력, 로그의 반복 패턴이 쓴다. `List`는 `list-bleed`로 행 패딩만큼 펼치고 글자 폭 720px(`max-w-186`, 펼친 24px 포함)까지만 써서 오른쪽 값(시각, 개수)이 이름에서 멀어지지 않게 한다. `ListGroup`은 하위 그룹(라벨 `type-label` `text-text-secondary`, 라벨 → 항목 8px), `ListMore`는 목록 끝의 펼치기 조작으로 아이콘은 표지 열, 글자는 항목 제목 열에 선다. 2026-11-21 이전에는 세 화면이 각자 만들었다 |
 | **`Pagination`** | `page` `totalPages` `onChange` … | 목록 페이지 이동 |
 | **`MaterialIcon`** | `name` `size` `className` `style` | 로컬 정적 SVG |
 | **`Tooltip`** | `content` `focusable?` + 단일 자식 | hover·포커스 힌트. DOM 래퍼 없이 기존 요소에 연결 |
