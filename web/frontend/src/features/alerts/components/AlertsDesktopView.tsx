@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, EmptyState, Toggle } from '../../../components/common';
+import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, EmptyState, Stat, Toggle } from '../../../components/common';
 import { useListView } from '../../../hooks/useListView';
 import { ChannelHealthMeta, ChannelTestResult, type ChannelTestOutcome } from './ChannelHealthMeta';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
@@ -165,36 +165,30 @@ export function AlertsDesktopView({
       </div>
 
       {/* 7일 발송 요약은 발송 이력의 머리다 — 탭 위에 있으면 규칙·채널 탭에서도 표보다 먼저, 더 크게 섰다. */}
-      {activeTab === 'history' && <div className="mb-6 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border-soft bg-bg-surface py-3.5">
-        <div className="flex flex-col gap-0.5 px-5">
-          <span className="text-xs text-text-muted">발송 (7일)</span>
-          <span className="type-kpi text-text-base">{totalSent}</span>
+      {/* 발송 요약: 수치 타일(Stat) 셋. 타일 안쪽 16px, 라벨 → 값 4px(DESIGN.md §3.7 수치 타일). */}
+      {activeTab === 'history' && <div className="mb-6 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border-soft bg-bg-surface py-4">
+        <div className="px-4">
+          <Stat label="발송 (7일)" value={totalSent} />
         </div>
-        <div className="flex flex-col gap-0.5 px-5">
-          <span className="text-xs text-text-muted">실패 (7일)</span>
-          <span className="flex items-baseline gap-2">
-            <span className={`type-kpi ${totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>
-              {totalFailed}
-            </span>
+        <div className="px-4">
+          <Stat label="실패 (7일)" value={<>
+            <span className={totalFailed > 0 ? 'text-status-error' : undefined}>{totalFailed}</span>
             {totalFailed > 0 && (
               <Button variant="ghost" size="sm" onClick={viewFailedLogs}>
                 실패 로그 보기
               </Button>
             )}
-          </span>
+          </>} />
         </div>
-        <div className="flex flex-col gap-0.5 px-5">
-          <span className="text-xs text-text-muted">성공률</span>
-          <span className="flex items-center gap-2">
-            <span className="type-kpi text-text-base">
-              {successRate != null ? `${successRate}%` : '-'}
-            </span>
+        <div className="px-4">
+          <Stat label="성공률" value={<>
+            {successRate != null ? `${successRate}%` : '-'}
             {successRate != null && (
-              <span className="h-1 w-12 overflow-hidden rounded-full bg-ui-hover">
+              <span className="h-1 w-12 self-center overflow-hidden rounded-full bg-ui-hover">
                 <span className={`block h-full ${rateBarColor}`} style={{ width: `${successRate}%` }} />
               </span>
             )}
-          </span>
+          </>} />
         </div>
       </div>}
 

@@ -590,6 +590,7 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 - **hover 행은 패딩만큼 펼친다(`list-bleed`).** 행의 hover 채움 패딩(`px-3 py-2.5`)이 보이는 간격에 더해지면 같은 `mb-3`이 목록 앞에서 14px, 표 앞에서 29px로 보였다. 목록을 사방으로 펼쳐 글자는 본문 정렬선에 서고 V2·V3이 그대로 보인다. 가로 `table-bleed`와 같은 원리다.
 - **표는 이 표 밖이다.** `ResourceTable`은 행 안 4px(`mt-1` 보조 줄) / 행 사이 32px(`py-4`)로 이미 같은 비율이다. 표 머리(`th`)의 패딩 때문에 제목 → 표 머리는 보이는 값으로 약 33px다.
 - **쌓이는 줄은 행간 1.5.** 두 줄 항목의 둘째 줄과 여러 줄이 될 수 있는 한국어 글은 14/21(`type-body`) 또는 12/18(`type-caption-stack`)이다. `type-caption`(12/16)은 다른 글자 옆에 한 줄로 놓이는 메타에만 쓴다.
+- **카드 안쪽** (2026-11-21, 전체 간격 점검): 수치 타일은 라벨 → 값 4px(V1), 타일 안쪽 16px다. 공용 `Stat`(라벨 `type-caption` → 값 `type-kpi` → 보조)을 쓴다 — 알림 발송 요약과 API 요청 타일이 각자 `gap-0.5`(2px)로 만들어 라벨과 값이 붙어 있었고, 발송 요약 카드는 세로 패딩이 14px(`py-3.5`)였다. 탭 안의 하위 그룹 머리(메트릭 그룹 등)는 `ListGroup` 라벨과 같은 `SUBGROUP_LABEL`(14/20/500 secondary)이고 내용까지 8px다. 담긴 차트 카드 제목(16px base)과 같은 크기면 무엇이 무엇을 담는지 읽히지 않았다. 표 칸에서 여러 줄로 접히는 12px 글(로그의 최근 메시지)도 `type-caption-stack`이다.
 
 - **`gap-1`(4px)은 조밀한 액션끼리만**이다 — 표 행·카드 헤더에 나란히 놓인 `IconButton sm`·`Button sm`. `gap-2.5`는 쓰지 않는다.
 - **인라인 아이콘과 메뉴 행을 가르는 기준**: 아이콘이 글자 한 줄에 붙어 다니면(메타 줄, 링크, 버튼 라벨) 짝이라 `1.5`다. 행 전체가 누르는 대상인 목록 항목(사이드바·명령 팔레트·드롭다운 메뉴)은 아이콘이 행을 이끄는 독립 요소라 `2`다. 둘이 `1`·`1.5`·`2`·`2.5` 네 값으로 갈려 있었다.
@@ -649,7 +650,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`ConfirmDialog`** | `isOpen` `title` `message` `variant` `icon` … | `window.confirm()` 금지 — 항상 이것 |
 | **`EmptyState`** | `icon` `title` `description?` `action?` `children?` `headingLevel?` | 빈 목록의 정본. 라벨+핸들러면 `action`, 자체 상태를 가진 트리거(연결 다이얼로그 등)는 children. 제목은 기본 h3, 페이지의 h1 바로 아래면 `h2`, 화면 전체가 이 안내면 `h1` |
 | **`PageHeader`** | `title` `subtitle?` `meta?` `aside?` `actions?` `children` `menu?` `compactActions?` `truncateTitle?` `count?` | h1 등급 고정. `count`는 제목 뒤의 개수이고 `menu`여도 데스크톱에서 h1을 보인다(§3.4, 서버 목록). `actions`는 상세의 대상 조작으로 제목 줄 오른쪽, 제목과 세로 가운데다(§4.1 상세 헤더). `meta`는 대상 메타데이터 — 상세는 `DetailMeta`. `aside`는 서비스 상세의 우측 조회 제어·바로가기. `menu`는 메뉴 첫 화면(§3.4). `compactActions`는 조작을 제목과 같은 줄에 둔다(서버 목록, 전체 로그, 서버 상세, §4.1 액션 앵커의 예외). `truncateTitle`은 긴 제목을 말줄임한다(서버 상세) |
-| **`DetailMeta`** | `status` `fields?` `collapseOnMobile?` `collapsed?` | 상세 헤더 `meta`의 정본. 상태 줄 + 속성 목록(라벨 좌 / 값 우, `sm` 이상 2열). 속성이 많은 Docker 서비스 상세는 모바일에서 `서비스 정보`를 펼쳐 확인하며 상태는 항상 노출. `collapsed`는 모든 폭에서 접고 요약 줄에 속성 이름을 적는다(서버 탭의 `연결 정보`, `모니터 정보`) |
+| **`DetailMeta`** | `status` `fields?` `collapseOnMobile?` `collapsed?` | 상세 헤더 `meta`의 정본. 상태 줄 + 속성 목록(라벨 좌 / 값 우, `sm` 이상 2열). 속성이 많은 Docker 서비스 상세는 모바일에서 `서비스 정보`를 펼쳐 확인하며 상태는 항상 노출. `collapsed`는 모든 폭에서 접고 요약 줄에 속성 이름을 적는다(서버 탭의 `연결 정보`, `모니터 정보`)  행 높이는 하나다: sm 이상 40px(값 안의 조작은 `ControlDefaultsContext`로 sm 32px), 터치 화면 44px. 이전에는 조작이 든 행만 44~48px였다(2026-11-21) |
 | **`ListToolbar`** | `search` `children?` | 목록 검색은 왼쪽, 필터는 그다음 |
 | **`FilterChips<T>`** | `ariaLabel` `options` `value` `onChange` | 목록을 한 값으로 거르는 토글 칩(2026-11-20). 선택지는 `label` `count` `tone?`. 라벨과 개수는 같은 `type-body` 크기이고 개수만 500·고정폭 숫자다. 둥근 테두리 칩(`rounded-full`, 높이는 버튼과 같은 40px, 모바일 44px), 칩 사이 `gap-2`, 칩 안 `gap-1.5`(모바일은 둘 다 한 단계 좁혀 390px에서 네 칩이 한 줄이다). 선택은 `aria-pressed` + 진한 테두리(`border-primary`)와 `ui-hover` 채움이고, 다시 누르면 해제한다. 키보드는 버튼 그대로다(Tab, Enter, Space). `tone`은 상태 점이다: 상태 필터 전용이고(§5.3 칩은 상태 전용), 0건인 장애·확인 필요는 호출부가 `idle`로 넘긴다(§5.4). 개수는 다른 필터(검색·그룹)를 따르고 자기 선택은 따르지 않는다. 서버 목록이 쓴다. 업타임 탭의 상태 요약은 아직 옛 수치 행이다(§10 H) |
 | **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
@@ -789,6 +790,8 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 ```
 
 **차트 카드 표준 구조 (2026-09-25)** — 메뉴마다 제목 크기·여백·숫자 요약·범례·높이·빈 상태가 제각각이던 것을 `ChartCard` 하나로 고정했다. 캔버스 ⑦에 해부도가 있다.
+
+**머리 줄 높이는 40px 하나다** (2026-11-21). `ChartCard`의 제목 줄은 `min-h-10 items-center`라 오른쪽 조작(기간 선택 40px)이 있든 없든, 좁은 폭에서 오른쪽 값이 다음 줄로 내려가든 제목이 카드 위에서 같은 거리(카드 패딩 24 + 8)에 선다. 이전에는 `items-baseline min-h-6`이라 조작이 있는 카드만 제목이 8px 내려가, 같은 탭에 나란히 놓인 카드의 제목 선이 어긋났다.
 
 1. **제목 + 단위** — 왼쪽. `type-card-title` + `type-caption text-text-dim`. 제목은 한국어, 기술 용어는 영어(`CPU`·`메모리`·`디스크`·`네트워크`). 메트릭 이름처럼 식별자인 제목만 `font-mono text-sm`
 2. **오른쪽 칸 — 하나만** — 요약(`ChartSummary` 현재·평균·최대, 이미 계산된 값은 `ChartStats`) · 상태(`StatusLight`) + 요약 · 범례 칩(`ChartLegend`) · 기간 선택 중 하나

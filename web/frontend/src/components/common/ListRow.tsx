@@ -64,11 +64,14 @@ export function ListMore({ expanded, label, onToggle }: { expanded: boolean; lab
   );
 }
 
+/** 하위 그룹 라벨의 글자(14/20/500, secondary). 담긴 카드·항목의 제목(16·14 base)과 크기·색으로 구분하고, 라벨 → 내용은 8px다(DESIGN.md §3.7). */
+export const SUBGROUP_LABEL = 'type-label text-text-secondary';
+
 /** 섹션 안의 하위 그룹(개요의 장애, 확인 필요). 라벨 → 항목 8px, 그룹 사이는 부모의 space-y-6(24px)이다. */
 export function ListGroup({ id, label, footer, children }: { id: string; label: string; footer?: ReactNode; children: ReactNode }) {
   return (
     <div role="group" aria-labelledby={id}>
-      <h3 id={id} className="mb-2 type-label text-text-secondary">{label}</h3>
+      <h3 id={id} className={`mb-2 ${SUBGROUP_LABEL}`}>{label}</h3>
       <List>{children}</List>
       {footer}
     </div>

@@ -10,7 +10,7 @@ import {
 } from '../../../components/charts';
 import { api, type AgentEvent, type ApiRequestStatBucket, type ApiRequestStatusSummary } from '../../../services/api';
 import { TimeRangePicker } from '../../../components/common/TimeRangePicker';
-import { LoadErrorBanner } from '../../../components/common';
+import { LoadErrorBanner, Stat } from '../../../components/common';
 import { getErrorMessage } from '../../../utils/errors';
 import { useRequestWindow, type RequestWindow, type StatusClass } from '../../api-requests/useRequestQuery';
 import { formatClock } from '../../../utils/incidentFormat';
@@ -303,16 +303,14 @@ function ServiceRequestTrends({
               type="button"
               aria-pressed={active}
               onClick={() => setMetric(tile.id)}
-              className={`flex min-w-0 flex-col items-start gap-0.5 rounded-lg border px-3.5 py-2.5 text-left transition-colors ${tile.id === 'latency' ? 'max-sm:col-span-2' : ''} ${
+              className={`min-w-0 rounded-lg border p-4 text-left transition-colors ${tile.id === 'latency' ? 'max-sm:col-span-2' : ''} ${
                 active ? 'border-primary ring-1 ring-inset ring-primary' : 'border-ui-border-soft hover:bg-ui-hover-soft'
               }`}
             >
-              <span className={`truncate type-caption ${active ? 'text-text-secondary' : 'text-text-muted'}`}>{tile.label}</span>
-              <span className="type-kpi text-text-base">
-                {tile.value}
-                <span className="ml-0.5 type-caption text-text-dim">{tile.unit}</span>
-              </span>
-              {tile.id === 'latency' && latestPoint && <span className="type-caption text-text-muted">{formatClock(latestPoint.t)}~{formatClock(Math.min(latestPoint.t + bucketMs, timeWindow[1]))}</span>}
+              {/* 타일 안쪽 16px, 라벨 → 값 4px(Stat, DESIGN.md §3.7 수치 타일) */}
+              <Stat labelTone={active ? 'secondary' : 'muted'} label={tile.label}
+                value={<>{tile.value}<span className="-ml-1.5 type-caption text-text-dim">{tile.unit}</span></>}
+                detail={tile.id === 'latency' && latestPoint && <>{formatClock(latestPoint.t)}~{formatClock(Math.min(latestPoint.t + bucketMs, timeWindow[1]))}</>} />
             </button>
           );
         })}
