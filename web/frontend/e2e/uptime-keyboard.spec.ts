@@ -1,7 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/', reducedMotion: 'reduce' });
+test.use({ baseURL: API_URL, reducedMotion: 'reduce' });
 
 async function tabTo(page: Page, target: Locator) {
   for (let i = 0; i < 60; i++) {
@@ -50,14 +51,20 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
   await page.keyboard.press('Escape');
   await expect(editDialog).toHaveCount(0);
   await expect(edit).toBeFocused();
-  const remove = page.getByRole('button', { name: '삭제', exact: true });
-  await tabTo(page, remove); await page.keyboard.press('Enter');
+  // 삭제는 더보기 메뉴의 마지막 항목이다(DESIGN.md §4.1 상세 헤더). 메뉴는 첫 항목에 포커스를 두고, 위 화살표는 끝으로 돈다.
+  const more = page.getByRole('button', { name: '더보기', exact: true });
+  await tabTo(page, more); await page.keyboard.press('Enter');
+  await expect(page.getByRole('menuitem').first()).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(page.getByRole('menuitem', { name: '삭제', exact: true })).toBeFocused();
+  await page.keyboard.press('Enter');
   const confirm = page.getByRole('dialog', { name: '업타임을 삭제할까요?' });
   await expect(confirm.getByRole('button', { name: '취소', exact: true })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
   await expect(confirm.getByRole('button', { name: '삭제', exact: true })).toBeFocused();
   await page.keyboard.press('Tab'); await page.keyboard.press('Enter');
-  await expect(confirm).toHaveCount(0); await expect(remove).toBeFocused();
+  // 대화 상자가 닫히면 포커스는 사라진 메뉴 항목이 아니라 더보기 버튼으로 돌아온다.
+  await expect(confirm).toHaveCount(0); await expect(more).toBeFocused();
 });
 
 test('[16] Escape closes the add dialog directly when no child overlay is open', async ({ page }) => {

@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import type { LogEntry, ObservedService, Server } from '../src/services/api';
 
 // Real HTTP failures on the log detail — a failed load must not read as "no logs".
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 // 서버 화면은 이 서버의 로그 탭(/servers/server-1/logs/<앱>)에서 앱의 로그를 보여 준다.
 const server: Server = { id: 'server-1', name: 'web-01', createdAt: '2026-11-01T00:00:00Z', updatedAt: '2026-11-01T00:00:00Z' };

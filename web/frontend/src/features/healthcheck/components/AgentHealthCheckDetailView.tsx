@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, DetailMeta, MaterialIcon, PageHeader, RefreshIconButton, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, DetailMeta, MaterialIcon, PageHeader, RefreshStatus, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
 import { LogIngestLevels } from '../../logs/components/LogIngestLevels';
 import { DockerUptimeStatus } from '../../uptime/components/DockerUptimeStatus';
 import type { AgentServiceFlat } from '../../../services/api';
@@ -18,6 +18,9 @@ export interface AgentHealthCheckDetailViewProps {
   refreshKey: number;
   onRefresh: () => void;
   refreshing?: boolean;
+  updatedAt: Date | null;
+  autoRefresh: boolean;
+  onAutoRefreshChange: (enabled: boolean) => void;
   tab: DetailTab;
   traceId?: string;
   /** Opening range when a link names one (`?range=`); the picker owns it after that. */
@@ -99,25 +102,32 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
                 )}
                 <span>마지막 체크 {lastChecked}</span>
                 {(service.restartCount ?? 0) >= 3 && <span className="text-status-warn sm:hidden">재시작 {service.restartCount}회</span>}
+                {/* 갱신 상태는 상태 줄의 오른쪽 끝이다(DESIGN.md §4.1 상세 헤더). */}
+                <div className="ml-auto max-lg:hidden">
+                  <RefreshStatus updatedAt={props.updatedAt} onRefresh={props.onRefresh} refreshing={props.refreshing}
+                    autoRefresh={props.autoRefresh} onAutoRefreshChange={props.onAutoRefreshChange} />
+                </div>
               </>
             }
             fields={[...checkFields(service), ...containerFields(service), { label: '수집 레벨', value: <LogIngestLevels agentId={agentId} serviceKey={serviceKey} /> }]}
           />
         }
-        aside={
-          <div role="group" aria-label="서비스 조회 및 알림" className="flex flex-wrap items-center gap-2 xl:justify-end">
-            <TimeRangePicker value={range} onChange={setRange} />
-            <div className="flex flex-wrap items-center gap-2">
-              <RefreshIconButton onClick={props.onRefresh} refreshing={props.refreshing} />
-              <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'agent', agentId, serviceKey })}>
-                <MaterialIcon name="notifications" />알림 규칙
-              </ButtonLink>
-              <Button variant="secondary" disabled={service.healthy} onClick={() => props.onTabChange('logs')}>
-                에러 확인
-              </Button>
-            </div>
+        // 주 조작은 제목 줄의 알림 규칙이다. 장애일 때만 에러 로그로 가는 조작을 더한다(이전에는 정상일 때 이유 없이 비활성이었다).
+        // 기간 선택은 아래 탭 전체의 조회 범위라 조작이 아니라 머리말 오른쪽 칸에 둔다.
+        actions={<>
+          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'agent', agentId, serviceKey })}>
+            <MaterialIcon name="notifications" />알림 규칙
+          </ButtonLink>
+          {!service.healthy && <Button variant="secondary" onClick={() => props.onTabChange('logs')}>에러 확인</Button>}
+        </>}
+        // 좁은 화면의 갱신 상태는 기간 선택과 같은 줄의 오른쪽 끝이다(조회 범위와 갱신이 한 줄, 넓은 화면은 상태 줄의 오른쪽 끝).
+        aside={<div className="flex flex-wrap items-center justify-between gap-3 xl:justify-end">
+          <TimeRangePicker value={range} onChange={setRange} />
+          <div className="lg:hidden">
+            <RefreshStatus updatedAt={props.updatedAt} onRefresh={props.onRefresh} refreshing={props.refreshing}
+              autoRefresh={props.autoRefresh} onAutoRefreshChange={props.onAutoRefreshChange} />
           </div>
-        }
+        </div>}
       />
       <AgentServiceTabs
         key={`${agentId}/${serviceKey}`}

@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 import type { AlertRule } from '../src/services/api';
 import { dockerService, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 const rule = (id: string, threshold: number, fields: Partial<AlertRule> = {}): AlertRule => ({ id, name: id, threshold, type: 'service', metric: 'response_time', operator: 'gt', duration: 0, severity: 'warning', isEnabled: true, isSystem: false, cooldown: 300, channelIds: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...fields });
 
 for (const kind of ['direct', 'agent'] as const) {
@@ -20,7 +22,8 @@ for (const kind of ['direct', 'agent'] as const) {
     await expect(page.getByText('알림 > 111ms', { exact: true })).toBeVisible();
     for (const threshold of [333, 444, 555, 666]) await expect(page.getByText(`알림 > ${threshold}ms`, { exact: true })).toHaveCount(0);
     // Both details hand off to the rules tab filtered to this target.
-    const entry = page.getByRole('link', { name: '알림 규칙', exact: true });
+    // 모니터 상세는 알림 규칙이 더보기 메뉴 안이고, Docker 서비스 상세는 머리말의 주 조작이다(DESIGN.md §4.1 상세 헤더).
+    const entry = kind === 'direct' ? await menuItem(page, '알림 규칙') : page.getByRole('link', { name: '알림 규칙', exact: true });
     await entry.click();
     const query = new URL(page.url()).searchParams;
     expect(query.get('target')).toBe(kind);

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { dockerService, uptimeFixture } from './fixtures/uptime';
 
 // 사이드바와 그 정의(navSections.ts)를 읽는 곳들: 하단 내비, 더보기, 명령 팔레트, 경로 표시(설계 6.1, 6.6).
@@ -118,7 +119,7 @@ test.describe('mobile', () => {
 
 // capability-menus.spec.ts를 옮긴 것: Docker 환경만 연결한 설치에서 서버 화면은 비어 있고, Docker 서비스가 끼어들지 않는다(ADR 0007).
 test.describe('Docker-only setup', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 900 } });
+  test.use({ baseURL: API_URL, viewport: { width: 1440, height: 900 } });
 
   test('the servers section is empty and leaves Docker services out', async ({ page }) => {
     const state = await uptimeFixture(page);
@@ -142,7 +143,7 @@ test.describe('Docker-only setup', () => {
 
 // 서버 이름은 보조 정보다. 서버 목록을 불러오지 못해도 앱과 그 서버 주소의 링크는 보인다.
 test.describe('all logs without server names', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 900 } });
+  test.use({ baseURL: API_URL, viewport: { width: 1440, height: 900 } });
 
   test('a failed server lookup leaves the app list and its server links', async ({ page }) => {
     const state = await uptimeFixture(page);

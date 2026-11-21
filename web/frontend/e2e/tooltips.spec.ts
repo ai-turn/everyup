@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 
 test.describe('shared tooltip interactions', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  test.use({ baseURL: API_URL });
   test.beforeEach(async ({ page }) => { await page.goto('/e2e/fixtures/tooltips.html'); });
 
   test('hover is delayed, remains hoverable and Escape dismisses without moving focus', async ({ page }) => {

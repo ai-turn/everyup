@@ -1,6 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
-const demoUrl = 'http://127.0.0.1:4173/everyup/demo/';
+import { API_PORT, API_URL, DEMO_PORT } from './e2e/fixtures/ports';
+
+const demoUrl = `http://127.0.0.1:${DEMO_PORT}/everyup/demo/`;
 
 export default defineConfig({
   testDir: './e2e',
@@ -16,13 +18,13 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: [{
-    command: 'pnpm exec vite preview --mode demo --host 127.0.0.1 --port 4173',
+    command: `pnpm exec vite preview --mode demo --host 127.0.0.1 --port ${DEMO_PORT}`,
     url: demoUrl,
     reuseExistingServer: !process.env.CI,
   }, {
     // Exercise real HTTP failure/recovery without changing the demo fixtures.
-    command: 'pnpm exec vite --host 127.0.0.1 --port 4174 --strictPort',
-    url: 'http://127.0.0.1:4174/',
+    command: `pnpm exec vite --host 127.0.0.1 --port ${API_PORT} --strictPort`,
+    url: API_URL,
     env: {
       VITE_USE_MOCK: 'false',
       VITE_DEMO_MODE: 'true',

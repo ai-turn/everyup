@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { deferred, dockerService, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 const source = '/agents/docker-host/services/shop%3Aapi';
 const url = './services/docker-host/shop%3Aapi';
 

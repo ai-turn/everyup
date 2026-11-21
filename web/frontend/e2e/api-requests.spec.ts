@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import type { ApiRequest, ObservedService, Server } from '../src/services/api';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 // 서버 화면은 이 서버의 API 요청 탭(/servers/server-1/api)에서 앱을 보여 준다.
 const server: Server = { id: 'server-1', name: 'web-01', createdAt: '2026-11-01T00:00:00Z', updatedAt: '2026-11-01T00:00:00Z' };

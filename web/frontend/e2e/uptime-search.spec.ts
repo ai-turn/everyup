@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { dockerService, uptimeFixture } from './fixtures/uptime';
 
 // Uptime searches independent monitors only; Docker checks are in their Docker Environment (ADR 0007).
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 const panel = (page: Page) => page.getByRole('tabpanel');
 
 test('[02] names match without case or outer whitespace sensitivity', async ({ page }) => {

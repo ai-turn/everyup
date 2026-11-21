@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { menuItem } from './fixtures/menu';
 import { connectionBaseUrl, validConnectionUrl } from '../src/features/services/connectionAddress';
 
 test('connection URLs resolve relative API paths and respect the configured external origin', () => {
@@ -75,7 +76,7 @@ test('server connection offers direct targets only', async ({ page }) => {
 
 test('instrumentation requires explicit targets and invalidates changed previews', async ({ page }) => {
   await page.goto('./agents/agent_demo_01');
-  await page.getByRole('button', { name: '상세 수집 설정', exact: true }).first().click();
+  await (await menuItem(page, '상세 수집 설정')).click();
   const dialog = page.getByRole('dialog', { name: '상세 수집 설정' });
   await expect(dialog.getByRole('button', { name: '변경 사항 확인' })).toBeDisabled();
   await dialog.getByRole('checkbox', { name: 'api 상세 수집' }).check();

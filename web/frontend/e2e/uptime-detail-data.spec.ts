@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { deferred, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 const panel = (page: Page) => page.getByRole('tabpanel');
 
 test('[09] initial loading, 404 and server failure have distinct recovery paths', async ({ page }) => {

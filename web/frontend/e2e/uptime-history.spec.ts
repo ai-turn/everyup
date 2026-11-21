@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 for (const timezoneId of ['Asia/Seoul', 'America/New_York']) {
   test.describe(timezoneId, () => {
     test.use({ timezoneId, viewport: { width: 375, height: 812 } });

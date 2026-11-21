@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { menuItem } from './fixtures/menu';
 
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다. mock은 쓰기 요청을 메모리에 반영하지만
 // page.goto는 앱을 새로 띄워 그 메모리를 버린다. 변경 뒤에는 앱 안에서(뒤로 가기, 링크) 이동한다.
@@ -114,13 +115,14 @@ test('adding logs to an existing app offers only this server\'s apps and keeps t
   await expect(page).toHaveURL(new RegExp(`/servers/${DB}/logs/observed_mock_catalog$`));
   await expect(panel(page).getByRole('heading', { level: 2, name: 'catalog-worker' })).toBeVisible();
   // 로그와 메트릭을 함께 가지므로 삭제가 아니라 로그 연결 해제다.
-  await expect(panel(page).getByRole('button', { name: '로그 연결 해제' })).toBeVisible();
+  await expect(await menuItem(panel(page), '로그 연결 해제')).toBeVisible();
+  await page.keyboard.press('Escape');
   await expect(serverGroup(page)).toHaveText('그룹 Production');
 });
 
 test('moving an app goes to its new server and it leaves the old one', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/logs/observed_mock_checkout`);
-  await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+  await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
   const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
   await expect(dialog.getByRole('radio', { name: /^edge-host-01/ })).toHaveCount(0);
   await dialog.getByRole('radio', { name: 'payments-api (Production)' }).check();
@@ -148,7 +150,7 @@ test('another server\'s app id says it is not this server\'s app', async ({ page
 test('detaching logs from an app with metrics returns to the first screen without it and keeps the group', async ({ page }) => {
   await page.goto(`./servers/${BATCH}/logs/observed_mock_notifications`);
   await expect(serverGroup(page)).toHaveText('그룹 Backoffice');
-  await panel(page).getByRole('button', { name: '로그 연결 해제' }).click();
+  await (await menuItem(panel(page), '로그 연결 해제')).click();
   await page.getByRole('dialog', { name: '로그 연결을 해제할까요?' }).getByRole('button', { name: '로그 연결 해제' }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${BATCH}/logs$`));
   await expect(appLinks(page)).toHaveText(['billing-worker']);

@@ -35,8 +35,8 @@ for (const { width, height, reducedMotion } of [
     // 개요의 새로고침은 데스크톱에서 AppHeader(본문 앞)에 있다. 본문 바로가기는 그것을 건너뛰어
     // 본문의 첫 링크로 가고, 아래 Shift+Tab 순회가 헤더의 새로고침까지 거슬러 닿는지 확인한다.
     await page.keyboard.press('Tab');
-    // 모바일은 AppHeader가 없어 새로고침이 본문 첫 요소로 남는다.
-    await expect(width >= 1024 ? page.locator('main').getByRole('link', { name: /^서버/ }) : refresh).toBeFocused();
+    // 모바일은 AppHeader가 없어 갱신 상태(RefreshStatus: 갱신 시각 툴팁 → 새로고침 → 자동 갱신)가 본문 첫 요소로 남는다.
+    await expect(width >= 1024 ? page.locator('main').getByRole('link', { name: /^서버/ }) : page.getByRole('group', { name: '데이터 갱신' }).getByText(/^[0-9:]+ 갱신$/)).toBeFocused();
 
     let visitedProject = false;
     for (let step = 0; step < 20; step++) {

@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 import type { Project, Server } from '../src/services/api';
 import { uptimeFixture } from './fixtures/uptime';
 
@@ -110,7 +112,7 @@ test('adding a server to a group shows the group on the server', async ({ page }
 
 test('the rule form names direct targets with their server, and a server tab preselects its target', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/uptime/uptime_mock_checkout`);
-  await page.getByRole('tabpanel').getByRole('link', { name: '알림 규칙', exact: true }).click();
+  await (await menuItem(page.getByRole('tabpanel'), '알림 규칙')).click();
   await page.getByRole('button', { name: '규칙 추가', exact: true }).click();
   const target = page.getByRole('combobox', { name: '대상', exact: true });
   await expect(target).toHaveText('edge-host-01 / Checkout API');
@@ -133,7 +135,7 @@ test('the command palette finds servers', async ({ page }) => {
 });
 
 test.describe('against the API', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/' });
+  test.use({ baseURL: API_URL });
   const at = '2026-11-01T00:00:00Z';
   const project: Project = { id: 'p1', name: 'Staging', agentCount: 0, monitorCount: 0, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 0, createdAt: at, updatedAt: at };
 

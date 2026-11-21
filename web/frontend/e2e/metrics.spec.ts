@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { metricDisplayUnit, niceTicks } from '../src/components/charts/chartTheme';
 import { metricsFixture } from './fixtures/metrics';
 
@@ -37,7 +38,7 @@ test('the metrics tab shows every metric of its app at once and a panel title op
 test('a failed first load of the apps recovers through retry instead of leaving an empty tab', async ({ page }) => {
   const state = await metricsFixture(page);
   state.failures.add('/observed-services');
-  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics');
+  await page.goto(`${API_URL}servers/server-1/metrics`);
   const panel = page.getByRole('tabpanel');
   await expect(panel.getByText('메트릭 앱 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(panel.getByText('이 서버의 메트릭을 연결하세요', { exact: true })).toHaveCount(0);
@@ -53,7 +54,7 @@ test('metric names, chart and optional groups have independent HTTP failure stat
   state.failures.add('/projects');
   state.failures.add('/observed-services/metrics-service/otel-metrics/health');
   state.failures.add('points:jvm.memory.used');
-  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics/metrics-service');
+  await page.goto(`${API_URL}servers/server-1/metrics/metrics-service`);
   const namesError = page.getByRole('heading', { name: '메트릭 목록을 불러오지 못했습니다' });
   await expect(namesError).toBeVisible();
   await expect(page.getByText('수신한 메트릭이 없습니다', { exact: false })).toHaveCount(0);
@@ -69,7 +70,7 @@ test('metric names, chart and optional groups have independent HTTP failure stat
 
 test('refresh keeps existing charts visible while names are loading', async ({ page }) => {
   const state = await metricsFixture(page);
-  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics/metrics-service');
+  await page.goto(`${API_URL}servers/server-1/metrics/metrics-service`);
   await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
   const initialReads = state.requests.filter(path => path === '/observed-services/metrics-service/otel-metrics/health').length;
   let release = () => {};
@@ -87,7 +88,7 @@ test('refresh keeps existing charts visible while names are loading', async ({ p
 test('histogram distribution failure is explicit and retries without hiding the chart', async ({ page }) => {
   const state = await metricsFixture(page);
   state.failures.add('/observed-services/metrics-service/otel-metrics/quantiles');
-  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics/metrics-service?metric=http.server.request.duration');
+  await page.goto(`${API_URL}servers/server-1/metrics/metrics-service?metric=http.server.request.duration`);
   await expect(page.getByText('선택한 시리즈의 기간 분포를 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(page.locator('.recharts-wrapper')).toBeVisible();
   state.failures.clear();

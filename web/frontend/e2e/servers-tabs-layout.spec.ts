@@ -1,4 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 import type { ObservedService } from '../src/services/api';
 import { monitor, uptimeFixture } from './fixtures/uptime';
 
@@ -96,7 +98,7 @@ test.describe('at 1440x1000', () => {
     const refresh = page.getByRole('button', { name: '새로고침', exact: true });
     await expect(refresh).toHaveCount(1);
     // 갱신 시각·새로고침·자동 갱신이 한 묶음이다.
-    await expect(page.getByRole('group', { name: '서버 데이터 갱신' }).getByRole('button', { name: '새로고침', exact: true })).toBeVisible();
+    await expect(page.getByRole('group', { name: '데이터 갱신' }).getByRole('button', { name: '새로고침', exact: true })).toBeVisible();
     const settings = page.getByRole('button', { name: '서버 설정', exact: true });
     // 아이콘 버튼이라 보이는 글자가 없다. 이름은 aria-label이 맡는다.
     await expect(settings).toHaveText('');
@@ -155,7 +157,7 @@ test.describe('at 1440x1000', () => {
 
     // 로그, API, 메트릭을 함께 가진 앱은 로그 연결만 해제한다. 사이드바의 메뉴가 없어지므로 "메뉴"라고 쓰지 않는다.
     await page.goto(`./servers/${EDGE}/logs/observed_mock_orders`);
-    await panel(page).getByRole('button', { name: '로그 연결 해제' }).click();
+    await (await menuItem(panel(page), '로그 연결 해제')).click();
     const dialog = page.getByRole('dialog', { name: '로그 연결을 해제할까요?' });
     await expect(dialog).toContainText('이 앱의 로그 데이터');
     await expect(dialog).not.toContainText('메뉴');
@@ -164,7 +166,7 @@ test.describe('at 1440x1000', () => {
 
   test('moving an app with several signals says all of its data moves', async ({ page }) => {
     await page.goto(`./servers/${EDGE}/logs/observed_mock_orders`);
-    await panel(page).getByRole('button', { name: '다른 서버로 옮기기' }).click();
+    await (await menuItem(panel(page), '다른 서버로 옮기기')).click();
     const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
     await expect(dialog).toContainText('옮길 앱: orders-api');
     await expect(dialog).toContainText('이 앱의 로그, API 요청, 메트릭 데이터가 함께 옮겨집니다.');
@@ -242,7 +244,7 @@ test('no tab scrolls the page sideways at 320px', async ({ page }) => {
 
 // 대상이 하나뿐인 탭의 원인 링크. 데모 데이터에는 이런 서버가 없어서 API를 가로챈다.
 test.describe('the cause link on a tab with one target', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: DESKTOP });
+  test.use({ baseURL: API_URL, viewport: DESKTOP });
   const at = '2026-11-01T00:00:00Z';
 
   async function serve(page: Page, apps: ObservedService[]) {

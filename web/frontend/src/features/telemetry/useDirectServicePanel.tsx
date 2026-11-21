@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, MaterialIcon } from '../../components/common';
+import { ConfirmDialog, type OverflowMenuItem } from '../../components/common';
 import { api, type ObservedService, type ObservedServiceSetup, type TelemetrySignal } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { readLatest, TargetGoneError } from '../../utils/readLatest';
@@ -20,8 +20,8 @@ export function useDirectServicePanel(service: ObservedService, signal: Telemetr
   processing: boolean;
   /** DirectConnectionMeta에 그대로 넘길 연결 관련 props */
   connection: { isActive: boolean; apiKeyMasked?: string; lastSeenAt?: string | null; onRotateKey: () => void; onRevoke: () => void };
-  /** 삭제 또는 "신호 연결 해제" 버튼 */
-  removalButton: ReactNode;
+  /** 삭제 또는 "신호 연결 해제". 머리말의 더보기 메뉴 끝에 둔다(DESIGN.md §4.1 상세 헤더). */
+  removalItem: OverflowMenuItem;
   /** 확인 대화 상자와 재발급된 키 대화 상자. 패널이 렌더링 트리에 넣는다 */
   dialogs: ReactNode;
 } {
@@ -132,9 +132,7 @@ export function useDirectServicePanel(service: ObservedService, signal: Telemetr
       onRotateKey: () => setConfirmAction('rotate'),
       onRevoke: () => setConfirmAction('revoke'),
     },
-    removalButton: (
-      <Button collapseLabel variant="destructive" disabled={processing} loading={checkingRemoval} onClick={() => void openRemoval()}><MaterialIcon name="delete_outline" />{removal.button}</Button>
-    ),
+    removalItem: { label: removal.button, icon: 'delete_outline', danger: true, disabled: processing || checkingRemoval, onSelect: () => void openRemoval() },
     dialogs: (
       <>
         <ConfirmDialog

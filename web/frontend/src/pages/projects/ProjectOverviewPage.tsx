@@ -2,7 +2,7 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, EmptyState, ListViewToggle, MaterialIcon, PageHeader, RefreshIconButton, ResourceTable, Section, StatusLight } from '../../components/common';
+import { Button, ConfirmDialog, DetailMeta, EmptyState, ListViewToggle, MaterialIcon, OverflowMenu, PageHeader, RefreshStatus, ResourceTable, Section, StatusLight } from '../../components/common';
 import { partialFailureMessage, useServers, type FailedTargets } from '../../features/servers/useServers';
 import { useListView } from '../../hooks/useListView';
 import { api, type Project } from '../../services/api';
@@ -47,6 +47,8 @@ export function ProjectOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [failedSources, setFailedSources] = useState<string[]>([]);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deletingProject, setDeletingProject] = useState(false);
@@ -88,6 +90,7 @@ export function ProjectOverviewPage() {
     if (agentsResult.status === 'rejected') failed.push('Docker 환경');
     if (servicesResult.status === 'rejected') failed.push('Docker 서비스');
     setFailedSources(failed);
+    setUpdatedAt(new Date());
     } finally {
       setLoading(false);
     }
@@ -98,7 +101,7 @@ export function ProjectOverviewPage() {
     return () => window.clearTimeout(id);
   }, [load]);
   const { poll, refresh: refreshServers, reload: reloadServers } = servers;
-  useAutoRefresh(() => { void load(true); poll(); }, 30_000);
+  useAutoRefresh(() => { void load(true); poll(); }, 30_000, autoRefresh);
   const { spinning, trigger: handleRefresh } = useSpinAction(() => { void load(true); void refreshServers(); });
   // 대상을 넣고 뺀 뒤: 둘 다 다시 불러온 결과가 반영된 뒤에 끝난다.
   const reloadAll = () => Promise.all([load(true), reloadServers()]).then(() => undefined);
@@ -154,12 +157,21 @@ export function ProjectOverviewPage() {
       <PageHeader
         title={project.name}
         subtitle={project.description || undefined}
+        // 상태 줄: 대상 수와, 오른쪽 끝의 갱신 상태(DESIGN.md §4.1 상세 헤더).
+        meta={<DetailMeta status={<>
+          <span>대상 {totalTargets}개</span>
+          <div className="ml-auto">
+            <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} autoRefresh={autoRefresh} onAutoRefreshChange={setAutoRefresh} />
+          </div>
+        </>} />}
+        // 주 조작 하나(대상 추가)와 더보기(수정, 삭제)다.
         actions={
           <>
-            <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
-            <Button collapseLabel onClick={() => setAdding(true)}><MaterialIcon name="add" />대상 추가</Button>
-            <Button collapseLabel variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button collapseLabel variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setAdding(true)}><MaterialIcon name="add" />대상 추가</Button>
+            <OverflowMenu items={[
+              { label: '수정', icon: 'edit', onSelect: () => setEditing(true) },
+              { label: '삭제', icon: 'delete_outline', danger: true, onSelect: () => setDeleting(true) },
+            ]} />
           </>
         }
       />

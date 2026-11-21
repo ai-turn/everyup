@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { monitor, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 test('outage history lists the monitor episodes with state and duration', async ({ page }) => {
   const state = await uptimeFixture(page);
