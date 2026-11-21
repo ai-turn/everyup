@@ -78,7 +78,7 @@ export function Sidebar({ failureCount }: { failureCount: number }) {
       </button>
 
       {/* 스크롤 영역은 포커스 링도 자른다. 위아래 여백에 첫·마지막 항목의 링이 들어간다. */}
-      <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-1" aria-label="주 메뉴">
+      <nav className="flex min-h-0 flex-1 flex-col gap-intra overflow-y-auto px-3 py-1" aria-label="주 메뉴">
         {NAV_SECTIONS.map((section, i) => (
           <Fragment key={section.to}>
             {section.group && section.group !== NAV_SECTIONS[i - 1]?.group && (
@@ -96,7 +96,7 @@ export function Sidebar({ failureCount }: { failureCount: number }) {
         ))}
       </nav>
 
-      <div className="flex shrink-0 flex-col gap-2 p-3">
+      <div className="flex shrink-0 flex-col gap-label p-3">
         <div className="flex items-center justify-between">
           <IconButton icon={theme === 'light' ? 'dark_mode' : 'light_mode'} label="테마 전환" tone="quiet" size="sm" onClick={toggleTheme} />
         </div>

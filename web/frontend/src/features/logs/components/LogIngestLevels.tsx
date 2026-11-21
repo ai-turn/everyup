@@ -75,7 +75,7 @@ export function LogIngestLevels(source: Source) {
   }
 
   return (
-    <div className="flex flex-col gap-2 py-2">
+    <div className="flex flex-col gap-label py-2">
       <div role="group" aria-label="수집할 로그 레벨" className="flex flex-wrap gap-1.5">
         {LEVELS.map(l => {
           const on = draft.includes(l);

@@ -74,7 +74,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
           </div>}
         </div>;
   }
-  return <section aria-label="요청 결과" className="space-y-3">
+  return <section aria-label="요청 결과" className="space-y-heading">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <h2 className="type-card-title text-text-base">요청 결과</h2>
       {!loading && !error && <p className="type-caption tabular-nums text-text-muted">{filtered ? '검색 결과' : '전체'} {total.toLocaleString()}건</p>}

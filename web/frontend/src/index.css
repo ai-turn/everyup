@@ -226,6 +226,23 @@
   margin: -0.625rem -0.75rem;
 }
 
+/* 목록 끝 조작(ListMore)의 자리: list-bleed의 아래 -10px을 되돌려 마지막 항목과 20px(item), 행처럼 좌우로 펼치고 그룹 끝에서
+   버튼의 아래 패딩을 거둔다. ListGroup의 footer가 쓴다. */
+@utility list-more {
+  margin: 0.625rem -0.75rem -0.625rem;
+}
+
+/* 조밀한 표 칸·코드 블록의 세로 안쪽 10px(DESIGN.md §4.5). 손으로 만든 표(알림 이력·규칙, Endpoint, 트레이스)와 코드 블록이
+   같은 밀도를 쓴다. 간격 관계(§3.7)가 아니라 칸의 밀도라 이 유틸리티가 값을 갖는다. 가로 안쪽은 호출부가 정한다(px-4 등). */
+@utility cell {
+  padding-block: 0.625rem;
+}
+
+/* 20px 아이콘을 옆 글의 첫 줄에 맞추는 2px(items-start 행의 배너·안내 문구). 간격이 아니라 정렬이다(DESIGN.md §3.7). */
+@utility icon-lead {
+  margin-top: 0.125rem;
+}
+
 @utility type-section-title {
   font-size: var(--text-xl);
   line-height: 1.75rem;

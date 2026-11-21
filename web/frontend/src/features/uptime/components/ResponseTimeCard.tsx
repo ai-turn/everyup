@@ -155,14 +155,14 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
   return (
     <ChartCard as={headingLevel} title="응답 시간" unit={caption} right={controls}>
       {/* 조회 실패 안내 → 차트 16px */}
-      <div className="space-y-4">
+      <div className="space-y-heading">
       {notice}
       <div>
       {unavailable ? null : loading ? <ChartSkeleton /> : total === 0 ? <ChartEmpty /> : (
         <>
           <div className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
             <dl aria-label="응답 시간 요약">
-              <dt className="mb-1.5 type-caption text-text-muted">선택 기간 평균</dt>
+              <dt className="mb-label type-caption text-text-muted">선택 기간 평균</dt>
               <dd data-response-average className="type-kpi text-text-base">
                 {average === null ? '-' : number(average)}{average !== null && <span className="ml-1.5 text-sm font-normal tracking-normal text-text-muted">ms</span>}
               </dd>
@@ -206,7 +206,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
             <span className="tabular-nums">{formatDateTime(window[0])} ~ {formatDateTime(window[1])} · {timezone}</span>
           </div>
           {events.length > 0 && (
-            <div className="mt-6 space-y-1">
+            <div className="mt-6 space-y-intra">
               <SubHeading className="type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
               {/* 스크롤 영역이 행의 포커스 링을 자르지 않게 여백을 두고 같은 만큼 끌어당긴다. */}
               <ul aria-label="이 기간의 실패" className="-m-1 max-h-48 overflow-y-auto p-1">

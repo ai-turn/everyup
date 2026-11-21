@@ -153,11 +153,13 @@ async function measure() {
           await page.waitForTimeout(300);
           result[key] = await page.evaluate(collect);
           if (SHOTS) {
-            // 본문은 문서가 아니라 #main-content 안에서 스크롤하므로, 내용 높이만큼 창을 늘려 한 장에 담는다(측정 뒤라 값에는 영향이 없다).
+            // 본문은 스크롤 영역 안에 있어 전체 페이지 캡처가 창 높이에서 잘린다. 키가 큰 창(3200px)에서 다시 열어 한 장에 담는다
+            // (측정이 끝난 뒤라 값에는 영향이 없다). 대화 상자는 측정한 창 그대로 찍는다.
             if (result[key].root === 'main') {
-              const height = await page.evaluate(() => Math.ceil(document.querySelector('#main-content')?.scrollHeight ?? innerHeight) + 80);
-              await page.setViewportSize({ width: vw, height: Math.min(4000, Math.max(vh, height)) });
-              await page.waitForTimeout(200);
+              await page.setViewportSize({ width: vw, height: 3200 });
+              await page.reload({ waitUntil: 'networkidle' });
+              await page.addStyleTag({ content: '[data-demo-chrome]{display:none!important} *{transition:none!important;animation:none!important}' });
+              await page.waitForTimeout(1500);
             }
             await page.screenshot({ path: path.join(SHOTS, `${key}.png`) });
           }

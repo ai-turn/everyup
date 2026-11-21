@@ -151,7 +151,7 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
                 const [tone, label] = UPTIME_STATE_LIGHT[key];
                 return (
                   <button key={key} type="button" aria-pressed={status === key} onClick={() => setStatus(status === key ? null : key)}
-                    className="flex min-h-11 flex-col items-start gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">
+                    className="flex min-h-11 flex-col items-start gap-intra rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-label">
                     <StatusLight label={label} tone={key === 'down' && counts.down === 0 ? 'idle' : tone} />
                     <span className="type-kpi">{counts[key]}</span>
                   </button>

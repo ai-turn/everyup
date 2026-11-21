@@ -133,11 +133,11 @@ export function UptimeMonitorDialog({
             <h2 id="uptime-monitor-dialog-title" className="type-card-title text-text-base">
               {monitor ? '업타임 수정' : '업타임 추가'}
             </h2>
-            <p className="mt-0.5 type-body text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
+            <p className="mt-intra type-body text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
         </div>
-        <fieldset disabled={saving} className="space-y-4 p-6">
+        <fieldset disabled={saving} className="space-y-heading p-6">
           <Field label="이름" htmlFor={fieldId('name')} required error={errors.name}>
             <Input id={fieldId('name')} invalid={Boolean(errors.name)} value={draft.name} onChange={(event) => update('name', event.target.value)} placeholder="예: 공개 API" />
           </Field>
@@ -170,7 +170,7 @@ export function UptimeMonitorDialog({
           </div>
           {!monitor && (
             <label className="flex items-start gap-3">
-              <input type="checkbox" checked={alertOnDown} onChange={(event) => setAlertOnDown(event.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+              <input type="checkbox" checked={alertOnDown} onChange={(event) => setAlertOnDown(event.target.checked)} className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary" />
               <OptionText tone="secondary" title="다운되면 알림" description="연속으로 실패하면 한 번, 복구되면 한 번 켜진 모든 채널로 보냅니다. 알림 규칙에서 바꿀 수 있습니다." />
             </label>
           )}

@@ -37,7 +37,7 @@ function matchTargets(row: ServerRow, query: string, catalog: ObservedServiceMet
 }
 
 function ServerListSkeleton() {
-  return <div role="status" className="space-y-2">
+  return <div role="status" className="space-y-label">
     <span className="sr-only">로딩 중…</span>
     {[0, 1, 2, 3].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
   </div>;
@@ -149,7 +149,7 @@ export function ServersPage() {
         </ListToolbar>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-heading">
       {error && hasRows && (
         <LoadErrorBanner title="서버 목록을 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} />
       )}

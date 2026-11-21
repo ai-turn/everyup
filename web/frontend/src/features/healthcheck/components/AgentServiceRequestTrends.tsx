@@ -247,8 +247,8 @@ function ServiceRequestTrends({
   return (
     <ChartCard title={title} right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
 
-      {/* 설명 → 오류 → 상태코드 분포 12px, 그 묶음 → 수치 타일 16px. */}
-      <div className="mb-4 space-y-3">
+      {/* 설명 → 오류 → 상태코드 분포 8px(label), 그 묶음 → 수치 타일 16px(heading). */}
+      <div className="mb-heading space-y-label">
       <p className="type-body text-text-muted">선택한 기간의 {noun} 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
       {summaryError && <LoadErrorBanner inline role="status" title="상태코드 분포를 불러오지 못했습니다" onRetry={() => setRetryKey(key => key + 1)} />}
 
@@ -271,7 +271,7 @@ function ServiceRequestTrends({
                 <div key={c.label} className={c.bar} style={{ width: `${(c.count / total) * 100}%` }} />
               ))}
             </div>
-            <div role={onStatusChange ? 'group' : undefined} aria-label={onStatusChange ? '상태코드로 요청 목록 거르기' : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs">
+            <div role={onStatusChange ? 'group' : undefined} aria-label={onStatusChange ? '상태코드로 요청 목록 거르기' : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-label text-xs">
               {classes.map((c) => {
                 const text = `${c.label} ${((c.count / total) * 100).toFixed(1)}%`;
                 if (!onStatusChange || !c.status) return <span key={c.label} className={c.text}>{text}</span>;
@@ -319,7 +319,7 @@ function ServiceRequestTrends({
         })}
       </div>
 
-      <div className="mt-4 mb-1.5 flex min-h-6 items-center justify-between gap-3">
+      <div className="mt-heading mb-label flex min-h-6 items-center justify-between gap-3">
         <span className="type-caption text-text-dim">{view.caption}</span>
         {legend.length > 0 && <ChartLegend items={legend} />}
       </div>

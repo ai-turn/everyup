@@ -28,7 +28,7 @@ export function Section({ title, meta, description, actions, id, label, classNam
   return (
     <section id={id} aria-label={label} aria-labelledby={label ? undefined : headingId} className={`flex flex-col gap-heading ${className}`}>
       <div data-gap-after="heading" className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
           <h2 id={headingId} className="min-w-0 wrap-anywhere type-section-title text-text-base">{title}</h2>
           {meta && <span className="type-caption tabular-nums text-text-muted">{meta}</span>}
         </div>

@@ -27,7 +27,7 @@ export function ServerFormPage() {
     <div>
       <PageHeader title="서버 추가" subtitle="이름만 정하면 서버가 만들어집니다. 기능은 서버 화면의 각 탭에서 연결합니다." />
       <form onSubmit={submit} noValidate className="max-w-lg">
-        <fieldset disabled={saving} className="space-y-4">
+        <fieldset disabled={saving} className="space-y-heading">
           <ServerFields form={form} idPrefix="new-server" />
         </fieldset>
         <div className="mt-6 flex justify-end gap-2">

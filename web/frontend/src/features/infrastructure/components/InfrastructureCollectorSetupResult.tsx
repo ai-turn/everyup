@@ -76,23 +76,23 @@ export function InfrastructureCollectorSetupResult({
   const [mode, setMode] = useState<RunMode>('docker');
   const config = address.valid ? collectorConfig(setup, address.endpoint, mode) : '접근 가능한 서버 주소를 입력하세요.';
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-item p-6">
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-status-healthy/10 text-status-healthy"><MaterialIcon name="check" /></span>
         <div>
           <h3 className="type-card-title text-text-base">{title}</h3>
-          <p className="mt-0.5 type-body text-text-muted">Collector API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
+          <p className="mt-intra type-body text-text-muted">Collector API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
         </div>
       </div>
       <ConnectionAddressField address={address} />
-      <div className="space-y-2">
+      <div className="space-y-label">
         <p className="type-label text-text-secondary">Collector API Key</p>
         <div className="flex items-center gap-2 rounded-md bg-ui-hover-soft p-3">
           <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
           <CopyButton onCopy={() => copy(setup.apiKey)} title="API Key 복사" className={ICON_ACTION} />
         </div>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-label">
         <p className="type-label text-text-secondary">실행 방법</p>
         <SegmentedControl options={RUN_MODES} value={mode} onChange={setMode} ariaLabel="Collector 실행 방법" />
         <p className="type-caption text-text-muted">
@@ -101,14 +101,14 @@ export function InfrastructureCollectorSetupResult({
             : <>서버에 otelcol-contrib를 설치한 뒤 실행합니다. <a href="https://github.com/open-telemetry/opentelemetry-collector-releases/releases" target="_blank" rel="noreferrer" className="text-action underline">설치 파일</a></>}
         </p>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-label">
         <div className="flex items-center justify-between gap-2">
           <p className="type-label text-text-secondary">otelcol-contrib.yaml</p>
           <CopyButton disabled={!address.valid} onCopy={() => copy(config)} title="Collector 설정 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
         </div>
         <pre className="max-h-80 overflow-auto whitespace-pre rounded-md bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{config}</pre>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-label">
         <div className="flex items-center justify-between gap-2">
           <p className="type-label text-text-secondary">실행 명령</p>
           <CopyButton onCopy={() => copy(RUN_COMMAND[mode])} title="실행 명령 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>

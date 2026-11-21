@@ -133,7 +133,7 @@ export function DirectTelemetrySetupDialog({
       <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-ui-border bg-bg-surface px-6 py-4">
         <div>
           <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{title}</h2>
-          <p className="mt-0.5 type-body text-text-muted">{description}</p>
+          <p className="mt-intra type-body text-text-muted">{description}</p>
         </div>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
       </div>
@@ -147,7 +147,7 @@ export function DirectTelemetrySetupDialog({
           onDone={done}
         />
       ) : (
-        <form onSubmit={submit} noValidate className="space-y-5 p-6">
+        <form onSubmit={submit} noValidate className="space-y-item p-6">
           {optionsLoading && <p role="status" className="type-body text-text-muted">연결 정보를 확인하고 있습니다…</p>}
           {optionsError && <LoadErrorBanner inline title="연결 정보를 불러오지 못했습니다" message={optionsError} onRetry={() => setOptionsRetryKey(key => key + 1)} />}
           {signal === 'logs' && (

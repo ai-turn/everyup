@@ -42,7 +42,7 @@ export function DetailMeta({ status, fields = [], collapseOnMobile = false, coll
     </ControlDefaultsContext.Provider>
   ) : null;
   return (
-    <div className="space-y-3">
+    <div className="space-y-label">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 type-caption text-text-muted">{status}</div>
       {fieldList && (collapsed || (collapseOnMobile && narrow) ? (
         <details>

@@ -34,7 +34,7 @@ const TABS: TabItem<DetailTab>[] = [
 function UptimeContent({ agentId, serviceKey, refreshKey, range }: ServiceTabsProps) {
   // 섹션 간격은 여기서 준다 — 카드 없이 간격으로 나누므로 §3.1의 space-y-8.
   return (
-    <div className="space-y-8">
+    <div className="space-y-section">
       <AgentUptimeOverview agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
       <AgentResponseTimeChart key={range} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
       <AgentFailureHistory agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />

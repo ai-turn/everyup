@@ -96,11 +96,11 @@ export function ServerDetailPage() {
     if (!loaded && !error) {
       return (
         // 서버 목록의 자리 표시(ServerListSkeleton)와 같은 방식: 머리말, 탭 줄, 행 몇 개.
-        <div role="status" className="space-y-6">
+        <div role="status" className="space-y-group">
           <span className="sr-only">로딩 중…</span>
           <div className="h-8 w-48 animate-pulse rounded-lg bg-ui-hover-soft" />
           <div className="h-10 animate-pulse rounded-lg bg-ui-hover-soft" />
-          <div className="space-y-2">
+          <div className="space-y-label">
             {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
           </div>
         </div>
@@ -159,7 +159,7 @@ export function ServerDetailPage() {
     <div className="page-stack">
       <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')}
         updatedAt={updatedAt} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh} />
-      <div className="space-y-4">
+      <div className="space-y-heading">
       {error && <LoadErrorBanner title="서버 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} />}
       {!error && failed.length > 0 && (
         <LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={reload} retrying={loading} />

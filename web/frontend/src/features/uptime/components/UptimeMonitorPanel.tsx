@@ -73,7 +73,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
   const shown = expanded ? visible : visible.slice(0, HISTORY_ROWS);
   return (
     // 이력 → 더 보기 8px. 위 90일 막대와의 구분선은 UptimeOverview가 둔다.
-    <div className="space-y-2">
+    <div className="space-y-label">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h4 className="type-card-title text-text-base">장애 이력</h4>
         {selectedDate && (
@@ -103,10 +103,10 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
                 const [tone, label] = ROW_LIGHT(row);
                 return (
                   <tr key={row.key} className="transition-colors hover:bg-ui-hover-soft">
-                    <td className="px-2 py-2.5"><StatusLight tone={tone} label={label} /></td>
-                    <Tooltip content={formatFullDateTime(row.at)} focusable><td className="whitespace-nowrap px-2 py-2.5 tabular-nums text-text-secondary">{formatIncidentTime(row.at)}</td></Tooltip>
-                    <td className="px-2 py-2.5 tabular-nums text-text-base">{row.durationSec === undefined ? '-' : formatDuration(row.durationSec)}</td>
-                    <Tooltip content={row.message} focusable><td className="truncate px-2 py-2.5 font-mono text-xs text-text-muted">{row.message || '-'}</td></Tooltip>
+                    <td className="px-2 cell"><StatusLight tone={tone} label={label} /></td>
+                    <Tooltip content={formatFullDateTime(row.at)} focusable><td className="whitespace-nowrap px-2 cell tabular-nums text-text-secondary">{formatIncidentTime(row.at)}</td></Tooltip>
+                    <td className="px-2 cell tabular-nums text-text-base">{row.durationSec === undefined ? '-' : formatDuration(row.durationSec)}</td>
+                    <Tooltip content={row.message} focusable><td className="truncate px-2 cell font-mono text-xs text-text-muted">{row.message || '-'}</td></Tooltip>
                   </tr>
                 );
               })}
@@ -252,7 +252,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
 
   if (!monitor) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center gap-4 text-center">
+      <div className="flex h-64 flex-col items-center justify-center gap-heading text-center">
         <MaterialIcon size={32} name="error_outline" className="text-status-error" />
         <div><p className="font-medium text-text-base">{notFound ? '업타임 모니터를 찾을 수 없습니다' : '업타임 모니터를 불러오지 못했습니다'}</p>{errors.monitor && <p className="mt-1 type-body text-text-muted">{errors.monitor}</p>}</div>
         <Button variant="secondary" loading={refreshing} onClick={() => void load()}>다시 시도</Button>
@@ -268,7 +268,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
   return (
     <div className="page-stack">
       {/* 제목·주소와 아래 상태 줄은 한 머리말이라 블록 간격(24px)이 아니라 8px로 붙인다(Direct*Panel과 같다). */}
-      <div className="space-y-2">
+      <div className="space-y-label">
       <div>
         {/* 제목과 액션은 세로 가운데를 맞춘다(28px 제목 + 40px 버튼이 items-start로 6px 어긋났다). */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -304,7 +304,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
       )}
 
       {/* 현재 실패 → 기간별 수치 → 응답 추이 → 장기 이력 순서. */}
-      <div className="space-y-8">
+      <div className="space-y-section">
         <section>
           {/* 패널 제목은 h2(서버 이름이 h1)이고, 패널 안의 절 제목은 그 한 단계 아래다. */}
           <h3 className="sr-only">주요 지표</h3>

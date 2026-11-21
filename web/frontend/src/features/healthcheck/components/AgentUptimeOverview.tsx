@@ -45,7 +45,7 @@ export function AgentUptimeOverview({ agentId, serviceKey, refreshKey }: AgentUp
   const incidentDays = (days ?? []).filter((day) => day.uptimePct < 99.5 && day.totalChecks > 0).length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-heading">
     {errors.length > 0 && <UptimeFetchNotice source={errors.join(', ')} onRetry={() => setAttempt((value) => value + 1)} />}
     <UptimeOverview
       loading={loading}
