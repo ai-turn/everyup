@@ -35,13 +35,13 @@ const SCREENS: [string, string, ((page: Page) => Promise<void>)?][] = [
   ['docker connect dialog', './environments', open('Docker 연결')],
 ];
 
-// 지금 어긋나 있는 자리와, 아직 표지 붙은 프리미티브를 쓰지 않는 화면(§10.I). 고치는 단계에서 여기서 지운다.
+// 지금 어긋나 있는 자리(`토큰: 위 요소` 앞부분, 값은 OS 글꼴에 따라 다를 수 있어 적지 않는다)와, 아직 표지 붙은 프리미티브를 쓰지 않는 화면(§10.I). 고치는 단계에서 여기서 지운다.
 // 목록과 실제가 다르면 실패한다: 고쳤는데 남아 있어도, 새로 어긋나도.
 const KNOWN_OFF: Record<string, string[]> = {
   // 차트 카드 머리 → 본문 16px을 캡션의 -mt-2가 당겨 8px(InfraTrends). 캡션은 머리의 설명(intra)이어야 한다.
-  'server infrastructure': ['heading 16 ≠ 8: div "CPU', 'heading 16 ≠ 8: div "메모리', 'heading 16 ≠ 8: div "디스크'],
-  // textarea가 inline-block이라 글자 기준선 아래 여백이 붙어 컨트롤 → 도움말이 10px이다.
-  'alert rule drawer': ['intra 4 ≠ 10: textarea'],
+  'server infrastructure': ['heading: div "CPU', 'heading: div "메모리', 'heading: div "디스크'],
+  // textarea가 inline-block이라 글자 기준선 아래 여백이 붙어 컨트롤 → 도움말이 10~11px이다(글꼴 메트릭에 따라 다르다).
+  'alert rule drawer': ['intra: textarea'],
 };
 const KNOWN_EMPTY: Record<string, number[]> = {
   // 손으로 만든 섹션 제목(h2). P3에서 Section으로 바꾼다.
@@ -104,11 +104,11 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
 
         const measured = await page.evaluate(measure);
         const known = KNOWN_OFF[name] ?? [];
-        const describe = ({ token, gap, at }: Gap) => `${token} ${TOKENS[token]} ≠ ${gap}: ${at}`;
         const isOff = ({ token, gap }: Gap) => Math.abs(gap - TOKENS[token]) > 1;
-        const off = measured.filter(isOff).map(describe);
-        expect(off.filter((line) => !known.some((k) => line.startsWith(k))), '새로 어긋난 간격').toEqual([]);
-        expect(known.filter((k) => !off.some((line) => line.startsWith(k))), '고쳐졌으면 KNOWN_OFF에서 지운다').toEqual([]);
+        const off = measured.filter(isOff);
+        const isKnown = (g: Gap) => known.some((k) => `${g.token}: ${g.at}`.startsWith(k));
+        expect(off.filter((g) => !isKnown(g)).map(({ token, gap, at }) => `${token} ${TOKENS[token]} ≠ ${gap}: ${at}`), '새로 어긋난 간격').toEqual([]);
+        expect(known.filter((k) => !off.some((g) => `${g.token}: ${g.at}`.startsWith(k))), '고쳐졌으면 KNOWN_OFF에서 지운다').toEqual([]);
         const gaps = measured.filter((g) => !isOff(g));
 
         // 안쪽 < 바깥쪽: 낮은 단계에서 잰 가장 큰 값이 높은 단계에서 잰 가장 작은 값보다 작다(item ≤ group만 같아도 된다).
