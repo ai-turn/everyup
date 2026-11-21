@@ -50,17 +50,14 @@ export function ListRow({ to, marker, title, detail, detailSize = 'body', traili
 
 /**
  * 목록 끝의 펼치기 조작. 목록 항목이 아니라 목록 뒤에 둔다(항목 수에 세지 않는다). 행과 같은 모양이라
- * 아이콘은 표지 열, 글자는 항목 제목 열에 서고, 마지막 항목과는 항목 사이와 같은 20px다.
+ * 아이콘은 표지 열, 글자는 항목 제목 열에 선다. 자리(마지막 항목과 20px)는 `ListGroup`의 footer 자리가 정한다.
  */
 export function ListMore({ expanded, label, onToggle }: { expanded: boolean; label: string; onToggle: () => void }) {
   return (
-    // 목록(list-bleed)의 아래 -10px을 되돌리는 mt-2.5, 그룹 끝에서 버튼의 아래 패딩을 거두는 -mb-2.5.
-    <div className="-mx-3 mt-2.5 -mb-2.5 max-w-186">
-      <button type="button" aria-expanded={expanded} onClick={onToggle} className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2.5 text-left type-label-sm text-action transition-colors hover:bg-ui-hover-soft sm:min-h-0">
-        <span className="flex h-5 min-w-5 shrink-0 items-center justify-center"><MaterialIcon name={expanded ? 'expand_less' : 'expand_more'} /></span>
-        {label}
-      </button>
-    </div>
+    <button type="button" aria-expanded={expanded} onClick={onToggle} className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2.5 text-left type-label-sm text-action transition-colors hover:bg-ui-hover-soft sm:min-h-0">
+      <span className="flex h-5 min-w-5 shrink-0 items-center justify-center"><MaterialIcon name={expanded ? 'expand_less' : 'expand_more'} /></span>
+      {label}
+    </button>
   );
 }
 
@@ -73,7 +70,9 @@ export function ListGroup({ id, label, footer, children }: { id: string; label: 
     <div role="group" aria-labelledby={id}>
       <h3 id={id} data-gap-after="label" className={`mb-label ${SUBGROUP_LABEL}`}>{label}</h3>
       <List>{children}</List>
-      {footer}
+      {/* 목록 끝 조작(ListMore)의 자리: 목록(list-bleed)의 아래 -10px을 되돌리는 mt-2.5로 마지막 항목과 20px, 행처럼 좌우로 펼치고
+          그룹 끝에서 버튼의 아래 패딩을 거두는 -mb-2.5. */}
+      {footer && <div className="-mx-3 mt-2.5 -mb-2.5 max-w-186">{footer}</div>}
     </div>
   );
 }

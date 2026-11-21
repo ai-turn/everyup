@@ -2,7 +2,7 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, EmptyState, ListViewToggle, MaterialIcon, PageHeader, RefreshIconButton, ResourceTable, SectionHeader, StatusLight } from '../../components/common';
+import { Button, ConfirmDialog, EmptyState, ListViewToggle, MaterialIcon, PageHeader, RefreshIconButton, ResourceTable, Section, StatusLight } from '../../components/common';
 import { partialFailureMessage, useServers, type FailedTargets } from '../../features/servers/useServers';
 import { useListView } from '../../hooks/useListView';
 import { api, type Project } from '../../services/api';
@@ -167,8 +167,7 @@ export function ProjectOverviewPage() {
       {failures.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{partialFailureMessage(failures)}</p></div></div><Button variant="secondary" size="sm" onClick={() => void reloadAll()}>다시 시도</Button></section>}
 
       {totalTargets === 0 ? membersUnknown ? null : <section><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="서버와 Docker 환경을 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
-        <section>
-          <SectionHeader title="대상" description="장애를 먼저, 수집 지연을 그다음에 보여줍니다." actions={<ListViewToggle view={view} onChange={setView} />} />
+        <Section title="대상" description="장애를 먼저, 수집 지연을 그다음에 보여줍니다." actions={<ListViewToggle view={view} onChange={setView} />}>
           {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center rounded-xl border border-ui-border-soft bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
             <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="그룹 구성 그리드" columns={[
               // 종류 아이콘은 분류라 중립색이다(§5.3). 상태는 현황 열의 StatusLight가 말한다(§5.1).
@@ -176,7 +175,7 @@ export function ProjectOverviewPage() {
               { key: 'detail', label: '현황', className: 'hidden md:table-cell', render: row => <MemberStatus member={row} /> },
               { key: 'actions', label: '작업', className: 'w-28 whitespace-nowrap', align: 'right', render: removeButton },
             ]} />}
-        </section>
+        </Section>
       )}
 
       {adding && <AddTargetsDialog project={project} projects={data.projects} targets={assignableTargets(all)} loadFailed={membersUnknown} onRetry={reloadAll} onClose={() => setAdding(false)} onAdded={reloadAll} />}

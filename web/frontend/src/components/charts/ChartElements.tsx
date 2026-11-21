@@ -30,7 +30,8 @@ export function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <section className={`p-6 ${chartCardClass} ${className}`}>
+    // 머리 → 본문 16px(heading)은 카드가 갖는다(두 자식의 gap, DESIGN.md §3.7 부모가 간격을 정한다).
+    <section className={`flex flex-col gap-heading p-6 ${chartCardClass} ${className}`}>
       {/* 제목 줄은 오른쪽 조작(기간 선택 40px)이 있든 없든, 좁은 폭에서 오른쪽 값이 다음 줄로 내려가든 40px 한 높이다.
           제목이 그 줄의 세로 가운데에 서서 나란히 놓인 차트 카드의 제목 선이 같다(DESIGN.md §4.2). 이전에는
           items-baseline min-h-6이라 조작이 있는 카드만 제목이 8px 내려갔다. */}
@@ -43,7 +44,7 @@ export function ChartCard({
         </div>
         {right}
       </div>
-      <div className="mt-heading">{children}</div>
+      <div className="min-w-0">{children}</div>
     </section>
   );
 }

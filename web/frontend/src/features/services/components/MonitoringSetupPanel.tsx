@@ -146,15 +146,20 @@ function SetupStep({
           <p className="mt-1 type-body text-text-muted">{description}</p>
         </div>
       </div>
+      {(detail || (actionLabel && onAction)) && (
+        // 단계 머리 → 상세·조작 8px, 상세 → 조작 8px. flex-col이라 버튼이 이전처럼 폭을 채운다.
+        <div className="mt-2 flex flex-col gap-2">
       {detail && (
-        <p className={`mt-2 rounded-md px-2 py-1.5 type-body ${state === 'issue' ? 'bg-status-warn/5 text-status-warn' : 'bg-ui-hover-soft text-text-muted'}`}>
+        <p className={`rounded-md px-2 py-1.5 type-body ${state === 'issue' ? 'bg-status-warn/5 text-status-warn' : 'bg-ui-hover-soft text-text-muted'}`}>
           {detail}
         </p>
       )}
       {actionLabel && onAction && (
-        <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
+        <Button variant="secondary" size="sm" onClick={onAction}>
           {actionLabel}
         </Button>
+      )}
+        </div>
       )}
     </div>
   );
@@ -261,9 +266,9 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           )}
         </div>
         {report && (
-          <div className="text-right text-xs text-text-dim">
+          <div className="space-y-0.5 text-right text-xs text-text-dim">
             <p>{host || '호스트 정보 확인 중'} · {report.host.btf ? 'BTF 있음' : 'BTF 없음'}</p>
-            <p className="mt-0.5">
+            <p>
               {formatDateTime(report.checkedAt)} 확인
             </p>
           </div>
@@ -278,7 +283,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           </Button>
         </div>
       )}
-      {expanded && <>
+      {expanded && <div className="space-y-3">
       <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${compact ? '' : 'xl:grid-cols-4'}`}>
         <SetupStep
           number={1}
@@ -319,15 +324,13 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           onAction={onInstrument}
         />
       </div>
-      <div className="mt-3">
         <ReceiptPanel
           signals={status?.signals ?? []}
           expected={enabledCapabilities.map(capability => capability === 'api' ? 'traces' : capability)}
           error={statusRequest.error}
           note={!connected ? '최근 Collector 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
         />
-      </div>
-      </>}
+      </div>}
     </section>
   );
 }

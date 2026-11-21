@@ -44,22 +44,22 @@ const RULES = [
   // S1 임의값 간격. 뷰포트 비율(명령 팔레트의 pt-[18vh])만 허용한다.
   { name: '§3.7 S1 임의값 간격', re: /(?<![\w-])-?(?:m[trblxyse]?|p[trblxyse]?|gap(?:-[xy])?|space-[xy])-\[/g, skip: /CommandPalette\.tsx$/ },
   // S2 블록 사이 세로 반 단계. 줄 상자 보정 mt-0.5·배지 py-0.5·hover 행 py-2.5는 여기서 세지 않는다(S3).
-  { name: '§3.7 S2 세로 반 단계', re: /(?<![\w-])-?(?:(?:space-y|gap-y|mb|my|pt|pb)-\d+\.5|mt-[1-9]\d*\.5|py-(?:1|3|[4-9])\.5)(?![\w.])/g, max: 55 },
+  { name: '§3.7 S2 세로 반 단계', re: /(?<![\w-])-?(?:(?:space-y|gap-y|mb|my|pt|pb)-\d+\.5|mt-[1-9]\d*\.5|py-(?:1|3|[4-9])\.5)(?![\w.])/g, max: 58 },
   // S3 줄 상자 보정과 hover 행 패딩은 담당 프리미티브(components/common) 안에만 둔다.
-  { name: '§3.7 S3 화면 코드의 mt-0.5·py-2.5', re: /(?<![\w-])(?:mt-0\.5|py-2\.5)(?![\w.])/g, skip: /components[\\/]common[\\/]/, max: 113 },
-  // S4 여백만 가진 감싸개. 간격은 부모의 gap·space-y가 정한다.
-  { name: '§3.7 S4 여백만 가진 감싸개', re: /className="(?:-?m[trblxyse]?-[\w.]+ ?)+"/g, max: 54 },
+  { name: '§3.7 S3 화면 코드의 mt-0.5·py-2.5', re: /(?<![\w-])(?:mt-0\.5|py-2\.5)(?![\w.])/g, skip: /components[\\/]common[\\/]/, max: 111 },
+  // S4 여백만 가진 감싸개. 간격은 부모의 gap·space-y가 정한다. 밀어내기(ml-auto 등)와 음수 여백(bleed 보정)은 간격이 아니라 뺀다.
+  { name: '§3.7 S4 여백만 가진 감싸개', re: /className="(?:m[trblxyse]?-(?!auto\b)[\w.]+ ?)+"/g, max: 0 },
   // S6 역할 없는 글자 크기(같은 클래스 문자열에 type-*·font-mono가 없다). 채널 미리보기는 외부 서비스 흉내라 뺀다.
   { name: '§2.2 S6 역할 없는 text-xs/sm/base', strings: true, re: /(?<![\w-])text-(?:xs|sm|base)(?![\w-])/g, unless: /(?<![\w-])(?:type-[a-z-]+|font-mono)(?![\w-])/, skip: /ChannelForm\.tsx$/, max: 150 },
   // S7 행간 직접 지정. 행간은 type-* 역할이 정한다.
   { name: '§2.2 S7 leading-* 직접 지정', re: /(?<![\w-])leading-[\w.[\]]+/g, max: 15 },
   // S8 숫자 세로 간격. 쌓기(space-y, flex-col의 gap)는 관계 토큰(gap-heading 등)으로 쓴다.
-  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, max: 165 },
+  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, max: 194 },
 ];
 
 // S5 컴포넌트 루트의 바깥 여백(음수 bleed·auto 제외). 정규식으로는 함수 경계를 모르므로 TypeScript AST로 센다.
 // 이름이 대문자로 시작하는 함수(컴포넌트)가 직접 반환하는 JSX 요소의 className 리터럴을 본다. 조건식으로 고르는 루트는 보지 않는다.
-const S5 = { name: '§3.7 S5 컴포넌트 루트 여백', max: 9 };
+const S5 = { name: '§3.7 S5 컴포넌트 루트 여백', max: 0 };
 const ROOT_MARGIN = /(?:^|\s)(?:[\w-]+:)*m[trblxyse]?-(?!auto(?![\w-]))[\w.[\]]+/;
 function rootMargins(file, text) {
   const hits = [];

@@ -59,7 +59,7 @@ interface NotificationHistoryTabProps {
 function FailureReason({ item }: { item: NotificationHistory }) {
   if (!item.errorMessage) return null;
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <p className="min-w-0 break-words type-caption text-status-error">
         {item.errorMessage}
         {item.retryCount > 0 && ` · ${item.retryCount}회 재시도`}
@@ -88,8 +88,8 @@ function HistoryCard({ item, rules }: { item: NotificationHistory; rules: AlertR
   const rule = ruleName(item, rules);
   return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><StatusLight {...historyStatus(item.status)} />{item.severity && <SeverityBadge severity={item.severity} />}</div>
-    <p className="mt-3 break-words type-body text-text-base">{item.message}</p><p className="mt-2 flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
-    <div className="mt-2"><FailureReason item={item} /></div>
+    <p className="mt-3 break-words type-body text-text-base">{item.message}</p><div className="mt-2 space-y-2"><p className="flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
+    <FailureReason item={item} /></div>
     <p className="mt-3 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })} · {format(new Date(item.createdAt), 'M월 d일 HH:mm')}</p>
   </article>;
 }
@@ -179,7 +179,8 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
   const thClass = 'px-4 py-3 text-left type-label-sm text-text-muted';
 
   return (
-    <div className="space-y-3">
+    // 툴바 → 이력(또는 오류) 24px(group). 이력과 오류는 하나만 보인다.
+    <div className="page-stack">
       {/* Filter bar — status segments + type/channel/period + search */}
       <ListToolbar search={
         <SearchInput
@@ -303,7 +304,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                           <span className="truncate text-sm text-text-secondary">{item.channelName}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="space-y-intra px-4 py-2.5">
                         <p className="truncate type-body text-text-base">{item.message}</p>
                         <FailureReason item={item} />
                       </td>

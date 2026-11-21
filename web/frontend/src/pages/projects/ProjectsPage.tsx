@@ -135,13 +135,14 @@ export function ProjectsPage() {
   };
   const serverFailures = [...(servers.error ? [{ label: '서버', stale: servers.loaded }] : []), ...servers.failed];
 
-  return <div>
+  // 머리말 → 목록은 PageHeader의 아래 여백(24px), 알림 배너 → 목록은 16px이다.
+  return <div className="space-y-4">
     <PageHeader menu title="그룹">
       {projects.length > 0 && <ListViewToggle view={view} onChange={setView} />}
       <Button onClick={() => setEditing(null)}><MaterialIcon name="add" />추가</Button>
     </PageHeader>
     {projects.length > 0 && <h2 className="sr-only">그룹 목록</h2>}
-    {!loading && !error && projects.length > 0 && serverFailures.length > 0 && <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(serverFailures)} onRetry={() => void servers.reload()} retrying={servers.loading} /></div>}
+    {!loading && !error && projects.length > 0 && serverFailures.length > 0 && <LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(serverFailures)} onRetry={() => void servers.reload()} retrying={servers.loading} />}
     {loading || (!servers.loaded && !servers.error) ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1].map(item => <div key={item} className="h-72 animate-pulse rounded-xl bg-ui-hover-soft" />)}</div> : error ? <EmptyState icon="error_outline" title="그룹을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} /> : projects.length === 0 ? <EmptyState icon="folder_open" title="아직 그룹이 없습니다" description="필요할 때 모니터링 대상을 묶어 보세요." action={{ label: '추가', onClick: () => setEditing(null) }} /> : view === 'grid' ? <ResourceTable rows={projects} rowKey={project => project.id} ariaLabel="그룹 그리드"
       columns={[
         { key: 'name', label: '그룹', render: project => <><Link to={`/projects/${project.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{project.name}</Link><p className="mt-1 line-clamp-2 break-words type-caption text-text-muted">{project.description || '설명 없음'}</p><div className="mt-2 md:hidden">{renderStatus(project)}</div><p className="mt-2 type-caption text-text-muted md:hidden">{countsOf(project).map(([label, count]) => `${label} ${count}`).join(', ')}</p></> },

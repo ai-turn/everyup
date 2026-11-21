@@ -71,10 +71,10 @@ export function UptimeTargets(props: Props) {
         title={monitor.name} status={<MonitorStatus monitor={monitor} error={error} />} endpoint={address(monitor)}
         meta={<div className="relative w-full space-y-4">
           <dl className="grid grid-cols-2 gap-3 type-caption text-text-muted">
-            <div><dt>24h 업타임</dt><dd className="mt-1 tabular-nums text-text-base">{uptimeText(monitor)}</dd></div>
-            <div><dt>평균 응답</dt><dd className="mt-1 tabular-nums text-text-base">{latencyText(monitor)}</dd></div>
-            <div><dt>체크 방식</dt><dd className="mt-1"><CheckMethod monitor={monitor} /></dd></div>
-            <div><dt>수집 간격</dt><dd className="mt-1 tabular-nums text-text-base">{monitor.interval}초</dd></div>
+            <div className="space-y-intra"><dt>24h 업타임</dt><dd className="tabular-nums text-text-base">{uptimeText(monitor)}</dd></div>
+            <div className="space-y-intra"><dt>평균 응답</dt><dd className="tabular-nums text-text-base">{latencyText(monitor)}</dd></div>
+            <div className="space-y-intra"><dt>체크 방식</dt><dd><CheckMethod monitor={monitor} /></dd></div>
+            <div className="space-y-intra"><dt>수집 간격</dt><dd className="tabular-nums text-text-base">{monitor.interval}초</dd></div>
           </dl>
           <div className="space-y-2">
             <p className="type-caption text-text-muted">최근 체크{monitor.recentChecks?.length ? ` ${Math.min(monitor.recentChecks.length, 10)}회` : ''}</p>

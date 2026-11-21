@@ -24,7 +24,8 @@ export function TelemetrySetupGuidance({ signals, appConfiguration }: { signals:
     </>}
     {appConfiguration && (experience === 'new' ? appConfiguration : <details>
       <summary className="cursor-pointer type-label text-action">앱에서 직접 전송할 때의 환경 변수</summary>
-      <div className="mt-3">{appConfiguration}</div>
+      {/* 펼친 내용의 안쪽 여백(닫혔을 때 높이를 더하지 않는다) */}
+      <div className="pt-3">{appConfiguration}</div>
     </details>)}
     {signals.includes('logs') && <p className="type-body text-text-muted">로그는 사용하는 로깅 라이브러리의 OTel bridge 또는 appender도 연결해야 합니다. stdout 출력만으로 직접 OTLP 로그가 전송되지는 않습니다.</p>}
     <ol className="list-decimal space-y-1 pl-5 type-body text-text-secondary">

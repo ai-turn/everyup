@@ -61,7 +61,9 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
         <>
             {headerSlot && (meta || children) && createPortal(<ControlDefaultsContext.Provider value={DESKTOP_HEADER}>{meta}{children}</ControlDefaultsContext.Provider>, headerSlot)}
             <div className={`mb-6 border-b border-ui-border-soft pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-5 xl:flex-row xl:items-start xl:gap-6' : ''}`}>
-                <div className="min-w-0 flex-1">
+                {/* 제목·부제 → 아래 메타 줄 12px. */}
+                <div className="min-w-0 flex-1 space-y-3">
+                <div>
                     {/* 제목 줄에 조작이 있으면 줄 높이를 버튼 높이(40px)로 두고 가운데를 맞춘다. aside는 넓은 화면에서
                         제목 옆 위쪽에 붙으므로 같은 높이의 줄을 두어 첫 조작 줄과 가운데가 맞게 한다(32px 제목 + 40px 조작은 4px 어긋났다). */}
                     <div className={compactActions ? 'flex items-center justify-between gap-3'
@@ -84,7 +86,8 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
                             )}
                         </div>
                     )}
-                    {inlineMeta && <div className="mt-3">{inlineMeta}</div>}
+                </div>
+                    {inlineMeta}
                 </div>
                 {aside && <div className="min-w-0 space-y-4 xl:max-w-[max(24rem,calc(100%_-_36rem))] xl:shrink-0">{aside}</div>}
             </div>

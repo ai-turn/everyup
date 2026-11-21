@@ -215,7 +215,8 @@ export function AlertsDesktopView({
               onSubmittingChange={setChannelSubmitting}
             />
           </FormSidePanel>
-          {channelsError && <div className="mb-3"><LoadErrorBanner title="알림 채널을 불러오지 못했습니다" message={channelsError} onRetry={onRetryChannels} /></div>}
+          <div className="space-y-3">
+          {channelsError && <LoadErrorBanner title="알림 채널을 불러오지 못했습니다" message={channelsError} onRetry={onRetryChannels} />}
           <ChannelsTable
             channels={channels}
             failed={!!channelsError}
@@ -230,6 +231,7 @@ export function AlertsDesktopView({
             onToggle={onToggleChannel}
             onTest={onTestChannel}
           />
+          </div>
         </>
       ) : (
         <AlertRulesTab rules={rules} channels={channels} rulesLoading={rulesLoading} rulesError={rulesError} onReloadRules={onReloadRules} onToggleRule={onToggleRule} togglingIds={togglingIds} addRequest={ruleAddRequest} onAddRequestHandled={onRuleAddRequestHandled} target={alertTarget} onClearTarget={onClearTarget} />
@@ -296,8 +298,8 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
 
   if (view === 'card') return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{channels.map(channel => <article key={channel.id} aria-label={channel.name} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
     <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{channel.name}</h2><p className="mt-1 type-caption text-text-muted">{getChannelSubtitle(channel.type)}</p></div><Toggle checked={channel.isEnabled} onChange={() => onToggle(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /></div>
-    <div className="mt-4"><ChannelHealthMeta health={channelHealth[channel.id]} compact /></div>
-    {testResults[channel.id] && <div className="mt-3"><ChannelTestResult result={testResults[channel.id]} /></div>}
+    <div className="mt-4 space-y-3"><ChannelHealthMeta health={channelHealth[channel.id]} compact />
+    {testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div>
     <div className="mt-4 flex items-center justify-end gap-2"><Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />테스트</Button><IconButton icon="edit" label="수정" onClick={() => onEdit(channel)} /><IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => onDelete(channel.id)} /></div>
   </article>)}</div>;
 

@@ -67,13 +67,13 @@ export function AgentServiceTabs({ initialTab = 'uptime', tab, onTabChange, ...p
   };
   const idPrefix = `service-${props.serviceKey}`;
   return (
-    <>
-      <div className="mb-6">
-        <Tabs items={TABS} active={activeTab} onChange={changeTab} ariaLabel="서비스 데이터" idPrefix={idPrefix} />
-      </div>
+    // 탭 → 패널 24px(group).
+    <div className="page-stack">
+      {/* Tabs는 포커스 링 자리로 -m-1을 가져 부모의 간격이 닿지 않는다. 한 겹 감싸 page-stack이 간격을 준다. */}
+      <div className="min-w-0"><Tabs items={TABS} active={activeTab} onChange={changeTab} ariaLabel="서비스 데이터" idPrefix={idPrefix} /></div>
       <div role="tabpanel" id={tabPanelId(idPrefix, activeTab)} aria-labelledby={tabId(idPrefix, activeTab)}>
         <TabContent tab={activeTab} {...props} />
       </div>
-    </>
+    </div>
   );
 }

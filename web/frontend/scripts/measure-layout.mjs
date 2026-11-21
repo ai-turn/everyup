@@ -130,7 +130,8 @@ async function measure() {
   const browser = await chromium.launch();
   try {
     for (let i = 0; ; i++) { try { if ((await fetch(BASE + '/')).ok) break; } catch { /* 아직 뜨는 중 */ } if (i > 60) throw new Error('미리보기 서버가 뜨지 않았습니다'); await new Promise((r) => setTimeout(r, 500)); }
-    const jobs = VIEWPORTS.flatMap((vw) => SCREENS.filter(([name]) => !ONLY || ONLY.split(',').includes(name)).map((screen) => [vw, ...screen]));
+    const only = ONLY ? new Set(ONLY.split(',')) : null;
+    const jobs = VIEWPORTS.flatMap((vw) => SCREENS.filter(([name]) => !only || only.has(name)).map((screen) => [vw, ...screen]));
     const result = {};
     if (SHOTS) mkdirSync(SHOTS, { recursive: true });
     const worker = async () => {
@@ -151,7 +152,15 @@ async function measure() {
           if (action) await action(page);
           await page.waitForTimeout(300);
           result[key] = await page.evaluate(collect);
-          if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `${key}.png`), fullPage: result[key].root === 'main' });
+          if (SHOTS) {
+            // 본문은 문서가 아니라 #main-content 안에서 스크롤하므로, 내용 높이만큼 창을 늘려 한 장에 담는다(측정 뒤라 값에는 영향이 없다).
+            if (result[key].root === 'main') {
+              const height = await page.evaluate(() => Math.ceil(document.querySelector('#main-content')?.scrollHeight ?? innerHeight) + 80);
+              await page.setViewportSize({ width: vw, height: Math.min(4000, Math.max(vh, height)) });
+              await page.waitForTimeout(200);
+            }
+            await page.screenshot({ path: path.join(SHOTS, `${key}.png`) });
+          }
         } catch (error) {
           result[key] = { error: String(error).slice(0, 200) };
         }

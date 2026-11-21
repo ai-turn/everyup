@@ -71,7 +71,8 @@ export function DirectApiPanel({ service, status, onRemoved, extraActions, onCha
           <TimeRangePicker value={range} onChange={(value) => update({ range: value, page: null })} />
         </>}
       />
-      <div>
+      {/* 요청·트레이스 → 제외 경로 설정 24px(group) */}
+      <div className="page-stack">
         {view === 'requests'
           ? <DirectServiceRequestsTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} traceId={traceId} awaitingData={collection === 'waiting'} noun="앱" />
           : <DirectServiceTracesTab observedServiceId={service.id} refreshKey={reloadKey} range={range} window={window} />}

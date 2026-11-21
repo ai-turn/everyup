@@ -135,7 +135,8 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
   const counts = Object.fromEntries(STATUS_FILTERS.map((key) => [key, monitors.filter((monitor) => uptimeState(monitor) === key).length])) as Record<UptimeState, number>;
 
   return (
-    <>
+    // 툴바 → 목록 24px(group)은 이 묶음이 갖는다. 선택 작업 줄 → 목록은 그 줄의 mb-3이다.
+    <div className="page-stack">
       {renderControls({ viewToggle: hasTargets ? <ListViewToggle view={view} onChange={(next) => { setSelected(new Set()); setView(next); }} /> : null })}
 
       {/* 상태 요약은 필터라 검색 옆에 둔다(DESIGN.md §4.5 규칙 2). 따로 한 줄이면 두 줄 모두 오른쪽 60%가 비었다. */}
@@ -206,6 +207,6 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
         confirmLabel="삭제"
         isProcessing={bulkWorking}
       />
-    </>
+    </div>
   );
 }

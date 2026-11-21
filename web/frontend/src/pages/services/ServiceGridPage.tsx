@@ -244,7 +244,8 @@ export function ServiceGridPage() {
   const serviceStatus = (service: AgentServiceFlat) => <StatusLight tone={service.healthy ? 'healthy' : 'error'} label={service.healthy ? '정상' : '장애'} />;
 
   return (
-    <div>
+    // 머리말 → 툴바 → 목록은 페이지 블록 24px(page-stack).
+    <div className="page-stack">
       <PageHeader menu
         title="Docker 환경"
       >

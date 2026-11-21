@@ -3,7 +3,7 @@ import { Tooltip } from '../../../components/common/Tooltip';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button, CollectionStatusBadge, ResourceCardHeader, List, ListRow, ResourceTable, SectionHeader, StatusLight, type CollectionStatus } from '../../../components/common';
+import { Button, CollectionStatusBadge, ResourceCardHeader, List, ListRow, ResourceTable, Section, StatusLight, type CollectionStatus } from '../../../components/common';
 import { fillBuckets, formatTimeTick } from '../../../components/charts';
 import { LEVEL_BASE, LEVEL_FILL, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import type { LogHistogramBucket, LogPattern, LogServiceSummary } from '../../../services/api';
@@ -106,10 +106,10 @@ function LogCard({ row, window: span, returnTo }: { row: StatusRow; window: [num
         <LevelCount label="오류" value={summary?.error ?? 0} tone={LEVEL_TEXT.error} known={known} />
         <LevelCount label="경고" value={summary?.warn ?? 0} tone={LEVEL_TEXT.warn} known={known} />
       </div>
-      <div className="mt-3">
+      <div className="mt-3 space-y-intra">
         <LogSparkline buckets={summary?.buckets ?? []} window={span} />
         {/* 막대만으로는 시간 방향을 알 수 없었다 — 양 끝만 짧게 적는다. */}
-        <div aria-hidden="true" className="mt-1 flex justify-between type-caption text-text-dim"><span>24시간 전</span><span>지금</span></div>
+        <div aria-hidden="true" className="flex justify-between type-caption text-text-dim"><span>24시간 전</span><span>지금</span></div>
       </div>
       <div className="mt-3 flex min-w-0 items-baseline gap-2 text-xs">
         <LatestLine summary={summary} known={known} />
@@ -164,8 +164,7 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
   return (
     // 서비스 목록과 반복 패턴은 성격이 다른 두 섹션이라 개요처럼 section-stack(32px + 옅은 선)으로 나눈다.
     <div className="section-stack">
-      <section>
-        <SectionHeader title={title} meta={`최근 24시간 · ${noun} ${rows.length}개`} actions={viewToggle} />
+      <Section title={title} meta={`최근 24시간 · ${noun} ${rows.length}개`} actions={viewToggle}>
         {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{statusRows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
           <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
             { key: 'name', label: noun, render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 type-caption-stack xl:hidden"><LatestLine wrap summary={row.summary} known={row.collection === 'collecting'} /></div></> },
@@ -174,12 +173,11 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },
             { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 text-xs"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div> },
           ]} />}
-      </section>
+      </Section>
       {/* 오류가 없으면 섹션째 숨긴다 — 위 카드가 이미 0건이라고 말한다. 실패는 숨기지 않는다 — "패턴 없음"으로 읽힌다. */}
       {(patterns === null || patterns.length > 0) && (
-        <section>
-          {/* 위 앱 목록과 같은 섹션 제목(20px, DESIGN.md §2.2). 집계 방식은 긴 설명이라 메타가 아니라 제목 아래 설명 줄이다. */}
-          <SectionHeader title="자주 발생한 오류·경고" description="최근 24시간 기준이며, 숫자·ID만 다른 메시지는 하나로 셉니다." />
+        // 위 앱 목록과 같은 섹션 제목(20px, DESIGN.md §2.2). 집계 방식은 긴 설명이라 메타가 아니라 제목 아래 설명 줄이다.
+        <Section title="자주 발생한 오류·경고" description="최근 24시간 기준이며, 숫자·ID만 다른 메시지는 하나로 셉니다.">
           {patterns === null ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
               <p className="type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
@@ -193,11 +191,14 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
             </List>
           )}
           {patterns && patterns.length > PATTERN_PREVIEW && (
-            <Button variant="ghost" size="sm" className="mt-2" aria-expanded={showAllPatterns} onClick={() => setShowAllPatterns(value => !value)}>
-              {showAllPatterns ? '접기' : `전체 보기 (${patterns.length})`}
-            </Button>
+            // 목록(list-bleed)의 아래 -10px 위에서 버튼까지 8px. 펼치기 조작의 자리는 이 묶음이 갖는다.
+            <div className="pt-2">
+              <Button variant="ghost" size="sm" aria-expanded={showAllPatterns} onClick={() => setShowAllPatterns(value => !value)}>
+                {showAllPatterns ? '접기' : `전체 보기 (${patterns.length})`}
+              </Button>
+            </div>
           )}
-        </section>
+        </Section>
       )}
     </div>
   );

@@ -172,14 +172,16 @@ export function AlertsMobileView({
           ) : channels.length === 0 ? errors.channels ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="notifications_off" className="text-text-dim" />
-              <p className="type-body text-text-muted mt-2">
-                구성된 알림 채널이 없습니다
-              </p>
-              <Button variant="ghost" className="mt-3" onClick={onAddChannel}>추가</Button>
+              <div className="mt-2 space-y-3">
+                <p className="type-body text-text-muted">
+                  구성된 알림 채널이 없습니다
+                </p>
+                <Button variant="ghost" onClick={onAddChannel}>추가</Button>
+              </div>
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={channels} rowKey={row => row.id} ariaLabel="알림 채널 그리드" columns={[
-              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3"><ChannelHealthMeta health={channelHealth[channel.id]} compact /></div>{testResults[channel.id] && <div className="mt-2"><ChannelTestResult result={testResults[channel.id]} /></div>}<div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
+              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3 space-y-2"><ChannelHealthMeta health={channelHealth[channel.id]} compact />{testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
               { key: 'enabled', label: '상태', className: 'w-16', render: channel => <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /> },
             ]} /> : channels.map(channel => {
               const meta = getChannelStyle(channel.type);
@@ -205,9 +207,9 @@ export function AlertsMobileView({
                     </div>
                     <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3 space-y-2">
                     <ChannelHealthMeta health={channelHealth[channel.id]} compact />
-                    {testResults[channel.id] && <div className="mt-2"><ChannelTestResult result={testResults[channel.id]} /></div>}
+                    {testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}
                   </div>
                   <div className="flex gap-2">
                     <Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)} className="flex-1">
@@ -236,10 +238,12 @@ export function AlertsMobileView({
           ) : visibleRules.length === 0 ? errors.rules ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="rule" className="text-text-dim" />
-              <p className="type-body text-text-muted mt-2">
-                등록된 알림 규칙이 없습니다
-              </p>
-              <Button variant="ghost" className="mt-3" onClick={onAddRule}>추가</Button>
+              <div className="mt-2 space-y-3">
+                <p className="type-body text-text-muted">
+                  등록된 알림 규칙이 없습니다
+                </p>
+                <Button variant="ghost" onClick={onAddRule}>추가</Button>
+              </div>
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={visibleRules} rowKey={row => row.id} ariaLabel="알림 규칙 그리드" columns={[
