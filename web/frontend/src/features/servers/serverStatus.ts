@@ -15,6 +15,15 @@ import type { ForgetTarget } from './useServers';
 export const STATE_ORDER: Record<StatusTone, number> = { error: 0, warn: 1, idle: 2, healthy: 3 };
 export const STATE_LABEL: Record<StatusTone, string> = { error: '장애', warn: '확인 필요', idle: '대기', healthy: '정상' };
 
+/** 상태 칩의 순서(볼 것이 먼저). 서버 목록과 그룹 목록이 같은 칩을 쓴다(DESIGN.md §4.1 FilterChips). */
+export const STATE_FILTERS: StatusTone[] = ['error', 'warn', 'idle', 'healthy'];
+export const parseStateFilter = (value: string | null) => STATE_FILTERS.find((state) => state === value) ?? null;
+/** 보이는 항목들의 상태로 칩을 만든다. 0건인 장애·확인 필요는 점을 중립색으로 둔다(§5.4). */
+export const stateChipOptions = (states: StatusTone[]) => STATE_FILTERS.map((state) => {
+  const count = states.filter((candidate) => candidate === state).length;
+  return { value: state, label: STATE_LABEL[state], count, tone: (state === 'error' || state === 'warn') && count === 0 ? 'idle' as const : state };
+});
+
 /** 상태를 합칠 때의 심각도. 정렬 순서와 달리 정상이 대기보다 앞선다: 정상 9개와 일시정지 1개는 정상이다. */
 const SEVERITY: Record<StatusTone, number> = { error: 0, warn: 1, healthy: 2, idle: 3 };
 

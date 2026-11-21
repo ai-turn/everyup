@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ButtonLink, MaterialIcon, Pagination, SegmentedControl, SearchInput, ListToolbar, Select, StatusLight } from '../../../components/common';
+import { ButtonLink, FilterChips, MaterialIcon, Pagination, SearchInput, ListToolbar, Select, StatusLight } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
-import { api, type AlertRule, type NotificationChannel, type NotificationHistory, type NotificationStats } from '../../../services/api';
+import { api, type AlertRule, type NotificationChannel, type NotificationHistory } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
 import { SeverityBadge } from './SeverityBadge';
 import { historyStatus } from '../ruleDisplay';
@@ -43,7 +43,8 @@ const dateGroupLabel = (d: Date) => {
 };
 
 
-type StatusFilter = 'all' | 'sent' | 'failed';
+/** 없으면(null) 모든 상태다. */
+type StatusFilter = 'sent' | 'failed';
 type PeriodDays = 1 | 7 | 30;
 
 
@@ -98,13 +99,13 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
   const { view } = useListView();
 
   const [history, setHistory] = useState<NotificationHistory[]>([]);
-  const [stats, setStats] = useState<NotificationStats | null>(null);
+  const [counts, setCounts] = useState<Record<StatusFilter, number> | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus ?? 'all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter | null>(initialStatus ?? null);
   const [typeFilter, setTypeFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
   const [periodDays, setPeriodDays] = useState<PeriodDays>(7);
@@ -130,7 +131,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 위와 동일. 페치 시작 시 로딩 플래그를 세우는 기존 동작 유지.
     setLoading(true);
     api.getNotificationHistory({
-      status: statusFilter === 'all' ? undefined : statusFilter,
+      status: statusFilter ?? undefined,
       alert_type: typeFilter === 'all' ? undefined : typeFilter,
       channel_id: channelFilter === 'all' ? undefined : channelFilter,
       q: debouncedSearch || undefined,
@@ -150,14 +151,25 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
     return () => { cancelled = true; };
   }, [statusFilter, typeFilter, channelFilter, periodDays, debouncedSearch, page, reloadKey]);
 
+  // 상태 칩의 개수는 다른 필터(유형, 채널, 기간, 검색)를 따르고 상태 선택은 따르지 않는다(서버 목록의 상태 칩과 같다).
+  // 이력은 서버가 쪽을 나누므로 같은 조건의 건수(total)를 상태마다 한 건짜리 요청으로 받는다.
   useEffect(() => {
-    api.getNotificationHistoryStats(periodDays)
-      .then(setStats)
-      .catch(error => console.error('Failed to load stats:', error));
-  }, [periodDays]);
-
-  const totalSent = stats?.totalSent ?? 0;
-  const totalFailed = stats?.totalFailed ?? 0;
+    let cancelled = false;
+    const countOf = (status: 'sent' | 'failed') => api.getNotificationHistory({
+      status,
+      alert_type: typeFilter === 'all' ? undefined : typeFilter,
+      channel_id: channelFilter === 'all' ? undefined : channelFilter,
+      q: debouncedSearch || undefined,
+      from: new Date(Date.now() - periodDays * 86400_000).toISOString(),
+      limit: 1,
+      offset: 0,
+    }).then(response => response.total || 0);
+    Promise.all([countOf('sent'), countOf('failed')])
+      .then(([sent, failed]) => { if (!cancelled) setCounts({ sent, failed }); })
+      // 건수를 모르면 0이라고 말하지 않는다. 목록 쪽 오류 배너가 실패를 알린다.
+      .catch(() => { if (!cancelled) setCounts(null); });
+    return () => { cancelled = true; };
+  }, [typeFilter, channelFilter, periodDays, debouncedSearch, reloadKey]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   // Rows interleaved with date-group headers
@@ -191,17 +203,12 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
           placeholder="메시지 검색" aria-label="알림 메시지 검색"
         />
       }>
-        <SegmentedControl
-          size="md"
-          ariaLabel="상태"
-          value={statusFilter}
-          onChange={setStatusFilter}
+        {counts && <FilterChips ariaLabel="상태로 거르기" value={statusFilter} onChange={setStatusFilter}
           options={[
-            { value: 'all', label: `전체 ${totalSent + totalFailed}` },
-            { value: 'sent', label: `성공 ${totalSent}` },
-            { value: 'failed', label: `실패 ${totalFailed}` },
-          ]}
-        />
+            // 라벨과 점은 행의 상태(historyStatus)와 같다. 0건인 실패는 점을 중립색으로 둔다(§5.4).
+            { value: 'sent', label: historyStatus('sent').label, count: counts.sent, tone: historyStatus('sent').tone },
+            { value: 'failed', label: historyStatus('failed').label, count: counts.failed, tone: counts.failed === 0 ? 'idle' : historyStatus('failed').tone },
+          ]} />}
 
         <Select
           aria-label="알림 유형"

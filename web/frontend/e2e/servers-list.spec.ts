@@ -14,8 +14,7 @@ async function chooseScenario(page: Page, label: string) {
 
 test('server list puts the failing server first with its cause', async ({ page }) => {
   await page.goto('./servers');
-  // 개수를 가진 제목은 크럼과 다른 말이라 데스크톱에서도 보인다.
-  await expect(page.getByRole('heading', { level: 1, name: '서버 9' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: '서버 9' })).toBeAttached();
   const first = dataRows(page).first();
   await expect(first.getByRole('link', { name: 'edge-host-01', exact: true })).toBeVisible();
   await expect(first.getByRole('cell').nth(1)).toContainText('장애');

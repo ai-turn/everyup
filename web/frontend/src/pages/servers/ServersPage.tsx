@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
-  Button, ButtonLink, EmptyState, FilterChips, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select, type StatusTone,
+  Button, ButtonLink, EmptyState, FilterChips, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, SearchInput, Select,
 } from '../../components/common';
 import { ServerTable } from '../../features/servers/components/ServerTable';
 import { ALL_LOGS_PATH, NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
-import { STATE_LABEL, type ServerRow } from '../../features/servers/serverStatus';
+import { parseStateFilter, stateChipOptions, type ServerRow } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { UptimeRefreshControls } from '../../features/uptime/components/UptimeRefreshControls';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
+import { useListSearch } from '../../hooks/useListSearch';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import { api, type ObservedServiceMetricName, type Project } from '../../services/api';
 import { metricTitle } from '../../features/metrics/metricPresentation';
 
-const STATUS_FILTERS: StatusTone[] = ['error', 'warn', 'idle', 'healthy'];
-const parseStatus = (value: string | null) => STATUS_FILTERS.find((status) => status === value) ?? null;
 const NO_GROUP = 'none';
 
 // 서버 이름이 아니라 소속 대상이 일치하면 그 대상의 이름을 돌려준다. 서버 이름이 일치하면 빈 배열.
@@ -44,22 +43,10 @@ function ServerListSkeleton() {
 }
 
 export function ServersPage() {
-  const [params, setParams] = useSearchParams();
-  // 입력값은 로컬 상태가 쥔다. URL에 직접 묶으면 한글 조합 중 글자가 덮인다.
-  const [query, setQueryInput] = useState(() => params.get('q') ?? '');
-  // 이 화면이 쓰는 주소 변경은 모두 replace다. 그 밖의 이동(링크, 뒤로 가기)이면 검색창이 주소의 q를 따른다.
+  const { params, query, search, setQuery, setParam, clearFilters } = useListSearch();
   const location = useLocation();
-  const navigationType = useNavigationType();
   useEffect(() => { rememberServersSearch(location.search); }, [location.search]);
-  // 첫 기록의 key는 항상 default라 key만으로는 이동을 놓친다. 주소도 함께 본다.
-  const seen = `${location.key}${location.search}`;
-  const [seenLocation, setSeenLocation] = useState(seen);
-  if (seen !== seenLocation) {
-    setSeenLocation(seen);
-    if (navigationType !== 'REPLACE') setQueryInput(params.get('q') ?? '');
-  }
-  const search = query.trim().toLowerCase();
-  const status = parseStatus(params.get('status'));
+  const status = parseStateFilter(params.get('status'));
   const requestedGroup = params.get('group');
   const { rows, loading, loaded, error, failed, metricCatalog, updatedAt, reload, poll, refresh: joinRefresh } = useServers();
   // 그룹 이름과 Docker 환경 안내는 보조 정보다. 실패해도 목록은 그린다.
@@ -81,21 +68,6 @@ export function ServersPage() {
   useAutoRefresh(poll, 30_000);
   const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
 
-  const setParam = (key: string, value: string | null) => setParams((current) => {
-    const next = new URLSearchParams(current);
-    if (value) next.set(key, value); else next.delete(key);
-    return next;
-  }, { replace: true });
-  const setQuery = (value: string) => { setQueryInput(value); setParam('q', value); };
-  const clearFilters = () => {
-    setQueryInput('');
-    setParams((current) => {
-      const next = new URLSearchParams(current);
-      ['q', 'status', 'group'].forEach((key) => next.delete(key));
-      return next;
-    }, { replace: true });
-  };
-
   // 그룹 목록을 모르거나 없는 그룹이면 걸러지는 까닭이 화면에 보이지 않으므로 적용하지 않는다.
   const group = projects && (requestedGroup === NO_GROUP || projects.some((project) => project.id === requestedGroup)) ? requestedGroup : null;
   // 그룹 목록을 모르면 그룹 줄을 비운다(모르는 것을 `-`로 채우지 않는다).
@@ -113,15 +85,14 @@ export function ServersPage() {
     return { scoped: list, matches: found };
   }, [rows, group, search, metricCatalog]);
   const visible = status ? scoped.filter((row) => row.state === status) : scoped;
-  const counts = Object.fromEntries(STATUS_FILTERS.map((key) => [key, scoped.filter((row) => row.state === key).length])) as Record<StatusTone, number>;
   const hasRows = rows.length > 0;
 
   return (
     // 머리말 → 툴바 → 목록은 페이지 블록 24px(page-stack), 알림 배너 → 목록은 16px이다.
     <div className="page-stack">
-      {/* 개수를 가진 제목은 크럼과 다른 말이라 데스크톱에서도 보인다(DESIGN.md §3.4). 모르는 동안은 숫자만 비운다.
+      {/* 데스크톱의 제목(`서버 9`)은 AppHeader 하나다(DESIGN.md §3.4). 모르는 동안은 숫자만 비운다.
           갱신 시각과 전체 로그는 목록 밖의 일이라 툴바가 아니라 머리말의 meta다: 데스크톱은 AppHeader의 주 액션 앞, 모바일은 제목 아래. */}
-      <PageHeader menu compactActions title="서버" count={hasRows || (loaded && !error) ? rows.length : null}
+      <PageHeader menu title="서버" count={hasRows || (loaded && !error) ? rows.length : null}
         meta={
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {hasRows && <UptimeRefreshControls updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} />}
@@ -137,8 +108,7 @@ export function ServersPage() {
         <ListToolbar search={
           <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={visible.length} shortcut placeholder="서버 또는 대상 검색" aria-label="서버 또는 대상 검색" />
         }>
-          <FilterChips ariaLabel="상태로 거르기" value={status} onChange={(next) => setParam('status', next)}
-            options={STATUS_FILTERS.map((key) => ({ value: key, label: STATE_LABEL[key], count: counts[key], tone: (key === 'error' || key === 'warn') && counts[key] === 0 ? 'idle' : key }))} />
+          <FilterChips ariaLabel="상태로 거르기" value={status} onChange={(next) => setParam('status', next)} options={stateChipOptions(scoped.map((row) => row.state))} />
           {projects !== null && (
             <Select aria-label="그룹으로 거르기" wrapperClassName="w-40" value={group ?? ''} onChange={(event) => setParam('group', event.target.value || null)}>
               <option value="">전체 그룹</option>
@@ -173,7 +143,7 @@ export function ServersPage() {
             <section aria-label="서버" aria-busy={loading || undefined}>
               <h2 className="sr-only">서버 목록</h2>
               {visible.length > 0 ? <ServerTable rows={visible} matches={matches} groupName={groupName} />
-                : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: clearFilters }} />}
+                : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: () => clearFilters(['status', 'group']) }} />}
             </section>
           )}
       </div>

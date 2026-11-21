@@ -1,13 +1,14 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, ResourceTable, Stat, StatusLight, Toggle } from '../../../components/common';
+import { useState } from 'react';
+import { Button, FilterChips, IconButton, ListViewToggle, MaterialIcon, PageHeader, ResourceTable, Stat, StatusLight, Toggle } from '../../../components/common';
 import { useListView } from '../../../hooks/useListView';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { getChannelStyle } from '../utils/channelMeta';
 import { ChannelHealthMeta, ChannelTestResult, type ChannelTestOutcome } from './ChannelHealthMeta';
 import type { NotificationChannel, NotificationChannelHealth, AlertRule, NotificationHistory, NotificationStats } from '../../../services/api';
 import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
-import { alertTargetName, categoryLabel, compactTrigger, historyStatus, ruleCategory, SEVERITY_ORDER, useTargetNames } from '../ruleDisplay';
+import { alertTargetName, categoryChipOptions, categoryLabel, compactTrigger, historyStatus, ruleCategory, SEVERITY_ORDER, useTargetNames, type CategoryKey } from '../ruleDisplay';
 import { RuleTargetName } from './RuleTargetName';
 import { ChannelAvatars } from './ChannelAvatars';
 import { LoadErrorBanner } from '../../../components/common';
@@ -82,8 +83,11 @@ export function AlertsMobileView({
 
   const names = useTargetNames();
   // 데스크톱 표의 기본 정렬과 같게 심각도 순으로 둔다.
-  const visibleRules = (alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules)
+  const targetRules = (alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules)
     .slice().sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 3) - (SEVERITY_ORDER[b.severity] ?? 3));
+  // 유형 칩은 데스크톱 규칙 탭과 같다. 개수는 대상 필터를 따르고 유형 선택은 따르지 않는다.
+  const [category, setCategory] = useState<Exclude<CategoryKey, 'all'> | null>(null);
+  const visibleRules = category ? targetRules.filter((rule) => ruleCategory(rule) === category) : targetRules;
   const targetDescription = alertTarget ? alertTargetName(alertTarget, names) : undefined;
   const ruleMeta = (rule: AlertRule) => <>{rule.isSystem ? '시스템 규칙' : categoryLabel(ruleCategory(rule))} · <RuleTargetName rule={rule} names={names} /></>;
   const ruleActions = (rule: AlertRule) => <>
@@ -92,7 +96,7 @@ export function AlertsMobileView({
   </>;
 
   const tabs: { key: MobileTab; label: string; icon: string; count?: number }[] = [
-    { key: 'rules', label: '알림 규칙', icon: 'rule', count: visibleRules.length },
+    { key: 'rules', label: '알림 규칙', icon: 'rule', count: targetRules.length },
     { key: 'history', label: '발송 이력', icon: 'history' },
     { key: 'channels', label: '알림 채널', icon: 'notifications', count: channels.length },
   ];
@@ -220,13 +224,21 @@ export function AlertsMobileView({
 
       {/* Rules Tab */}
       {activeTab === 'rules' && (
-        <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-label">
+        <div id="alerts-mobile-panel-rules" role="tabpanel" className="page-stack">
           {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 type-control text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
           {errors.rules && <LoadErrorBanner title="알림 규칙을 불러오지 못했습니다" message={errors.rules} onRetry={onRetry.rules} />}
+          {!rulesLoading && targetRules.length > 0 && <FilterChips ariaLabel="유형으로 거르기" value={category} onChange={setCategory} options={categoryChipOptions(targetRules)} />}
           {rulesLoading ? (
             [1, 2].map(i => (
               <div key={i} className="h-16 rounded-xl bg-ui-hover animate-pulse" />
             ))
+          ) : targetRules.length > 0 && visibleRules.length === 0 ? (
+            <div className="py-8 text-center">
+              <div className="space-y-label">
+                <p className="type-body text-text-muted">조건에 맞는 규칙이 없습니다</p>
+                <Button variant="ghost" onClick={() => setCategory(null)}>필터 해제</Button>
+              </div>
+            </div>
           ) : visibleRules.length === 0 ? errors.rules ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="rule" className="text-text-dim" />
