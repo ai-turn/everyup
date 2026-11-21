@@ -778,17 +778,6 @@ function demoMonitorMetrics(monitor: UptimeMonitor, seed = 0): UptimeMonitorMetr
 
 const mockUptimeMetrics = demoMonitorMetrics(mockUptimeMonitors[0]);
 
-const mockUptimeSummary: UptimeMonitorSummary = {
-  serviceId: 'uptime_mock_store',
-  totalChecks: 86_400,
-  successfulChecks: 86_383,
-  failedChecks: 17,
-  uptime: 99.98,
-  avgResponseTime: 128,
-  minResponseTime: 82,
-  maxResponseTime: 5000,
-};
-
 // 응답 시간 6H·24H 버킷 — 실제 API처럼 성공한 체크만 평균한다.
 function mockUptimeBuckets(range: string, metrics = mockUptimeMetrics): ServiceHistoryPoint[] {
   const [hours, bucketMs] = range === '1h' ? [1, 120_000] : range === '6h' ? [6, 300_000] : [24, 1_200_000];
@@ -818,14 +807,27 @@ const mockUptimeFailures: UptimeMonitorMetric[] = [
   { id: 20_002, serviceId: 'uptime_mock_store', status: 'failure', responseTime: 5000, errorMessage: 'context deadline exceeded', checkedAt: new Date(nowAgent - 37 * 86_400_000).toISOString() },
 ];
 
-const mockUptimeHistory: UptimeMonitorHistory = {
-  percentage: 99.98,
-  days: Array.from({ length: 90 }, (_, index) => {
-    const date = new Date(nowAgent - index * 86_400_000).toISOString().slice(0, 10);
-    const uptime = index === 12 ? 96.4 : index === 37 ? 99.2 : 100;
-    return { date, uptime, status: uptime === 100 ? 'up' as const : uptime >= 50 ? 'partial' as const : 'down' as const };
-  }),
-};
+// 기간 업타임은 날마다의 값을 평균한 것이다. 막대와 숫자가 어긋나지 않게 고정값을 두지 않는다.
+const historyOf = (days: UptimeMonitorHistory['days']): UptimeMonitorHistory =>
+  ({ percentage: days.length ? days.reduce((sum, day) => sum + day.uptime, 0) / days.length : 100, days });
+
+// 오늘 막대는 오늘 체크(mockUptimeMetrics)에서 나온다.
+const mockStoreToday = summarizeChecks('uptime_mock_store', mockUptimeMetrics);
+const mockUptimeHistory = historyOf(Array.from({ length: 90 }, (_, index) => {
+  const date = new Date(nowAgent - index * 86_400_000).toISOString().slice(0, 10);
+  const uptime = index === 0 ? mockStoreToday.uptime : index === 12 ? 96.4 : index === 37 ? 99.2 : 100;
+  return { date, uptime, status: uptime === 100 ? 'up' as const : uptime >= 50 ? 'partial' as const : 'down' as const };
+}));
+
+// 30일 요약 = 오늘 체크 + 지난 29일 막대를 오늘과 같은 체크 수로 환산한 값. 24시간·30일·90일 수치가 한 이력에서 나온다.
+function monthSummary(today: UptimeMonitorSummary, history: UptimeMonitorHistory): UptimeMonitorSummary {
+  const past = history.days.slice(1, 30);
+  const totalChecks = today.totalChecks * (1 + past.length);
+  const failedChecks = today.failedChecks + past.reduce((sum, day) => sum + Math.round((100 - day.uptime) / 100 * today.totalChecks), 0);
+  return { ...today, totalChecks, failedChecks, successfulChecks: totalChecks - failedChecks, uptime: (totalChecks - failedChecks) / totalChecks * 100 };
+}
+
+const mockUptimeSummary = monthSummary(mockStoreToday, mockUptimeHistory);
 
 const mockProjects: Project[] = [
   {
@@ -1128,20 +1130,26 @@ const monitorData = new Map(mockUptimeMonitors.map((monitor, index) => {
     metrics: mockUptimeMetrics, summary: mockUptimeSummary, history: mockUptimeHistory, incidents: mockUptimeIncidents, failures: mockUptimeFailures,
   }] as const;
   const metrics = demoMonitorMetrics(monitor, index);
-  const summary = summarizeChecks(monitor.id, metrics);
-  const history: UptimeMonitorHistory = { percentage: summary.uptime, days: !metrics.length ? [] : Array.from({ length: 90 }, (_, i) => ({ date: new Date(nowAgent - i * 86_400_000).toISOString().slice(0, 10), uptime: i === 0 ? summary.uptime : 100, status: i === 0 && summary.failedChecks ? 'partial' : 'up' })) };
-  const incidents: TimelineIncident[] = summary.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}`, startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(), durationSec: 480, active: false, message: 'upstream deadline exceeded' }] : [];
+  const today = summarizeChecks(monitor.id, metrics);
+  const history = historyOf(!metrics.length ? [] : Array.from({ length: 90 }, (_, i) => ({ date: new Date(nowAgent - i * 86_400_000).toISOString().slice(0, 10), uptime: i === 0 ? today.uptime : 100, status: i === 0 && today.failedChecks ? 'partial' as const : 'up' as const })));
+  const summary = monthSummary(today, history);
+  const incidents: TimelineIncident[] = today.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}`, startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(), durationSec: 480, active: false, message: 'upstream deadline exceeded' }] : [];
   return [monitor.id, { metrics, summary, history, incidents, failures: [] as UptimeMonitorMetric[] }] as const;
 }));
 
-mockUptimeMonitors.forEach(monitor => {
-  const metrics = (monitorData.get(monitor.id)?.metrics ?? []).filter(row => new Date(row.checkedAt).getTime() >= nowAgent - 86_400_000);
-  if (!metrics.length) return;
+// 목록·상세의 24시간 업타임과 평균 응답은 그 모니터의 체크에서 나온다. 체크가 바뀌는 시나리오(장애)도 같은 계산을 쓴다.
+function monitorStats(checks: UptimeMonitorMetric[]): Pick<UptimeMonitor, 'uptime' | 'responseTime' | 'latencyHistory'> {
+  const metrics = checks.filter(row => new Date(row.checkedAt).getTime() >= nowAgent - 86_400_000);
+  if (!metrics.length) return {};
   const successful = metrics.filter(row => row.status === 'success');
-  monitor.uptime = successful.length / metrics.length * 100;
-  monitor.responseTime = successful.reduce((sum, row) => sum + row.responseTime, 0) / successful.length;
-  monitor.latencyHistory = successful.slice(0, 24).reverse().map(row => row.responseTime);
-});
+  return {
+    uptime: successful.length / metrics.length * 100,
+    responseTime: successful.length ? successful.reduce((sum, row) => sum + row.responseTime, 0) / successful.length : undefined,
+    latencyHistory: successful.slice(0, 24).reverse().map(row => row.responseTime),
+  };
+}
+
+mockUptimeMonitors.forEach(monitor => Object.assign(monitor, monitorStats(monitorData.get(monitor.id)?.metrics ?? [])));
 
 function scopedTraceList(endpoint: string): TraceSummary[] {
   const data = endpointTelemetry(endpoint);
@@ -1194,14 +1202,16 @@ function serviceHistory(endpoint: string, scenario: MockScenario): ServiceHistor
   const [, , agentId, , encodedKey] = endpoint.split('/');
   const key = decodeURIComponent(encodedKey);
   const range = new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '24h';
-  const windowMs = ({ '1h': 1, '6h': 6, '24h': 24 }[range] ?? 24) * 3_600_000;
+  // 실제 API(handlers/agents.go)처럼 1h·6h·24h를 2·5·20분 버킷으로 자르고 버킷 시작 시각을 돌려준다.
+  const [hours, bucketMs] = range === '1h' ? [1, 120_000] : range === '6h' ? [6, 300_000] : [24, 1_200_000];
   const now = Date.now();
-  const bucketMs = windowMs / 24;
-  const failedLatency = parseFloat(mockAgentServicesFlat.find(service => service.agentId === agentId && service.key === key)?.lastLatency ?? '') || 5000;
-  return Array.from({ length: 24 }, (_, i) => {
-    const end = now - (23 - i) * bucketMs;
-    const checks = serviceChecks(agentId, key, end - bucketMs, end, scenario);
-    return { time: new Date(end).toISOString(), latencyMs: checks.uptimePct < 100 ? failedLatency : 30 + Math.sin(i / 4) * 5,
+  const since = now - hours * 3_600_000;
+  const first = Math.floor(since / bucketMs) * bucketMs;
+  return Array.from({ length: Math.floor((now - first) / bucketMs) + 1 }, (_, i) => {
+    const start = first + i * bucketMs;
+    const checks = serviceChecks(agentId, key, Math.max(start, since), Math.min(start + bucketMs, now), scenario);
+    // 지연은 성공한 체크만 평균한다. 모두 실패한 버킷은 0이다.
+    return { time: new Date(start).toISOString(), latencyMs: checks.healthyChecks ? 30 + Math.sin(start / 3_600_000) * 5 : 0,
       uptimePct: checks.uptimePct, total: checks.totalChecks };
   });
 }
@@ -1246,7 +1256,8 @@ function scenarioServices(scenario: MockScenario): AgentServiceFlat[] {
 
 function scenarioMonitors(scenario: MockScenario): UptimeMonitor[] {
   if (scenario === 'empty') return mockUptimeMonitors.filter(monitor => !initialMonitorIds.has(monitor.id)).map(withGroup);
-  return mockUptimeMonitors.map(monitor => withGroup(monitor.id === outageMonitorId && scenario !== 'normal' ? { ...monitor, status: 'unhealthy' } : monitor));
+  return mockUptimeMonitors.map(monitor => withGroup(outageApplies(monitor.id, scenario)
+    ? { ...monitor, status: 'unhealthy', ...monitorStats(monitorChecks(monitor.id, scenario)) } : monitor));
 }
 
 // 장애 중인 모니터의 진행 중인 장애를 이력 앞에 붙인다. 경로는 지금 소속된 서버를 따른다.
@@ -1257,6 +1268,11 @@ function monitorChecks(monitorId: string, scenario: MockScenario): UptimeMonitor
   const monitor = mockUptimeMonitors.find(({ id }) => id === monitorId);
   return metrics.map(check => Date.parse(check.checkedAt) < outageStart ? check
     : { ...check, status: 'failure' as const, responseTime: monitor?.timeout ?? check.responseTime, statusCode: undefined, errorMessage: 'connection timed out' });
+}
+
+// 장애 중인 날(오늘)의 막대와 기간 업타임이 체크 요약과 같은 값을 보이게 한다.
+function outageHistory(summary: UptimeMonitorSummary, history?: UptimeMonitorHistory): UptimeMonitorHistory {
+  return historyOf((history?.days ?? []).map((day, index) => index === 0 ? { ...day, uptime: summary.uptime, status: 'partial' as const } : day));
 }
 
 function monitorIncidents(monitor: UptimeMonitor): TimelineIncident[] {
@@ -1776,10 +1792,13 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const data = monitorData.get(uptimeDataMatch[1]);
     const part = uptimeDataMatch[2];
     const checks = monitorChecks(uptimeDataMatch[1], scenario);
-    if (part === 'metrics/summary') return (!checks.length ? null : outageApplies(uptimeDataMatch[1], scenario) ? summarizeChecks(uptimeDataMatch[1], checks) : data?.summary) as T;
+    // 장애 중이면 오늘의 체크가 바뀌므로 오늘 막대·90일·30일 수치를 바뀐 체크에서 다시 낸다.
+    const today = outageApplies(uptimeDataMatch[1], scenario) ? summarizeChecks(uptimeDataMatch[1], checks) : undefined;
+    const history = today ? outageHistory(today, data?.history) : data?.history;
+    if (part === 'metrics/summary') return (!checks.length ? null : today && history ? monthSummary(today, history) : data?.summary) as T;
     if (part === 'metrics/history') return mockUptimeBuckets(new URLSearchParams(endpoint.split('?')[1]).get('range') ?? '24h', checks) as T;
     if (part === 'metrics') return checks.slice(0, Number(new URLSearchParams(endpoint.split('?')[1]).get('limit') ?? 100)) as T;
-    if (part === 'uptime') return (data?.history ?? { percentage: 100, days: [] }) as T;
+    if (part === 'uptime') return (history ?? { percentage: 100, days: [] }) as T;
     if (part === 'failures') return (data?.failures ?? []) as T;
     const monitor = scenarioMonitors(scenario).find(({ id }) => id === uptimeDataMatch[1]);
     return (monitor ? monitorIncidents(monitor) : data?.incidents ?? []) as T;
