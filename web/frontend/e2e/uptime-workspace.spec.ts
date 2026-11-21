@@ -4,6 +4,7 @@ import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
 const panel = (page: Page) => page.getByRole('tabpanel');
 // 사이드바는 Docker 스냅샷과 모니터를 함께 조회한다. 그 요청 쌍을 빼고 목록 조회만 센다.
+// 쌍의 두 요청은 따로 도착하므로 한쪽만 온 순간에는 1이 어긋난다. 그래서 값은 expect.poll로만 읽는다.
 const listReads = (state: Awaited<ReturnType<typeof uptimeFixture>>) => () =>
   state.requests.filter((request) => request.method === 'GET' && request.path === '/services').length
   - state.requests.filter((request) => request.method === 'GET' && request.path === '/agents/services/all').length;
@@ -55,14 +56,16 @@ test('30 second polling skips hidden tabs and refreshes when the tab is shown ag
   await page.goto('./servers/server-1/uptime');
   await expect(page.getByRole('table', { name: '업타임 그리드' })).toBeVisible();
   const reads = listReads(state);
-  const initial = reads();
+  // 목록은 처음에 한 번 읽는다.
+  const initial = 1;
+  await expect.poll(reads).toBe(initial);
   state.monitors[0].status = 'unhealthy';
   await page.clock.fastForward(30_000);
   await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name: 'Public API', exact: true }) })).toContainText('장애');
-  expect(reads()).toBe(initial + 1);
+  await expect.poll(reads).toBe(initial + 1);
   await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
   await page.clock.fastForward(30_000);
-  expect(reads()).toBe(initial + 1);
+  await expect.poll(reads).toBe(initial + 1);
   await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: false }); document.dispatchEvent(new Event('visibilitychange')); });
   await expect.poll(reads).toBe(initial + 2);
 });
@@ -75,11 +78,13 @@ test('30 second polling can be paused and coalesces pending refreshes', async ({
   await page.goto('./servers/server-1/uptime');
   await expect(page.getByRole('table', { name: '업타임 그리드' })).toBeVisible();
   const reads = listReads(state);
-  const initial = reads();
+  // 목록은 처음에 한 번 읽는다.
+  const initial = 1;
+  await expect.poll(reads).toBe(initial);
   const auto = page.getByRole('switch', { name: '30초마다 자동 갱신' });
   await auto.click();
   await page.clock.fastForward(60_000);
-  expect(reads()).toBe(initial);
+  await expect.poll(reads).toBe(initial);
   await auto.click();
   await expect.poll(reads).toBe(initial + 1);
   // 켜면서 보낸 요청이 끝나야 다음 주기가 겹친 갱신으로 건너뛰어지지 않는다.
@@ -91,7 +96,7 @@ test('30 second polling can be paused and coalesces pending refreshes', async ({
     await expect.poll(reads).toBe(initial + 2);
     // 한 주기(30초) 안에는 끝나지 않은 요청을 기다린다. 넘기면 버려진 것으로 본다(servers-refresh.spec.ts).
     await page.clock.fastForward(29_000);
-    expect(reads()).toBe(initial + 2);
+    await expect.poll(reads).toBe(initial + 2);
     await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeDisabled();
   } finally { state.holds.clear(); gate.resolve(); }
   await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeEnabled();
