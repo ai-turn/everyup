@@ -8,7 +8,7 @@ export function GroupBackLink() {
   const trail = useGroupTrail();
   if (!trail) return null;
   return (
-    <Link to={`/projects/${trail.id}`} className="inline-flex min-h-11 items-center gap-1 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
+    <Link to={`/projects/${trail.id}`} className="inline-flex min-h-11 items-center gap-1 type-control text-text-muted transition-colors hover:text-action lg:hidden">
       <MaterialIcon size={20} name="arrow_back" />{trail.name}
     </Link>
   );

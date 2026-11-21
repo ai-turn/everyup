@@ -351,6 +351,7 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 | 카드·차트·모달 제목 | `type-card-title` | 16 / 24px | 500 |
 | 본문·설명·도움말 | `type-body` | 14 / 21px | 400 |
 | 버튼·폼 라벨·조밀한 항목 제목 | `type-label` | 14 / 20px | 500 |
+| 컨트롤·조밀한 행 안의 글(입력·선택 상자의 값, 표 칸, 메뉴·목록 항목) | `type-control` | 14 / 20px | 정하지 않음(400, 컨트롤이 500을 주면 그대로) |
 | 표 헤더·배지·작은 버튼·키 표시 | `type-label-sm` | 12 / 16px | 500 |
 | 메타·시간·짧은 보조 값 | `type-caption` | 12 / 16px | 400 |
 | 쌓이는 12px 줄(두 줄 목록의 둘째 줄, 표 칸의 보조 줄) | `type-caption-stack` | 12 / 18px | 400 |
@@ -1493,11 +1494,13 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 | S3 | 화면 코드의 줄 상자 보정 `mt-0.5`. 제목 → 설명은 `mt-intra`, 첫 줄 맞춤은 `icon-lead`, 표 칸은 `cell`. 상자 안쪽 패딩(`py-2.5`)은 P4b부터 세지 않는다(S2와 같은 이유) | 113 → 111(P3) → 71(P4a) → 26(P4b) → **0(P4c)** |
 | S4 | 여백만 가진 감싸개·조작(`className="mt-3"`). 밀어내기(`ml-auto`)와 음수 여백은 세지 않는다 | 54 → **0(P3, 금지)** |
 | S5 | 컴포넌트 루트의 바깥 여백(TypeScript AST로 센다) | 9 → **0(P3, 금지)** |
-| S6 | 역할 없는 글자 크기(`type-*`·`font-mono` 없는 `text-xs/sm/base`). 채널 미리보기(`ChannelPreview.tsx`) 제외 | 150 → 155(P4b, 미리보기를 따로 떼어 채널 폼 본문 5건이 세어짐) |
-| S7 | `leading-*` 직접 지정 | 15 |
+| S6 | 역할 없는 글자 크기(`type-*`·`font-mono` 없는 `text-xs/sm/base`). 화면 코드만 센다: 프리미티브의 크기 표, 접두사 붙은 크기(`max-sm:text-base` 입력), 채널 미리보기 제외 | 150 → 155(P4b) → **0(P5)** |
+| S7 | `leading-*` 직접 지정. 프리미티브 안쪽(`MaterialIcon`, 툴팁), 로고 워드마크, 채널 미리보기 제외 | 15 → **0(P5)** |
 | S8 | 숫자 세로 간격(`space-y-N`, `flex-col`의 `gap-N`) → 관계 토큰으로 | 168 → 165(P1) → 194(P3, 값을 그대로 옮김) → 76(P4a) → 46(P4b) → **0(P4c)** |
 
 2026-11-21 P1: 관계 토큰(`--spacing-intra` 등, §3.7)을 추가하고 공용 프리미티브(`Field`, `FormStep`, `OptionText`, `Stat`, `ListGroup`, `SectionHeader`, `PageHeader`, `ChartCard`, `SettingRow`, `page-stack`, `section-stack`)를 토큰 이름으로 바꿨다(측정 차이 0). 사용하지 않던 `SummaryCard`는 지웠다.
+
+2026-11-21 P5(글자 역할): 화면 코드의 원시 크기를 역할로 바꿨다. `text-xs` → `type-caption`(같은 12/16), 컨트롤·표 칸·한 줄 목록의 `text-sm` → 새 역할 `type-control`(14/20, 굵기는 정하지 않음), 문단(`p`·`li`)의 `text-sm` → `type-body`(14/21). 측정한 화면에서는 값이 같아 차이가 없었다. `type-body` 위에 덧씌운 `leading-relaxed`(22.75px) 4곳을 걷어 21px이 되었고, 로그인 화면의 설정 예시는 `font-mono type-caption-stack`이다. S6·S7이 0건이 되었다.
 
 2026-11-21 P4c(Docker 환경·그룹·설정·로그인): 남은 화면의 숫자 세로 간격과 제목 → 설명 `mt-0.5`를 바꿔 S2·S3·S8이 모두 0건이 되었다. 로그인 폼의 필드 사이는 폼 리듬(§6)대로 16px(이전 12), 라벨 → 입력은 8px(이전 6)이다. 상한은 0이고 P6에서 금지 규칙으로 옮긴다.
 

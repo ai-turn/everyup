@@ -137,7 +137,7 @@ export function ChartStatsLegend({
   if (rows.length === 0) return null;
 
   return (
-    <table className="text-xs">
+    <table className="type-caption">
       <thead>
         <tr className="text-text-dim">
           <th className="py-0.5 pr-4 text-left font-normal"><span className="sr-only">시리즈</span></th>
@@ -218,9 +218,9 @@ export function ChartTooltip({
 
   return (
     <div
-      className="min-w-36 rounded-lg border border-ui-border bg-ui-raised px-3 py-2 text-sm shadow-lg"
+      className="min-w-36 rounded-lg border border-ui-border bg-ui-raised px-3 py-2 type-control shadow-lg"
     >
-      <p className="mb-2 text-xs" style={{ color: theme.tickColor }}>
+      <p className="mb-2 type-caption" style={{ color: theme.tickColor }}>
         {labelFormatter ? labelFormatter(label) : typeof label === 'number' ? formatTimeLabel(label) : label}
       </p>
       <div className="space-y-intra">
@@ -237,7 +237,7 @@ export function ChartTooltip({
           </div>
         ))}
       </div>
-      {footer && <p className="mt-2 border-t border-ui-border pt-1.5 text-xs text-text-dim">{footer}</p>}
+      {footer && <p className="mt-2 border-t border-ui-border pt-1.5 type-caption text-text-dim">{footer}</p>}
     </div>
   );
 }

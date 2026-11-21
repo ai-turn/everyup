@@ -92,9 +92,9 @@ export function UptimeTargets(props: Props) {
   }
 
   return <div className="@container table-bleed">
-    <table aria-label="업타임 그리드" className="w-full table-fixed text-left text-sm">
+    <table aria-label="업타임 그리드" className="w-full table-fixed text-left type-control">
       <caption className="sr-only">장애 우선 목록입니다. 최근 체크 결과와 장애 지속 시간을 목록에서 확인하고, 이름을 눌러 상세로 이동합니다.</caption>
-      <thead className="border-b border-ui-border-soft text-xs text-text-muted"><tr>
+      <thead className="border-b border-ui-border-soft type-caption text-text-muted"><tr>
         <th scope="col" className="w-24 px-4 py-3 font-medium @3xl:w-28">상태</th>
         <th scope="col" className="px-4 py-3 font-medium">대상 · 체크 주소</th>
         <th scope="col" className="hidden w-16 px-4 py-3 font-medium @3xl:table-cell">방식</th>

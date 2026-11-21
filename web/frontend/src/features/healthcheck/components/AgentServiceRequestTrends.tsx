@@ -271,7 +271,7 @@ function ServiceRequestTrends({
                 <div key={c.label} className={c.bar} style={{ width: `${(c.count / total) * 100}%` }} />
               ))}
             </div>
-            <div role={onStatusChange ? 'group' : undefined} aria-label={onStatusChange ? '상태코드로 요청 목록 거르기' : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-label text-xs">
+            <div role={onStatusChange ? 'group' : undefined} aria-label={onStatusChange ? '상태코드로 요청 목록 거르기' : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-label type-caption">
               {classes.map((c) => {
                 const text = `${c.label} ${((c.count / total) * 100).toFixed(1)}%`;
                 if (!onStatusChange || !c.status) return <span key={c.label} className={c.text}>{text}</span>;

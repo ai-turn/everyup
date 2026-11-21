@@ -129,7 +129,7 @@ export function AlertsMobileView({
               <MaterialIcon size={20} name={tab.icon} className="max-sm:hidden" />
               {tab.label}
               {tab.count !== undefined && (
-                <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
+                <span className="type-caption tabular-nums text-text-secondary">{tab.count}</span>
               )}
             </button>
           ))}
@@ -190,7 +190,7 @@ export function AlertsMobileView({
                       <div className="flex items-center gap-2">
                         <p className="type-body text-text-base truncate">{channel.name}</p>
                         {!channel.isEnabled && (
-                          <span className="px-1.5 py-0.5 text-xs bg-ui-active text-text-secondary rounded-full shrink-0">
+                          <span className="px-1.5 py-0.5 type-caption bg-ui-active text-text-secondary rounded-full shrink-0">
                             비활성
                           </span>
                         )}
@@ -221,7 +221,7 @@ export function AlertsMobileView({
       {/* Rules Tab */}
       {activeTab === 'rules' && (
         <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-label">
-          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
+          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 type-control text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
           {errors.rules && <LoadErrorBanner title="알림 규칙을 불러오지 못했습니다" message={errors.rules} onRetry={onRetry.rules} />}
           {rulesLoading ? (
             [1, 2].map(i => (
@@ -308,10 +308,10 @@ export function AlertsMobileView({
                       {/* 실패 사유는 모바일에서도 보인다(A-10). */}
                       {item.errorMessage && <p className="mt-1 break-words type-caption text-status-error">{item.errorMessage}</p>}
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-text-dim">
+                        <span className="type-control text-text-dim">
                           {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}
                         </span>
-                        <span className="text-sm capitalize text-text-dim">
+                        <span className="type-control capitalize text-text-dim">
                           {item.channelType}
                         </span>
                       </div>

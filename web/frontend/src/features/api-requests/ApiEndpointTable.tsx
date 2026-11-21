@@ -67,7 +67,7 @@ export function ApiEndpointTable({ source, window, refreshKey, selected, onSelec
       <p className="type-caption tabular-nums text-text-muted">{`${rows.length}개 · 에러 많은 순`}</p>
     </div>
     <div className="table-bleed">
-      <table aria-label="Endpoint 목록" className="w-full table-fixed text-xs">
+      <table aria-label="Endpoint 목록" className="w-full table-fixed type-caption">
         <thead className="border-b border-ui-border-soft text-text-muted"><tr>
           <th scope="col" className="px-4 py-3 text-left font-medium">Endpoint</th>
           <th scope="col" className="w-16 px-4 py-3 text-right font-medium sm:w-20">요청</th>

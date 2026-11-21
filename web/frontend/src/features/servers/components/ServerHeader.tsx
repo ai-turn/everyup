@@ -40,7 +40,7 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
   return (
     <header>
       {/* 데스크톱은 AppHeader 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to={SERVERS_PATH} className="mb-3 inline-flex min-h-11 items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
+      <Link to={SERVERS_PATH} className="mb-3 inline-flex min-h-11 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-action lg:hidden">
         <MaterialIcon size={20} name="arrow_back" />서버 목록
       </Link>
       {/* 조작은 모든 폭에서 서버 이름과 같은 줄의 오른쪽이다. 이름이 길면 이름이 말줄임되고 버튼은 줄지 않는다.

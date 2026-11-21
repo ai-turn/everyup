@@ -17,7 +17,7 @@ export function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: 
 
   if (ruleChannels.length === 0) {
     return (
-      <span className="inline-flex max-w-full items-center gap-1.5 text-sm text-text-dim">
+      <span className="inline-flex max-w-full items-center gap-1.5 type-control text-text-dim">
         <MaterialIcon size={20} name="notifications_off" className="shrink-0" />
         <span className="truncate">등록된 알림 채널이 없습니다</span>
       </span>
@@ -27,7 +27,7 @@ export function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: 
   // 실제로 보낼 곳이 없으면 정상 규칙과 똑같이 보이지 않게 말한다(A-13).
   if (!ruleChannels.some(c => c.isEnabled)) {
     return (
-      <span className="inline-flex max-w-full items-center gap-1.5 text-sm text-status-warn">
+      <span className="inline-flex max-w-full items-center gap-1.5 type-control text-status-warn">
         <MaterialIcon size={20} name="notifications_off" className="shrink-0" />
         <span className="truncate">보낼 채널 없음</span>
       </span>
@@ -53,7 +53,7 @@ export function ChannelAvatars({ rule, channels }: { rule: AlertRule; channels: 
         );
       })}
       {overflow > 0 && (
-        <span className="-ml-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-ui-hover text-xs text-text-muted ring-2 ring-bg-surface">
+        <span className="-ml-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-ui-hover type-caption text-text-muted ring-2 ring-bg-surface">
           +{overflow}
         </span>
       )}

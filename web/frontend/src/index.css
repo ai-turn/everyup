@@ -267,6 +267,14 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* 14px / 20px: 컨트롤과 조밀한 행 안의 글(입력·선택 상자의 값, 표 칸, 메뉴·목록 항목). 여러 줄로 흐르는 글은
+   type-body(14/21)다. 고정 높이 컨트롤 안의 한 줄은 줄 상자 20px을 유지한다(DESIGN.md §2.2). 굵기는 정하지 않는다 —
+   컨트롤이 다른 클래스로 500을 주는 경우가 있어, 여기서 400을 주면 CSS 순서에 따라 굵기가 바뀐다. */
+@utility type-control {
+  font-size: var(--text-sm);
+  line-height: 1.25rem;
+}
+
 /* 12px 500: 표 헤더·배지·작은 버튼·키 표시처럼 조밀한 자리의 라벨. type-label의 12px판이다. */
 @utility type-label-sm {
   font-size: var(--text-xs);

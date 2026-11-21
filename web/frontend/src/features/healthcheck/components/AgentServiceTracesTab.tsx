@@ -118,7 +118,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
       ) : (
         <div className="table-bleed">
           {/* 좁은 화면에서는 이름 열만 두고 소요·Span·시작을 이름 아래로 내린다(요청 표와 같은 방식). 537px 표가 잘렸다. */}
-          <table aria-label="트레이스 목록" className="w-full table-fixed text-sm">
+          <table aria-label="트레이스 목록" className="w-full table-fixed type-control">
             <thead>
               <tr className="border-b border-ui-border-soft text-left type-label-sm text-text-muted">
                 <th scope="col" className="px-4 py-3 font-medium">트레이스</th>
@@ -147,10 +147,10 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="truncate text-text-base">{trace.name}</span>
                       {trace.errorCount > 0 && (
-                        <span className="shrink-0 text-xs text-status-error">오류 {trace.errorCount}</span>
+                        <span className="shrink-0 type-caption text-status-error">오류 {trace.errorCount}</span>
                       )}
                     </div>
-                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-text-muted lg:hidden">
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 type-caption tabular-nums text-text-muted lg:hidden">
                       <span className="sm:hidden">{trace.kind}</span>
                       <span className="sm:hidden">{formatDuration(trace.durationMs)}</span>
                       <span className="sm:hidden">Span {trace.spanCount}</span>
@@ -160,9 +160,9 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
                   <td className="hidden px-4 cell sm:table-cell">
                     <span className={`badge ${spanKindBadge(trace.kind)}`}>{trace.kind}</span>
                   </td>
-                  <td className="hidden px-4 cell text-right text-xs tabular-nums text-text-secondary sm:table-cell">{formatDuration(trace.durationMs)}</td>
-                  <td className="hidden px-4 cell text-right text-xs tabular-nums text-text-muted sm:table-cell">{trace.spanCount}</td>
-                  <td className="hidden whitespace-nowrap px-4 cell text-right text-xs tabular-nums text-text-dim lg:table-cell">{formatDateTime(trace.startTime)}</td>
+                  <td className="hidden px-4 cell text-right type-caption tabular-nums text-text-secondary sm:table-cell">{formatDuration(trace.durationMs)}</td>
+                  <td className="hidden px-4 cell text-right type-caption tabular-nums text-text-muted sm:table-cell">{trace.spanCount}</td>
+                  <td className="hidden whitespace-nowrap px-4 cell text-right type-caption tabular-nums text-text-dim lg:table-cell">{formatDateTime(trace.startTime)}</td>
                 </tr>
               ))}
             </tbody>

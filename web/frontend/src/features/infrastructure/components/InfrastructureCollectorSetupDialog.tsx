@@ -67,7 +67,7 @@ export function InfrastructureCollectorSetupDialog({
         <InfrastructureCollectorSetupResult setup={setup} title="Collector 연결이 준비되었습니다" onDone={done} />
       ) : (
         <form onSubmit={submit} className="space-y-item p-6">
-          <div className="rounded-md bg-ui-hover-soft p-4 text-sm text-text-muted">
+          <div className="rounded-md bg-ui-hover-soft p-4 type-control text-text-muted">
             추가하면 Collector 설정 파일과 한 번만 표시되는 API Key를 발급합니다.
           </div>
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">

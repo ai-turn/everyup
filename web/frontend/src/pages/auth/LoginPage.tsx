@@ -114,7 +114,7 @@ export function LoginPage() {
               {error && (
                 <div role="alert" className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={20} name="error_outline" className="leading-none text-status-error" />
+                    <MaterialIcon size={20} name="error_outline" className="text-status-error" />
                   </span>
                   <span>{error}</span>
                 </div>
@@ -123,7 +123,7 @@ export function LoginPage() {
               {isSetup && (
                 <div className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={20} name="info" className="leading-none text-action" />
+                    <MaterialIcon size={20} name="info" className="text-action" />
                   </span>
                   <span>처음 실행되었습니다. 관리자 계정을 설정하세요.</span>
                 </div>
@@ -188,7 +188,7 @@ export function LoginPage() {
                   </p>
                   <div className="space-y-intra">
                     <p className="type-body text-text-muted">① 환경 변수 설정 후 재시작</p>
-                    <pre className="text-xs bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
+                    <pre className="font-mono type-caption-stack bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary">
 {`# docker-compose.yml
 environment:
   EVERYUP_ADMIN_USERNAME: admin
@@ -209,7 +209,7 @@ docker compose restart`}
                   <p className="type-body text-text-muted">
                     데이터 볼륨을 제거하고 재시작하면 초기 설정 화면으로 돌아갑니다. 모니터링 데이터는 유지됩니다.
                   </p>
-                  <pre className="text-xs bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
+                  <pre className="font-mono type-caption-stack bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary">
 {`# 컨테이너 중지 후 데이터 볼륨 삭제
 docker compose down
 docker volume rm everyup-data

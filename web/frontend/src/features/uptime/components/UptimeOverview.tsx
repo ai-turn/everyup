@@ -129,7 +129,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
         </div>
       )}
 
-      <div className="mt-2 flex flex-wrap justify-between gap-3 text-xs text-text-dim" aria-live="polite">
+      <div className="mt-2 flex flex-wrap justify-between gap-3 type-caption text-text-dim" aria-live="polite">
         <span className="shrink-0">90일 전</span>
         {hovered && (
           <span className="order-last basis-full break-words text-center text-text-secondary sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">

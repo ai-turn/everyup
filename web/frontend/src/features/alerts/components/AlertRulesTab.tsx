@@ -136,7 +136,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
 
   const selectedTargetLabel = target ? alertTargetName(target, names) : null;
   const targetNotice = selectedTargetLabel && (
-    <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status">
+    <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 type-control text-text-secondary" role="status">
       <MaterialIcon size={20} name="filter_alt" className="text-action" />
       <span className="min-w-0 flex-1 truncate">대상: {selectedTargetLabel}</span>
       {onClearTarget && <Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button>}
@@ -284,7 +284,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
           </article>)}</div>}
       </div> : (
         <div className="table-bleed overflow-x-auto">
-          <table aria-label="알림 규칙 그리드" className="w-full min-w-[1180px] table-fixed text-sm">
+          <table aria-label="알림 규칙 그리드" className="w-full min-w-[1180px] table-fixed type-control">
             <thead>
               <tr className="border-b border-ui-border-soft">
                 <SortableTH className="w-[260px]" label="규칙" active={sortKey === 'name'} dir={sortDir} onClick={() => onSort('name')} />
@@ -308,7 +308,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
             <tbody>
               {filteredRules.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-10 text-center text-sm text-text-muted">
+                  <td colSpan={7} className="p-10 text-center type-control text-text-muted">
                     조건에 맞는 규칙이 없습니다{' · '}
                     <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button>
                   </td>
@@ -330,7 +330,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                             <MaterialIcon size={20} name="lock" className="shrink-0 text-text-dim" />
                           )}
                         </div>
-                        <p className="truncate text-xs text-text-dim">
+                        <p className="truncate type-caption text-text-dim">
                           {rule.isSystem
                             ? '시스템 기본 규칙 · 삭제 불가, 채널만 변경 가능'
                             : categoryLabel(cat)}
@@ -343,12 +343,12 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                         {/* 잘린 이름을 마우스로 볼 수 있게만 한다. 글자는 DOM에 있어 낭독되므로 Tab 정지점을 만들지 않는다(A-15). */}
                         {/* 대상은 분류라 칩이 아니라 맨 텍스트다(§5.3 칩은 상태 전용). */}
                         <Tooltip content={targetLabel(rule, names)}><span
-                          className="block max-w-full truncate text-sm text-text-secondary"
+                          className="block max-w-full truncate type-control text-text-secondary"
                         >
                           <RuleTargetName rule={rule} names={names} stacked />
                         </span></Tooltip>
                       </td>
-                      <td className="px-4 cell align-middle text-sm">
+                      <td className="px-4 cell align-middle type-control">
                         <Tooltip content={evaluationSummary(rule)} focusable><p className="truncate text-text-secondary">
                           {compactTrigger(rule)}
                         </p></Tooltip>
@@ -356,7 +356,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                       <td className="px-4 cell align-middle">
                         <ChannelAvatars rule={rule} channels={channels} />
                       </td>
-                      <td className="px-4 cell align-middle text-sm text-text-muted whitespace-nowrap">
+                      <td className="px-4 cell align-middle type-control text-text-muted whitespace-nowrap">
                         {rule.lastTriggeredAt
                           ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko })
                           : <span className="text-text-dim">-</span>}

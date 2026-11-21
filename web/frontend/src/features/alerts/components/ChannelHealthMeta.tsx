@@ -44,7 +44,7 @@ export function ChannelHealthMeta({ health, compact = false }: Props) {
       : 'text-status-error';
 
   const gap = compact ? 'gap-3' : 'gap-4';
-  const text = 'text-sm';
+  const text = 'type-control';
 
   return (
     <div className={`flex items-center flex-wrap ${gap} ${text} text-text-muted`}>

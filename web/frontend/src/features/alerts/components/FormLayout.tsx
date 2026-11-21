@@ -15,7 +15,7 @@ export function FormStep({ n, title, subtitle, children }: {
     return (
         <div>
             <div className="flex items-center gap-3 mb-heading">
-                <span className="w-7 h-7 rounded-lg bg-primary/10 text-action flex items-center justify-center text-xs shrink-0">
+                <span className="w-7 h-7 rounded-lg bg-primary/10 text-action flex items-center justify-center type-caption shrink-0">
                     {n}
                 </span>
                 <div>
@@ -61,7 +61,7 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
                 >
                     {label}
                 </LabelTag>
-                {required && <span className="text-status-error text-xs" aria-hidden="true">*</span>}
+                {required && <span className="text-status-error type-caption" aria-hidden="true">*</span>}
             </div>
             {control}
             {error && <p id={errorId} data-gap="intra" className="mt-intra type-body text-status-error">{error}</p>}

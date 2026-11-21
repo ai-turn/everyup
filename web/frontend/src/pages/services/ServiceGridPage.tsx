@@ -77,15 +77,15 @@ function ProjectCard({ agentId, agent, agentName, services, shownServices, overv
 
       {/* KPI rollup (from /agents/overview; hidden until it loads) */}
       {overview && (
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-4 type-control">
           <div>
-            <div className="text-xs text-text-dim">업타임 30일</div>
+            <div className="type-caption text-text-dim">업타임 30일</div>
             <div className="font-medium text-text-base">
               {overview.uptimePct != null ? `${overview.uptimePct.toFixed(2)}%` : '-'}
             </div>
           </div>
           <div>
-            <div className="text-xs text-text-dim">요청 24h</div>
+            <div className="type-caption text-text-dim">요청 24h</div>
             <div className="font-medium text-text-base">
               {overview.requests24h > 0
                 ? Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(overview.requests24h)
@@ -93,7 +93,7 @@ function ProjectCard({ agentId, agent, agentName, services, shownServices, overv
             </div>
           </div>
           <div>
-            <div className="text-xs text-text-dim">p95</div>
+            <div className="type-caption text-text-dim">p95</div>
             <div className={`font-medium ${
               overview.p95Ms != null && overview.p95Ms > 500
                 ? 'text-status-warn'

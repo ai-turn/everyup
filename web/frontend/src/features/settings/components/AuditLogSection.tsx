@@ -48,20 +48,20 @@ export function AuditLogSection() {
         <p className="type-body text-text-muted">열람 기록이 없습니다</p>
       ) : (
         <>
-        <p className="mb-2 text-xs text-text-dim">{`최근 ${events.length}건`}</p>
+        <p className="mb-2 type-caption text-text-dim">{`최근 ${events.length}건`}</p>
         <ul>
           {events.map((event) => {
             const count = bodyCountOf(event.metadata);
             return (
-              <li key={event.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
+              <li key={event.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 type-body">
                 <span className="font-medium text-text-secondary">{event.username}</span>
                 <Tooltip content={event.traceId} focusable><span className="min-w-0 flex-1 truncate text-text-muted">
                   {`Trace ${(event.traceId ?? '').slice(0, 12)} 본문 열람`}
                 </span></Tooltip>
                 {typeof count === 'number' && (
-                  <span className="text-xs text-text-muted">{`본문 ${count}건`}</span>
+                  <span className="type-caption text-text-muted">{`본문 ${count}건`}</span>
                 )}
-                <span className="text-xs text-text-dim">
+                <span className="type-caption text-text-dim">
                   {formatFullDateTime(event.createdAt)}
                 </span>
               </li>

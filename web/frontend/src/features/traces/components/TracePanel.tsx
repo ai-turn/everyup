@@ -302,7 +302,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-item">
           {loading && (
-            <div className="flex items-center justify-center py-10 text-sm text-text-muted">
+            <div className="flex items-center justify-center py-10 type-control text-text-muted">
               <MaterialIcon size={20} name="sync" className="mr-2 animate-spin" />
               트레이스 불러오는 중…
             </div>
@@ -316,7 +316,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           )}
 
           {isEmpty && (
-            <div className="text-center py-10 text-sm text-text-muted">
+            <div className="text-center py-10 type-control text-text-muted">
               이 트레이스에 연결된 span·로그·API 요청이 없습니다.
             </div>
           )}
@@ -499,7 +499,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
           return (
             <li
               key={`${span.traceId}-${span.spanId}`}
-              className="px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
+              className="px-3 py-2 rounded-md bg-ui-hover-soft type-control"
             >
               {/* 이름 줄 → 막대 4px(intra), 막대 → 상세 8px(label). */}
               <div className="space-y-label">
@@ -509,7 +509,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                 {hasDetail(span)
                   ? <IconButton icon={expanded ? 'expand_more' : 'chevron_right'} label={expanded ? 'Span 상세 접기' : 'Span 상세 펼치기'} tone="quiet" size="sm" aria-expanded={expanded} onClick={() => toggle(span.spanId)} className="-ml-2" />
                   : <span className="-ml-2 w-8 shrink-0" aria-hidden="true" />}
-                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs shrink-0 ${spanKindBadge(span.kind)}`}>
+                <span className={`inline-flex items-center px-1.5 py-0.5 rounded type-caption shrink-0 ${spanKindBadge(span.kind)}`}>
                   {span.kind}
                 </span>
                 <Tooltip content={span.name} focusable><span className="font-mono text-text-secondary truncate flex-1 min-w-0">
@@ -575,7 +575,7 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-md bg-ui-hover-soft px-3 py-2 text-sm"
+            className="rounded-md bg-ui-hover-soft px-3 py-2 type-control"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
               {item.serviceName && (
@@ -603,7 +603,7 @@ function RestrictedBodyNotice({ count }: { count: number }) {
 
   return (
     <PanelSection icon="data_object" title="캡처된 바디" count={count}>
-      <div className="flex items-center gap-3 rounded-md bg-ui-hover-soft px-4 py-3 text-sm">
+      <div className="flex items-center gap-3 rounded-md bg-ui-hover-soft px-4 py-3 type-control">
         <MaterialIcon size={20} name="lock" className="text-amber-500 shrink-0" />
         <div>
           <p className="font-medium text-text-secondary">관리자 전용</p>
@@ -620,7 +620,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
 
   return (
     <PanelSection icon="data_object" title="캡처된 바디" count={items.length}>
-      <p className="mb-2 flex items-center gap-1.5 text-xs text-text-dim">
+      <p className="mb-2 flex items-center gap-1.5 type-caption text-text-dim">
         <MaterialIcon size={20} name="policy" />
         관리자 전용 · 모든 열람은 감사 로그에 기록됩니다
       </p>
@@ -628,10 +628,10 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-md bg-ui-hover-soft px-3 py-2 text-sm"
+            className="rounded-md bg-ui-hover-soft px-3 py-2 type-control"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-xs text-action">
+              <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 type-caption text-action">
                 {item.label}
               </span>
               {item.serviceName && (
@@ -643,12 +643,12 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
                 {item.spanName}
               </span></Tooltip>
               {typeof item.size === 'number' && (
-                <span className="text-xs text-text-dim">
+                <span className="type-caption text-text-dim">
                   {item.size}B
                 </span>
               )}
               {item.truncated && (
-                <span className="rounded bg-status-warn/10 px-1.5 py-0.5 text-xs text-status-warn">
+                <span className="rounded bg-status-warn/10 px-1.5 py-0.5 type-caption text-status-warn">
                   잘림
                 </span>
               )}
@@ -670,10 +670,10 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
         {items.map((req) => (
           <li
             key={req.id}
-            className="px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
+            className="px-3 py-2 rounded-md bg-ui-hover-soft type-control"
           >
             <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-ui-active text-text-secondary shrink-0">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded type-caption bg-ui-active text-text-secondary shrink-0">
                 {req.method}
               </span>
               <Tooltip content={req.path} focusable><span className="font-mono text-text-secondary truncate flex-1 min-w-0">
@@ -704,7 +704,7 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
         {logs.map((log) => (
           <li
             key={log.id}
-            className="flex items-start gap-2 px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
+            className="flex items-start gap-2 px-3 py-2 rounded-md bg-ui-hover-soft type-control"
           >
             <span className={`${LEVEL_BASE} icon-lead ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
               {log.level}

@@ -30,7 +30,7 @@ export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Pr
                 <button
                   type="button"
                   onClick={onViewKey}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-text-secondary hover:bg-ui-hover"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left type-caption text-text-secondary hover:bg-ui-hover"
                 >
                   <MaterialIcon size={20} name="key" />
                   API Key
@@ -38,7 +38,7 @@ export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Pr
                 <button
                   type="button"
                   onClick={() => onDelete(agent.id)}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-status-error hover:bg-ui-hover"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left type-caption text-status-error hover:bg-ui-hover"
                 >
                   <MaterialIcon size={20} name="delete_outline" />
                   비활성화

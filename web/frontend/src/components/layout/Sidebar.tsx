@@ -73,7 +73,7 @@ export function Sidebar({ failureCount }: { failureCount: number }) {
         className="mx-3 mb-2 flex items-center gap-2 rounded-lg border border-ui-border bg-bg-main px-3 py-1.5 text-text-dim transition-colors hover:border-primary/40 hover:text-text-base"
       >
         <MaterialIcon size={20} name="search" className="shrink-0" />
-        <span className="flex-1 text-left text-xs">검색</span>
+        <span className="flex-1 text-left type-caption">검색</span>
         <kbd className="font-sans rounded border border-ui-border px-1 py-0.5 type-label-sm">{navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl K'}</kbd>
       </button>
 

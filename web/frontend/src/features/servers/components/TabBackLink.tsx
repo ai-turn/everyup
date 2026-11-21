@@ -8,7 +8,7 @@ import { MaterialIcon } from '../../../components/common';
  */
 export function TabBackLink({ label, to }: { label: string; to: string }) {
   return (
-    <Link to={to} className="inline-flex min-h-11 items-center gap-1 text-sm text-text-muted transition-colors hover:text-action max-sm:mr-auto lg:min-h-6">
+    <Link to={to} className="inline-flex min-h-11 items-center gap-1 type-control text-text-muted transition-colors hover:text-action max-sm:mr-auto lg:min-h-6">
       <MaterialIcon size={20} name="arrow_back" />{label}
     </Link>
   );
