@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { ControlDefaultsContext } from './controlSize';
 
 // 상세 화면 PageHeader의 `meta` 정본 (DESIGN.md §4.1 상세 헤더).
 // 상태 줄(상태 + 상태를 바꾸는 액션 + 수시로 바뀌는 값)과 속성 목록(라벨 좌 / 값 우, 2열)을
@@ -21,17 +22,24 @@ interface DetailMetaProps {
   collapsed?: boolean;
 }
 
+const TOUCH_CONTROLS = {};
+const COMPACT_CONTROLS = { size: 'sm' } as const;
+
 export function DetailMeta({ status, fields = [], collapseOnMobile = false, collapseLabel = '서비스 정보', collapsed = false }: DetailMetaProps) {
   const narrow = useMediaQuery('(max-width: 639px)');
   const fieldList = fields.length > 0 ? (
+    // 행 높이는 하나다: sm 이상 40px(값 안의 조작은 sm 32px), 터치 화면 44px(조작 md 44px). 이전에는 조작이 든 행만
+    // 버튼 40 + py-1로 44~48px가 되어 행 간격이 40/44로 섞였다(DESIGN.md §4.1 DetailMeta).
+    <ControlDefaultsContext.Provider value={narrow ? TOUCH_CONTROLS : COMPACT_CONTROLS}>
     <dl className="grid max-w-4xl sm:grid-cols-2 sm:gap-x-12">
       {fields.map(field => (
-        <div key={field.label} className="flex min-h-10 min-w-0 items-center gap-4 py-1">
+        <div key={field.label} className="flex min-h-11 min-w-0 items-center gap-4 sm:min-h-10">
           <dt className="w-24 shrink-0 type-body text-text-dim">{field.label}</dt>
           <dd className="flex min-w-0 flex-1 items-center gap-2 type-body text-text-base">{field.value}</dd>
         </div>
       ))}
     </dl>
+    </ControlDefaultsContext.Provider>
   ) : null;
   return (
     <div className="space-y-3">

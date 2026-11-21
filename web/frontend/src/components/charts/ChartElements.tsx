@@ -31,10 +31,15 @@ export function ChartCard({
 }) {
   return (
     <section className={`p-6 ${chartCardClass} ${className}`}>
-      <div className="flex min-h-6 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <div className={`flex min-w-0 items-baseline gap-2 ${wrapTitle ? 'flex-wrap' : ''}`}>
-          <Heading className={`${wrapTitle ? 'break-all' : 'truncate'} type-card-title text-text-base ${titleClassName}`}>{title}</Heading>
-          {unit && <span className="shrink-0 type-caption text-text-dim">{unit}</span>}
+      {/* 제목 줄은 오른쪽 조작(기간 선택 40px)이 있든 없든, 좁은 폭에서 오른쪽 값이 다음 줄로 내려가든 40px 한 높이다.
+          제목이 그 줄의 세로 가운데에 서서 나란히 놓인 차트 카드의 제목 선이 같다(DESIGN.md §4.2). 이전에는
+          items-baseline min-h-6이라 조작이 있는 카드만 제목이 8px 내려갔다. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="flex min-h-10 min-w-0 items-center">
+          <div className={`flex min-w-0 items-baseline gap-2 ${wrapTitle ? 'flex-wrap' : ''}`}>
+            <Heading className={`${wrapTitle ? 'break-all' : 'truncate'} type-card-title text-text-base ${titleClassName}`}>{title}</Heading>
+            {unit && <span className="shrink-0 type-caption text-text-dim">{unit}</span>}
+          </div>
         </div>
         {right}
       </div>

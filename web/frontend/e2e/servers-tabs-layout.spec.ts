@@ -29,7 +29,8 @@ const FIRST_CONTENT: [string, string, (page: Page) => Locator, number][] = [
   // 로그 발생량 차트 카드
   ['log app detail', `${EDGE}/logs/observed_mock_checkout`, (page) => chartOf(panel(page).getByRole('heading', { name: '로그 발생량', exact: true })), 582],
   // 수치 타일의 첫 값(요청 수)
-  ['api requests', `${EDGE}/api`, (page) => panel(page).getByRole('button', { name: /^요청 수/ }).locator('.type-kpi'), 659],
+  // 2026-11-21 카드 안쪽 정리로 26px 내려갔다: 기간 선택이 없는 차트 머리 줄 24→40, 타일 위 패딩 10→16, 라벨 → 값 1→3.
+  ['api requests', `${EDGE}/api`, (page) => panel(page).getByRole('button', { name: /^요청 수/ }).locator('.type-kpi'), 715],
   // 첫 지표 차트 카드(앱 하나, 앱 둘)
   // 메트릭 두 줄은 2026-11-20에 블록 간격을 24px로 맞추며(본문 래퍼 위 20→24, 블록 사이 20→24) 8px·12px 내려가 상한을 같이 올렸다.
   ['metrics', `${EDGE}/metrics`, (page) => chartOf(panel(page).getByRole('heading', { level: 3 }).first()), 622],

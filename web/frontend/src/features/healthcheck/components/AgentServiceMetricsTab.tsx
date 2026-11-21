@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Button, ButtonLink, EmptyState, LoadErrorBanner, MaterialIcon, SearchInput, StatusLight, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, EmptyState, LoadErrorBanner, MaterialIcon, SearchInput, StatusLight, SUBGROUP_LABEL, type GlobalTimeRange } from '../../../components/common';
 import { alertRuleNewPath, type AlertTarget } from '../../alerts/alertTarget';
 import { Skeleton } from '../../../components/skeleton';
 import { useAlertThresholds } from '../../alerts/useAlertThresholds';
@@ -108,7 +108,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
       {names.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3"><SearchInput value={query.search} onChange={event => query.update({ metricSearch: event.target.value }, true)} onClear={() => query.update({ metricSearch: '' }, true)} placeholder="이름 또는 설명으로 지표 찾기" aria-label="이름 또는 설명으로 지표 찾기" wrapperClassName="w-full sm:w-80" /><span className="type-caption text-text-muted">자주 보는 지표를 최대 4개 고정할 수 있습니다.</span></div>}
       {GROUPS.map(group => {
         const items = displayed.filter(meta => groupFor(meta) === group);
-        return items.length > 0 && <section key={group} aria-label={group} className="space-y-3"><h2 className="type-card-title text-text-base">{group}<span className="ml-2 type-caption text-text-muted">{items.length}</span></h2><div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">{items.map(meta => chart(meta))}</div></section>;
+        return items.length > 0 && <section key={group} aria-label={group} className="space-y-2"><h2 className={SUBGROUP_LABEL}>{group}<span className="ml-2 type-caption text-text-muted">{items.length}</span></h2><div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">{items.map(meta => chart(meta))}</div></section>;
       })}
       {names.length === 0 ? empty ?? <EmptyState icon="monitoring" title="수신한 메트릭이 없습니다" description="OpenTelemetry SDK가 메트릭을 보내면 여기에 표시됩니다." />
         : visible.length === 0 && <EmptyState icon="search" title="일치하는 메트릭이 없습니다" description={`'${query.search.trim()}'와 일치하는 메트릭이 없습니다.`} action={{ label: '검색 초기화', onClick: () => query.update({ metricSearch: null }, true) }} />}
