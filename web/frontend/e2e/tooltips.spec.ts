@@ -15,7 +15,10 @@ test.describe('shared tooltip interactions', () => {
     await page.keyboard.press('Escape');
     await expect(hint).toHaveCount(0);
     await expect(trigger).not.toHaveAttribute('title');
-    await page.mouse.move(0, 0);
+    // Moving the mouse does not reset where Tab starts; after the hover steps Chromium sometimes
+    // started after this button and focused the next one. A click on the empty corner starts Tab
+    // from the top, before the trigger.
+    await page.mouse.click(0, 0);
     await page.keyboard.press('Tab');
     await expect(trigger).toBeFocused();
     await expect(hint).toBeVisible();
