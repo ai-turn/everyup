@@ -5,10 +5,11 @@
 // 부채 규칙은 현재 건수가 상한이다(래칫) — 늘면 실패, 줄면 상한을 같이 내린다.
 //
 // ponytail: 줄 단위 정규식이라 문자열과 코드를 구분하지 못한다. 주석 줄만 건너뛴다.
-// 오탐이 쌓이면 그때 AST(ESLint 커스텀 규칙)로 옮긴다.
+// 함수 경계가 필요한 규칙(S5 컴포넌트 루트 여백)만 TypeScript AST로 센다.
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
 
 const src = process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.url)), '../src');
 
@@ -39,20 +40,84 @@ const RULES = [
   { name: '§10.A bg-white', re: /\bbg-white\b/g, max: 3 },
   // 18px 이상 원시 크기: 로고 워드마크 둘·로그인 워드마크·모바일 설정 h1·404 숫자만. 숫자는 type-kpi/stat(§2.2)
   { name: '§2.2 text-lg 이상 원시 크기', re: /\btext-(?:lg|xl|[2-6]xl)\b/g, max: 5 },
+  // 간격 체계(§3.7, §10.I, 2026-11-21) — 이관 단계마다 상한을 내린다.
+  // S1 임의값 간격. 뷰포트 비율(명령 팔레트의 pt-[18vh])만 허용한다.
+  { name: '§3.7 S1 임의값 간격', re: /(?<![\w-])-?(?:m[trblxyse]?|p[trblxyse]?|gap(?:-[xy])?|space-[xy])-\[/g, skip: /CommandPalette\.tsx$/ },
+  // S2 블록 사이 세로 반 단계. 줄 상자 보정 mt-0.5·배지 py-0.5·hover 행 py-2.5는 여기서 세지 않는다(S3).
+  { name: '§3.7 S2 세로 반 단계', re: /(?<![\w-])-?(?:(?:space-y|gap-y|mb|my|pt|pb)-\d+\.5|mt-[1-9]\d*\.5|py-(?:1|3|[4-9])\.5)(?![\w.])/g, max: 55 },
+  // S3 줄 상자 보정과 hover 행 패딩은 담당 프리미티브(components/common) 안에만 둔다.
+  { name: '§3.7 S3 화면 코드의 mt-0.5·py-2.5', re: /(?<![\w-])(?:mt-0\.5|py-2\.5)(?![\w.])/g, skip: /components[\\/]common[\\/]/, max: 113 },
+  // S4 여백만 가진 감싸개. 간격은 부모의 gap·space-y가 정한다.
+  { name: '§3.7 S4 여백만 가진 감싸개', re: /className="(?:-?m[trblxyse]?-[\w.]+ ?)+"/g, max: 54 },
+  // S6 역할 없는 글자 크기(같은 클래스 문자열에 type-*·font-mono가 없다). 채널 미리보기는 외부 서비스 흉내라 뺀다.
+  { name: '§2.2 S6 역할 없는 text-xs/sm/base', strings: true, re: /(?<![\w-])text-(?:xs|sm|base)(?![\w-])/g, unless: /(?<![\w-])(?:type-[a-z-]+|font-mono)(?![\w-])/, skip: /ChannelForm\.tsx$/, max: 150 },
+  // S7 행간 직접 지정. 행간은 type-* 역할이 정한다.
+  { name: '§2.2 S7 leading-* 직접 지정', re: /(?<![\w-])leading-[\w.[\]]+/g, max: 15 },
+  // S8 숫자 세로 간격. 쌓기(space-y, flex-col의 gap)는 관계 토큰(gap-heading 등)으로 쓴다.
+  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, max: 168 },
 ];
+
+// S5 컴포넌트 루트의 바깥 여백(음수 bleed·auto 제외). 정규식으로는 함수 경계를 모르므로 TypeScript AST로 센다.
+// 이름이 대문자로 시작하는 함수(컴포넌트)가 직접 반환하는 JSX 요소의 className 리터럴을 본다. 조건식으로 고르는 루트는 보지 않는다.
+const S5 = { name: '§3.7 S5 컴포넌트 루트 여백', max: 9 };
+const ROOT_MARGIN = /(?:^|\s)(?:[\w-]+:)*m[trblxyse]?-(?!auto(?![\w-]))[\w.[\]]+/;
+function rootMargins(file, text) {
+  const hits = [];
+  const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const classText = (attr) => {
+    let e = attr.initializer;
+    if (e && ts.isJsxExpression(e)) e = e.expression;
+    if (!e) return '';
+    if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) return e.text;
+    if (ts.isTemplateExpression(e)) return [e.head.text, ...e.templateSpans.map((span) => span.literal.text)].join(' ');
+    return '';
+  };
+  const check = (fn) => {
+    const report = (expr) => {
+      while (expr && ts.isParenthesizedExpression(expr)) expr = expr.expression;
+      const opening = expr && (ts.isJsxElement(expr) ? expr.openingElement : ts.isJsxSelfClosingElement(expr) ? expr : null);
+      const attr = opening?.attributes.properties.find((a) => ts.isJsxAttribute(a) && a.name.getText(sf) === 'className');
+      const m = attr && classText(attr).match(ROOT_MARGIN);
+      if (m) hits.push(`${file}:${sf.getLineAndCharacterOfPosition(opening.getStart(sf)).line + 1} ${m[0].trim()}`);
+    };
+    if (!fn.body) return;
+    if (!ts.isBlock(fn.body)) return report(fn.body);
+    const visit = (node) => {
+      if (ts.isFunctionLike(node)) return; // 안쪽 함수의 return은 이 컴포넌트의 루트가 아니다
+      if (ts.isReturnStatement(node)) report(node.expression);
+      ts.forEachChild(node, visit);
+    };
+    ts.forEachChild(fn.body, visit);
+  };
+  const walk = (node) => {
+    if (ts.isFunctionDeclaration(node) && /^[A-Z]/.test(node.name?.text ?? '')) check(node);
+    else if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && /^[A-Z]/.test(node.name.text) && node.initializer
+      && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) check(node.initializer);
+    ts.forEachChild(node, walk);
+  };
+  walk(sf);
+  return hits;
+}
 
 const files = readdirSync(src, { recursive: true }).filter((f) => /\.tsx?$/.test(f));
 const hits = new Map(RULES.map((r) => [r, []]));
 
+hits.set(S5, []);
 for (const file of files) {
-  const lines = readFileSync(path.join(src, file), 'utf8').split('\n');
-  lines.forEach((line, i) => {
+  const text = readFileSync(path.join(src, file), 'utf8');
+  text.split('\n').forEach((line, i) => {
     if (/^\s*(\/\/|\/\*|\*)/.test(line)) return;
+    // strings 규칙은 줄 안의 따옴표·백틱 문자열(클래스 문자열) 하나씩을 본다.
+    const strings = [...line.matchAll(/(["'`])((?:(?!\1).)*)\1/g)].map((m) => m[2]);
     for (const rule of RULES) {
       if (rule.skip?.test(file)) continue;
-      for (const _ of line.matchAll(rule.re)) hits.get(rule).push(`${file}:${i + 1}`);
+      for (const target of rule.strings ? strings.filter((str) => !rule.unless?.test(str)) : [line]) {
+        for (const _ of target.matchAll(rule.re)) hits.get(rule).push(`${file}:${i + 1}`);
+        if (rule.also?.when.test(target)) for (const _ of target.matchAll(rule.also.re)) hits.get(rule).push(`${file}:${i + 1}`);
+      }
     }
   });
+  if (file.endsWith('.tsx')) hits.get(S5).push(...rootMargins(file, text));
 }
 
 let failed = false;
