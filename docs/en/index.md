@@ -16,7 +16,7 @@ hero:
 carousel:
   - title: Overview
     image: overview
-    alt: The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list (2 outages: Checkout API on edge-host-01 and payment-worker on prod-server; 4 items over a threshold), and 7 recent incidents.
+    alt: The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 4 items over a threshold, and 7 recent incidents.
   - title: Uptime
     image: uptime
     alt: The Storefront uptime monitor on the edge-host-01 server. 24h uptime 99.41%, 30-day uptime 99.86%, 130 ms average response, certificate expiry in 83 days, and a 6-hour response-time chart showing a slowdown, a spike and an outage.

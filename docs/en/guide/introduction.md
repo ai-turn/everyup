@@ -18,8 +18,8 @@ logs, and host resources in one install without changing your apps.
 | **Standard OpenTelemetry Collector** | Sends server CPU, memory, disk, and network to Web | Each server you monitor |
 | **Docker Collector** (optional) | Docker discovery, container state, logs, host metrics | Each Docker host you monitor |
 
-![The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list (2 outages: Checkout API on edge-host-01 and payment-worker on prod-server; 4 items over a threshold), and 7 recent incidents.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
-![The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list (2 outages: Checkout API on edge-host-01 and payment-worker on prod-server; 4 items over a threshold), and 7 recent incidents.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
+![The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 4 items over a threshold, and 7 recent incidents.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
+![The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 4 items over a threshold, and 7 recent incidents.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
 
 ::: info
 The dashboard interface is Korean only. These docs cover setup and
