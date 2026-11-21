@@ -28,7 +28,7 @@ export function ApiExclusionsSettings({ serviceId, paths, onSaved }: { serviceId
   };
   return <details>
     <summary className="cursor-pointer type-label text-action">API 제외 경로 {paths.length}개</summary>
-    <div className="mt-4 space-y-4">
+    <div className="mt-4 space-y-heading">
       <p className="type-body text-text-muted">새로 수집하는 HTTP 요청에서 제외할 경로입니다. 한 줄에 하나씩 입력하며 정확한 경로 또는 끝에 *를 붙인 prefix를 지원합니다. 트레이스 원본에는 적용하지 않습니다.</p>
       <Textarea mono className="min-h-28 resize-y" aria-label="API 제외 경로" value={draft} onChange={event => setDraft(event.target.value)} placeholder={'/health\n/internal/*'} />
       {error && <p role="alert" className="type-body text-status-error">{error}</p>}

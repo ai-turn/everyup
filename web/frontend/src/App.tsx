@@ -26,7 +26,7 @@ const LegacyTargetRedirect  = lazy(() => import('./pages/servers/LegacyTargetRed
 
 function PageLoader() {
   return (
-    <div className="flex-1 p-4 sm:p-6 md:p-8 space-y-4 animate-pulse">
+    <div className="flex-1 p-4 sm:p-6 md:p-8 space-y-heading animate-pulse">
       <div className="h-8 bg-ui-active rounded-lg w-48" />
       <div className="h-4 bg-ui-hover rounded w-72" />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-6">

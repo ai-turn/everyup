@@ -168,7 +168,7 @@ function ServerLogOverview({ serverId, apps, refreshToken }: {
   if (!data) {
     if (error) return <LoadErrorBanner inline title="로그 요약을 불러오지 못했습니다" message={error} onRetry={retry} />;
     return (
-      <div role="status" className="space-y-2">
+      <div role="status" className="space-y-label">
         <span className="sr-only">로딩 중…</span>
         {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
       </div>
@@ -184,7 +184,7 @@ function ServerLogOverview({ serverId, apps, refreshToken }: {
   const next = withLogSummaries(base, data.summaries, data.patterns ?? []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-heading">
       {error && <LoadErrorBanner role="status" title="로그 요약을 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={retry} />}
       <LogServiceOverview rows={next.rows} patterns={data.patterns === null ? null : next.patterns} span={next.span} view={view} returnTo={returnTo}
         title="앱" noun="앱" onRetryPatterns={retry}

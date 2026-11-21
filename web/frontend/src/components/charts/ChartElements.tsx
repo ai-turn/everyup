@@ -223,7 +223,7 @@ export function ChartTooltip({
       <p className="mb-2 text-xs" style={{ color: theme.tickColor }}>
         {labelFormatter ? labelFormatter(label) : typeof label === 'number' ? formatTimeLabel(label) : label}
       </p>
-      <div className="space-y-1.5">
+      <div className="space-y-intra">
         {rows.map((item) => (
           <div key={String(item.dataKey ?? item.name)} className="flex items-center justify-between gap-5">
             <span className="inline-flex items-center gap-2 text-text-muted">

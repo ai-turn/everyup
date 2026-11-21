@@ -300,7 +300,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-item">
           {loading && (
             <div className="flex items-center justify-center py-10 text-sm text-text-muted">
               <MaterialIcon size={20} name="sync" className="mr-2 animate-spin" />
@@ -310,7 +310,7 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
 
           {error && (
             <div className="flex items-start gap-3 px-3 py-2 bg-ui-hover-soft rounded-md">
-              <MaterialIcon size={20} name="error" className="text-status-error shrink-0 mt-0.5" />
+              <MaterialIcon size={20} name="error" className="text-status-error shrink-0 icon-lead" />
               <p className="type-body text-text-secondary">{error}</p>
             </div>
           )}
@@ -425,7 +425,7 @@ function spanTree(spans: TraceSpan[]): { span: TraceSpan; depth: number }[] {
 
 function AttributeRows({ attrs }: { attrs: Record<string, unknown> }) {
   return (
-    <dl className="space-y-0.5">
+    <dl className="space-y-intra">
       {Object.entries(attrs).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => (
         <div key={key} className="flex gap-2 font-mono text-xs">
           <dt className="shrink-0 text-text-muted">{key}:</dt>
@@ -440,7 +440,7 @@ function SpanDetail({ span }: { span: TraceSpan }) {
   const attrs = span.attributes ?? {};
   const events = span.events ?? [];
   return (
-    <div className="space-y-3">
+    <div className="space-y-label">
       {span.statusMessage && (
         <div>
           <p className="mb-1 type-label-sm text-text-dim">실패 원인</p>
@@ -456,9 +456,9 @@ function SpanDetail({ span }: { span: TraceSpan }) {
       {events.length > 0 && (
         <div>
           <p className="mb-1 type-label-sm text-text-dim">Event</p>
-          <ul className="space-y-1.5">
+          <ul className="space-y-label">
             {events.map((event, index) => (
-              <li key={`${event.name}-${event.timeUnixNano ?? index}`} className="space-y-0.5">
+              <li key={`${event.name}-${event.timeUnixNano ?? index}`} className="space-y-intra">
                 <p className="font-mono text-xs text-text-secondary">
                   {event.name}
                   {event.timeUnixNano ? <span className="ml-2 text-text-muted">+{formatDuration(Math.max(0, Math.round((event.timeUnixNano - span.startUnixNano) / 1_000_000)))}</span> : null}
@@ -491,7 +491,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
 
   return (
     <PanelSection icon="account_tree" title="Span" count={spans.length}>
-      <ul className="space-y-1.5">
+      <ul className="space-y-label">
         {spanTree(spans).map(({ span, depth }) => {
           const leftPct = Math.min(Math.max(((span.startUnixNano - traceStart) / total) * 100, 0), 100);
           const widthPct = Math.min(Math.max(((span.endUnixNano - span.startUnixNano) / total) * 100, 0.75), 100 - leftPct);
@@ -501,9 +501,9 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
               key={`${span.traceId}-${span.spanId}`}
               className="px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
             >
-              {/* 이름 줄 → 막대 6px, 막대 → 상세 12px. */}
-              <div className="space-y-3">
-              <div className="space-y-1.5">
+              {/* 이름 줄 → 막대 4px(intra), 막대 → 상세 8px(label). */}
+              <div className="space-y-label">
+              <div className="space-y-intra">
               {/* 들여쓰기는 깊이 8까지만(더 깊으면 이름 자리가 남지 않는다). 막대는 들여쓰지 않아 시간축이 맞는다. */}
               <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap" style={{ paddingLeft: `${Math.min(depth, 8) * 12}px` }}>
                 {hasDetail(span)
@@ -553,7 +553,7 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
   return (
     <div>
       <p className="mb-1 type-label-sm text-text-dim">{label}</p>
-      <dl className="space-y-0.5">
+      <dl className="space-y-intra">
         {headers.map((h) => (
           <div key={h.name} className="flex gap-2 font-mono text-xs">
             <dt className="shrink-0 text-text-muted">{h.name}:</dt>
@@ -571,7 +571,7 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
 
   return (
     <PanelSection icon="list_alt" title="헤더" count={items.length}>
-      <ul className="space-y-2">
+      <ul className="space-y-label">
         {items.map((item) => (
           <li
             key={item.id}
@@ -624,7 +624,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
         <MaterialIcon size={20} name="policy" />
         관리자 전용 · 모든 열람은 감사 로그에 기록됩니다
       </p>
-      <ul className="space-y-2">
+      <ul className="space-y-label">
         {items.map((item) => (
           <li
             key={item.id}
@@ -666,7 +666,7 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
 
   return (
     <PanelSection icon="api" title="API 요청" count={items.length}>
-      <ul className="space-y-1.5">
+      <ul className="space-y-label">
         {items.map((req) => (
           <li
             key={req.id}
@@ -700,16 +700,16 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
 
   return (
     <PanelSection icon="article" title="로그" count={logs.length}>
-      <ul className="space-y-1.5">
+      <ul className="space-y-label">
         {logs.map((log) => (
           <li
             key={log.id}
             className="flex items-start gap-2 px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
           >
-            <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
+            <span className={`${LEVEL_BASE} icon-lead ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
               {log.level}
             </span>
-            <span className="text-text-muted shrink-0 mt-0.5">
+            <span className="text-text-muted shrink-0 icon-lead">
               {formatClock(log.createdAt, true)}
             </span>
             <span className="text-text-secondary break-all flex-1 min-w-0">

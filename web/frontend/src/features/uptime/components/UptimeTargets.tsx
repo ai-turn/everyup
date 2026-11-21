@@ -30,7 +30,7 @@ const latencyText = (monitor: UptimeMonitor) => monitor.responseTime === undefin
 function MonitorStatus({ monitor, error }: { monitor: UptimeMonitor; error: boolean }) {
   const incident = !error && monitor.isActive && monitor.status === 'unhealthy' && monitor.activeIncident?.active ? monitor.activeIncident : undefined;
   return (
-    <div className="space-y-1">
+    <div className="space-y-intra">
       {error ? <StatusLight tone="idle" label="확인 불가" /> : <UptimeMonitorStatusBadge monitor={monitor} />}
       {incident && <Tooltip content={`장애 시작 ${formatFullDateTime(incident.startedAt)}, ${formatDuration(incident.durationSec)} 지속${incident.message ? `. ${incident.message}` : ''}`} focusable>
         <p className="truncate type-caption tabular-nums text-status-error">{formatDuration(incident.durationSec)} 지속</p>
@@ -69,14 +69,14 @@ export function UptimeTargets(props: Props) {
     return <div className="@container"><div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
       {targets.map((monitor) => <UptimeTargetCard key={monitor.id} to={hrefFor(monitor)} returnTo={returnTo}
         title={monitor.name} status={<MonitorStatus monitor={monitor} error={error} />} endpoint={address(monitor)}
-        meta={<div className="relative w-full space-y-4">
+        meta={<div className="relative w-full space-y-heading">
           <dl className="grid grid-cols-2 gap-3 type-caption text-text-muted">
             <div className="space-y-intra"><dt>24h 업타임</dt><dd className="tabular-nums text-text-base">{uptimeText(monitor)}</dd></div>
             <div className="space-y-intra"><dt>평균 응답</dt><dd className="tabular-nums text-text-base">{latencyText(monitor)}</dd></div>
             <div className="space-y-intra"><dt>체크 방식</dt><dd><CheckMethod monitor={monitor} /></dd></div>
             <div className="space-y-intra"><dt>수집 간격</dt><dd className="tabular-nums text-text-base">{monitor.interval}초</dd></div>
           </dl>
-          <div className="space-y-2">
+          <div className="space-y-label">
             <p className="type-caption text-text-muted">최근 체크{monitor.recentChecks?.length ? ` ${Math.min(monitor.recentChecks.length, 10)}회` : ''}</p>
             <CheckHistory monitor={monitor} error={error} />
           </div>
@@ -110,7 +110,7 @@ export function UptimeTargets(props: Props) {
           <td className="min-w-0 px-4 py-3">
             <Tooltip content={monitor.name}><Link data-row-link to={hrefFor(monitor)} state={{ returnTo }} className="block truncate font-medium text-action">{monitor.name}</Link></Tooltip>
             <Tooltip content={address(monitor)} focusable><p className="mt-1 truncate font-mono text-xs text-text-muted">{address(monitor)}</p></Tooltip>
-            <div className="mt-2 space-y-2 @3xl:hidden">
+            <div className="mt-2 space-y-label @3xl:hidden">
               <p className="flex flex-wrap gap-x-3 gap-y-1 type-caption text-text-muted">
                 <span className="whitespace-nowrap">{monitor.type.toUpperCase()} · {monitor.interval}초</span>
                 <span className="whitespace-nowrap @xl:hidden">업타임 {uptimeText(monitor)}</span>

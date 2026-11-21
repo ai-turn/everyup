@@ -91,7 +91,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
   })} />;
 
   return (
-    <div className="min-w-0 space-y-3">
+    <div className="min-w-0 space-y-label">
       <ChartCard
         // 격자와 단독 보기 모두 표시 이름이 제목이고 원본 이름은 아래 줄이다 — 패널을 눌러도 제목이 바뀌지 않는다.
         title={expanded ? title : (
@@ -110,12 +110,12 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           <Button variant={pinned ? 'secondary' : 'ghost'} size="sm" aria-label={`${title} ${pinned ? '고정 해제' : '고정'}`} aria-pressed={pinned} disabled={pinDisabled} onClick={onPin}><MaterialIcon name="push_pin" /></Button>
         </div>}
       >
-        {/* 카드 본문: 차트 위아래의 줄은 12px, 맨 아래 수집 정보는 24px(group)이다. 간격은 이 두 묶음이 갖는다. */}
+        {/* 카드 본문: 차트 위아래의 줄은 8px(label), 맨 아래 수집 정보는 24px(group)이다. 간격은 이 두 묶음이 갖는다. */}
         <div className="page-stack">
-          <div className="space-y-3">
+          <div className="space-y-label">
         {expanded && title !== name && <p className="-mt-2 break-all font-mono text-xs text-text-muted">{name}</p>}
         {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
-        <div className="space-y-2">
+        <div className="space-y-label">
           {/* 원본 이름은 이미 보이는 글자라 따로 Tab 지점을 두지 않는다. 격자는 잘리므로 마우스 힌트만 남긴다. */}
           {/* 격자는 원본 이름과 종류·단위를 왼쪽 두 줄로 묶고 요약을 같은 행에 둔다 — 세 줄이 따로 쌓여 차트가 밀렸다. */}
           <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-4 gap-y-1">
@@ -179,7 +179,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         )}
 
         {pointsError ? (
-          <div role="alert" className="flex flex-col items-center justify-center gap-3 rounded-lg bg-ui-hover-soft px-4 text-center" style={{ height: CHART_HEIGHT }}>
+          <div role="alert" className="flex flex-col items-center justify-center gap-label rounded-lg bg-ui-hover-soft px-4 text-center" style={{ height: CHART_HEIGHT }}>
             <p className="type-label text-text-base">메트릭을 불러오지 못했습니다</p>
             <p className="type-body text-text-muted">{pointsError}</p>
             <Button variant="secondary" size="sm" onClick={read.retry}>다시 시도</Button>
@@ -190,7 +190,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           mode === 'rate' && points.length > 0 ? <div className="flex items-center justify-center text-center type-body text-text-muted" style={{ height: CHART_HEIGHT }}>초당 증가량을 계산할 수 없습니다. 단조 증가하는 sum의 누적 시작 정보와 연속된 포인트가 필요합니다.</div> : <ChartEmpty />
         ) : (
           // 차트 → 범례·시리즈 표·잘림 안내 8px(label).
-          <div className="space-y-2">
+          <div className="space-y-label">
             <div
               tabIndex={0}
               role="group"
@@ -263,7 +263,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         {expanded && points.length > 0 && <details>
           <summary className="min-h-11 cursor-pointer type-label text-text-base">수집 정보</summary>
           <p className="mb-3 type-caption text-text-muted">표시한 최신 포인트의 Resource와 Scope입니다.</p>
-          <dl className="space-y-2 type-caption text-text-muted">{Object.entries(points[points.length - 1]?.resource ?? {}).map(([key, value]) => <div key={key} className="grid gap-1 sm:grid-cols-2"><dt className="break-all font-mono">{key}</dt><dd className="break-all">{value}</dd></div>)}</dl>
+          <dl className="space-y-label type-caption text-text-muted">{Object.entries(points[points.length - 1]?.resource ?? {}).map(([key, value]) => <div key={key} className="grid gap-1 sm:grid-cols-2"><dt className="break-all font-mono">{key}</dt><dd className="break-all">{value}</dd></div>)}</dl>
           <p className="mt-3 break-all type-caption text-text-muted">Scope: {points[points.length - 1]?.scope?.name || '기록 없음'} {points[points.length - 1]?.scope?.version}</p>
         </details>}
         </div>

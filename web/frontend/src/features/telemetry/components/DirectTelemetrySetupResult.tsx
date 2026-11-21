@@ -35,7 +35,7 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
     ...SIGNALS.filter(signal => !setup.signals.includes(signal)).map(signal => `OTEL_${signal.toUpperCase()}_EXPORTER=none`),
   ].join('\n') : '';
 
-  const appConfiguration = setup ? <div className="space-y-2">
+  const appConfiguration = setup ? <div className="space-y-label">
     <div className="flex items-center justify-between gap-2">
       <p className="type-label text-text-secondary">OpenTelemetry 환경 변수</p>
       <CopyButton onCopy={() => copy(configuration)} disabled={!address.valid} title="환경 변수 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
@@ -43,8 +43,8 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
     <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{address.valid ? configuration : '접근 가능한 서버 주소를 입력하세요.'}</pre>
   </div> : undefined;
 
-  return <div className="space-y-5 p-6">
-    <div className="space-y-2">
+  return <div className="space-y-item p-6">
+    <div className="space-y-label">
       <h3 className="type-card-title text-text-base">{title}</h3>
       <p className="type-body text-text-muted">등록된 연결에 앱 설정을 적용한 뒤, 아래에서 실제 데이터 수신을 확인해 주세요.</p>
       {setup ? <p className="flex items-start gap-1.5 type-label text-text-base"><MaterialIcon size={20} name="warning" className="shrink-0 text-status-warn" />API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
@@ -52,7 +52,7 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
     </div>
     {setup && <>
       <ConnectionAddressField address={address} />
-      <div className="space-y-2">
+      <div className="space-y-label">
         <p className="type-label text-text-secondary">API Key</p>
         <div className="flex items-center gap-2 rounded-md bg-ui-hover-soft p-3">
           <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>

@@ -247,12 +247,12 @@ export function OverviewPage() {
       </p>
 
       {failedLabels.length > 0 && (
-        <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
+        <section className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
           <div className="flex items-start gap-3">
-            <MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" />
+            <MaterialIcon size={20} name="sync_problem" className="icon-lead text-status-warn" />
             <div>
               <p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p>
-              <p className="mt-0.5 type-body text-text-muted">
+              <p className="mt-intra type-body text-text-muted">
                 불러오지 못한 영역: {failedLabels.join(', ')}. 이 영역은 정상 여부를 판단할 수 없습니다.
               </p>
             </div>
@@ -326,7 +326,7 @@ export function OverviewPage() {
                 </div>
               ) : (
                 // 그룹(장애, 확인 필요) 사이 24px(DESIGN.md §3.7 세로 위계).
-                <div className="space-y-6">
+                <div className="space-y-group">
                   {/* 장애가 없으면 확인 필요보다 먼저 그것을 말한다. 경고 몇 건이 장애처럼 읽히지 않게. */}
                   {outageItems.length === 0 ? (
                     <div className="flex items-center gap-3 py-2">
@@ -358,7 +358,7 @@ export function OverviewPage() {
             <Section label="최근 장애 이력" title="최근 장애 이력" description="업타임 모니터·Docker 서비스, 최근 7일"
               meta={<><span aria-hidden="true">{timelineFailed ? '-' : timeline.length}</span><span className="sr-only">{timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}</span></>}>
               {timelineFailed && (
-                <div role="status" className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                <div role="status" className="flex flex-col gap-label cell sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
                     <MaterialIcon name="sync_problem" className="shrink-0 text-status-warn" />
                     <p className="type-body text-text-muted">

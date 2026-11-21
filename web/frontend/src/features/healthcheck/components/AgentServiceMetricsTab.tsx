@@ -88,7 +88,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
         {/* 이 메트릭과 대상을 채운 규칙 폼을 연다. 임계값은 비워 두고 사용자가 정한다. */}
         {opened && <ButtonLink variant="secondary" size="sm" to={alertRuleNewPath(alertTarget, { category: 'metric', metricName: opened.metricName })}><MaterialIcon name="notifications" />알림 추가</ButtonLink>}
       </div>
-      {opened ? chart(opened, true) : matches.length > 1 ? <div className="space-y-3"><p className="type-body text-text-muted">같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.</p>{matches.map(meta => <Button key={metricIdentity(meta)} variant="secondary" onClick={() => openMetric(meta)} className="h-auto min-h-11 flex-wrap gap-x-3 py-2"><span className="min-w-0 break-all">{meta.metricName}</span><span>{meta.metricType}</span><span>{meta.unit || '단위 없음'}</span></Button>)}</div>
+      {opened ? chart(opened, true) : matches.length > 1 ? <div className="space-y-label"><p className="type-body text-text-muted">같은 이름의 타입·단위가 여러 개입니다. 조회할 지표를 선택해 주세요.</p>{matches.map(meta => <Button key={metricIdentity(meta)} variant="secondary" onClick={() => openMetric(meta)} className="h-auto min-h-11 flex-wrap gap-x-3 py-2"><span className="min-w-0 break-all">{meta.metricName}</span><span>{meta.metricType}</span><span>{meta.unit || '단위 없음'}</span></Button>)}</div>
         : <EmptyState icon="search" title="메트릭을 찾을 수 없습니다" description={`선택한 메트릭이 이 ${noun}의 저장된 목록에 없습니다.`} action={{ label: '전체 메트릭', onClick: closeMetric }} />}
     </> : <>
       {flagged.length > 0 && <details className="rounded-xl border border-ui-border-soft bg-bg-surface p-4" open>
@@ -108,7 +108,7 @@ function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, 
       {names.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3"><SearchInput value={query.search} onChange={event => query.update({ metricSearch: event.target.value }, true)} onClear={() => query.update({ metricSearch: '' }, true)} placeholder="이름 또는 설명으로 지표 찾기" aria-label="이름 또는 설명으로 지표 찾기" wrapperClassName="w-full sm:w-80" /><span className="type-caption text-text-muted">자주 보는 지표를 최대 4개 고정할 수 있습니다.</span></div>}
       {GROUPS.map(group => {
         const items = displayed.filter(meta => groupFor(meta) === group);
-        return items.length > 0 && <section key={group} aria-label={group} className="space-y-2"><h2 className={SUBGROUP_LABEL}>{group}<span className="ml-2 type-caption text-text-muted">{items.length}</span></h2><div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">{items.map(meta => chart(meta))}</div></section>;
+        return items.length > 0 && <section key={group} aria-label={group} className="space-y-label"><h2 className={SUBGROUP_LABEL}>{group}<span className="ml-2 type-caption text-text-muted">{items.length}</span></h2><div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">{items.map(meta => chart(meta))}</div></section>;
       })}
       {names.length === 0 ? empty ?? <EmptyState icon="monitoring" title="수신한 메트릭이 없습니다" description="OpenTelemetry SDK가 메트릭을 보내면 여기에 표시됩니다." />
         : visible.length === 0 && <EmptyState icon="search" title="일치하는 메트릭이 없습니다" description={`'${query.search.trim()}'와 일치하는 메트릭이 없습니다.`} action={{ label: '검색 초기화', onClick: () => query.update({ metricSearch: null }, true) }} />}

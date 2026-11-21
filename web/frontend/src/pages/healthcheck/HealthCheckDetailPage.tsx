@@ -81,7 +81,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
 
   if (loadError && !service) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center gap-4">
+      <div className="flex h-64 flex-col items-center justify-center gap-heading">
         <MaterialIcon size={32} name="sync_problem" className="text-status-warn" />
         <div className="text-center"><p className="type-label text-text-base">서비스를 불러오지 못했습니다</p><p className="mt-1 type-body text-text-muted">{loadError}</p></div>
         <div className="flex gap-2"><ButtonLink variant="secondary" to="/environments">Docker 환경</ButtonLink><Button loading={refreshing} onClick={() => void fetchService()}>다시 시도</Button></div>
@@ -91,7 +91,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
 
   if (!service) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
+      <div className="flex flex-col items-center justify-center h-64 gap-heading">
         <MaterialIcon size={32} name="error_outline" className="text-red-500" />
         <p className="text-text-muted">
           서비스를 찾을 수 없습니다

@@ -203,8 +203,8 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
     >
       {/* Time leads so the list scans in time order; on phones it takes its own line. */}
       <div className="flex flex-wrap items-start gap-x-3 gap-y-1 sm:flex-nowrap">
-        <time dateTime={log.createdAt} className="mt-0.5 w-full shrink-0 text-xs tabular-nums text-text-dim sm:w-auto">{formatDateTime(log.createdAt)}</time>
-        <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
+        <time dateTime={log.createdAt} className="icon-lead w-full shrink-0 text-xs tabular-nums text-text-dim sm:w-auto">{formatDateTime(log.createdAt)}</time>
+        <span className={`${LEVEL_BASE} icon-lead ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
           {log.level}
         </span>
         {/* pre-wrap keeps a stack trace's lines */}
@@ -236,10 +236,10 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
       </div>
       {expanded && hasMeta && (
         // Clicks and keys inside stay here — only the summary line collapses the row.
-        // 요약 줄 → 펼친 내용 12px, 묶음 사이 12px, 묶음 라벨 → 내용 6px.
-        <div className="mt-3 cursor-auto space-y-3" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+        // 요약 줄 → 펼친 내용 8px(label), 묶음 사이 8px(label), 묶음 라벨 → 내용 4px(intra).
+        <div className="mt-label cursor-auto space-y-label" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           {attributes.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="space-y-intra">
             <p className="type-caption text-text-dim">Attributes</p>
             <div className="flex flex-wrap gap-1.5">
               {attributes.map(([key, value]) => (
@@ -260,7 +260,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
             </div>
           )}
           {resource.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="space-y-intra">
             <p className="type-caption text-text-dim">Resource</p>
             <dl className="grid gap-x-4 gap-y-1 font-mono text-xs sm:grid-cols-[max-content_1fr]">
               {resource.map(([key, value]) => (
@@ -272,7 +272,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
           {/* The same fields again plus anything nested — closed, since the lists above already read it. */}
           <details>
             <summary className="cursor-pointer py-1 type-caption text-text-dim max-sm:py-3">원본 JSON</summary>
-            <pre className="mt-1.5 text-xs font-mono text-text-muted bg-ui-hover-soft rounded-md px-3 py-2.5 overflow-x-auto whitespace-pre-wrap break-all">
+            <pre className="mt-intra text-xs font-mono text-text-muted bg-ui-hover-soft rounded-md px-3 cell overflow-x-auto whitespace-pre-wrap break-all">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>
           </details>
@@ -409,13 +409,13 @@ function ServiceLogsPanel(props: Props) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-heading">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Level filter */}
         {/* 보기 필터임을 라벨로 밝힌다 — 위 '수집 레벨'(저장 설정)과 같은 표기라 혼동됐다. */}
         {/* 44px 높이를 지키면서 한 줄에 여섯 개가 들어가도록 좁은 화면에서만 좌우 여백을 줄인다 */}
-        <div className="flex flex-col items-start gap-1 max-sm:w-full max-sm:[&_button]:px-2 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex flex-col items-start gap-intra max-sm:w-full max-sm:[&_button]:px-2 sm:flex-row sm:items-center sm:gap-label">
           <span className="whitespace-nowrap type-caption text-text-dim">레벨 필터</span>
           <SegmentedControl size="md" options={LOG_LEVELS} value={level} onChange={v => { setLevel(v); setPage(1); }} ariaLabel="레벨 필터" />
         </div>
@@ -513,7 +513,7 @@ function ServiceLogsPanel(props: Props) {
 
       {/* List */}
       {loading ? (
-        <div className="space-y-2">
+        <div className="space-y-label">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="h-12 rounded-xl bg-ui-hover animate-pulse" />
           ))}
@@ -522,7 +522,7 @@ function ServiceLogsPanel(props: Props) {
         <div role="alert" className="py-16 text-center">
           <MaterialIcon size={36} name="error" className="text-status-error mb-2" />
           <p className="type-label text-text-base">로그를 불러오지 못했습니다</p>
-          <div className="space-y-4">
+          <div className="space-y-heading">
             <p className="mt-1 type-body text-text-muted">{loadError.message}</p>
             <Button onClick={() => void fetch()}>다시 시도</Button>
           </div>
@@ -530,7 +530,7 @@ function ServiceLogsPanel(props: Props) {
       ) : logs.length === 0 ? (
         <div className="py-16 text-center">
           <MaterialIcon size={36} name="article" className="text-text-dim mb-2" />
-          <div className="space-y-4">
+          <div className="space-y-heading">
             <p className="type-body text-text-muted">
               {hasConditions ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
             </p>
@@ -548,7 +548,7 @@ function ServiceLogsPanel(props: Props) {
             />
           ))}
           {totalPages > 1 && (
-            <div className="flex items-center justify-end px-4 py-2.5">
+            <div className="flex items-center justify-end px-4 cell">
               {/* Live tail only ever shows the newest page, so leaving page 1 turns it off. */}
               <Pagination
                 page={page}

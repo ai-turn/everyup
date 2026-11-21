@@ -70,9 +70,9 @@ export function ListGroup({ id, label, footer, children }: { id: string; label: 
     <div role="group" aria-labelledby={id}>
       <h3 id={id} data-gap-after="label" className={`mb-label ${SUBGROUP_LABEL}`}>{label}</h3>
       <List>{children}</List>
-      {/* 목록 끝 조작(ListMore)의 자리: 목록(list-bleed)의 아래 -10px을 되돌리는 mt-2.5로 마지막 항목과 20px, 행처럼 좌우로 펼치고
-          그룹 끝에서 버튼의 아래 패딩을 거두는 -mb-2.5. */}
-      {footer && <div className="-mx-3 mt-2.5 -mb-2.5 max-w-186">{footer}</div>}
+      {/* 목록 끝 조작(ListMore)의 자리(list-more): 목록(list-bleed)의 아래 -10px을 되돌려 마지막 항목과 20px, 행처럼 좌우로 펼치고
+          그룹 끝에서 버튼의 아래 패딩을 거둔다. */}
+      {footer && <div className="list-more max-w-186">{footer}</div>}
     </div>
   );
 }
