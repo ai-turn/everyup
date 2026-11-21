@@ -175,8 +175,8 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 **설치 대기**에서 **수집 중**으로 바뀝니다.
 업타임 수집을 선택했다면 그 서버의 컨테이너도 서비스로 나타납니다.
 
-![Docker 환경 목록. prod-server는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-light.webp){.only-light width=751 height=202}
-![Docker 환경 목록. prod-server는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-dark.webp){.only-dark width=751 height=202}
+![Docker 환경 목록. prod-server·worker-cluster·edge-node는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-light.webp){.only-light width=776 height=365}
+![Docker 환경 목록. prod-server·worker-cluster·edge-node는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-dark.webp){.only-dark width=776 height=365}
 
 <p class="screenshot-caption"><strong>수집 중</strong>이면 연결된 것이고, <strong>설치 대기</strong>면 아직 Collector가 연결되지 않은 것입니다.</p>
 
