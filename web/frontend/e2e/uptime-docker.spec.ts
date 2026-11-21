@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { API_URL } from './fixtures/ports';
 import { deferred, dockerService, uptimeFixture } from './fixtures/uptime';
 
@@ -70,14 +70,20 @@ for (const [changes, label] of [[{ seen: false, observedAt: '' }, '확인 대기
   });
 }
 
-test('[12] Docker uptime uses check-weighted totals and no-data is not zero incidents', async ({ page }) => {
+// 모니터 상세와 같은 수치 묶음이다(DESIGN.md §4.7 대상 상세).
+const kpis = (page: Page) => page.locator('section').filter({ has: page.getByRole('heading', { name: '주요 지표', exact: true }) });
+const kpi = (page: Page, label: string) => kpis(page).locator('dl > div').filter({ hasText: label }).locator('dd');
+
+test('[12] Docker uptime uses check-weighted totals and no data reads as unknown', async ({ page }) => {
   const state = await seed(page);
   await page.goto(url);
-  const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
-  await expect(overview.locator('dl > div').filter({ hasText: '24시간 업타임' }).locator('dd')).toHaveText('90.00%');
+  await expect(kpis(page).locator('dt')).toHaveText(['24시간 업타임', '30일 업타임', '평균 응답 (24시간)']);
+  await expect(kpi(page, '24시간 업타임')).toHaveText('90.00%');
+  // 지연은 성공한 체크의 평균이라, 모두 실패한 버킷(지연 0)이 평균을 끌어내리지 않는다.
+  await expect(kpi(page, '평균 응답')).toHaveText('100ms');
   state.responses.set(`GET ${source}/history`, []); state.responses.set(`GET ${source}/uptime`, []);
-  await page.getByRole('button', { name: '새로고침', exact: true }).click();
-  await expect(overview.locator('dl > div').filter({ hasText: '90일 장애' }).locator('dd')).toHaveText('-');
+  await page.getByRole('button', { name: '새로고침', exact: true }).first().click();
+  await expect(kpis(page).locator('dd')).toHaveText(['-', '-', '-']);
   await expect(page.getByText('알림 기록이 없습니다', { exact: true })).toBeVisible();
 });
 
@@ -87,11 +93,10 @@ test('[12] Docker data sources show loading until their own requests complete', 
   try {
     await page.goto(url);
     await expect(page.getByRole('heading', { name: 'Docker API', exact: true })).toBeVisible();
-    const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
-    await expect(overview.locator('dd')).toHaveText(['-', '-', '-', '-']);
+    await expect(kpis(page).locator('dd')).toHaveText(['-', '-', '-']);
     await expect(page.getByText('알림 기록이 없습니다', { exact: true })).toHaveCount(0);
     gate.resolve();
-    await expect(overview.locator('dd').first()).toHaveText('90.00%');
+    await expect(kpis(page).locator('dd').first()).toHaveText('90.00%');
     await expect(page.getByText('알림 기록이 없습니다', { exact: true })).toBeVisible();
   } finally { gate.resolve(); }
 });
@@ -104,8 +109,10 @@ test('[12] daily totals are weighted and only alert/recovery events appear in th
   ]);
   state.responses.set(`GET ${source}/events`, ['alert_sent', 'recovery_sent', 'container_started'].map((type, id) => ({ id, agentId: 'docker-host', type, time: new Date().toISOString(), createdAt: new Date().toISOString(), message: type })));
   await page.goto(url);
-  const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
-  await expect(overview.locator('dl > div').filter({ hasText: '90일 업타임' }).locator('dd')).toHaveText('99.00%');
+  // 30일과 90일 모두 날마다의 체크 수로 가중한다. 90일은 띠 머리글이다.
+  await expect(kpi(page, '30일 업타임')).toHaveText('99.00%');
+  const band = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
+  await expect(band.getByText(/^지난 90일/)).toHaveText('지난 90일 · 99.00%');
   await expect(page.getByText('alert_sent', { exact: true })).toBeVisible();
   await expect(page.getByText('recovery_sent', { exact: true })).toBeVisible();
   await expect(page.getByText('container_started', { exact: true })).toHaveCount(0);

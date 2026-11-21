@@ -16,7 +16,8 @@ import type { ResponseFailure } from './ResponseTimeCard';
 import { UptimeLatestCheck } from './UptimeLatestCheck';
 import { UptimeMonitorDialog } from './UptimeMonitorDialog';
 import { UptimeMonitorStatusBadge } from './UptimeMonitorStatusBadge';
-import { UptimeOverview, UptimeStats, type UptimeOverviewStat } from './UptimeOverview';
+import { UptimeOverview, UptimeStats } from './UptimeOverview';
+import { uptimeKpis } from '../uptimeKpis';
 
 type ResponseRange = '1h' | '6h' | '24h';
 const RESPONSE_RANGES = [{ label: '1h', value: '1h' }, { label: '6h', value: '6h' }, { label: '24h', value: '24h' }] as const;
@@ -121,16 +122,6 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
       )}
     </div>
   );
-}
-
-const CERT_WARN_DAYS = 14;
-
-const daysUntil = (iso: string) => Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
-
-/** HTTPS만 네 번째 지표가 된다. 14일 이하는 주의, 지나면 오류 색. */
-function certStat(iso: string): UptimeOverviewStat {
-  const days = daysUntil(iso);
-  return { label: '인증서 만료', value: days < 0 ? '만료됨' : `D-${days}`, tone: days < 0 ? 'error' : days <= CERT_WARN_DAYS ? 'warn' : undefined };
 }
 
 // 확인 대상은 제목 아래에 따로 보이므로 접힌 속성에는 넣지 않는다.
@@ -310,12 +301,10 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, menuItems = [],
         <section>
           {/* 패널 제목은 h2(서버 이름이 h1)이고, 패널 안의 절 제목은 그 한 단계 아래다. */}
           <h3 className="sr-only">주요 지표</h3>
-          <UptimeStats stats={[
-            { label: '24시간 업타임', value: monitor.uptime === undefined ? '-' : `${monitor.uptime.toFixed(2)}%` },
-            { label: '30일 업타임', value: summary && summary.totalChecks > 0 ? `${summary.uptime.toFixed(2)}%` : '-' },
-            { label: '평균 응답 (24시간)', value: monitor.responseTime === undefined ? '-' : `${Math.round(monitor.responseTime).toLocaleString()}ms` },
-            ...(monitor.certExpiresAt ? [certStat(monitor.certExpiresAt)] : []),
-          ]} />
+          <UptimeStats stats={uptimeKpis({
+            uptime24h: monitor.uptime, uptime30d: summary && summary.totalChecks > 0 ? summary.uptime : undefined,
+            avgResponse24h: monitor.responseTime, certExpiresAt: monitor.certExpiresAt,
+          })} />
         </section>
         <ResponseTimeChart monitorId={monitor.id} incidents={incidents ?? []} failures={(failures ?? []).map(failureEvent)} range={range} refreshKey={refreshKey + token} onRangeChange={setRange} headingLevel="h3" />
         <UptimeOverview

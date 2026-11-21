@@ -14,6 +14,8 @@ export interface DetailMetaField {
 
 interface DetailMetaProps {
   status: ReactNode;
+  /** 대상의 연결 방식 한 줄(대상 상세, DESIGN.md §4.7). 상태 줄 바로 아래, 접히는 속성 위라 좁은 화면에서도 늘 보인다. */
+  connection?: ReactNode;
   fields?: DetailMetaField[];
   collapseOnMobile?: boolean;
   /** 접힌 속성 목록의 이름 — 대상이 서비스가 아니면(인프라 서버 등) 바꾼다 */
@@ -25,7 +27,7 @@ interface DetailMetaProps {
 const TOUCH_CONTROLS = {};
 const COMPACT_CONTROLS = { size: 'sm' } as const;
 
-export function DetailMeta({ status, fields = [], collapseOnMobile = false, collapseLabel = '서비스 정보', collapsed = false }: DetailMetaProps) {
+export function DetailMeta({ status, connection, fields = [], collapseOnMobile = false, collapseLabel = '서비스 정보', collapsed = false }: DetailMetaProps) {
   const narrow = useMediaQuery('(max-width: 639px)');
   const fieldList = fields.length > 0 ? (
     // 행 높이는 하나다: sm 이상 40px(값 안의 조작은 sm 32px), 터치 화면 44px(조작 md 44px). 이전에는 조작이 든 행만
@@ -44,6 +46,7 @@ export function DetailMeta({ status, fields = [], collapseOnMobile = false, coll
   return (
     <div className="space-y-label">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 type-caption text-text-muted">{status}</div>
+      {connection}
       {fieldList && (collapsed || (collapseOnMobile && narrow) ? (
         <details>
           <summary className={`min-h-11 cursor-pointer content-center type-body text-action ${collapsed ? 'sm:min-h-8' : ''}`}>
