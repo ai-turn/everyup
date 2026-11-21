@@ -24,10 +24,11 @@ const BASE = `http://127.0.0.1:${PORT}/everyup/demo`;
 // 화면 내용이 바뀌면 함께 고친다.
 const SLIDES = [
   { name: 'overview', url: '/' },
-  { name: 'uptime', url: '/uptime' },
+  // 업타임·인프라는 서버의 탭이다(ADR 0011). `/uptime`·`/infrastructure/:id`는 옛 주소라 서버 목록이나 다른 화면으로 넘어간다.
+  { name: 'uptime', url: '/servers/server_mock_edge_host_01/uptime/uptime_mock_store' },
   { name: 'logs', url: '/logs' },
   // 상세 화면은 헤더를 넘기고 본문(게이지·탭 내용)부터 보여준다.
-  { name: 'infra', url: '/infrastructure/infra_mock_edge_01', scrollTo: '#main-content h2' },
+  { name: 'infra', url: '/servers/server_mock_edge_host_01/infrastructure', scrollTo: '[role="tabpanel"]' },
   { name: 'api', url: '/services/agent_demo_01/shop%3Aapi?tab=requests', scrollTo: '[role="tabpanel"]' },
   // 결제 트레이스는 payment-worker 서비스에 있다(docs/index.md 대체 텍스트가 이 화면을 설명한다).
   { name: 'trace', url: '/services/agent_demo_01/shop%3Apayment-worker?tab=traces', click: 'POST /api/v1/payments' },
@@ -137,13 +138,21 @@ async function captureQuickstart(browser, converter, scheme) {
   // 1024px에서는 목록 표가 문서 본문 폭(약 690px)과 비슷해져, 줄이지 않아도 상태 배지가 읽힌다.
   const page = await browser.newPage({ viewport: { width: 1024, height: 768 }, deviceScaleFactor: 2, colorScheme: scheme });
   await open(page, '/environments');
+  // 목록은 환경마다 서비스를 펼쳐 보여 준다. Quick Start는 `수집 중`과 `설치 대기`를 비교하므로 환경 행만 남긴다.
+  const expanded = page.locator('#main-content table button[aria-expanded="true"]');
+  while (await expanded.count()) await expanded.first().click();
+  await page.mouse.move(0, 0); // 마지막으로 누른 행의 hover 배경을 남기지 않는다
   await page.waitForTimeout(800);
   const r = await page.locator('#main-content table').first().evaluate((el) => {
     const { x, y, width, height } = el.getBoundingClientRect();
-    return { x, y, width, height };
+    // 표는 행 hover가 본문 여백까지 닿도록 좌우로 넓어진다(list-bleed). 여백을 더하면 사이드바 경계선이 찍히므로 본문 안에서 자른다.
+    const main = el.closest('main')?.getBoundingClientRect() ?? { left: 0, right: innerWidth };
+    return { x, y, width, height, left: main.left + 1, right: main.right - 1 };
   });
   const pad = 16;
-  const box = { x: r.x - pad, y: r.y - pad, width: Math.round(r.width) + pad * 2, height: Math.round(r.height) + pad * 2 };
+  const left = Math.max(r.x - pad, r.left);
+  const right = Math.min(r.x + r.width + pad, r.right);
+  const box = { x: left, y: r.y - pad, width: Math.round(right - left), height: Math.round(r.height) + pad * 2 };
   const png = await page.screenshot({ clip: box });
   await writeWebp(converter, png, `quickstart-docker-env-${scheme}.webp`, box.width * 2, 0.88);
   await page.close();

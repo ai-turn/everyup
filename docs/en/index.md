@@ -16,25 +16,25 @@ hero:
 carousel:
   - title: Overview
     image: overview
-    alt: The EveryUp overview. payment-worker flagged as down, a monitoring scope of 2 Docker environments, 4 uptime monitors, 3 directly connected services and 2 infrastructure resources, and 3 recent incidents.
+    alt: The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list (2 outages: Checkout API on edge-host-01 and payment-worker on prod-server; 4 items over a threshold), and 7 recent incidents.
   - title: Uptime
     image: uptime
-    alt: The uptime screen. Summary of 3 healthy, 0 down, 1 paused or pending, and a list of 4 HTTP and TCP monitors.
+    alt: The Storefront uptime monitor on the edge-host-01 server. 24h uptime 99.41%, 30-day uptime 99.86%, 130 ms average response, certificate expiry in 83 days, and a 6-hour response-time chart showing a slowdown, a spike and an outage.
   - title: Logs
     image: logs
-    alt: The logs screen. ERROR and WARN counts and trends per service, and a list of frequent errors.
+    alt: The all-logs screen. Error and warning counts and trends over the last 24 hours for 7 apps with their latest log, followed by the frequent errors and warnings.
   - title: Infrastructure
     image: infra
-    alt: The infrastructure screen for edge-host-01. Usage trend charts for CPU 67.4%, memory 72.8% (warning) and disk 41.2%, plus network In and Out, with an 80% alert threshold line on the CPU chart.
+    alt: The infrastructure tab of the edge-host-01 server. Usage trend charts for CPU 67.4%, memory 72.8% (needs attention, threshold 70%) and disk 41.2%, plus network In and Out, with an 80% alert threshold line on the CPU chart.
   - title: API requests
     image: api
-    alt: The API requests tab of the api service. A request trend chart with request and error bars per 10 minutes, a dashed last-week line and a deploy marker, p95 latency of 121 ms, and recent requests.
+    alt: The API requests tab of the api service in the prod-server Docker environment. Status code mix, request count, error rate and p95 tiles, a trend chart with request and error bars per 10 minutes and a deploy marker, and a per-endpoint table of requests, error rate and p95.
   - title: Traces
     image: trace
-    alt: The trace panel for a payment request. SERVER and CLIENT spans in error, a masked request JSON and an upstream_timeout response, the API request that ended in 503, and 2 related error logs.
+    alt: The trace panel for a payment request. SERVER and CLIENT spans in error (payment gateway timeout, certificate validation failed), a masked request JSON and an upstream_timeout response, and links to the related logs and API request.
   - title: Notifications
     image: alerts
-    alt: The alerts screen. 178 sent and 9 failed in 7 days, 95% success, and the Telegram, Discord, and Slack channels.
+    alt: The alert rules list. 9 rules that can be filtered by uptime, API requests, logs, metrics, infrastructure and system, each with its severity, target, condition and channels.
 
 features:
   - icon: '<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v3h2V6h16v3h2V6c0-1.1-.9-2-2-2m0 14H4v-3H2v3c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-3h-2z"/><path d="M14.89 7.55c-.34-.68-1.45-.68-1.79 0L10 13.76l-1.11-2.21A.988.988 0 0 0 8 11H2v2h5.38l1.72 3.45c.18.34.52.55.9.55s.72-.21.89-.55L14 10.24l1.11 2.21c.17.34.51.55.89.55h6v-2h-5.38z"/></svg>'
