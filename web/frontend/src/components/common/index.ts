@@ -13,6 +13,7 @@ export { ResourceTable, type ResourceColumn } from './ResourceTable';
 export { ResourceCardHeader } from './ResourceCardHeader';
 export { SectionHeader } from './SectionHeader';
 export { List, ListGroup, ListMore, ListRow } from './ListRow';
+export { OptionText } from './OptionText';
 export { MaterialIcon } from './MaterialIcon';
 export { CopyButton, COPY_ACTION_PRIMARY, COPY_ACTION_SUBTLE } from './CopyButton';
 export { StatusLight, type StatusTone } from './StatusLight';

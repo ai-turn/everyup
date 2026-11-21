@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, ButtonLink, IconButton, MaterialIcon } from '../../../components/common';
+import { Button, ButtonLink, IconButton, MaterialIcon, OptionText } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type Project, type Server } from '../../../services/api';
@@ -109,10 +109,7 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
                 <input type="radio" name="move-target-server" value={server.id} checked={selected === server.id} disabled={disabled}
                   onChange={() => setSelected(server.id)} aria-describedby={disabled ? `move-target-taken-${server.id}` : undefined}
                   className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed" />
-                <span className="min-w-0">
-                  <span className="block break-words type-label text-text-base">{server.name}{group && ` (${group})`}</span>
-                  {disabled && <span id={`move-target-taken-${server.id}`} className="block type-caption text-text-muted">인프라 리소스가 이미 있습니다</span>}
-                </span>
+                <OptionText title={<>{server.name}{group && ` (${group})`}</>} description={disabled && '인프라 리소스가 이미 있습니다'} descriptionId={`move-target-taken-${server.id}`} />
               </label>
             </li>
           );

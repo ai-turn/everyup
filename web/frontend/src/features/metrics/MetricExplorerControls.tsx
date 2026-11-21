@@ -67,9 +67,9 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
           if (new TextEncoder().encode(JSON.stringify(next)).length > 4096) { setError('필터가 너무 깁니다. key나 값을 줄여 주세요.'); return; }
           setFilters(next); setKey(''); setValue(''); setError('');
         }} className="flex flex-wrap items-end gap-3">
-          <label className="min-w-0 flex-1 basis-48 space-y-1.5 type-label">Attribute key<Input mono value={key} onChange={event => setKey(event.target.value)} placeholder="http.request.method" /></label>
-          <label className="min-w-0 flex-1 basis-48 space-y-1.5 type-label">값<Input mono value={value} disabled={valueType === 'null'} onChange={event => setValue(event.target.value)} placeholder={valueType === 'boolean' ? 'true 또는 false' : 'GET'} /></label>
-          <label className="w-32 space-y-1.5 type-label">값 타입<Select aria-label="Attribute 값 타입" value={valueType} onChange={event => setValueType(event.target.value)}><option value="string">문자열</option><option value="number">숫자</option><option value="boolean">참·거짓</option><option value="null">null</option></Select></label>
+          <label className="min-w-0 flex-1 basis-48 space-y-2 type-label">Attribute key<Input mono value={key} onChange={event => setKey(event.target.value)} placeholder="http.request.method" /></label>
+          <label className="min-w-0 flex-1 basis-48 space-y-2 type-label">값<Input mono value={value} disabled={valueType === 'null'} onChange={event => setValue(event.target.value)} placeholder={valueType === 'boolean' ? 'true 또는 false' : 'GET'} /></label>
+          <label className="w-32 space-y-2 type-label">값 타입<Select aria-label="Attribute 값 타입" value={valueType} onChange={event => setValueType(event.target.value)}><option value="string">문자열</option><option value="number">숫자</option><option value="boolean">참·거짓</option><option value="null">null</option></Select></label>
           <Button type="submit" variant="secondary">필터 적용</Button>
         </form>
         {error && <p role="alert" className="type-body text-status-error">{error}</p>}

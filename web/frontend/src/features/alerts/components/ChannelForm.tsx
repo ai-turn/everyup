@@ -385,8 +385,11 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         >
                                             <input {...register('type')} type="radio" value={type} className="sr-only" />
                                             <m.Icon size={26} className={active ? m.color : 'text-text-dim'} />
-                                            <span className={`text-sm ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
-                                            <span className="type-label text-text-dim">{m.sub}</span>
+                                            {/* 선택지 카드의 제목 → 설명 4px(DESIGN.md §6) */}
+                                            <span className="flex flex-col items-center">
+                                                <span className={`text-sm ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
+                                                <span className="mt-1 type-caption-stack text-text-muted">{m.sub}</span>
+                                            </span>
                                         </label>
                                     );
                                 })}
@@ -470,7 +473,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                             <div className="flex items-center gap-3 mb-4">
                                 <div>
                                     <p className="type-label text-text-base">채널 미리보기</p>
-                                    <p className="type-body text-text-muted mt-0.5">실제 전송 메시지 형식</p>
+                                    <p className="mt-1 type-body text-text-muted">실제 전송 메시지 형식</p>
                                 </div>
                             </div>
                             <div className="space-y-4">
@@ -530,7 +533,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 <MaterialIcon size={20} name="send" className="text-text-dim" />
                                 <div>
                                     <p className="type-label text-text-base">테스트 전송</p>
-                                    <p className="type-body text-text-muted mt-0.5">실제 채널로 테스트 메시지 발송</p>
+                                    <p className="mt-1 type-body text-text-muted">실제 채널로 테스트 메시지 발송</p>
                                 </div>
                             </div>
                             <div className="space-y-3">
@@ -554,7 +557,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         <MaterialIcon size={20} name="check_circle" className="text-status-healthy mt-0.5 shrink-0" />
                                         <div>
                                             <p className="type-body text-text-base">발송 성공</p>
-                                            <p className="type-body text-text-muted mt-0.5">{`${testTime}에 전송되었습니다`}</p>
+                                            <p className="mt-1 type-body text-text-muted">{`${testTime}에 전송되었습니다`}</p>
                                         </div>
                                     </div>
                                 )}
@@ -564,7 +567,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         <MaterialIcon size={20} name="error" className="text-status-error mt-0.5 shrink-0" />
                                         <div>
                                             <p className="type-body text-text-base">발송 실패</p>
-                                            <p className="type-body text-text-muted mt-0.5">{testError}</p>
+                                            <p className="mt-1 type-body text-text-muted">{testError}</p>
                                         </div>
                                     </div>
                                 )}

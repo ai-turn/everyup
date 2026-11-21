@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, IconButton } from '../../../components/common';
+import { Button, IconButton, OptionText } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type Project } from '../../../services/api';
@@ -126,10 +126,7 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMe
                       <label className={`flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-ui-hover-soft'}`}>
                         <input type="checkbox" checked={checked.has(candidate.server.id)} disabled={disabled} onChange={() => toggle(candidate.server.id)}
                           className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed" />
-                        <span className="min-w-0">
-                          <span className="block break-words type-label text-text-base">{candidate.server.name}{group && ` (${group})`}</span>
-                          <span className="block type-caption text-text-muted">{disabled ? INFRA_TAKEN : summaryOf(candidate)}</span>
-                        </span>
+                        <OptionText title={<>{candidate.server.name}{group && ` (${group})`}</>} description={disabled ? INFRA_TAKEN : summaryOf(candidate)} />
                       </label>
                     </li>
                   );

@@ -20,10 +20,11 @@ export function FormStep({ n, title, subtitle, children }: {
                 </span>
                 <div>
                     <p className="type-label text-text-base">{title}</p>
-                    {subtitle && <p className="type-body text-text-muted mt-0.5">{subtitle}</p>}
+                    {subtitle && <p className="mt-1 type-body text-text-muted">{subtitle}</p>}
                 </div>
             </div>
-            <div className="space-y-5">{children}</div>
+            {/* 필드 → 필드 16px(DESIGN.md §6 폼 리듬). 대화 상자의 space-y-4와 같은 값이다. */}
+            <div className="space-y-4">{children}</div>
         </div>
     );
 }
@@ -52,7 +53,8 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
         : children;
     return (
         <div>
-            <div className="flex items-center gap-1 mb-1.5">
+            {/* 라벨 → 컨트롤 8px, 컨트롤 → 도움말·오류 4px(같은 자리라 오류가 떠도 아래 글이 움직이지 않는다). DESIGN.md §6 */}
+            <div className="mb-2 flex items-center gap-1">
                 <LabelTag
                     {...(htmlFor ? { htmlFor } : {})}
                     className="type-label text-text-muted"
@@ -63,7 +65,7 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
             </div>
             {control}
             {error && <p id={errorId} className="mt-1 type-body text-status-error">{error}</p>}
-            {hint && !error && <p id={hintId} className="type-body text-text-muted mt-1.5">{hint}</p>}
+            {hint && !error && <p id={hintId} className="mt-1 type-body text-text-muted">{hint}</p>}
         </div>
     );
 }
