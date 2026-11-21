@@ -101,7 +101,7 @@ export function LoginPage() {
           <h1 className="type-section-title text-text-base">
             {isSetup ? '초기 설정' : '로그인'}
           </h1>
-          <p className="type-body text-text-muted mt-0.5">
+          <p className="type-body text-text-muted mt-intra">
             {isSetup ? '관리자 계정을 생성하세요' : '관리자 계정으로 로그인하세요'}
           </p>
         </div>
@@ -110,7 +110,7 @@ export function LoginPage() {
         <div className="w-[26rem] max-w-full">
           {/* relative wrapper — height equals card only, anchor for recovery panel */}
           <div className="relative">
-            <div className="bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-4">
+            <div className="bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-heading">
               {error && (
                 <div role="alert" className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
@@ -129,7 +129,7 @@ export function LoginPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} noValidate className="space-y-3">
+              <form onSubmit={handleSubmit} noValidate className="space-y-heading">
                 <Field label="사용자 이름" htmlFor="login-username" required error={fieldErrors.username}>
                   <Input
                     id="login-username"
@@ -170,7 +170,7 @@ export function LoginPage() {
 
             {/* Recovery panel — outside card div, bottom-aligned with card border */}
             {!isSetup && showForgot && (
-              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-4">
+              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-heading">
                 <p className="type-label text-text-secondary">
                   계정 정보를 잊으셨나요?
                 </p>
@@ -179,14 +179,14 @@ export function LoginPage() {
                 </p>
 
                 {/* Method 1: Env var */}
-                <div className="space-y-1.5">
+                <div className="space-y-label">
                   <p className="type-label text-text-secondary">
                     방법 1: 환경 변수로 임시 접근 후 초기화 (권장)
                   </p>
                   <p className="type-body text-text-muted">
                     환경 변수로 임시 계정을 만들어 로그인한 뒤, 설정 → 계정 초기화에서 계정을 새로 생성하세요.
                   </p>
-                  <div className="space-y-1">
+                  <div className="space-y-intra">
                     <p className="type-body text-text-muted">① 환경 변수 설정 후 재시작</p>
                     <pre className="text-xs bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
 {`# docker-compose.yml
@@ -202,7 +202,7 @@ docker compose restart`}
                 </div>
 
                 {/* Method 2: Remove data volume */}
-                <div className="space-y-1.5">
+                <div className="space-y-label">
                   <p className="type-label text-text-secondary">
                     방법 2: 계정 데이터 삭제 후 초기화
                   </p>

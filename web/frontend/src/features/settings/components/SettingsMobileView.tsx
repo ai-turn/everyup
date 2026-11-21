@@ -58,7 +58,7 @@ export function SettingsMobileView({
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-text-base">환경 설정</h1>
-        <p className="type-body text-text-muted mt-0.5">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
+        <p className="type-body text-text-muted mt-intra">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
       </div>
       {settingsError && (
         <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-secondary">
@@ -88,7 +88,7 @@ export function SettingsMobileView({
       {/* Data Retention */}
       <SectionCard title="데이터 수집 및 보존">
         {backendLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-label">
             <div className="h-14 bg-ui-hover rounded-lg animate-pulse" />
             <div className="h-14 bg-ui-hover rounded-lg animate-pulse" />
           </div>

@@ -45,7 +45,7 @@ export function ProjectDialog({ project, onClose, onSave }: {
     >
       <form onSubmit={submit} noValidate>
         <div className="border-b border-ui-border px-6 py-4"><h2 id="project-dialog-title" className="type-card-title text-text-base">{project ? '그룹 수정' : '그룹 추가'}</h2></div>
-        <div className="space-y-4 p-6">
+        <div className="space-y-heading p-6">
           <Field label="이름" htmlFor="project-name" required error={nameError ?? undefined}><Input id="project-name" ref={nameRef} invalid={Boolean(nameError)} value={name} onChange={event => { setName(event.target.value); setNameError(null); }} placeholder="예: Production" /></Field>
           <Field label="설명" htmlFor="project-description"><Input id="project-description" value={description} onChange={event => setDescription(event.target.value)} placeholder="선택 사항" /></Field>
         </div>
@@ -136,7 +136,7 @@ export function ProjectsPage() {
   const serverFailures = [...(servers.error ? [{ label: '서버', stale: servers.loaded }] : []), ...servers.failed];
 
   // 머리말 → 목록은 PageHeader의 아래 여백(24px), 알림 배너 → 목록은 16px이다.
-  return <div className="space-y-4">
+  return <div className="space-y-heading">
     <PageHeader menu title="그룹">
       {projects.length > 0 && <ListViewToggle view={view} onChange={setView} />}
       <Button onClick={() => setEditing(null)}><MaterialIcon name="add" />추가</Button>

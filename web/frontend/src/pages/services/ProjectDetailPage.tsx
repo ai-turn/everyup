@@ -81,7 +81,7 @@ function ServiceCard({ service, metric, to, returnTo }: {
       to={to}
       state={{ returnTo }}
       aria-label={service.name}
-      className="card-interactive group bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3"
+      className="card-interactive group bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-heading"
     >
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{service.name}</h3>}
@@ -245,7 +245,7 @@ export function ProjectDetailPage() {
     navigate({ pathname: key === 'overview' ? basePath : `${basePath}/${key}`, search: location.search }, { replace: source === 'keyboard' });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-section">
       {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4) */}
       <Link
         to="/environments"
@@ -256,9 +256,9 @@ export function ProjectDetailPage() {
       </Link>
 
       {loadError && (
-        <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section role="alert" className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <MaterialIcon name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
+            <MaterialIcon name="sync_problem" className="icon-lead shrink-0 text-status-warn" />
             <p className="type-body text-text-secondary">Docker 환경 정보를 불러오지 못했습니다. {loadError}</p>
           </div>
           <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
@@ -297,7 +297,7 @@ export function ProjectDetailPage() {
       <div className="page-stack">
         {/* Tabs는 포커스 링 자리로 -m-1을 가져 부모의 간격이 닿지 않는다. 한 겹 감싸 page-stack이 간격을 준다. */}
         <div className="min-w-0"><Tabs items={tabs} active={current} onChange={open} ariaLabel="Docker 환경 기능" idPrefix={ID_PREFIX} /></div>
-      <div role="tabpanel" id={tabPanelId(ID_PREFIX, current)} aria-labelledby={tabId(ID_PREFIX, current)} className="space-y-8">
+      <div role="tabpanel" id={tabPanelId(ID_PREFIX, current)} aria-labelledby={tabId(ID_PREFIX, current)} className="space-y-section">
         {current === 'overview' && <>
           {/* 설정 가이드는 환경 전체의 일이라 개요에 둔다. 탭 위에 두면 모든 탭에서 탭 줄을 밀어냈다. */}
           {agent && (
@@ -389,7 +389,7 @@ export function ProjectDetailPage() {
                   {events.length === 0 ? (
                     <p className="type-body text-text-muted py-4 text-center">최근 이벤트가 없습니다</p>
                   ) : (
-                    <div className="space-y-0.5">
+                    <div className="space-y-intra">
                       {events.map((e) => (
                         <div key={e.id} className="flex items-baseline gap-2 py-1.5">
                           <span className="text-xs text-text-dim w-10 shrink-0">

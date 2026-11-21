@@ -48,7 +48,7 @@ function ProjectCard({ agentId, agent, agentName, services, shownServices, overv
   const allHealthy = healthy === total;
 
   return (
-    <article className="card-interactive relative bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3">
+    <article className="card-interactive relative bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-heading">
       {/* Header: collection state + environment name */}
       <ResourceCardHeader
         title={<h2 className="type-card-title text-text-base truncate"><Link to={`/agents/${agentId}`} state={{ returnTo }} className="after:absolute after:inset-0 after:rounded-xl">{agentName}</Link></h2>}
@@ -274,8 +274,8 @@ export function ServiceGridPage() {
 
       {/* Content */}
       {error && (
-        <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
-          <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">Docker 환경을 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{error}</p></div></div>
+        <section className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
+          <div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="icon-lead text-status-warn" /><div><p className="type-label text-text-base">Docker 환경을 불러오지 못했습니다</p><p className="mt-intra type-body text-text-muted">{error}</p></div></div>
           <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
         </section>
       )}
@@ -314,7 +314,7 @@ export function ServiceGridPage() {
                 {row.pending ? <span className="block truncate font-medium">{row.agentName}</span> : <Link to={`/agents/${row.agentId}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.agentName}</Link>}
               </div>
               {/* 서비스 수는 열 대신 이름 아래 보조 줄 — 서비스 행의 체크 주소와 같은 자리다. */}
-              <p className="mt-0.5 pl-6.5 type-caption text-text-muted">서비스 {row.services.length}개<span className="lg:hidden">{row.rollup?.uptimePct != null ? ` · 30일 업타임 ${row.rollup.uptimePct.toFixed(2)}%` : ''}</span></p>
+              <p className="mt-intra pl-6.5 type-caption text-text-muted">서비스 {row.services.length}개<span className="lg:hidden">{row.rollup?.uptimePct != null ? ` · 30일 업타임 ${row.rollup.uptimePct.toFixed(2)}%` : ''}</span></p>
               <div className="mt-2 pl-6.5 md:hidden">{envStatus(row)}</div>
             </div>
           ) : (
@@ -325,7 +325,7 @@ export function ServiceGridPage() {
               {/* 표는 평평한 행이라 스크린리더는 들여쓰기를 모른다 — 어느 환경의 서비스인지 글로 붙인다(링크 이름은 그대로). */}
               <span className="sr-only">{row.service.agentName} 환경의 서비스</span>
               <Link to={serviceHref(row.service)} state={{ returnTo }} data-row-link className="block truncate text-text-base">{row.service.name}</Link>
-              <p className="mt-0.5 truncate font-mono type-caption text-text-muted">{row.service.endpoint || row.service.key}</p>
+              <p className="mt-intra truncate font-mono type-caption text-text-muted">{row.service.endpoint || row.service.key}</p>
               <div className="mt-2 md:hidden">{serviceStatus(row.service)}</div>
             </div>
           ) },
@@ -333,7 +333,7 @@ export function ServiceGridPage() {
           { key: 'uptime', label: '업타임 30일', className: 'hidden w-32 lg:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.uptimePct == null ? '-' : `${rollup.uptimePct.toFixed(2)}%`; } },
           { key: 'requests', label: '요청 24h', className: 'hidden w-28 lg:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.requests24h ? rollup.requests24h.toLocaleString() : '-'; } },
           { key: 'p95', label: 'p95', className: 'hidden w-24 xl:table-cell', align: 'right', render: row => { const rollup = rollupOf(row); return rollup?.p95Ms == null ? '-' : `${rollup.p95Ms.toLocaleString()}ms`; } },
-          { key: 'actions', label: '최근 오류', className: 'w-32', render: row => row.kind === 'service' ? (row.service.healthy ? null : <span className="line-clamp-2 type-caption text-status-error">{row.service.lastError || '상태 체크 실패'}</span>) : row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-2"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
+          { key: 'actions', label: '최근 오류', className: 'w-32', render: row => row.kind === 'service' ? (row.service.healthy ? null : <span className="line-clamp-2 type-caption text-status-error">{row.service.lastError || '상태 체크 실패'}</span>) : row.pending ? <details><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-ui-border text-action">설치·작업</summary><div className="mt-2 flex flex-col gap-label"><Button size="sm" variant="secondary" onClick={() => setInstallModalAgent({ id: row.agentId, name: row.agentName })}>설치 명령어</Button><Button size="sm" variant="ghost" onClick={() => setKeyModalAgent({ id: row.agentId, name: row.agentName })}>API Key</Button><Button size="sm" variant="destructive" onClick={() => handleDelete(row.agentId)}>비활성화</Button></div></details> : <span className="type-caption text-text-muted">{row.services.filter(service => !service.healthy).length ? `장애 ${row.services.filter(service => !service.healthy).length}개` : '장애 신호 없음'}</span> },
         ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {groups.map((g) => (
             <ProjectCard

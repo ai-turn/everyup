@@ -94,7 +94,7 @@ export function SettingsDesktopView({
           <section id="sec-data" className="scroll-mt-4">
             <SectionCard title="데이터 수집 및 보존">
               {backendLoading ? (
-                <div className="space-y-3">
+                <div className="space-y-label">
                   <div className="h-10 bg-ui-hover rounded-lg animate-pulse" />
                   <div className="h-10 bg-ui-hover rounded-lg animate-pulse" />
                 </div>

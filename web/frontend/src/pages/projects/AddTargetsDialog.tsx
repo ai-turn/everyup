@@ -122,7 +122,7 @@ export function AddTargetsDialog({ project, projects, targets, loadFailed = fals
           {failures.length > 0 && (
             <div role="alert" className="px-6 pb-4">
               <p className="flex items-start gap-1.5 type-label text-text-base"><MaterialIcon size={20} name="error_outline" className="shrink-0 text-status-error" />{failures.length}개를 추가하지 못했습니다</p>
-              <ul className="mt-1 space-y-1 break-words type-body text-text-muted">
+              <ul className="mt-1 space-y-intra break-words type-body text-text-muted">
                 {failures.map(({ name, reason }, index) => <li key={`${index}-${name}`}><span className="text-text-base">{name}</span>: {reason}</li>)}
               </ul>
             </div>
