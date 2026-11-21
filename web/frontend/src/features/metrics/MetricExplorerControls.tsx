@@ -34,7 +34,7 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
   const visible = data?.series.filter(item => metricSeriesLabel(item.attributes, item.streamKey, item.streamLabel).toLowerCase().includes(search.toLowerCase())) ?? [];
 
   // 차트 제목 아래 한 줄: 값 표시 · 필터 · 시리즈 버튼과 적용한 필터 칩. 필터·시리즈 목록은 그 아래로 펼친다.
-  return <div className="mb-3 space-y-3">
+  return <div className="space-y-3">
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="탐색 조건">
       {sum && <>
         <SegmentedControl size="md" ariaLabel="메트릭 값 표시" value={mode} options={[{ value: 'raw', label: '원값' }, { value: 'rate', label: '초당 증가량' }]} onChange={next => query.update({ metricMode: next })} />

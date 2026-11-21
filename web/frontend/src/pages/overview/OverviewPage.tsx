@@ -1,7 +1,7 @@
 import { Tooltip } from '../../components/common/Tooltip';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, EmptyState, List, ListGroup, ListMore, ListRow, MaterialIcon, PageHeader, RefreshIconButton, SectionHeader } from '../../components/common';
+import { Button, ButtonLink, EmptyState, List, ListGroup, ListMore, ListRow, MaterialIcon, PageHeader, RefreshIconButton, Section } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
@@ -314,10 +314,9 @@ export function OverviewPage() {
 
           {/* Linear식 목록: 카드·행 구분선·배경 띠 없이 그룹 제목과 간격으로 나누고, 두 그룹 사이에만 옅은 선을 둔다. 행은 Triage 인박스처럼 두 줄. */}
           <div className="section-stack">
-            <section id="attention" aria-label="현재 확인 필요" className="scroll-mt-5">
-              {/* 일부 대상을 불러오지 못한 동안에는 본문이 판단을 유보하므로 건수를 단정하지 않는다. */}
-              <GroupHeader title="현재 확인 필요"
-                count={statusUnknown ? null : <><span>장애 {outageItems.length}</span>, <span>확인 필요 {warnItems.length}</span></>} />
+            {/* 일부 대상을 불러오지 못한 동안에는 본문이 판단을 유보하므로 건수를 단정하지 않는다. */}
+            <Section id="attention" label="현재 확인 필요" className="scroll-mt-5" title="현재 확인 필요"
+              meta={statusUnknown ? null : <><span>장애 {outageItems.length}</span>, <span>확인 필요 {warnItems.length}</span></>}>
               {attention.length === 0 ? (
                 <div className="flex items-center gap-3 py-3">
                   <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
@@ -350,18 +349,14 @@ export function OverviewPage() {
                   )}
                 </div>
               )}
-            </section>
+            </Section>
 
             {/* 최근 장애 이력 — 위가 지금을 말한다면 이쪽은 시간축이다.
                 "지금 문제 없음"과 "닷새째 조용함"은 다른 정보고, 신뢰를 주는 건 후자다.
                 직접 연결 서비스는 이력 테이블이 없어 범위를 헤더에 밝힌다(안 밝히면 "전부 조용하다"로 오독된다). */}
-            <section aria-label="최근 장애 이력">
-              <GroupHeader
-                title="최근 장애 이력"
-                count={timelineFailed ? '-' : timeline.length}
-                countLabel={timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}
-                note="업타임 모니터·Docker 서비스, 최근 7일"
-              />
+            {/* 건수는 제목과 같은 기준선의 메타, 범위는 제목 아래 설명 줄이다 — 메타는 개수처럼 짧은 값만 둔다(DESIGN.md §2.2). */}
+            <Section label="최근 장애 이력" title="최근 장애 이력" description="업타임 모니터·Docker 서비스, 최근 7일"
+              meta={<><span aria-hidden="true">{timelineFailed ? '-' : timeline.length}</span><span className="sr-only">{timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}</span></>}>
               {timelineFailed && (
                 <div role="status" className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
@@ -393,23 +388,11 @@ export function OverviewPage() {
                   ))}
                 </List>
               )}
-            </section>
+            </Section>
           </div>
         </>
       )}
     </div>
-  );
-}
-
-function GroupHeader({ title, count, countLabel, note }: { title: string; count: ReactNode; countLabel?: string; note?: string }) {
-  return (
-    // 섹션 제목이다(section-stack 선으로 나뉜다). 건수·범위는 제목과 같은 기준선의 메타다(DESIGN.md §2.2).
-    // 범위 설명(note)은 제목 옆 메타가 아니라 제목 아래 설명 줄이다 — 메타는 개수처럼 짧은 값만 둔다(§2.2).
-    <SectionHeader
-      title={title}
-      meta={count != null && (countLabel ? <><span aria-hidden="true">{count}</span><span className="sr-only">{countLabel}</span></> : count)}
-      description={note}
-    />
   );
 }
 

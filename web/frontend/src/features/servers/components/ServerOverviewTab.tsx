@@ -44,9 +44,9 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
     : [];
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
-      <div className="sm:w-40 sm:shrink-0">
+      <div className="space-y-intra sm:w-40 sm:shrink-0">
         <h2 id={headingId} className="type-section-title text-text-base">{label}</h2>
-        <div className="mt-1"><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
+        <div><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
       </div>
       <div className="min-w-0 flex-1 space-y-4">
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">

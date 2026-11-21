@@ -236,11 +236,12 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
       </div>
       {expanded && hasMeta && (
         // Clicks and keys inside stay here — only the summary line collapses the row.
-        <div className="cursor-auto" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+        // 요약 줄 → 펼친 내용 12px, 묶음 사이 12px, 묶음 라벨 → 내용 6px.
+        <div className="mt-3 cursor-auto space-y-3" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           {attributes.length > 0 && (
-            <>
-            <p className="mt-3 type-caption text-text-dim">Attributes</p>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <div className="space-y-1.5">
+            <p className="type-caption text-text-dim">Attributes</p>
+            <div className="flex flex-wrap gap-1.5">
               {attributes.map(([key, value]) => (
                 <Button
                   key={key}
@@ -256,20 +257,20 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
                 </Button>
               ))}
             </div>
-            </>
+            </div>
           )}
           {resource.length > 0 && (
-            <>
-            <p className="mt-3 type-caption text-text-dim">Resource</p>
-            <dl className="mt-1.5 grid gap-x-4 gap-y-1 font-mono text-xs sm:grid-cols-[max-content_1fr]">
+            <div className="space-y-1.5">
+            <p className="type-caption text-text-dim">Resource</p>
+            <dl className="grid gap-x-4 gap-y-1 font-mono text-xs sm:grid-cols-[max-content_1fr]">
               {resource.map(([key, value]) => (
                 <Fragment key={key}><dt className="text-text-dim">{key}</dt><dd className="break-all text-text-secondary">{value}</dd></Fragment>
               ))}
             </dl>
-            </>
+            </div>
           )}
           {/* The same fields again plus anything nested — closed, since the lists above already read it. */}
-          <details className="mt-3">
+          <details>
             <summary className="cursor-pointer py-1 type-caption text-text-dim max-sm:py-3">원본 JSON</summary>
             <pre className="mt-1.5 text-xs font-mono text-text-muted bg-ui-hover-soft rounded-md px-3 py-2.5 overflow-x-auto whitespace-pre-wrap break-all">
               {JSON.stringify(log.metadata, null, 2)}
@@ -521,16 +522,20 @@ function ServiceLogsPanel(props: Props) {
         <div role="alert" className="py-16 text-center">
           <MaterialIcon size={36} name="error" className="text-status-error mb-2" />
           <p className="type-label text-text-base">로그를 불러오지 못했습니다</p>
-          <p className="mt-1 type-body text-text-muted">{loadError.message}</p>
-          <Button className="mt-4" onClick={() => void fetch()}>다시 시도</Button>
+          <div className="space-y-4">
+            <p className="mt-1 type-body text-text-muted">{loadError.message}</p>
+            <Button onClick={() => void fetch()}>다시 시도</Button>
+          </div>
         </div>
       ) : logs.length === 0 ? (
         <div className="py-16 text-center">
           <MaterialIcon size={36} name="article" className="text-text-dim mb-2" />
-          <p className="type-body text-text-muted">
-            {hasConditions ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
-          </p>
-          {hasConditions && <Button variant="secondary" className="mt-4" onClick={clearConditions}>조건 초기화</Button>}
+          <div className="space-y-4">
+            <p className="type-body text-text-muted">
+              {hasConditions ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}
+            </p>
+            {hasConditions && <Button variant="secondary" onClick={clearConditions}>조건 초기화</Button>}
+          </div>
         </div>
       ) : (
         <div>

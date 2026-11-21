@@ -357,7 +357,7 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 | KPI 카드·요약 줄의 대표 수치 | `type-kpi` | 24 / 32px | 500, 고정폭 숫자 |
 | 목록 카드 안의 작은 통계 | `type-stat` | 18 / 28px | 500, 고정폭 숫자 |
 
-페이지 헤더는 [PageHeader](src/components/common/PageHeader.tsx)를 쓴다. **본문 1단계 섹션의 머리는 [SectionHeader](src/components/common/SectionHeader.tsx) 하나다** (2026-11-20): 제목은 언제나 `type-section-title`(20px)이고, 개수·기간 같은 메타는 제목과 같은 기준선(`items-baseline`)에, 보기 전환·버튼은 제목 줄과 세로 가운데에 둔다. 설명은 둘째 줄이라 조작의 위치를 끌어내리지 않는다. 이전에는 h2 29곳이 16px, 10곳이 20px이라 같은 화면 안에서도 섞였고(로그, Docker 환경 상세), 메타가 제목 기준선에서 2~5px, 조작이 제목 중심에서 6~12px 어긋났다. 카드·차트·다이얼로그 제목과 섹션 안의 하위 제목(차트, 이력, API 요청 패널의 `Endpoint`)은 `type-card-title`(16px) 그대로다. 모바일 전용 화면의 h1은 기존 `text-xl font-bold`(20px)을 허용한다. 404 같은 디스플레이 숫자와 로고 워드마크는 별도 크기를 허용한다. 그 밖에 18px 이상 원시 크기(`text-lg`~)는 `pnpm lint`가 센다.
+페이지 헤더는 [PageHeader](src/components/common/PageHeader.tsx)를 쓴다. **본문 1단계 섹션은 [Section](src/components/common/Section.tsx) 하나다** (2026-11-20 `SectionHeader`, 2026-11-21 `Section`으로 바뀜 — 제목 → 내용 16px을 머리의 아래 여백이 아니라 섹션이 갖는다): 제목은 언제나 `type-section-title`(20px)이고, 개수·기간 같은 메타는 제목과 같은 기준선(`items-baseline`)에, 보기 전환·버튼은 제목 줄과 세로 가운데에 둔다. 설명은 둘째 줄이라 조작의 위치를 끌어내리지 않는다. 이전에는 h2 29곳이 16px, 10곳이 20px이라 같은 화면 안에서도 섞였고(로그, Docker 환경 상세), 메타가 제목 기준선에서 2~5px, 조작이 제목 중심에서 6~12px 어긋났다. 카드·차트·다이얼로그 제목과 섹션 안의 하위 제목(차트, 이력, API 요청 패널의 `Endpoint`)은 `type-card-title`(16px) 그대로다. 모바일 전용 화면의 h1은 기존 `text-xl font-bold`(20px)을 허용한다. 404 같은 디스플레이 숫자와 로고 워드마크는 별도 크기를 허용한다. 그 밖에 18px 이상 원시 크기(`text-lg`~)는 `pnpm lint`가 센다.
 
 **숫자는 두 역할뿐이다** (2026-11-14). 대표 수치(KPI 카드, 업타임 상태 요약, 요청 추이 타일, 알림 발송 요약, 인프라 게이지, 응답 시간)는 `type-kpi`, 목록 카드 안에 나란히 놓인 작은 통계(API·로그·메트릭·인프라·그룹 카드)는 `type-stat`이다. 둘 다 500이고 고정폭 숫자를 역할이 건다. 이전에는 숫자가 11곳에서 16·18·20·24·30px, 400·500·700의 일곱 조합으로 갈려 있었다(같은 업타임 상세 안에서 24px/500과 30px/700). 400은 24px에서 가늘게 보이고 700은 페이지 제목과 겨룬다. 숫자 색은 상태가 있을 때만 싣는다(§4.1 KPI 설명문과 같은 규칙).
 
@@ -433,7 +433,7 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 | 대상 | 규칙 |
 |---|---|
-| 페이지 섹션 | 카드로 감싸지 않는다. 섹션 제목(`SectionHeader`, 20px — §2.2. 하위 그룹 라벨은 `type-label` + `text-text-secondary`, §3.7 세로 위계) + `section-stack`(32px 간격 가운데 `ui-border-soft` 가로선 하나, 2026-11-15 추가). 선은 **섹션 경계에만** 긋는다. 차트 카드처럼 테두리가 있는 요소끼리는 선이 겹치므로 `space-y-8`만 쓴다. 헤더·툴바·배너처럼 섹션이 아닌 머리 요소끼리는 기존 `5` |
+| 페이지 섹션 | 카드로 감싸지 않는다. 섹션 제목(`Section`, 20px — §2.2. 하위 그룹 라벨은 `type-label` + `text-text-secondary`, §3.7 세로 위계) + `section-stack`(32px 간격 가운데 `ui-border-soft` 가로선 하나, 2026-11-15 추가). 선은 **섹션 경계에만** 긋는다. 차트 카드처럼 테두리가 있는 요소끼리는 선이 겹치므로 `space-y-8`만 쓴다. 헤더·툴바·배너처럼 섹션이 아닌 머리 요소끼리는 기존 `5` |
 | 페이지 머리 | `PageHeader` 아래 `ui-border-soft` 한 줄(본문과의 경계) |
 | 목록·표 | 바깥 카드 셸(`rounded-xl border bg-bg-surface`)을 쓰지 않는다. 헤더 행은 배경 없이 아래 `border-ui-border-soft` 한 줄만. 본문 행 사이 구분선(`divide-y`, 행 `border-t/b`)은 쓰지 않는다. 행은 `hover:bg-ui-hover-soft`로 드러낸다 |
 | 회색 띠 | 헤더·그룹 제목·카드 머리에 배경 띠(`bg-ui-table-header`, `bg-ui-hover` 헤더)를 깔지 않는다 |
@@ -571,9 +571,9 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 | 토큰 | 값 | 단계 | 관계 | 담당 |
 |------|-----|------|------|------|
-| `intra` | 4px | V1 | 한 항목의 줄 사이: 제목 → 설명, 이름 → 메타, 컨트롤 → 도움말·오류, 라벨 → 값 | `PageHeader`·`SectionHeader` 설명, `Field` 도움말, `OptionText`, `Stat`, `SettingRow` 설명. `ListRow` 둘째 줄은 줄 상자(20/21) 위의 `mt-0.5`로 같은 4px을 보인다 |
+| `intra` | 4px | V1 | 한 항목의 줄 사이: 제목 → 설명, 이름 → 메타, 컨트롤 → 도움말·오류, 라벨 → 값 | `PageHeader`·`Section` 설명, `Field` 도움말, `OptionText`, `Stat`, `SettingRow` 설명. `ListRow` 둘째 줄은 줄 상자(20/21) 위의 `mt-0.5`로 같은 4px을 보인다 |
 | `label` | 8px | V2 | 라벨 → 그 내용 | `Field` 라벨 → 컨트롤, `ListGroup` 라벨 → 항목, 좁은 화면 `SettingRow` 라벨 → 컨트롤 |
-| `heading` | 16px | V3 | 제목(·설명) → 첫 내용, 폼 필드 사이 | `SectionHeader`(고정, `className`으로 덮어쓰지 않는다), `ChartCard` 머리 → 본문, `FormStep` |
+| `heading` | 16px | V3 | 제목(·설명) → 첫 내용, 폼 필드 사이 | `Section`(머리와 본문 두 자식의 gap, 덮어쓰지 않는다), `ChartCard`(같은 방식) 머리 → 본문, `FormStep` |
 | `item` | 20px | V4 | 두 줄 항목끼리, 모달·패널 본문의 섹션 | `ListRow` `py-2.5`(위아래 합), 모달 본문 |
 | `group` | 24px | V5 | 같은 섹션 안 하위 그룹끼리, **페이지 블록 사이**(머리말 → 탭 → 패널, 패널 안의 블록, 툴바 → 표) | `page-stack`(본문 래퍼, 페이지·탭 패널의 루트). Tailwind `space-y`와 같은 방식(마지막이 아닌 자식의 아래 여백, 명시도 0)이라 자식이 직접 준 여백이 이긴다. 2026-11-20까지 같은 관계에 20px과 24px이 섞여 있었다 |
 | `section` | 32px + 선 + 32px | V6 | 카드 없이 놓인 페이지 섹션 사이 | `section-stack`(개요의 그룹, 상세의 지표 → 차트 → 이력, 설정 섹션, §3.1). 테두리가 하던 구분을 간격이 맡으므로 `group`보다 넓다 |
@@ -660,7 +660,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`FilterChips<T>`** | `ariaLabel` `options` `value` `onChange` | 목록을 한 값으로 거르는 토글 칩(2026-11-20). 선택지는 `label` `count` `tone?`. 라벨과 개수는 같은 `type-body` 크기이고 개수만 500·고정폭 숫자다. 둥근 테두리 칩(`rounded-full`, 높이는 버튼과 같은 40px, 모바일 44px), 칩 사이 `gap-2`, 칩 안 `gap-1.5`(모바일은 둘 다 한 단계 좁혀 390px에서 네 칩이 한 줄이다). 선택은 `aria-pressed` + 진한 테두리(`border-primary`)와 `ui-hover` 채움이고, 다시 누르면 해제한다. 키보드는 버튼 그대로다(Tab, Enter, Space). `tone`은 상태 점이다: 상태 필터 전용이고(§5.3 칩은 상태 전용), 0건인 장애·확인 필요는 호출부가 `idle`로 넘긴다(§5.4). 개수는 다른 필터(검색·그룹)를 따르고 자기 선택은 따르지 않는다. 서버 목록이 쓴다. 업타임 탭의 상태 요약은 아직 옛 수치 행이다(§10 H) |
 | **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
 | ~~`SummaryCard`~~ | — | 2026-11-21 삭제(사용 0회). 수치는 `Stat`(라벨 → 값 4px, `type-kpi`)으로 쓴다 |
-| **`SectionHeader`** | `title` `meta?` `description?` `actions?` `id?` | 본문 1단계 섹션의 머리(§2.2). 20px 제목 + 기준선을 맞춘 메타 + 제목 줄과 가운데를 맞춘 조작 + 둘째 줄 설명. 2026-11-20에 `DetailActionToolbar`를 없애고 그 조작은 `PageHeader actions`로 옮겼다 |
+| **`Section`** | `title` `meta?` `description?` `actions?` `id?` `label?` `className?` `children` | 본문 1단계 섹션(§2.2). 20px 제목 + 기준선을 맞춘 메타 + 제목 줄과 가운데를 맞춘 조작 + 둘째 줄 설명, 그리고 본문. 제목 → 본문 16px(`heading`)은 머리와 본문 두 자식의 `gap`이다(2026-11-21, 이전 `SectionHeader`는 루트의 `mb-4`로 간격을 가졌다). `<section>`의 이름은 제목이고 `label`을 주면 그것이다. 2026-11-20에 `DetailActionToolbar`를 없애고 그 조작은 `PageHeader actions`로 옮겼다 |
 | **`List` · `ListRow` · `ListGroup` · `ListMore`** | `ListRow`: `to` `marker` `title` `detail?` `detailSize?` `trailing?` `trailingDetail?` | 두 줄 목록(§3.7 세로 위계). 개요의 현재 확인 필요·최근 장애 이력, Docker 환경의 장애 이력, 로그의 반복 패턴이 쓴다. `List`는 `list-bleed`로 행 패딩만큼 펼치고 글자 폭 720px(`max-w-186`, 펼친 24px 포함)까지만 써서 오른쪽 값(시각, 개수)이 이름에서 멀어지지 않게 한다. `ListGroup`은 하위 그룹(라벨 `type-label` `text-text-secondary`, 라벨 → 항목 8px), `ListMore`는 목록 끝의 펼치기 조작으로 아이콘은 표지 열, 글자는 항목 제목 열에 선다. 2026-11-21 이전에는 세 화면이 각자 만들었다 |
 | **`Pagination`** | `page` `totalPages` `onChange` … | 목록 페이지 이동 |
 | **`MaterialIcon`** | `name` `size` `className` `style` | 로컬 정적 SVG |
@@ -1480,15 +1480,17 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 | 규칙 | 무엇을 세나 | 2026-11-21 |
 |---|---|---|
 | S1 | 임의값 간격(`mt-[13px]`). 명령 팔레트의 `pt-[18vh]`만 허용 | 0 |
-| S2 | 블록 사이 세로 반 단계(`space-y-1.5`, `mb-1.5`, `mt-2.5`, `py-3.5` …) | 55 |
-| S3 | 화면 코드의 줄 상자 보정 `mt-0.5`·hover 행 패딩 `py-2.5`. 담당 프리미티브(`components/common`)만 허용 | 113 |
-| S4 | 여백만 가진 감싸개(`className="mt-3"`) | 54 |
-| S5 | 컴포넌트 루트의 바깥 여백(TypeScript AST로 센다) | 9 |
+| S2 | 블록 사이 세로 반 단계(`space-y-1.5`, `mb-1.5`, `mt-2.5`, `py-3.5` …) | 55 → 58(P3) |
+| S3 | 화면 코드의 줄 상자 보정 `mt-0.5`·hover 행 패딩 `py-2.5`. 담당 프리미티브(`components/common`)만 허용 | 113 → 111(P3) |
+| S4 | 여백만 가진 감싸개·조작(`className="mt-3"`). 밀어내기(`ml-auto`)와 음수 여백은 세지 않는다 | 54 → **0(P3, 금지)** |
+| S5 | 컴포넌트 루트의 바깥 여백(TypeScript AST로 센다) | 9 → **0(P3, 금지)** |
 | S6 | 역할 없는 글자 크기(`type-*`·`font-mono` 없는 `text-xs/sm/base`). 채널 미리보기 제외 | 150 |
 | S7 | `leading-*` 직접 지정 | 15 |
-| S8 | 숫자 세로 간격(`space-y-N`, `flex-col`의 `gap-N`) → 관계 토큰으로 | 168 → 165(P1) |
+| S8 | 숫자 세로 간격(`space-y-N`, `flex-col`의 `gap-N`) → 관계 토큰으로 | 168 → 165(P1) → 194(P3, 값을 그대로 옮김) |
 
 2026-11-21 P1: 관계 토큰(`--spacing-intra` 등, §3.7)을 추가하고 공용 프리미티브(`Field`, `FormStep`, `OptionText`, `Stat`, `ListGroup`, `SectionHeader`, `PageHeader`, `ChartCard`, `SettingRow`, `page-stack`, `section-stack`)를 토큰 이름으로 바꿨다(측정 차이 0). 사용하지 않던 `SummaryCard`는 지웠다.
+
+2026-11-21 P3: 간격을 부모로 옮겼다(S4·S5 0건, 금지). `Section`이 제목 → 내용을, `ChartCard`가 머리 → 본문을, `ListGroup`이 목록 끝 조작(`ListMore`)의 자리를, `UptimeOverview`가 아래 이력과의 구분선을 갖는다. `ListToolbar`의 `mb-6`은 부모의 `page-stack`으로, 배너의 `mb-4` 감싸개는 배너와 내용을 묶은 `space-y-4`로 옮겼다. `Tabs`는 포커스 링 자리로 `-m-1`을 가져 부모의 간격이 닿지 않으므로 한 겹 감싼다. 값은 그대로 옮겨 화면은 바뀌지 않았다(메트릭 차트 → 범례 12 → 8px 한 곳만 바뀜). 그래서 토큰 밖 값이 부모의 `space-y-N`으로 옮겨져 S8이 165 → 194, S2가 55 → 58로 늘었고, P4에서 토큰으로 바꾸며 내린다(코디네이터 승인).
 
 2026-11-21 P2: `e2e/spacing-rhythm.spec.ts`가 14개 화면 × 1440·390에서 관계 표지(`data-gap`, `data-gap-after`)의 박스 간격이 토큰 ±1px인지, 근접성 불변식(intra < label < heading < item ≤ group < section)을 지키는지 잰다. 재시도 없이 돈다. 지금 어긋난 자리(`KNOWN_OFF`: 인프라 차트 캡션의 `-mt-2`, 알림 규칙 드로어의 inline-block `textarea`)와 표지가 아직 없는 화면(`KNOWN_EMPTY`: 서버 개요 탭, 모바일 발송 이력)은 spec에 적혀 있고, 고치는 단계에서 지운다. 목록과 실제가 다르면 실패한다.
 

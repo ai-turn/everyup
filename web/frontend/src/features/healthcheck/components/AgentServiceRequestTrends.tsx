@@ -247,8 +247,10 @@ function ServiceRequestTrends({
   return (
     <ChartCard title={title} right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
 
-      <p className="mb-3 type-body text-text-muted">선택한 기간의 {noun} 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
-      {summaryError && <div className="mb-3"><LoadErrorBanner inline role="status" title="상태코드 분포를 불러오지 못했습니다" onRetry={() => setRetryKey(key => key + 1)} /></div>}
+      {/* 설명 → 오류 → 상태코드 분포 12px, 그 묶음 → 수치 타일 16px. */}
+      <div className="mb-4 space-y-3">
+      <p className="type-body text-text-muted">선택한 기간의 {noun} 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
+      {summaryError && <LoadErrorBanner inline role="status" title="상태코드 분포를 불러오지 못했습니다" onRetry={() => setRetryKey(key => key + 1)} />}
 
       {/* Status-class distribution + top 5xx endpoint (1a 콘솔 prototype) */}
       {summary && (summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther) > 0 && (() => {
@@ -263,7 +265,7 @@ function ServiceRequestTrends({
         // 서비스 상세에서는 아래 Endpoint 표가 "5xx 최다" 한 줄을 대신한다. 표가 없는 Docker 환경 전체 추이에만 남긴다.
         const rollup = sourceKind === 'agent' && !serviceKey;
         return (
-          <div className="mb-4">
+          <div>
             <div className="flex h-2 rounded-full overflow-hidden bg-ui-hover">
               {classes.map((c) => (
                 <div key={c.label} className={c.bar} style={{ width: `${(c.count / total) * 100}%` }} />
@@ -290,6 +292,7 @@ function ServiceRequestTrends({
           </div>
         );
       })()}
+      </div>
 
       {/* One chart, one measure at a time: ms, counts and % can't share an axis
           (a fixed 0–100% second axis once flattened a 5% error spike). The tiles

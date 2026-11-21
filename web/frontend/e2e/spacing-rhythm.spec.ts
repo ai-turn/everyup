@@ -63,8 +63,16 @@ function measure(): Gap[] {
     while (s && !visible(s)) s = dir === 'next' ? s.nextElementSibling : s.previousElementSibling;
     return s;
   };
-  // 음수 여백(list-bleed)은 펼친 만큼 되돌려 보이는 위치로 본다.
-  const top = (el: Element) => el.getBoundingClientRect().top - Math.min(0, parseFloat(getComputedStyle(el).marginTop));
+  // 음수 여백(list-bleed)은 펼친 만큼 되돌려 보이는 위치로 본다. 첫 자식이 위 여백만 음수로 당겨 올라왔으면(-mt-2 같은 끌어당김,
+  // 좌우는 그대로) 그 자식이 보이는 위치다 — 부모 상자는 제자리인데 글이 위 요소에 붙어 보인다.
+  const top = (el: Element) => {
+    let at = el.getBoundingClientRect().top - Math.min(0, parseFloat(getComputedStyle(el).marginTop));
+    for (let child = el.firstElementChild, depth = 0; child && depth < 4; child = child.firstElementChild, depth++) {
+      const style = getComputedStyle(child);
+      if (parseFloat(style.marginTop) < 0 && parseFloat(style.marginLeft) >= 0) at = Math.min(at, child.getBoundingClientRect().top);
+    }
+    return at;
+  };
   const bottom = (el: Element) => el.getBoundingClientRect().bottom + Math.min(0, parseFloat(getComputedStyle(el).marginBottom));
   const name = (el: Element) => `${el.tagName.toLowerCase()} "${(el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 24)}"`;
   const gaps: Gap[] = [];

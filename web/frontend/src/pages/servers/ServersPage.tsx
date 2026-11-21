@@ -117,7 +117,8 @@ export function ServersPage() {
   const hasRows = rows.length > 0;
 
   return (
-    <div>
+    // 머리말 → 툴바 → 목록은 페이지 블록 24px(page-stack), 알림 배너 → 목록은 16px이다.
+    <div className="page-stack">
       {/* 개수를 가진 제목은 크럼과 다른 말이라 데스크톱에서도 보인다(DESIGN.md §3.4). 모르는 동안은 숫자만 비운다.
           갱신 시각과 전체 로그는 목록 밖의 일이라 툴바가 아니라 머리말의 meta다: 데스크톱은 AppHeader의 주 액션 앞, 모바일은 제목 아래. */}
       <PageHeader menu compactActions title="서버" count={hasRows || (loaded && !error) ? rows.length : null}
@@ -148,11 +149,12 @@ export function ServersPage() {
         </ListToolbar>
       )}
 
+      <div className="space-y-4">
       {error && hasRows && (
-        <div className="mb-4"><LoadErrorBanner title="서버 목록을 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} /></div>
+        <LoadErrorBanner title="서버 목록을 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} />
       )}
       {!error && failed.length > 0 && (
-        <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={reload} retrying={loading} /></div>
+        <LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={reload} retrying={loading} />
       )}
 
       {/* 한 번도 불러오지 못했으면 서버가 없는 것이 아니라 아직 모르는 것이다(매달린 첫 요청을 버린 뒤에도). */}
@@ -174,6 +176,7 @@ export function ServersPage() {
                 : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: clearFilters }} />}
             </section>
           )}
+      </div>
     </div>
   );
 }

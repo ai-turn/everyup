@@ -110,9 +110,12 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           <Button variant={pinned ? 'secondary' : 'ghost'} size="sm" aria-label={`${title} ${pinned ? '고정 해제' : '고정'}`} aria-pressed={pinned} disabled={pinDisabled} onClick={onPin}><MaterialIcon name="push_pin" /></Button>
         </div>}
       >
-        {expanded && title !== name && <p className="-mt-2 mb-3 break-all font-mono text-xs text-text-muted">{name}</p>}
+        {/* 카드 본문: 차트 위아래의 줄은 12px, 맨 아래 수집 정보는 24px(group)이다. 간격은 이 두 묶음이 갖는다. */}
+        <div className="page-stack">
+          <div className="space-y-3">
+        {expanded && title !== name && <p className="-mt-2 break-all font-mono text-xs text-text-muted">{name}</p>}
         {expanded && <MetricExplorerControls data={read.options} pending={read.pending} sum={meta.metricType === 'sum'} mode={mode} />}
-        <div className="mb-3 space-y-2">
+        <div className="space-y-2">
           {/* 원본 이름은 이미 보이는 글자라 따로 Tab 지점을 두지 않는다. 격자는 잘리므로 마우스 힌트만 남긴다. */}
           {/* 격자는 원본 이름과 종류·단위를 왼쪽 두 줄로 묶고 요약을 같은 행에 둔다 — 세 줄이 따로 쌓여 차트가 밀렸다. */}
           <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-4 gap-y-1">
@@ -125,7 +128,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           {expanded && meta.description && <p className="type-body text-text-muted">{meta.description}</p>}
           {expanded && flags.length > 0 && <div className="flex flex-wrap gap-3">{flags.map(flag => <StatusLight key={flag.label} {...flag} />)}</div>}
         </div>
-        {expanded && <dl aria-label="메트릭 정보" className="mb-3 flex flex-wrap gap-x-5 gap-y-2 type-caption text-text-muted">
+        {expanded && <dl aria-label="메트릭 정보" className="flex flex-wrap gap-x-5 gap-y-2 type-caption text-text-muted">
           <div className="flex flex-wrap items-baseline gap-1.5">
             <dt>마지막 측정</dt>
             <dd><time dateTime={meta.lastAt}>{formatDateTime(meta.lastAt)}</time></dd>
@@ -138,8 +141,8 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
             <dd>{formatTimeLabel(Date.parse(displayedWindow.from))} ~ {formatTimeLabel(Date.parse(displayedWindow.to))}</dd>
           </div>
         </dl>}
-        {read.pending && read.data && <p role="status" className="mb-3 type-body text-text-muted">메트릭을 새로고침하고 있습니다…</p>}
-        {quantiles?.truncated && <p role="status" className="mb-3 type-body text-text-muted">분포 조회가 50,000개 포인트를 초과했습니다. 기간이나 Attribute 필터를 좁혀 주세요.</p>}
+        {read.pending && read.data && <p role="status" className="type-body text-text-muted">메트릭을 새로고침하고 있습니다…</p>}
+        {quantiles?.truncated && <p role="status" className="type-body text-text-muted">분포 조회가 50,000개 포인트를 초과했습니다. 기간이나 Attribute 필터를 좁혀 주세요.</p>}
         {expanded && histogram && !pointsError && read.data !== null && (quantilesLoading || quantilesError) && (
           <div role={quantilesError ? 'alert' : 'status'} className="mb-4 flex flex-wrap items-center gap-3">
             <p className="type-body text-text-muted">{quantilesError ? '선택한 시리즈의 기간 분포를 불러오지 못했습니다' : '선택한 시리즈의 기간 분포를 확인하고 있습니다…'}</p>
@@ -147,7 +150,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           </div>
         )}
         {expanded && !pointsError && read.data !== null && quantiles && !quantiles.truncated && (
-          <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md bg-ui-hover-soft px-3 py-1.5">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md bg-ui-hover-soft px-3 py-1.5">
             <span className="type-caption text-text-muted">선택한 시리즈의 기간 분포</span>
             <ChartStats items={[
               { label: 'p50', value: formatValue(quantiles.p50 * factor), unit },
@@ -186,7 +189,8 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         ) : !hasData ? (
           mode === 'rate' && points.length > 0 ? <div className="flex items-center justify-center text-center type-body text-text-muted" style={{ height: CHART_HEIGHT }}>초당 증가량을 계산할 수 없습니다. 단조 증가하는 sum의 누적 시작 정보와 연속된 포인트가 필요합니다.</div> : <ChartEmpty />
         ) : (
-          <>
+          // 차트 → 범례·시리즈 표·잘림 안내 8px(label).
+          <div className="space-y-2">
             <div
               tabIndex={0}
               role="group"
@@ -231,9 +235,9 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
               </p>
             </div>
             {/* 시리즈는 최대 6개라 범례를 줄바꿈으로 모두 보인다(높이를 제한하면 키보드로 스크롤할 수 없다). */}
-            {!expanded && legend && <div className="mt-3">{legend}</div>}
+            {!expanded && legend}
             {expanded && !single && (
-              <div className="mt-2 overflow-x-auto">
+              <div className="overflow-x-auto">
                 <ChartStatsLegend
                   currentLabel={mode === 'rate' ? '최근 계산값' : undefined}
                   series={series.map((item, index) => ({
@@ -246,21 +250,23 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
                 />
               </div>
             )}
-            {truncatedSeries > 0 && <p className="mt-2 type-body text-text-muted">{`Attribute 조합이 많아 ${MAX_METRIC_SERIES}개 시리즈만 표시합니다. (+${truncatedSeries}개 생략)`}</p>}
-          </>
+            {truncatedSeries > 0 && <p className="type-body text-text-muted">{`Attribute 조합이 많아 ${MAX_METRIC_SERIES}개 시리즈만 표시합니다. (+${truncatedSeries}개 생략)`}</p>}
+          </div>
         )}
 
         {/* A cumulative stream's first point never has a rate; only skips beyond that are worth a note. */}
-        {expanded && skippedRatePoints > latest.size && hasData && <p className="mt-3 type-body text-text-muted">{`시작 정보 누락·재시작·겹친 구간 등 ${skippedRatePoints}개 포인트는 증가량을 계산하지 않았습니다.`}</p>}
-        {read.data?.pointsTruncated && <p role="status" className="mt-3 type-body text-text-muted">{`선택한 시리즈의 최근 ${read.data.pointLimit.toLocaleString()}개 포인트만 표시합니다. 기간이나 Attribute 필터를 좁혀 주세요.${histogram ? ' 분포는 선택한 시리즈의 전체 조회 기간을 기준으로 합니다.' : ''}`}</p>}
+        {expanded && skippedRatePoints > latest.size && hasData && <p className="type-body text-text-muted">{`시작 정보 누락·재시작·겹친 구간 등 ${skippedRatePoints}개 포인트는 증가량을 계산하지 않았습니다.`}</p>}
+        {read.data?.pointsTruncated && <p role="status" className="type-body text-text-muted">{`선택한 시리즈의 최근 ${read.data.pointLimit.toLocaleString()}개 포인트만 표시합니다. 기간이나 Attribute 필터를 좁혀 주세요.${histogram ? ' 분포는 선택한 시리즈의 전체 조회 기간을 기준으로 합니다.' : ''}`}</p>}
         {!expanded && read.data && (read.data.series.length > MAX_METRIC_SERIES || read.data.seriesTruncated) && <Button variant="ghost" size="sm" onClick={onExpand}>시리즈 선택하기 ({read.data.series.length}{read.data.seriesTruncated ? '+' : ''}개)</Button>}
-        {expanded && selected === '[]' && <p className="mt-3 type-body text-text-muted">선택한 시리즈가 없습니다. 시리즈를 선택하거나 기본 선택으로 돌아가세요.</p>}
-        {expanded && points.length > 0 && <details className="mt-6">
+        {expanded && selected === '[]' && <p className="type-body text-text-muted">선택한 시리즈가 없습니다. 시리즈를 선택하거나 기본 선택으로 돌아가세요.</p>}
+          </div>
+        {expanded && points.length > 0 && <details>
           <summary className="min-h-11 cursor-pointer type-label text-text-base">수집 정보</summary>
           <p className="mb-3 type-caption text-text-muted">표시한 최신 포인트의 Resource와 Scope입니다.</p>
           <dl className="space-y-2 type-caption text-text-muted">{Object.entries(points[points.length - 1]?.resource ?? {}).map(([key, value]) => <div key={key} className="grid gap-1 sm:grid-cols-2"><dt className="break-all font-mono">{key}</dt><dd className="break-all">{value}</dd></div>)}</dl>
           <p className="mt-3 break-all type-caption text-text-muted">Scope: {points[points.length - 1]?.scope?.name || '기록 없음'} {points[points.length - 1]?.scope?.version}</p>
         </details>}
+        </div>
         {activeTraceId && <TracePanel traceId={activeTraceId} target={source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey }} onClose={() => setActiveTraceId(null)} />}
       </ChartCard>
     </div>

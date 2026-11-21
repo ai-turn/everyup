@@ -73,7 +73,7 @@ export function BucketedResponseTimeChart({ load, windowMs, bucketMs, caption, t
         controls={controls}
         headingLevel={headingLevel}
         unavailable={error && loadedAt === 0}
-        notice={error && <div className="mb-4"><UptimeFetchNotice source="체크 이력" onRetry={() => setAttempt((value) => value + 1)} /></div>}
+        notice={error && <UptimeFetchNotice source="체크 이력" onRetry={() => setAttempt((value) => value + 1)} />}
       />
   );
 }

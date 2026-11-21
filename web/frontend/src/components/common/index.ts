@@ -11,7 +11,7 @@ export { FilterChips, type FilterChipOption } from './FilterChips';
 export { ListViewToggle, type ListView } from './ListViewToggle';
 export { ResourceTable, type ResourceColumn } from './ResourceTable';
 export { ResourceCardHeader } from './ResourceCardHeader';
-export { SectionHeader } from './SectionHeader';
+export { Section } from './Section';
 export { List, ListGroup, ListMore, ListRow, SUBGROUP_LABEL } from './ListRow';
 export { OptionText } from './OptionText';
 export { Stat } from './Stat';

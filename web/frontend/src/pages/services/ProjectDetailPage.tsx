@@ -5,7 +5,7 @@ import { Link, Navigate, useLocation, useParams, useNavigate } from 'react-route
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailMeta, EmptyState, List, ListRow, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable, SectionHeader, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
+import { Button, DetailMeta, EmptyState, List, ListRow, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable, Section, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
@@ -293,9 +293,10 @@ export function ProjectDetailPage() {
         }
       />
 
-      <div className="mb-6">
-        <Tabs items={tabs} active={current} onChange={open} ariaLabel="Docker 환경 기능" idPrefix={ID_PREFIX} />
-      </div>
+      {/* 탭 → 패널 24px(group). 머리말 → 탭은 PageHeader의 아래 여백이다. */}
+      <div className="page-stack">
+        {/* Tabs는 포커스 링 자리로 -m-1을 가져 부모의 간격이 닿지 않는다. 한 겹 감싸 page-stack이 간격을 준다. */}
+        <div className="min-w-0"><Tabs items={tabs} active={current} onChange={open} ariaLabel="Docker 환경 기능" idPrefix={ID_PREFIX} /></div>
       <div role="tabpanel" id={tabPanelId(ID_PREFIX, current)} aria-labelledby={tabId(ID_PREFIX, current)} className="space-y-8">
         {current === 'overview' && <>
           {/* 설정 가이드는 환경 전체의 일이라 개요에 둔다. 탭 위에 두면 모든 탭에서 탭 줄을 밀어냈다. */}
@@ -327,8 +328,7 @@ export function ProjectDetailPage() {
           )}
 
           {/* Service health grid — 다른 섹션(인프라·로그)처럼 제목을 둔다. 보기 전환은 아래 로그 섹션에도 적용된다. */}
-          <section>
-          <SectionHeader title="서비스" meta={`${services.length}개`} actions={<ListViewToggle view={view} onChange={setView} />} />
+          <Section title="서비스" meta={`${services.length}개`} actions={<ListViewToggle view={view} onChange={setView} />}>
           {services.length === 0 && !loadError ? (
             <EmptyState icon="inventory_2" title="수집된 서비스가 없습니다" />
           ) : (
@@ -338,7 +338,7 @@ export function ProjectDetailPage() {
               { key: 'endpoint', label: '체크 주소', className: 'hidden lg:table-cell', render: row => <Tooltip content={row.endpoint} focusable><p className="truncate font-mono text-xs text-text-muted">{row.endpoint}</p></Tooltip> },
               { key: 'latency', label: '응답 시간', className: 'hidden w-28 md:table-cell', align: 'right', render: row => row.lastLatency ?? '-' },
               { key: 'status', label: '상태 코드', className: 'hidden w-24 md:table-cell', align: 'right', render: row => row.lastStatus ?? '-' },
-              { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <><Tooltip content={metrics[row.name].metricName} focusable><p className="truncate font-mono text-xs text-text-muted">{metricLabel(metrics[row.name].metricName)}</p></Tooltip><p className="mt-1">{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></> : '-' },
+              { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <div className="space-y-intra"><Tooltip content={metrics[row.name].metricName} focusable><p className="truncate font-mono text-xs text-text-muted">{metricLabel(metrics[row.name].metricName)}</p></Tooltip><p>{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></div> : '-' },
             ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {services.map((s) => (
                 <ServiceCard
@@ -351,7 +351,7 @@ export function ProjectDetailPage() {
               ))}
             </div>
           )}
-          </section>
+          </Section>
 
           {/* 90-day uptime — 낮고 넓은 바라서 full-width 단독 행 (바 폭 확보 + 높이 불일치 해소) */}
           {services.length > 0 && agentId && (
@@ -427,6 +427,7 @@ export function ProjectDetailPage() {
           <AgentServiceRequestTrends agentId={agentId} refreshKey={refreshKey}
             empty={<EmptyState icon="show_chart" title="최근 요청이 없습니다" description="서비스가 요청을 받으면 여기에 추이가 나타납니다." headingLevel="h2" />} />
         )}
+      </div>
       </div>
 
       <ConfirmDialog

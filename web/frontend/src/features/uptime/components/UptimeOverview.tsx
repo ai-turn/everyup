@@ -141,7 +141,8 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
         )}
         <span className="shrink-0">오늘</span>
       </div>
-      {children}
+      {/* 아래에 붙는 내용(장애 이력)은 카드 없는 섹션 사이 규칙(32px + 선 + 32px, section)으로 나눈다. */}
+      {children && <div className="mt-section border-t border-ui-border-soft pt-section">{children}</div>}
     </section>
   );
 }

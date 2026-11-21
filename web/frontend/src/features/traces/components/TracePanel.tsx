@@ -1,5 +1,5 @@
 import { Tooltip } from '../../../components/common/Tooltip';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, CopyButton, ICON_ACTION_SM, IconButton, MaterialIcon } from '../../../components/common';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
@@ -365,9 +365,19 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
   );
 }
 
+// 패널 안의 절. 머리 → 내용 8px(label)은 절이 갖는다(DESIGN.md §3.7 부모가 간격을 정한다).
+function PanelSection({ icon, title, count, children }: { icon: string; title: string; count: number; children: ReactNode }) {
+  return (
+    <section className="space-y-label">
+      <PanelSectionHeader icon={icon} title={title} count={count} />
+      {children}
+    </section>
+  );
+}
+
 function PanelSectionHeader({ icon, title, count }: { icon: string; title: string; count: number }) {
   return (
-    <div className="flex items-center gap-2 mb-2">
+    <div className="flex items-center gap-2">
       <MaterialIcon size={20} name={icon} className="text-action" />
       <h4 className="type-label text-text-base">{title}</h4>
       <span className="type-label-sm text-text-secondary bg-ui-active px-2 py-0.5 rounded-md">
@@ -430,7 +440,7 @@ function SpanDetail({ span }: { span: TraceSpan }) {
   const attrs = span.attributes ?? {};
   const events = span.events ?? [];
   return (
-    <div className="mt-3 space-y-3">
+    <div className="space-y-3">
       {span.statusMessage && (
         <div>
           <p className="mb-1 type-label-sm text-text-dim">실패 원인</p>
@@ -448,12 +458,12 @@ function SpanDetail({ span }: { span: TraceSpan }) {
           <p className="mb-1 type-label-sm text-text-dim">Event</p>
           <ul className="space-y-1.5">
             {events.map((event, index) => (
-              <li key={`${event.name}-${event.timeUnixNano ?? index}`}>
+              <li key={`${event.name}-${event.timeUnixNano ?? index}`} className="space-y-0.5">
                 <p className="font-mono text-xs text-text-secondary">
                   {event.name}
                   {event.timeUnixNano ? <span className="ml-2 text-text-muted">+{formatDuration(Math.max(0, Math.round((event.timeUnixNano - span.startUnixNano) / 1_000_000)))}</span> : null}
                 </p>
-                {event.attributes && Object.keys(event.attributes).length > 0 && <div className="ml-3 mt-0.5"><AttributeRows attrs={event.attributes} /></div>}
+                {event.attributes && Object.keys(event.attributes).length > 0 && <div className="pl-3"><AttributeRows attrs={event.attributes} /></div>}
               </li>
             ))}
           </ul>
@@ -480,8 +490,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
   const total = Math.max(traceEnd - traceStart, 1);
 
   return (
-    <section>
-      <PanelSectionHeader icon="account_tree" title="Span" count={spans.length} />
+    <PanelSection icon="account_tree" title="Span" count={spans.length}>
       <ul className="space-y-1.5">
         {spanTree(spans).map(({ span, depth }) => {
           const leftPct = Math.min(Math.max(((span.startUnixNano - traceStart) / total) * 100, 0), 100);
@@ -492,6 +501,9 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
               key={`${span.traceId}-${span.spanId}`}
               className="px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
             >
+              {/* 이름 줄 → 막대 6px, 막대 → 상세 12px. */}
+              <div className="space-y-3">
+              <div className="space-y-1.5">
               {/* 들여쓰기는 깊이 8까지만(더 깊으면 이름 자리가 남지 않는다). 막대는 들여쓰지 않아 시간축이 맞는다. */}
               <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap" style={{ paddingLeft: `${Math.min(depth, 8) * 12}px` }}>
                 {hasDetail(span)
@@ -519,18 +531,20 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                 {copyButton(() => onCopy(formatSpanCopy(span)), 'Span 행 복사')}
               </div>
               {/* Waterfall track: bar positioned/sized by the span's time window */}
-              <div className="relative mt-1.5 h-1.5 w-full rounded bg-ui-active">
+              <div className="relative h-1.5 w-full rounded bg-ui-active">
                 <div
                   className={`absolute top-0 h-full rounded ${spanBarColor(span)}`}
                   style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
                 />
               </div>
+              </div>
               {expanded && <SpanDetail span={span} />}
+              </div>
             </li>
           );
         })}
       </ul>
-    </section>
+    </PanelSection>
   );
 }
 
@@ -556,8 +570,7 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
 function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCopy: CopyFn }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="list_alt" title="헤더" count={items.length} />
+    <PanelSection icon="list_alt" title="헤더" count={items.length}>
       <ul className="space-y-2">
         {items.map((item) => (
           <li
@@ -580,7 +593,7 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
           </li>
         ))}
       </ul>
-    </section>
+    </PanelSection>
   );
 }
 
@@ -589,8 +602,7 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
 function RestrictedBodyNotice({ count }: { count: number }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="data_object" title="캡처된 바디" count={count} />
+    <PanelSection icon="data_object" title="캡처된 바디" count={count}>
       <div className="flex items-center gap-3 rounded-md bg-ui-hover-soft px-4 py-3 text-sm">
         <MaterialIcon size={20} name="lock" className="text-amber-500 shrink-0" />
         <div>
@@ -600,15 +612,14 @@ function RestrictedBodyNotice({ count }: { count: number }) {
           </p>
         </div>
       </div>
-    </section>
+    </PanelSection>
   );
 }
 
 function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: CopyFn }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="data_object" title="캡처된 바디" count={items.length} />
+    <PanelSection icon="data_object" title="캡처된 바디" count={items.length}>
       <p className="mb-2 flex items-center gap-1.5 text-xs text-text-dim">
         <MaterialIcon size={20} name="policy" />
         관리자 전용 · 모든 열람은 감사 로그에 기록됩니다
@@ -647,15 +658,14 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
           </li>
         ))}
       </ul>
-    </section>
+    </PanelSection>
   );
 }
 
 function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="api" title="API 요청" count={items.length} />
+    <PanelSection icon="api" title="API 요청" count={items.length}>
       <ul className="space-y-1.5">
         {items.map((req) => (
           <li
@@ -682,15 +692,14 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
           </li>
         ))}
       </ul>
-    </section>
+    </PanelSection>
   );
 }
 
 function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="article" title="로그" count={logs.length} />
+    <PanelSection icon="article" title="로그" count={logs.length}>
       <ul className="space-y-1.5">
         {logs.map((log) => (
           <li
@@ -710,6 +719,6 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
           </li>
         ))}
       </ul>
-    </section>
+    </PanelSection>
   );
 }

@@ -154,7 +154,10 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
 
   return (
     <ChartCard as={headingLevel} title="응답 시간" unit={caption} right={controls}>
+      {/* 조회 실패 안내 → 차트 16px */}
+      <div className="space-y-4">
       {notice}
+      <div>
       {unavailable ? null : loading ? <ChartSkeleton /> : total === 0 ? <ChartEmpty /> : (
         <>
           <div className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
@@ -203,8 +206,8 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
             <span className="tabular-nums">{formatDateTime(window[0])} ~ {formatDateTime(window[1])} · {timezone}</span>
           </div>
           {events.length > 0 && (
-            <div className="mt-6">
-              <SubHeading className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
+            <div className="mt-6 space-y-1">
+              <SubHeading className="type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
               {/* 스크롤 영역이 행의 포커스 링을 자르지 않게 여백을 두고 같은 만큼 끌어당긴다. */}
               <ul aria-label="이 기간의 실패" className="-m-1 max-h-48 overflow-y-auto p-1">
                 {events.map((event) => (
@@ -228,6 +231,8 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
           {outsideThresholds.length > 0 && <p className="mt-2 type-caption text-text-muted">{outsideThresholds.map((rule) => `알림 ${OPERATOR_LABEL[rule.operator] ?? '>'} ${number(rule.threshold)}ms`).join(', ')}</p>}
         </>
       )}
+      </div>
+      </div>
     </ChartCard>
   );
 }

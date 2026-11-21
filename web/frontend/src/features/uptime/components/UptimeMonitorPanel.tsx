@@ -72,7 +72,8 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
     && (!selectedDate || new Date(row.at).toLocaleDateString('sv-SE') === selectedDate));
   const shown = expanded ? visible : visible.slice(0, HISTORY_ROWS);
   return (
-    <div className="mt-8 border-t border-ui-border-soft pt-8">
+    // 이력 → 더 보기 8px. 위 90일 막대와의 구분선은 UptimeOverview가 둔다.
+    <div className="space-y-2">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h4 className="type-card-title text-text-base">장애 이력</h4>
         {selectedDate && (
@@ -114,7 +115,7 @@ function OutageHistory({ rows, selectedDate, onClearDate }: { rows: HistoryRow[]
         </div>
       )}
       {visible.length > HISTORY_ROWS && (
-        <Button size="sm" variant="ghost" className="mt-2" onClick={() => setExpanded((value) => !value)}>
+        <Button size="sm" variant="ghost" onClick={() => setExpanded((value) => !value)}>
           {expanded ? '접기' : `${visible.length - HISTORY_ROWS}개 더 보기`}
         </Button>
       )}
@@ -267,7 +268,8 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
   return (
     <div className="page-stack">
       {/* 제목·주소와 아래 상태 줄은 한 머리말이라 블록 간격(24px)이 아니라 8px로 붙인다(Direct*Panel과 같다). */}
-      <div className="mb-2">
+      <div className="space-y-2">
+      <div>
         {/* 제목과 액션은 세로 가운데를 맞춘다(28px 제목 + 40px 버튼이 items-start로 6px 어긋났다). */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="min-w-0 wrap-anywhere text-text-base type-section-title">{monitor.name}</h2>
@@ -292,6 +294,7 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, o
         fields={metaFields(monitor)}
         collapseOnMobile collapseLabel="모니터 정보" collapsed
       />
+      </div>
 
       {failedSources.length > 0 && (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border-soft bg-bg-surface px-4 py-3 text-sm text-text-secondary">
