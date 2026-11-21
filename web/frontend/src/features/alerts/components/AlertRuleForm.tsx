@@ -218,7 +218,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                     <p className="type-label text-text-base">
                                         시스템 규칙
                                     </p>
-                                    <p className="type-body text-text-muted mt-0.5">
+                                    <p className="mt-1 type-body text-text-muted">
                                         발동: {systemTrigger}
                                     </p>
                                 </div>
@@ -827,7 +827,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                             <div className="flex items-center gap-3 mb-4">
                                 <div>
                                     <p className="type-label text-text-base">미리보기</p>
-                                    <p className="type-body text-text-muted mt-0.5">저장하면 이렇게 동작합니다</p>
+                                    <p className="mt-1 type-body text-text-muted">저장하면 이렇게 동작합니다</p>
                                 </div>
                             </div>
                             <div className="space-y-5">

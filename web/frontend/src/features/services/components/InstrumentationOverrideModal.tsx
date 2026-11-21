@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { CopyButton, COPY_ACTION_PRIMARY } from '../../../components/common/CopyButton';
 import { ICON_ACTION_SM, IconButton } from '../../../components/common/IconButton';
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
+import { OptionText } from '../../../components/common/OptionText';
+import { Field } from '../../alerts/components/FormLayout';
 import { Input } from '../../../components/common/Input';
 import { Select } from '../../../components/common/Select';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
@@ -217,10 +219,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
 
               <div className={`grid gap-3 ${composeProjects.length > 1 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
                 {composeProjects.length > 1 && (
-                  <div className="space-y-1.5">
-                    <label htmlFor="otel-compose-project" className="type-label text-text-secondary">
-                      Compose 프로젝트
-                    </label>
+                  <Field label="Compose 프로젝트" htmlFor="otel-compose-project" hint="한 번에 한 Compose 프로젝트씩 적용합니다.">
                     <Select
                       id="otel-compose-project"
                       value={selectedProject}
@@ -230,14 +229,10 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                         <option key={project} value={project}>{project}</option>
                       ))}
                     </Select>
-                    <p className="type-body text-text-muted">한 번에 한 Compose 프로젝트씩 적용합니다.</p>
-                  </div>
+                  </Field>
                 )}
                 <ConnectionAddressField address={address} />
-                <div className="space-y-1.5">
-                  <label htmlFor="otel-compose-path" className="type-label text-text-secondary">
-                    애플리케이션 Compose 경로
-                  </label>
+                <Field label="애플리케이션 Compose 경로" htmlFor="otel-compose-path" hint="이 명령을 실행할 서버의 파일 경로입니다.">
                   <Input
                     id="otel-compose-path"
                     type="text"
@@ -246,8 +241,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                     placeholder="./docker-compose.yml"
                     mono warn={composePathMissing}
                   />
-                  <p className="type-body text-text-muted">이 명령을 실행할 서버의 파일 경로입니다.</p>
-                </div>
+                </Field>
               </div>
 
               <label className="-mx-3 flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors hover:bg-ui-hover-soft">
@@ -257,13 +251,10 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                   onChange={(event) => setCaptureBodies(event.target.checked)}
                   className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
                 />
-                <span className="min-w-0">
-                  <span className="block type-label text-text-base">요청·응답 바디도 수집</span>
-                  <span className="mt-0.5 block type-body text-text-muted">
-                    Node.js만 지원하며 민감 필드를 마스킹하고 크기를 제한합니다.
-                    {hasJava && captureBodies && ' Java 서비스에는 헤더 수집만 적용됩니다.'}
-                  </span>
-                </span>
+                <OptionText title="요청·응답 바디도 수집" descriptionSize="body" description={<>
+                  Node.js만 지원하며 민감 필드를 마스킹하고 크기를 제한합니다.
+                  {hasJava && captureBodies && ' Java 서비스에는 헤더 수집만 적용됩니다.'}
+                </>} />
               </label>
 
               <div className="space-y-1.5">

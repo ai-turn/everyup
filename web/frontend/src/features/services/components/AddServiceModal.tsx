@@ -26,6 +26,7 @@ import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { env } from '../../../config/env';
 import { QUICKSTART_URL } from '../../../components/layout/DemoHelpLinks';
 import { formatClock } from '../../../utils/incidentFormat';
+import { Field } from '../../alerts/components/FormLayout';
 
 interface Props {
   onClose: () => void;
@@ -136,65 +137,62 @@ function AgentForm({
   const uptimeRequired = customCapabilities.includes('logs') || customCapabilities.includes('api');
 
   return (
-    <form onSubmit={onSubmit} className="p-6 space-y-5">
-      <div className="space-y-1.5">
-        <label htmlFor="new-project-name" className="text-sm text-text-secondary">
-          Docker 환경 이름
-        </label>
-        <Input
-          id="new-project-name"
-          type="text"
-          value={name}
-          onChange={event => onNameChange(event.target.value)}
-          placeholder="예: my-api, payment-service"
-        />
-        <p className="type-body text-text-muted">
-          대시보드에서 Docker 호스트를 구분할 이름입니다
-        </p>
-      </div>
-      <div className="space-y-2">
-        <div>
-          <span className="text-sm text-text-secondary">수집 범위</span>
-          <p className="mt-0.5 type-body text-text-muted">필요한 권한과 Collector만 설치합니다.</p>
-        </div>
-        <SegmentedControl
-          options={PROFILE_OPTIONS}
-          value={profileKind}
-          onChange={onProfileKindChange}
-          size="md"
-          ariaLabel="Docker 수집 프로필"
-        />
-        {profileKind === 'all-in-one' && (
-          <p className="type-body text-text-muted">컨테이너 상태·로그·호스트 자원·API 요청을 수집하고 OTLP 메트릭을 받을 수 있습니다. 앱 메트릭은 별도 전송 설정이 필요합니다.</p>
-        )}
-        {profileKind === 'basic' && (
-          <p className="type-body text-text-muted">업타임과 로그만 수집합니다. Docker socket은 읽기 전용으로 사용합니다.</p>
-        )}
-        {profileKind === 'custom' && (
-          <div role="group" aria-label="사용자 지정 수집 기능" className="-mx-3">
-            {CAPABILITY_OPTIONS.map((option) => {
-              const checked = customCapabilities.includes(option.capability);
-              const disabled = option.capability === 'uptime' && uptimeRequired;
-              return (
-                <div key={option.capability} className="flex items-center gap-3 px-3 py-2.5">
-                  <Toggle
-                    checked={checked}
-                    onChange={(enabled) => toggleCapability(option.capability, enabled)}
-                    disabled={disabled}
-                    ariaLabel={`${option.label} 수집`}
-                    title={disabled ? '로그 또는 API 요청 수집에 필요합니다' : undefined}
-                  />
-                  <div className="min-w-0">
-                    <p className="type-label text-text-base">{option.label}</p>
-                    <p className="type-body text-text-muted">{option.description}</p>
-                  </div>
-                </div>
-              );
-            })}
+    // 본문(p-6)과 바닥 줄(구분선 + px-6 py-4)을 나눈다 — 다른 대화 상자와 같은 골격(DESIGN.md §3.7 패딩, §6).
+    <form onSubmit={onSubmit}>
+      <div className="space-y-5 p-6">
+        <Field label="Docker 환경 이름" htmlFor="new-project-name" hint="대시보드에서 Docker 호스트를 구분할 이름입니다">
+          <Input
+            id="new-project-name"
+            type="text"
+            value={name}
+            onChange={event => onNameChange(event.target.value)}
+            placeholder="예: my-api, payment-service"
+          />
+        </Field>
+        <div className="space-y-2">
+          <div>
+            <span className="type-label text-text-muted">수집 범위</span>
+            <p className="mt-1 type-body text-text-muted">필요한 권한과 Collector만 설치합니다.</p>
           </div>
-        )}
+          <SegmentedControl
+            options={PROFILE_OPTIONS}
+            value={profileKind}
+            onChange={onProfileKindChange}
+            size="md"
+            ariaLabel="Docker 수집 프로필"
+          />
+          {profileKind === 'all-in-one' && (
+            <p className="type-body text-text-muted">컨테이너 상태·로그·호스트 자원·API 요청을 수집하고 OTLP 메트릭을 받을 수 있습니다. 앱 메트릭은 별도 전송 설정이 필요합니다.</p>
+          )}
+          {profileKind === 'basic' && (
+            <p className="type-body text-text-muted">업타임과 로그만 수집합니다. Docker socket은 읽기 전용으로 사용합니다.</p>
+          )}
+          {profileKind === 'custom' && (
+            <div role="group" aria-label="사용자 지정 수집 기능" className="-mx-3">
+              {CAPABILITY_OPTIONS.map((option) => {
+                const checked = customCapabilities.includes(option.capability);
+                const disabled = option.capability === 'uptime' && uptimeRequired;
+                return (
+                  <div key={option.capability} className="flex items-center gap-3 px-3 py-2.5">
+                    <Toggle
+                      checked={checked}
+                      onChange={(enabled) => toggleCapability(option.capability, enabled)}
+                      disabled={disabled}
+                      ariaLabel={`${option.label} 수집`}
+                      title={disabled ? '로그 또는 API 요청 수집에 필요합니다' : undefined}
+                    />
+                    <div className="min-w-0">
+                      <p className="type-label text-text-base">{option.label}</p>
+                      <p className="type-body text-text-muted">{option.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex justify-end gap-2 pt-1">
+      <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
         <Button type="button" variant="secondary" onClick={onClose}>
           취소
         </Button>

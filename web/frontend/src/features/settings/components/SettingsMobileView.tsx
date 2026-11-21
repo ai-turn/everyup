@@ -5,6 +5,7 @@ import { AlertsSection } from './AlertsSection';
 import { AuditLogSection } from './AuditLogSection';
 import { retentionLabel, intervalLabel } from '../retentionLabel';
 import { env } from '../../../config/env';
+import { SettingRow } from './SettingRow';
 
 const METRICS_RETENTION_OPTIONS = ['7d', '30d', '90d', '1y'];
 const LOGS_RETENTION_OPTIONS = ['1d', '3d', '7d', '30d'];
@@ -73,9 +74,7 @@ export function SettingsMobileView({
       {/* Interface */}
       <SectionCard title="인터페이스">
         {/* Theme */}
-        <div className="space-y-2">
-          <p className="type-body text-text-base">테마</p>
-          <p className="type-body text-text-muted">라이트 또는 다크 모드를 선택합니다</p>
+        <SettingRow label="테마" description="라이트 또는 다크 모드를 선택합니다">
           <SegmentedControl
             size="md"
             ariaLabel="테마"
@@ -83,7 +82,7 @@ export function SettingsMobileView({
             value={theme}
             onChange={onThemeChange}
           />
-        </div>
+        </SettingRow>
       </SectionCard>
 
       {/* Data Retention */}
@@ -94,11 +93,9 @@ export function SettingsMobileView({
             <div className="h-14 bg-ui-hover rounded-lg animate-pulse" />
           </div>
         ) : (
-          <div className="space-y-5">
+          <div>
             {/* Collect interval */}
-            <div className="space-y-2">
-              <p className="type-body text-text-base">수집 주기</p>
-              <p className="type-body text-text-muted">시스템 메트릭을 수집하는 간격 · 다음 시작 시 적용됩니다</p>
+            <SettingRow label="수집 주기" description="시스템 메트릭을 수집하는 간격 · 다음 시작 시 적용됩니다">
               <SegmentedControl
                 size="md"
                 ariaLabel="수집 주기"
@@ -109,12 +106,10 @@ export function SettingsMobileView({
                 value={String(collectInterval)}
                 onChange={(v) => onCollectIntervalChange(Number(v))}
               />
-            </div>
+            </SettingRow>
 
             {/* Metrics */}
-            <div className="space-y-2">
-              <p className="type-body text-text-base">메트릭 보존 기간</p>
-              <p className="type-body text-text-muted">수집된 시스템 메트릭 데이터 보존 기간</p>
+            <SettingRow label="메트릭 보존 기간" description="수집된 시스템 메트릭 데이터 보존 기간">
               <SegmentedControl
                 size="md"
                 ariaLabel="메트릭 보존 기간"
@@ -122,12 +117,10 @@ export function SettingsMobileView({
                 value={metricsRetention}
                 onChange={onMetricsRetentionChange}
               />
-            </div>
+            </SettingRow>
 
             {/* Logs */}
-            <div className="space-y-2">
-              <p className="type-body text-text-base">로그 보존 기간</p>
-              <p className="type-body text-text-muted">에러 로그 데이터 보존 기간</p>
+            <SettingRow label="로그 보존 기간" description="에러 로그 데이터 보존 기간">
               <SegmentedControl
                 size="md"
                 ariaLabel="로그 보존 기간"
@@ -135,7 +128,7 @@ export function SettingsMobileView({
                 value={logsRetention}
                 onChange={onLogsRetentionChange}
               />
-            </div>
+            </SettingRow>
 
             <p className="type-body text-text-muted">
               보존 기간을 줄이면 기간을 초과한 기존 데이터는 다음 정리 주기에 삭제됩니다.

@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, Input, MaterialIcon, Select, IconButton } from '../../../components/common';
+import { Button, Input, MaterialIcon, OptionText, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type UptimeMonitor, type UptimeMonitorInput, type UptimeMonitorType } from '../../../services/api';
@@ -171,10 +171,7 @@ export function UptimeMonitorDialog({
           {!monitor && (
             <label className="flex items-start gap-3">
               <input type="checkbox" checked={alertOnDown} onChange={(event) => setAlertOnDown(event.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary" />
-              <span>
-                <span className="block type-label text-text-secondary">다운되면 알림</span>
-                <span className="block type-caption text-text-muted">연속으로 실패하면 한 번, 복구되면 한 번 켜진 모든 채널로 보냅니다. 알림 규칙에서 바꿀 수 있습니다.</span>
-              </span>
+              <OptionText tone="secondary" title="다운되면 알림" description="연속으로 실패하면 한 번, 복구되면 한 번 켜진 모든 채널로 보냅니다. 알림 규칙에서 바꿀 수 있습니다." />
             </label>
           )}
         </fieldset>
