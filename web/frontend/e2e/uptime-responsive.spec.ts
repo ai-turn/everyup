@@ -37,7 +37,7 @@ for (const theme of ['light', 'dark']) for (const [width, height] of [[375, 812]
     expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}-${height}-create.png`) });
     await dialog.getByRole('button', { name: '취소', exact: true }).click();
-    await page.goto('./servers/server-1/uptime/http-monitor'); await (await menuItem(page, '삭제')).click();
+    await page.goto('./servers/server-1/monitors/http-monitor'); await (await menuItem(page, '삭제')).click();
     const confirm = page.getByRole('dialog', { name: '업타임을 삭제할까요?' });
     await confirm.getByRole('button', { name: '취소', exact: true }).scrollIntoViewIfNeeded();
     const cancelBox = await confirm.getByRole('button', { name: '취소', exact: true }).boundingBox();
@@ -66,7 +66,7 @@ test('[17] 200 percent root text, long errors and a short viewport keep forms an
   expect(overflow).toBeLessThanOrEqual(1);
   await page.screenshot({ path: testInfo.outputPath('text-200-create.png') });
   await dialog.getByRole('button', { name: '취소', exact: true }).click();
-  for (const route of ['./servers/server-1/uptime/http-monitor', './services/docker-host/shop%3Aapi']) {
+  for (const route of ['./servers/server-1/monitors/http-monitor', './services/docker-host/shop%3Aapi']) {
     await page.goto(route);
     await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
     await expect(page.getByRole('heading', { name: route.includes('http-monitor') ? 'Public API' : 'Docker API', exact: true })).toBeVisible();

@@ -12,7 +12,7 @@ test('failing server shows its name, state and a cause link to the monitor', asy
   await expect(header).toContainText('장애');
   const cause = header.getByRole('link', { name: /응답 없음/ });
   await expect(cause).toBeVisible();
-  await expect(cause).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/uptime/uptime_mock_checkout$`));
+  await expect(cause).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/monitors/uptime_mock_checkout$`));
   await expect(header).toContainText('Production');
 });
 
@@ -61,9 +61,10 @@ test('switching tabs changes the address and back returns to the overview', asyn
 });
 
 test('reselecting a tab returns to its first screen', async ({ page }) => {
-  await page.goto(`./servers/${EDGE}/uptime/uptime_mock_checkout`);
+  await page.goto(`./servers/${EDGE}/uptime?status=down`);
   const uptime = tablist(page).getByRole('tab', { name: /^업타임/ });
   await expect(uptime).toHaveAttribute('aria-selected', 'true');
+  // 쿼리가 있으면 같은 탭을 눌러도 쿼리 없는 첫 화면으로 간다(설계 6.4절).
   await uptime.click();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
 });

@@ -21,6 +21,8 @@ import { appCapability, appPanelStatus, worst, type ServerRow } from '../../feat
 import { useMoveTarget } from '../../features/servers/useMoveTarget';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { TargetHeader } from '../../features/targets/TargetHeader';
+import { TargetMissing } from '../../features/targets/TargetMissing';
+import { listBack } from '../../features/targets/listBack';
 import { DirectTelemetrySetupDialog } from '../../features/telemetry/components/DirectTelemetrySetupDialog';
 import { receiptCollection, signalList } from '../../features/telemetry/signals';
 import { useDirectServicePanel } from '../../features/telemetry/useDirectServicePanel';
@@ -29,7 +31,6 @@ import { useHeldToken } from '../../hooks/useHeldToken';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import { api, type ObservedService, type TelemetrySignal } from '../../services/api';
 import { formatDateTime } from '../../utils/incidentFormat';
-import { listReturnTo } from '../../utils/listReturnTo';
 import { readLatest, TargetGoneError } from '../../utils/readLatest';
 
 const ID_PREFIX = 'app';
@@ -43,6 +44,11 @@ const TABS: readonly { key: AppTab; label: string; signal: TelemetrySignal; capa
 ];
 const DEFAULT_TAB: Record<'logs' | 'api' | 'metrics', AppTab> = { logs: 'logs', api: 'requests', metrics: 'metrics' };
 const isAppTab = (value: string | null): value is AppTab => TABS.some((tab) => tab.key === value);
+
+const MISSING = {
+  failed: '앱 정보를 불러오지 못했습니다', failedDescription: '앱 목록을 불러오지 못해 이 앱을 확인할 수 없습니다.',
+  notHere: '이 서버의 앱이 아닙니다', gone: '다른 서버로 옮겨졌거나 연결이 해제되었습니다.',
+};
 
 /**
  * 직접 OpenTelemetry로 연결한 앱 하나의 페이지(`/servers/:serverId/apps/:appId`, DESIGN.md §4.7 대상 상세).
@@ -70,7 +76,7 @@ export function ServerAppPage() {
   const [generation, setGeneration] = useState(0);
   const refresh = { updatedAt, onRefresh: handleRefresh, refreshing: spinning || busy, autoRefresh, onAutoRefreshChange: changeAutoRefresh };
 
-  if (!row || !app) return <AppMissing row={row} loading={!loaded && !error} error={error} unverified={unverified} onRetry={() => void reload()} />;
+  if (!row || !app) return <TargetMissing row={row} loading={!loaded && !error} error={error} unverified={unverified} onRetry={() => void reload()} copy={MISSING} />;
 
   return (
     <AppDetail key={`${row.server.id}/${app.id}/${generation}`} row={row} app={app} stale={unverified} refresh={refresh} refreshToken={refreshToken}
@@ -79,44 +85,6 @@ export function ServerAppPage() {
         ? <LoadErrorBanner title="앱 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={() => void reload()} retrying={loading} />
         : failed.length > 0 ? <LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={() => void reload()} retrying={loading} /> : null} />
   );
-}
-
-/** 앱을 아직 모르거나 찾지 못했다. 목록을 불러오지 못했으면 없다고 단정하지 않는다. */
-function AppMissing({ row, loading, error, unverified, onRetry }: { row?: ServerRow; loading: boolean; error: string | null; unverified: boolean; onRetry: () => void }) {
-  if (loading) {
-    return (
-      <div role="status" className="space-y-group">
-        <span className="sr-only">로딩 중…</span>
-        <div className="h-8 w-48 animate-pulse rounded-lg bg-ui-hover-soft" />
-        <div className="h-10 animate-pulse rounded-lg bg-ui-hover-soft" />
-        <div className="h-96 animate-pulse rounded-xl bg-ui-hover-soft" />
-      </div>
-    );
-  }
-  if (unverified || !row) {
-    if (unverified || error) {
-      return <EmptyState icon="sync_problem" title="앱 정보를 불러오지 못했습니다" description={error ?? '앱 목록을 불러오지 못해 이 앱을 확인할 수 없습니다.'} action={{ label: '다시 시도', onClick: onRetry }} headingLevel="h1" />;
-    }
-    return (
-      <EmptyState icon="search_off" title="서버를 찾을 수 없습니다" description="삭제되었거나 주소가 잘못되었습니다." headingLevel="h1">
-        <ButtonLink to="/servers">서버 목록</ButtonLink>
-      </EmptyState>
-    );
-  }
-  return (
-    <EmptyState icon="search_off" title="이 서버의 앱이 아닙니다" description="다른 서버로 옮겨졌거나 연결이 해제되었습니다." headingLevel="h1">
-      <ButtonLink to={serverPath(row.server.id)}>{`${row.server.name} 서버로`}</ButtonLink>
-    </EmptyState>
-  );
-}
-
-/** 목록(서버의 로그·API 요청·메트릭 탭, 전체 로그)에서 열었으면 그 목록으로 돌아가는 링크(검색·보기 방식 포함). */
-function listBack(state: unknown, serverId: string): { label: string; to: string } | undefined {
-  const given = (state as { returnTo?: unknown } | null)?.returnTo;
-  if (typeof given !== 'string') return undefined;
-  const list = [ALL_LOGS_PATH, ...(['logs', 'api', 'metrics'] as const).map((key) => serverPath(serverId, key))]
-    .find((path) => listReturnTo(state, path) === given);
-  return list ? { label: list === ALL_LOGS_PATH ? '전체 로그' : '앱 목록', to: given } : undefined;
 }
 
 /** 앱의 상태(받는 데이터 유형 중 가장 나쁜 것, 서버 탭의 점과 같은 판정)와 탭 줄. */
@@ -161,7 +129,10 @@ function AppDetail({ row, app, stale, refresh, refreshToken, onChanged, forgetTa
     setSearchParams(params);
   };
   // 목록에서 열었으면 복귀 링크가 그 목록이다. 탭을 바꾸면 state가 사라지므로 처음 것을 기억한다.
-  const [back] = useState(() => listBack(location.state, serverId));
+  const [back] = useState(() => listBack(location.state, [
+    { path: ALL_LOGS_PATH, label: '전체 로그' },
+    ...(['logs', 'api', 'metrics'] as const).map((key) => ({ path: serverPath(serverId, key), label: '앱 목록' })),
+  ]));
 
   // 앱을 만들거나 옮긴 뒤 이 화면으로 오면 포커스를 탭 패널로 옮긴다(서버 상세와 같다, state.focusPanel).
   const panelRef = useRef<HTMLDivElement>(null);

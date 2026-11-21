@@ -13,10 +13,27 @@ for (const path of ['uptime', 'infrastructure', 'api', 'metrics', 'services']) {
   });
 }
 
-test('a monitor address goes to its server uptime tab', async ({ page }) => {
+test('a monitor address goes to the monitor page under its server', async ({ page }) => {
   await page.goto('./uptime/uptime_mock_docs');
-  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/uptime\/uptime_mock_docs$/);
-  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'Documentation' })).toBeVisible();
+  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/monitors\/uptime_mock_docs$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Documentation' })).toBeVisible();
+});
+
+// 2026-11-21 이전의 서버 탭 안 모니터 주소. 장애 이력, 알림, 북마크의 링크가 이 경로로 온다.
+test('the old server uptime tab address of a monitor goes to the monitor page with its query and hash', async ({ page }) => {
+  await page.goto('./servers');
+  await page.goto('./servers/server_mock_edge_host_01/uptime/uptime_mock_store?range=24h#history');
+  await expect(page).toHaveURL(/\/servers\/server_mock_edge_host_01\/monitors\/uptime_mock_store\?range=24h#history$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Storefront' })).toBeVisible();
+  await expect(page.getByRole('group', { name: '시간 범위' }).getByRole('button', { name: '24h', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.goBack();
+  await expect(page).toHaveURL(/\/servers$/);
+});
+
+test('an old infrastructure resource address goes to the server infrastructure tab with its query', async ({ page }) => {
+  await page.goto('./servers/server_mock_edge_host_01/infrastructure/infra_mock_edge_01?range=24h');
+  await expect(page).toHaveURL(/\/servers\/server_mock_edge_host_01\/infrastructure\?range=24h$/);
+  await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^인프라/ })).toHaveAttribute('aria-selected', 'true');
 });
 
 // 앱은 자기 페이지가 있다(대상 상세, 2026-11-21). 옛 기능 메뉴의 앱 주소는 쿼리와 해시를 옮겨 앱 페이지의 그 탭으로 간다.
@@ -64,7 +81,7 @@ test('an infrastructure address goes to the server infrastructure tab', async ({
 test('the redirect replaces the old address, so back does not return to it', async ({ page }) => {
   await page.goto('./servers');
   await page.goto('./uptime/uptime_mock_docs');
-  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/uptime\/uptime_mock_docs$/);
+  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/monitors\/uptime_mock_docs$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/servers$/);
 });
@@ -93,7 +110,7 @@ test.describe('against the API', () => {
     await expect(page.getByRole('link', { name: '서버 목록', exact: true })).toHaveCount(0);
     state.failures.delete('GET /services/http-monitor');
     await page.getByRole('button', { name: '다시 시도' }).click();
-    await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor\?range=6h$/);
+    await expect(page).toHaveURL(/\/servers\/server-1\/monitors\/http-monitor\?range=6h$/);
   });
 
   test('a Docker environment resource goes to its environment', async ({ page }) => {

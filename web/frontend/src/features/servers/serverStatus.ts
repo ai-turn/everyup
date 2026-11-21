@@ -6,7 +6,7 @@ import { isCollectorFresh } from '../../utils/operationalStatus';
 import { infraCollection, peakUsage, WARNING_PCT } from '../infra/usage';
 import { metricTitle } from '../metrics/metricPresentation';
 import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
-import { SERVER_CAPABILITIES, appPath, serverPath, type ServerCapability } from './serverPaths';
+import { SERVER_CAPABILITIES, appPath, monitorPath, serverPath, type ServerCapability } from './serverPaths';
 import type { ForgetTarget } from './useServers';
 
 // 서버 목록, 서버 개요, 그룹 화면이 같은 판정을 쓴다. 따로 계산하면 목록은 "정상"인데 그룹은 "장애"인 대상이 생긴다.
@@ -198,8 +198,6 @@ export function capabilityTargets(targets: ServerTargets, capability: ServerCapa
 /** 서버 상세의 기능 탭이 받는 props. */
 export interface ServerCapabilityTabProps {
   row: ServerRow;
-  /** 경로의 :targetId. 없으면 탭의 첫 화면 */
-  targetId?: string;
   /** 대상이 추가·삭제·이동된 뒤 서버 데이터를 다시 불러온다. 다시 불러온 결과가 반영되면 끝난다. */
   onChanged: () => Promise<void>;
   /** 이 기능의 대상 목록을 불러오지 못했고 이전 목록도 없다. 연결 안내 대신 불러오지 못했다는 안내를 보여 준다. */
@@ -259,7 +257,7 @@ export function buildServerRows(input: {
         const result = monitorState(monitor);
         const incident = monitor.activeIncident?.active ? monitor.activeIncident : undefined;
         const detail = result.state === 'error' ? `응답 없음${incident ? `, ${formatDuration(incident.durationSec)}째` : ''}` : result.detail;
-        return { kind: 'monitor' as const, id: monitor.id, name: monitor.name, state: result.state, detail, text: `${monitor.name} ${detail}`, to: serverPath(server.id, 'uptime', monitor.id), observedAt: monitor.lastCheckAt };
+        return { kind: 'monitor' as const, id: monitor.id, name: monitor.name, state: result.state, detail, text: `${monitor.name} ${detail}`, to: monitorPath(server.id, monitor.id), observedAt: monitor.lastCheckAt };
       }),
       ...(current.infrastructure ? [current.infrastructure].map((resource) => {
         const result = infrastructureState(resource);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ButtonLink, EmptyState, MaterialIcon } from '../../components/common';
-import { legacyAppPath, serverPath, SERVERS_PATH, type ServerCapability } from '../../features/servers/serverPaths';
+import { legacyAppPath, monitorPath, serverPath, SERVERS_PATH, type ServerCapability } from '../../features/servers/serverPaths';
 import { api } from '../../services/api';
 import { ApiError, getErrorMessage } from '../../utils/errors';
 
@@ -28,7 +28,7 @@ async function destination(kind: ServerCapability, id: string, search: string): 
   // 인프라 리소스는 서버마다 하나라 탭 주소가 곧 그 리소스다.
   if (target?.serverId) {
     if (kind === 'infrastructure') return serverPath(target.serverId, kind);
-    return kind === 'uptime' ? serverPath(target.serverId, kind, id) : legacyAppPath(target.serverId, id, kind, search);
+    return kind === 'uptime' ? monitorPath(target.serverId, id) : legacyAppPath(target.serverId, id, kind, search);
   }
   // 서버가 없는 모니터나 앱은 있을 수 없는 데이터라 찾지 못한 것으로 본다.
   return kind === 'infrastructure' ? dockerEnvironmentPath(id) : null;
@@ -91,4 +91,18 @@ export function LegacyServerAppRedirect({ kind }: { kind: 'logs' | 'api' | 'metr
   const { serverId = '', appId = '' } = useParams<{ serverId: string; appId: string }>();
   const { search, hash, state } = useLocation();
   return <Navigate to={`${legacyAppPath(serverId, appId, kind, search)}${hash}`} replace state={state} />;
+}
+
+/** 서버 탭 안의 옛 모니터 주소(`/servers/:s/uptime/:id`, 2026-11-21 이전). 모니터는 이제 자기 페이지가 있다. 쿼리·해시·state를 넘긴다. */
+export function LegacyServerMonitorRedirect() {
+  const { serverId = '', monitorId = '' } = useParams<{ serverId: string; monitorId: string }>();
+  const { search, hash, state } = useLocation();
+  return <Navigate to={`${monitorPath(serverId, monitorId)}${search}${hash}`} replace state={state} />;
+}
+
+/** 서버 탭 아래의 다른 대상 주소(옛 `/servers/:s/infrastructure/:id`). 대상 페이지가 없는 기능이라 그 탭으로 보낸다. 쿼리·해시를 넘긴다. */
+export function LegacyServerTabRedirect() {
+  const { serverId = '', capability = '' } = useParams<{ serverId: string; capability: string }>();
+  const { search, hash } = useLocation();
+  return <Navigate to={`/servers/${encodeURIComponent(serverId)}/${encodeURIComponent(capability)}${search}${hash}`} replace />;
 }

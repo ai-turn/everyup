@@ -86,7 +86,7 @@ test('[16] Escape closes the add dialog directly when no child overlay is open',
 
 test('[16] mobile keyboard focus remains above bottom navigation and charts are single stops', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await uptimeFixture(page); await page.goto('./servers/server-1/uptime/http-monitor');
+  await uptimeFixture(page); await page.goto('./servers/server-1/monitors/http-monitor');
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const history = page.getByRole('group', { name: /최근 90일/ });
   const response = page.getByRole('application', { name: /응답 시간 추이/ });

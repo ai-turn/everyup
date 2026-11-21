@@ -155,7 +155,7 @@ test.describe('demo', () => {
     const monitor = palette.getByRole('option', { name: /^Checkout API/ });
     await expect(monitor).toContainText('edge-host-01의 모니터');
     await monitor.click();
-    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime/uptime_mock_checkout$`));
+    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/monitors/uptime_mock_checkout$`));
 
     const group = mockRouter<Project[]>('/projects')[0];
     await open.click();

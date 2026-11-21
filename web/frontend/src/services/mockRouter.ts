@@ -796,7 +796,7 @@ function mockUptimeBuckets(range: string, metrics = mockUptimeMetrics): ServiceH
 
 // 8분간의 연속 실패. 수집 공백은 장애 이력으로 만들지 않는다.
 const mockUptimeIncidents: TimelineIncident[] = [{
-  source: 'uptime', targetName: 'Storefront', targetPath: '/servers/server_mock_edge_host_01/uptime/uptime_mock_store',
+  source: 'uptime', targetName: 'Storefront', targetPath: '/servers/server_mock_edge_host_01/monitors/uptime_mock_store',
   startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(),
   durationSec: 480, active: false, message: 'upstream timeout',
 }];
@@ -861,7 +861,7 @@ const outageMonitorId = 'uptime_mock_checkout';
 const outageStart = nowAgent - 6 * 60_000;
 const outageApplies = (monitorId: string, scenario: MockScenario) => monitorId === outageMonitorId && scenario !== 'normal';
 const outageIncident = (monitor: Pick<UptimeMonitor, 'name' | 'serverId' | 'id'>): TimelineIncident => ({
-  source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}`,
+  source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/monitors/${monitor.id}`,
   startedAt: new Date(outageStart).toISOString(), durationSec: Math.round((Date.now() - outageStart) / 1000), active: true, message: 'connection timed out',
 });
 
@@ -1133,7 +1133,7 @@ const monitorData = new Map(mockUptimeMonitors.map((monitor, index) => {
   const today = summarizeChecks(monitor.id, metrics);
   const history = historyOf(!metrics.length ? [] : Array.from({ length: 90 }, (_, i) => ({ date: new Date(nowAgent - i * 86_400_000).toISOString().slice(0, 10), uptime: i === 0 ? today.uptime : 100, status: i === 0 && today.failedChecks ? 'partial' as const : 'up' as const })));
   const summary = monthSummary(today, history);
-  const incidents: TimelineIncident[] = today.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}`, startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(), durationSec: 480, active: false, message: 'upstream deadline exceeded' }] : [];
+  const incidents: TimelineIncident[] = today.failedChecks ? [{ source: 'uptime', targetName: monitor.name, targetPath: `/servers/${monitor.serverId}/monitors/${monitor.id}`, startedAt: new Date(nowAgent - 128 * 60_000).toISOString(), endedAt: new Date(nowAgent - 120 * 60_000).toISOString(), durationSec: 480, active: false, message: 'upstream deadline exceeded' }] : [];
   return [monitor.id, { metrics, summary, history, incidents, failures: [] as UptimeMonitorMetric[] }] as const;
 }));
 
@@ -1277,7 +1277,7 @@ function outageHistory(summary: UptimeMonitorSummary, history?: UptimeMonitorHis
 
 function monitorIncidents(monitor: UptimeMonitor): TimelineIncident[] {
   const incidents = [...(monitor.status === 'unhealthy' && monitor.id === outageMonitorId ? [outageIncident(monitor)] : []), ...(monitorData.get(monitor.id)?.incidents ?? [])];
-  return incidents.map(incident => ({ ...incident, targetPath: `/servers/${monitor.serverId}/uptime/${monitor.id}` }));
+  return incidents.map(incident => ({ ...incident, targetPath: `/servers/${monitor.serverId}/monitors/${monitor.id}` }));
 }
 
 function scenarioServers(scenario: MockScenario): Server[] {

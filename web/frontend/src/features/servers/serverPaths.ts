@@ -54,3 +54,8 @@ export function legacyAppPath(serverId: string, appId: string, kind: 'logs' | 'a
   params.forEach((value, key) => { if (key !== 'tab') next.append(key, value); });
   return `${appPath(serverId, appId)}?${next}`;
 }
+
+/** 업타임 모니터 하나의 페이지(대상 상세, 2026-11-21). 옛 주소 `/servers/:s/uptime/:id`는 여기로 넘어간다. */
+export function monitorPath(serverId: string, monitorId: string): string {
+  return `${SERVERS_PATH}/${encodeURIComponent(serverId)}/monitors/${encodeURIComponent(monitorId)}`;
+}

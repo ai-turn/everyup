@@ -96,7 +96,7 @@ func TestUptimeListIncludesBoundedChecksAndCurrentOutages(t *testing.T) {
 		t.Fatalf("timeout must not be latency; old active outages must remain visible: %+v", down)
 	}
 	// Same route shape as the timeline: the monitor under its server.
-	if down.ActiveIncident.TargetPath != "/servers/server-down/uptime/down" {
+	if down.ActiveIncident.TargetPath != "/servers/server-down/monitors/down" {
 		t.Fatalf("active incident targetPath = %q, want the server route", down.ActiveIncident.TargetPath)
 	}
 	if len(*byID["healthy"].RecentChecks) != 10 || byID["healthy"].ActiveIncident != nil || byID["paused"].ActiveIncident != nil {

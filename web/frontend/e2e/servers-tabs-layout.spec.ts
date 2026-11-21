@@ -15,8 +15,8 @@ const serverHeader = (page: Page) => page.locator('header', { has: page.getByRol
 const appHeader = (page: Page) => page.locator('#main-content header').first();
 const actionSlot = (page: Page) => page.getByRole('group', { name: '탭 조작' });
 const chartOf = (heading: Locator) => heading.locator('xpath=ancestor::section[1]');
-// 탭 본문이 그려졌다(목록 탭에는 제목이 없을 수 있다).
-const painted = (page: Page) => expect(panel(page).locator('*').first()).toBeVisible();
+// 본문이 그려졌다. 목록 탭에는 제목이 없을 수 있고, 대상 페이지(모니터)에는 탭 패널이 없다.
+const painted = (page: Page) => expect(page.locator('#main-content').locator('[role="tabpanel"] *, h2').first()).toBeVisible();
 
 const top = async (locator: Locator) => (await locator.boundingBox())!.y;
 
@@ -29,8 +29,6 @@ const PHONE = { width: 390, height: 844 };
 // (#140). 탭 줄의 위치는 아래 'the tab row does not move between tabs'가, 블록 사이 간격은 spacing-rhythm spec이 지킨다.
 // 앱 페이지는 앱의 탭 줄(앱 데이터)에서 잰다. 앱의 머리말이 탭 줄 위에 있으므로 탭 아래에는 데이터만 있다(76·227·152px, 2026-11-21).
 const FIRST_CONTENT: [string, string, string, (page: Page) => Locator, number][] = [
-  // 수치 타일의 첫 값(24시간 업타임)
-  ['monitor detail', `${EDGE}/uptime/uptime_mock_checkout`, '서버 기능', (page) => panel(page).locator('section', { has: page.getByRole('heading', { name: '주요 지표' }) }).locator('dd').first(), 246],
   // 첫 차트 카드
   ['infrastructure', `${EDGE}/infrastructure`, '서버 기능', (page) => chartOf(panel(page).getByRole('heading', { name: 'CPU', exact: true })), 154],
   // 로그 발생량 차트 카드
@@ -63,15 +61,11 @@ test.describe('at 1440x1000', () => {
       await painted(page);
       tops.push(await top(tablist(page)));
     }
-    // 원인 대상(Checkout API)을 보는 중에는 원인이 링크가 아니라 글자다. 그래도 머리말의 높이는 같다.
-    await page.goto(`./servers/${EDGE}/uptime/uptime_mock_checkout`);
-    await expect(panel(page).getByRole('heading', { level: 2 })).toBeVisible();
-    tops.push(await top(tablist(page)));
     expect(new Set(tops.map(Math.round)).size).toBe(1);
   });
 
   test('each tab and app page has one h1 and never skips a heading level', async ({ page }) => {
-    for (const path of ['', '/uptime', '/uptime/uptime_mock_checkout', '/infrastructure', '/logs', '/api', '/metrics',
+    for (const path of ['', '/uptime', '/monitors/uptime_mock_checkout', '/infrastructure', '/logs', '/api', '/metrics',
       '/apps/observed_mock_checkout?tab=logs', '/apps/observed_mock_orders?tab=requests', '/apps/observed_mock_orders?tab=traces', '/apps/observed_mock_orders?tab=metrics']) {
       await page.goto(`./servers/${EDGE}${path}`);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -114,7 +108,7 @@ test.describe('at 1440x1000', () => {
   });
 
   test('the tab row holds the add action of the open tab', async ({ page }) => {
-    for (const [path, label] of [['uptime', '모니터 추가'], ['uptime/uptime_mock_store', '모니터 추가'], ['logs', '로그 연결'],
+    for (const [path, label] of [['uptime', '모니터 추가'], ['logs', '로그 연결'],
       ['api', 'API 연결'], ['metrics', '메트릭 연결']] as const) {
       await page.goto(`./servers/${EDGE}/${path}`);
       await expect(actionSlot(page).getByRole('button', { name: label, exact: true })).toBeVisible();
@@ -176,12 +170,13 @@ test.describe('at 1440x1000', () => {
     await expect(dialog).toContainText('이 앱의 로그, API 요청, 메트릭 데이터가 함께 옮겨집니다.');
   });
 
-  test('the cause link is plain text while its target is open', async ({ page }) => {
-    await page.goto(`./servers/${EDGE}`);
-    await expect(serverHeader(page).getByRole('link', { name: /Checkout API 응답 없음/ })).toBeVisible();
-    await page.goto(`./servers/${EDGE}/uptime/uptime_mock_checkout`);
-    await expect(serverHeader(page).getByText(/Checkout API 응답 없음/)).toBeVisible();
-    await expect(serverHeader(page).getByRole('link', { name: /Checkout API 응답 없음/ })).toHaveCount(0);
+  test('the cause link opens the monitor page on every server tab', async ({ page }) => {
+    for (const path of ['', '/uptime', '/logs']) {
+      await page.goto(`./servers/${EDGE}${path}`);
+      await expect(serverHeader(page).getByRole('link', { name: /Checkout API 응답 없음/ })).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/monitors/uptime_mock_checkout$`));
+    }
+    await serverHeader(page).getByRole('link', { name: /Checkout API 응답 없음/ }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Checkout API' })).toBeVisible();
   });
 
   test('the group is a status line item', async ({ page }) => {
@@ -214,32 +209,34 @@ for (const viewport of [DESKTOP, PHONE]) {
   test.describe(`at ${viewport.width}px`, () => {
     test.use({ viewport });
 
-    test('a monitor detail links back to its list', async ({ page }) => {
-      await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
-      await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록' }).click();
+    test('a monitor page links back to the uptime list', async ({ page }) => {
+      await page.goto(`./servers/${EDGE}/monitors/uptime_mock_store`);
+      await page.getByRole('link', { name: '모니터 목록', exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
-
+      // 모니터가 하나여도 업타임 탭은 목록이다.
       await page.goto(`./servers/${PAYMENTS}/uptime`);
-      await expect(panel(page).getByRole('heading', { level: 2, name: 'Payment endpoint' })).toBeVisible();
-      await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록' })).toHaveCount(0);
+      await expect(page.getByRole('table', { name: '업타임 그리드' }).locator('tbody a[data-row-link]')).toHaveText(['Payment endpoint']);
     });
 
-    test('the back link and the tab action share one line right under the tabs', async ({ page }) => {
-      await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
-      const back = (await actionSlot(page).getByRole('link', { name: '모니터 목록' }).boundingBox())!;
-      const add = (await actionSlot(page).getByRole('button', { name: '모니터 추가' }).boundingBox())!;
-      expect(Math.abs((back.y + back.height / 2) - (add.y + add.height / 2))).toBeLessThan(2);
-      // 패널은 조작 줄 바로 다음 블록이다(페이지 블록 24px). 패널 위에 링크만 있는 줄이 다시 생기면 실패한다.
-      const slotBottom = (await actionSlot(page).boundingBox())!;
-      const title = await top(panel(page).getByRole('heading', { level: 2 }).first());
-      expect(title - (slotBottom.y + slotBottom.height)).toBeLessThan(40);
+    test('the back link takes no line of its own', async ({ page }) => {
+      await page.goto(`./servers/${EDGE}/monitors/uptime_mock_store`);
+      const back = page.getByRole('link', { name: '모니터 목록', exact: true });
+      if (viewport.width >= 1024) {
+        // 넓은 화면은 상단 바 오른쪽이다(크럼과 같은 줄).
+        await expect(page.getByRole('banner').getByRole('link', { name: '모니터 목록', exact: true })).toBeVisible();
+      } else {
+        // 좁은 화면은 연결 방식과 같은 첫 줄이다.
+        const link = (await back.boundingBox())!;
+        const connection = (await page.locator('[data-connection="uptime"]:visible').boundingBox())!;
+        expect(Math.abs((link.y + link.height / 2) - (connection.y + connection.height / 2))).toBeLessThan(2);
+      }
     });
   });
 }
 
 test('no tab or app page scrolls the page sideways at 320px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 });
-  for (const path of ['', '/uptime', '/uptime/uptime_mock_store', '/infrastructure', '/logs', '/api', '/metrics',
+  for (const path of ['', '/uptime', '/monitors/uptime_mock_store', '/infrastructure', '/logs', '/api', '/metrics',
     '/apps/observed_mock_checkout', '/apps/observed_mock_orders?tab=requests', '/apps/observed_mock_orders?tab=metrics']) {
     await page.goto(`./servers/${EDGE}${path}`);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -276,7 +273,7 @@ test.describe('the cause link on a tab with one target', () => {
     await expect(appHeader(page).getByText('데이터 대기 중', { exact: true })).toBeVisible();
   });
 
-  test('the uptime tab with its only monitor down shows the cause as plain text', async ({ page }) => {
+  test('the uptime tab with its only monitor down lists it and links the cause to its page', async ({ page }) => {
     // 모니터 상세가 부르는 이력 API까지 응답하는 업타임 fixture를 쓴다.
     const state = await uptimeFixture(page);
     state.monitors = [monitor('m1', { serverId: 's1', status: 'unhealthy' })];
@@ -284,8 +281,8 @@ test.describe('the cause link on a tab with one target', () => {
     await page.goto('./servers/s1');
     await expect(serverHeader(page).getByRole('link', { name: /^Public API 응답 없음/ })).toBeVisible();
     await page.goto('./servers/s1/uptime');
-    await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
-    await expect(serverHeader(page).getByText(/^Public API 응답 없음/)).toBeVisible();
-    await expect(serverHeader(page).getByRole('link', { name: /^Public API 응답 없음/ })).toHaveCount(0);
+    // 모니터가 하나여도 업타임 탭은 목록이라, 원인은 그 모니터의 페이지로 가는 링크로 남는다.
+    await expect(page.getByRole('table', { name: '업타임 그리드' }).locator('tbody a[data-row-link]')).toHaveText(['Public API']);
+    await expect(serverHeader(page).getByRole('link', { name: /^Public API 응답 없음/ })).toHaveAttribute('href', /\/servers\/s1\/monitors\/m1$/);
   });
 });

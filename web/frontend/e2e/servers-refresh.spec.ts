@@ -229,18 +229,20 @@ test('a server list whose first load hangs past 30 seconds keeps the placeholder
   await expect(page.getByRole('table', { name: '서버 그리드' })).toBeVisible();
 });
 
-test('a deleted monitor stays out of the list when the reload of the server list fails', async ({ page }) => {
+test('a deleted monitor is gone from the list even when the server list fails right after', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  await expect(page.getByRole('heading', { level: 1, name: 'Public API' })).toBeVisible();
   state.failures.set('GET /servers', 500);
-  await (await menuItem(panel(page), '삭제')).click();
+  await (await menuItem(page.locator('#main-content header').first(), '삭제')).click();
   await page.getByRole('dialog', { name: '업타임을 삭제할까요?' }).getByRole('button', { name: '삭제', exact: true }).click();
-  await expect(page.getByText('서버 정보를 새로 불러오지 못했습니다')).toBeVisible();
+  // 업타임 목록으로 간다. 서버 화면은 서버 데이터를 새로 불러오므로, 서버 목록을 불러오지 못하면 서버가 없다고 하지 않고 다시 시도를 둔다.
+  await expect(page).toHaveURL(/\/servers\/server-1\/uptime$/);
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  // 남은 모니터가 하나라 탭의 첫 화면이 그 상세다. 지운 모니터는 목록에도 상세에도 없다.
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Database' })).toBeVisible();
-  await expect(panel(page).getByText('Public API')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: '서버를 불러오지 못했습니다' })).toBeVisible();
+  state.failures.clear();
+  await page.getByRole('button', { name: '다시 시도', exact: true }).click();
+  await expect(page.getByRole('table', { name: '업타임 그리드' }).locator('tbody a[data-row-link]')).toHaveText(['Database']);
   await expect(tablist(page).getByRole('tab', { name: /^업타임/ })).toHaveAccessibleName(/모니터 1개/);
 });
 
@@ -313,11 +315,11 @@ test('no horizontal scroll at 320px with the refresh controls in the header', as
   expect(await page.locator('#main-content').evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
 });
 
-test('turning automatic refresh back on reloads the open uptime panel too and off stops its history polling', async ({ page }) => {
+test('turning automatic refresh back on reloads the monitor page too and off stops its history polling', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.clock.install();
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  await expect(page.getByRole('heading', { level: 1, name: 'Public API' })).toBeVisible();
   const history = () => state.requests.filter((request) => request.method === 'GET' && request.path === '/services/http-monitor/metrics').length;
   const before = history();
   const auto = serverHeader(page).getByRole('switch', { name: '30초마다 자동 갱신' });

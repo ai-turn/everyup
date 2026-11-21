@@ -38,11 +38,11 @@ const SCREENS = [
   ['server-overview', `/servers/${E}`],
   ['server-uptime-list', '/servers/server_mock_payments_api/uptime'],
   ['server-uptime-edge', `/servers/${E}/uptime`],
-  ['server-uptime-detail', `/servers/${E}/uptime/uptime_mock_checkout`],
+  ['monitor-checkout', `/servers/${E}/monitors/uptime_mock_checkout`],
+  ['monitor-store', `/servers/${E}/monitors/uptime_mock_store`],
   ['server-infra', `/servers/${E}/infrastructure`],
   ['server-logs', `/servers/${E}/logs`],
-  ['server-logs-app', `/servers/${E}/logs/observed_mock_checkout`],
-  // 직접 연결한 앱 하나의 페이지(대상 상세, 2026-11-21). 위 server-logs-app은 옛 주소라 여기로 넘어온다.
+  // 앱과 모니터 하나의 페이지(대상 상세, 2026-11-21).
   ['app-logs', `/servers/${E}/apps/observed_mock_orders?tab=logs`],
   ['app-requests', `/servers/${E}/apps/observed_mock_orders?tab=requests`],
   ['app-metrics', `/servers/${E}/apps/observed_mock_orders?tab=metrics`],

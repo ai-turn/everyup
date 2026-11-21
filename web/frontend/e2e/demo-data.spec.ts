@@ -110,7 +110,7 @@ test('visitor can explore the added groups and service-specific telemetry', asyn
   await expect(page.getByRole('button', { name: /POST 200 \/v1\/inventory\/4200/ })).toBeVisible();
   await page.getByRole('button', { name: '다음', exact: true }).click();
   await expect(page.getByText('48건 중 26~48', { exact: true })).toBeVisible();
-  await page.goto('./servers/server_mock_staging_host_01/uptime/uptime_mock_docs');
-  await expect(page.getByRole('heading', { level: 2, name: 'Documentation' })).toBeVisible();
+  await page.goto('./servers/server_mock_staging_host_01/monitors/uptime_mock_docs');
+  await expect(page.getByRole('heading', { level: 1, name: 'Documentation' })).toBeVisible();
   expect(errors).toEqual([]);
 });

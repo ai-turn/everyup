@@ -117,7 +117,7 @@ test('a target opened from a group stays inside the group until leaving it', asy
   await page.getByRole('link', { name: 'staging-host-01', exact: true }).click();
   await page.getByRole('tab', { name: /^업타임/ }).click();
   await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
-  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/uptime\/uptime_mock_redis$/);
+  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/monitors\/uptime_mock_redis$/);
   await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
   await expect(sidebarCurrent).toHaveText('그룹');
   // 새로고침해도 그룹 안이다.

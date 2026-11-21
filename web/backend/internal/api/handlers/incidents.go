@@ -208,11 +208,12 @@ func uptimeEpisode(in database.UptimeIncident, now time.Time) models.TimelineInc
 	if in.ResolvedAt != nil {
 		end = *in.ResolvedAt
 	}
-	// Same shape as the frontend's server route; the bare /uptime/ path is a
-	// fallback for a monitor without a server, which should not exist.
+	// The frontend's monitor page (/servers/:serverId/monitors/:monitorId). The
+	// bare /uptime/ path is a fallback for a monitor without a server, which
+	// should not exist; the frontend looks the server up from it.
 	path := "/uptime/" + in.ServiceID
 	if in.ServerID != "" {
-		path = "/servers/" + in.ServerID + path
+		path = "/servers/" + in.ServerID + "/monitors/" + in.ServiceID
 	}
 	return models.TimelineIncident{
 		Source:      models.IncidentSourceUptime,

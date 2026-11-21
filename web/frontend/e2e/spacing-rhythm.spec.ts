@@ -21,7 +21,7 @@ const open = (name: string) => async (page: Page) => { await page.getByRole('but
 const SCREENS: [string, string, ((page: Page) => Promise<void>)?][] = [
   ['overview', './'],
   ['server overview', `./servers/${E}`],
-  ['server uptime detail', `./servers/${E}/uptime/uptime_mock_checkout`],
+  ['monitor page', `./servers/${E}/monitors/uptime_mock_checkout`],
   // 앱은 자기 페이지가 있다(대상 상세, 2026-11-21). 서버의 API 요청·메트릭 탭은 표지 없는 앱 목록(표)이라 앱 페이지를 잰다.
   ['app logs', `./servers/${E}/apps/observed_mock_checkout?tab=logs`],
   ['app requests', `./servers/${E}/apps/observed_mock_orders?tab=requests`],

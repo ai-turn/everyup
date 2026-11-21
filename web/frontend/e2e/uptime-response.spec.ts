@@ -29,7 +29,7 @@ test('weighted summary and tooltips preserve partial failures, all-failed bucket
     bucket(end - 5 * step, 0, 100, 2), bucket(end - 4 * step, 100, 50, 4),
     bucket(end - 3 * step, 200), bucket(end - 2 * step, 30_000, 0, 2), bucket(end - step, 120),
   ]);
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   const card = cardFor(page);
   await expect(card.locator('[data-response-average]')).toHaveText('87ms');
   await expect(card.locator('[data-response-counts]')).toHaveText('체크 10회 중 실패 4회');
@@ -52,10 +52,10 @@ test('collection gaps break the line and only confirmed incidents receive outage
     bucket(end - 8 * step, 90), bucket(end - 7 * step, 100), bucket(end - 4 * step, 150), bucket(end - 3 * step, 160),
   ]);
   state.responses.set('GET /services/http-monitor/incidents', [{
-    source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/uptime/http-monitor',
+    source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/monitors/http-monitor',
     startedAt: new Date(end - 2 * step).toISOString(), endedAt: new Date(end - step).toISOString(), durationSec: 300, active: false,
   }]);
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   const card = cardFor(page);
   const curve = card.locator('.recharts-line-curve');
   await expect(curve).toBeVisible();
@@ -68,8 +68,8 @@ test('collection gaps break the line and only confirmed incidents receive outage
 
 test('6h is the default and 1h / 24h use their own server ranges and aggregation labels', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  const ranges = page.getByRole('group', { name: '응답 시간 범위' });
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  const ranges = page.getByRole('group', { name: '시간 범위' });
   await expect(ranges.getByRole('button', { name: '6h', exact: true })).toHaveAttribute('aria-pressed', 'true');
   for (const [label, range, caption] of [['1h', '1h', '2분 평균'], ['24h', '24h', '20분 평균']]) {
     await ranges.getByRole('button', { name: label, exact: true }).click();
@@ -83,7 +83,7 @@ for (const mode of ['empty', 'single', 'failed'] as const) {
     const state = await uptimeFixture(page);
     const t = Math.floor(Date.now() / step) * step - step;
     state.responses.set('GET /services/http-monitor/metrics/history', mode === 'empty' ? [] : [bucket(t, mode === 'failed' ? 30_000 : 120, mode === 'failed' ? 0 : 100, 2)]);
-    await page.goto('./servers/server-1/uptime/http-monitor');
+    await page.goto('./servers/server-1/monitors/http-monitor');
     const card = cardFor(page);
     if (mode === 'empty') {
       await expect(card.getByText('이 기간에 데이터 없음', { exact: true })).toBeVisible();
@@ -105,7 +105,7 @@ for (const mode of ['empty', 'single', 'failed'] as const) {
 test('mobile time labels and tooltips remain inside the card, with keyboard exploration available', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await uptimeFixture(page);
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   const card = cardFor(page);
   await expect(card.locator('[data-response-average]')).toHaveText('120ms');
   const plot = card.getByRole('application', { name: /응답 시간 추이/ });
@@ -132,12 +132,12 @@ test('failures in the window are listed with time, checks and message, and highl
     bucket(end - 10 * step, 120, 90, 10), bucket(end - step, 120),
   ]);
   // The outage starts mid-bucket: that bucket belongs to the outage, not to a separate failure.
-  state.responses.set('GET /services/http-monitor/incidents', [{ source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/uptime/http-monitor',
+  state.responses.set('GET /services/http-monitor/incidents', [{ source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/monitors/http-monitor',
     startedAt: new Date(end - 19 * step - 60_000).toISOString(), endedAt: new Date(end - 18 * step + 60_000).toISOString(), durationSec: 420, active: false, message: 'connection refused' }]);
   state.responses.set('GET /services/http-monitor/failures', [
     { id: 9, serviceId: 'http-monitor', status: 'failure', responseTime: 600, statusCode: 503, errorMessage: 'upstream connect error', checkedAt: new Date(end - 10 * step + 30_000).toISOString() },
   ]);
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   const card = cardFor(page);
   const list = card.getByRole('list', { name: '이 기간의 실패' });
   await expect(list.getByRole('listitem')).toHaveCount(2);
