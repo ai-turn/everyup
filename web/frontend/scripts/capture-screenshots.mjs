@@ -24,8 +24,8 @@ const BASE = `http://127.0.0.1:${PORT}/everyup/demo`;
 // 화면 내용이 바뀌면 함께 고친다.
 const SLIDES = [
   { name: 'overview', url: '/' },
-  // 업타임·인프라는 서버의 탭이다(ADR 0011). `/uptime`·`/infrastructure/:id`는 옛 주소라 서버 목록이나 다른 화면으로 넘어간다.
-  { name: 'uptime', url: '/servers/server_mock_edge_host_01/uptime/uptime_mock_store' },
+  // 업타임 모니터는 자기 페이지가 있고(대상 상세), 인프라는 서버의 탭이다(ADR 0011). 옛 주소(`/uptime`, `/servers/:s/uptime/:id`)는 넘어가므로 쓰지 않는다.
+  { name: 'uptime', url: '/servers/server_mock_edge_host_01/monitors/uptime_mock_store' },
   { name: 'logs', url: '/logs' },
   // 상세 화면은 헤더를 넘기고 본문(게이지·탭 내용)부터 보여준다.
   { name: 'infra', url: '/servers/server_mock_edge_host_01/infrastructure', scrollTo: '[role="tabpanel"]' },

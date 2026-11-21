@@ -43,10 +43,9 @@ that is not selected yet. The environment keeps its ID, key, group assignment, a
 EveryUp issues a new apply command; run it on the target server to enable the capability across that
 Docker environment.
 
-The connect buttons on the **로그** (Logs), **API 요청** (API requests), **메트릭** (Metrics), and **인프라**
-(Infrastructure) pages, such as **로그 연결** (Connect logs), handle direct connections only. Reuse a
-registered direct target or connect a new one. Choosing a configured target shows its receipt history
-before opening the corresponding data page.
+The connect buttons on a server's **로그** (Logs), **API 요청** (API requests), **메트릭** (Metrics), and
+**인프라** (Infrastructure) tabs, such as **로그 연결** (Connect logs), handle direct connections only. Connect a
+new app or add data to an app already connected to that server. When you finish, EveryUp opens the app's page.
 
 ## Connecting OpenTelemetry directly {#direct-otel}
 
@@ -55,10 +54,13 @@ resources through a standard OpenTelemetry Collector. Choose a connection path f
 
 | Data | Dashboard path |
 | --- | --- |
-| Logs | **로그** (Logs) → **로그 연결** (Connect logs) → **OpenTelemetry로 직접 연결** (Connect directly through OpenTelemetry) |
-| API requests and traces | **API 요청** (API requests) → **API 연결** (Connect API) → **OpenTelemetry로 직접 연결** |
-| App metrics | **메트릭** (Metrics) → **메트릭 연결** (Connect metrics) → **OpenTelemetry로 직접 연결** |
-| Server resources | **인프라** (Infrastructure) → **인프라 연결** (Connect infrastructure) |
+| Logs | **서버** (Servers) → a server → **로그** (Logs) tab → **로그 연결** (Connect logs) |
+| API requests and traces | **서버** (Servers) → a server → **API 요청** (API requests) tab → **API 연결** (Connect API) |
+| App metrics | **서버** (Servers) → a server → **메트릭** (Metrics) tab → **메트릭 연결** (Connect metrics) |
+| Server resources | **서버** (Servers) → a server → **인프라** (Infrastructure) tab → **인프라 연결** (Connect infrastructure) |
+
+To add another kind of data to an app you already connected, open the app's page and use a **연결 전**
+(Not connected) tab or **데이터 추가** (Add data) on its connection line.
 
 Adding a service shows its export address and API Key. If you are new to OpenTelemetry, follow the
 Java, Node.js, or Go guidance to connect the SDK and exporters. Environment variables alone do not
@@ -74,7 +76,7 @@ interval, and check **데이터 수신 확인** for receipt.
 
 ## Explore metrics
 
-Open a service in **메트릭** (Metrics) to view metrics alphabetically, 12 panels at a time. Click
+Open an app from a server's **메트릭** (Metrics) tab to view its metrics on the app page's **메트릭** tab, alphabetically, 12 panels at a time. Click
 **메트릭 12개 더 보기** (Show 12 more metrics) for more. Metrics collected by a Docker Collector
 stay in the service details of that **Docker environment**.
 
