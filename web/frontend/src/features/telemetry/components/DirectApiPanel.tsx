@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ButtonLink, MaterialIcon, OverflowMenu, SegmentedControl, TimeRangePicker, type CollectionStatus, type OverflowMenuItem } from '../../../components/common';
+import { SegmentedControl, TimeRangePicker, type CollectionStatus, type OverflowMenuItem } from '../../../components/common';
 import { useHeldToken } from '../../../hooks/useHeldToken';
 import { api, type ObservedService } from '../../../services/api';
-import { alertRulesPath } from '../../alerts/alertTarget';
 import { ApiExclusionsSettings } from '../../api-requests/ApiExclusionsSettings';
 import { useRequestQuery, useRequestWindow } from '../../api-requests/useRequestQuery';
 import { DirectServiceRequestsTab } from '../../healthcheck/components/AgentServiceRequestsTab';
@@ -11,6 +10,7 @@ import { receiptCollection, signalList } from '../signals';
 import type { PanelStatus } from '../../servers/serverStatus';
 import { useDirectServicePanel } from '../useDirectServicePanel';
 import { DirectConnectionMeta } from './DirectConnectionMeta';
+import { DirectPanelTitle } from './DirectPanelTitle';
 
 // 같은 앱, 같은 기간의 두 보기라 SegmentedControl이다(DESIGN.md §4.6). 바깥 탭(API 요청)과 이름이 겹치지 않게 "요청"이라고 쓴다.
 const VIEW_OPTIONS = [{ label: '요청', value: 'requests' }, { label: '트레이스', value: 'traces' }] as const;
@@ -48,28 +48,21 @@ export function DirectApiPanel({ service, status, onRemoved, menuItems = [], onC
 
   return (
     <div className="page-stack">
-      {/* 제목이 위의 요소보다 아래의 상태 줄에 붙어 보이게 아래 간격을 줄이고 버튼 줄의 가운데에 맞춘다. */}
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="min-w-0 wrap-anywhere text-text-base type-page-title">{service.name}</h2>
-        {/* 주 조작 하나(알림 규칙)와 더보기(옮기기, 삭제·연결 해제)다(DESIGN.md §4.1 상세 헤더). */}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-          <OverflowMenu items={[...menuItems, removalItem]} />
-        </div>
-      </div>
-      {/* 상태는 탭이 넘긴다(탭의 점, 앱 선택과 같은 판정). 연결 정보는 접고, 보기와 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
-      <DirectConnectionMeta
-        {...connection}
-        status={status}
-        detail={{ label: '수집 데이터', value: signalList(service.signals) }}
-        collapseOnMobile
-        collapseLabel="연결 정보"
-        collapsed
-        statusAside={<>
-          <SegmentedControl options={VIEW_OPTIONS} value={view} onChange={(tab) => update({ tab })} size="md" ariaLabel="요청/트레이스 보기" />
-          <TimeRangePicker value={range} onChange={(value) => update({ range: value, page: null })} />
-        </>}
-      />
+      <DirectPanelTitle service={service} menuItems={[...menuItems, removalItem]}>
+        {/* 상태는 탭이 넘긴다(탭의 점, 앱 선택과 같은 판정). 연결 정보는 접고, 보기와 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
+        <DirectConnectionMeta
+          {...connection}
+          status={status}
+          detail={{ label: '수집 데이터', value: signalList(service.signals) }}
+          collapseOnMobile
+          collapseLabel="연결 정보"
+          collapsed
+          statusAside={<>
+            <SegmentedControl options={VIEW_OPTIONS} value={view} onChange={(tab) => update({ tab })} size="md" ariaLabel="요청/트레이스 보기" />
+            <TimeRangePicker value={range} onChange={(value) => update({ range: value, page: null })} />
+          </>}
+        />
+      </DirectPanelTitle>
       {/* 요청·트레이스 → 제외 경로 설정 24px(group) */}
       <div className="page-stack">
         {view === 'requests'

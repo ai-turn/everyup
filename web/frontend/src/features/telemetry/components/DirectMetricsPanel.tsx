@@ -1,7 +1,6 @@
-import { ButtonLink, EmptyState, MaterialIcon, OverflowMenu, TimeRangePicker, type OverflowMenuItem } from '../../../components/common';
+import { EmptyState, TimeRangePicker, type OverflowMenuItem } from '../../../components/common';
 import { useHeldToken } from '../../../hooks/useHeldToken';
 import type { ObservedService } from '../../../services/api';
-import { alertRulesPath } from '../../alerts/alertTarget';
 import { DirectServiceMetricsTab } from '../../healthcheck/components/AgentServiceMetricsTab';
 import { useMetricHealth } from '../../metrics/useMetricHealth';
 import { useMetricQuery } from '../../metrics/useMetricQuery';
@@ -9,6 +8,7 @@ import { signalList } from '../signals';
 import type { PanelStatus } from '../../servers/serverStatus';
 import { useDirectServicePanel } from '../useDirectServicePanel';
 import { DirectConnectionMeta } from './DirectConnectionMeta';
+import { DirectPanelTitle } from './DirectPanelTitle';
 
 /** 서버 메트릭 탭에서 앱 하나의 메트릭. 앱 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
 export function DirectMetricsPanel({ service, status, onRemoved, menuItems = [], onChanged, refreshToken = 0 }: {
@@ -33,25 +33,18 @@ export function DirectMetricsPanel({ service, status, onRemoved, menuItems = [],
 
   return (
     <div className="page-stack">
-      {/* 제목이 위의 요소보다 아래의 상태 줄에 붙어 보이게 아래 간격을 줄이고 버튼 줄의 가운데에 맞춘다. */}
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="min-w-0 wrap-anywhere text-text-base type-page-title">{service.name}</h2>
-        {/* 주 조작 하나(알림 규칙)와 더보기(옮기기, 삭제·연결 해제)다(DESIGN.md §4.1 상세 헤더). */}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'direct', serviceId: service.id })}><MaterialIcon name="notifications" />알림 규칙</ButtonLink>
-          <OverflowMenu items={[...menuItems, removalItem]} />
-        </div>
-      </div>
-      {/* 상태는 탭이 넘긴다(탭의 점, 앱 선택과 같은 판정). 연결 정보는 접고, 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
-      <DirectConnectionMeta
-        {...connection}
-        status={status}
-        detail={{ label: '수집 데이터', value: signalList(service.signals) }}
-        collapseOnMobile
-        collapseLabel="연결 정보"
-        collapsed
-        statusAside={<TimeRangePicker value={range} onChange={(value) => update({ range: value })} />}
-      />
+      <DirectPanelTitle service={service} menuItems={[...menuItems, removalItem]}>
+        {/* 상태는 탭이 넘긴다(탭의 점, 앱 선택과 같은 판정). 연결 정보는 접고, 기간 선택은 상태 줄 오른쪽 끝에 둔다. */}
+        <DirectConnectionMeta
+          {...connection}
+          status={status}
+          detail={{ label: '수집 데이터', value: signalList(service.signals) }}
+          collapseOnMobile
+          collapseLabel="연결 정보"
+          collapsed
+          statusAside={<TimeRangePicker value={range} onChange={(value) => update({ range: value })} />}
+        />
+      </DirectPanelTitle>
       <DirectServiceMetricsTab
         observedServiceId={service.id}
         state={metricHealth}
