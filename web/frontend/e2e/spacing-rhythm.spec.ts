@@ -37,12 +37,11 @@ const SCREENS: [string, string, ((page: Page) => Promise<void>)?][] = [
 
 // 지금 어긋나 있는 자리(`토큰: 위 요소` 앞부분, 값은 OS 글꼴에 따라 다를 수 있어 적지 않는다)와, 아직 표지 붙은 프리미티브를 쓰지 않는 화면(§10.I). 고치는 단계에서 여기서 지운다.
 // 목록과 실제가 다르면 실패한다: 고쳤는데 남아 있어도, 새로 어긋나도.
-const KNOWN_OFF: Record<string, string[]> = {
-  // 차트 카드 머리 → 본문 16px을 캡션의 -mt-2가 당겨 8px(InfraTrends). 캡션은 머리의 설명(intra)이어야 한다.
-  'server infrastructure': ['heading: div "CPU', 'heading: div "메모리', 'heading: div "디스크'],
-};
+// 2026-11-21 P6에서 비었다(인프라 차트 캡션이 ChartCard의 설명 줄이 되었다). 새로 어긋나는 자리를 여기에 적어 넘기지 않는다.
+const KNOWN_OFF: Record<string, string[]> = {};
 const KNOWN_EMPTY: Record<string, number[]> = {
-  // 손으로 만든 섹션 제목(h2). P3에서 Section으로 바꾼다.
+  // 의도한 예외(DESIGN.md §3.7): 기능 묶음이 넓은 화면에서 제목을 왼쪽 열에, 내용을 오른쪽 열에 두는 옆 라벨 배치라
+  // 제목 → 내용이 세로 간격이 아니다. Section(제목 위, 내용 아래)으로 바꾸지 않는다.
   'server overview': [1440, 390],
 };
 

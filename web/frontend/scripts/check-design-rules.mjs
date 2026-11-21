@@ -40,30 +40,30 @@ const RULES = [
   { name: '§10.A bg-white', re: /\bbg-white\b/g, max: 3 },
   // 18px 이상 원시 크기: 로고 워드마크 둘·로그인 워드마크·모바일 설정 h1·404 숫자만. 숫자는 type-kpi/stat(§2.2)
   { name: '§2.2 text-lg 이상 원시 크기', re: /\btext-(?:lg|xl|[2-6]xl)\b/g, max: 5 },
-  // 간격 체계(§3.7, §10.I, 2026-11-21) — 이관 단계마다 상한을 내린다.
+  // 간격 체계(§3.7, §10.I) — 2026-11-21 P0~P5에서 래칫으로 0건까지 내리고 P6에서 금지로 옮겼다.
   // S1 임의값 간격. 뷰포트 비율(명령 팔레트의 pt-[18vh])만 허용한다.
   { name: '§3.7 S1 임의값 간격', re: /(?<![\w-])-?(?:m[trblxyse]?|p[trblxyse]?|gap(?:-[xy])?|space-[xy])-\[/g, skip: /CommandPalette\.tsx$/ },
   // S2 블록 사이 세로 반 단계: 여백·space-y·gap-y만 센다. 상자 안쪽 패딩(컨트롤·칩·안내 상자)은 컴포넌트 안쪽 값이고,
   // 음수 여백은 bleed 보정이라 세지 않는다. 줄 상자 보정 mt-0.5는 S3이 센다.
-  { name: '§3.7 S2 세로 반 단계', re: /(?<![\w-])(?:(?:space-y|gap-y|mb|my)-\d+\.5|mt-[1-9]\d*\.5)(?![\w.])/g, skip: /ChannelPreview\.tsx$/, max: 0 },
+  { name: '§3.7 S2 세로 반 단계', re: /(?<![\w-])(?:(?:space-y|gap-y|mb|my)-\d+\.5|mt-[1-9]\d*\.5)(?![\w.])/g, skip: /ChannelPreview\.tsx$/ },
   // S3 줄 상자 보정(mt-0.5)은 담당 프리미티브(components/common, ListRow 둘째 줄) 안에만 둔다. 제목 → 설명은 mt-intra,
   // 첫 줄 맞춤은 icon-lead다. 컨트롤·칩·상자 안쪽 패딩(py-2.5)은 S2와 같은 이유로 세지 않는다(표 칸은 cell).
-  { name: '§3.7 S3 화면 코드의 mt-0.5', re: /(?<![\w-])mt-0\.5(?![\w.])/g, skip: /components[\\/]common[\\/]|ChannelPreview\.tsx$/, max: 0 },
+  { name: '§3.7 S3 화면 코드의 mt-0.5', re: /(?<![\w-])mt-0\.5(?![\w.])/g, skip: /components[\\/]common[\\/]|ChannelPreview\.tsx$/ },
   // S4 여백만 가진 감싸개. 간격은 부모의 gap·space-y가 정한다. 밀어내기(ml-auto 등)와 음수 여백(bleed 보정)은 간격이 아니라 뺀다.
-  { name: '§3.7 S4 여백만 가진 감싸개', re: /className="(?:m[trblxyse]?-(?!auto\b)[\w.]+ ?)+"/g, max: 0 },
+  { name: '§3.7 S4 여백만 가진 감싸개', re: /className="(?:m[trblxyse]?-(?!auto\b)[\w.]+ ?)+"/g },
   // S6 역할 없는 글자 크기(같은 클래스 문자열에 type-*·font-mono가 없다). 화면 코드만 센다: 프리미티브(components/common)의
   // 크기 표(Button sm/md 등)는 컴포넌트 안쪽 값이고, 접두사가 붙은 크기(max-sm:text-base 입력의 iOS 확대 방지, focus:)는 컨트롤
   // 조정이다. 채널 미리보기는 외부 서비스 흉내라 뺀다.
-  { name: '§2.2 S6 역할 없는 text-xs/sm/base', strings: true, re: /(?<![\w:-])text-(?:xs|sm|base)(?![\w-])/g, unless: /(?<![\w-])(?:type-[a-z-]+|font-mono)(?![\w-])/, skip: /components[\\/]common[\\/]|ChannelPreview\.tsx$/, max: 0 },
+  { name: '§2.2 S6 역할 없는 text-xs/sm/base', strings: true, re: /(?<![\w:-])text-(?:xs|sm|base)(?![\w-])/g, unless: /(?<![\w-])(?:type-[a-z-]+|font-mono)(?![\w-])/, skip: /components[\\/]common[\\/]|ChannelPreview\.tsx$/ },
   // S7 행간 직접 지정. 행간은 type-* 역할이 정한다. 프리미티브 안쪽(MaterialIcon의 leading-none, 툴팁)과 로고 워드마크(Header)는 뺀다.
-  { name: '§2.2 S7 leading-* 직접 지정', re: /(?<![\w-])leading-[\w.[\]]+/g, skip: /components[\\/]common[\\/]|components[\\/]layout[\\/]Header\.tsx$|ChannelPreview\.tsx$/, max: 0 },
+  { name: '§2.2 S7 leading-* 직접 지정', re: /(?<![\w-])leading-[\w.[\]]+/g, skip: /components[\\/]common[\\/]|components[\\/]layout[\\/]Header\.tsx$|ChannelPreview\.tsx$/ },
   // S8 숫자 세로 간격. 쌓기(space-y, flex-col의 gap)는 관계 토큰(gap-heading 등)으로 쓴다.
-  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, skip: /ChannelPreview\.tsx$/, max: 0 },
+  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, skip: /ChannelPreview\.tsx$/ },
 ];
 
 // S5 컴포넌트 루트의 바깥 여백(음수 bleed·auto 제외). 정규식으로는 함수 경계를 모르므로 TypeScript AST로 센다.
 // 이름이 대문자로 시작하는 함수(컴포넌트)가 직접 반환하는 JSX 요소의 className 리터럴을 본다. 조건식으로 고르는 루트는 보지 않는다.
-const S5 = { name: '§3.7 S5 컴포넌트 루트 여백', max: 0 };
+const S5 = { name: '§3.7 S5 컴포넌트 루트 여백' };
 const ROOT_MARGIN = /(?:^|\s)(?:[\w-]+:)*m[trblxyse]?-(?!auto(?![\w-]))[\w.[\]]+/;
 function rootMargins(file, text) {
   const hits = [];
