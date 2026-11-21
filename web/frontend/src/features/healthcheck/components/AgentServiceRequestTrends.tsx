@@ -184,14 +184,14 @@ function ServiceRequestTrends({
   const kbdPoint = kbd.index === null ? undefined : data[kbd.index];
 
   if (loading) {
-    return <ChartCard title={title}><ChartSkeleton /></ChartCard>;
+    return <ChartCard as="h2" title={title}><ChartSkeleton /></ChartCard>;
   }
   if (error) {
-    return <ChartCard title={title}><LoadErrorBanner inline title="요청 추이를 불러오지 못했습니다" message={error}
+    return <ChartCard as="h2" title={title}><LoadErrorBanner inline title="요청 추이를 불러오지 못했습니다" message={error}
       onRetry={() => { setLoading(true); setRetryKey(key => key + 1); }} /></ChartCard>;
   }
   if (truncated) {
-    return <ChartCard title={title}><LoadErrorBanner inline role="status" title="조회 범위의 요청이 많아 추이를 표시하지 못했습니다"
+    return <ChartCard as="h2" title={title}><LoadErrorBanner inline role="status" title="조회 범위의 요청이 많아 추이를 표시하지 못했습니다"
       message="기간을 줄여 다시 확인해 주세요. 일부 요청만으로 전체 기간의 통계를 표시하지 않습니다.">
       {!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}
     </LoadErrorBanner></ChartCard>;
@@ -245,7 +245,7 @@ function ServiceRequestTrends({
   ];
 
   return (
-    <ChartCard title={title} right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
+    <ChartCard as="h2" title={title} right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
 
       {/* 설명 → 오류 → 상태코드 분포 8px(label), 그 묶음 → 수치 타일 16px(heading). */}
       <div className="mb-heading space-y-label">

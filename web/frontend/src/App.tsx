@@ -23,6 +23,8 @@ const ServersPage           = lazy(() => import('./pages/servers/ServersPage').t
 const ServerDetailPage      = lazy(() => import('./pages/servers/ServerDetailPage').then(m => ({ default: m.ServerDetailPage })));
 const ServerFormPage        = lazy(() => import('./pages/servers/ServerFormPage').then(m => ({ default: m.ServerFormPage })));
 const LegacyTargetRedirect  = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyTargetRedirect })));
+const LegacyServerAppRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyServerAppRedirect })));
+const ServerAppPage = lazy(() => import('./pages/servers/ServerAppPage').then(m => ({ default: m.ServerAppPage })));
 
 function PageLoader() {
   return (
@@ -65,6 +67,9 @@ function App() {
                 <Route path="/servers/:serverId" element={<ServerDetailPage />} />
                 <Route path="/servers/:serverId/:capability" element={<ServerDetailPage />} />
                 <Route path="/servers/:serverId/:capability/:targetId" element={<ServerDetailPage />} />
+                {/* 직접 연결한 앱 하나의 페이지(대상 상세, 2026-11-21). 서버 탭 안의 옛 앱 주소는 쿼리를 옮겨 이리로 보낸다. */}
+                <Route path="/servers/:serverId/apps/:appId" element={<ServerAppPage />} />
+                {(['logs', 'api', 'metrics'] as const).map((kind) => <Route key={kind} path={`/servers/:serverId/${kind}/:appId`} element={<LegacyServerAppRedirect kind={kind} />} />)}
                 <Route path="/agents" element={<Navigate to="/environments" replace />} />
                 {/* 옛 기능별 메뉴의 주소(설계 6.2). 목록은 서버 목록으로, 대상은 그 대상의 서버 화면으로 보낸다. */}
                 {['/services', '/uptime', '/infrastructure', '/api', '/metrics'].map((path) => <Route key={path} path={path} element={<Navigate to="/servers" replace />} />)}

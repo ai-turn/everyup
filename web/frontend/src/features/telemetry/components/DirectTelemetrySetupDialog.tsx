@@ -24,6 +24,8 @@ interface DirectTelemetrySetupDialogProps {
   onIssued?: () => void;
   /** 새 앱을 이 서버에 만들고, 기존 앱 후보를 이 서버의 앱으로 좁힌다. 그룹은 서버의 것이다. */
   serverId: string;
+  /** 앱 페이지의 `연결 전` 탭에서 열었다. 새 앱을 만들지 않고 이 앱에 데이터 유형을 더한다(고를 것이 없다). */
+  attachToId?: string;
 }
 
 type SetupMode = 'new' | 'existing';
@@ -37,11 +39,12 @@ export function DirectTelemetrySetupDialog({
   onCreated,
   onIssued,
   serverId,
+  attachToId,
 }: DirectTelemetrySetupDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [mode, setMode] = useState<SetupMode>('new');
+  const [mode, setMode] = useState<SetupMode>(attachToId ? 'existing' : 'new');
   const [name, setName] = useState('');
-  const [existingId, setExistingId] = useState('');
+  const [existingId, setExistingId] = useState(attachToId ?? '');
   const [existingServices, setExistingServices] = useState<ObservedService[]>([]);
   const [result, setResult] = useState<TelemetryConnectionResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -156,7 +159,7 @@ export function DirectTelemetrySetupDialog({
             </p>
           )}
           {/* Offered only when some service can take this signal on. */}
-          {existingServices.length > 0 && (
+          {existingServices.length > 0 && !attachToId && (
             <SegmentedControl options={modeOptions} value={mode} onChange={(next) => { setMode(next); setFieldError(null); }} size="md" ariaLabel="앱 선택 방식" />
           )}
 

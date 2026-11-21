@@ -22,9 +22,10 @@ const SCREENS: [string, string, ((page: Page) => Promise<void>)?][] = [
   ['overview', './'],
   ['server overview', `./servers/${E}`],
   ['server uptime detail', `./servers/${E}/uptime/uptime_mock_checkout`],
-  ['server logs app', `./servers/${E}/logs/observed_mock_checkout`],
-  ['server api', `./servers/${E}/api`],
-  ['server metrics', `./servers/${E}/metrics`],
+  // 앱은 자기 페이지가 있다(대상 상세, 2026-11-21). 서버의 API 요청·메트릭 탭은 표지 없는 앱 목록(표)이라 앱 페이지를 잰다.
+  ['app logs', `./servers/${E}/apps/observed_mock_checkout?tab=logs`],
+  ['app requests', `./servers/${E}/apps/observed_mock_orders?tab=requests`],
+  ['app metrics', `./servers/${E}/apps/observed_mock_orders?tab=metrics`],
   ['server infrastructure', `./servers/${E}/infrastructure`],
   ['all logs', './logs'],
   ['alert history', './alerts?tab=history'],

@@ -58,8 +58,7 @@ test('histogram and ingest-level failures say so and retry', async ({ page }) =>
   const state: LogState = { failHistogram: true, failFilter: true };
   await mockLogs(page, state);
   await page.goto(`./servers/${server.id}/logs/${service.id}?range=24h`);
-  // 수집 레벨은 서버 탭에서 접혀 있는 연결 정보 안에 있다.
-  await page.locator('summary', { hasText: '연결 정보' }).click();
+  // 수집 레벨은 앱 페이지 머리말의 연결 정보에 있다(넓은 화면에서는 펼쳐 둔다).
   await expect(page.getByText('로그 발생량을 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(page.getByText('불러오지 못했습니다', { exact: true })).toBeVisible();
   state.failHistogram = false;

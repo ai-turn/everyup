@@ -122,7 +122,9 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
   const peak = Math.max(0, ...data.map((b) => LEVEL_BAR.reduce((sum, l) => sum + b[l.key], 0)));
 
   return (
+    // 대상 상세에서 탭 패널은 h1 바로 아래다. 로그 탭의 첫 구역 제목이라 h2다(예전 서버 탭의 앱 패널은 h2 제목 아래라 h3였다).
     <ChartCard
+      as="h2"
       title="로그 발생량"
       unit={`건 / ${bucketMs / 60_000}분`}
       right={<ChartLegend items={totals.filter((l) => l.count > 0).map((l) => ({ label: `${l.name} ${l.count.toLocaleString()}`, color: l.color }))} />}

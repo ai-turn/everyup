@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ButtonLink, EmptyState, MaterialIcon } from '../../components/common';
-import { serverPath, SERVERS_PATH, type ServerCapability } from '../../features/servers/serverPaths';
+import { legacyAppPath, serverPath, SERVERS_PATH, type ServerCapability } from '../../features/servers/serverPaths';
 import { api } from '../../services/api';
 import { ApiError, getErrorMessage } from '../../utils/errors';
 
@@ -20,13 +20,16 @@ const dockerEnvironmentPath = async (id: string): Promise<string | null> =>
   (await api.getAgents())?.some((agent) => agent.id === id) ? `/agents/${encodeURIComponent(id)}` : null;
 
 /** 옮겨 갈 주소. 대상이 없으면 null. */
-async function destination(kind: ServerCapability, id: string): Promise<string | null> {
+async function destination(kind: ServerCapability, id: string, search: string): Promise<string | null> {
   const target = await lookup(kind, id).catch((cause: unknown) => {
     if (kind === 'infrastructure' && cause instanceof ApiError && cause.status === 404) return null;
     throw cause;
   });
   // 인프라 리소스는 서버마다 하나라 탭 주소가 곧 그 리소스다.
-  if (target?.serverId) return kind === 'infrastructure' ? serverPath(target.serverId, kind) : serverPath(target.serverId, kind, id);
+  if (target?.serverId) {
+    if (kind === 'infrastructure') return serverPath(target.serverId, kind);
+    return kind === 'uptime' ? serverPath(target.serverId, kind, id) : legacyAppPath(target.serverId, id, kind, search);
+  }
   // 서버가 없는 모니터나 앱은 있을 수 없는 데이터라 찾지 못한 것으로 본다.
   return kind === 'infrastructure' ? dockerEnvironmentPath(id) : null;
 }
@@ -45,10 +48,11 @@ export function LegacyTargetRedirect({ kind }: { kind: ServerCapability }) {
 
   useEffect(() => {
     let alive = true;
-    destination(kind, id).then((path) => {
+    destination(kind, id, search).then((path) => {
       if (!alive) return;
       if (!path) { setResult('missing'); return; }
-      navigate(`${path}${search}${hash}`, { replace: true });
+      // 앱 주소는 쿼리를 이미 옮겨 담았다(legacyAppPath).
+      navigate(`${path}${path.includes('?') ? '' : search}${hash}`, { replace: true });
     }, (cause: unknown) => {
       if (alive) setResult(cause instanceof ApiError && cause.status === 404 ? 'missing' : { error: getErrorMessage(cause) });
     });
@@ -77,4 +81,14 @@ export function LegacyTargetRedirect({ kind }: { kind: ServerCapability }) {
       <MaterialIcon size={24} name="sync" className="animate-spin" />이동하는 중…
     </div>
   );
+}
+
+/**
+ * 서버 탭 안의 옛 앱 주소(`/servers/:s/{logs,api,metrics}/:app`, 2026-11-21 이전). 앱은 이제 자기 페이지가 있다(DESIGN.md §4.7).
+ * 쿼리(traceId, range, 필터)와 해시, 화면 state(목록으로 돌아갈 주소)를 그대로 넘긴다.
+ */
+export function LegacyServerAppRedirect({ kind }: { kind: 'logs' | 'api' | 'metrics' }) {
+  const { serverId = '', appId = '' } = useParams<{ serverId: string; appId: string }>();
+  const { search, hash, state } = useLocation();
+  return <Navigate to={`${legacyAppPath(serverId, appId, kind, search)}${hash}`} replace state={state} />;
 }

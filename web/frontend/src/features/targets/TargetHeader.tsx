@@ -34,10 +34,12 @@ interface RefreshProps {
  * 제목 → 상태 줄(오른쪽 끝 갱신 상태) → 연결 줄 → 접히는 속성, 제목 줄 오른쪽에 주 조작과 더보기, 머리말 오른쪽 칸에 기간 선택.
  * 좁은 화면의 갱신 상태는 기간 선택과 같은 줄(없으면 복귀 링크와 같은 줄)이다.
  */
-export function TargetHeader({ title, crumbs, status, connection, fields, fieldsLabel, actions, range, onRangeChange, refresh }: {
+export function TargetHeader({ title, crumbs, back: backLink, status, connection, fields, fieldsLabel, actions, range, onRangeChange, refresh }: {
   title: string;
   /** 위 단계들(마지막이 복귀 링크). 제목은 이 뒤에 붙는다. */
   crumbs: { label: string; to: string }[];
+  /** 좁은 화면의 복귀 링크. 목록(검색·보기 방식 포함)에서 열었으면 그 목록이다. 없으면 크럼의 마지막 단계다. */
+  back?: { label: string; to: string };
   status: ReactNode;
   connection: TargetConnection;
   fields?: DetailMetaField[];
@@ -48,7 +50,7 @@ export function TargetHeader({ title, crumbs, status, connection, fields, fields
   refresh: RefreshProps;
 }) {
   useBreadcrumb([...crumbs, { label: title }]);
-  const back = crumbs[crumbs.length - 1];
+  const back = backLink ?? crumbs[crumbs.length - 1];
   const refreshStatus = <RefreshStatus {...refresh} />;
   return (
     <header>

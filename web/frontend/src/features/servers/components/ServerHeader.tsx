@@ -4,9 +4,9 @@ import { SERVERS_PATH, serverPath, type ServerCapability } from '../serverPaths'
 
 import { capabilityTargets, STATE_LABEL, type ServerRow } from '../serverStatus';
 
-// 대상이 하나면 탭의 첫 화면이 곧 그 대상의 상세인 탭. 로그 탭의 첫 화면은 앱이 하나여도 서버 범위의 요약이라 빠진다.
+// 대상이 하나면 탭의 첫 화면이 곧 그 대상의 상세인 탭. 앱은 자기 페이지가 있어 서버 탭의 첫 화면은 늘 목록이다.
 // 인프라는 원인 주소가 탭 주소와 같아서 주소 비교로 처리된다.
-const SINGLE_TARGET_TABS: readonly ServerCapability[] = ['uptime', 'api', 'metrics'];
+const SINGLE_TARGET_TABS: readonly ServerCapability[] = ['uptime'];
 
 /**
  * 원인 대상을 이미 보고 있는가. 대상이 하나뿐인 탭은 주소에 대상 ID가 없으므로,
