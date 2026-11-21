@@ -34,7 +34,7 @@ export function ChartCard({
       {/* 제목 줄은 오른쪽 조작(기간 선택 40px)이 있든 없든, 좁은 폭에서 오른쪽 값이 다음 줄로 내려가든 40px 한 높이다.
           제목이 그 줄의 세로 가운데에 서서 나란히 놓인 차트 카드의 제목 선이 같다(DESIGN.md §4.2). 이전에는
           items-baseline min-h-6이라 조작이 있는 카드만 제목이 8px 내려갔다. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+      <div data-gap-after="heading" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <div className="flex min-h-10 min-w-0 items-center">
           <div className={`flex min-w-0 items-baseline gap-2 ${wrapTitle ? 'flex-wrap' : ''}`}>
             <Heading className={`${wrapTitle ? 'break-all' : 'truncate'} type-card-title text-text-base ${titleClassName}`}>{title}</Heading>
@@ -43,7 +43,7 @@ export function ChartCard({
         </div>
         {right}
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-heading">{children}</div>
     </section>
   );
 }

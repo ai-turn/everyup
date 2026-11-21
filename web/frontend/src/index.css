@@ -145,6 +145,21 @@
 
   /* 실제 로드한 굵기와 Tailwind 이름을 그대로 맞춘다: normal 400 / medium 500 / bold 700.
      Spoqa에 없는 600(semibold)은 사용하지 않는다. */
+
+  /* 9. 간격 관계 토큰(DESIGN.md §3.7). 숫자 스케일(gap-4 등)은 그대로 두고 관계 이름을 덧붙인다 — 숫자 스케일은
+     w-*·h-*·inset-*도 쓰므로 지우면 크기 클래스가 깨진다. gap-heading, space-y-label, mt-intra처럼 쓴다.
+     세로(쌓기): 한 항목의 줄 사이 → 라벨 → 내용 → 제목 → 내용 → 두 줄 항목 사이 → 하위 그룹·페이지 블록 → 섹션. */
+  --spacing-intra: 0.25rem;   /* 4  V1 제목 → 설명, 컨트롤 → 도움말, 라벨 → 값 */
+  --spacing-label: 0.5rem;    /* 8  V2 라벨 → 그 내용 */
+  --spacing-heading: 1rem;    /* 16 V3 제목 → 첫 내용, 폼 필드 사이 */
+  --spacing-item: 1.25rem;    /* 20 V4 두 줄 항목 사이, 모달 본문의 섹션 */
+  --spacing-group: 1.5rem;    /* 24 V5 하위 그룹 사이, 페이지 블록(page-stack) */
+  --spacing-section: 2rem;    /* 32 V6 카드 없는 섹션 사이(section-stack, 선 포함) */
+  /* 가로(한 줄에 놓기) */
+  --spacing-pair: 0.375rem;   /* 6  점 + 라벨, 아이콘 + 글자 — 한 문장처럼 읽히는 짝 */
+  --spacing-inline: 0.5rem;   /* 8  같은 무리의 독립 요소(버튼 사이, 제목 + 단위) */
+  --spacing-lead: 0.75rem;    /* 12 선행 아이콘·타일 → 텍스트 블록, 툴바 컨트롤 사이 */
+  --spacing-tile: 1rem;       /* 16 카드·타일 사이 */
 }
 
 /* 크기·행간·굵기를 역할별로 묶는다. 색·여백·정렬은 컨테이너에서 정한다. */
@@ -183,8 +198,8 @@
 
 @utility section-stack {
   & > * + * {
-    margin-top: 2rem;
-    padding-top: 2rem;
+    margin-top: var(--spacing-section);
+    padding-top: var(--spacing-section);
     border-top: 1px solid var(--color-ui-border-soft);
   }
 }
@@ -194,7 +209,7 @@
    아래 여백, :where로 명시도 0)이라 자식이 직접 준 여백(모바일 뒤로 링크의 mb-3 등)이 그대로 이긴다. */
 @utility page-stack {
   :where(& > :not(:last-child)) {
-    margin-block-end: 1.5rem;
+    margin-block-end: var(--spacing-group);
   }
 }
 

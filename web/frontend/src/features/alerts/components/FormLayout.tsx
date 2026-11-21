@@ -14,17 +14,17 @@ export function FormStep({ n, title, subtitle, children }: {
 }) {
     return (
         <div>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-heading">
                 <span className="w-7 h-7 rounded-lg bg-primary/10 text-action flex items-center justify-center text-xs shrink-0">
                     {n}
                 </span>
                 <div>
                     <p className="type-label text-text-base">{title}</p>
-                    {subtitle && <p className="mt-1 type-body text-text-muted">{subtitle}</p>}
+                    {subtitle && <p className="mt-intra type-body text-text-muted">{subtitle}</p>}
                 </div>
             </div>
             {/* 필드 → 필드 16px(DESIGN.md §6 폼 리듬). 대화 상자의 space-y-4와 같은 값이다. */}
-            <div className="space-y-4">{children}</div>
+            <div className="space-y-heading">{children}</div>
         </div>
     );
 }
@@ -54,7 +54,7 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
     return (
         <div>
             {/* 라벨 → 컨트롤 8px, 컨트롤 → 도움말·오류 4px(같은 자리라 오류가 떠도 아래 글이 움직이지 않는다). DESIGN.md §6 */}
-            <div className="mb-2 flex items-center gap-1">
+            <div data-gap-after="label" className="mb-label flex items-center gap-1">
                 <LabelTag
                     {...(htmlFor ? { htmlFor } : {})}
                     className="type-label text-text-muted"
@@ -64,8 +64,8 @@ export function Field({ label, hint, required, children, error, htmlFor }: {
                 {required && <span className="text-status-error text-xs" aria-hidden="true">*</span>}
             </div>
             {control}
-            {error && <p id={errorId} className="mt-1 type-body text-status-error">{error}</p>}
-            {hint && !error && <p id={hintId} className="mt-1 type-body text-text-muted">{hint}</p>}
+            {error && <p id={errorId} data-gap="intra" className="mt-intra type-body text-status-error">{error}</p>}
+            {hint && !error && <p id={hintId} data-gap="intra" className="mt-intra type-body text-text-muted">{hint}</p>}
         </div>
     );
 }

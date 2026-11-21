@@ -73,7 +73,7 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
                         {actions && <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div>}
                     </div>
                     {(subtitle || (!compactActions && inlineChildren)) && (
-                        <div className="mt-1 flex flex-col gap-4 md:flex-row md:items-center">
+                        <div className="mt-intra flex flex-col gap-4 md:flex-row md:items-center">
                             {subtitle && <p className="min-w-0 type-body text-text-muted max-w-2xl">{subtitle}</p>}
                             {!compactActions && inlineChildren && (
                                 // 메뉴 첫 화면은 갱신 같은 보조 조작이 주 액션 앞에 온다 — 좁은 화면에서 쌓지 않고

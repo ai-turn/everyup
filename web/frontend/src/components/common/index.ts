@@ -31,5 +31,4 @@ export { SegmentedControl } from './SegmentedControl';
 export { Tabs, type TabItem } from './Tabs';
 export { tabId, tabPanelId } from './tabIds';
 export { Pagination } from './Pagination';
-export { SummaryCard } from './SummaryCard';
 export { Tooltip, TooltipProvider } from './Tooltip';

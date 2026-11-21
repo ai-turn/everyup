@@ -54,7 +54,7 @@ const RULES = [
   // S7 행간 직접 지정. 행간은 type-* 역할이 정한다.
   { name: '§2.2 S7 leading-* 직접 지정', re: /(?<![\w-])leading-[\w.[\]]+/g, max: 15 },
   // S8 숫자 세로 간격. 쌓기(space-y, flex-col의 gap)는 관계 토큰(gap-heading 등)으로 쓴다.
-  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, max: 168 },
+  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, max: 165 },
 ];
 
 // S5 컴포넌트 루트의 바깥 여백(음수 bleed·auto 제외). 정규식으로는 함수 경계를 모르므로 TypeScript AST로 센다.
