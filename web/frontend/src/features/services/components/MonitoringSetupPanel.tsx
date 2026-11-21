@@ -148,7 +148,7 @@ function SetupStep({
       </div>
       {(detail || (actionLabel && onAction)) && (
         // 단계 머리 → 상세·조작 8px, 상세 → 조작 8px. flex-col이라 버튼이 이전처럼 폭을 채운다.
-        <div className="mt-2 flex flex-col gap-2">
+        <div className="mt-2 flex flex-col gap-label">
       {detail && (
         <p className={`rounded-md px-2 py-1.5 type-body ${state === 'issue' ? 'bg-status-warn/5 text-status-warn' : 'bg-ui-hover-soft text-text-muted'}`}>
           {detail}
@@ -246,7 +246,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
               필수 {requiredReady}/{requiredTotal}
             </span>
           </div>
-          <p className="mt-0.5 type-body text-text-muted">
+          <p className="mt-intra type-body text-text-muted">
             {requiredComplete
               ? '기본 모니터링 설정이 완료됐습니다. 필요할 때 상세 수집을 추가하세요.'
               : '위에서 아래 순서로 확인하면 별도 앱 수정 없이 기본 모니터링을 시작할 수 있습니다.'}
@@ -266,7 +266,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           )}
         </div>
         {report && (
-          <div className="space-y-0.5 text-right text-xs text-text-dim">
+          <div className="space-y-intra text-right text-xs text-text-dim">
             <p>{host || '호스트 정보 확인 중'} · {report.host.btf ? 'BTF 있음' : 'BTF 없음'}</p>
             <p>
               {formatDateTime(report.checkedAt)} 확인
@@ -283,7 +283,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           </Button>
         </div>
       )}
-      {expanded && <div className="space-y-3">
+      {expanded && <div className="space-y-label">
       <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${compact ? '' : 'xl:grid-cols-4'}`}>
         <SetupStep
           number={1}

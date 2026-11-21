@@ -139,7 +139,7 @@ function AgentForm({
   return (
     // 본문(p-6)과 바닥 줄(구분선 + px-6 py-4)을 나눈다 — 다른 대화 상자와 같은 골격(DESIGN.md §3.7 패딩, §6).
     <form onSubmit={onSubmit}>
-      <div className="space-y-5 p-6">
+      <div className="space-y-item p-6">
         <Field label="Docker 환경 이름" htmlFor="new-project-name" hint="대시보드에서 Docker 호스트를 구분할 이름입니다">
           <Input
             id="new-project-name"
@@ -149,7 +149,7 @@ function AgentForm({
             placeholder="예: my-api, payment-service"
           />
         </Field>
-        <div className="space-y-2">
+        <div className="space-y-label">
           <div>
             <span className="type-label text-text-muted">수집 범위</span>
             <p className="mt-1 type-body text-text-muted">필요한 권한과 Collector만 설치합니다.</p>
@@ -234,12 +234,12 @@ function AgentInstallCommand({
         </span>
         <MaterialIcon size={20} name="expand_more" className="text-text-dim transition-transform group-open:rotate-180" />
       </summary>
-      <div className="space-y-4 pt-2">
+      <div className="space-y-heading pt-2">
         <div className="flex items-start gap-3 rounded-md bg-ui-hover-soft p-3">
-          <MaterialIcon size={20} name="timer" className="mt-0.5 shrink-0 text-status-warn" />
+          <MaterialIcon size={20} name="timer" className="icon-lead shrink-0 text-status-warn" />
           <div className="min-w-0 flex-1">
             <p className="type-label text-text-base">일회용 연결 코드</p>
-            <p className="mt-0.5 type-body text-text-muted">
+            <p className="mt-intra type-body text-text-muted">
               {expiryLabel || '10분 후'}까지 한 번만 사용할 수 있습니다. 장기 API Key는 서버에 직접 저장됩니다.
             </p>
           </div>
@@ -248,11 +248,11 @@ function AgentInstallCommand({
 
         <ConnectionAddressField address={address} />
 
-        <div className="space-y-2">
+        <div className="space-y-label">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="type-label text-text-base">설치 명령</p>
-              <p className="mt-0.5 type-body text-text-muted">검사, 설정 백업, Docker Collector·eBPF 시작을 한 번에 처리합니다.</p>
+              <p className="mt-intra type-body text-text-muted">검사, 설정 백업, Docker Collector·eBPF 시작을 한 번에 처리합니다.</p>
             </div>
             <CopyButton
               onCopy={() => copyInstallCommand(installCommand)}
@@ -277,7 +277,7 @@ function AgentInstallCommand({
             <div key={title} className="rounded-md bg-ui-hover-soft p-2.5">
               <MaterialIcon size={20} name={icon} className="text-action" />
               <p className="mt-1 font-medium text-text-secondary">{title}</p>
-              <p className="mt-0.5 type-body text-text-muted">{description}</p>
+              <p className="mt-intra type-body text-text-muted">{description}</p>
             </div>
           ))}
         </div>
@@ -468,9 +468,9 @@ export function AddServiceModal({
             onSubmit={handleCreate}
           />
         ) : (
-          <div className="p-6 space-y-5 overflow-y-auto">
+          <div className="p-6 space-y-item overflow-y-auto">
             {env.isDemoMode && (
-              <div className="space-y-2 rounded-md bg-ui-hover-soft p-4">
+              <div className="space-y-label rounded-md bg-ui-hover-soft p-4">
                 <p className="type-body text-text-base">예시 설치 화면입니다. 이 데모에서는 서버를 연결할 수 없습니다.</p>
                 <p className="type-caption text-text-muted">추가한 예시 환경은 새로고침하면 초기화됩니다.</p>
                 <a href={QUICKSTART_URL} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center type-body text-action hover:underline">실제 설치 방법 보기</a>
@@ -480,7 +480,7 @@ export function AddServiceModal({
             {codeExpired && !connected && <p role="alert" className="type-body text-status-warn">설치 명령이 만료됐습니다. 아래에서 새 코드를 발급해 주세요.</p>}
             {connected ? (
               <div className="flex items-start gap-3 rounded-md bg-ui-hover-soft p-4">
-                <MaterialIcon size={20} name="check_circle" className="mt-0.5 shrink-0 text-status-healthy" />
+                <MaterialIcon size={20} name="check_circle" className="icon-lead shrink-0 text-status-healthy" />
                 <div>
                   <p className="type-body text-text-base">Docker Collector 연결을 확인했습니다</p>
                   <p className="mt-1 type-body text-text-muted">
@@ -496,7 +496,7 @@ export function AddServiceModal({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="type-body text-text-base">Docker Collector 연결을 기다리는 중</p>
-                  <p className="mt-0.5 type-body text-text-muted">명령을 실행하면 최대 5초 간격으로 자동 확인합니다.</p>
+                  <p className="mt-intra type-body text-text-muted">명령을 실행하면 최대 5초 간격으로 자동 확인합니다.</p>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => void refreshConnection(true)} loading={checkingConnection}>
                   지금 확인

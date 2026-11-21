@@ -36,7 +36,7 @@ export function CollectorCapabilityDialog({ agent, capability, onClose, onApply 
   return <dialog ref={ref} aria-labelledby="collector-capability-title" onCancel={event => { event.preventDefault(); if (!saving) onClose(); }} className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface p-6 ${SCRIM_MODAL_DIALOG}`}>
     <h2 id="collector-capability-title" className="type-card-title text-text-base">{labels[capability]} 수집 추가</h2>
     <p className="mt-2 type-body text-text-muted">{agent.name}의 기존 Collector에 기능을 더합니다. ID·키·수집 이력이 유지됩니다.</p>
-    <div className="mt-4 space-y-3">
+    <div className="mt-4 space-y-label">
       {statusError ? <p role="alert" className="type-body text-status-warn">{statusError}</p> : status ? <>
         <p className="type-body text-text-muted">{status.connected ? '최근 Collector 통신 확인됨' : '최근 Collector 통신 없음'} · 현재 선택: {status.profile.capabilities.map(item => labels[item]).join(', ')}</p>
         {enabled ? <>
