@@ -12,9 +12,9 @@ export function Stat({ label, value, detail, labelTone = 'muted' }: {
   labelTone?: 'muted' | 'secondary';
 }) {
   return (
-    <span className="flex min-w-0 flex-col items-start gap-1">
+    <span className="flex min-w-0 flex-col items-start gap-intra">
       <span className={`max-w-full truncate type-caption ${labelTone === 'secondary' ? 'text-text-secondary' : 'text-text-muted'}`}>{label}</span>
-      <span className="flex items-baseline gap-2 type-kpi text-text-base">{value}</span>
+      <span data-gap="intra" className="flex items-baseline gap-2 type-kpi text-text-base">{value}</span>
       {detail != null && <span className="type-caption text-text-muted">{detail}</span>}
     </span>
   );

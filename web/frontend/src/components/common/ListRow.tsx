@@ -71,7 +71,7 @@ export const SUBGROUP_LABEL = 'type-label text-text-secondary';
 export function ListGroup({ id, label, footer, children }: { id: string; label: string; footer?: ReactNode; children: ReactNode }) {
   return (
     <div role="group" aria-labelledby={id}>
-      <h3 id={id} className={`mb-2 ${SUBGROUP_LABEL}`}>{label}</h3>
+      <h3 id={id} data-gap-after="label" className={`mb-label ${SUBGROUP_LABEL}`}>{label}</h3>
       <List>{children}</List>
       {footer}
     </div>

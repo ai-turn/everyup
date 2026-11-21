@@ -19,13 +19,13 @@ interface SectionHeaderProps {
 // 제목 → 첫 내용은 16px(mb-4)로 고정한다(DESIGN.md §3.7 세로 위계). 두 줄 목록은 list-bleed로 행 패딩을 거둬 그대로 16px로 보인다.
 export function SectionHeader({ title, meta, description, actions, id, className = '' }: SectionHeaderProps) {
   return (
-    <div className={`mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 ${className}`}>
+    <div data-gap-after="heading" className={`mb-heading grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 ${className}`}>
       <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <h2 id={id} className="min-w-0 wrap-anywhere type-section-title text-text-base">{title}</h2>
         {meta && <span className="type-caption tabular-nums text-text-muted">{meta}</span>}
       </div>
       {actions && <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div>}
-      {description && <p className="col-span-2 mt-1 type-body text-text-muted">{description}</p>}
+      {description && <p data-gap="intra" className="col-span-2 mt-intra type-body text-text-muted">{description}</p>}
     </div>
   );
 }
