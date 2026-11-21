@@ -5,7 +5,7 @@ import type { UptimeMonitor } from '../../../services/api';
 import { formatDuration } from '../../../utils/incidentFormat';
 import { WARNING_PCT } from '../../infra/usage';
 import { RecentUptimeChecks } from '../../uptime/components/RecentUptimeChecks';
-import { ADD_MONITOR_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability } from '../serverPaths';
+import { ADD_MONITOR_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability, monitorPath } from '../serverPaths';
 import { capabilityLabel, capabilityTargets, capabilityUnverified, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
 
 const percent = (value: number | undefined, digits: number) => value === undefined ? '-' : `${value.toFixed(digits)}%`;
@@ -112,7 +112,7 @@ export function ServerOverviewTab({ row, onOpen }: {
             <ul className="mt-1 flex flex-wrap gap-x-4">
               {incidents.map((monitor) => (
                 <li key={monitor.id} className="min-w-0">
-                  <Link to={serverPath(row.server.id, 'uptime', monitor.id)} className="inline-flex min-h-11 items-center gap-1.5 type-body text-action link-underline sm:min-h-6">
+                  <Link to={monitorPath(row.server.id, monitor.id)} className="inline-flex min-h-11 items-center gap-1.5 type-body text-action link-underline sm:min-h-6">
                     {monitor.name}<span className="type-caption text-text-muted">{formatDuration(monitor.activeIncident!.durationSec)} 경과</span>
                   </Link>
                 </li>

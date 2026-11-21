@@ -1146,7 +1146,7 @@ func TestIncidentTimelineMergesUptimeAndDockerSources(t *testing.T) {
 	if uptime.Active || uptime.EndedAt == nil {
 		t.Fatalf("uptime episode should be resolved: %+v", uptime)
 	}
-	if monitor.ServerID == "" || uptime.TargetName != "Storefront" || uptime.TargetPath != "/servers/"+monitor.ServerID+"/uptime/mon-1" {
+	if monitor.ServerID == "" || uptime.TargetName != "Storefront" || uptime.TargetPath != "/servers/"+monitor.ServerID+"/monitors/mon-1" {
 		t.Fatalf("uptime link is not followable: %+v", uptime)
 	}
 	if uptime.Message != "503 from origin" {

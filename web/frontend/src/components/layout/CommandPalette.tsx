@@ -4,7 +4,7 @@ import { MaterialIcon } from '../common';
 import { SCRIM_PANEL, useOverlay } from '../../hooks/useOverlay';
 import { api, type AgentServiceFlat, type ConnectedAgent, type ObservedService, type Project, type Server, type UptimeMonitor } from '../../services/api';
 import { NAV_SECTIONS } from './navSections';
-import { ALL_LOGS_PATH, appPath, serverPath } from '../../features/servers/serverPaths';
+import { ALL_LOGS_PATH, appPath, monitorPath, serverPath } from '../../features/servers/serverPaths';
 
 // Fired by the sidebar search button; ⌘K/Ctrl+K toggles directly.
 export const OPEN_PALETTE_EVENT = 'everyup:command-palette';
@@ -103,7 +103,7 @@ export function CommandPalette() {
     })),
     ...monitors.flatMap((monitor) => monitor.serverId ? [{
       id: `monitor-${monitor.id}`, icon: 'monitor_heart', label: monitor.name, meta: ownerOf(monitor.serverId, '모니터'),
-      to: serverPath(monitor.serverId, 'uptime', monitor.id),
+      to: monitorPath(monitor.serverId, monitor.id),
     }] : []),
     ...apps.flatMap((app) => app.serverId ? [{
       id: `app-${app.id}`, icon: 'hub', label: app.name, meta: ownerOf(app.serverId, '앱'), to: appPath(app.serverId, app.id),

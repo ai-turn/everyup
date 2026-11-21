@@ -45,7 +45,7 @@ test('returning from a detail keeps the search and the card view', async ({ page
   const toggle = page.getByRole('group', { name: '대상 보기 방식' });
   const targets = page.getByRole('region', { name: '업타임 대상', exact: true });
   await targets.getByRole('link', { name: 'Public API', exact: true }).click();
-  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('api');
   await expect(toggle.getByRole('button', { name: '카드', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });

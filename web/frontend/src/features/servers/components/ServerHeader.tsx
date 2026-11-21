@@ -1,30 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { DetailMeta, IconButton, MaterialIcon, PageHeader, RefreshStatus, StatusLight, Tooltip } from '../../../components/common';
-import { SERVERS_PATH, serverPath, type ServerCapability } from '../serverPaths';
+import { SERVERS_PATH } from '../serverPaths';
+import { STATE_LABEL, type ServerRow } from '../serverStatus';
 
-import { capabilityTargets, STATE_LABEL, type ServerRow } from '../serverStatus';
-
-// 대상이 하나면 탭의 첫 화면이 곧 그 대상의 상세인 탭. 앱은 자기 페이지가 있어 서버 탭의 첫 화면은 늘 목록이다.
-// 인프라는 원인 주소가 탭 주소와 같아서 주소 비교로 처리된다.
-const SINGLE_TARGET_TABS: readonly ServerCapability[] = ['uptime'];
-
-/**
- * 원인 대상을 이미 보고 있는가. 대상이 하나뿐인 탭은 주소에 대상 ID가 없으므로,
- * 지금 탭이 원인의 탭이고 그 탭의 대상이 하나뿐이면 같은 화면이다.
- */
-function showingCause(row: ServerRow, to: string, pathname: string) {
-  if (to === pathname) return true;
-  return SINGLE_TARGET_TABS.some((key) => {
-    const tab = serverPath(row.server.id, key);
-    return pathname === tab && to.startsWith(`${tab}/`) && capabilityTargets(row.targets, key).length === 1;
-  });
-}
-
-export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange, targetOpen = false }: {
+export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange }: {
   row: ServerRow;
-  /** 탭이 모니터·앱 하나를 보여 준다. 그 대상의 제목(24/700)이 서버 이름보다 앞서도록 서버 이름을 16px로 낮춘다. 제목 줄은
-   *  설정 버튼(40px) 높이라 머리말 높이는 그대로다 — 탭을 바꿔도 탭 줄이 움직이지 않는다(§4.6). */
-  targetOpen?: boolean;
   /** 그룹 목록을 불러오지 못했으면 undefined. 그룹 항목을 숨긴다. */
   groupName?: string;
   onRefresh: () => void;
@@ -39,7 +19,8 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
   const { pathname } = useLocation();
   const cause = row.cause;
   // 원인 대상을 이미 보고 있으면 같은 화면으로 가는 링크를 두지 않는다.
-  const causeLink = cause?.to && !showingCause(row, cause.to, pathname) ? cause.to : undefined;
+  // 대상(모니터, 앱)은 자기 페이지가 있어 서버 화면에서 원인 대상을 보는 경우는 인프라 탭뿐이다. 그 탭에서는 링크를 두지 않는다.
+  const causeLink = cause?.to && cause.to !== pathname ? cause.to : undefined;
   return (
     <header>
       {/* 데스크톱은 AppHeader 크럼이 이 역할을 한다 (DESIGN.md §3.4). 좁은 화면에서는 복귀 링크와 같은 줄의 오른쪽 끝에 갱신 상태를
@@ -57,7 +38,6 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
         title={row.server.name}
         compactActions
         truncateTitle
-        subordinateTitle={targetOpen}
         meta={<>
           {row.server.description && (
             <Tooltip content={row.server.description}><p className="mb-2 truncate type-body text-text-muted">{row.server.description}</p></Tooltip>

@@ -308,7 +308,7 @@ func TestIncidentTimelineUptimeTargetPathPointsAtServer(t *testing.T) {
 	if err := json.Unmarshal(result.Data, &episodes); err != nil || len(episodes) != 1 {
 		t.Fatalf("timeline: %v, %s", err, result.Data)
 	}
-	if want := "/servers/" + web.ID + "/uptime/" + monitor.ID; episodes[0].TargetPath != want {
+	if want := "/servers/" + web.ID + "/monitors/" + monitor.ID; episodes[0].TargetPath != want {
 		t.Fatalf("targetPath = %q, want %q", episodes[0].TargetPath, want)
 	}
 }

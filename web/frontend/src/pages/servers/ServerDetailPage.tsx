@@ -11,7 +11,7 @@ import { ServerOverviewTab } from '../../features/servers/components/ServerOverv
 import { ServerUptimeTab } from '../../features/servers/components/ServerUptimeTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
 import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, serversListPath, type ServerCapability } from '../../features/servers/serverPaths';
-import { capabilityLabel, capabilityTargets, capabilityUnverified, type ServerCapabilityTabProps, type ServerRow } from '../../features/servers/serverStatus';
+import { capabilityLabel, capabilityTargets, capabilityUnverified, type ServerCapabilityTabProps } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
@@ -22,12 +22,8 @@ const ID_PREFIX = 'server';
 
 const TARGET_NOUN: Record<ServerCapability, string> = { uptime: '모니터', infrastructure: '리소스', logs: '앱', api: '앱', metrics: '앱' };
 
-const targetName = (row: ServerRow, targetId: string) =>
-  [...row.targets.monitors, ...row.targets.apps, ...(row.targets.infrastructure ? [row.targets.infrastructure] : [])]
-    .find((target) => target.id === targetId)?.name;
-
 export function ServerDetailPage() {
-  const { serverId = '', capability: rawCapability, targetId } = useParams<{ serverId: string; capability?: string; targetId?: string }>();
+  const { serverId = '', capability: rawCapability } = useParams<{ serverId: string; capability?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const capability = SERVER_CAPABILITIES.find(({ key }) => key === rawCapability)?.key;
@@ -89,11 +85,8 @@ export function ServerDetailPage() {
     if (focusRequest > 0) panelRef.current?.focus();
   }, [focusRequest]);
 
-  const target = row && targetId ? targetName(row, targetId) : undefined;
-  // 탭이 대상 하나(모니터)를 보여 주는가. 주소의 모니터, 모니터가 하나뿐인 업타임 탭(그 상세가 첫 화면)이다. 이때 대상 제목이
-  // 서버 이름보다 크다(DESIGN.md §2.2). 앱은 자기 페이지가 있다(ServerAppPage).
-  const targetOpen = Boolean(row) && (Boolean(target) || (active === 'uptime' && row!.targets.monitors.length === 1));
-  useBreadcrumb(row ? [{ label: row.server.name, to: serverPath(row.server.id) }, ...(target ? [{ label: target }] : [])] : []);
+  // 대상(앱, 모니터)은 자기 페이지가 있다(DESIGN.md §4.7 대상 상세). 서버 화면의 크럼은 서버까지다.
+  useBreadcrumb(row ? [{ label: row.server.name, to: serverPath(row.server.id) }] : []);
 
   if (!row) {
     if (!loaded && !error) {
@@ -141,7 +134,7 @@ export function ServerDetailPage() {
 
   // 이전 목록으로 그린 기능은 stale이다. unknown은 이전 목록도 없을 때뿐이다.
   const tabProps = (key: ServerCapability): ServerCapabilityTabProps => ({
-    row, targetId, onChanged: reload, onRetry: () => void reload(), refreshToken, actionSlot, autoRefresh, forgetTarget,
+    row, onChanged: reload, onRetry: () => void reload(), refreshToken, actionSlot, autoRefresh, forgetTarget,
     unknown: row.unknownCapabilities.includes(key), stale: Boolean(error) || row.staleCapabilities.includes(key),
   });
 
@@ -160,7 +153,7 @@ export function ServerDetailPage() {
   return (
     // 머리말 → 탭 → 패널은 페이지 블록 24px(page-stack), 알림 배너 → 탭은 16px이다.
     <div className="page-stack">
-      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')} targetOpen={targetOpen}
+      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')}
         updatedAt={updatedAt} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh} />
       <div className="space-y-heading">
       {error && <LoadErrorBanner title="서버 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} />}

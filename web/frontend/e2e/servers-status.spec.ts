@@ -52,7 +52,7 @@ test('a healthy target outweighs a paused one, and idle servers say why', async 
   await expect(statusCell(page, 'apps-01')).toHaveText(/^확인 필요billing-api 데이터 대기 중$/);
 
   await page.getByRole('link', { name: 'paused-01', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Nightly job 일시정지' })).toHaveAttribute('href', /\/servers\/paused\/uptime\/m-only-paused$/);
+  await expect(page.getByRole('link', { name: 'Nightly job 일시정지' })).toHaveAttribute('href', /\/servers\/paused\/monitors\/m-only-paused$/);
   await page.goBack();
   await page.getByRole('link', { name: 'empty-01', exact: true }).click();
   const header = page.locator('header', { has: page.getByRole('heading', { level: 1 }) });
@@ -77,7 +77,7 @@ test('the overview lists outages only when there is more than one', async ({ pag
   await page.goto('./servers/two-down');
   const banner = page.getByRole('region', { name: '진행 중 장애 2건' });
   await expect(banner.getByRole('link')).toHaveText([/^Checkout API/, /^Payments API/]);
-  await expect(banner.getByRole('link').first()).toHaveAttribute('href', /\/servers\/two-down\/uptime\/d1$/);
+  await expect(banner.getByRole('link').first()).toHaveAttribute('href', /\/servers\/two-down\/monitors\/d1$/);
   await expect(page.locator('.animate-pulse')).toHaveCount(1);
 
   await page.goto('./servers/one-down');

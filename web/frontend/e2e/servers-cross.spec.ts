@@ -1,6 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 import { API_URL } from './fixtures/ports';
-import { menuItem } from './fixtures/menu';
 import type { Project, Server } from '../src/services/api';
 import { uptimeFixture } from './fixtures/uptime';
 
@@ -15,9 +14,9 @@ const serverGroup = (page: Page) => page.locator('header', { has: page.getByRole
 
 test.beforeEach(async ({ page }) => { await page.setViewportSize({ width: 1440, height: 900 }); });
 
-test('an outage on the overview opens its server tab and is linked to its incident once', async ({ page }) => {
+test('an outage on the overview opens its monitor page and is linked to its incident once', async ({ page }) => {
   await page.goto('./');
-  const path = `/servers/${EDGE}/uptime/uptime_mock_checkout`;
+  const path = `/servers/${EDGE}/monitors/uptime_mock_checkout`;
   const items = attention(page).locator(`a[href$="${path}"]`);
   await expect(items).toHaveCount(1);
   // 서버 이름을 함께 쓰고, 장애 이력의 진행 중 장애와 이어져 경과 시간이 보인다.
@@ -27,7 +26,7 @@ test('an outage on the overview opens its server tab and is linked to its incide
   await expect(attention(page)).not.toContainText('Redis TCP');
   await items.click();
   await expect(page).toHaveURL(new RegExp(`${path}$`));
-  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'Checkout API' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Checkout API' })).toBeVisible();
 });
 
 test('the overview and the server list agree on which servers need attention', async ({ page }) => {
@@ -84,7 +83,7 @@ test('a group lists its servers with the server list status and keeps the group 
   // 탭을 옮기고 대상으로 들어가도 그룹 안이다.
   await page.getByRole('tab', { name: /^업타임/ }).click();
   await page.getByRole('link', { name: 'Checkout API', exact: true }).first().click();
-  await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime/uptime_mock_checkout`));
+  await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/monitors/uptime_mock_checkout`));
   await expect(crumbs(page)).toHaveText(/^그룹.*Production.*edge-host-01.*Checkout API$/);
   await expect(sidebarCurrent(page)).toHaveText('그룹');
 });
@@ -110,9 +109,9 @@ test('adding a server to a group shows the group on the server', async ({ page }
   await expect(serverGroup(page)).toHaveText('그룹 Staging');
 });
 
-test('the rule form names direct targets with their server, and a server tab preselects its target', async ({ page }) => {
-  await page.goto(`./servers/${EDGE}/uptime/uptime_mock_checkout`);
-  await (await menuItem(page.getByRole('tabpanel'), '알림 규칙')).click();
+test('the rule form names direct targets with their server, and a monitor page preselects its target', async ({ page }) => {
+  await page.goto(`./servers/${EDGE}/monitors/uptime_mock_checkout`);
+  await page.getByRole('link', { name: '알림 규칙', exact: true }).click();
   await page.getByRole('button', { name: '규칙 추가', exact: true }).click();
   const target = page.getByRole('combobox', { name: '대상', exact: true });
   await expect(target).toHaveText('edge-host-01 / Checkout API');

@@ -70,8 +70,8 @@ test('[06] HTTP fields retain drafts through a failed save and block edits while
     await save.click();
     await expect(dialog).toHaveCount(0);
     // 서버 탭은 만든 모니터의 상세를 연다.
-    await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/created-2$/);
-    await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'HTTP Probe', exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/servers\/server-1\/monitors\/created-2$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'HTTP Probe', exact: true })).toBeVisible();
     const writes = state.requests.filter((request) => request.method === 'POST');
     expect(writes).toHaveLength(2);
     expect(writes[1].body).toMatchObject({ name: 'HTTP Probe', type: 'http', url: 'https://probe.example.com/health', interval: 60, timeout: 2500 });
@@ -141,8 +141,8 @@ test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves T
   await save.click();
   await expect(dialog).toHaveCount(0);
   // 서버 탭은 만든 모니터의 상세를 연다. 목록의 표시는 목록으로 돌아가서 확인한다.
-  await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/created-2$/);
-  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await expect(page).toHaveURL(/\/servers\/server-1\/monitors\/created-2$/);
+  await page.getByRole('link', { name: '모니터 목록', exact: true }).click();
   const gridRow = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row').filter({ has: page.getByRole('link', { name: 'TCP Probe', exact: true }) });
   await expect(gridRow.getByText('db.example.com:5432', { exact: true }).filter({ visible: true })).toBeVisible();
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();

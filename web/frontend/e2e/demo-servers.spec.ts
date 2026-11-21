@@ -71,7 +71,7 @@ test('demo servers cover every layout the server screens need', () => {
   // 장애 이력의 업타임 경로는 서버 화면이다.
   const timeline = mockRouter<TimelineIncident[]>('/incidents/timeline').filter(row => row.source === 'uptime');
   expect(timeline.length).toBeGreaterThan(0);
-  for (const incident of timeline) expect(incident.targetPath).toMatch(/^\/servers\/server_mock_[^/]+\/uptime\/uptime_mock_[^/]+$/);
+  for (const incident of timeline) expect(incident.targetPath).toMatch(/^\/servers\/server_mock_[^/]+\/monitors\/uptime_mock_[^/]+$/);
 });
 
 test('log summary and patterns narrow to one server', () => {

@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
   DetailMeta, MaterialIcon, PageHeader, RefreshStatus, TimeRangePicker, type DetailMetaField, type GlobalTimeRange,
 } from '../../components/common';
-import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
+import { useBreadcrumb, useHeaderActionSlot } from '../../contexts/BreadcrumbContext';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 
 export type TargetConnectionKind = 'docker' | 'otel' | 'uptime';
 
@@ -18,7 +20,7 @@ export interface TargetConnection {
   /** 방식 뒤에 붙는 짧은 설명: Docker 환경 이름, 받는 신호, 체크 방식과 간격. */
   detail?: ReactNode;
   /** 방식마다 하나: 데이터를 더하거나 연결을 고치는 곳으로 간다. */
-  action?: { label: string; to?: string; onClick?: () => void };
+  action?: { label: string; to?: string; onClick?: () => void; disabled?: boolean };
 }
 
 interface RefreshProps {
@@ -51,14 +53,21 @@ export function TargetHeader({ title, crumbs, back: backLink, status, connection
 }) {
   useBreadcrumb([...crumbs, { label: title }]);
   const back = backLink ?? crumbs[crumbs.length - 1];
+  // 목록에서 열었으면 넓은 화면에서도 그 목록(검색·보기 방식 포함)으로 돌아가는 링크를 상단 바 오른쪽에 둔다. 크럼은 위치만 말하고
+  // 목록의 상태를 모른다. 상단 바에 두면 본문의 높이를 쓰지 않는다.
+  const slot = useHeaderActionSlot();
+  const desktop = useMediaQuery('(min-width: 1024px)');
+  const linkClass = 'inline-flex min-h-11 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-action';
   const refreshStatus = <RefreshStatus {...refresh} />;
   return (
     <header>
+      {backLink && desktop && slot && createPortal(
+        <Link to={backLink.to} className={`${linkClass} sm:min-h-6`}><MaterialIcon size={20} name="arrow_back" />{backLink.label}</Link>, slot)}
       {/* 좁은 화면(lg 미만)의 첫 줄: 복귀 링크와, 그 오른쪽 끝에 연결 방식(아이콘 + 방식 + 조작)을 한 줄로 둔다. 연결 줄을 따로 두면
           탭 줄이 52px 더 내려갔다(2026-11-21). 세부(환경 이름, 받는 신호)는 넓은 화면의 연결 줄에만 있다. 갱신 상태는 기간 선택과
           같은 줄이고, 기간 선택이 없는 대상은 연결 방식 대신 이 줄에 둔다. */}
       <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
-        <Link to={back.to} className="inline-flex min-h-11 min-w-0 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-action">
+        <Link to={back.to} className={`${linkClass} min-w-0`}>
           <MaterialIcon size={20} name="arrow_back" /><span className="truncate">{back.label}</span>
         </Link>
         {range ? <ConnectionLine connection={connection} compact /> : refreshStatus}
@@ -101,7 +110,7 @@ function ConnectionLine({ connection, compact = false }: { connection: TargetCon
       {!compact && connection.detail && <span>{connection.detail}</span>}
       {action && (action.to
         ? <Link to={action.to} className={actionClass}>{action.label}</Link>
-        : <button type="button" onClick={action.onClick} className={`${actionClass} cursor-pointer`}>{action.label}</button>)}
+        : <button type="button" onClick={action.onClick} disabled={action.disabled} className={`${actionClass} cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}>{action.label}</button>)}
     </p>
   );
 }

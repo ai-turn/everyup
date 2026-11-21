@@ -8,10 +8,10 @@ test('outage history lists the monitor episodes with state and duration', async 
   const state = await uptimeFixture(page);
   const now = Date.now();
   state.responses.set('GET /services/http-monitor/incidents', [
-    { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/uptime/http-monitor', startedAt: new Date(now - 600_000).toISOString(), durationSec: 600, active: true, message: 'connection refused' },
-    { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/uptime/http-monitor', startedAt: new Date(now - 5 * 3_600_000).toISOString(), endedAt: new Date(now - 4 * 3_600_000).toISOString(), durationSec: 3600, active: false, message: '503 from origin' },
+    { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/monitors/http-monitor', startedAt: new Date(now - 600_000).toISOString(), durationSec: 600, active: true, message: 'connection refused' },
+    { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/monitors/http-monitor', startedAt: new Date(now - 5 * 3_600_000).toISOString(), endedAt: new Date(now - 4 * 3_600_000).toISOString(), durationSec: 3600, active: false, message: '503 from origin' },
   ]);
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   const section = page.locator('section').filter({ has: page.getByRole('heading', { name: '장애 이력', exact: true }) });
   const rows = section.locator('tbody tr');
   await expect(rows).toHaveCount(2);
@@ -24,7 +24,7 @@ test('outage history lists the monitor episodes with state and duration', async 
 
 test('no outages reads as none, not as an error', async ({ page }) => {
   await uptimeFixture(page);
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   await expect(page.getByText('최근 90일 동안 기록된 장애가 없습니다', { exact: true })).toBeVisible();
 });
 
@@ -33,8 +33,8 @@ test('6H switches the response chart to server buckets', async ({ page }) => {
   state.responses.set('GET /services/http-monitor/metrics/history', [
     { time: new Date(Date.now() - 600_000).toISOString(), latencyMs: 120, uptimePct: 50, total: 2 },
   ]);
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  await page.getByRole('group', { name: '응답 시간 범위' }).getByRole('button', { name: '6h' }).click();
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  await page.getByRole('group', { name: '시간 범위' }).getByRole('button', { name: '6h' }).click();
   const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
   await expect(chart.getByText('5분 평균', { exact: true }).first()).toBeVisible();
   await expect(chart.locator('[data-response-counts]')).toHaveText('체크 2회 중 실패 1회');
@@ -48,8 +48,8 @@ test('bucket summary counts real checks and weights average latency by successfu
     { time: new Date(Date.now() - 600_000).toISOString(), latencyMs: 100, uptimePct: 50, total: 10 },
     { time: new Date(Date.now() - 300_000).toISOString(), latencyMs: 300, uptimePct: 100, total: 2 },
   ]);
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  await page.getByRole('group', { name: '응답 시간 범위' }).getByRole('button', { name: '6h' }).click();
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  await page.getByRole('group', { name: '시간 범위' }).getByRole('button', { name: '6h' }).click();
   const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
   await expect(chart.locator('[data-response-counts]')).toHaveText('체크 12회 중 실패 5회');
   await expect(chart.locator('[data-response-average]')).toHaveText('157ms');
@@ -59,7 +59,7 @@ test('bucket summary counts real checks and weights average latency by successfu
 test('certificate expiry and expected status show in the header, and the status code is editable', async ({ page }) => {
   const state = await uptimeFixture(page);
   state.monitors = [monitor('http-monitor', { certExpiresAt: new Date(Date.now() + 5 * 86_400_000).toISOString() })];
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   // Certificate expiry is the fourth overview number for HTTPS monitors, coloured only near expiry.
   const cert = page.locator('dl > div').filter({ hasText: '인증서 만료' }).locator('dd');
   await expect(cert).toHaveText('D-5');
@@ -77,9 +77,8 @@ test('certificate expiry and expected status show in the header, and the status 
 
 test('TCP monitors have no expected status field or header entry', async ({ page }) => {
   await uptimeFixture(page);
-  await page.goto('./servers/server-1/uptime/tcp-monitor');
-  // 서버 탭은 속성 목록을 접어 둔다. 펼친 뒤에 확인한다.
-  await page.locator('summary').filter({ hasText: '모니터 정보' }).click();
+  await page.goto('./servers/server-1/monitors/tcp-monitor');
+  // 대상 상세의 머리말은 넓은 화면에서 속성 목록을 펼쳐 둔다.
   await expect(page.getByText('Protocol', { exact: true })).toBeVisible();
   await expect(page.getByText('기대 상태 코드', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '수정', exact: true }).click();
@@ -92,12 +91,12 @@ test('outage history merges outages with failures that never became one, and fil
   const day = (ms: number) => new Date(ms).toLocaleDateString('sv-SE');
   state.history = { percentage: 99, days: [{ date: day(now), status: 'up', uptime: 100 }, { date: day(now - 2 * 86_400_000), status: 'partial', uptime: 98 }] };
   state.responses.set('GET /services/http-monitor/incidents', [
-    { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/uptime/http-monitor', startedAt: new Date(now - 2 * 86_400_000).toISOString(), endedAt: new Date(now - 2 * 86_400_000 + 1_800_000).toISOString(), durationSec: 1800, active: false, message: 'connection refused' },
+    { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/monitors/http-monitor', startedAt: new Date(now - 2 * 86_400_000).toISOString(), endedAt: new Date(now - 2 * 86_400_000 + 1_800_000).toISOString(), durationSec: 1800, active: false, message: 'connection refused' },
   ]);
   state.responses.set('GET /services/http-monitor/failures', [
     { id: 9, serviceId: 'http-monitor', status: 'failure', responseTime: 600, statusCode: 503, errorMessage: 'upstream connect error', checkedAt: new Date(now - 600_000).toISOString() },
   ]);
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '장애 이력', exact: true }) });
   const rows = overview.locator('tbody tr');
   await expect(rows).toHaveCount(2);
