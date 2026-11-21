@@ -40,14 +40,10 @@ const SCREENS: [string, string, ((page: Page) => Promise<void>)?][] = [
 const KNOWN_OFF: Record<string, string[]> = {
   // 차트 카드 머리 → 본문 16px을 캡션의 -mt-2가 당겨 8px(InfraTrends). 캡션은 머리의 설명(intra)이어야 한다.
   'server infrastructure': ['heading: div "CPU', 'heading: div "메모리', 'heading: div "디스크'],
-  // textarea가 inline-block이라 글자 기준선 아래 여백이 붙어 컨트롤 → 도움말이 10~11px이다(글꼴 메트릭에 따라 다르다).
-  'alert rule drawer': ['intra: textarea'],
 };
 const KNOWN_EMPTY: Record<string, number[]> = {
   // 손으로 만든 섹션 제목(h2). P3에서 Section으로 바꾼다.
   'server overview': [1440, 390],
-  // 모바일 발송 요약이 Stat을 쓰지 않는다.
-  'alert history': [390],
 };
 
 type Gap = { token: Token; gap: number; at: string };

@@ -273,13 +273,13 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       </ListToolbar>
 
       {/* Table */}
-      {view === 'card' ? <div className="space-y-3">
+      {view === 'card' ? <div className="space-y-label">
         <div className="flex flex-wrap gap-2" role="group" aria-label="규칙 정렬">{([{ key: 'name', label: '이름' }, { key: 'severity', label: '심각도' }, { key: 'target', label: '대상' }] as const).map(({ key, label }) => <Button key={key} variant={sortKey === key ? 'secondary' : 'ghost'} size="sm" aria-pressed={sortKey === key} onClick={() => onSort(key)}>{label}{sortKey === key ? sortDir === 'asc' ? ' ↑' : ' ↓' : ''}</Button>)}</div>
         {filteredRules.length === 0 ? <p className="p-5 type-body text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
             <p className="mt-4 break-words type-body text-text-secondary"><RuleTargetName rule={rule} names={names} /></p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
-            <div className="mt-3 space-y-3"><ChannelAvatars rule={rule} channels={channels} /><p className="type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p></div>
+            <div className="mt-3 space-y-label"><ChannelAvatars rule={rule} channels={channels} /><p className="type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p></div>
             <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
       </div> : (
@@ -321,7 +321,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                       key={rule.id}
                       className={`group transition-colors hover:bg-ui-hover-soft ${!rule.isEnabled ? 'bg-ui-hover-soft' : ''}`}
                     >
-                      <td className="px-4 py-2.5 align-middle">
+                      <td className="px-4 cell align-middle">
                         <div className="flex min-w-0 items-center gap-2">
                           <span className={`truncate font-medium ${rule.isEnabled ? 'text-text-base' : 'text-text-muted'}`}>
                             {rule.name}
@@ -336,10 +336,10 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                             : categoryLabel(cat)}
                         </p>
                       </td>
-                      <td className="px-4 py-2.5 align-middle">
+                      <td className="px-4 cell align-middle">
                         <SeverityBadge severity={rule.severity} />
                       </td>
-                      <td className="px-4 py-2.5 align-middle">
+                      <td className="px-4 cell align-middle">
                         {/* 잘린 이름을 마우스로 볼 수 있게만 한다. 글자는 DOM에 있어 낭독되므로 Tab 정지점을 만들지 않는다(A-15). */}
                         {/* 대상은 분류라 칩이 아니라 맨 텍스트다(§5.3 칩은 상태 전용). */}
                         <Tooltip content={targetLabel(rule, names)}><span
@@ -348,15 +348,15 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                           <RuleTargetName rule={rule} names={names} stacked />
                         </span></Tooltip>
                       </td>
-                      <td className="px-4 py-2.5 align-middle text-sm">
+                      <td className="px-4 cell align-middle text-sm">
                         <Tooltip content={evaluationSummary(rule)} focusable><p className="truncate text-text-secondary">
                           {compactTrigger(rule)}
                         </p></Tooltip>
                       </td>
-                      <td className="px-4 py-2.5 align-middle">
+                      <td className="px-4 cell align-middle">
                         <ChannelAvatars rule={rule} channels={channels} />
                       </td>
-                      <td className="px-4 py-2.5 align-middle text-sm text-text-muted whitespace-nowrap">
+                      <td className="px-4 cell align-middle text-sm text-text-muted whitespace-nowrap">
                         {rule.lastTriggeredAt
                           ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko })
                           : <span className="text-text-dim">-</span>}
