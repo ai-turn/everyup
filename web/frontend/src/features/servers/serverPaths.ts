@@ -28,11 +28,9 @@ let serversSearch = '';
 export function rememberServersSearch(search: string) { serversSearch = search; }
 export function serversListPath(): string { return `${SERVERS_PATH}${serversSearch}`; }
 
-export function serverPath(serverId: string, capability?: ServerCapability, targetId?: string): string {
-  return [SERVERS_PATH, serverId, capability, capability && targetId]
-    .filter((part): part is string => Boolean(part))
-    .map((part, index) => index === 0 ? part : encodeURIComponent(part))
-    .join('/');
+/** 서버 화면(개요 또는 기능 탭). 대상(앱, 모니터)은 자기 페이지가 있다: `appPath`, `monitorPath`. */
+export function serverPath(serverId: string, capability?: ServerCapability): string {
+  return `${SERVERS_PATH}/${encodeURIComponent(serverId)}${capability ? `/${capability}` : ''}`;
 }
 
 /** 직접 연결한 앱 페이지의 탭(DESIGN.md §4.7 대상 상세). 키는 Docker 서비스 상세(`?tab=`)와 같다. */
