@@ -90,6 +90,11 @@ export function ServerDetailPage() {
   }, [focusRequest]);
 
   const target = row && targetId ? targetName(row, targetId) : undefined;
+  // 탭이 대상 하나(모니터, 앱)를 보여 주는가. 주소의 대상, 모니터가 하나뿐인 업타임 탭(그 상세가 첫 화면), 앱 패널을 그리는
+  // API·메트릭 탭이다. 이때 대상 제목이 서버 이름보다 크다(DESIGN.md §2.2).
+  const targetOpen = Boolean(row) && (Boolean(target)
+    || (active === 'uptime' && row!.targets.monitors.length === 1)
+    || ((active === 'api' || active === 'metrics') && capabilityTargets(row!.targets, active).length > 0));
   useBreadcrumb(row ? [{ label: row.server.name, to: serverPath(row.server.id) }, ...(target ? [{ label: target }] : [])] : []);
 
   if (!row) {
@@ -157,7 +162,7 @@ export function ServerDetailPage() {
   return (
     // 머리말 → 탭 → 패널은 페이지 블록 24px(page-stack), 알림 배너 → 탭은 16px이다.
     <div className="page-stack">
-      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')}
+      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')} targetOpen={targetOpen}
         updatedAt={updatedAt} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh} />
       <div className="space-y-heading">
       {error && <LoadErrorBanner title="서버 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} />}

@@ -8,7 +8,9 @@ import { Tooltip } from './Tooltip';
 
 const TONES = {
   action: 'text-action not-aria-disabled:hover:bg-action/10 not-aria-disabled:active:bg-action/15',
-  danger: 'text-status-error not-aria-disabled:hover:bg-status-error/10 not-aria-disabled:active:bg-status-error/15',
+  // 파괴 아이콘은 쉴 때 중립(muted)이고 hover·포커스에서만 붉다. 행마다 반복되는 붉은 휴지통이 목록의 오른쪽 끝에 색 기둥을
+  // 만들어 시선이 이름보다 거기서 먼저 멈췄다(2026-11-20 시각 점검 3.2, DESIGN.md §4.1).
+  danger: 'text-text-muted not-aria-disabled:hover:text-status-error not-aria-disabled:hover:bg-status-error/10 not-aria-disabled:focus-visible:text-status-error not-aria-disabled:active:bg-status-error/15',
   quiet: 'text-text-muted not-aria-disabled:hover:text-text-base not-aria-disabled:hover:bg-ui-hover not-aria-disabled:active:bg-ui-active',
 } as const;
 

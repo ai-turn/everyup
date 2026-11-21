@@ -22,6 +22,9 @@ interface PageHeaderProps {
     compactActions?: boolean;
     /** 긴 제목을 한 줄로 말줄임한다(compactActions와 함께: 버튼이 줄어들지 않고 제목이 줄어든다). 기본은 줄바꿈. */
     truncateTitle?: boolean;
+    /** 아래 본문이 더 구체적인 대상(서버 탭에서 연 모니터·앱)을 제목으로 내세울 때, 이 h1을 16px 카드 제목 크기로 낮춘다.
+     *  h1은 그대로라 제목 구조는 바뀌지 않는다(DESIGN.md §2.2 대상 상세의 위계). */
+    subordinateTitle?: boolean;
     /**
      * 메뉴 첫 화면(DESIGN.md §3.4). 데스크톱(`lg`+)은 `AppHeader` 크럼이 이름을 이미 말하므로 h1을
      * 시각적으로만 숨기고(`lg:sr-only`), 주 액션(children)과 meta는 `AppHeader` 오른쪽으로 옮긴다 —
@@ -39,7 +42,7 @@ interface PageHeaderProps {
 const DESKTOP_HEADER = { size: 'sm', variant: 'secondary' } as const;
 const MOBILE_MENU = { variant: 'secondary' } as const;
 
-export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, menu = false, count }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, subordinateTitle = false, menu = false, count }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
     const slot = useHeaderActionSlot();
     const headerSlot = menu && desktop ? slot : null;
@@ -53,7 +56,7 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
     // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
     const hideTitleOnDesktop = menu && count === undefined;
     const collapseOnDesktop = hideTitleOnDesktop && !subtitle && !aside && !actions && !inlineChildren && !inlineMeta;
-    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text-base ${hideTitleOnDesktop ? 'lg:sr-only' : ''}`;
+    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} ${subordinateTitle ? 'type-card-title' : 'type-page-title'} text-text-base ${hideTitleOnDesktop ? 'lg:sr-only' : ''}`;
     const heading = count === undefined || count === null ? title
         : <>{title} <span className="font-medium tabular-nums text-text-muted">{count}</span></>;
 
