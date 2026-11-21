@@ -6,12 +6,14 @@ export default defineConfig({
   testDir: './e2e',
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  // ubuntu-latest has 4 vCPUs for public repositories.
+  workers: process.env.CI ? 4 : undefined,
   reporter: 'list',
   use: {
     baseURL: demoUrl,
     screenshot: 'only-on-failure',
-    trace: 'retain-on-failure',
+    // Retries still record evidence; passing tests no longer pay for tracing.
+    trace: 'on-first-retry',
   },
   webServer: [{
     command: 'pnpm exec vite preview --mode demo --host 127.0.0.1 --port 4173',

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/common/Button';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -16,6 +16,7 @@ import { AddServiceModal } from '../../features/services/components/AddServiceMo
 import { InstrumentationOverrideModal } from '../../features/services/components/InstrumentationOverrideModal';
 import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
 import { getErrorMessage } from '../../utils/errors';
+import { returnToWithQuery } from '../../utils/listReturnTo';
 import { toast } from 'react-hot-toast';
 
 function agentOnline(agent: ConnectedAgent): boolean {
@@ -108,7 +109,7 @@ function ProjectCard({ agentId, agent, agentName, services, shownServices, overv
 }
 
 export function ServiceGridPage() {
-  const { view, setView, returnTo } = useListView();
+  const { view, setView } = useListView();
 
   const navigate = useNavigate();
   const [services, setServices] = useState<AgentServiceFlat[]>([]);
@@ -128,6 +129,8 @@ export function ServiceGridPage() {
     if (value) next.set('q', value); else next.delete('q');
     return next;
   }, { replace: true }); };
+  const location = useLocation();
+  const returnTo = returnToWithQuery(location.pathname, searchParams, search);
   const [showAddModal, setShowAddModal] = useState(() => searchParams.get('connect') === 'docker');
   useEffect(() => {
     if (searchParams.has('connect')) setSearchParams(current => { const next = new URLSearchParams(current); next.delete('connect'); return next; }, { replace: true });

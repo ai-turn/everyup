@@ -7,6 +7,7 @@ import {
 import { useListView } from '../../../hooks/useListView';
 import { api, type UptimeMonitor } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
+import { returnToWithQuery } from '../../../utils/listReturnTo';
 import { readLatest } from '../../../utils/readLatest';
 import { monitorInput } from '../monitorInput';
 import { UPTIME_STATE_LIGHT, uptimeState, type UptimeState } from '../uptimeState';
@@ -62,7 +63,7 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
   };
   const setQuery = (value: string) => { setQueryInput(value); setParam('q', value); };
   const setStatus = (value: UptimeState | null) => setParam('status', value);
-  const returnTo = `${location.pathname}${searchParams.size ? `?${searchParams}` : ''}`;
+  const returnTo = returnToWithQuery(location.pathname, searchParams, query);
   const [changingMonitor, setChangingMonitor] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);

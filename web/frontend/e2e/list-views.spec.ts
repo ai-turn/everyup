@@ -123,7 +123,8 @@ test('a target opened from a group stays inside the group until leaving it', asy
   await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
   await crumbs.getByRole('link', { name: 'Staging', exact: true }).click();
   await expect(page).toHaveURL(/\/projects\/project_mock_staging$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Staging' })).toBeVisible();
+  // exact: 아니면 아직 남아 있는 서버 화면의 h1 "staging-host-01"에 맞아서, 그룹 화면이 그려지기 전에 떠난다.
+  await expect(page.getByRole('heading', { level: 1, name: 'Staging', exact: true })).toBeVisible();
   // 그룹을 떠나 서버 화면에서 같은 대상을 열면 서버 맥락이다.
   await page.goto('./servers/server_mock_staging_host_01/uptime');
   await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
