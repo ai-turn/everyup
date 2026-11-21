@@ -203,16 +203,27 @@ for (const viewport of [DESKTOP, PHONE]) {
 
     test('a target detail links back to its list', async ({ page }) => {
       await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
-      await panel(page).getByRole('link', { name: '모니터 목록' }).click();
+      await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록' }).click();
       await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
 
       await page.goto(`./servers/${EDGE}/logs/observed_mock_checkout`);
-      await panel(page).getByRole('link', { name: '앱 목록' }).click();
+      await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '앱 목록' }).click();
       await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/logs$`));
 
       await page.goto(`./servers/${PAYMENTS}/uptime`);
       await expect(panel(page).getByRole('heading', { level: 2, name: 'Payment endpoint' })).toBeVisible();
-      await expect(panel(page).getByRole('link', { name: '모니터 목록' })).toHaveCount(0);
+      await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록' })).toHaveCount(0);
+    });
+
+    test('the back link and the tab action share one line right under the tabs', async ({ page }) => {
+      await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
+      const back = (await actionSlot(page).getByRole('link', { name: '모니터 목록' }).boundingBox())!;
+      const add = (await actionSlot(page).getByRole('button', { name: '모니터 추가' }).boundingBox())!;
+      expect(Math.abs((back.y + back.height / 2) - (add.y + add.height / 2))).toBeLessThan(2);
+      // 패널은 조작 줄 바로 다음 블록이다(페이지 블록 24px). 패널 위에 링크만 있는 줄이 다시 생기면 실패한다.
+      const slotBottom = (await actionSlot(page).boundingBox())!;
+      const title = await top(panel(page).getByRole('heading', { level: 2 }).first());
+      expect(title - (slotBottom.y + slotBottom.height)).toBeLessThan(40);
     });
   });
 }

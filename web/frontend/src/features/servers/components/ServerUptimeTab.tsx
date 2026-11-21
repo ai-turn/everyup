@@ -105,7 +105,6 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
       return (
         <UptimeMonitorPanel key={current.id} monitorId={current.id}
           back={several ? { label: '업타임 탭으로', to: listPath } : { label: '서버 개요', to: serverPath(serverId) }}
-          listLink={several && <TabBackLink label="모니터 목록" to={listPath} />}
           onDeleted={() => void removed(current.id)} onChanged={onChanged} refreshToken={refreshToken} autoRefresh={autoRefresh}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       );
@@ -125,7 +124,9 @@ export function ServerUptimeTab({ row, targetId, onChanged, unknown, stale, onRe
   return (
     <>
       {content()}
-      {!unknown && monitors.length > 0 && !listShown && <TabAction slot={actionSlot}>{addButton}</TabAction>}
+      {!unknown && monitors.length > 0 && !listShown && (
+        <TabAction slot={actionSlot}>{current && several && !leaving && <TabBackLink label="모니터 목록" to={listPath} />}{addButton}</TabAction>
+      )}
       {adding && <UptimeMonitorDialog monitor={null} onClose={() => setAdding(false)} onSave={create} />}
       {moving && <MoveTargetDialog kind="monitor" targetName={moving.name} currentServerId={serverId}
         onClose={closeMove} onMove={(to) => move(moving.id, to)} />}

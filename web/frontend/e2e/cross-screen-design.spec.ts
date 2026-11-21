@@ -113,16 +113,16 @@ test.describe('demo', () => {
 
     await page.getByRole('table', { name: '앱 그리드' }).locator('a[data-row-link]').first().click();
     await expect(page).toHaveURL(/\/servers\/[^/]+\/logs\/[^/?]+/);
-    const back = panel(page).getByRole('link', { name: '전체 로그', exact: true });
+    const back = page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '전체 로그', exact: true });
     await expect(back).toBeVisible();
-    await expect(panel(page).getByRole('link', { name: '앱 목록', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '앱 목록', exact: true })).toHaveCount(0);
     await back.click();
     await expect(page).toHaveURL(/\/logs$/);
 
     // 서버의 로그 탭에서 연 앱은 지금처럼 앱 목록으로 돌아간다.
     await page.goto(`./servers/${EDGE}/logs`);
     await page.getByRole('table', { name: '앱 그리드' }).locator('a[data-row-link]').first().click();
-    await expect(panel(page).getByRole('link', { name: '앱 목록', exact: true })).toBeVisible();
+    await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '앱 목록', exact: true })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('./more');

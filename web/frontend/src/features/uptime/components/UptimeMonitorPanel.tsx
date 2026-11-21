@@ -152,14 +152,12 @@ function ActiveToggleButton({ active, disabled, loading, onClick }: { active: bo
 }
 
 /** 업타임 모니터 하나의 상세 본문. 모니터 이름이 패널의 제목이고 조작은 그 줄 오른쪽에 둔다. */
-export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extraActions, onChanged, refreshToken = 0, autoRefresh = true }: {
+export function UptimeMonitorPanel({ monitorId, onDeleted, back, extraActions, onChanged, refreshToken = 0, autoRefresh = true }: {
   monitorId: string;
   /** 삭제가 끝난 뒤 */
   onDeleted: () => void;
   /** 찾지 못했을 때 돌아갈 곳. label을 링크 문구 그대로 쓴다. */
   back: { label: string; to: string };
-  /** 패널 제목 위에 모든 폭에서 보이는 목록 복귀 링크. 돌아갈 목록이 없으면(모니터가 하나뿐) 주지 않는다. */
-  listLink?: ReactNode;
   /** 알림 규칙, 수정, 삭제 옆에 놓을 추가 조작(예: 다른 서버로 옮기기) */
   extraActions?: ReactNode;
   /** 일시정지나 수정으로 모니터가 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
@@ -268,7 +266,6 @@ export function UptimeMonitorPanel({ monitorId, onDeleted, back, listLink, extra
 
   return (
     <div className="page-stack">
-      {listLink}
       {/* 제목·주소와 아래 상태 줄은 한 머리말이라 블록 간격(24px)이 아니라 8px로 붙인다(Direct*Panel과 같다). */}
       <div className="mb-2">
         {/* 제목과 액션은 세로 가운데를 맞춘다(28px 제목 + 40px 버튼이 items-start로 6px 어긋났다). */}

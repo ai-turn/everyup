@@ -132,7 +132,7 @@ test('returning from a detail opened from the list keeps the search', async ({ p
   // 목록 → 상세 → 새로고침의 흐름에서 fixture가 처리하지 않은 요청이 없다.
   await page.getByRole('button', { name: '새로고침', exact: true }).click();
   await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeEnabled();
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('Public');
   expect(state.unhandled).toEqual([]);
 });
