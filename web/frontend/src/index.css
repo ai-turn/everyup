@@ -204,6 +204,13 @@
   margin-inline: -1rem;
 }
 
+/* 두 줄 목록(ListRow)의 행은 hover 채움 때문에 px-3 py-2.5 패딩을 가진다. 목록을 그만큼 사방으로 펼쳐
+   글자가 본문 정렬선에 서고, 앞뒤의 간격 토큰(제목 → 내용 16, 라벨 → 항목 8)이 보이는 간격 그대로가 되게 한다
+   (DESIGN.md §3.7 세로 위계). 패딩이 간격에 더해지면 같은 mb-3이 목록 앞에서는 14px, 표 앞에서는 29px로 보였다. */
+@utility list-bleed {
+  margin: -0.625rem -0.75rem;
+}
+
 @utility type-section-title {
   font-size: var(--text-xl);
   line-height: 1.75rem;
@@ -238,6 +245,14 @@
 @utility type-caption {
   font-size: var(--text-xs);
   line-height: 1rem;
+  font-weight: var(--font-weight-normal);
+}
+
+/* 쌓이는 12px 줄(두 줄 목록의 둘째 줄, 표 칸의 보조 줄). 한국어는 행간 1.5에서 읽힌다 — type-caption(12/16)은
+   다른 글자 옆에 한 줄로 놓이는 메타(시각, 개수, 배지)에만 쓴다(DESIGN.md §2.2). */
+@utility type-caption-stack {
+  font-size: var(--text-xs);
+  line-height: 1.125rem;
   font-weight: var(--font-weight-normal);
 }
 

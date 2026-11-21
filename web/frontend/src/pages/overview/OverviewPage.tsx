@@ -1,7 +1,7 @@
 import { Tooltip } from '../../components/common/Tooltip';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader, RefreshIconButton, SectionHeader } from '../../components/common';
+import { Button, ButtonLink, EmptyState, List, ListGroup, ListMore, ListRow, MaterialIcon, PageHeader, RefreshIconButton, SectionHeader } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
@@ -326,7 +326,8 @@ export function OverviewPage() {
                   </p>
                 </div>
               ) : (
-                <div className="mt-1 space-y-3">
+                // 그룹(장애, 확인 필요) 사이 24px(DESIGN.md §3.7 세로 위계).
+                <div className="space-y-6">
                   {/* 장애가 없으면 확인 필요보다 먼저 그것을 말한다. 경고 몇 건이 장애처럼 읽히지 않게. */}
                   {outageItems.length === 0 ? (
                     <div className="flex items-center gap-3 py-2">
@@ -334,17 +335,18 @@ export function OverviewPage() {
                       <p className="type-body text-text-muted">{statusUnknown ? '불러온 영역에서는 진행 중인 장애가 없습니다' : '진행 중인 장애 없음'}</p>
                     </div>
                   ) : (
-                    <AttentionGroup id="attention-outages" title="장애">
+                    <ListGroup id="attention-outages" label="장애">
                       {outageItems.map((item) => <AttentionRow key={item.id} item={item} episode={activeEpisodes.get(item.to.split('?')[0])} />)}
-                    </AttentionGroup>
+                    </ListGroup>
                   )}
                   {warnItems.length > 0 && (
-                    <AttentionGroup id="attention-warnings" title="확인 필요"
+                    <ListGroup id="attention-warnings" label="확인 필요"
                       footer={warnItems.length > WARN_PREVIEW && (
-                        <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" aria-expanded={showAllAttention} onClick={() => setShowAllAttention((value) => !value)}><MaterialIcon name={showAllAttention ? 'expand_less' : 'expand_more'} />{showAllAttention ? '우선 항목만 보기' : `확인 필요 ${warnItems.length}건 모두 보기`}</Button>
+                        <ListMore expanded={showAllAttention} onToggle={() => setShowAllAttention((value) => !value)}
+                          label={showAllAttention ? '우선 항목만 보기' : `확인 필요 ${warnItems.length}건 모두 보기`} />
                       )}>
                       {shownWarnItems.map((item) => <AttentionRow key={item.id} item={item} />)}
-                    </AttentionGroup>
+                    </ListGroup>
                   )}
                 </div>
               )}
@@ -375,22 +377,21 @@ export function OverviewPage() {
               {timeline.length === 0 ? (
                 !timelineFailed && <p className="py-3 type-body text-text-muted">최근 7일간 기록된 장애가 없습니다</p>
               ) : (
-                <ul className="-mx-3 mt-1">
+                <List>
                   {timeline.map((episode) => (
-                    <li key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}>
-                      <ListRow
-                        to={episode.targetPath}
-                        marker={<span className={`h-2 w-2 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`} aria-hidden="true" />}
-                        title={withParent(episode.targetName, episode.targetPath)}
-                        detail={episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상')}
-                        start={formatIncidentTime(episode.startedAt)}
-                        duration={episode.active
-                          ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>
-                          : `${formatDuration(episode.durationSec)} 지속`}
-                      />
-                    </li>
+                    <ListRow
+                      key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}
+                      to={episode.targetPath}
+                      marker={<span className={`h-2 w-2 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`} aria-hidden="true" />}
+                      title={withParent(episode.targetName, episode.targetPath)}
+                      detail={episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상')}
+                      trailing={formatIncidentTime(episode.startedAt)}
+                      trailingDetail={episode.active
+                        ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>
+                        : `${formatDuration(episode.durationSec)} 지속`}
+                    />
                   ))}
-                </ul>
+                </List>
               )}
             </section>
           </div>
@@ -403,68 +404,27 @@ export function OverviewPage() {
 function GroupHeader({ title, count, countLabel, note }: { title: string; count: ReactNode; countLabel?: string; note?: string }) {
   return (
     // 섹션 제목이다(section-stack 선으로 나뉜다). 건수·범위는 제목과 같은 기준선의 메타다(DESIGN.md §2.2).
+    // 범위 설명(note)은 제목 옆 메타가 아니라 제목 아래 설명 줄이다 — 메타는 개수처럼 짧은 값만 둔다(§2.2).
     <SectionHeader
       title={title}
-      className="min-h-8"
-      meta={(count != null || note) && <>
-        {/* span의 aria-label은 대부분의 스크린리더가 읽지 않는다 — 숫자만이면 감추고 같은 뜻을 글로 둔다. */}
-        {countLabel ? <><span aria-hidden="true">{count}</span><span className="sr-only">{countLabel}</span></> : count}
-        {note && <span className="ml-3">{note}</span>}
-      </>}
+      meta={count != null && (countLabel ? <><span aria-hidden="true">{count}</span><span className="sr-only">{countLabel}</span></> : count)}
+      description={note}
     />
-  );
-}
-
-// 현재 확인 필요 안의 묶음(장애, 확인 필요). 제목은 섹션 제목(h2) 아래의 h3이다.
-function AttentionGroup({ id, title, footer, children }: { id: string; title: string; footer?: ReactNode; children: ReactNode }) {
-  return (
-    <div role="group" aria-labelledby={id}>
-      <h3 id={id} className="type-label-sm text-text-muted">{title}</h3>
-      <ul className="-mx-3 mt-1">{children}</ul>
-      {footer && <div className="mt-1">{footer}</div>}
-    </div>
   );
 }
 
 // 장애 행은 장애 이력의 진행 중 에피소드와 이어져 시작 시각과 경과 시간을 보인다.
 function AttentionRow({ item, episode }: { item: AttentionItem; episode?: TimelineIncident }) {
   return (
-    <li>
-      <ListRow
-        to={item.to}
-        marker={<MaterialIcon name={item.icon} className={item.tone === 'error' ? 'text-status-error' : 'text-status-warn'} />}
-        title={item.title}
-        detail={episode?.message || item.detail}
-        start={episode && formatIncidentTime(episode.startedAt)}
-        duration={episode ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span> : item.timeLabel}
-      />
-    </li>
+    <ListRow
+      to={item.to}
+      marker={<MaterialIcon name={item.icon} className={item.tone === 'error' ? 'text-status-error' : 'text-status-warn'} />}
+      title={item.title}
+      detail={episode?.message || item.detail}
+      // 시작 시각이 없는 항목(수집 지연 등)은 timeLabel 하나를 윗줄 오른쪽에 둔다.
+      trailing={episode ? formatIncidentTime(episode.startedAt) : item.timeLabel}
+      trailingDetail={episode && <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>}
+    />
   );
 }
 
-// Triage식 두 줄 행: 윗줄은 대상과 시작 시각, 아랫줄은 원인과 경과. 선 없이 hover 배경으로만 행을 드러낸다.
-// 시작 시각이 없는 항목(수집 지연 등)은 timeLabel 하나를 윗줄 오른쪽에 둔다.
-function ListRow({ to, marker, title, detail, start, duration }: {
-  to: string;
-  marker: ReactNode;
-  title: string;
-  detail: string;
-  start?: string;
-  duration?: ReactNode;
-}) {
-  return (
-    <Link to={to} className="flex gap-3 rounded-md px-3 py-2 transition-colors hover:bg-ui-hover-soft">
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center">{marker}</span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-baseline gap-3">
-          <span className="min-w-0 truncate type-label text-text-base">{title}</span>
-          <span className="ml-auto shrink-0 whitespace-nowrap type-caption tabular-nums text-text-muted">{start ?? duration}</span>
-        </span>
-        <span className="flex items-baseline gap-3">
-          <span className="min-w-0 truncate type-body text-text-muted">{detail}</span>
-          {start && <span className="ml-auto shrink-0 whitespace-nowrap type-caption tabular-nums text-text-muted">{duration}</span>}
-        </span>
-      </span>
-    </Link>
-  );
-}
