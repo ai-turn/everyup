@@ -8,7 +8,9 @@ import { MaterialIcon } from '../../components/common/MaterialIcon';
 import { PageHeader } from '../../components/common/PageHeader';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
 import { SearchInput } from '../../components/common/SearchInput';
-import { ListToolbar, ListViewToggle, RefreshIconButton, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { FilterChips, ListToolbar, ListViewToggle, RefreshIconButton, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { STATE_LABEL } from '../../features/servers/serverStatus';
+import { useListSearch } from '../../hooks/useListSearch';
 import { useListView } from '../../hooks/useListView';
 import { api, type AgentOverview, type AgentServiceFlat, type ConnectedAgent } from '../../services/api';
 import { PendingServiceCard } from '../../features/services/components/PendingServiceCard';
@@ -18,6 +20,12 @@ import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
 import { getErrorMessage } from '../../utils/errors';
 import { returnToWithQuery } from '../../utils/listReturnTo';
 import { toast } from 'react-hot-toast';
+
+// Docker 서비스의 상태는 둘이다(정상·장애). 상태 칩은 서버 목록과 같은 라벨·순서를 쓴다.
+const SERVICE_STATUSES = ['error', 'healthy'] as const;
+type ServiceStatus = typeof SERVICE_STATUSES[number];
+const parseServiceStatus = (value: string | null) => SERVICE_STATUSES.find((status) => status === value) ?? null;
+const serviceTone = (service: AgentServiceFlat): ServiceStatus => service.healthy ? 'healthy' : 'error';
 
 function agentOnline(agent: ConnectedAgent): boolean {
   return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
@@ -120,15 +128,8 @@ export function ServiceGridPage() {
   // 개요의 `Docker 연결`은 ?connect=docker로 와서 연결 모달을 바로 연다. 새로고침 때 다시
   // 열리지 않게 파라미터는 읽자마자 지운다.
   const [searchParams, setSearchParams] = useSearchParams();
-  // 입력값은 로컬 상태가 쥔다. URL(?q=)은 react-router가 transition 안에서 반영해 값이 한 박자 늦게 돌아오므로,
-  // URL에 직접 묶으면 한글 조합 중 글자가 덮여 '결제'가 'ㄱ겨결결ㅈ제제'가 됐다. URL은 공유·복귀용 사본이다.
-  // ponytail: URL→입력은 마운트 때만 읽는다. 같은 화면에서 ?q=만 바뀌는 이동이 생기면 그때 동기화를 더한다.
-  const [search, setSearchInput] = useState(() => searchParams.get('q') ?? '');
-  const setSearch = (value: string) => { setSearchInput(value); setSearchParams(current => {
-    const next = new URLSearchParams(current);
-    if (value) next.set('q', value); else next.delete('q');
-    return next;
-  }, { replace: true }); };
+  const { query: search, search: q, setQuery: setSearch, setParam, clearFilters } = useListSearch();
+  const status = parseServiceStatus(searchParams.get('status'));
   const location = useLocation();
   const returnTo = returnToWithQuery(location.pathname, searchParams, search);
   const [showAddModal, setShowAddModal] = useState(() => searchParams.get('connect') === 'docker');
@@ -216,13 +217,18 @@ export function ServiceGridPage() {
 
   // Project search: a project matches if its name or any of its services match.
   // 이름이 맞으면 하위 서비스를 모두, 서비스만 맞으면 맞은 서비스만 펼친다.
-  const q = search.toLowerCase();
   const serviceMatches = (s: AgentServiceFlat) => s.name.toLowerCase().includes(q) || s.endpoint.toLowerCase().includes(q);
-  const groups = allGroups
+  const searchedGroups = allGroups
     .map((g) => ({ ...g, shown: !q || g.agentName.toLowerCase().includes(q) ? g.services : g.services.filter(serviceMatches) }))
     .filter((g) => !q || g.agentName.toLowerCase().includes(q) || g.shown.length > 0);
+  // 상태 칩은 서비스의 상태를 센다. 개수는 검색어를 따르고 상태 선택은 따르지 않는다(서버 목록과 같다).
+  // 상태를 고르면 그 상태의 서비스가 있는 환경만, 그 서비스만 펼친다. 서비스가 없는 설치 대기 환경은 빠진다.
+  const searchedServices = searchedGroups.flatMap((g) => g.shown);
+  const groups = status
+    ? searchedGroups.map((g) => ({ ...g, shown: g.shown.filter((s) => serviceTone(s) === status) })).filter((g) => g.shown.length > 0)
+    : searchedGroups;
 
-  const visiblePending = pendingAgents.filter((a) => !search || a.name.toLowerCase().includes(search.toLowerCase()));
+  const visiblePending = status ? [] : pendingAgents.filter((a) => !q || a.name.toLowerCase().includes(q));
   // 그리드는 환경 행 아래에 서비스 행을 끼운 평평한 목록이다. 열은 같은 표를 쓰고,
   // 이름 열만 깊이에 따라 들여쓰고 연결선을 그린다.
   type EnvRow = { kind: 'env'; agentId: string; agent?: ConnectedAgent; agentName: string; services: AgentServiceFlat[]; shown: AgentServiceFlat[]; pending: boolean; rollup?: AgentOverview };
@@ -248,6 +254,7 @@ export function ServiceGridPage() {
     <div className="page-stack">
       <PageHeader menu
         title="Docker 환경"
+        count={loading || (error && agents.length === 0) ? null : allGroups.length + pendingAgents.length}
       >
         <RefreshIconButton onClick={() => void load()} refreshing={loading} />
         {(services.length > 0 || agents.length > 0) && <ListViewToggle view={view} onChange={setView} />}
@@ -268,7 +275,13 @@ export function ServiceGridPage() {
           resultCount={`환경 ${envRows.length} · 서비스 ${shownServiceCount}`}
           shortcut
         />
-      } />
+      }>
+        {services.length > 0 && <FilterChips ariaLabel="상태로 거르기" value={status} onChange={(next) => setParam('status', next)}
+          options={SERVICE_STATUSES.map((value) => {
+            const count = searchedServices.filter((s) => serviceTone(s) === value).length;
+            return { value, label: STATE_LABEL[value], count, tone: value === 'error' && count === 0 ? 'idle' : value };
+          })} />}
+      </ListToolbar>
 
       <div className="page-stack">
 
@@ -299,7 +312,7 @@ export function ServiceGridPage() {
       ) : (
         <section>
         <h2 className="sr-only">Docker 환경 목록</h2>
-        {envRows.length === 0 ? (error && !search.trim() ? null : <EmptyState icon="sensors" title="검색 결과가 없습니다" />) : view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
+        {envRows.length === 0 ? (error && !search.trim() && !status ? null : <EmptyState icon="sensors" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: () => clearFilters(['status']) }} />) : view === 'grid' ? <ResourceTable rows={treeRows} rowKey={row => row.kind === 'env' ? row.agentId : `${row.agentId}/${row.service.key}`} ariaLabel="Docker 환경 그리드" columns={[
           { key: 'name', label: 'Docker 환경 · 서비스', render: row => row.kind === 'env' ? (
             // 펼침 버튼(20px)의 가운데(left-2.5)가 하위 행 연결선의 x다. -my-4 py-4로 셀 높이 전체를 덮어야 선이 행 사이에서 끊기지 않는다.
             <div className="relative -my-4 py-4">

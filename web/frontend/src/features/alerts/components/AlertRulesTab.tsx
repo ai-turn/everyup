@@ -2,9 +2,9 @@ import { Tooltip } from '../../../components/common/Tooltip';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
-import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
+import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, FilterChips, SearchInput, ListToolbar, Select } from '../../../components/common';
 import { api, type AlertRule, type NotificationChannel } from '../../../services/api';
-import { alertTargetName, categoryLabel, compactTrigger, evaluationSummary, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames, type CategoryKey } from '../ruleDisplay';
+import { alertTargetName, categoryChipOptions, categoryLabel, compactTrigger, evaluationSummary, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames, type CategoryKey } from '../ruleDisplay';
 import { RuleTargetName } from './RuleTargetName';
 import { ChannelAvatars } from './ChannelAvatars';
 import { LoadErrorBanner } from '../../../components/common';
@@ -52,7 +52,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filters
-  const [categoryFilter, setCategoryFilter] = useState<CategoryKey>('all');
+  const [categoryFilter, setCategoryFilter] = useState<Exclude<CategoryKey, 'all'> | null>(null);
   const [severityFilter, setSeverityFilter] = useState<'all' | 'critical' | 'warning' | 'info'>('all');
   const [enabledFilter, setEnabledFilter] = useState<'all' | 'on' | 'off'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -110,10 +110,9 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
     }
   };
 
-  const filteredRules = useMemo(() => {
-    const filtered = rules.filter(r => {
+  // 유형 칩의 개수는 다른 필터(대상, 심각도, 활성, 검색)를 따르고 유형 선택은 따르지 않는다(서버 목록의 상태 칩과 같다).
+  const scopedRules = useMemo(() => rules.filter(r => {
       if (target && !matchesAlertTarget(r, target)) return false;
-      if (categoryFilter !== 'all' && ruleCategory(r) !== categoryFilter) return false;
       if (severityFilter !== 'all' && r.severity !== severityFilter) return false;
       if (enabledFilter !== 'all' && (enabledFilter === 'on' ? !r.isEnabled : r.isEnabled)) return false;
       if (searchQuery) {
@@ -122,8 +121,10 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
         if (!r.name.toLowerCase().includes(q) && !target.includes(q)) return false;
       }
       return true;
-    });
+    }), [rules, severityFilter, enabledFilter, searchQuery, names, target]);
 
+  const filteredRules = useMemo(() => {
+    const filtered = categoryFilter ? scopedRules.filter(r => ruleCategory(r) === categoryFilter) : [...scopedRules];
     return filtered.sort((a, b) => {
       let v = 0;
       if (sortKey === 'severity') v = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
@@ -132,7 +133,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       else if (sortKey === 'category') v = ruleCategory(a).localeCompare(ruleCategory(b));
       return sortDir === 'asc' ? v : -v;
     });
-  }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, names, target]);
+  }, [scopedRules, categoryFilter, sortKey, sortDir, names]);
 
   const selectedTargetLabel = target ? alertTargetName(target, names) : null;
   const targetNotice = selectedTargetLabel && (
@@ -149,7 +150,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
   };
 
   const clearFilters = () => {
-    setCategoryFilter('all');
+    setCategoryFilter(null);
     setSeverityFilter('all');
     setEnabledFilter('all');
     setSearchQuery('');
@@ -220,7 +221,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       {formPanel}
       {targetNotice}
       {errorBanner}
-      {/* Filter bar — category pills + severity/enabled + search */}
+      {/* 검색 → 심각도·활성 선택 → 유형 칩. 칩이 가장 넓어 줄이 넘치면 칩 묶음이 통째로 다음 줄로 간다(선택 하나만 떨어지지 않게). */}
       <ListToolbar search={
         <SearchInput
           value={searchQuery}
@@ -232,22 +233,6 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
           placeholder="규칙 이름 · 대상 검색"
         />
       }>
-        <SegmentedControl
-          size="md"
-          ariaLabel="카테고리"
-          value={categoryFilter}
-          onChange={setCategoryFilter}
-          options={[
-            { value: 'all', label: '전체' },
-            { value: 'endpoint', label: '업타임' },
-            { value: 'request', label: 'API 요청' },
-            { value: 'log', label: '로그' },
-            { value: 'metric', label: '메트릭' },
-            { value: 'resource', label: '인프라' },
-            { value: 'system', label: '시스템 규칙' },
-          ]}
-        />
-
         <Select
           aria-label="전체 심각도"
           value={severityFilter}
@@ -270,6 +255,8 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
           <option value="on">활성</option>
           <option value="off">비활성</option>
         </Select>
+
+        <FilterChips ariaLabel="유형으로 거르기" value={categoryFilter} onChange={setCategoryFilter} options={categoryChipOptions(scopedRules)} />
       </ListToolbar>
 
       {/* Table */}

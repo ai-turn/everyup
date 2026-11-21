@@ -22,7 +22,8 @@ for (const width of [1440, 375]) for (const [route, title, label] of menus) {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`./${route}${route.includes('?') ? '&' : '?'}view=unexpected`);
-    await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible();
+    // 목록 메뉴의 제목은 개수를 단다(`그룹 3`, DESIGN.md §3.4).
+    await expect(page.getByRole('heading', { level: 1, name: new RegExp(`^${title}( \\d+)?$`) })).toBeVisible();
     const toggle = page.getByRole('group', { name: '대상 보기 방식', exact: true });
     const table = page.getByRole('table', { name: label, exact: true });
     const main = page.locator('main');

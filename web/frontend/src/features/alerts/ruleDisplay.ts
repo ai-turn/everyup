@@ -181,6 +181,12 @@ export function categoryLabel(category: Exclude<CategoryKey, 'all'>): string {
   return CATEGORY_LABELS[category];
 }
 
+/** 규칙 유형 칩(DESIGN.md §4.1 FilterChips). 데스크톱 표와 모바일 목록이 같은 순서·개수를 쓴다. 0건인 유형도 자리를 지킨다. */
+const RULE_CATEGORIES = Object.keys(CATEGORY_LABELS) as Exclude<CategoryKey, 'all'>[];
+export const categoryChipOptions = (rules: AlertRule[]) => RULE_CATEGORIES.map((value) => ({
+  value, label: CATEGORY_LABELS[value], count: rules.filter((rule) => ruleCategory(rule) === value).length,
+}));
+
 function metricLabel(metric: string): string {
   return METRIC_LABELS[metric] ?? metric;
 }

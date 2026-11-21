@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { MaterialIcon } from '../common';
-import { useSetHeaderActionSlot } from '../../contexts/BreadcrumbContext';
+import { useMenuTitle, useSetHeaderActionSlot } from '../../contexts/BreadcrumbContext';
 import { useLocationCrumbs } from './useLocationCrumbs';
 
 // 데스크톱 전용 위치 표시 헤더. 높이 h-16은 Sidebar 로고 블록과 같은 값이라
@@ -11,6 +11,8 @@ import { useLocationCrumbs } from './useLocationCrumbs';
 export function AppHeader() {
   const crumbs = useLocationCrumbs();
   const setActionSlot = useSetHeaderActionSlot();
+  // 메뉴 첫 화면은 크럼 하나가 그 화면의 제목이다. 본문 h1은 데스크톱에서 숨기므로 여기서 페이지 제목 크기로 그린다.
+  const menuTitle = useMenuTitle();
 
   if (crumbs.length === 0) return null;
 
@@ -40,6 +42,11 @@ export function AppHeader() {
                   >
                     {crumb.label}
                   </Link>
+                ) : menuTitle && crumbs.length === 1 ? (
+                  <span className="truncate type-page-title text-text-base" aria-current="page">
+                    {crumb.label}
+                    {typeof menuTitle.count === 'number' && <> <span className="font-medium tabular-nums text-text-muted">{menuTitle.count}</span></>}
+                  </span>
                 ) : (
                   <span
                     className={`truncate type-label ${last ? 'text-text-base' : 'text-text-muted'}`}
