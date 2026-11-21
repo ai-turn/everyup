@@ -26,7 +26,7 @@ test('[04] returning from a detail to the list keeps the search', async ({ page 
   await search.fill('Public');
   await page.getByRole('link', { name: 'Public API', exact: true }).click();
   await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor$/);
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(search).toHaveValue('Public');
 });
 
@@ -53,7 +53,7 @@ test('[04] mobile direct detail provides a return to the uptime list', async ({ 
   await uptimeFixture(page);
   await page.goto('./servers/server-1/uptime/http-monitor');
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page).toHaveURL(/\/servers\/server-1\/uptime$/);
   await expect(page.getByRole('table', { name: '업타임 그리드' })).toBeVisible();
 });
@@ -66,6 +66,6 @@ test('[04] mobile return retains the searched list context', async ({ page }) =>
   await page.getByRole('textbox', { name: '모니터 검색' }).fill('Database');
   await page.getByRole('link', { name: 'Database', exact: true }).click();
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Database', exact: true })).toBeVisible();
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('Database');
 });

@@ -111,7 +111,6 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     if (current) {
       return (
         <DirectLogsPanel key={current.id} service={current} status={appPanelStatus(row, 'logs', current, Boolean(stale))}
-          listLink={<TabBackLink label={listPath.startsWith(ALL_LOGS_PATH) ? '전체 로그' : '앱 목록'} to={listPath} />}
           onRemoved={(remaining) => void removed(current.id, remaining)} onChanged={onChanged} refreshToken={refreshToken}
           extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(current.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
       );
@@ -124,7 +123,10 @@ export function ServerLogsTab({ row, targetId, onChanged, unknown, stale, onRetr
     <>
       {content()}
       {!unknown && apps.length > 0 && (
-        <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
+        <TabAction slot={actionSlot}>
+          {current && !leaving && <TabBackLink label={listPath.startsWith(ALL_LOGS_PATH) ? '전체 로그' : '앱 목록'} to={listPath} />}
+          <Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button>
+        </TabAction>
       )}
       {adding && <DirectTelemetrySetupDialog signal="logs" capabilityLabel="로그" title="로그 연결" description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
         serverId={serverId} onClose={closeSetup} onIssued={() => { issued.current = true; }} onCreated={(service) => void finishCreate(service.id)} />}

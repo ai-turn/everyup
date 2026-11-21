@@ -134,11 +134,11 @@ test('status filter and bulk pause stay inside the server', async ({ page }) => 
 test('on phones a monitor screen links back to the tab', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto(`./servers/${EDGE}/uptime/uptime_mock_store`);
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
   // 첫 화면에서는 지금 화면으로 가는 복귀 링크를 두지 않는다.
   await expect(rowNames(page)).toHaveCount(2);
-  await expect(panel(page).getByRole('link', { name: '모니터 목록', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true })).toHaveCount(0);
 });
 
 for (const path of ['uptime', 'uptime/uptime_mock_store']) {
@@ -156,7 +156,7 @@ test('a server with one monitor has no list to go back to on phones', async ({ p
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto('./servers/server_mock_payments_api/uptime/uptime_mock_payments');
   await expect(panel(page).getByRole('heading', { level: 2, name: 'Payment endpoint' })).toBeVisible();
-  await expect(panel(page).getByRole('link', { name: '모니터 목록', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true })).toHaveCount(0);
 });
 
 test('panel sections sit one level below the monitor name', async ({ page }) => {

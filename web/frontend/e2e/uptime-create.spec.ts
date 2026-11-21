@@ -141,7 +141,7 @@ test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves T
   await expect(dialog).toHaveCount(0);
   // 서버 탭은 만든 모니터의 상세를 연다. 목록의 표시는 목록으로 돌아가서 확인한다.
   await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/created-2$/);
-  await page.getByRole('tabpanel').getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
   const gridRow = page.getByRole('table', { name: '업타임 그리드' }).getByRole('row').filter({ has: page.getByRole('link', { name: 'TCP Probe', exact: true }) });
   await expect(gridRow.getByText('db.example.com:5432', { exact: true }).filter({ visible: true })).toBeVisible();
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();

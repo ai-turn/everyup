@@ -86,7 +86,7 @@ test('[09] switching monitor ids does not retain another monitor or late respons
   try {
     await page.goto('./servers/server-1/uptime/tcp-monitor');
     await expect(page.getByRole('heading', { name: 'Database', exact: true })).toBeVisible();
-    await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+    await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '모니터 목록', exact: true }).click();
     await page.getByRole('link', { name: 'Public API', exact: true }).click();
     await expect(page.getByText('불러오는 중', { exact: true })).toBeVisible();
     await page.goBack();

@@ -54,7 +54,7 @@ test('the app list link returns to the card view the app was opened from', async
   await page.goto(`./servers/${EDGE}/logs?view=card`);
   await panel(page).getByRole('link', { name: /checkout-api/ }).first().click();
   await expect(panel(page).getByRole('heading', { level: 2, name: 'checkout-api' })).toBeVisible();
-  await panel(page).getByRole('link', { name: '앱 목록', exact: true }).click();
+  await page.getByRole('group', { name: '탭 조작' }).getByRole('link', { name: '앱 목록', exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/logs\\?view=card$`));
   await expect(page.getByRole('button', { name: '카드', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });

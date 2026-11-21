@@ -162,12 +162,13 @@ export function ServerDetailPage() {
       {!error && failed.length > 0 && (
         <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={reload} retrying={loading} /></div>
       )}
-      {/* 탭 줄이 넘쳐 가로로 스크롤하는 좁은 화면에서는 조작 자리가 탭 줄 아래 오른쪽으로 내려간다. 비어 있으면 높이가 없다. */}
+      {/* 탭 줄이 넘쳐 가로로 스크롤하는 좁은 화면에서는 조작 자리가 탭 줄 아래 한 줄로 내려간다(모바일은 폭 전체, 목록 복귀
+          링크가 왼쪽 끝, 조작이 오른쪽 끝). 비어 있으면 높이가 없다. */}
       <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="min-w-0 max-w-full">
           <Tabs items={tabs} active={active} onChange={open} ariaLabel="서버 기능" idPrefix={ID_PREFIX} />
         </div>
-        <div ref={setActionSlot} role="group" aria-label="탭 조작" className="ml-auto flex flex-wrap items-center justify-end gap-2 empty:hidden" />
+        <div ref={setActionSlot} role="group" aria-label="탭 조작" className="ml-auto flex flex-wrap items-center justify-end gap-2 empty:hidden max-sm:w-full" />
       </div>
       <div ref={panelRef} tabIndex={-1} role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
         {active === 'overview'
