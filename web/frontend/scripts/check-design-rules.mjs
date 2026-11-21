@@ -16,7 +16,7 @@ const src = process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.
 const RULES = [
   // 금지 — 0건
   { name: '§2.2 text-[Npx] 임의 크기', re: /text-\[[\d.]+(?:px|rem)\]/g },
-  { name: '§1.7 hex 임의값 (ChannelForm 미리보기만 허용)', re: /\[#[0-9a-fA-F]{3,8}\]/g, skip: /ChannelForm\.tsx$/ },
+  { name: '§1.7 hex 임의값 (채널 브랜드 색·미리보기만 허용)', re: /\[#[0-9a-fA-F]{3,8}\]/g, skip: /Channel(?:Form|Preview)\.tsx$/ },
   { name: '§3.2 rounded-2xl 이상', re: /\brounded-(?:2xl|3xl)\b/g },
   { name: '§2.4 400/500/700 외 굵기', re: /\bfont-(?:thin|light|semibold|extrabold|black)\b/g },
   { name: '§3.5 shadow-sm/lg 외 그림자', re: /\bshadow-(?:md|xl|2xl)\b/g },
@@ -25,7 +25,7 @@ const RULES = [
   { name: '§4.1 active:scale', re: /active:scale-/g },
   { name: '§6 focus:outline-none', re: /focus:outline-none/g },
   { name: '§3.7 스케일 밖 간격 gap-2.5·3.5', re: /\bgap-(?:2|3)\.5\b/g },
-  { name: '§2.5 uppercase (ChannelForm 미리보기만 허용)', re: /\buppercase\b/g, skip: /ChannelForm\.tsx$/ },
+  { name: '§2.5 uppercase (채널 미리보기만 허용)', re: /\buppercase\b/g, skip: /ChannelPreview\.tsx$/ },
   { name: '§2.5 tracking-wide 이상', re: /\btracking-(?:wide|wider|widest)\b/g },
   { name: '§2.5 마침표 셋 (… 사용)', re: /[^.]\.\.\.(?=['"`<]|\s*$)/g },
   { name: '§9.16 transition-all', re: /\btransition-all\b/g },
@@ -45,17 +45,18 @@ const RULES = [
   { name: '§3.7 S1 임의값 간격', re: /(?<![\w-])-?(?:m[trblxyse]?|p[trblxyse]?|gap(?:-[xy])?|space-[xy])-\[/g, skip: /CommandPalette\.tsx$/ },
   // S2 블록 사이 세로 반 단계: 여백·space-y·gap-y만 센다. 상자 안쪽 패딩(컨트롤·칩·안내 상자)은 컴포넌트 안쪽 값이고,
   // 음수 여백은 bleed 보정이라 세지 않는다. 줄 상자 보정 mt-0.5는 S3이 센다.
-  { name: '§3.7 S2 세로 반 단계', re: /(?<![\w-])(?:(?:space-y|gap-y|mb|my)-\d+\.5|mt-[1-9]\d*\.5)(?![\w.])/g, max: 17 },
-  // S3 줄 상자 보정과 hover 행 패딩은 담당 프리미티브(components/common) 안에만 둔다.
-  { name: '§3.7 S3 화면 코드의 mt-0.5·py-2.5', re: /(?<![\w-])(?:mt-0\.5|py-2\.5)(?![\w.])/g, skip: /components[\\/]common[\\/]/, max: 71 },
+  { name: '§3.7 S2 세로 반 단계', re: /(?<![\w-])(?:(?:space-y|gap-y|mb|my)-\d+\.5|mt-[1-9]\d*\.5)(?![\w.])/g, skip: /ChannelPreview\.tsx$/, max: 9 },
+  // S3 줄 상자 보정(mt-0.5)은 담당 프리미티브(components/common, ListRow 둘째 줄) 안에만 둔다. 제목 → 설명은 mt-intra,
+  // 첫 줄 맞춤은 icon-lead다. 컨트롤·칩·상자 안쪽 패딩(py-2.5)은 S2와 같은 이유로 세지 않는다(표 칸은 cell).
+  { name: '§3.7 S3 화면 코드의 mt-0.5', re: /(?<![\w-])mt-0\.5(?![\w.])/g, skip: /components[\\/]common[\\/]|ChannelPreview\.tsx$/, max: 26 },
   // S4 여백만 가진 감싸개. 간격은 부모의 gap·space-y가 정한다. 밀어내기(ml-auto 등)와 음수 여백(bleed 보정)은 간격이 아니라 뺀다.
   { name: '§3.7 S4 여백만 가진 감싸개', re: /className="(?:m[trblxyse]?-(?!auto\b)[\w.]+ ?)+"/g, max: 0 },
   // S6 역할 없는 글자 크기(같은 클래스 문자열에 type-*·font-mono가 없다). 채널 미리보기는 외부 서비스 흉내라 뺀다.
-  { name: '§2.2 S6 역할 없는 text-xs/sm/base', strings: true, re: /(?<![\w-])text-(?:xs|sm|base)(?![\w-])/g, unless: /(?<![\w-])(?:type-[a-z-]+|font-mono)(?![\w-])/, skip: /ChannelForm\.tsx$/, max: 150 },
+  { name: '§2.2 S6 역할 없는 text-xs/sm/base', strings: true, re: /(?<![\w-])text-(?:xs|sm|base)(?![\w-])/g, unless: /(?<![\w-])(?:type-[a-z-]+|font-mono)(?![\w-])/, skip: /ChannelPreview\.tsx$/, max: 155 },
   // S7 행간 직접 지정. 행간은 type-* 역할이 정한다.
   { name: '§2.2 S7 leading-* 직접 지정', re: /(?<![\w-])leading-[\w.[\]]+/g, max: 15 },
   // S8 숫자 세로 간격. 쌓기(space-y, flex-col의 gap)는 관계 토큰(gap-heading 등)으로 쓴다.
-  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, max: 76 },
+  { name: '§3.7 S8 숫자 세로 간격', strings: true, re: /(?<![\w-])space-y-\d+(?:\.5)?(?![\w.])/g, also: { when: /(?<![\w-])flex-col(?![\w-])/, re: /(?<![\w-])gap-\d+(?:\.5)?(?![\w.])/g }, skip: /ChannelPreview\.tsx$/, max: 46 },
 ];
 
 // S5 컴포넌트 루트의 바깥 여백(음수 bleed·auto 제외). 정규식으로는 함수 경계를 모르므로 TypeScript AST로 센다.

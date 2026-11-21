@@ -215,7 +215,7 @@ export function AlertsDesktopView({
               onSubmittingChange={setChannelSubmitting}
             />
           </FormSidePanel>
-          <div className="space-y-3">
+          <div className="space-y-heading">
           {channelsError && <LoadErrorBanner title="알림 채널을 불러오지 못했습니다" message={channelsError} onRetry={onRetryChannels} />}
           <ChannelsTable
             channels={channels}
@@ -268,7 +268,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
           <div key={i} className="grid grid-cols-[minmax(220px,1.6fr)_90px_150px_110px_150px_180px] gap-4 px-4 py-3 animate-pulse">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg bg-ui-hover" />
-              <div className="space-y-2">
+              <div className="space-y-label">
                 <div className="h-3 w-32 rounded bg-ui-hover" />
                 <div className="h-2.5 w-20 rounded bg-ui-hover" />
               </div>
@@ -298,7 +298,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
 
   if (view === 'card') return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{channels.map(channel => <article key={channel.id} aria-label={channel.name} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
     <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{channel.name}</h2><p className="mt-1 type-caption text-text-muted">{getChannelSubtitle(channel.type)}</p></div><Toggle checked={channel.isEnabled} onChange={() => onToggle(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /></div>
-    <div className="mt-4 space-y-3"><ChannelHealthMeta health={channelHealth[channel.id]} compact />
+    <div className="mt-4 space-y-label"><ChannelHealthMeta health={channelHealth[channel.id]} compact />
     {testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div>
     <div className="mt-4 flex items-center justify-end gap-2"><Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />테스트</Button><IconButton icon="edit" label="수정" onClick={() => onEdit(channel)} /><IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => onDelete(channel.id)} /></div>
   </article>)}</div>;
@@ -330,7 +330,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                 key={channel.id}
                 className={`group transition-colors hover:bg-ui-hover-soft ${!channel.isEnabled ? 'opacity-70' : ''}`}
               >
-                <td className="px-4 py-2.5">
+                <td className="px-4 cell">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${style.bg}`}>
                       <ChannelIcon type={channel.type} size={18} className={style.text} />
@@ -343,7 +343,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-2.5">
+                <td className="px-4 cell">
                   <Toggle
                     checked={channel.isEnabled}
                     onChange={() => onToggle(channel.id)}
@@ -352,7 +352,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                     ariaLabel={channel.name}
                   />
                 </td>
-                <td className="px-4 py-2.5 text-sm tabular-nums">
+                <td className="px-4 cell text-sm tabular-nums">
                   {total > 0 ? (
                     <span className="text-text-base">
                       {sent}
@@ -364,16 +364,16 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                     <span className="text-text-dim">이력 없음</span>
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-sm text-text-secondary">
+                <td className="px-4 cell text-sm text-text-secondary">
                   {`규칙 ${health?.ruleCount ?? 0}개`}
                 </td>
-                <td className="px-4 py-2.5 text-sm text-text-muted">
+                <td className="px-4 cell text-sm text-text-muted">
                   {lastSent
                     ? <p>{formatDistanceToNow(lastSent, { addSuffix: true, locale: ko })}</p>
                     : !testResults[channel.id] && <span className="text-text-dim">테스트로 확인</span>}
                   <ChannelTestResult result={testResults[channel.id]} />
                 </td>
-                <td className="sticky right-0 bg-bg-main px-4 py-2.5 transition-colors group-hover:bg-ui-hover-soft">
+                <td className="sticky right-0 bg-bg-main px-4 cell transition-colors group-hover:bg-ui-hover-soft">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)} className="whitespace-nowrap">
                       <MaterialIcon size={20} name="send" />

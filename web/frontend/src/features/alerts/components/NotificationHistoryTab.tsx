@@ -88,7 +88,7 @@ function HistoryCard({ item, rules }: { item: NotificationHistory; rules: AlertR
   const rule = ruleName(item, rules);
   return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><StatusLight {...historyStatus(item.status)} />{item.severity && <SeverityBadge severity={item.severity} />}</div>
-    <p className="mt-3 break-words type-body text-text-base">{item.message}</p><div className="mt-2 space-y-2"><p className="flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
+    <p className="mt-3 break-words type-body text-text-base">{item.message}</p><div className="mt-2 space-y-label"><p className="flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
     <FailureReason item={item} /></div>
     <p className="mt-3 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })} · {format(new Date(item.createdAt), 'M월 d일 HH:mm')}</p>
   </article>;
@@ -239,7 +239,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
 
       {error && <LoadErrorBanner title="발송 이력을 불러오지 못했습니다" message={error} onRetry={() => setReloadKey(key => key + 1)} />}
       {/* History Table */}
-      {!error && <div className={view === 'card' ? 'space-y-3' : undefined}>
+      {!error && <div>
         {view === 'card' ? <HistoryCards rows={groupedRows} loading={loading} rules={rules} /> : (
         <div className="table-bleed overflow-x-auto">
           <table aria-label="발송 이력 그리드" className="w-full min-w-[960px] table-fixed">
@@ -289,14 +289,14 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                       // 실패는 상태 칸의 점·문구가 말한다 — 행 전체를 붉게 칠하지 않는다(DESIGN §9.3).
                       className="transition-colors hover:bg-ui-hover-soft"
                     >
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 cell">
                         <StatusLight {...historyStatus(item.status)} />
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 cell">
                         <p className="truncate type-body text-text-secondary">{rule ?? typeLabel(item.alertType)}</p>
                         {rule && <p className="truncate type-caption text-text-muted">{typeLabel(item.alertType)}</p>}
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 cell">
                         <div className="flex min-w-0 items-center gap-2">
                           <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${channelStyle.bg}`}>
                             <ChannelIcon type={item.channelType} size={13} className={channelStyle.text} />
@@ -304,16 +304,16 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                           <span className="truncate text-sm text-text-secondary">{item.channelName}</span>
                         </div>
                       </td>
-                      <td className="space-y-intra px-4 py-2.5">
+                      <td className="space-y-intra px-4 cell">
                         <p className="truncate type-body text-text-base">{item.message}</p>
                         <FailureReason item={item} />
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 cell">
                         {item.severity && (
                           <SeverityBadge severity={item.severity} />
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-right text-sm text-text-muted whitespace-nowrap">
+                      <td className="px-4 cell text-right text-sm text-text-muted whitespace-nowrap">
                         {formatDistanceToNow(created, { addSuffix: true, locale: ko })}
                         <span className="text-text-dim"> · {format(created, 'HH:mm')}</span>
                       </td>

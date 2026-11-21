@@ -116,7 +116,8 @@ function buildDefaultMessage(metric: RuleFormValues['metric'], operator: RuleFor
 // ─── Layout primitives ────────────────────────────────────────────────────────
 
 // 텍스트영역 전용 셸 — Input과 같은 규격을 공유한다 (포커스 링은 전역 :focus-visible).
-const textareaCls = `${FIELD_SHELL} py-2.5 max-sm:text-base border-ui-control-border placeholder:text-text-dim`;
+// block: inline-block이면 글자 기준선 아래 여백이 붙어 입력 → 도움말이 4px이 아니라 10px이었다(DESIGN.md §6 폼 리듬).
+const textareaCls = `${FIELD_SHELL} block py-2.5 max-sm:text-base border-ui-control-border placeholder:text-text-dim`;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -191,7 +192,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                     </FormStep>
 
                     <FormStep n={3} title="알림 채널" subtitle="발송할 채널 선택">
-                        <div role="group" aria-label="알림 채널" className="space-y-2">
+                        <div role="group" aria-label="알림 채널" className="space-y-label">
                             {channels.length === 0 ? (
                                 <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                             ) : channels.map(ch => (
@@ -210,7 +211,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
 
                 <div className="hidden lg:block">
                     {/* top-0: 패널 스크롤 영역 기준이라 0이어야 좌측 카드 시작선과 정렬 (실측 검증) */}
-                    <div className="sticky top-0 space-y-4">
+                    <div className="sticky top-0 space-y-heading">
                         <div>
                             <div className="flex items-center gap-3 mb-4">
                                 <MaterialIcon size={20} name="lock" className="text-text-dim" />
@@ -223,7 +224,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                     </p>
                                 </div>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-heading">
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
                                     <p className="type-label-sm text-text-muted">규칙 이름</p>
                                     <p className="mt-1 truncate type-body text-text-base">{rule.name}</p>
@@ -768,7 +769,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                             label="알림 채널"
                             hint={watchedChannelIds.length === 0 && channels.length > 0 ? '미선택 시 모든 활성 채널로 발송됩니다' : null}
                         >
-                            <div role="group" aria-label="알림 채널" className="space-y-2">
+                            <div role="group" aria-label="알림 채널" className="space-y-label">
                                 {channels.length === 0 ? (
                                     <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                                 ) : channels.map(ch => (
@@ -820,7 +821,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                 {/* ── Right: 미리보기. lg에서는 옆에 고정, 좁으면 폼 아래(모든 폭) ── */}
                 <div>
                     {/* top-0: 패널 스크롤 영역 기준이라 0이어야 좌측 카드 시작선과 정렬 (실측 검증) */}
-                    <div className="lg:sticky lg:top-0 space-y-4">
+                    <div className="lg:sticky lg:top-0 space-y-heading">
 
                         {/* Preview card */}
                         <div>
@@ -830,7 +831,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                     <p className="mt-1 type-body text-text-muted">저장하면 이렇게 동작합니다</p>
                                 </div>
                             </div>
-                            <div className="space-y-5">
+                            <div className="space-y-item">
 
                                 <div>
                                     <p className="type-label-sm text-text-muted mb-2">조건</p>
@@ -841,7 +842,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                 <div>
                                     <p className="type-label-sm text-text-muted mb-2">메시지</p>
                                     <div className="rounded-xl bg-ui-hover-soft/50 px-3 py-3">
-                                        <div className="flex items-center gap-2 mb-1.5">
+                                        <div className="flex items-center gap-2 mb-label">
                                             <SeverityBadge severity={watchedSeverity} />
                                             <span className="text-sm text-text-muted truncate">{watchedName || '<규칙 이름>'}</span>
                                         </div>
@@ -858,7 +859,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                             ? `받는 채널 · 켜진 채널 전체 ${previewChannels.length}개`
                                             : `받는 채널 · ${previewChannels.length}개`}
                                     </p>
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-label">
                                         {channels.length === 0 ? (
                                             <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                                         ) : previewChannels.slice(0, 5).map(ch => (

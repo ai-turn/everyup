@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, ResourceTable, StatusLight, Toggle } from '../../../components/common';
+import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, ResourceTable, Stat, StatusLight, Toggle } from '../../../components/common';
 import { useListView } from '../../../hooks/useListView';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { getChannelStyle } from '../utils/channelMeta';
@@ -140,30 +140,22 @@ export function AlertsMobileView({
       {/* 7일 발송 요약 — 발송 이력 탭의 머리다(데스크톱과 같음). */}
       {stats && activeTab === 'history' && (
         <div className="grid grid-cols-3 gap-2">
+          {/* 수치 타일은 데스크톱과 같은 Stat(라벨 → 값 4px, DESIGN.md §3.7 카드 안쪽)이다. */}
           <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
-            <p className="type-body text-text-muted truncate">
-              발송
-            </p>
-            <p className="type-kpi text-text-base">{stats.totalSent}</p>
+            <Stat label="발송" value={stats.totalSent} />
           </div>
           <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
-            <p className="type-body text-text-muted truncate">
-              실패
-            </p>
-            <p className={`type-kpi ${stats.totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>{stats.totalFailed}</p>
+            <Stat label="실패" value={<span className={stats.totalFailed > 0 ? 'text-status-error' : undefined}>{stats.totalFailed}</span>} />
           </div>
           <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
-            <p className="type-body text-text-muted truncate">
-              성공률
-            </p>
-            <p className="type-kpi text-text-base">{stats.successRate.toFixed(0)}%</p>
+            <Stat label="성공률" value={`${stats.successRate.toFixed(0)}%`} />
           </div>
         </div>
       )}
 
       {/* Channels Tab */}
       {activeTab === 'channels' && (
-        <div id="alerts-mobile-panel-channels" role="tabpanel" className="space-y-3">
+        <div id="alerts-mobile-panel-channels" role="tabpanel" className="space-y-tile">
           {errors.channels && <LoadErrorBanner title="알림 채널을 불러오지 못했습니다" message={errors.channels} onRetry={onRetry.channels} />}
           {isLoading ? (
             [1, 2].map(i => (
@@ -172,7 +164,7 @@ export function AlertsMobileView({
           ) : channels.length === 0 ? errors.channels ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="notifications_off" className="text-text-dim" />
-              <div className="mt-2 space-y-3">
+              <div className="mt-2 space-y-label">
                 <p className="type-body text-text-muted">
                   구성된 알림 채널이 없습니다
                 </p>
@@ -181,7 +173,7 @@ export function AlertsMobileView({
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={channels} rowKey={row => row.id} ariaLabel="알림 채널 그리드" columns={[
-              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3 space-y-2"><ChannelHealthMeta health={channelHealth[channel.id]} compact />{testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
+              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3 space-y-label"><ChannelHealthMeta health={channelHealth[channel.id]} compact />{testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
               { key: 'enabled', label: '상태', className: 'w-16', render: channel => <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /> },
             ]} /> : channels.map(channel => {
               const meta = getChannelStyle(channel.type);
@@ -207,7 +199,7 @@ export function AlertsMobileView({
                     </div>
                     <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} />
                   </div>
-                  <div className="mb-3 space-y-2">
+                  <div className="mb-3 space-y-label">
                     <ChannelHealthMeta health={channelHealth[channel.id]} compact />
                     {testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}
                   </div>
@@ -228,7 +220,7 @@ export function AlertsMobileView({
 
       {/* Rules Tab */}
       {activeTab === 'rules' && (
-        <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-2">
+        <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-label">
           {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
           {errors.rules && <LoadErrorBanner title="알림 규칙을 불러오지 못했습니다" message={errors.rules} onRetry={onRetry.rules} />}
           {rulesLoading ? (
@@ -238,7 +230,7 @@ export function AlertsMobileView({
           ) : visibleRules.length === 0 ? errors.rules ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="rule" className="text-text-dim" />
-              <div className="mt-2 space-y-3">
+              <div className="mt-2 space-y-label">
                 <p className="type-body text-text-muted">
                   등록된 알림 규칙이 없습니다
                 </p>
@@ -258,7 +250,7 @@ export function AlertsMobileView({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className={`type-body truncate ${rule.isEnabled ? 'text-text-base' : 'text-text-muted'}`}>{rule.name}</p>
-                    <p className="mt-0.5 break-words type-caption text-text-muted">{ruleMeta(rule)}</p>
+                    <p className="mt-intra break-words type-caption text-text-muted">{ruleMeta(rule)}</p>
                   </div>
                   <SeverityBadge severity={rule.severity} />
                 </div>
@@ -279,7 +271,7 @@ export function AlertsMobileView({
 
       {/* History Tab */}
       {activeTab === 'history' && (
-        <div id="alerts-mobile-panel-history" role="tabpanel" className="space-y-2">
+        <div id="alerts-mobile-panel-history" role="tabpanel" className="space-y-label">
           {errors.history && <LoadErrorBanner title="발송 이력을 불러오지 못했습니다" message={errors.history} onRetry={onRetry.history} />}
           {historyLoading ? (
             [1, 2, 3].map(i => (
@@ -304,13 +296,13 @@ export function AlertsMobileView({
                   className="bg-bg-surface border border-ui-border-soft rounded-xl p-4"
                 >
                   <div className="flex items-start gap-3">
-                    <MaterialIcon size={20} name={statusConf.icon} className={`mt-0.5 shrink-0 ${statusConf.color}`} />
+                    <MaterialIcon size={20} name={statusConf.icon} className={`icon-lead shrink-0 ${statusConf.color}`} />
                     <span className="sr-only">{historyStatus(item.status).label}</span>
                     <div className="flex-1 min-w-0">
                       <p className="type-label text-text-base truncate">
                         {item.hostName || item.serviceName || item.channelName}
                       </p>
-                      <p className="type-body text-text-muted truncate mt-0.5">
+                      <p className="type-body text-text-muted truncate mt-intra">
                         {item.message}
                       </p>
                       {/* 실패 사유는 모바일에서도 보인다(A-10). */}
