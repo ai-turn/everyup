@@ -87,7 +87,7 @@ export function AlertsMobileView({
   const targetDescription = alertTarget ? alertTargetName(alertTarget, names) : undefined;
   const ruleMeta = (rule: AlertRule) => <>{rule.isSystem ? '시스템 규칙' : categoryLabel(ruleCategory(rule))} · <RuleTargetName rule={rule} names={names} /></>;
   const ruleActions = (rule: AlertRule) => <>
-    <IconButton icon="edit" label="규칙 수정" onClick={() => onEditRule(rule)} />
+    <IconButton icon="edit" tone="quiet" label="규칙 수정" onClick={() => onEditRule(rule)} />
     <IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '규칙 삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} onClick={() => { if (!rule.isSystem) onDeleteRule(rule.id); }} />
   </>;
 
@@ -173,7 +173,7 @@ export function AlertsMobileView({
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={channels} rowKey={row => row.id} ariaLabel="알림 채널 그리드" columns={[
-              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3 space-y-label"><ChannelHealthMeta health={channelHealth[channel.id]} compact />{testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
+              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3 space-y-label"><ChannelHealthMeta health={channelHealth[channel.id]} compact />{testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" tone="quiet" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
               { key: 'enabled', label: '상태', className: 'w-16', render: channel => <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /> },
             ]} /> : channels.map(channel => {
               const meta = getChannelStyle(channel.type);
@@ -208,7 +208,7 @@ export function AlertsMobileView({
                       <MaterialIcon size={20} name="send" />
                       {testingIds.has(channel.id) ? '전송 중' : '테스트'}
                     </Button>
-                    <IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} />
+                    <IconButton icon="edit" tone="quiet" label="채널 편집" onClick={() => onEditChannel(channel)} />
                     <IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} />
                   </div>
                 </div>

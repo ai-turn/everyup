@@ -280,7 +280,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
             <p className="mt-4 break-words type-body text-text-secondary"><RuleTargetName rule={rule} names={names} /></p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
             <div className="mt-3 space-y-label"><ChannelAvatars rule={rule} channels={channels} /><p className="type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p></div>
-            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
+            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" tone="quiet" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
       </div> : (
         <div className="table-bleed overflow-x-auto">
@@ -370,7 +370,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                             title={rule.isEnabled ? '비활성화' : '활성화'}
                             ariaLabel={rule.name}
                           />
-                          <IconButton icon="edit" label="수정" size="sm" onClick={() => handleEdit(rule)} />
+                          <IconButton icon="edit" label="수정" tone="quiet" size="sm" onClick={() => handleEdit(rule)} />
                           <IconButton
                             icon="delete_outline"
                             label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'}

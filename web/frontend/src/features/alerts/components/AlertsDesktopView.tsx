@@ -300,7 +300,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
     <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{channel.name}</h2><p className="mt-1 type-caption text-text-muted">{getChannelSubtitle(channel.type)}</p></div><Toggle checked={channel.isEnabled} onChange={() => onToggle(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /></div>
     <div className="mt-4 space-y-label"><ChannelHealthMeta health={channelHealth[channel.id]} compact />
     {testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div>
-    <div className="mt-4 flex items-center justify-end gap-2"><Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />테스트</Button><IconButton icon="edit" label="수정" onClick={() => onEdit(channel)} /><IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => onDelete(channel.id)} /></div>
+    <div className="mt-4 flex items-center justify-end gap-2"><Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />테스트</Button><IconButton icon="edit" label="수정" tone="quiet" onClick={() => onEdit(channel)} /><IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => onDelete(channel.id)} /></div>
   </article>)}</div>;
 
   return (
@@ -379,7 +379,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                       <MaterialIcon size={20} name="send" />
                       테스트
                     </Button>
-                    <IconButton icon="edit" label="수정" size="sm" onClick={() => onEdit(channel)} />
+                    <IconButton icon="edit" label="수정" tone="quiet" size="sm" onClick={() => onEdit(channel)} />
                     <IconButton icon="delete_outline" label="삭제" size="sm" tone="danger" onClick={() => onDelete(channel.id)} />
                   </div>
                 </td>
