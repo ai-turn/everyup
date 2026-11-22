@@ -88,6 +88,13 @@ func (h *ServerHandler) Update(c *fiber.Ctx) error {
 // leaves the targets already deleted gone.
 func (h *ServerHandler) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
+	// A Docker environment's server goes away when its Docker Collector is deactivated
+	// (DELETE /agents/:id); deleting it here would orphan the Docker Collector.
+	if hasDocker, err := h.repo.HasDocker(id); err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	} else if hasDocker {
+		return serverWriteError(c, database.ErrServerHasDocker)
+	}
 	targets, err := h.repo.Targets(id)
 	if err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
@@ -182,6 +189,10 @@ func serverWriteError(c *fiber.Ctx, err error) error {
 	case errors.Is(err, database.ErrServerHasInfrastructure):
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"success": false, "error": fiber.Map{
 			"code": "SERVER_HAS_INFRASTRUCTURE", "message": err.Error(),
+		}})
+	case errors.Is(err, database.ErrServerHasDocker):
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"success": false, "error": fiber.Map{
+			"code": "SERVER_HAS_DOCKER", "message": err.Error(),
 		}})
 	}
 	return internalError(c, "DATABASE_ERROR", err)

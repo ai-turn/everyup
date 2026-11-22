@@ -73,11 +73,16 @@ func (r *AgentRepository) CreateAgent(agent models.Agent, keyHash, keyEnc string
 	if err != nil {
 		return err
 	}
-	_, err = DB.Exec(`
+	return Transaction(func(tx *sql.Tx) error {
+		if _, err := tx.Exec(`
 INSERT INTO agents(id, name, version, api_key_hash, api_key_enc, status, profile_kind, profile_capabilities, last_seen_at, created_at, updated_at)
 VALUES (?, ?, '', ?, ?, 'active', ?, ?, ?, ?, ?)`,
-		agent.ID, agent.Name, keyHash, keyEnc, profile.Kind, profile.Capabilities, now, now, now)
-	return err
+			agent.ID, agent.Name, keyHash, keyEnc, profile.Kind, profile.Capabilities, now, now, now); err != nil {
+			return err
+		}
+		// Every Docker environment is a server (migrateV59).
+		return attachAgentServerTx(tx, agent.ID, agent.Name, "", now)
+	})
 }
 
 // CreateAgentWithJoinCode atomically creates a project and its initial
@@ -93,6 +98,10 @@ func (r *AgentRepository) CreateAgentWithJoinCode(agent models.Agent, keyHash, k
 INSERT INTO agents(id, name, version, api_key_hash, api_key_enc, status, profile_kind, profile_capabilities, last_seen_at, created_at, updated_at)
 VALUES (?, ?, '', ?, ?, 'active', ?, ?, ?, ?, ?)`,
 			agent.ID, agent.Name, keyHash, keyEnc, profile.Kind, profile.Capabilities, now, now, now); err != nil {
+			return err
+		}
+		// Every Docker environment is a server (migrateV59).
+		if err := attachAgentServerTx(tx, agent.ID, agent.Name, "", now); err != nil {
 			return err
 		}
 		_, err := tx.Exec(`
@@ -207,20 +216,30 @@ func (r *AgentRepository) UpdateAgentKey(id, keyHash, keyEnc string) error {
 }
 
 // DeactivateAgent sets an agent's status to 'inactive', preventing further enrollments.
+// DeactivateAgent revokes the Docker environment and detaches its Docker Collector from the
+// server. The server goes too when nothing else (monitor, app, infrastructure) is on it.
 func (r *AgentRepository) DeactivateAgent(id string) error {
-	res, err := DB.Exec(`UPDATE agents SET status = 'inactive', updated_at = ? WHERE id = ?`, time.Now(), id)
-	if err != nil {
+	return Transaction(func(tx *sql.Tx) error {
+		var serverID sql.NullString
+		if err := tx.QueryRow(`SELECT server_id FROM agents WHERE id = ?`, id).Scan(&serverID); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`UPDATE agents SET status = 'inactive', server_id = NULL, updated_at = ? WHERE id = ?`, time.Now(), id); err != nil {
+			return err
+		}
+		if !serverID.Valid {
+			return nil
+		}
+		_, err := tx.Exec(`DELETE FROM servers WHERE id = ?
+			AND NOT EXISTS(SELECT 1 FROM services WHERE server_id = ?)
+			AND NOT EXISTS(SELECT 1 FROM observed_services WHERE server_id = ?)
+			AND NOT EXISTS(SELECT 1 FROM hosts WHERE server_id = ?)`, serverID.String, serverID.String, serverID.String, serverID.String)
 		return err
-	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		return sql.ErrNoRows
-	}
-	return nil
+	})
 }
 
 func (r *AgentRepository) GetAllAgents() ([]models.Agent, error) {
-	rows, err := DB.Query(`SELECT id, name, COALESCE(project_id, ''), version, COALESCE(status,'active'), last_seen_at, created_at, updated_at, COALESCE(profile_kind, 'all-in-one'), COALESCE(profile_capabilities, '[]'), COALESCE(capability_report, '{}') FROM agents WHERE COALESCE(status,'active') = 'active' ORDER BY last_seen_at DESC`)
+	rows, err := DB.Query(`SELECT id, name, COALESCE(project_id, ''), COALESCE(server_id, ''), version, COALESCE(status,'active'), last_seen_at, created_at, updated_at, COALESCE(profile_kind, 'all-in-one'), COALESCE(profile_capabilities, '[]'), COALESCE(capability_report, '{}') FROM agents WHERE COALESCE(status,'active') = 'active' ORDER BY last_seen_at DESC`)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +248,7 @@ func (r *AgentRepository) GetAllAgents() ([]models.Agent, error) {
 	for rows.Next() {
 		var agent models.Agent
 		var capabilityReport, profileCapabilities string
-		if err := rows.Scan(&agent.ID, &agent.Name, &agent.ProjectID, &agent.Version, &agent.Status, &agent.LastSeenAt, &agent.CreatedAt, &agent.UpdatedAt, &agent.Profile.Kind, &profileCapabilities, &capabilityReport); err != nil {
+		if err := rows.Scan(&agent.ID, &agent.Name, &agent.ProjectID, &agent.ServerID, &agent.Version, &agent.Status, &agent.LastSeenAt, &agent.CreatedAt, &agent.UpdatedAt, &agent.Profile.Kind, &profileCapabilities, &capabilityReport); err != nil {
 			return nil, err
 		}
 		profile, err := decodeAgentProfile(agent.Profile.Kind, profileCapabilities)
