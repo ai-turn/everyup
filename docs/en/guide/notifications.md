@@ -143,7 +143,7 @@ three steps:
 
 | Category | Metrics | Example |
 | --- | --- | --- |
-| **헬스체크** (Health check) | HTTP STATUS, RESPONSE TIME | A Docker service or [uptime monitor](./uptime-monitors) stops responding |
+| **업타임** (Uptime) | HTTP STATUS, RESPONSE TIME | A Docker service or [uptime monitor](./uptime-monitors) stops responding |
 | **API 요청** (API requests) | 에러율 (error rate), p95 지연, p99 지연 (p95/p99 latency) | A service's error rate crosses a threshold |
 | **로그** (Logs) | 로그 레벨 (log level), API 요청 (API status) | An ERROR log arrives |
 | **메트릭** (Metrics) | The name of an OpenTelemetry metric your app sends | `jvm.memory.used` crosses a threshold |
@@ -158,4 +158,4 @@ Error-rate, p95, and p99 rules evaluate the configured recent time window **once
 Error-rate rules need at least 20 requests in that window; p95 and p99 rules need at least 20
 requests with measured response times. With fewer requests, these rules do not send an alert
 even if individual requests cross a threshold. This cadence applies only to API request rules;
-health-check, log, and infrastructure rules use different evaluation paths.
+uptime, log, and infrastructure rules use different evaluation paths.

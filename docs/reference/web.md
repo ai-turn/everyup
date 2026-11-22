@@ -82,7 +82,7 @@ EVERYUP_ENCRYPTION_KEY=<openssl rand -hex 32 출력값>
 나머지 세 변수는 `7d`, `12h`, `30m`처럼 단위를 붙여 받습니다. 단위를 생략하면 일로 해석합니다.
 
 - **`EVERYUP_RETENTION_METRICS`** · 기본값 `7d`\
-  health check 메트릭
+  업타임 체크 기록
 - **`EVERYUP_RETENTION_LOGS`** · 기본값 `3d`\
   로그
 - **`EVERYUP_RETENTION_SYSTEMMETRICS`** · 기본값 `7d`\

@@ -5,7 +5,7 @@ import { Link, Navigate, useLocation, useParams, useNavigate } from 'react-route
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { MaterialIcon } from '../../components/common/MaterialIcon';
-import { Button, DetailActionToolbar, DetailMeta, EmptyState, ListViewToggle, PageHeader, RefreshIconButton, ResourceCardHeader, ResourceTable, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
+import { Button, DetailMeta, EmptyState, List, ListRow, ListViewToggle, OverflowMenu, PageHeader, RefreshStatus, ResourceCardHeader, ResourceTable, Section, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useListView } from '../../hooks/useListView';
 import { DockerUptimeStatus } from '../../features/uptime/components/DockerUptimeStatus';
 import { CollectionStatusBadge } from '../../components/common/CollectionStatusBadge';
@@ -22,6 +22,8 @@ import { useInfraMetrics } from '../../hooks/useInfra';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries } from '../../features/logs/logServiceRows';
 import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
+import { EnvironmentStatus } from '../../features/services/components/EnvironmentStatus';
+import { environmentState } from '../../features/services/environmentState';
 import { AddServiceModal } from '../../features/services/components/AddServiceModal';
 import { InstrumentationOverrideModal } from '../../features/services/components/InstrumentationOverrideModal';
 import { MonitoringSetupPanel } from '../../features/services/components/MonitoringSetupPanel';
@@ -41,9 +43,6 @@ function HostGauges({ hostId, refreshKey }: { hostId: string; refreshKey: number
 type EnvTab = 'overview' | 'infrastructure' | 'logs' | 'api';
 const ID_PREFIX = 'docker-env';
 
-function agentOnline(agent: ConnectedAgent): boolean {
-  return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
-}
 
 
 // Formats a representative metric value; OTel bytes ("By") as KB/MB/GB, else a
@@ -81,7 +80,7 @@ function ServiceCard({ service, metric, to, returnTo }: {
       to={to}
       state={{ returnTo }}
       aria-label={service.name}
-      className="card-interactive group bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3"
+      className="card-interactive group bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-heading"
     >
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{service.name}</h3>}
@@ -89,20 +88,20 @@ function ServiceCard({ service, metric, to, returnTo }: {
         status={<DockerUptimeStatus service={service} />}
       />
 
-      <div className="grid grid-cols-3 gap-3 text-sm">
+      <div className="grid grid-cols-3 gap-3 type-control">
         <div className="min-w-0">
-          <div className="text-xs text-text-dim">응답 시간</div>
+          <div className="type-caption text-text-dim">응답 시간</div>
           <div className="font-medium text-text-base truncate">{service.lastLatency ?? '-'}</div>
         </div>
         <div className="min-w-0">
-          <div className="text-xs text-text-dim">상태</div>
+          <div className="type-caption text-text-dim">상태</div>
           <div className={`${service.healthy ? 'text-status-healthy' : 'text-status-error'}`}>
             {service.lastStatus ?? '-'}
           </div>
         </div>
         {metric && (
           <div className="min-w-0">
-            <Tooltip content={metric.metricName}><div className="text-xs text-text-dim truncate">
+            <Tooltip content={metric.metricName}><div className="type-caption text-text-dim truncate">
               {metricLabel(metric.metricName)}
             </div></Tooltip>
             <div className="font-medium text-text-base truncate">
@@ -113,7 +112,7 @@ function ServiceCard({ service, metric, to, returnTo }: {
       </div>
 
       {!service.healthy && service.lastError && (
-        <p className="text-xs text-status-error truncate -mt-1">{service.lastError}</p>
+        <p className="type-caption text-status-error truncate -mt-1">{service.lastError}</p>
       )}
     </Link>
   );
@@ -133,7 +132,8 @@ export function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showKey, setShowKey] = useState(false);
-  const [showInstall, setShowInstall] = useState(false);
+  // 설치 명령(처음 설치·다시 설치) 또는 기능을 연결한 뒤의 적용 명령. 같은 대화 상자이고 제목만 다르다.
+  const [showInstall, setShowInstall] = useState<'install' | 'apply' | false>(false);
   const [showInstrumentation, setShowInstrumentation] = useState(false);
   const [addingCapability, setAddingCapability] = useState<AgentCollectionCapability | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -149,6 +149,8 @@ export function ProjectDetailPage() {
   // 서버 화면과 전체 로그는 Docker 서비스를 보여 주지 않으므로(ADR 0011) 같은 24시간 요약을 여기서 그린다.
   const [logData, setLogData] = useState<{ summaries: LogServiceSummary[]; patterns: LogPattern[] } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const load = useCallback(async () => {
     if (!agentId) return;
@@ -165,6 +167,7 @@ export function ProjectDetailPage() {
       const [agents, all] = await Promise.all([api.getAgents(), api.getAllAgentServicesFlat()]);
       setAgent(agents.find((a) => a.id === agentId) ?? null);
       setServices((all ?? []).filter((s) => s.agentId === agentId));
+      setUpdatedAt(new Date());
     } catch (err) {
       setLoadError(getErrorMessage(err));
     } finally {
@@ -180,7 +183,7 @@ export function ProjectDetailPage() {
     setRefreshKey((key) => key + 1);
     void load();
   }, [load]);
-  useAutoRefresh(refresh, 30_000);
+  useAutoRefresh(refresh, 30_000, autoRefresh);
 
   const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
 
@@ -221,7 +224,6 @@ export function ProjectDetailPage() {
   }
 
   const agentName = agent?.name ?? services[0]?.agentName ?? agentId ?? '';
-  const online = agent ? agentOnline(agent) : true;
   const healthy = services.filter((s) => s.healthy).length;
   const allHealthy = healthy === services.length;
 
@@ -245,20 +247,21 @@ export function ProjectDetailPage() {
     navigate({ pathname: key === 'overview' ? basePath : `${basePath}/${key}`, search: location.search }, { replace: source === 'keyboard' });
 
   return (
-    <div className="space-y-8">
-      {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4) */}
-      <Link
-        to="/environments"
-        className="lg:hidden flex items-center gap-1.5 text-sm text-text-muted hover:text-text-base transition-colors"
-      >
-        <MaterialIcon size={20} name="arrow_back" />
-        Docker 환경 목록
-      </Link>
+    <div className="space-y-section">
+      {/* Back — mobile only; desktop navigates via the AppHeader breadcrumb (DESIGN.md §3.4). 좁은 화면의 갱신 상태는 이 줄의
+          오른쪽 끝이다(넓은 화면은 상태 줄의 오른쪽 끝, §4.1 상세 헤더). */}
+      <div className="flex items-center justify-between gap-3 lg:hidden">
+        <Link to="/environments" className="flex items-center gap-1.5 type-control text-text-muted hover:text-text-base transition-colors">
+          <MaterialIcon size={20} name="arrow_back" />
+          Docker 환경 목록
+        </Link>
+        <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} autoRefresh={autoRefresh} onAutoRefreshChange={setAutoRefresh} />
+      </div>
 
       {loadError && (
-        <section role="alert" className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section role="alert" className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <MaterialIcon name="sync_problem" className="mt-0.5 shrink-0 text-status-warn" />
+            <MaterialIcon name="sync_problem" className="icon-lead shrink-0 text-status-warn" />
             <p className="type-body text-text-secondary">Docker 환경 정보를 불러오지 못했습니다. {loadError}</p>
           </div>
           <Button variant="secondary" size="sm" onClick={() => void load()}>다시 시도</Button>
@@ -271,41 +274,44 @@ export function ProjectDetailPage() {
           <DetailMeta
             status={
               <>
-                <CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />
+                {agent ? <EnvironmentStatus agent={agent} /> : <CollectionStatusBadge status="collecting" />}
                 <span>서비스 {services.length}개</span>
                 <span>정상 {healthy}</span>
                 {!allHealthy && <span>장애 {services.length - healthy}</span>}
+                {/* 갱신 상태는 상태 줄의 오른쪽 끝이다(DESIGN.md §4.1 상세 헤더). */}
+                <div className="ml-auto max-lg:hidden">
+                  <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} autoRefresh={autoRefresh} onAutoRefreshChange={setAutoRefresh} />
+                </div>
               </>
             }
             fields={agent?.version ? [{ label: 'Version', value: `v${agent.version}` }] : []}
           />
         }
-      />
-      <DetailActionToolbar
-        controls={
-          <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
-        }
-        actions={agent && (
-          <>
-            <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />Collector 설치</Button>
-            <Button collapseLabel variant="secondary" onClick={() => setShowKey(true)}><MaterialIcon name="key" />API Key</Button>
-            <Button collapseLabel variant="secondary" onClick={() => setShowInstrumentation(true)}><MaterialIcon name="integration_instructions" />상세 수집 설정</Button>
-            <Button collapseLabel variant="destructive" onClick={() => setDeleteConfirm(true)}><MaterialIcon name="delete_outline" />비활성화</Button>
-          </>
-        )}
+        // 설치 전에만 주 조작이 설치 명령이다. 설치한 뒤에는 다시 설치할 일이 드물어 더보기로 옮긴다(연결 진입점 정리 E6:
+        // 수집 중인 환경에서도 머리말의 유일한 버튼이 설치였다). 드물게 쓰는 조작과 파괴적 조작은 메뉴에 둔다(DESIGN.md §4.1 상세 헤더).
+        actions={agent && <>
+          {environmentState(agent) === 'install' && <Button collapseLabel variant="secondary" onClick={() => setShowInstall('install')}><MaterialIcon name="download" />설치 명령</Button>}
+          <OverflowMenu items={[
+            ...(environmentState(agent) === 'install' ? [] : [{ label: '다시 설치', icon: 'download', onSelect: () => setShowInstall('install') }]),
+            { label: 'API Key', icon: 'key', onSelect: () => setShowKey(true) },
+            { label: '상세 수집 설정', icon: 'integration_instructions', onSelect: () => setShowInstrumentation(true) },
+            { label: '비활성화', icon: 'delete_outline', danger: true, onSelect: () => setDeleteConfirm(true) },
+          ]} />
+        </>}
       />
 
-      <div className="mb-6">
-        <Tabs items={tabs} active={current} onChange={open} ariaLabel="Docker 환경 기능" idPrefix={ID_PREFIX} />
-      </div>
-      <div role="tabpanel" id={tabPanelId(ID_PREFIX, current)} aria-labelledby={tabId(ID_PREFIX, current)} className="space-y-8">
+      {/* 탭 → 패널 24px(group). 머리말 → 탭은 PageHeader의 아래 여백이다. */}
+      <div className="page-stack">
+        {/* Tabs는 포커스 링 자리로 -m-1을 가져 부모의 간격이 닿지 않는다. 한 겹 감싸 page-stack이 간격을 준다. */}
+        <div className="min-w-0"><Tabs items={tabs} active={current} onChange={open} ariaLabel="Docker 환경 기능" idPrefix={ID_PREFIX} /></div>
+      <div role="tabpanel" id={tabPanelId(ID_PREFIX, current)} aria-labelledby={tabId(ID_PREFIX, current)} className="space-y-section">
         {current === 'overview' && <>
           {/* 설정 가이드는 환경 전체의 일이라 개요에 둔다. 탭 위에 두면 모든 탭에서 탭 줄을 밀어냈다. */}
           {agent && (
             <MonitoringSetupPanel
               agent={agent}
               services={services}
-              onInstall={() => setShowInstall(true)}
+              onInstall={() => setShowInstall('install')}
               onInstrument={() => setShowInstrumentation(true)}
               onAddCapability={setAddingCapability}
             />
@@ -321,7 +327,7 @@ export function ProjectDetailPage() {
               <span className="type-label text-text-base truncate">
                 진행 중 장애: {banner.serviceName}
               </span>
-              <span className="text-xs text-text-muted shrink-0">
+              <span className="type-caption text-text-muted shrink-0">
                 {formatDuration(banner.durationSec)} {'경과'}
                 {activeIncidents.length > 1 && ` · +${activeIncidents.length - 1}`}
               </span>
@@ -329,14 +335,7 @@ export function ProjectDetailPage() {
           )}
 
           {/* Service health grid — 다른 섹션(인프라·로그)처럼 제목을 둔다. 보기 전환은 아래 로그 섹션에도 적용된다. */}
-          <section>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="type-section-title text-text-base">서비스</h2>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-text-dim">{`${services.length}개`}</span>
-              <ListViewToggle view={view} onChange={setView} />
-            </div>
-          </div>
+          <Section title="서비스" meta={`${services.length}개`} actions={<ListViewToggle view={view} onChange={setView} />}>
           {services.length === 0 && !loadError ? (
             <EmptyState icon="inventory_2" title="수집된 서비스가 없습니다" />
           ) : (
@@ -346,7 +345,7 @@ export function ProjectDetailPage() {
               { key: 'endpoint', label: '체크 주소', className: 'hidden lg:table-cell', render: row => <Tooltip content={row.endpoint} focusable><p className="truncate font-mono text-xs text-text-muted">{row.endpoint}</p></Tooltip> },
               { key: 'latency', label: '응답 시간', className: 'hidden w-28 md:table-cell', align: 'right', render: row => row.lastLatency ?? '-' },
               { key: 'status', label: '상태 코드', className: 'hidden w-24 md:table-cell', align: 'right', render: row => row.lastStatus ?? '-' },
-              { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <><Tooltip content={metrics[row.name].metricName} focusable><p className="truncate font-mono text-xs text-text-muted">{metricLabel(metrics[row.name].metricName)}</p></Tooltip><p className="mt-1">{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></> : '-' },
+              { key: 'metric', label: '메트릭', className: 'hidden w-40 xl:table-cell', render: row => metrics[row.name] ? <div className="space-y-intra"><Tooltip content={metrics[row.name].metricName} focusable><p className="truncate font-mono text-xs text-text-muted">{metricLabel(metrics[row.name].metricName)}</p></Tooltip><p>{formatMetricValue(metrics[row.name].value, metrics[row.name].unit)}</p></div> : '-' },
             ]} /> : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {services.map((s) => (
                 <ServiceCard
@@ -359,7 +358,7 @@ export function ProjectDetailPage() {
               ))}
             </div>
           )}
-          </section>
+          </Section>
 
           {/* 90-day uptime — 낮고 넓은 바라서 full-width 단독 행 (바 폭 확보 + 높이 불일치 해소) */}
           {services.length > 0 && agentId && (
@@ -371,43 +370,36 @@ export function ProjectDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Incident history */}
               <section>
-                  <h3 className="type-card-title text-text-base mb-3">장애 이력 · 30일</h3>
+                  <h3 className="mb-4 type-card-title text-text-base">장애 이력 · 30일</h3>
                   {incidents.length === 0 ? (
                     <p className="type-body text-text-muted py-4 text-center">최근 30일간 장애가 없습니다</p>
                   ) : (
-                    <div className="-mx-3 space-y-0.5">
+                    <List>
                       {incidents.slice(0, 5).map((inc, i) => (
-                        <Link
+                        <ListRow
                           key={`${inc.key}-${inc.startedAt}-${i}`}
                           to={`/services/${agentId}/${encodeURIComponent(inc.key)}`}
-                          className="w-full flex items-start gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-ui-hover-soft"
-                        >
-                          <span className={`h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 ${inc.active ? 'bg-status-error-fill' : 'bg-status-healthy-fill'}`} />
-                          <span className="min-w-0 flex-1">
-                            <span className="block type-label-sm text-text-base truncate">{inc.serviceName}</span>
-                            <span className="block text-xs text-text-dim mt-0.5">
-                              {formatIncidentTime(inc.startedAt)} {'시작'} · {formatDuration(inc.durationSec)}
-                            </span>
-                          </span>
-                          <span className={`text-xs shrink-0 ${inc.active ? 'text-status-error' : 'text-status-healthy'}`}>
-                            {inc.active ? '진행중' : '해소'}
-                          </span>
-                        </Link>
+                          marker={<span className={`h-1.5 w-1.5 rounded-full ${inc.active ? 'bg-status-error-fill' : 'bg-status-healthy-fill'}`} />}
+                          title={inc.serviceName}
+                          detail={`${formatIncidentTime(inc.startedAt)} 시작 · ${formatDuration(inc.durationSec)}`}
+                          detailSize="caption"
+                          trailing={<span className={inc.active ? 'text-status-error' : 'text-status-healthy'}>{inc.active ? '진행중' : '해소'}</span>}
+                        />
                       ))}
-                    </div>
+                    </List>
                   )}
                 </section>
 
                 {/* Event timeline */}
                 <section>
-                  <h3 className="type-card-title text-text-base mb-3">타임라인</h3>
+                  <h3 className="mb-4 type-card-title text-text-base">타임라인</h3>
                   {events.length === 0 ? (
                     <p className="type-body text-text-muted py-4 text-center">최근 이벤트가 없습니다</p>
                   ) : (
-                    <div className="space-y-0.5">
+                    <div className="space-y-intra">
                       {events.map((e) => (
                         <div key={e.id} className="flex items-baseline gap-2 py-1.5">
-                          <span className="text-xs text-text-dim w-10 shrink-0">
+                          <span className="type-caption text-text-dim w-10 shrink-0">
                             {formatClock(e.time)}
                           </span>
                           <span className={`h-1.5 w-1.5 rounded-full shrink-0 translate-y-px ${
@@ -415,7 +407,7 @@ export function ProjectDetailPage() {
                             : e.type === 'status_change' ? 'bg-status-warn-fill'
                             : 'bg-status-idle-fill'
                           }`} />
-                          <Tooltip content={e.message} focusable><span className="text-xs text-text-muted min-w-0 truncate">
+                          <Tooltip content={e.message} focusable><span className="type-caption text-text-muted min-w-0 truncate">
                             {e.message || e.type}
                           </span></Tooltip>
                         </div>
@@ -443,6 +435,7 @@ export function ProjectDetailPage() {
             empty={<EmptyState icon="show_chart" title="최근 요청이 없습니다" description="서비스가 요청을 받으면 여기에 추이가 나타납니다." headingLevel="h2" />} />
         )}
       </div>
+      </div>
 
       <ConfirmDialog
         isOpen={deleteConfirm}
@@ -460,6 +453,7 @@ export function ProjectDetailPage() {
       {showInstall && agent && (
         <AddServiceModal
           existingAgent={{ id: agent.id, name: agent.name }}
+          purpose={showInstall}
           onClose={() => setShowInstall(false)}
           onCreated={load}
           onOpenProject={() => setShowInstall(false)}
@@ -476,7 +470,7 @@ export function ProjectDetailPage() {
           onClose={() => setAddingCapability(null)}
           onApply={() => {
             setAddingCapability(null);
-            setShowInstall(true);
+            setShowInstall('apply');
             void load();
           }}
         />

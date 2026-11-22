@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { dockerService, uptimeFixture } from './fixtures/uptime';
 
 // 사이드바와 그 정의(navSections.ts)를 읽는 곳들: 하단 내비, 더보기, 명령 팔레트, 경로 표시(설계 6.1, 6.6).
@@ -58,8 +59,8 @@ test.describe('desktop', () => {
     const row = grid.locator('tbody tr').filter({ has: page.getByRole('link', { name: 'checkout-api', exact: true }) });
     await expect(row).toContainText('edge-host-01');
     await row.getByRole('link', { name: 'checkout-api', exact: true }).click();
-    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/logs/observed_mock_checkout\\?range=24h$`));
-    await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: 'checkout-api' })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/apps/observed_mock_checkout\\?tab=logs&range=24h$`));
+    await expect(page.getByRole('heading', { level: 1, name: 'checkout-api' })).toBeVisible();
   });
 
   test('a trace opened in an app jumps to the same app in the same server', async ({ page }) => {
@@ -67,7 +68,7 @@ test.describe('desktop', () => {
     await page.getByRole('tabpanel').getByRole('button', { name: '트레이스', exact: true }).first().click();
     const trace = page.getByRole('dialog', { name: '트레이스 상세' });
     await trace.getByRole('button', { name: /^API 요청 \(/ }).click();
-    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/api/observed_mock_orders\\?traceId=[0-9a-f]+$`));
+    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/apps/observed_mock_orders\\?tab=requests&traceId=[0-9a-f]+$`));
     await expect(mainNav(page).getByRole('link', { name: '서버', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 
@@ -118,7 +119,7 @@ test.describe('mobile', () => {
 
 // capability-menus.spec.ts를 옮긴 것: Docker 환경만 연결한 설치에서 서버 화면은 비어 있고, Docker 서비스가 끼어들지 않는다(ADR 0007).
 test.describe('Docker-only setup', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 900 } });
+  test.use({ baseURL: API_URL, viewport: { width: 1440, height: 900 } });
 
   test('the servers section is empty and leaves Docker services out', async ({ page }) => {
     const state = await uptimeFixture(page);
@@ -131,7 +132,7 @@ test.describe('Docker-only setup', () => {
     await expect(page.getByRole('heading', { name: '아직 서버가 없습니다' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Docker API', exact: true })).toHaveCount(0);
 
-    // 서버 목록이 비었거나 불러오지 못하면 툴바(전체 로그 링크가 있는 줄)가 없다. 명령 팔레트로 들어간다.
+    // 서버 목록이 비었거나 불러오지 못해도 머리말에 전체 로그가 있다. 명령 팔레트로도 들어간다.
     await page.getByRole('button', { name: /^검색/ }).first().click();
     await page.getByRole('dialog', { name: '검색' }).getByRole('option', { name: /^전체 로그/ }).click();
     await expect(page.getByRole('heading', { name: '로그를 보내는 앱이 없습니다' })).toBeVisible();
@@ -142,7 +143,7 @@ test.describe('Docker-only setup', () => {
 
 // 서버 이름은 보조 정보다. 서버 목록을 불러오지 못해도 앱과 그 서버 주소의 링크는 보인다.
 test.describe('all logs without server names', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 900 } });
+  test.use({ baseURL: API_URL, viewport: { width: 1440, height: 900 } });
 
   test('a failed server lookup leaves the app list and its server links', async ({ page }) => {
     const state = await uptimeFixture(page);
@@ -151,12 +152,12 @@ test.describe('all logs without server names', () => {
     state.failures.set('GET /servers', 500);
     await page.goto('./');
     await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: '서버', exact: true }).click();
-    // 서버 목록이 비었거나 불러오지 못하면 툴바(전체 로그 링크가 있는 줄)가 없다. 명령 팔레트로 들어간다.
+    // 서버 목록이 비었거나 불러오지 못해도 머리말에 전체 로그가 있다. 명령 팔레트로도 들어간다.
     await page.getByRole('button', { name: /^검색/ }).first().click();
     await page.getByRole('dialog', { name: '검색' }).getByRole('option', { name: /^전체 로그/ }).click();
     await expect(page.getByRole('heading', { name: '로그를 불러오지 못했습니다' })).toHaveCount(0);
     const link = page.getByRole('table', { name: '앱 그리드' }).getByRole('link', { name: 'billing-api', exact: true });
-    await expect(link).toHaveAttribute('href', /\/servers\/server-1\/logs\/app-1\?range=24h$/);
+    await expect(link).toHaveAttribute('href', /\/servers\/server-1\/apps\/app-1\?tab=logs&range=24h$/);
     expect(state.requests.some((request) => request.method === 'GET' && request.path === '/servers')).toBe(true);
   });
 });

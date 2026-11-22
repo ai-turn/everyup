@@ -17,7 +17,7 @@ export function ServerFields({ form, idPrefix }: { form: ReturnType<typeof useSe
   return (
     <>
       <Field label="이름" htmlFor={`${idPrefix}-name`} required error={nameError ?? undefined}>
-        <Input id={`${idPrefix}-name`} ref={nameRef} required maxLength={200} pattern={'.*\\S.*'} title="공백 이외의 이름을 입력하세요."
+        <Input id={`${idPrefix}-name`} ref={nameRef} maxLength={200}
           invalid={Boolean(nameError)} value={draft.name} onChange={(event) => update('name', event.target.value)} placeholder="예: web-01" />
       </Field>
       <Field label="설명" htmlFor={`${idPrefix}-description`}>

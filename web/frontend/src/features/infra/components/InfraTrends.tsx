@@ -67,7 +67,7 @@ export function InfraTrends({ hostId, charts, loading, range, error, onRetry, em
           <h2 className="type-section-title tracking-tight text-text-base">
             인프라 추세
           </h2>
-          <p className="mt-0.5 type-body text-text-muted">
+          <p className="mt-intra type-body text-text-muted">
             {rangeLabel[range]}
           </p>
         </div>
@@ -140,8 +140,7 @@ function TrendCard({
       : <ChartLegend items={chart.series.map((s) => ({ label: s.label, color: s.color }))} />;
 
   return (
-    <ChartCard title={chart.title} unit={chart.unit} right={right}>
-      {chart.caption && <p className="-mt-2 mb-3 type-caption text-text-muted">{chart.caption}</p>}
+    <ChartCard title={chart.title} unit={chart.unit} description={chart.caption} right={right}>
       {isEmpty ? (
         <ChartEmpty />
       ) : (

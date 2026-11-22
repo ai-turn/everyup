@@ -53,7 +53,7 @@ docker compose up -d
 
 Open `http://<dashboard server IP>:3001`, create the first admin account, then install the
 Collector with **Docker 연결** (Connect Docker) on the **Docker 환경** (Docker environments)
-screen. For setting the public address and installing the Collector, see the
+screen. For setting the public address and installing the Docker Collector, see the
 [Quick Start docs](https://ai-turn.github.io/everyup/en/guide/quickstart).
 
 ## Documentation

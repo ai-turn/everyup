@@ -16,25 +16,25 @@ hero:
 carousel:
   - title: 개요
     image: overview
-    alt: EveryUp 개요 화면. 확인이 필요한 서비스로 장애가 난 payment-worker, Docker 환경 2개·업타임 모니터 4개·직접 연결 서비스 3개·인프라 리소스 2개의 모니터링 범위, 최근 장애 이력 3건.
+    alt: EveryUp 개요 화면. 서버 9개·Docker 환경 4개, 현재 확인 필요 목록(edge-host-01의 Checkout API와 prod-server의 payment-worker 장애 2건, 임계값을 넘은 확인 필요 4건), 최근 장애 이력 7건.
   - title: 업타임
     image: uptime
-    alt: 업타임 화면. 정상 3, 장애 0, 정지·대기 1 요약과 HTTP·TCP 모니터 4개 목록.
+    alt: edge-host-01 서버의 Storefront 업타임 모니터. 24시간 업타임 99.41%, 30일 업타임 99.86%, 평균 응답 130ms, 인증서 만료 D-83과 지연 증가·스파이크·장애 구간이 보이는 6시간 응답 시간 차트.
   - title: 로그
     image: logs
-    alt: 로그 화면. 서비스별 ERROR·WARN 건수와 추이, 자주 발생한 오류 목록.
+    alt: 전체 로그 화면. 앱 7개의 최근 24시간 오류·경고 건수와 추이, 최근 로그. 아래에 자주 발생한 오류·경고 목록.
   - title: 인프라
     image: infra
-    alt: edge-host-01 인프라 화면. CPU 67.4%, 메모리 72.8%(주의), 디스크 41.2% 사용률과 네트워크 In·Out 추이 차트. CPU 차트에 알림 임계선 80%.
+    alt: edge-host-01 서버의 인프라 탭. CPU 67.4%, 메모리 72.8%(확인 필요, 기준 70%), 디스크 41.2% 사용률과 네트워크 In·Out 추이 차트. CPU 차트에 알림 임계선 80%.
   - title: API 요청
     image: api
-    alt: api 서비스의 API 요청 탭. 10분 단위 요청 수와 에러 막대, 지난주 점선, 배포 표시가 있는 요청 추이 차트, 지연 시간 p95 121ms, 최근 요청 목록.
+    alt: prod-server Docker 환경에 있는 api 서비스의 API 요청 탭. 상태 코드 비율, 요청 수·에러율·p95 지표, 10분 단위 요청·에러 막대와 배포 표시가 있는 추이 차트, Endpoint별 요청·에러율·p95 표.
   - title: 트레이스
     image: trace
-    alt: 결제 요청 트레이스 패널. SERVER·CLIENT span 오류, 마스킹된 요청 JSON과 upstream_timeout 응답, 503 API 요청, 관련 로그.
+    alt: 결제 요청 트레이스 패널. SERVER·CLIENT span 오류(payment gateway timeout, certificate validation failed), 마스킹된 요청 JSON과 upstream_timeout 응답, 로그·API 요청 탭으로 이동하는 링크.
   - title: 알림
     image: alerts
-    alt: 알림 화면. 7일 발송 178건, 실패 9건, 성공률 95%와 Telegram·Discord·Slack 채널 목록.
+    alt: 알림 규칙 목록. 규칙 9개를 업타임·API 요청·로그·메트릭·인프라·시스템으로 거를 수 있고, 규칙마다 심각도·대상·발생 조건·채널을 보여 준다.
 
 features:
   - icon: '<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v3h2V6h16v3h2V6c0-1.1-.9-2-2-2m0 14H4v-3H2v3c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-3h-2z"/><path d="M14.89 7.55c-.34-.68-1.45-.68-1.79 0L10 13.76l-1.11-2.21A.988.988 0 0 0 8 11H2v2h5.38l1.72 3.45c.18.34.52.55.9.55s.72-.21.89-.55L14 10.24l1.11 2.21c.17.34.51.55.89.55h6v-2h-5.38z"/></svg>'

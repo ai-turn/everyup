@@ -72,28 +72,28 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-item">
           {loading ? (
             <div className="h-24 rounded-xl bg-ui-hover animate-pulse" />
           ) : available ? (
             <>
-              <div className="space-y-1.5">
-                <p className="text-xs text-text-muted">API Key</p>
+              <div className="space-y-label">
+                <p className="type-caption text-text-muted">API Key</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 px-3 py-2.5 rounded-md bg-ui-hover-soft text-xs font-mono text-text-base break-all">
+                  <code className="flex-1 px-3 cell rounded-md bg-ui-hover-soft text-xs font-mono text-text-base break-all">
                     {apiKey}
                   </code>
                   <CopyButton onCopy={handleCopy} title="API Key 복사" className={COPY_ACTION_SUBTLE} />
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <p className="text-xs text-text-muted">Docker Collector 설정</p>
-                <pre className="px-3 py-2.5 rounded-md bg-ui-hover-soft text-xs font-mono text-text-base overflow-x-auto">{`EVERYUP_AGENT_API_KEY=${apiKey}`}</pre>
+              <div className="space-y-label">
+                <p className="type-caption text-text-muted">Docker Collector 설정</p>
+                <pre className="px-3 cell rounded-md bg-ui-hover-soft text-xs font-mono text-text-base overflow-x-auto">{`EVERYUP_AGENT_API_KEY=${apiKey}`}</pre>
               </div>
             </>
           ) : (
             <div className="flex items-start gap-3 p-4 rounded-md bg-ui-hover-soft">
-              <MaterialIcon size={20} name="info" className="text-amber-500 shrink-0 mt-0.5" />
+              <MaterialIcon size={20} name="info" className="text-amber-500 shrink-0 icon-lead" />
               <p className="type-body text-text-muted">
                 이 Docker 환경은 키 저장 기능 이전에 생성되어 기존 키를 조회할 수 없습니다. 재발급하면 새 키가 발급됩니다.
               </p>

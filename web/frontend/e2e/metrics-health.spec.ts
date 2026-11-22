@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { metricsFixture } from './fixtures/metrics';
 
 // 서버 화면의 메트릭 탭. 이 서버에는 메트릭 앱이 둘이라 주소에 앱을 둔다.
-const detail = 'http://127.0.0.1:4174/servers/server-1/metrics/metrics-service';
+const detail = `${API_URL}servers/server-1/metrics/metrics-service`;
 
 test('all-metric health includes an unrendered metric and pins survive reload', async ({ page }) => {
   const state = await metricsFixture(page);
@@ -47,8 +48,8 @@ test('a new receipt does not disguise an old measurement and health failures sta
   await expect(page.getByText('메트릭 상태를 새로고침하지 못했습니다. 이전 상태를 표시합니다.')).toHaveCount(0);
 });
 
-// 임계값을 넘은 지표가 있는 앱은 메트릭 기능에서 확인 필요다. 옛 메트릭 목록처럼 그 앱이 먼저 열리고 앱 선택에 그 까닭이 보인다.
-test('the metrics tab opens the app with a flagged metric first and marks it in the app selector', async ({ page }) => {
+// 임계값을 넘은 지표가 있는 앱은 메트릭 기능에서 확인 필요다. 서버의 메트릭 탭(앱 목록)에서 그 앱이 앞이고 그 까닭이 보인다.
+test('the metrics tab lists the app with a flagged metric first and marks it', async ({ page }) => {
   const state = await metricsFixture(page);
   const fresh = new Date().toISOString();
   state.names.splice(0, state.names.length,
@@ -64,10 +65,12 @@ test('the metrics tab opens the app with a flagged metric first and marks it in 
   state.service.name = 'zz-billing-api';
   state.service.lastSeenAt = fresh;
   state.waiting.lastSeenAt = fresh;
-  await page.goto('http://127.0.0.1:4174/servers/server-1/metrics');
-  await expect(page).toHaveURL(/\/servers\/server-1\/metrics\/metrics-service$/);
-  const selector = page.getByRole('group', { name: '메트릭 앱', exact: true });
-  await expect(selector.getByRole('button', { name: /zz-billing-api/ })).toHaveAttribute('aria-pressed', 'true');
-  await expect(selector).toContainText('임계값 초과');
-  await expect(page.getByRole('heading', { level: 2, name: 'zz-billing-api', exact: true })).toBeVisible();
+  await page.goto(`${API_URL}servers/server-1/metrics`);
+  // 목록은 앱을 대신 열지 않는다. 임계값을 넘은 앱이 확인 필요라 이름순보다 앞이다.
+  await expect(page).toHaveURL(/\/servers\/server-1\/metrics$/);
+  const rows = page.getByRole('table', { name: '메트릭 앱' }).locator('tbody tr');
+  await expect(rows.first()).toContainText('zz-billing-api');
+  await expect(rows.first()).toContainText('임계값 초과');
+  await rows.first().getByRole('link', { name: 'zz-billing-api' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'zz-billing-api', exact: true })).toBeVisible();
 });

@@ -4,8 +4,7 @@ import { MaterialIcon } from '../common';
 import { SCRIM_PANEL, useOverlay } from '../../hooks/useOverlay';
 import { api, type AgentServiceFlat, type ConnectedAgent, type ObservedService, type Project, type Server, type UptimeMonitor } from '../../services/api';
 import { NAV_SECTIONS } from './navSections';
-import { ALL_LOGS_PATH, serverPath } from '../../features/servers/serverPaths';
-import { appCapability } from '../../features/servers/serverStatus';
+import { ALL_LOGS_PATH, appPath, monitorPath, serverPath } from '../../features/servers/serverPaths';
 
 // Fired by the sidebar search button; ⌘K/Ctrl+K toggles directly.
 export const OPEN_PALETTE_EVENT = 'everyup:command-palette';
@@ -104,10 +103,10 @@ export function CommandPalette() {
     })),
     ...monitors.flatMap((monitor) => monitor.serverId ? [{
       id: `monitor-${monitor.id}`, icon: 'monitor_heart', label: monitor.name, meta: ownerOf(monitor.serverId, '모니터'),
-      to: serverPath(monitor.serverId, 'uptime', monitor.id),
+      to: monitorPath(monitor.serverId, monitor.id),
     }] : []),
     ...apps.flatMap((app) => app.serverId ? [{
-      id: `app-${app.id}`, icon: 'hub', label: app.name, meta: ownerOf(app.serverId, '앱'), to: serverPath(app.serverId, appCapability(app), app.id),
+      id: `app-${app.id}`, icon: 'hub', label: app.name, meta: ownerOf(app.serverId, '앱'), to: appPath(app.serverId, app.id),
     }] : []),
     // 아이콘은 사이드바와 같다: 서버 dns, Docker 환경 deployed_code, 그룹 folder_open.
     ...agents.map((a) => ({
@@ -184,7 +183,7 @@ export function CommandPalette() {
             aria-controls="command-palette-results"
             aria-activedescendant={filtered[index] ? `command-palette-option-${filtered[index].id}` : undefined}
             placeholder="서버, Docker 환경, 서비스, 페이지 검색…"
-            className="flex-1 bg-transparent py-3.5 text-sm max-sm:text-base text-text-base outline-none placeholder:text-text-dim"
+            className="flex-1 bg-transparent py-3.5 type-control max-sm:text-base text-text-base outline-none placeholder:text-text-dim"
           />
           <kbd className="shrink-0 font-sans px-1.5 py-0.5 rounded border border-ui-border type-label-sm text-text-dim">
             Esc
@@ -219,9 +218,9 @@ export function CommandPalette() {
                     className={`ml-1 mr-1 h-1.5 w-1.5 rounded-full shrink-0 ${item.healthy ? 'bg-status-healthy-fill' : 'bg-status-error-fill'}`}
                   />
                 )}
-                <span className="text-sm truncate">{item.label}</span>
+                <span className="type-control truncate">{item.label}</span>
                 {item.meta && (
-                  <span className="ml-auto text-xs text-text-dim shrink-0">{item.meta}</span>
+                  <span className="ml-auto type-caption text-text-dim shrink-0">{item.meta}</span>
                 )}
               </button>
             ))
@@ -229,7 +228,7 @@ export function CommandPalette() {
         </div>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-3 px-4 py-2 border-t border-ui-border text-xs text-text-dim">
+        <div className="flex items-center gap-3 px-4 py-2 border-t border-ui-border type-caption text-text-dim">
           <span>↑↓ 이동</span>
           <span>Enter 열기</span>
           {dataStatus === 'loading' && <span className="ml-auto" role="status">대상 불러오는 중</span>}

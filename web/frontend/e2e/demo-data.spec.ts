@@ -99,17 +99,18 @@ test('visitor can explore the added groups and service-specific telemetry', asyn
   await expect(page.getByRole('heading', { level: 1, name: 'Backoffice' })).toBeVisible();
   // 그룹의 구성원은 서버다. notification-worker는 batch-host-01에 있다.
   await expect(page.getByRole('link', { name: 'batch-host-01', exact: true })).toBeVisible();
-  // 서버 화면의 h1은 서버 이름이고 앱 이름은 패널의 h2다. 서버는 src/mocks/SCENARIOS.md를 따른다.
+  // 앱은 자기 페이지가 있고 그 h1이 앱 이름이다(옛 서버 탭 주소는 넘어간다). 서버는 src/mocks/SCENARIOS.md를 따른다.
   await page.goto('./servers/server_mock_edge_host_01/logs/observed_mock_orders');
-  await expect(page.getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();
   await expect(page.getByText('orders-api: inventory.internal deadline exceeded after 1032ms', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Checkout session created', { exact: false })).toHaveCount(0);
   await page.goto('./servers/server_mock_inventory_api/api');
-  await expect(page.getByRole('heading', { level: 2, name: 'inventory-api' })).toBeVisible();
+  await page.getByRole('table', { name: 'API 요청 앱' }).getByRole('link', { name: 'inventory-api' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'inventory-api' })).toBeVisible();
   await expect(page.getByRole('button', { name: /POST 200 \/v1\/inventory\/4200/ })).toBeVisible();
   await page.getByRole('button', { name: '다음', exact: true }).click();
   await expect(page.getByText('48건 중 26~48', { exact: true })).toBeVisible();
-  await page.goto('./servers/server_mock_staging_host_01/uptime/uptime_mock_docs');
-  await expect(page.getByRole('heading', { level: 2, name: 'Documentation' })).toBeVisible();
+  await page.goto('./servers/server_mock_staging_host_01/monitors/uptime_mock_docs');
+  await expect(page.getByRole('heading', { level: 1, name: 'Documentation' })).toBeVisible();
   expect(errors).toEqual([]);
 });

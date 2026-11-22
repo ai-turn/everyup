@@ -29,7 +29,9 @@ Every direct target (uptime monitor, app, `otel-collector` infrastructure resour
 
 In `normal`, no server is 장애 or 확인 필요 on the server list or the overview: the three hosts above the 70% usage warning get the lower values in the normal column (`NORMAL_USAGE` in `mockRouter.ts`), and the host charts follow them (the chart's swing, CPU ±12 and memory ±4 around the current value, stays below 70%). The other scenarios keep the high values.
 
-In `attention` and `partial-failure`, `uptime_mock_checkout` is down with an outage that started six minutes ago; its timeline entry links to `/servers/server_mock_edge_host_01/uptime/uptime_mock_checkout`. In `partial-failure` the app list fails, so the apps drop out of the server rows.
+In `attention` and `partial-failure`, `uptime_mock_checkout` is down with an outage that started six minutes ago; its timeline entry links to `/servers/server_mock_edge_host_01/monitors/uptime_mock_checkout`. In `partial-failure` the app list fails, so the apps drop out of the server rows. The outage turns the checks after its start into failures, and every uptime figure of the monitor (list and 24h KPI, today's bar, 30-day and 90-day uptime) is computed from those checks, so they agree with `체크 N회 중 실패 N회`.
+
+Uptime figures are never fixed values: 24h comes from the day's checks, the 90-day figure is the mean of the daily bars, and the 30-day figure is today's checks plus the previous 29 bars at the same check count. Docker service response history uses the API's buckets (2, 5 and 20 minutes for 1h, 6h and 24h). `demo-servers.spec.ts` checks both.
 
 In `attention`, the first metric of `observed_mock_catalog` (the first app with metrics) is over its threshold (`breached` in `/observed-services/metric-catalog`). The metrics capability of `db-primary-01` is 확인 필요 with the reason 임계값 초과 (metrics tab dot, overview row, app selector). The server stays 확인 필요 and its cause stays `메모리 84.6%`, because infrastructure comes before apps among causes of the same state. `normal` has no breached metric.
 

@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 
 const menus = [
   ['projects', '그룹', '그룹 그리드'],
@@ -22,7 +23,8 @@ for (const width of [1440, 375]) for (const [route, title, label] of menus) {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`./${route}${route.includes('?') ? '&' : '?'}view=unexpected`);
-    await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible();
+    // 목록 메뉴의 제목은 개수를 단다(`그룹 3`, DESIGN.md §3.4).
+    await expect(page.getByRole('heading', { level: 1, name: new RegExp(`^${title}( \\d+)?$`) })).toBeVisible();
     const toggle = page.getByRole('group', { name: '대상 보기 방식', exact: true });
     const table = page.getByRole('table', { name: label, exact: true });
     const main = page.locator('main');
@@ -115,7 +117,7 @@ test('a target opened from a group stays inside the group until leaving it', asy
   await page.getByRole('link', { name: 'staging-host-01', exact: true }).click();
   await page.getByRole('tab', { name: /^업타임/ }).click();
   await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
-  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/uptime\/uptime_mock_redis$/);
+  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/monitors\/uptime_mock_redis$/);
   await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
   await expect(sidebarCurrent).toHaveText('그룹');
   // 새로고침해도 그룹 안이다.
@@ -123,7 +125,8 @@ test('a target opened from a group stays inside the group until leaving it', asy
   await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
   await crumbs.getByRole('link', { name: 'Staging', exact: true }).click();
   await expect(page).toHaveURL(/\/projects\/project_mock_staging$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Staging' })).toBeVisible();
+  // exact: 아니면 아직 남아 있는 서버 화면의 h1 "staging-host-01"에 맞아서, 그룹 화면이 그려지기 전에 떠난다.
+  await expect(page.getByRole('heading', { level: 1, name: 'Staging', exact: true })).toBeVisible();
   // 그룹을 떠나 서버 화면에서 같은 대상을 열면 서버 맥락이다.
   await page.goto('./servers/server_mock_staging_host_01/uptime');
   await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
@@ -160,7 +163,7 @@ test('notification cards preserve the current page and filter without fetching a
     } else if (path === '/notification-history/stats') data = { totalSent: 60, totalFailed: 0, successRate: 100 };
     await route.fulfill({ json: { success: true, data } });
   });
-  await page.goto('http://127.0.0.1:4174/alerts?tab=history');
+  await page.goto(`${API_URL}alerts?tab=history`);
   const table = page.getByRole('table', { name: '발송 이력 그리드', exact: true });
   await expect(table.getByText('Record #1', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '다음', exact: true }).click();

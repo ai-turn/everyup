@@ -71,8 +71,9 @@ volumes:
 
 ## 2. 업타임 모니터 추가 (브라우저)
 
-**업타임** 화면에서 **추가**를 누르세요. **체크 방식**은 **HTTP**로 두고, **이름**과 확인할 공개 **URL**
-(예: `https://api.example.com/health`)을 입력한 뒤 **추가**를 누릅니다. 나머지 값은 기본값으로 두어도 됩니다.
+**서버** 화면에서 **추가**를 눌러 서버를 만드세요. 이름만 정하면 됩니다. 서버 화면이 열리면 **업타임 모니터 추가**를
+누르세요. **체크 방식**은 **HTTP**로 두고, **이름**과 확인할 공개 **URL**(예: `https://api.example.com/health`)을
+입력한 뒤 **추가**를 누릅니다. 나머지 값은 기본값으로 두어도 됩니다.
 
 검사는 Web이 수행하므로 대상에 아무것도 설치하지 않아도 됩니다. 첫 검사는 추가하자마자 실행되고, 이후
 30초마다 반복됩니다. 응답 코드가 2xx이면 모니터가 **정상**으로 표시됩니다.
@@ -87,19 +88,21 @@ Collector로 보냅니다. Docker를 쓰지 않아도 연결할 수 있고, 필�
 
 | 데이터 | 대시보드에서 여는 경로 |
 | --- | --- |
-| 로그 | **로그 → 로그 연결 → OpenTelemetry로 직접 연결** |
-| API 요청·트레이스 | **API 요청 → API 연결 → OpenTelemetry로 직접 연결** |
-| 앱 메트릭 | **메트릭 → 메트릭 연결 → OpenTelemetry로 직접 연결** |
-| 서버 자원 | **인프라 → 인프라 연결** |
+| 로그 | **서버** → 서버 → **로그** 탭 → **로그 연결** |
+| API 요청·트레이스 | **서버** → 서버 → **API 요청** 탭 → **API 요청 연결** |
+| 앱 메트릭 | **서버** → 서버 → **메트릭** 탭 → **메트릭 연결** |
+| 서버 자원 | **서버** → 서버 → **인프라** 탭 → **인프라 연결** |
 
-연결 화면에서 데이터 전송 주소와 API Key를 확인한 뒤 앱이나 Collector에 적용하세요. 언어별 설정과
+서버의 **개요** 탭에 있는 같은 이름의 버튼을 눌러도 그 탭으로 옮기면서 같은 대화 상자가 열립니다. 대화 상자의 첫 줄
+**적용 범위**에는 연결이 어디에 적용되고 앱이나 서버에서 무엇을 해야 하는지가 적혀 있습니다. 연결하면 데이터 전송 주소와
+API Key가 나옵니다. 이 값을 앱이나 OpenTelemetry Collector에 적용하세요. 언어별 설정과
 수신 확인 방법은 [OpenTelemetry로 직접 연결](./monitoring-setup#direct-otel)에 있습니다.
 
 ## 4. Docker 환경 연결 (선택) {#docker}
 
 Linux Docker 서버에 모니터링 번들(Docker Collector와 필요한 구성 요소)을 설치하면, 앱을 고치지 않고
-컨테이너 상태·로그·호스트 자원·API 요청을 한 번에 수집합니다. 이 데이터는 업타임·로그·인프라 같은
-기능 메뉴가 아니라 해당 **Docker 환경** 화면에 표시됩니다. 서버가 한 대라면 Web과 같은 서버에 설치해도
+컨테이너 상태·로그·호스트 자원·API 요청을 한 번에 수집합니다. 이 데이터는 서버의 업타임·로그·인프라 같은
+기능 탭이 아니라 해당 **Docker 환경** 화면에 표시됩니다. 서버가 한 대라면 Web과 같은 서버에 설치해도
 됩니다.
 
 모니터링할 서버에는 다음이 필요합니다.
@@ -117,18 +120,18 @@ Linux Docker 서버에 모니터링 번들(Docker Collector와 필요한 구성 
 | 수집 범위 | 수집·수신 기능 | 설치되는 구성 요소 |
 |---|---|---|
 | **전체** | 컨테이너 상태·로그·인프라·API 요청 수집, OTLP 메트릭 수신 | Docker Collector, eBPF Observer |
-| **기본** | Docker 서비스 상태, 로그 | Docker Collector |
+| **기본** | 컨테이너 상태, 로그 | Docker Collector |
 | **사용자 지정** | 고른 기능만 (권한도 그만큼만) | Docker Collector. API 요청을 고르면 eBPF Observer도 |
 
 앱 메트릭은 수신 기능을 켠 뒤 앱이나 OpenTelemetry Collector에서 전송하도록 설정해야 합니다.
-로그나 API 요청을 선택하면 Docker 탐색에 필요한 업타임 수집도 함께 켜집니다.
+로그나 API 요청을 선택하면 Docker 탐색에 필요한 컨테이너 상태 수집도 함께 켜집니다.
 
 [eBPF Observer](./ebpf-observer)는 앱을 고치지 않고 API 요청의 latency와 트레이스를 수집하는
 구성 요소입니다. Docker Collector와 권한이 분리되어 실행되고, 컨테이너 프로세스를 자동으로
 찾으므로 포트 목록을 관리할 필요가 없습니다.
 
-::: details 사용자 지정 프로필에서 업타임을 빼는 경우
-Docker 상태 수집(업타임)을 선택하지 않은 프로필(예: 메트릭 전용)에서 앱 데이터를 Collector의
+::: details 사용자 지정 프로필에서 컨테이너 상태를 빼는 경우
+컨테이너 상태 수집을 선택하지 않은 프로필(예: 메트릭 전용)에서 앱 데이터를 Docker Collector의
 OTLP 게이트웨이(`:4318`)로 보낸다면 서비스별 bearer 토큰이 필요합니다. 앱마다 토큰을 발급해
 `Authorization` 헤더에 설정하세요. 발급 명령과 설정 예시는
 [Collector 네트워킹 안내](../reference/collector#networking)에 있습니다.
@@ -175,14 +178,14 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 **설치 대기**에서 **수집 중**으로 바뀝니다.
 업타임 수집을 선택했다면 그 서버의 컨테이너도 서비스로 나타납니다.
 
-![Docker 환경 목록. prod-server는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-light.webp){.only-light width=751 height=202}
-![Docker 환경 목록. prod-server는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-dark.webp){.only-dark width=751 height=202}
+![Docker 환경 목록. prod-server·worker-cluster·edge-node는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-light.webp){.only-light width=776 height=365}
+![Docker 환경 목록. prod-server·worker-cluster·edge-node는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-dark.webp){.only-dark width=776 height=365}
 
 <p class="screenshot-caption"><strong>수집 중</strong>이면 연결된 것이고, <strong>설치 대기</strong>면 아직 Collector가 연결되지 않은 것입니다.</p>
 
 시간이 지나도 **설치 대기**에 머문다면 [트러블슈팅](./troubleshooting#not-collecting)을 확인하세요.
 
-**수집 중**은 Collector 연결 상태입니다. 해당 환경을 열고 **모니터링 설정 가이드**에서 설정 적용
+**수집 중**은 Docker Collector의 연결 상태입니다. 해당 환경을 열고 **모니터링 설정 가이드**에서 설정 적용
 여부와 **데이터 수신 확인**도 보세요. 앱에 요청을 보내 로그·트레이스를 발생시키고, 앱 메트릭은
 전송 설정을 적용한 뒤 수집 주기가 지났을 때 수신 기록을 확인하세요.
 

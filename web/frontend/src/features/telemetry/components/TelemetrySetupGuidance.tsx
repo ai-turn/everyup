@@ -11,7 +11,7 @@ export function TelemetrySetupGuidance({ signals, appConfiguration }: { signals:
   const [experience, setExperience] = useState<'existing' | 'new'>('existing');
   const [language, setLanguage] = useState<keyof typeof guides>('java');
   const guide = guides[language];
-  return <section aria-label="OpenTelemetry 적용 안내" className="space-y-3">
+  return <section aria-label="OpenTelemetry 적용 안내" className="space-y-label">
     <h4 className="type-label text-text-base">OpenTelemetry를 이미 사용하고 있나요?</h4>
     <SegmentedControl options={[{ value: 'existing', label: '이미 사용 중' }, { value: 'new', label: '처음 설정' }]} value={experience} onChange={setExperience} size="md" ariaLabel="OpenTelemetry 사용 경험" />
     {experience === 'existing' ? <>
@@ -24,10 +24,11 @@ export function TelemetrySetupGuidance({ signals, appConfiguration }: { signals:
     </>}
     {appConfiguration && (experience === 'new' ? appConfiguration : <details>
       <summary className="cursor-pointer type-label text-action">앱에서 직접 전송할 때의 환경 변수</summary>
-      <div className="mt-3">{appConfiguration}</div>
+      {/* 펼친 내용의 안쪽 여백(닫혔을 때 높이를 더하지 않는다) */}
+      <div className="pt-3">{appConfiguration}</div>
     </details>)}
     {signals.includes('logs') && <p className="type-body text-text-muted">로그는 사용하는 로깅 라이브러리의 OTel bridge 또는 appender도 연결해야 합니다. stdout 출력만으로 직접 OTLP 로그가 전송되지는 않습니다.</p>}
-    <ol className="list-decimal space-y-1 pl-5 type-body text-text-secondary">
+    <ol className="list-decimal space-y-intra pl-5 type-body text-text-secondary">
       <li>선택한 데이터 유형의 exporter에 연결 주소와 키를 설정하세요. 기존 연결에 기능을 추가했다면 기존 앱 설정의 주소와 키를 계속 사용합니다.</li>
       <li>앱 또는 Collector의 설정 적용 방식에 따라 재시작·재배포하세요.</li>
       <li>요청이나 로그를 발생시키고, 메트릭은 수집 주기가 지난 뒤 확인하세요.</li>

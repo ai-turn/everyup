@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다. mock은 쓰기 요청을 메모리에 반영하지만
 // page.goto는 앱을 새로 띄워 그 메모리를 버린다. 변경 뒤에는 앱 안에서(뒤로 가기, 링크) 이동한다.
@@ -31,13 +32,17 @@ test('creating a server opens its overview and lists it', async ({ page }) => {
 
   const name = page.getByRole('textbox', { name: '이름' });
   const submit = page.getByRole('button', { name: '서버 추가', exact: true });
-  // 비어 있거나 공백뿐인 이름은 브라우저 검증이 막는다.
+  // 비어 있거나 공백뿐인 이름은 입력 아래의 오류로 막는다(브라우저 말풍선이 아니다, UI/UX 점검 A5).
   await submit.click();
-  await expect(name).toHaveJSProperty('validity.valid', false);
+  await expect(name).toHaveAccessibleDescription('서버 이름을 입력하세요');
+  await expect(name).toHaveAttribute('aria-invalid', 'true');
+  await expect(name).toBeFocused();
   await name.fill('   ');
+  await expect(name).not.toHaveAttribute('aria-invalid', 'true');
   await submit.click();
-  await expect(name).toHaveJSProperty('validity.valid', false);
+  await expect(name).toHaveAccessibleDescription('서버 이름을 입력하세요');
   await expect(page).toHaveURL(/\/servers\/new$/);
+  await expect(page.locator('form')).toHaveAttribute('novalidate', '');
 
   await name.fill('new-box');
   await submit.click();
@@ -190,7 +195,7 @@ test('a server whose target lists failed is not called empty when deleting', asy
 });
 
 test.describe('against the API', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 } });
+  test.use({ baseURL: API_URL, viewport: { width: 1440, height: 1000 } });
 
   test('a merge that stops on the second server says how far it got and retries only the rest', async ({ page }) => {
     const at = '2026-11-01T00:00:00Z';

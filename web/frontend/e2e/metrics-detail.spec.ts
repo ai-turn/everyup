@@ -1,18 +1,18 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { metricsFixture } from './fixtures/metrics';
 
-// 서버 화면의 메트릭 탭. 이 서버에는 메트릭 앱이 둘이라 주소에 앱을 둔다.
-const detail = 'http://127.0.0.1:4174/servers/server-1/metrics/metrics-service';
+// 앱 페이지의 메트릭 탭(옛 서버 탭 주소는 앱 페이지로 넘어간다). 이 서버에는 메트릭 앱이 둘이다.
+const detail = `${API_URL}servers/server-1/metrics/metrics-service`;
 
-// 서버 탭의 패널은 연결 정보를 접어 둔다(설계 6.4). 그룹은 서버가 정하므로 그룹 배정이 없다.
-test('connection fields sit in the collapsed connection info, like the other server tab panels', async ({ page }) => {
+// 앱 페이지는 Docker 서비스 상세와 같은 머리말이다: 넓은 화면에서 연결 정보를 펼쳐 둔다. 그룹은 서버가 정하므로 그룹 배정이 없다.
+test('connection fields sit in the app page header, like a Docker service', async ({ page }) => {
   const state = await metricsFixture(page);
   await page.goto(detail);
+  await expect(page).toHaveURL(/\/servers\/server-1\/apps\/metrics-service\?tab=metrics$/);
   await expect(page.locator('summary').filter({ hasText: '연결 관리' })).toHaveCount(0);
-  const rotate = page.getByRole('button', { name: '키 재발급', exact: true });
-  await expect(rotate).toBeHidden();
-  await page.locator('summary', { hasText: '연결 정보' }).click();
-  await expect(rotate).toBeVisible();
+  await expect(page.locator('#main-content header').getByRole('button', { name: '키 재발급', exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: '그룹 배정' })).toHaveCount(0);
   await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
   // 서버 화면이 부르는 API를 이 fixture가 모두 처리한다(개발 서버나 백엔드로 새지 않는다).
   expect(state.unhandled).toEqual([]);

@@ -16,6 +16,7 @@ import {
     type SlackConfig,
 } from '../../../services/api';
 import { SetupGuide } from './SetupGuide';
+import { TelegramPreview, DiscordPreview, SlackPreview } from './ChannelPreview';
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -100,141 +101,6 @@ const CHANNEL_META: Record<ChannelType, {
 };
 
 // ─── Layout primitives ────────────────────────────────────────────────────────
-
-// ─── Accurate preview components (matching real backend output) ───────────────
-
-// Telegram: plain-text Markdown message rendered in a chat bubble
-function TelegramPreview({ name }: { name: string }) {
-    const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-    return (
-        <div className="rounded-xl overflow-hidden border border-slate-700 font-sans text-xs">
-            {/* Header bar */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-[#17212B]">
-                <div className="w-7 h-7 rounded-full bg-[#26A5E4] flex items-center justify-center shrink-0">
-                    <IconTelegram size={14} className="text-white" />
-                </div>
-                <div className="min-w-0">
-                    <p className="text-white type-label-sm leading-tight truncate">{name || 'EveryUp Bot'}</p>
-                    <p className="text-[#7C91A7] text-xs">bot</p>
-                </div>
-            </div>
-            {/* Chat body */}
-            <div className="bg-[#0E1621] px-3 py-3">
-                <div className="bg-[#182533] rounded-lg rounded-tl-none px-3 py-2.5 max-w-[90%] space-y-1 leading-[1.6]">
-                    <p>
-                        <span className="text-[#5FBDE3]">✅ Service Recovered</span>
-                    </p>
-                    <p className="text-slate-300">
-                        <span className="text-[#7C91A7]">Service: </span>Notification Test
-                    </p>
-                    <p className="text-slate-300">
-                        <span className="text-[#7C91A7]">Time: </span>
-                        {new Date().toISOString().slice(0, 19).replace('T', ' ')}
-                    </p>
-                    <p className="text-slate-300">
-                        <span className="text-[#7C91A7]">Message: </span>
-                        <span className="text-slate-400">This is a test notification. Your EVERYUP notification channel is connected correctly.</span>
-                    </p>
-                    <p className="text-[#7C91A7] text-xs text-right">{now}</p>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// Discord: embed card matching backend output
-function DiscordPreview({ name }: { name: string }) {
-    return (
-        <div className="rounded-xl overflow-hidden border border-[#1e1f22] font-sans text-xs">
-            {/* Header bar */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-[#313338]">
-                <div className="w-7 h-7 rounded-full bg-[#5865F2] flex items-center justify-center shrink-0">
-                    <IconDiscord size={14} className="text-white" />
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <span className="text-white font-medium">{name || 'EVERYUP'}</span>
-                    <span className="px-1 py-px bg-[#5865F2] text-white text-xs rounded uppercase">APP</span>
-                </div>
-            </div>
-            {/* Message area */}
-            <div className="bg-[#313338] px-3 pb-3 pt-1">
-                {/* Embed */}
-                <div className="border-l-4 border-[#3baa7c] bg-[#2b2d31] rounded-r-lg overflow-hidden">
-                    <div className="px-3 py-2.5 space-y-2">
-                        {/* Embed title */}
-                        <p className="text-[#3baa7c]">✅ Service healthy: Notification Test</p>
-                        {/* Embed description */}
-                        <p className="text-[#dbdee1] leading-relaxed">
-                            This is a test notification. Your EVERYUP notification channel is connected correctly.
-                        </p>
-                        {/* Fields row */}
-                        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 pt-1">
-                            <div>
-                                <p className="text-[#b5bac1] text-xs uppercase mb-0.5">Service ID</p>
-                                <p className="text-[#dbdee1]">test</p>
-                            </div>
-                            <div>
-                                <p className="text-[#b5bac1] text-xs uppercase mb-0.5">Status</p>
-                                <p className="text-[#dbdee1]">healthy</p>
-                            </div>
-                        </div>
-                        {/* Footer */}
-                        <p className="text-[#87898c] text-xs pt-1 border-t border-[#3f4147]">
-                            EVERYUP • {new Date().toISOString().slice(0, 10)}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// Slack: Block Kit attachment matching backend output
-function SlackPreview({ name }: { name: string }) {
-    return (
-        <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-[#424242] font-sans text-xs">
-            {/* Header bar */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-[#4A154B]">
-                <div className="w-7 h-7 rounded bg-white flex items-center justify-center shrink-0">
-                    <IconSlack size={14} className="text-[#E01E5A]" />
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <span className="text-white font-medium">{name || 'EVERYUP'}</span>
-                    <span className="px-1 py-px bg-white/25 text-white text-xs rounded uppercase">APP</span>
-                </div>
-            </div>
-            {/* Message body */}
-            <div className="bg-white dark:bg-[#1a1d21] px-3 py-2.5">
-                {/* Attachment with left colored border */}
-                <div className="border-l-4 border-[#2eb67d] pl-2.5 space-y-1.5">
-                    {/* Header section */}
-                    <p className="text-text-base">
-                        ✅ <span className="italic">Service healthy: Notification Test</span>
-                    </p>
-                    {/* Message section */}
-                    <p className="text-text-muted leading-relaxed">
-                        This is a test notification. Your EVERYUP notification channel is connected correctly.
-                    </p>
-                    {/* Fields row */}
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 pt-0.5">
-                        <div>
-                            <p className="text-text-secondary text-xs">Service ID</p>
-                            <p className="text-text-muted">test</p>
-                        </div>
-                        <div>
-                            <p className="text-text-secondary text-xs">Status</p>
-                            <p className="text-text-muted">healthy</p>
-                        </div>
-                    </div>
-                    {/* Context footer */}
-                    <p className="text-text-dim text-xs pt-1">
-                        EVERYUP • {new Date().toISOString().slice(0, 10).replace(/-/g, '-')} {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 const PREVIEW_BY_TYPE: Record<ChannelType, React.FC<{ name: string }>> = {
     telegram: TelegramPreview,
@@ -385,8 +251,11 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         >
                                             <input {...register('type')} type="radio" value={type} className="sr-only" />
                                             <m.Icon size={26} className={active ? m.color : 'text-text-dim'} />
-                                            <span className={`text-sm ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
-                                            <span className="type-label text-text-dim">{m.sub}</span>
+                                            {/* 선택지 카드의 제목 → 설명 4px(DESIGN.md §6) */}
+                                            <span className="flex flex-col items-center">
+                                                <span className={`type-control ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
+                                                <span className="mt-1 type-caption-stack text-text-muted">{m.sub}</span>
+                                            </span>
                                         </label>
                                     );
                                 })}
@@ -463,17 +332,17 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                 {/* ── Right: preview (lg+) + test (모든 폭, 좁으면 폼 아래) ──────── */}
                 <div>
-                    <div className="lg:sticky lg:top-6 space-y-8">
+                    <div className="lg:sticky lg:top-6 space-y-section">
 
                         {/* Channel preview card */}
                         <div className="hidden lg:block">
                             <div className="flex items-center gap-3 mb-4">
                                 <div>
                                     <p className="type-label text-text-base">채널 미리보기</p>
-                                    <p className="type-body text-text-muted mt-0.5">실제 전송 메시지 형식</p>
+                                    <p className="mt-1 type-body text-text-muted">실제 전송 메시지 형식</p>
                                 </div>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-heading">
                                 {/* Identity */}
                                 <div className="flex items-center gap-3 p-3 bg-ui-hover-soft/50 rounded-xl">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border-2 ${meta.colorBg}`}>
@@ -488,17 +357,17 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 </div>
 
                                 {/* Config summary */}
-                                <div className="space-y-1.5 text-sm">
+                                <div className="space-y-label type-control">
                                     {watchedType === 'telegram' ? (
                                         <>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-text-dim text-xs">Bot Token</span>
+                                                <span className="text-text-dim type-caption">Bot Token</span>
                                                 <span className="font-mono text-text-muted">
                                                     {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim">{keepsSecret ? '저장된 값' : '미입력'}</span>}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-text-dim text-xs">Chat ID</span>
+                                                <span className="text-text-dim type-caption">Chat ID</span>
                                                 <span className="font-mono text-text-muted">
                                                     {watchedChatId || <span className="text-text-dim">미입력</span>}
                                                 </span>
@@ -506,7 +375,7 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                         </>
                                     ) : (
                                         <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg gap-3">
-                                            <span className="text-text-dim text-xs shrink-0">Webhook</span>
+                                            <span className="text-text-dim type-caption shrink-0">Webhook</span>
                                             <span className="font-mono text-text-muted truncate text-right">
                                                 {watchedWebhook
                                                     ? watchedWebhook.replace(/^https?:\/\//, '').slice(0, 32) + (watchedWebhook.length > 40 ? '…' : '')
@@ -530,11 +399,11 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 <MaterialIcon size={20} name="send" className="text-text-dim" />
                                 <div>
                                     <p className="type-label text-text-base">테스트 전송</p>
-                                    <p className="type-body text-text-muted mt-0.5">실제 채널로 테스트 메시지 발송</p>
+                                    <p className="mt-1 type-body text-text-muted">실제 채널로 테스트 메시지 발송</p>
                                 </div>
                             </div>
-                            <div className="space-y-3">
-                                <p className="type-body text-text-muted leading-relaxed">
+                            <div className="space-y-label">
+                                <p className="type-body text-text-muted">
                                     현재 입력값으로 테스트 메시지를 보냅니다. 채널은 저장되지 않습니다.
                                 </p>
 
@@ -551,20 +420,20 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
 
                                 {testState === 'success' && (
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft rounded-md">
-                                        <MaterialIcon size={20} name="check_circle" className="text-status-healthy mt-0.5 shrink-0" />
+                                        <MaterialIcon size={20} name="check_circle" className="text-status-healthy icon-lead shrink-0" />
                                         <div>
                                             <p className="type-body text-text-base">발송 성공</p>
-                                            <p className="type-body text-text-muted mt-0.5">{`${testTime}에 전송되었습니다`}</p>
+                                            <p className="mt-1 type-body text-text-muted">{`${testTime}에 전송되었습니다`}</p>
                                         </div>
                                     </div>
                                 )}
 
                                 {testState === 'error' && (
                                     <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft rounded-md">
-                                        <MaterialIcon size={20} name="error" className="text-status-error mt-0.5 shrink-0" />
+                                        <MaterialIcon size={20} name="error" className="text-status-error icon-lead shrink-0" />
                                         <div>
                                             <p className="type-body text-text-base">발송 실패</p>
-                                            <p className="type-body text-text-muted mt-0.5">{testError}</p>
+                                            <p className="mt-1 type-body text-text-muted">{testError}</p>
                                         </div>
                                     </div>
                                 )}

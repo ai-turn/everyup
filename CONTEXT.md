@@ -21,8 +21,8 @@ The integrated Collector installed for one Docker Environment. It can collect Do
 _Avoid_: Agent, Monitor
 
 **Collector**:
-A data-ingestion mechanism. The EveryUp Docker Collector is the integrated Docker path and can expose an authenticated OpenTelemetry gateway for its selected telemetry capabilities. A standard OpenTelemetry Collector can also send host metrics directly for an Infrastructure Resource.
-_Avoid_: Group
+A data-ingestion mechanism. The EveryUp Docker Collector is the integrated Docker path and can expose an authenticated OpenTelemetry gateway for its selected telemetry capabilities. A standard OpenTelemetry Collector can also send host metrics directly for an Infrastructure Resource. Product copy always names which one: **Docker Collector** or **OpenTelemetry Collector**; a bare Collector only means both at once.
+_Avoid_: Group, bare Collector for one of the two
 
 **Docker Collection Profile**:
 The set of monitoring capabilities enabled for a Docker Collector. A profile changes what the Collector runs and is configured from its Docker Environment.
@@ -41,7 +41,7 @@ A Docker Collector check that is healthy while the container is running, without
 _Avoid_: Uptime, Response Check
 
 **Observed Service**:
-A workload discovered by a Collector or created for a direct telemetry connection, such as a Docker container or instrumented application. Its health, logs, API data, and metrics can be explored independently.
+A workload discovered by a Collector or created for a direct telemetry connection, such as a Docker container or instrumented application. Its health, logs, API data, and metrics can be explored independently. Shown as **앱** when created for a Direct Telemetry Connection and as **서비스** when a Docker Collector discovered it.
 _Avoid_: Group
 
 **Direct Telemetry Connection**:
@@ -51,6 +51,22 @@ _Avoid_: Docker Environment, Docker Collector, Independent Collector
 **Infrastructure Resource**:
 A host or other operational resource whose capacity and availability are monitored. It can be backed by an EveryUp Docker Collector or by a directly configured standard OpenTelemetry Collector. A direct Infrastructure Resource belongs to a Server, at most one per Server, and inherits that Server's Group; a Docker-backed one inherits its Docker Environment's Group.
 _Avoid_: Docker Environment, Docker Collector
+
+**Connect**:
+Making data flow into EveryUp from outside: Logs, API Requests, Metrics, Infrastructure, or a Docker Environment. Shown as **연결**; the start button and the dialog title are `{target} 연결`. Installing is running the first command on a host (**설치**), applying is re-running it after the Docker Collection Profile changed (**적용**).
+_Avoid_: Add, Register, Install (as the start verb)
+
+**Add**:
+Creating something that only exists in EveryUp's own settings: a Server, an Uptime Monitor, an alert rule, a Group. Shown as **추가**.
+_Avoid_: Connect
+
+**API Requests**:
+The connection unit for an Observed Service's OpenTelemetry traces. Connecting API Requests also fills the Traces tab, so Traces is only a tab name. Shown as **API 요청**.
+_Avoid_: bare API, API traces
+
+**Container Status**:
+The Docker Collection Profile capability stored as `uptime`: Liveness Checks and Docker Collector Response Checks. Shown as **컨테이너 상태**, never as uptime (see Liveness Check).
+_Avoid_: Uptime (for this capability)
 
 **Group**:
 An optional folder that directly collects Docker Environments and Servers. A Server's targets inherit the Server's Group. A Docker-discovered Observed Service, its logs, API data, metrics, and Infrastructure Resource inherit the Group of their Docker Environment. Shown as **그룹** in the UI; code, API paths, and storage keep the `project` identifier.

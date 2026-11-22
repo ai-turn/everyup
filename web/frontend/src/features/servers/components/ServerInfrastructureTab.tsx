@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button, LoadErrorBanner, MaterialIcon } from '../../../components/common';
 import { api } from '../../../services/api';
 import { InfrastructurePanel } from '../../infra/components/InfrastructurePanel';
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
-import { CONNECT_LABEL, serverPath } from '../serverPaths';
+import { connectAction, connectDone } from '../../connections/connectCopy';
+import { serverPath } from '../serverPaths';
+import { useConnectRequested } from '../useConnectRequested';
 import { infrastructurePanelStatus, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, PanelPlaceholder } from './ConnectPrompt';
 import { MOVE_TARGET_UNCERTAIN, useLeavingTarget, useMoveTarget } from '../useMoveTarget';
@@ -13,10 +15,11 @@ import { readLatest, TargetGoneError } from '../../../utils/readLatest';
 import { MoveTargetDialog } from './MoveTargetDialog';
 
 /** 인프라 탭: 서버마다 리소스가 하나뿐이라 없으면 연결 안내, 있으면 그 상세다. 추가할 것이 없어 탭 줄의 조작 자리는 비어 있다. */
-export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, stale, onRetry, refreshToken, forgetTarget }: ServerCapabilityTabProps) {
+export function ServerInfrastructureTab({ row, onChanged, unknown, stale, onRetry, refreshToken, forgetTarget }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
-  const { search } = useLocation();
-  const [adding, setAdding] = useState(false);
+  // 개요의 `인프라 연결`로 왔으면 연결 대화 상자를 연 채로 시작한다. 이미 연결했으면 열지 않는다.
+  const connectRequested = useConnectRequested();
+  const [adding, setAdding] = useState(connectRequested && !row.targets.infrastructure);
   // 설정 안내의 "인프라 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
   // 대화 상자가 리소스를 만들었다(키를 발급했다). 만들지 않고 닫으면 다시 불러올 것이 없다.
@@ -29,11 +32,6 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
   // ServerDetailPage가 이 표시를 보고 포커스를 탭 패널로 옮긴다.
   const show = (path: string) => navigate(path, { state: { focusPanel: true } });
 
-  // 리소스는 하나라 대상 주소가 없다. 기간(?range=) 같은 쿼리는 유지한다.
-  useEffect(() => {
-    if (targetId) navigate(`${firstScreen}${search}`, { replace: true });
-  }, [targetId, firstScreen, search, navigate]);
-
   const openSetup = () => { created.current = false; issued.current = false; setAdding(true); };
 
   // 서버 데이터를 다시 불러온 뒤에 대화 상자를 닫는다. 먼저 닫으면 잠시 연결 안내가 다시 보인다.
@@ -42,7 +40,7 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
     created.current = true;
     await onChanged();
     setAdding(false);
-    toast.success('인프라 리소스를 추가했습니다');
+    toast.success(connectDone('infrastructure'));
     if (mounted.current) show(firstScreen);
   };
   const closeSetup = () => {
@@ -86,15 +84,15 @@ export function ServerInfrastructureTab({ row, targetId, onChanged, unknown, sta
     if (!resource) {
       return (
         <ConnectPrompt title="이 서버의 인프라를 연결하세요"
-          description="CPU, 메모리, 디스크를 수집합니다. 서버에 OpenTelemetry Collector를 설치해야 합니다. 연결을 누르면 API Key와 Collector 설정 파일을 받습니다. 키는 한 번만 표시됩니다.">
-          <Button onClick={openSetup}><MaterialIcon name="add" />{CONNECT_LABEL.infrastructure}</Button>
+          description="CPU, 메모리, 디스크를 수집합니다. 서버에 OpenTelemetry Collector를 설치해야 합니다. 연결을 누르면 API Key와 그 Collector의 설정 파일을 받습니다. 키는 한 번만 표시됩니다.">
+          <Button onClick={openSetup}><MaterialIcon name="add" />{connectAction('infrastructure')}</Button>
         </ConnectPrompt>
       );
     }
     return (
       <InfrastructurePanel key={resource.id} resource={resource} status={infrastructurePanelStatus(resource, Boolean(stale))} serverName={row.server.name} refreshToken={refreshToken}
         onChanged={onChanged} onDeleted={() => void removed(resource.id)}
-        extraActions={<Button collapseLabel variant="secondary" onClick={() => startMove(resource.id)}><MaterialIcon name="arrow_forward" />다른 서버로 옮기기</Button>} />
+        menuItems={[{ label: '다른 서버로 옮기기', icon: 'arrow_forward', onSelect: () => startMove(resource.id) }]} />
     );
   };
 

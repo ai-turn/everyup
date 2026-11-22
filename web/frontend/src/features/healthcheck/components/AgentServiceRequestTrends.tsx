@@ -10,7 +10,7 @@ import {
 } from '../../../components/charts';
 import { api, type AgentEvent, type ApiRequestStatBucket, type ApiRequestStatusSummary } from '../../../services/api';
 import { TimeRangePicker } from '../../../components/common/TimeRangePicker';
-import { LoadErrorBanner } from '../../../components/common';
+import { LoadErrorBanner, Stat } from '../../../components/common';
 import { getErrorMessage } from '../../../utils/errors';
 import { useRequestWindow, type RequestWindow, type StatusClass } from '../../api-requests/useRequestQuery';
 import { formatClock } from '../../../utils/incidentFormat';
@@ -184,14 +184,14 @@ function ServiceRequestTrends({
   const kbdPoint = kbd.index === null ? undefined : data[kbd.index];
 
   if (loading) {
-    return <ChartCard title={title}><ChartSkeleton /></ChartCard>;
+    return <ChartCard as="h2" title={title}><ChartSkeleton /></ChartCard>;
   }
   if (error) {
-    return <ChartCard title={title}><LoadErrorBanner inline title="요청 추이를 불러오지 못했습니다" message={error}
+    return <ChartCard as="h2" title={title}><LoadErrorBanner inline title="요청 추이를 불러오지 못했습니다" message={error}
       onRetry={() => { setLoading(true); setRetryKey(key => key + 1); }} /></ChartCard>;
   }
   if (truncated) {
-    return <ChartCard title={title}><LoadErrorBanner inline role="status" title="조회 범위의 요청이 많아 추이를 표시하지 못했습니다"
+    return <ChartCard as="h2" title={title}><LoadErrorBanner inline role="status" title="조회 범위의 요청이 많아 추이를 표시하지 못했습니다"
       message="기간을 줄여 다시 확인해 주세요. 일부 요청만으로 전체 기간의 통계를 표시하지 않습니다.">
       {!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}
     </LoadErrorBanner></ChartCard>;
@@ -245,10 +245,12 @@ function ServiceRequestTrends({
   ];
 
   return (
-    <ChartCard title={title} right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
+    <ChartCard as="h2" title={title} right={!controlledRange && <TimeRangePicker value={range} onChange={setLocalRange} />}>
 
-      <p className="mb-3 type-body text-text-muted">선택한 기간의 {noun} 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
-      {summaryError && <div className="mb-3"><LoadErrorBanner inline role="status" title="상태코드 분포를 불러오지 못했습니다" onRetry={() => setRetryKey(key => key + 1)} /></div>}
+      {/* 설명 → 오류 → 상태코드 분포 8px(label), 그 묶음 → 수치 타일 16px(heading). */}
+      <div className="mb-heading space-y-label">
+      <p className="type-body text-text-muted">선택한 기간의 {noun} 전체 요청입니다. 아래 목록의 검색·오류·trace 필터는 적용하지 않습니다.</p>
+      {summaryError && <LoadErrorBanner inline role="status" title="상태코드 분포를 불러오지 못했습니다" onRetry={() => setRetryKey(key => key + 1)} />}
 
       {/* Status-class distribution + top 5xx endpoint (1a 콘솔 prototype) */}
       {summary && (summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther) > 0 && (() => {
@@ -263,13 +265,13 @@ function ServiceRequestTrends({
         // 서비스 상세에서는 아래 Endpoint 표가 "5xx 최다" 한 줄을 대신한다. 표가 없는 Docker 환경 전체 추이에만 남긴다.
         const rollup = sourceKind === 'agent' && !serviceKey;
         return (
-          <div className="mb-4">
+          <div>
             <div className="flex h-2 rounded-full overflow-hidden bg-ui-hover">
               {classes.map((c) => (
                 <div key={c.label} className={c.bar} style={{ width: `${(c.count / total) * 100}%` }} />
               ))}
             </div>
-            <div role={onStatusChange ? 'group' : undefined} aria-label={onStatusChange ? '상태코드로 요청 목록 거르기' : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs">
+            <div role={onStatusChange ? 'group' : undefined} aria-label={onStatusChange ? '상태코드로 요청 목록 거르기' : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-label type-caption">
               {classes.map((c) => {
                 const text = `${c.label} ${((c.count / total) * 100).toFixed(1)}%`;
                 if (!onStatusChange || !c.status) return <span key={c.label} className={c.text}>{text}</span>;
@@ -290,6 +292,7 @@ function ServiceRequestTrends({
           </div>
         );
       })()}
+      </div>
 
       {/* One chart, one measure at a time: ms, counts and % can't share an axis
           (a fixed 0–100% second axis once flattened a 5% error spike). The tiles
@@ -303,22 +306,20 @@ function ServiceRequestTrends({
               type="button"
               aria-pressed={active}
               onClick={() => setMetric(tile.id)}
-              className={`flex min-w-0 flex-col items-start gap-0.5 rounded-lg border px-3.5 py-2.5 text-left transition-colors ${tile.id === 'latency' ? 'max-sm:col-span-2' : ''} ${
+              className={`min-w-0 rounded-lg border p-4 text-left transition-colors ${tile.id === 'latency' ? 'max-sm:col-span-2' : ''} ${
                 active ? 'border-primary ring-1 ring-inset ring-primary' : 'border-ui-border-soft hover:bg-ui-hover-soft'
               }`}
             >
-              <span className={`truncate type-caption ${active ? 'text-text-secondary' : 'text-text-muted'}`}>{tile.label}</span>
-              <span className="type-kpi text-text-base">
-                {tile.value}
-                <span className="ml-0.5 type-caption text-text-dim">{tile.unit}</span>
-              </span>
-              {tile.id === 'latency' && latestPoint && <span className="type-caption text-text-muted">{formatClock(latestPoint.t)}~{formatClock(Math.min(latestPoint.t + bucketMs, timeWindow[1]))}</span>}
+              {/* 타일 안쪽 16px, 라벨 → 값 4px(Stat, DESIGN.md §3.7 수치 타일) */}
+              <Stat labelTone={active ? 'secondary' : 'muted'} label={tile.label}
+                value={<>{tile.value}<span className="-ml-1.5 type-caption text-text-dim">{tile.unit}</span></>}
+                detail={tile.id === 'latency' && latestPoint && <>{formatClock(latestPoint.t)}~{formatClock(Math.min(latestPoint.t + bucketMs, timeWindow[1]))}</>} />
             </button>
           );
         })}
       </div>
 
-      <div className="mt-4 mb-1.5 flex min-h-6 items-center justify-between gap-3">
+      <div className="mt-heading mb-label flex min-h-6 items-center justify-between gap-3">
         <span className="type-caption text-text-dim">{view.caption}</span>
         {legend.length > 0 && <ChartLegend items={legend} />}
       </div>

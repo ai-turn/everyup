@@ -7,15 +7,17 @@ without a Docker Collector. For your first Docker connection, follow the [Quick 
 ## Monitoring setup guide
 
 Open an environment from the **Docker 환경** (Docker environments) screen to find its
-**모니터링 설정 가이드** (monitoring setup guide). It checks Collector connection, baseline
+**모니터링 설정 가이드** (monitoring setup guide). It checks Docker Collector installation, baseline
 collection, and automatic API tracing in order. When Java or Node.js services are discovered, the
 same guide leads straight into the optional header and body capture setup.
 
 ## Reading collection status
 
-The setup guide checks Collector contact and collection scope separately. A connection is current
-when the Collector contacted Web within the last two minutes. Configuration is applied when the
-Collector reports settings that match the requested collection scope.
+The setup guide checks Docker Collector contact and collection scope separately. An environment
+whose Docker Collector has never reported reads **설치 대기** (awaiting install) in the list, the header,
+and the guide alike. After installation, a connection is current when the Docker Collector contacted
+Web within the last two minutes. Configuration is applied when the Docker Collector reports settings
+that match the requested collection scope.
 
 EveryUp records the first and latest receipt for logs, traces, metrics, and infrastructure data,
 and the screen refreshes them every five seconds.
@@ -35,18 +37,21 @@ Older Collectors may stay in the waiting state even while communicating. Update 
 latest installation command.
 :::
 
-## Adding capabilities to an existing environment
+## Connecting capabilities to an existing environment
 
 Open the environment on the **Docker 환경** (Docker environments) screen and use the buttons in its
-monitoring setup guide, such as **로그 추가** (Add logs) or **메트릭 추가** (Add metrics), to add a capability
-that is not selected yet. The environment keeps its ID, key, group assignment, and collection history.
-EveryUp issues a new apply command; run it on the target server to enable the capability across that
-Docker environment.
+monitoring setup guide, such as **인프라 연결** (Connect infrastructure) or **메트릭 연결** (Connect metrics),
+to connect a capability that is not selected yet. In the dialog, click **적용 명령 받기** (Get apply
+command) for a new apply command. The environment keeps its ID, key, group assignment, and collection
+history. Run the command on the target server to enable the capability across that Docker
+environment; apps do not need a restart.
 
-The connect buttons on the **로그** (Logs), **API 요청** (API requests), **메트릭** (Metrics), and **인프라**
-(Infrastructure) pages, such as **로그 연결** (Connect logs), handle direct connections only. Reuse a
-registered direct target or connect a new one. Choosing a configured target shows its receipt history
-before opening the corresponding data page.
+The **설치 명령** (Install command) button in the environment's header shows only before installation.
+To reinstall later, use **다시 설치** (Reinstall) in the more (⋮) menu.
+
+The connect buttons on a server's **로그** (Logs), **API 요청** (API requests), **메트릭** (Metrics), and
+**인프라** (Infrastructure) tabs, such as **로그 연결** (Connect logs), handle direct connections only. Connect a
+new app or add data to an app already connected to that server. When you finish, EveryUp opens the app's page.
 
 ## Connecting OpenTelemetry directly {#direct-otel}
 
@@ -55,17 +60,37 @@ resources through a standard OpenTelemetry Collector. Choose a connection path f
 
 | Data | Dashboard path |
 | --- | --- |
-| Logs | **로그** (Logs) → **로그 연결** (Connect logs) → **OpenTelemetry로 직접 연결** (Connect directly through OpenTelemetry) |
-| API requests and traces | **API 요청** (API requests) → **API 연결** (Connect API) → **OpenTelemetry로 직접 연결** |
-| App metrics | **메트릭** (Metrics) → **메트릭 연결** (Connect metrics) → **OpenTelemetry로 직접 연결** |
-| Server resources | **인프라** (Infrastructure) → **인프라 연결** (Connect infrastructure) |
+| Logs | **서버** (Servers) → a server → **로그** (Logs) tab → **로그 연결** (Connect logs) |
+| API requests and traces | **서버** (Servers) → a server → **API 요청** (API requests) tab → **API 요청 연결** (Connect API requests) |
+| App metrics | **서버** (Servers) → a server → **메트릭** (Metrics) tab → **메트릭 연결** (Connect metrics) |
+| Server resources | **서버** (Servers) → a server → **인프라** (Infrastructure) tab → **인프라 연결** (Connect infrastructure) |
 
-Adding a service shows its export address and API Key. If you are new to OpenTelemetry, follow the
+A connection starts where its data will show. The same buttons on the server's **개요** (Overview) tab
+open the same dialog in that tab. Traces are not connected separately: connecting **API 요청** (API
+requests) also fills the app page's **트레이스** (Traces) tab.
+
+To add another kind of data to an app you already connected, open the app's page and use a **연결 전**
+(Not connected) tab or **연결 추가** (Connect more) on its connection line. When two or more kinds are
+missing, **연결 추가** opens a menu to pick one. The dialog's **기존 앱** (Existing app) option lists only
+this server's apps; for an app on another server, move it here first with **다른 서버로 옮기기** (Move to
+another server) on its page.
+
+Every connection dialog starts with **적용 범위** (Scope): what it applies to and what the app or server
+has to do. If the same host is also a Docker environment, connect containerized apps through that
+environment's Docker Collector, as the dialog suggests. The data then stays in one place instead of
+splitting the host between a server and a Docker environment.
+
+![The API 요청 연결 (Connect API requests) dialog. Its first line, the scope, says the connection applies to this one app and that the app needs the address and API Key in its settings and a restart. Below are the Docker environment note, the new or existing app choice, the app name field, and the 연결 (Connect) button.](/images/monitoring-setup-connect-light.webp){.only-light width=672 height=507}
+![The API 요청 연결 (Connect API requests) dialog. Its first line, the scope, says the connection applies to this one app and that the app needs the address and API Key in its settings and a restart. Below are the Docker environment note, the new or existing app choice, the app name field, and the 연결 (Connect) button.](/images/monitoring-setup-connect-dark.webp){.only-dark width=672 height=507}
+
+<p class="screenshot-caption">Connection dialogs start with <strong>적용 범위</strong> (Scope) and point to the Docker Collector when a Docker environment exists. The dashboard UI is Korean only.</p>
+
+Connecting an app shows its export address and API Key. If you are new to OpenTelemetry, follow the
 Java, Node.js, or Go guidance to connect the SDK and exporters. Environment variables alone do not
 send data. Direct OTLP logs also need the logging library's OTel bridge or appender.
 
 If you already use OpenTelemetry and want to keep the existing destination, add an EveryUp exporter
-to your Collector. Changing the app's shared OTLP address can replace the existing destination.
+to your OpenTelemetry Collector. Changing the app's shared OTLP address can replace the existing destination.
 
 Adding a capability to a service connected directly through OpenTelemetry keeps the existing ID and
 API Key and adds only the required data permission. Configure export for that signal in the app
@@ -74,7 +99,7 @@ interval, and check **데이터 수신 확인** for receipt.
 
 ## Explore metrics
 
-Open a service in **메트릭** (Metrics) to view metrics alphabetically, 12 panels at a time. Click
+Open an app from a server's **메트릭** (Metrics) tab to view its metrics on the app page's **메트릭** tab, alphabetically, 12 panels at a time. Click
 **메트릭 12개 더 보기** (Show 12 more metrics) for more. Metrics collected by a Docker Collector
 stay in the service details of that **Docker environment**.
 
@@ -104,8 +129,8 @@ limit message instead of statistics when more than 50,000 points match.
 
 To view separately registered targets together, open **그룹** (Groups) under **모아 보기** (Collected
 views) in the sidebar and click **추가** (Add) to create a group. The new group opens right away. Click
-**대상 추가** (Add targets), select any number of Docker environments, uptime monitors, directly
-connected services, and infrastructure Collectors, then click **추가** (Add). Selecting a target that
+**대상 추가** (Add targets), select any number of Docker environments and servers, then click
+**추가** (Add). A server's uptime monitors, apps, and infrastructure join the group with it. Selecting a target that
 belongs to another group moves it here. To take a target out, click **빼기** (Remove) on its row; the
 target is not deleted and becomes ungrouped again.
 Services and data discovered within a Docker environment inherit its group assignment. The group

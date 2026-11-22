@@ -129,7 +129,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
         </div>
       )}
 
-      <div className="mt-2 flex flex-wrap justify-between gap-3 text-xs text-text-dim" aria-live="polite">
+      <div className="mt-2 flex flex-wrap justify-between gap-3 type-caption text-text-dim" aria-live="polite">
         <span className="shrink-0">90일 전</span>
         {hovered && (
           <span className="order-last basis-full break-words text-center text-text-secondary sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">
@@ -141,7 +141,8 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
         )}
         <span className="shrink-0">오늘</span>
       </div>
-      {children}
+      {/* 아래에 붙는 내용(장애 이력)은 카드 없는 섹션 사이 규칙(32px + 선 + 32px, section)으로 나눈다. */}
+      {children && <div className="mt-section border-t border-ui-border-soft pt-section">{children}</div>}
     </section>
   );
 }

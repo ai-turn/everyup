@@ -91,7 +91,7 @@ function responseAxis(values: number[]) {
 function ResponseTooltip({ point, color, messages }: { point?: ResponsePoint; color: string; messages: string[] }) {
   if (!point) return null;
   return (
-    <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-ui-border bg-ui-raised px-3.5 py-3 text-sm shadow-lg">
+    <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-ui-border bg-ui-raised px-3.5 py-3 type-control shadow-lg">
       <p className="mb-2 type-caption text-text-muted">{formatTimeLabel(point.t)} ~ {formatTimeTick(point.end)}</p>
       {point.missing ? <p className="text-text-secondary">수집 데이터 없음</p> : (
         <>
@@ -154,14 +154,17 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
 
   return (
     <ChartCard as={headingLevel} title="응답 시간" unit={caption} right={controls}>
+      {/* 조회 실패 안내 → 차트 16px */}
+      <div className="space-y-heading">
       {notice}
+      <div>
       {unavailable ? null : loading ? <ChartSkeleton /> : total === 0 ? <ChartEmpty /> : (
         <>
           <div className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
             <dl aria-label="응답 시간 요약">
-              <dt className="mb-1.5 type-caption text-text-muted">선택 기간 평균</dt>
+              <dt className="mb-label type-caption text-text-muted">선택 기간 평균</dt>
               <dd data-response-average className="type-kpi text-text-base">
-                {average === null ? '-' : number(average)}{average !== null && <span className="ml-1.5 text-sm font-normal tracking-normal text-text-muted">ms</span>}
+                {average === null ? '-' : number(average)}{average !== null && <span className="ml-1.5 type-control tracking-normal text-text-muted">ms</span>}
               </dd>
             </dl>
             <p data-response-counts className="type-caption text-text-muted">체크 <span className="tabular-nums text-text-secondary">{number(total)}회</span> 중 <span className={failed ? 'font-medium text-status-error' : ''}>실패 {number(failed)}회</span></p>
@@ -203,8 +206,8 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
             <span className="tabular-nums">{formatDateTime(window[0])} ~ {formatDateTime(window[1])} · {timezone}</span>
           </div>
           {events.length > 0 && (
-            <div className="mt-6">
-              <SubHeading className="mb-1 type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
+            <div className="mt-6 space-y-intra">
+              <SubHeading className="type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
               {/* 스크롤 영역이 행의 포커스 링을 자르지 않게 여백을 두고 같은 만큼 끌어당긴다. */}
               <ul aria-label="이 기간의 실패" className="-m-1 max-h-48 overflow-y-auto p-1">
                 {events.map((event) => (
@@ -228,6 +231,8 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
           {outsideThresholds.length > 0 && <p className="mt-2 type-caption text-text-muted">{outsideThresholds.map((rule) => `알림 ${OPERATOR_LABEL[rule.operator] ?? '>'} ${number(rule.threshold)}ms`).join(', ')}</p>}
         </>
       )}
+      </div>
+      </div>
     </ChartCard>
   );
 }

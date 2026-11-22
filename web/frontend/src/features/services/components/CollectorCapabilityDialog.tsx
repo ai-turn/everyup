@@ -6,9 +6,11 @@ import { api, type AgentCollectionCapability, type ConnectedAgent } from '../../
 import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { getErrorMessage } from '../../../utils/errors';
 import { useSetupStatus } from '../useSetupStatus';
+import { ApplyScope } from '../../connections/ApplyScope';
+import { APPLY_SCOPE, DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 import { ReceiptPanel } from './TelemetryReceiptStatus';
 
-const labels: Record<AgentCollectionCapability, string> = { uptime: '컨테이너 상태', logs: '로그', infrastructure: '인프라', api: 'API 요청', metrics: '메트릭' };
+const labels: Record<AgentCollectionCapability, string> = DOCKER_CAPABILITY_NAME;
 
 // Docker 환경의 수집 프로필에 기능 하나를 더한다. ID·키·수집 이력은 그대로이고, 적용 명령은 onApply가 연다.
 export function CollectorCapabilityDialog({ agent, capability, onClose, onApply }: {
@@ -20,7 +22,6 @@ export function CollectorCapabilityDialog({ agent, capability, onClose, onApply 
   const ref = useRef<HTMLDialogElement>(null);
   const [saving, setSaving] = useState(false);
   const { data: status, error: statusError } = useSetupStatus<CollectorSetupStatus>(`/agents/${agent.id}/setup-status`);
-  const enabled = status?.profile.capabilities.includes(capability);
   useEffect(() => { ref.current?.showModal(); }, []);
   const apply = async () => {
     setSaving(true);
@@ -34,20 +35,35 @@ export function CollectorCapabilityDialog({ agent, capability, onClose, onApply 
     finally { setSaving(false); }
   };
   return <dialog ref={ref} aria-labelledby="collector-capability-title" onCancel={event => { event.preventDefault(); if (!saving) onClose(); }} className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface p-6 ${SCRIM_MODAL_DIALOG}`}>
-    <h2 id="collector-capability-title" className="type-card-title text-text-base">{labels[capability]} 수집 추가</h2>
-    <p className="mt-2 type-body text-text-muted">{agent.name}의 기존 Collector에 기능을 더합니다. ID·키·수집 이력이 유지됩니다.</p>
-    <div className="mt-4 space-y-3">
-      {statusError ? <p role="alert" className="type-body text-status-warn">{statusError}</p> : status ? <>
-        <p className="type-body text-text-muted">{status.connected ? '최근 Collector 통신 확인됨' : '최근 Collector 통신 없음'} · 현재 선택: {status.profile.capabilities.map(item => labels[item]).join(', ')}</p>
-        {enabled ? <>
-          <p className="type-body text-text-secondary">이미 선택된 기능입니다. 데이터 수신 기록을 확인하세요.</p>
-          <ReceiptPanel signals={status.signals} expected={[capability === 'api' ? 'traces' : capability]} />
-        </> : <p className="type-body text-text-muted">이 Docker 환경 전체에 기능을 추가합니다. 적용 명령을 서버에서 실행해야 하며, API 요청 수집은 eBPF Observer와 호스트 권한을 추가합니다. 앱 재시작은 필요하지 않습니다.</p>}
-        {(!enabled || !status.configApplied || !status.connected) && <Button onClick={() => void apply()} loading={saving}>{enabled ? '설정 적용 명령' : `${labels[capability]} 추가 및 적용 명령`}</Button>}
-      </> : <p className="type-body text-text-muted">수집 설정 확인 중…</p>}
+    <h2 id="collector-capability-title" className="type-card-title text-text-base">{labels[capability]} 연결</h2>
+    <p className="mt-2 type-body text-text-muted">{agent.name}의 Docker Collector에 기능을 더합니다. ID·키·수집 이력이 유지됩니다.</p>
+    <div className="mt-4 space-y-label">
+      <ApplyScope>{APPLY_SCOPE.dockerCapability}</ApplyScope>
+      <CapabilityStatus status={status} statusError={statusError} capability={capability} saving={saving} onApply={() => void apply()} />
     </div>
     <div className="mt-5 flex justify-end border-t border-ui-border pt-4">
       <Button variant="quiet" onClick={onClose} disabled={saving}>닫기</Button>
     </div>
   </dialog>;
+}
+
+/** 수집 설정을 불러온 결과에 따라: 오류, 확인 중, 이미 선택된 기능(수신 기록), 아직 고르지 않은 기능. 적용 명령은 설정이 다 맞기 전까지 받을 수 있다. */
+function CapabilityStatus({ status, statusError, capability, saving, onApply }: {
+  status: CollectorSetupStatus | null | undefined;
+  statusError: string | null | undefined;
+  capability: AgentCollectionCapability;
+  saving: boolean;
+  onApply: () => void;
+}) {
+  if (statusError) return <p role="alert" className="type-body text-status-warn">{statusError}</p>;
+  if (!status) return <p className="type-body text-text-muted">수집 설정 확인 중…</p>;
+  const enabled = status.profile.capabilities.includes(capability);
+  return <>
+    <p className="type-body text-text-muted">{status.connected ? '최근 Docker Collector 통신 확인됨' : '최근 Docker Collector 통신 없음'} · 현재 선택: {status.profile.capabilities.map(item => labels[item]).join(', ')}</p>
+    {enabled ? <>
+      <p className="type-body text-text-secondary">이미 선택된 기능입니다. 데이터 수신 기록을 확인하세요.</p>
+      <ReceiptPanel signals={status.signals} expected={[capability === 'api' ? 'traces' : capability]} />
+    </> : (capability === 'api' ? <p className="type-body text-text-muted">API 요청 수집은 eBPF Observer와 호스트 권한을 추가합니다.</p> : null)}
+    {(!enabled || !status.configApplied || !status.connected) && <Button onClick={onApply} loading={saving}>적용 명령 받기</Button>}
+  </>;
 }

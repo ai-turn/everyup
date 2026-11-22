@@ -15,7 +15,7 @@ type DetailState = {
   refreshing: boolean;
 };
 
-// 패널(UptimeMonitorPanel)은 monitorId를 key로 그린다. 늦게 온 응답은 그 인스턴스의 것이다.
+// 모니터 페이지(ServerMonitorPage)는 monitorId를 key로 그린다. 늦게 온 응답은 그 인스턴스의 것이다.
 export function useUptimeMonitorDetail(monitorId: string) {
   const [state, setState] = useState<DetailState>({ monitor: null, metrics: null, summary: null, history: null, incidents: null, failures: null, errors: {}, notFound: false, loading: true, refreshing: false });
   const pending = useRef<Promise<void> | null>(null);

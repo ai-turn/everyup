@@ -2,7 +2,7 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, DetailActionToolbar, EmptyState, ListViewToggle, MaterialIcon, PageHeader, RefreshIconButton, ResourceTable, StatusLight } from '../../components/common';
+import { Button, ConfirmDialog, DetailMeta, EmptyState, ListViewToggle, MaterialIcon, OverflowMenu, PageHeader, RefreshStatus, ResourceTable, Section, StatusLight } from '../../components/common';
 import { partialFailureMessage, useServers, type FailedTargets } from '../../features/servers/useServers';
 import { useListView } from '../../hooks/useListView';
 import { api, type Project } from '../../services/api';
@@ -26,7 +26,7 @@ function MemberLink({ to, icon, type, name, detail, cause, state, returnTo, onOp
     <Link to={to} state={{ returnTo }} onClick={onOpen} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-ui-hover-soft">
       {/* 종류 아이콘은 분류라 표 보기처럼 중립색이다(§5.3). 상태는 표 보기와 같은 StatusLight가 말한다. */}
       <MaterialIcon size={20} name={icon} className="shrink-0 text-text-muted" />
-      <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-0.5 block truncate text-xs text-text-muted">{type}</span><span className="mt-1 block"><StatusLight tone={state} label={detail} /></span>{cause && <span className="mt-0.5 block truncate text-xs text-text-muted">{cause}</span>}</span>
+      <span className="min-w-0 flex-1"><span className="block truncate type-label text-text-base">{name}</span><span className="mt-intra block truncate type-caption text-text-muted">{type}</span><span className="mt-1 block"><StatusLight tone={state} label={detail} /></span>{cause && <span className="mt-intra block truncate type-caption text-text-muted">{cause}</span>}</span>
       <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
     </Link>
   );
@@ -47,6 +47,8 @@ export function ProjectOverviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [failedSources, setFailedSources] = useState<string[]>([]);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deletingProject, setDeletingProject] = useState(false);
@@ -88,6 +90,7 @@ export function ProjectOverviewPage() {
     if (agentsResult.status === 'rejected') failed.push('Docker 환경');
     if (servicesResult.status === 'rejected') failed.push('Docker 서비스');
     setFailedSources(failed);
+    setUpdatedAt(new Date());
     } finally {
       setLoading(false);
     }
@@ -98,7 +101,7 @@ export function ProjectOverviewPage() {
     return () => window.clearTimeout(id);
   }, [load]);
   const { poll, refresh: refreshServers, reload: reloadServers } = servers;
-  useAutoRefresh(() => { void load(true); poll(); }, 30_000);
+  useAutoRefresh(() => { void load(true); poll(); }, 30_000, autoRefresh);
   const { spinning, trigger: handleRefresh } = useSpinAction(() => { void load(true); void refreshServers(); });
   // 대상을 넣고 뺀 뒤: 둘 다 다시 불러온 결과가 반영된 뒤에 끝난다.
   const reloadAll = () => Promise.all([load(true), reloadServers()]).then(() => undefined);
@@ -149,35 +152,42 @@ export function ProjectOverviewPage() {
     : null;
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {/* 상세 헤더에는 채움 부제를 두지 않는다(§4.1) — 사용자가 적은 설명이 있을 때만 */}
-      <PageHeader title={project.name} subtitle={project.description || undefined} />
-      <DetailActionToolbar
-        controls={
-          <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
-        }
+      <PageHeader
+        title={project.name}
+        subtitle={project.description || undefined}
+        // 상태 줄: 대상 수와, 오른쪽 끝의 갱신 상태(DESIGN.md §4.1 상세 헤더).
+        meta={<DetailMeta status={<>
+          <span>대상 {totalTargets}개</span>
+          <div className="ml-auto">
+            <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} autoRefresh={autoRefresh} onAutoRefreshChange={setAutoRefresh} />
+          </div>
+        </>} />}
+        // 주 조작 하나(대상 추가)와 더보기(수정, 삭제)다.
         actions={
           <>
-            <Button collapseLabel onClick={() => setAdding(true)}><MaterialIcon name="add" />대상 추가</Button>
-            <Button collapseLabel variant="secondary" onClick={() => setEditing(true)}><MaterialIcon name="edit" />수정</Button>
-            <Button collapseLabel variant="destructive" onClick={() => setDeleting(true)}><MaterialIcon name="delete_outline" />삭제</Button>
+            <Button collapseLabel variant="secondary" onClick={() => setAdding(true)}><MaterialIcon name="add" />대상 추가</Button>
+            <OverflowMenu items={[
+              { label: '수정', icon: 'edit', onSelect: () => setEditing(true) },
+              { label: '삭제', icon: 'delete_outline', danger: true, onSelect: () => setDeleting(true) },
+            ]} />
           </>
         }
       />
 
-      {failures.length > 0 && <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" /><div><p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-0.5 type-body text-text-muted">{partialFailureMessage(failures)}</p></div></div><Button variant="secondary" size="sm" onClick={() => void reloadAll()}>다시 시도</Button></section>}
+      {failures.length > 0 && <section className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status"><div className="flex items-start gap-3"><MaterialIcon size={20} name="sync_problem" className="icon-lead text-status-warn" /><div><p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p><p className="mt-intra type-body text-text-muted">{partialFailureMessage(failures)}</p></div></div><Button variant="secondary" size="sm" onClick={() => void reloadAll()}>다시 시도</Button></section>}
 
       {totalTargets === 0 ? membersUnknown ? null : <section><EmptyState icon="folder_open" title="아직 배정된 대상이 없습니다" description="서버와 Docker 환경을 이 그룹에 모아 보세요." action={{ label: '대상 추가', onClick: () => setAdding(true) }} /></section> : (
-        <section>
-          <div className="mb-3 flex flex-wrap items-center gap-3"><div><h2 className="type-card-title text-text-base">대상</h2><p className="mt-0.5 type-body text-text-muted">장애를 먼저, 수집 지연을 그다음에 보여줍니다.</p></div><ListViewToggle view={view} onChange={setView} /></div>
+        <Section title="대상" description="장애를 먼저, 수집 지연을 그다음에 보여줍니다." actions={<ListViewToggle view={view} onChange={setView} />}>
           {view === 'card' ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{members.map(({ key, assignment, ...member }) => <div key={key} className="flex items-center rounded-xl border border-ui-border-soft bg-bg-surface"><MemberLink {...member} returnTo={returnTo} onOpen={() => openMember(member.to)} />{assignment && <div className="pr-2">{removeButton({ key, assignment, ...member })}</div>}</div>)}</div> :
             <ResourceTable rows={members} rowKey={row => row.key} ariaLabel="그룹 구성 그리드" columns={[
               // 종류 아이콘은 분류라 중립색이다(§5.3). 상태는 현황 열의 StatusLight가 말한다(§5.1).
-              { key: 'name', label: '대상', render: row => <div className="flex min-w-0 items-start gap-3"><MaterialIcon size={20} name={row.icon} className="mt-0.5 shrink-0 text-text-muted" /><div className="min-w-0"><Link to={row.to} state={{ returnTo }} onClick={() => openMember(row.to)} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.type}</p><div className="mt-2 md:hidden"><MemberStatus member={row} /></div></div></div> },
+              { key: 'name', label: '대상', render: row => <div className="flex min-w-0 items-start gap-3"><MaterialIcon size={20} name={row.icon} className="icon-lead shrink-0 text-text-muted" /><div className="min-w-0"><Link to={row.to} state={{ returnTo }} onClick={() => openMember(row.to)} data-row-link className="block truncate font-medium text-action">{row.name}</Link><p className="mt-1 type-caption text-text-muted">{row.type}</p><div className="mt-2 md:hidden"><MemberStatus member={row} /></div></div></div> },
               { key: 'detail', label: '현황', className: 'hidden md:table-cell', render: row => <MemberStatus member={row} /> },
               { key: 'actions', label: '작업', className: 'w-28 whitespace-nowrap', align: 'right', render: removeButton },
             ]} />}
-        </section>
+        </Section>
       )}
 
       {adding && <AddTargetsDialog project={project} projects={data.projects} targets={assignableTargets(all)} loadFailed={membersUnknown} onRetry={reloadAll} onClose={() => setAdding(false)} onAdded={reloadAll} />}

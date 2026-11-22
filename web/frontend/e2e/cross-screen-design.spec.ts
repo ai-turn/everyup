@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { mockRouter } from '../src/services/mockRouter';
 import type { AgentServiceFlat, ConnectedAgent, InfrastructureResource, Project, Server } from '../src/services/api';
 import { uptimeFixture } from './fixtures/uptime';
@@ -111,20 +112,20 @@ test.describe('demo', () => {
     await expect(page.getByText('Docker 서비스의 로그는 Docker 환경에 있습니다.')).toBeVisible();
     await expect(page.getByRole('main').getByRole('link', { name: 'Docker 환경', exact: true })).toHaveAttribute('href', /\/environments$/);
 
+    // 앱은 자기 페이지가 있다. 좁은 화면의 복귀 링크는 앱을 연 목록이다(넓은 화면은 크럼과 뒤로 가기, Docker 서비스 상세와 같다).
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('table', { name: '앱 그리드' }).locator('a[data-row-link]').first().click();
-    await expect(page).toHaveURL(/\/servers\/[^/]+\/logs\/[^/?]+/);
-    const back = panel(page).getByRole('link', { name: '전체 로그', exact: true });
-    await expect(back).toBeVisible();
-    await expect(panel(page).getByRole('link', { name: '앱 목록', exact: true })).toHaveCount(0);
-    await back.click();
+    await expect(page).toHaveURL(/\/servers\/[^/]+\/apps\/[^/?]+\?tab=logs/);
+    const header = page.locator('#main-content header').first();
+    await expect(header.getByRole('link', { name: '앱 목록', exact: true })).toHaveCount(0);
+    await header.getByRole('link', { name: '전체 로그', exact: true }).click();
     await expect(page).toHaveURL(/\/logs$/);
 
-    // 서버의 로그 탭에서 연 앱은 지금처럼 앱 목록으로 돌아간다.
+    // 서버의 로그 탭에서 연 앱은 그 서버의 앱 목록으로 돌아간다.
     await page.goto(`./servers/${EDGE}/logs`);
     await page.getByRole('table', { name: '앱 그리드' }).locator('a[data-row-link]').first().click();
-    await expect(panel(page).getByRole('link', { name: '앱 목록', exact: true })).toBeVisible();
+    await expect(header.getByRole('link', { name: '앱 목록', exact: true })).toBeVisible();
 
-    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('./more');
     await page.getByRole('link', { name: /^전체 로그/ }).click();
     await expect(page).toHaveURL(/\/logs$/);
@@ -132,11 +133,11 @@ test.describe('demo', () => {
 
   test('the first button of an empty server opens the monitor dialog once', async ({ page }) => {
     await page.goto('./servers/server_mock_staging_empty');
-    await expect(panel(page).getByRole('button')).toHaveCount(1);
-    await expect(panel(page)).toContainText('다른 기능은 각 탭에서 연결합니다.');
+    // 다섯 기능 모두 여기서 시작할 수 있다. 설치가 필요 없는 업타임이 주 버튼이다.
+    await expect(panel(page).getByRole('button')).toHaveText(['업타임 모니터 추가', '인프라 연결', '로그 연결', 'API 요청 연결', '메트릭 연결']);
     await panel(page).getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
     await expect(page).toHaveURL(/\/servers\/server_mock_staging_empty\/uptime$/);
-    const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+    const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: '취소', exact: true }).click();
     await expect(dialog).toHaveCount(0);
@@ -154,7 +155,7 @@ test.describe('demo', () => {
     const monitor = palette.getByRole('option', { name: /^Checkout API/ });
     await expect(monitor).toContainText('edge-host-01의 모니터');
     await monitor.click();
-    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime/uptime_mock_checkout$`));
+    await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/monitors/uptime_mock_checkout$`));
 
     const group = mockRouter<Project[]>('/projects')[0];
     await open.click();
@@ -237,10 +238,10 @@ test.describe('demo', () => {
       await expectRingVisible(page, items.last());
     });
 
-    test('the server list keeps all logs as a toolbar link and its add button says 추가, without overflowing at 320px', async ({ page }) => {
+    test('the server list keeps all logs in its header and its add button says 추가, without overflowing at 320px', async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 700 });
       await page.goto('./servers');
-      // 전체 로그는 머리말이 아니라 툴바 줄의 텍스트 링크다. 모바일에서 누르는 높이는 44px 이상이다.
+      // 전체 로그는 툴바가 아니라 머리말의 갱신 시각 옆이다. 모바일에서 누르는 높이는 44px 이상이다.
       const allLogs = page.getByRole('main').getByRole('link', { name: '전체 로그', exact: true });
       await expect(allLogs).toHaveAttribute('href', /\/logs$/);
       await expect(page.getByRole('main').getByRole('textbox', { name: '서버 또는 대상 검색' })).toBeVisible();
@@ -251,7 +252,7 @@ test.describe('demo', () => {
       expect((await add.getByText('추가').boundingBox())!.width).toBeGreaterThan(20);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
       // 제목이 버튼에 밀려 글자마다 줄바꿈되지 않는다(한 줄 높이).
-      const title = await page.getByRole('heading', { level: 1, name: '서버' }).boundingBox();
+      const title = await page.getByRole('heading', { level: 1, name: /^서버/ }).boundingBox();
       expect(title!.height).toBeLessThan(40);
     });
   });
@@ -263,7 +264,7 @@ test.describe('times', () => {
 
   test('stamps and dates ignore the browser locale', async ({ page }) => {
     await page.goto(`./servers/${EDGE}`);
-    await expect(page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p')).toHaveText(/^\d{2}:\d{2}:\d{2} 갱신$/);
+    await expect(page.getByRole('group', { name: '데이터 갱신' }).locator('> p')).toHaveText(/^\d{2}:\d{2}:\d{2} 갱신$/);
     await page.goto('./');
     await expect(page.getByRole('region', { name: '최근 장애 이력' }).getByRole('listitem').first()).toBeVisible();
     const text = await page.getByRole('main').innerText();
@@ -273,7 +274,7 @@ test.describe('times', () => {
 });
 
 test.describe('fixtures', () => {
-  test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 } });
+  test.use({ baseURL: API_URL, viewport: { width: 1440, height: 1000 } });
 
   /** 사용률 경고 서버 넷과 수집이 끊긴 서버 하나(가장 오래된 관찰). 수와 실패는 테스트가 바꾼다. */
   async function mockWarnings(page: Page) {

@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import type { LogEntry, ObservedService, Server } from '../src/services/api';
 
 // Real HTTP failures on the log detail — a failed load must not read as "no logs".
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 // 서버 화면은 이 서버의 로그 탭(/servers/server-1/logs/<앱>)에서 앱의 로그를 보여 준다.
 const server: Server = { id: 'server-1', name: 'web-01', createdAt: '2026-11-01T00:00:00Z', updatedAt: '2026-11-01T00:00:00Z' };
@@ -57,8 +58,7 @@ test('histogram and ingest-level failures say so and retry', async ({ page }) =>
   const state: LogState = { failHistogram: true, failFilter: true };
   await mockLogs(page, state);
   await page.goto(`./servers/${server.id}/logs/${service.id}?range=24h`);
-  // 수집 레벨은 서버 탭에서 접혀 있는 연결 정보 안에 있다.
-  await page.locator('summary', { hasText: '연결 정보' }).click();
+  // 수집 레벨은 앱 페이지 머리말의 연결 정보에 있다(넓은 화면에서는 펼쳐 둔다).
   await expect(page.getByText('로그 발생량을 불러오지 못했습니다', { exact: true })).toBeVisible();
   await expect(page.getByText('불러오지 못했습니다', { exact: true })).toBeVisible();
   state.failHistogram = false;

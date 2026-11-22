@@ -117,13 +117,13 @@ Only the three variables marked **required** must be set; everything else has a 
 - **`EVERYUP_DATA_DIR`** · default `/data`\
   Where Collector state (`agent-state.json`, `audit.jsonl`) is stored
 - **`EVERYUP_CHECK_INTERVAL_SECONDS`** · default `30`\
-  Health-check interval
+  Uptime check interval
 - **`EVERYUP_HTTP_TIMEOUT_SECONDS`** · default `5`\
   HTTP request timeout
 - **`EVERYUP_ALERT_COOLDOWN_SECONDS`** · default `300`\
   Minimum seconds between repeat alerts for the same target
 - **`EVERYUP_HEALTH_URL`**\
-  Absolute URL to health-check (single-target mode; usually Docker discovery is used instead)
+  Absolute URL to check for uptime (single-target mode; usually Docker discovery is used instead)
 
 ### Docker discovery and logs
 

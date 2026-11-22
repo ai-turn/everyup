@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import type { UptimeMonitor } from '../src/services/api';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 // Uptime reads independent monitors only; Docker checks are in their Docker Environment (ADR 0007).
 
@@ -42,7 +43,7 @@ test('active waiting checks and paused monitors stay distinct in the summary and
     failed: false,
   });
   await page.goto('./servers/server-1/uptime');
-  const summary = page.getByRole('region', { name: '업타임 상태 요약' });
+  const summary = page.getByRole('group', { name: '상태로 거르기' });
   for (const [name, label] of [['healthy-monitor', '정상'], ['failed-monitor', '장애'], ['waiting-monitor', '확인 대기'], ['paused-monitor', '일시정지']]) {
     await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name, exact: true }) }).getByText(label, { exact: true })).toBeVisible();
   }
@@ -56,14 +57,14 @@ test('a load failure stays unknown rather than empty and recovers on retry', asy
   await mockUptimeApi(page, state);
   await page.goto('./servers/server-1/uptime');
   await expect(panel(page).getByRole('alert')).toContainText('업타임 모니터');
-  await expect(page.getByRole('region', { name: '업타임 상태 요약' })).toHaveCount(0);
+  await expect(page.getByRole('group', { name: '상태로 거르기' })).toHaveCount(0);
   await expect(page.getByText('이 서버의 업타임 모니터를 추가하세요', { exact: true })).toHaveCount(0);
   state.failed = false;
   await panel(page).getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(page.getByRole('link', { name: 'healthy-monitor', exact: true })).toBeVisible();
   await expect(panel(page).getByRole('alert')).toHaveCount(0);
   await expect(page.getByRole('status')).toHaveCount(0);
-  await expect(page.getByRole('region', { name: '업타임 상태 요약' })).toBeVisible();
+  await expect(page.getByRole('group', { name: '상태로 거르기' })).toBeVisible();
 });
 
 test('a successful empty registry shows the genuine empty state', async ({ page }) => {

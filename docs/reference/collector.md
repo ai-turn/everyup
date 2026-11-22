@@ -110,13 +110,13 @@ OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20<generated-token>
 - **`EVERYUP_DATA_DIR`** · 기본값 `/data`\
   Collector 상태(`agent-state.json`, `audit.jsonl`) 저장 위치
 - **`EVERYUP_CHECK_INTERVAL_SECONDS`** · 기본값 `30`\
-  health check 주기(초)
+  업타임 체크 주기(초)
 - **`EVERYUP_HTTP_TIMEOUT_SECONDS`** · 기본값 `5`\
   HTTP 요청 timeout(초)
 - **`EVERYUP_ALERT_COOLDOWN_SECONDS`** · 기본값 `300`\
   같은 대상에 대한 반복 알림 사이의 최소 간격(초)
 - **`EVERYUP_HEALTH_URL`**\
-  health check할 절대 URL(단일 대상 모드. 보통은 Docker 탐지를 사용합니다)
+  업타임을 확인할 절대 URL(단일 대상 모드. 보통은 Docker 탐지를 사용합니다)
 
 ### Docker 탐지와 로그
 

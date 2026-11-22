@@ -15,7 +15,7 @@ interface Props {
 // concise status summary; the installation modal owns the detailed guidance.
 export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Props) {
   return (
-    <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-heading">
       <ResourceCardHeader
         title={<h2 className="truncate type-card-title text-text-base">{agent.name}</h2>}
         status={
@@ -30,7 +30,7 @@ export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Pr
                 <button
                   type="button"
                   onClick={onViewKey}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-text-secondary hover:bg-ui-hover"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left type-caption text-text-secondary hover:bg-ui-hover"
                 >
                   <MaterialIcon size={20} name="key" />
                   API Key
@@ -38,7 +38,7 @@ export function PendingServiceCard({ agent, onDelete, onViewKey, onInstall }: Pr
                 <button
                   type="button"
                   onClick={() => onDelete(agent.id)}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-status-error hover:bg-ui-hover"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left type-caption text-status-error hover:bg-ui-hover"
                 >
                   <MaterialIcon size={20} name="delete_outline" />
                   비활성화

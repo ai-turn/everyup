@@ -1,18 +1,21 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'react-hot-toast';
-import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
-  Button, ConfirmDialog, EmptyState, ListToolbar, ListViewToggle, MaterialIcon, SearchInput, StatusLight,
+  Button, ConfirmDialog, EmptyState, FilterChips, ListToolbar, ListViewToggle, MaterialIcon, SearchInput,
 } from '../../../components/common';
+import { useListSearch } from '../../../hooks/useListSearch';
 import { useListView } from '../../../hooks/useListView';
 import { api, type UptimeMonitor } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
+import { returnToWithQuery } from '../../../utils/listReturnTo';
 import { readLatest } from '../../../utils/readLatest';
 import { monitorInput } from '../monitorInput';
 import { UPTIME_STATE_LIGHT, uptimeState, type UptimeState } from '../uptimeState';
 import { UptimeTargets } from './UptimeTargets';
 
 const STATUS_FILTERS: UptimeState[] = ['down', 'up', 'waiting', 'paused'];
+const INSPECT = ['inspect'] as const;
 const parseStatus = (value: string | null): UptimeState | null =>
   STATUS_FILTERS.includes(value as UptimeState) ? value as UptimeState : null;
 
@@ -38,31 +41,13 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
   /** 검색창의 안내 문구이자 접근 가능한 이름 */
   searchLabel: string;
 }) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  // 필터를 바꾸면 열려 있던 모니터 패널(inspect)을 닫는다. 선택된 탭을 다시 눌러 첫 화면으로 가면 검색창이 주소를 따른다.
+  const { params: searchParams, query, search: normalizedQuery, setQuery, setParam } = useListSearch(INSPECT);
   const location = useLocation();
-  // 입력값은 로컬 상태가 쥔다. URL(?q=)은 react-router가 transition 안에서 반영해 값이 한 박자 늦게 돌아오므로,
-  // URL에 직접 묶으면 한글 조합 중 글자가 덮여 '결제'가 'ㄱ겨결결ㅈ제제'가 됐다. URL은 공유·복귀용 사본이다.
-  const [query, setQueryInput] = useState(() => searchParams.get('q') ?? '');
-  // 이 목록이 쓰는 주소 변경은 모두 replace다. 그 밖의 이동(선택된 탭을 다시 눌러 첫 화면으로, 뒤로 가기)이면 검색창이 주소의 q를 따른다.
-  // ServersPage와 같은 방식. 첫 기록의 key는 항상 default라 주소도 함께 본다.
-  const navigationType = useNavigationType();
-  const seen = `${location.key}${location.search}`;
-  const [seenLocation, setSeenLocation] = useState(seen);
-  if (seen !== seenLocation) {
-    setSeenLocation(seen);
-    if (navigationType !== 'REPLACE') setQueryInput(searchParams.get('q') ?? '');
-  }
   const status = parseStatus(searchParams.get('status'));
   const { view, setView } = useListView();
-  const setParam = (key: string, value: string | null) => {
-    const next = new URLSearchParams(searchParams);
-    if (value) next.set(key, value); else next.delete(key);
-    next.delete('inspect');
-    setSearchParams(next, { replace: true });
-  };
-  const setQuery = (value: string) => { setQueryInput(value); setParam('q', value); };
   const setStatus = (value: UptimeState | null) => setParam('status', value);
-  const returnTo = `${location.pathname}${searchParams.size ? `?${searchParams}` : ''}`;
+  const returnTo = returnToWithQuery(location.pathname, searchParams, query);
   const [changingMonitor, setChangingMonitor] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
@@ -72,10 +57,11 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
-  const normalizedQuery = query.trim().toLowerCase();
-  const filteredMonitors = useMemo(() => monitors.filter((monitor) => (!status || uptimeState(monitor) === status) && (!normalizedQuery
+  // 상태 칩의 개수는 검색어를 따르고 상태 선택은 따르지 않는다(서버 목록과 같다).
+  const searchedMonitors = useMemo(() => monitors.filter((monitor) => !normalizedQuery
     || monitor.name.toLowerCase().includes(normalizedQuery)
-    || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery))), [monitors, normalizedQuery, status]);
+    || (monitor.type === 'tcp' ? `${monitor.url}:${monitor.port}` : monitor.url).toLowerCase().includes(normalizedQuery)), [monitors, normalizedQuery]);
+  const filteredMonitors = useMemo(() => status ? searchedMonitors.filter((monitor) => uptimeState(monitor) === status) : searchedMonitors, [searchedMonitors, status]);
   // 검색·필터로 가려진 대상은 일괄 작업에서 빠진다 — 보이지 않는 것을 지우지 않게.
   const selectedMonitors = view === 'card' ? filteredMonitors.filter((monitor) => selected.has(monitor.id)) : [];
   const visibleSelection = new Set(selectedMonitors.map((monitor) => monitor.id));
@@ -131,32 +117,24 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
   const empty = filteredMonitors.length === 0;
   const hasTargets = monitors.length > 0;
 
-  const counts = Object.fromEntries(STATUS_FILTERS.map((key) => [key, monitors.filter((monitor) => uptimeState(monitor) === key).length])) as Record<UptimeState, number>;
+  const counts = Object.fromEntries(STATUS_FILTERS.map((key) => [key, searchedMonitors.filter((monitor) => uptimeState(monitor) === key).length])) as Record<UptimeState, number>;
 
   return (
-    <>
+    // 툴바 → 목록 24px(group)은 이 묶음이 갖는다. 선택 작업 줄 → 목록은 그 줄의 mb-3이다.
+    <div className="page-stack">
       {renderControls({ viewToggle: hasTargets ? <ListViewToggle view={view} onChange={(next) => { setSelected(new Set()); setView(next); }} /> : null })}
 
       {/* 상태 요약은 필터라 검색 옆에 둔다(DESIGN.md §4.5 규칙 2). 따로 한 줄이면 두 줄 모두 오른쪽 60%가 비었다. */}
       <ListToolbar search={
         <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={filteredMonitors.length} shortcut placeholder={searchLabel} aria-label={searchLabel} />
       }>
+        {/* 칩을 누르면 그 상태만 본다(다시 누르면 해제). 0건인 장애는 점을 중립색으로 둔다(DESIGN.md §5.4). */}
         {!stale && hasTargets && (
-          <section aria-label="업타임 상태 요약">
-            {/* 숫자를 누르면 그 상태만 본다(다시 누르면 해제). Uptime Kuma의 상태 필터를 요약에 겹쳤다. */}
-            <div role="group" aria-label="상태로 거르기" className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
-              {STATUS_FILTERS.map((key) => {
-                const [tone, label] = UPTIME_STATE_LIGHT[key];
-                return (
-                  <button key={key} type="button" aria-pressed={status === key} onClick={() => setStatus(status === key ? null : key)}
-                    className="flex min-h-11 flex-col items-start gap-1 rounded-lg px-2 py-1 transition-colors hover:bg-ui-hover-soft aria-pressed:bg-ui-hover sm:min-h-10 sm:flex-row sm:items-center sm:gap-2">
-                    <StatusLight label={label} tone={key === 'down' && counts.down === 0 ? 'idle' : tone} />
-                    <span className="type-kpi">{counts[key]}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+          <FilterChips ariaLabel="상태로 거르기" value={status} onChange={setStatus}
+            options={STATUS_FILTERS.map((key) => {
+              const [tone, label] = UPTIME_STATE_LIGHT[key];
+              return { value: key, label, count: counts[key], tone: key === 'down' && counts.down === 0 ? 'idle' : tone };
+            })} />
         )}
       </ListToolbar>
 
@@ -205,6 +183,6 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
         confirmLabel="삭제"
         isProcessing={bulkWorking}
       />
-    </>
+    </div>
   );
 }

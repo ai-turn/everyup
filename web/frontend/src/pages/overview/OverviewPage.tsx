@@ -1,7 +1,7 @@
 import { Tooltip } from '../../components/common/Tooltip';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ButtonLink, EmptyState, MaterialIcon, PageHeader, RefreshIconButton } from '../../components/common';
+import { Button, ButtonLink, EmptyState, List, ListGroup, ListMore, ListRow, MaterialIcon, PageHeader, RefreshStatus, Section } from '../../components/common';
 import {
   api,
   type AgentServiceFlat,
@@ -10,7 +10,7 @@ import {
   type TimelineIncident,
 } from '../../services/api';
 import { isCollectorFresh } from '../../utils/operationalStatus';
-import { formatClock, formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
+import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import { ALL_LOGS_PATH, NEW_SERVER_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
@@ -93,7 +93,8 @@ export function OverviewPage() {
     const initialLoad = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(initialLoad);
   }, [load]);
-  useAutoRefresh(() => { void load(); poll(); }, 30_000);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  useAutoRefresh(() => { void load(); poll(); }, 30_000, autoRefresh);
   // 직접 누른 새로고침만 아이콘을 돌린다 — 30초 자동 갱신마다 버튼을 비활성으로 깜빡이지 않게 (상세 화면과 같은 방식).
   const { spinning, trigger: handleRefresh } = useSpinAction(loadAll);
 
@@ -167,7 +168,7 @@ export function OverviewPage() {
       ...staleDockerInfrastructure.map((resource) => ({
         id: `infrastructure-${resource.id}`,
         title: resource.name,
-        detail: '인프라 Collector 데이터가 지연되었거나 끊겼습니다',
+        detail: '인프라 데이터가 지연되었거나 끊겼습니다',
         // Docker 환경의 인프라 리소스는 서버가 없고 ID가 그 환경과 같다.
         to: `/agents/${resource.id}`,
         tone: 'warn' as const,
@@ -213,22 +214,13 @@ export function OverviewPage() {
   if (showAllAttention && warnItems.length <= WARN_PREVIEW) setShowAllAttention(false);
   const shownWarnItems = showAllAttention ? warnItems : warnItems.slice(0, WARN_PREVIEW);
 
-  // 백그라운드 탭에서도 장애가 보이도록 탭 제목에 장애 수를 붙인다.
-  const errorCount = outageItems.length;
-  useEffect(() => {
-    if (errorCount === 0) return;
-    const previous = document.title;
-    document.title = `(${errorCount}) 장애 · ${previous}`;
-    return () => { document.title = previous; };
-  }, [errorCount]);
-
   const totalTargets = agents.length + servers.rows.length;
 
   // 첫 로드에만 스켈레톤을 보인다 — 대상이 0개인 상태에서 30초마다 다시 깜빡이지 않게.
   // 모양은 실제 배치(범위 스트립, 그 아래 확인 필요·이력 패널)를 따른다.
   if (!updatedAt || (!servers.loaded && !servers.error)) {
     return (
-      <div className="space-y-5" aria-busy="true">
+      <div className="page-stack" aria-busy="true">
         <PageHeader menu title="개요" />
         <div className="h-8 w-96 max-w-full animate-pulse rounded-md bg-ui-hover-soft" />
         <div className="h-80 animate-pulse rounded-lg bg-ui-hover-soft" />
@@ -237,18 +229,12 @@ export function OverviewPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {/* 연결 추가는 각 화면(서버, Docker 환경)의 일이다. 개요의 머리는 장애에 내준다. */}
       <PageHeader menu
         title="개요"
-        meta={updatedAt && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="type-caption text-text-muted">
-              {formatClock(updatedAt, true)} 갱신 · 30초마다 자동 갱신
-            </span>
-            <RefreshIconButton onClick={handleRefresh} refreshing={spinning} />
-          </div>
-        )}
+        // 갱신 상태는 상세 화면과 같은 RefreshStatus다(DESIGN.md §4.1 상세 헤더). 메뉴 화면이라 데스크톱은 AppHeader로 간다.
+        meta={updatedAt && <RefreshStatus updatedAt={updatedAt} onRefresh={handleRefresh} refreshing={spinning} autoRefresh={autoRefresh} onAutoRefreshChange={setAutoRefresh} />}
       />
       {/* 확인 필요 수가 바뀔 때만 읽힌다(텍스트가 같으면 다시 알리지 않는다). */}
       <p className="sr-only" aria-live="polite">
@@ -256,12 +242,12 @@ export function OverviewPage() {
       </p>
 
       {failedLabels.length > 0 && (
-        <section className="flex flex-col gap-3 rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
+        <section className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
           <div className="flex items-start gap-3">
-            <MaterialIcon size={20} name="sync_problem" className="mt-0.5 text-status-warn" />
+            <MaterialIcon size={20} name="sync_problem" className="icon-lead text-status-warn" />
             <div>
               <p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p>
-              <p className="mt-0.5 type-body text-text-muted">
+              <p className="mt-intra type-body text-text-muted">
                 불러오지 못한 영역: {failedLabels.join(', ')}. 이 영역은 정상 여부를 판단할 수 없습니다.
               </p>
             </div>
@@ -323,10 +309,9 @@ export function OverviewPage() {
 
           {/* Linear식 목록: 카드·행 구분선·배경 띠 없이 그룹 제목과 간격으로 나누고, 두 그룹 사이에만 옅은 선을 둔다. 행은 Triage 인박스처럼 두 줄. */}
           <div className="section-stack">
-            <section id="attention" aria-label="현재 확인 필요" className="scroll-mt-5">
-              {/* 일부 대상을 불러오지 못한 동안에는 본문이 판단을 유보하므로 건수를 단정하지 않는다. */}
-              <GroupHeader title="현재 확인 필요"
-                count={statusUnknown ? null : <><span>장애 {outageItems.length}</span>, <span>확인 필요 {warnItems.length}</span></>} />
+            {/* 일부 대상을 불러오지 못한 동안에는 본문이 판단을 유보하므로 건수를 단정하지 않는다. */}
+            <Section id="attention" label="현재 확인 필요" className="scroll-mt-5" title="현재 확인 필요"
+              meta={statusUnknown ? null : <><span>장애 {outageItems.length}</span>, <span>확인 필요 {warnItems.length}</span></>}>
               {attention.length === 0 ? (
                 <div className="flex items-center gap-3 py-3">
                   <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
@@ -335,7 +320,8 @@ export function OverviewPage() {
                   </p>
                 </div>
               ) : (
-                <div className="mt-1 space-y-3">
+                // 그룹(장애, 확인 필요) 사이 24px(DESIGN.md §3.7 세로 위계).
+                <div className="space-y-group">
                   {/* 장애가 없으면 확인 필요보다 먼저 그것을 말한다. 경고 몇 건이 장애처럼 읽히지 않게. */}
                   {outageItems.length === 0 ? (
                     <div className="flex items-center gap-3 py-2">
@@ -343,34 +329,31 @@ export function OverviewPage() {
                       <p className="type-body text-text-muted">{statusUnknown ? '불러온 영역에서는 진행 중인 장애가 없습니다' : '진행 중인 장애 없음'}</p>
                     </div>
                   ) : (
-                    <AttentionGroup id="attention-outages" title="장애">
+                    <ListGroup id="attention-outages" label="장애">
                       {outageItems.map((item) => <AttentionRow key={item.id} item={item} episode={activeEpisodes.get(item.to.split('?')[0])} />)}
-                    </AttentionGroup>
+                    </ListGroup>
                   )}
                   {warnItems.length > 0 && (
-                    <AttentionGroup id="attention-warnings" title="확인 필요"
+                    <ListGroup id="attention-warnings" label="확인 필요"
                       footer={warnItems.length > WARN_PREVIEW && (
-                        <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" aria-expanded={showAllAttention} onClick={() => setShowAllAttention((value) => !value)}><MaterialIcon name={showAllAttention ? 'expand_less' : 'expand_more'} />{showAllAttention ? '우선 항목만 보기' : `확인 필요 ${warnItems.length}건 모두 보기`}</Button>
+                        <ListMore expanded={showAllAttention} onToggle={() => setShowAllAttention((value) => !value)}
+                          label={showAllAttention ? '우선 항목만 보기' : `확인 필요 ${warnItems.length}건 모두 보기`} />
                       )}>
                       {shownWarnItems.map((item) => <AttentionRow key={item.id} item={item} />)}
-                    </AttentionGroup>
+                    </ListGroup>
                   )}
                 </div>
               )}
-            </section>
+            </Section>
 
             {/* 최근 장애 이력 — 위가 지금을 말한다면 이쪽은 시간축이다.
                 "지금 문제 없음"과 "닷새째 조용함"은 다른 정보고, 신뢰를 주는 건 후자다.
                 직접 연결 서비스는 이력 테이블이 없어 범위를 헤더에 밝힌다(안 밝히면 "전부 조용하다"로 오독된다). */}
-            <section aria-label="최근 장애 이력">
-              <GroupHeader
-                title="최근 장애 이력"
-                count={timelineFailed ? '-' : timeline.length}
-                countLabel={timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}
-                note="업타임 모니터·Docker 서비스, 최근 7일"
-              />
+            {/* 건수는 제목과 같은 기준선의 메타, 범위는 제목 아래 설명 줄이다 — 메타는 개수처럼 짧은 값만 둔다(DESIGN.md §2.2). */}
+            <Section label="최근 장애 이력" title="최근 장애 이력" description="업타임 모니터·Docker 서비스, 최근 7일"
+              meta={<><span aria-hidden="true">{timelineFailed ? '-' : timeline.length}</span><span className="sr-only">{timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}</span></>}>
               {timelineFailed && (
-                <div role="status" className="flex flex-col gap-2 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                <div role="status" className="flex flex-col gap-label cell sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
                     <MaterialIcon name="sync_problem" className="shrink-0 text-status-warn" />
                     <p className="type-body text-text-muted">
@@ -384,24 +367,23 @@ export function OverviewPage() {
               {timeline.length === 0 ? (
                 !timelineFailed && <p className="py-3 type-body text-text-muted">최근 7일간 기록된 장애가 없습니다</p>
               ) : (
-                <ul className="-mx-3 mt-1">
+                <List>
                   {timeline.map((episode) => (
-                    <li key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}>
-                      <ListRow
-                        to={episode.targetPath}
-                        marker={<span className={`h-2 w-2 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`} aria-hidden="true" />}
-                        title={withParent(episode.targetName, episode.targetPath)}
-                        detail={episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상')}
-                        start={formatIncidentTime(episode.startedAt)}
-                        duration={episode.active
-                          ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>
-                          : `${formatDuration(episode.durationSec)} 지속`}
-                      />
-                    </li>
+                    <ListRow
+                      key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}
+                      to={episode.targetPath}
+                      marker={<span className={`h-2 w-2 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`} aria-hidden="true" />}
+                      title={withParent(episode.targetName, episode.targetPath)}
+                      detail={episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상')}
+                      trailing={formatIncidentTime(episode.startedAt)}
+                      trailingDetail={episode.active
+                        ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>
+                        : `${formatDuration(episode.durationSec)} 지속`}
+                    />
                   ))}
-                </ul>
+                </List>
               )}
-            </section>
+            </Section>
           </div>
         </>
       )}
@@ -409,70 +391,18 @@ export function OverviewPage() {
   );
 }
 
-function GroupHeader({ title, count, countLabel, note }: { title: string; count: ReactNode; countLabel?: string; note?: string }) {
-  return (
-    <div className="flex h-8 items-center gap-2">
-      {/* 섹션 제목이다(section-stack 선으로 나뉜다) — 그룹 제목용 12px이면 아래 행 이름(14px)보다 작아 위계가 뒤집혔다. */}
-      <h2 className="type-card-title text-text-base">{title}</h2>
-      {/* span의 aria-label은 대부분의 스크린리더가 읽지 않는다 — 숫자만이면 감추고 같은 뜻을 글로 둔다. */}
-      <span className="type-body tabular-nums text-text-muted">
-        {countLabel ? <><span aria-hidden="true">{count}</span><span className="sr-only">{countLabel}</span></> : count}
-      </span>
-      {note && <span className="ml-auto min-w-0 truncate type-caption text-text-muted">{note}</span>}
-    </div>
-  );
-}
-
-// 현재 확인 필요 안의 묶음(장애, 확인 필요). 제목은 섹션 제목(h2) 아래의 h3이다.
-function AttentionGroup({ id, title, footer, children }: { id: string; title: string; footer?: ReactNode; children: ReactNode }) {
-  return (
-    <div role="group" aria-labelledby={id}>
-      <h3 id={id} className="type-label-sm text-text-muted">{title}</h3>
-      <ul className="-mx-3 mt-1">{children}</ul>
-      {footer && <div className="mt-1">{footer}</div>}
-    </div>
-  );
-}
-
 // 장애 행은 장애 이력의 진행 중 에피소드와 이어져 시작 시각과 경과 시간을 보인다.
 function AttentionRow({ item, episode }: { item: AttentionItem; episode?: TimelineIncident }) {
   return (
-    <li>
-      <ListRow
-        to={item.to}
-        marker={<MaterialIcon name={item.icon} className={item.tone === 'error' ? 'text-status-error' : 'text-status-warn'} />}
-        title={item.title}
-        detail={episode?.message || item.detail}
-        start={episode && formatIncidentTime(episode.startedAt)}
-        duration={episode ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span> : item.timeLabel}
-      />
-    </li>
+    <ListRow
+      to={item.to}
+      marker={<MaterialIcon name={item.icon} className={item.tone === 'error' ? 'text-status-error' : 'text-status-warn'} />}
+      title={item.title}
+      detail={episode?.message || item.detail}
+      // 시작 시각이 없는 항목(수집 지연 등)은 timeLabel 하나를 윗줄 오른쪽에 둔다.
+      trailing={episode ? formatIncidentTime(episode.startedAt) : item.timeLabel}
+      trailingDetail={episode && <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>}
+    />
   );
 }
 
-// Triage식 두 줄 행: 윗줄은 대상과 시작 시각, 아랫줄은 원인과 경과. 선 없이 hover 배경으로만 행을 드러낸다.
-// 시작 시각이 없는 항목(수집 지연 등)은 timeLabel 하나를 윗줄 오른쪽에 둔다.
-function ListRow({ to, marker, title, detail, start, duration }: {
-  to: string;
-  marker: ReactNode;
-  title: string;
-  detail: string;
-  start?: string;
-  duration?: ReactNode;
-}) {
-  return (
-    <Link to={to} className="flex gap-3 rounded-md px-3 py-2 transition-colors hover:bg-ui-hover-soft">
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center">{marker}</span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-baseline gap-3">
-          <span className="min-w-0 truncate type-label text-text-base">{title}</span>
-          <span className="ml-auto shrink-0 whitespace-nowrap type-caption tabular-nums text-text-muted">{start ?? duration}</span>
-        </span>
-        <span className="flex items-baseline gap-3">
-          <span className="min-w-0 truncate type-body text-text-muted">{detail}</span>
-          {start && <span className="ml-auto shrink-0 whitespace-nowrap type-caption tabular-nums text-text-muted">{duration}</span>}
-        </span>
-      </span>
-    </Link>
-  );
-}
