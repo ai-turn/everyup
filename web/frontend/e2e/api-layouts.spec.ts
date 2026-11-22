@@ -25,7 +25,7 @@ test('API detail and connection fit responsive layouts in both themes', async ({
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(API_TAB);
-  const trigger = page.getByRole('button', { name: 'API 연결', exact: true });
+  const trigger = page.getByRole('button', { name: 'API 요청 연결', exact: true });
   await trigger.click();
   const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });
   await expect(dialog.getByRole('textbox', { name: '앱 이름', exact: true })).toBeVisible();

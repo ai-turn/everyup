@@ -103,7 +103,7 @@ test('pause and edit are built from the monitor as it is now, not as the panel l
   // 다른 창에서 이 모니터를 다른 서버로 옮기고 타임아웃을 바꿨다. 패널은 아직 다시 불러오지 않았다.
   state.responses.set('GET /services/http-monitor', moved);
   await page.getByRole('button', { name: '수정', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '업타임 수정' });
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 수정' });
   await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('Renamed');
   await dialog.getByRole('spinbutton', { name: '주기 (초)' }).fill('60');
   await dialog.getByRole('button', { name: '저장', exact: true }).click();

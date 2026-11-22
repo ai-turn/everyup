@@ -5,7 +5,10 @@ export const NEW_SERVER_PATH = '/servers/new';
 /** 여러 서버를 가로지르는 로그 요약. 사이드바에서는 서버 섹션에 속한다(설계 6.6). */
 export const ALL_LOGS_PATH = '/logs';
 
-export type ServerCapability = 'uptime' | 'infrastructure' | 'logs' | 'api' | 'metrics';
+import type { ConnectTarget } from '../connections/connectCopy';
+
+/** 서버의 기능 탭. 연결 문구의 대상과 같은 키다(`connectAction`). */
+export type ServerCapability = ConnectTarget;
 
 export const SERVER_CAPABILITIES: readonly { key: ServerCapability; label: string }[] = [
   { key: 'uptime', label: '업타임' },
@@ -18,10 +21,6 @@ export const SERVER_CAPABILITIES: readonly { key: ServerCapability; label: strin
 /** 개요의 첫 버튼이 업타임 탭으로 옮기면서 넘기는 router state의 키. 탭이 모니터 추가 대화 상자를 한 번 연다. */
 export const ADD_MONITOR_STATE = 'addMonitor';
 
-/** 연결 안내의 주 버튼과 탭 줄의 추가 버튼이 같이 쓰는 문구(DESIGN.md §4.1 액션 앵커). */
-export const CONNECT_LABEL: Record<ServerCapability, string> = {
-  uptime: '모니터 추가', infrastructure: '인프라 연결', logs: '로그 연결', api: 'API 연결', metrics: '메트릭 연결',
-};
 
 // 삭제 뒤 목록으로 돌아갈 때 사용자가 마지막으로 보던 검색어와 필터를 되살린다. 새로고침하면 사라진다.
 let serversSearch = '';

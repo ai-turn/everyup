@@ -6,6 +6,7 @@ import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type UptimeMonitor, type UptimeMonitorInput, type UptimeMonitorType } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { Field } from '../../alerts/components/FormLayout';
+import { connectAction } from '../../connections/connectCopy';
 
 type MonitorDraft = {
   name: string;
@@ -131,7 +132,7 @@ export function UptimeMonitorDialog({
         <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
           <div>
             <h2 id="uptime-monitor-dialog-title" className="type-card-title text-text-base">
-              {monitor ? '업타임 수정' : '업타임 추가'}
+              {monitor ? '업타임 모니터 수정' : connectAction('uptime')}
             </h2>
             <p className="mt-intra type-body text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
           </div>

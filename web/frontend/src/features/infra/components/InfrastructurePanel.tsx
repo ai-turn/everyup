@@ -16,7 +16,7 @@ type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
 
 const CONFIRM_COPY = {
   rotate: { title: 'API Key를 재발급할까요?', message: '현재 키는 즉시 폐기됩니다. 실행 중인 OpenTelemetry Collector 설정에 새 키를 반영해야 합니다.', label: '재발급', variant: 'primary' as const },
-  revoke: { title: 'Collector 연결을 중지할까요?', message: '새 hostmetrics 수집이 즉시 차단됩니다. 저장된 이력은 유지됩니다.', label: '연결 중지', variant: 'danger' as const },
+  revoke: { title: 'OpenTelemetry Collector 연결을 중지할까요?', message: '새 hostmetrics 수집이 즉시 차단됩니다. 저장된 이력은 유지됩니다.', label: '연결 중지', variant: 'danger' as const },
   delete: { title: '인프라 리소스를 삭제할까요?', message: '저장된 호스트 메트릭 이력과 대상별 리소스 알림 규칙을 함께 삭제합니다.', label: '삭제', variant: 'danger' as const },
 };
 
@@ -70,7 +70,7 @@ export function InfrastructurePanel({ resource, status, serverName, onDeleted, m
       } else {
         await api.revokeInfrastructureResourceKey(resource.id);
         if (!alive.current) return;
-        toast.success('Collector 연결을 중지했습니다');
+        toast.success('OpenTelemetry Collector 연결을 중지했습니다');
       }
       // 다시 불러온 결과가 반영된 뒤에 닫는다. 먼저 닫으면 그동안 옛 상태와 누를 수 있는 버튼이 보였다.
       await onChanged?.();
@@ -125,8 +125,8 @@ export function InfrastructurePanel({ resource, status, serverName, onDeleted, m
         empty={resource.lastSeenAt ? undefined : (
           <EmptyState
             icon="schedule"
-            title="Collector 수신 대기"
-            description="Collector를 실행하면 30초 안에 첫 메트릭이 들어옵니다. 설정 파일이 없다면 API Key를 재발급해 새 설정을 받으세요."
+            title="OpenTelemetry Collector 수신 대기"
+            description="OpenTelemetry Collector를 실행하면 30초 안에 첫 메트릭이 들어옵니다. 설정 파일이 없다면 API Key를 재발급해 새 설정을 받으세요."
             action={{ label: '설정 다시 받기', onClick: () => setConfirmAction('rotate') }}
           />
         )}

@@ -27,11 +27,14 @@ import { env } from '../../../config/env';
 import { QUICKSTART_URL } from '../../../components/layout/DemoHelpLinks';
 import { formatClock } from '../../../utils/incidentFormat';
 import { Field } from '../../alerts/components/FormLayout';
+import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 
 interface Props {
   onClose: () => void;
   onCreated: () => void;
   existingAgent?: { id: string; name: string };
+  /** 설치한 Docker Collector에 바뀐 수집 설정을 적용하는 명령이다(기능 연결 뒤). 다시 설치하는 것이 아니다. */
+  purpose?: 'install' | 'apply';
   onOpenProject?: (agentId: string) => void;
   onConfigureInstrumentation?: (agentId: string) => void;
 }
@@ -41,7 +44,7 @@ type Step = 'form' | 'install';
 function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: boolean; diagnosed: boolean }) {
   const steps = [
     { label: 'Docker 환경', complete: step === 'install', active: step === 'form' },
-    { label: 'Collector 설치', complete: connected, active: step === 'install' && !connected },
+    { label: 'Docker Collector 설치', complete: connected, active: step === 'install' && !connected },
     { label: '기능 확인', complete: diagnosed, active: connected && !diagnosed },
     { label: '상세 수집', complete: false, active: diagnosed },
   ];
@@ -96,11 +99,11 @@ const PROFILE_OPTIONS: { label: string; value: AgentProfileKind }[] = [
 ];
 
 const CAPABILITY_OPTIONS: { capability: AgentCollectionCapability; label: string; description: string }[] = [
-  { capability: 'uptime', label: '업타임', description: 'Docker 서비스 상태와 업타임 체크 결과를 수집합니다.' },
-  { capability: 'logs', label: '로그', description: 'Docker stdout·stderr 로그를 읽습니다.' },
-  { capability: 'infrastructure', label: '인프라', description: '호스트 CPU·메모리·디스크를 수집합니다.' },
-  { capability: 'api', label: 'API', description: 'privileged eBPF Observer로 API 요청을 수집합니다.' },
-  { capability: 'metrics', label: '메트릭', description: 'OTLP 메트릭을 수신할 수 있게 합니다.' },
+  { capability: 'uptime', label: DOCKER_CAPABILITY_NAME.uptime, description: '컨테이너 실행 상태와 Docker 서비스의 응답 확인 결과를 수집합니다.' },
+  { capability: 'logs', label: DOCKER_CAPABILITY_NAME.logs, description: 'Docker stdout·stderr 로그를 읽습니다.' },
+  { capability: 'infrastructure', label: DOCKER_CAPABILITY_NAME.infrastructure, description: '호스트 CPU·메모리·디스크를 수집합니다.' },
+  { capability: 'api', label: DOCKER_CAPABILITY_NAME.api, description: 'privileged eBPF Observer로 API 요청을 수집합니다.' },
+  { capability: 'metrics', label: DOCKER_CAPABILITY_NAME.metrics, description: 'OTLP 메트릭을 수신할 수 있게 합니다.' },
 ];
 
 function AgentForm({
@@ -152,7 +155,7 @@ function AgentForm({
         <div className="space-y-label">
           <div>
             <span className="type-label text-text-muted">수집 범위</span>
-            <p className="mt-1 type-body text-text-muted">필요한 권한과 Collector만 설치합니다.</p>
+            <p className="mt-1 type-body text-text-muted">필요한 권한과 Docker Collector만 설치합니다.</p>
           </div>
           <SegmentedControl
             options={PROFILE_OPTIONS}
@@ -165,7 +168,7 @@ function AgentForm({
             <p className="type-body text-text-muted">컨테이너 상태·로그·호스트 자원·API 요청을 수집하고 OTLP 메트릭을 받을 수 있습니다. 앱 메트릭은 별도 전송 설정이 필요합니다.</p>
           )}
           {profileKind === 'basic' && (
-            <p className="type-body text-text-muted">업타임과 로그만 수집합니다. Docker socket은 읽기 전용으로 사용합니다.</p>
+            <p className="type-body text-text-muted">컨테이너 상태와 로그만 수집합니다. Docker socket은 읽기 전용으로 사용합니다.</p>
           )}
           {profileKind === 'custom' && (
             <div role="group" aria-label="사용자 지정 수집 기능" className="-mx-3">
@@ -206,6 +209,7 @@ function AgentForm({
 }
 
 function AgentInstallCommand({
+  title,
   connected,
   expanded,
   expiryLabel,
@@ -215,6 +219,7 @@ function AgentInstallCommand({
   codeUnavailable,
   onRefreshCode,
 }: {
+  title: string;
   connected: boolean;
   expanded: boolean;
   expiryLabel: string;
@@ -228,7 +233,7 @@ function AgentInstallCommand({
     <details open={expanded} className="group">
       <summary className="-mx-3 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-3 type-control text-text-base transition-colors hover:bg-ui-hover-soft">
         <MaterialIcon size={20} name="terminal" className="text-action" />
-        Docker Collector 설치 명령
+        {title}
         <span className="ml-auto type-caption text-text-dim">
           {env.isDemoMode ? '실행할 수 없는 예시 명령' : connected ? '재설치할 때 사용' : 'Linux Docker 서버에서 실행'}
         </span>
@@ -290,9 +295,11 @@ export function AddServiceModal({
   onClose,
   onCreated,
   existingAgent,
+  purpose = 'install',
   onOpenProject,
   onConfigureInstrumentation,
 }: Props) {
+  const title = purpose === 'apply' ? '적용 명령' : 'Docker Collector 설치';
   const [step, setStep] = useState<Step>(existingAgent ? 'install' : 'form');
   const [name, setName] = useState(existingAgent?.name ?? '');
   const [profileKind, setProfileKind] = useState<AgentProfileKind>('all-in-one');
@@ -441,14 +448,14 @@ export function AddServiceModal({
     <dialog
       ref={dialogRef}
       className={`fixed inset-0 z-50 m-auto h-full max-h-none w-full max-w-none items-center justify-center bg-transparent p-4 open:flex ${SCRIM_MODAL_DIALOG}`}
-      aria-label={step === 'form' ? 'Docker 연결' : 'Docker Collector 설치 및 모니터링 설정'}
+      aria-label={step === 'form' ? 'Docker 연결' : title}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
     >
       <div className={`w-full ${step === 'install' ? 'max-w-2xl' : 'max-w-md'} max-h-[92vh] bg-bg-surface rounded-xl shadow-lg border border-ui-border overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ui-border-soft">
           <h2 className="type-card-title text-text-base">
-            {step === 'form' ? 'Docker 연결' : 'Docker Collector 설치'}
+            {step === 'form' ? 'Docker 연결' : title}
           </h2>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
@@ -517,6 +524,7 @@ export function AddServiceModal({
             )}
 
             <AgentInstallCommand
+              title={purpose === 'apply' ? '적용 명령' : 'Docker Collector 설치 명령'}
               connected={connected}
               expanded={!connected || Boolean(existingAgent)}
               expiryLabel={expiryLabel}

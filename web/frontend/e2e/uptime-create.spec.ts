@@ -8,8 +8,8 @@ for (const [name, url] of [['   ', 'https://example.com'], ['Probe', 'not-a-url'
   test(`[06] HTTP rejects invalid name/URL ${name}:${url} before submission`, async ({ page }) => {
     const state = await uptimeFixture(page);
     await page.goto('./servers/server-1/uptime');
-    await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
-    const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+    await page.getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
     await dialog.getByRole('textbox', { name: '이름', exact: true }).fill(name);
     await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill(url);
     await dialog.getByRole('button', { name: '추가', exact: true }).click();
@@ -26,8 +26,8 @@ for (const [name, url] of [['   ', 'https://example.com'], ['Probe', 'not-a-url'
 test('[06] HTTP fields retain drafts through a failed save and block edits while saving', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.goto('./servers/server-1/uptime');
-  await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  await page.getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   const name = dialog.getByRole('textbox', { name: '이름', exact: true });
   const url = dialog.getByRole('textbox', { name: 'URL', exact: true });
   const interval = dialog.getByRole('spinbutton', { name: '주기 (초)', exact: true });
@@ -81,9 +81,9 @@ test('[06] HTTP fields retain drafts through a failed save and block edits while
 test('[06] cancelling an HTTP draft performs no write and reopens cleanly', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.goto('./servers/server-1/uptime');
-  const add = page.getByRole('button', { name: '모니터 추가', exact: true });
+  const add = page.getByRole('button', { name: '업타임 모니터 추가', exact: true });
   await add.click();
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('discard');
   await dialog.getByRole('button', { name: '취소', exact: true }).click();
   await expect(dialog).toHaveCount(0);
@@ -97,8 +97,8 @@ test('[06] cancelling an HTTP draft performs no write and reopens cleanly', asyn
 test('[07] switching HTTP/TCP preserves drafts, validates boundaries and saves TCP after failure', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.goto('./servers/server-1/uptime');
-  await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  await page.getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   const type = dialog.getByRole('combobox');
   await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('TCP Probe');
   await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill('db.example.com');

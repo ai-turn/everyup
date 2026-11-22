@@ -20,7 +20,7 @@ test('the API requests tab lists the trace apps and opens one on its own page', 
   await expect(rowNames(page, 'API 요청 앱')).toHaveText(['orders-api']);
   await expect(appList(page, 'API 요청 앱').getByText('수집 중', { exact: true })).toBeVisible();
   // 추가 버튼은 탭 줄 오른쪽의 조작 자리에 있다.
-  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('button', { name: 'API 연결' })).toBeVisible();
+  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('button', { name: 'API 요청 연결' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
 
   await rowNames(page, 'API 요청 앱').first().click();
@@ -90,19 +90,19 @@ test('a server without metrics apps asks to connect them', async ({ page }) => {
 
 test('connecting API requests to an empty server keeps the key guidance and lands on the new app', async ({ page }) => {
   await page.goto(`./servers/${EMPTY}/api`);
-  await panel(page).getByRole('button', { name: 'API 연결' }).click();
+  await panel(page).getByRole('button', { name: 'API 요청 연결' }).click();
   const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });
   await expect(dialog.getByText('연결 정보를 확인하고 있습니다…')).toHaveCount(0);
   await expect(dialog.getByRole('combobox', { name: '그룹' })).toHaveCount(0);
   await dialog.getByLabel('앱 이름').fill('staging-api');
-  await dialog.getByRole('button', { name: '추가' }).click();
+  await dialog.getByRole('button', { name: '연결', exact: true }).click();
   await expect(dialog.getByRole('button', { name: 'API Key 복사' })).toBeVisible();
   // 서버 데이터를 다시 불러와 탭의 본문이 바뀌어도 키 안내는 남는다.
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(rowNames(page, 'API 요청 앱')).toHaveText(['staging-api']);
   await expect(dialog.getByRole('button', { name: 'API Key 복사' })).toBeVisible();
 
-  await dialog.getByRole('button', { name: 'API 보기' }).click();
+  await dialog.getByRole('button', { name: 'API 요청 보기' }).click();
   await expect(dialog).toBeHidden();
   await expect(page).toHaveURL(new RegExp(`/servers/${EMPTY}/apps/observed_mock_[^/?]+\\?tab=requests$`));
   await expect(page.getByRole('heading', { level: 1, name: 'staging-api' })).toBeVisible();

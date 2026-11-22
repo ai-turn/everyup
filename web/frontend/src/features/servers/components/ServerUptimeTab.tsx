@@ -5,7 +5,8 @@ import { Button, LoadErrorBanner, MaterialIcon } from '../../../components/commo
 import { UptimeMonitorDialog } from '../../uptime/components/UptimeMonitorDialog';
 import { UptimeMonitorList } from '../../uptime/components/UptimeMonitorList';
 import { api, type UptimeMonitorInput } from '../../../services/api';
-import { ADD_MONITOR_STATE, CONNECT_LABEL, monitorPath } from '../serverPaths';
+import { connectAction } from '../../connections/connectCopy';
+import { ADD_MONITOR_STATE, monitorPath } from '../serverPaths';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 
@@ -34,7 +35,7 @@ export function ServerUptimeTab({ row, onChanged, unknown, stale, onRetry, actio
     navigate(monitorPath(serverId, created.id), { state: { focusPanel: true } });
   };
 
-  const label = CONNECT_LABEL.uptime;
+  const label = connectAction('uptime');
   const addButton = <Button variant="secondary" onClick={() => setAdding(true)}><MaterialIcon name="add" />{label}</Button>;
 
   const content = () => {

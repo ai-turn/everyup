@@ -137,7 +137,7 @@ test.describe('demo', () => {
     await expect(panel(page)).toContainText('다른 기능은 각 탭에서 연결합니다.');
     await panel(page).getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
     await expect(page).toHaveURL(/\/servers\/server_mock_staging_empty\/uptime$/);
-    const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+    const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: '취소', exact: true }).click();
     await expect(dialog).toHaveCount(0);

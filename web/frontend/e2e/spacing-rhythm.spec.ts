@@ -32,7 +32,7 @@ const SCREENS: [string, string, ((page: Page) => Promise<void>)?][] = [
   ['alert rule drawer', './alerts?tab=rules', open('규칙 추가')],
   ['new channel', './alerts/channels/new'],
   ['settings', './settings'],
-  ['add monitor dialog', `./servers/${E}/uptime`, open('모니터 추가')],
+  ['add monitor dialog', `./servers/${E}/uptime`, open('업타임 모니터 추가')],
   ['docker connect dialog', './environments', open('Docker 연결')],
 ];
 

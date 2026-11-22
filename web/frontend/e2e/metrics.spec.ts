@@ -105,7 +105,7 @@ test('metrics connection creates setup instructions and waits for actual metric 
   await page.getByRole('button', { name: '메트릭 연결', exact: true }).first().click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('앱 이름').fill('new-metrics-service');
-  await dialog.getByRole('button', { name: '추가', exact: true }).click();
+  await dialog.getByRole('button', { name: '연결', exact: true }).click();
   await expect(dialog.locator('pre')).toContainText('OTEL_SERVICE_NAME=new-metrics-service');
   await expect(dialog.locator('pre')).toContainText('OTEL_TRACES_EXPORTER=none');
   await expect(dialog.locator('pre')).toContainText('OTEL_LOGS_EXPORTER=none');

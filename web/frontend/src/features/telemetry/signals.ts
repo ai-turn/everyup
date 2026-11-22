@@ -1,15 +1,10 @@
 import type { CollectionStatus } from '../../components/common';
 import type { ObservedService, SignalReceipt, TelemetrySignal } from '../../services/api';
+import { SIGNAL_TARGET, connectName } from '../connections/connectCopy';
 
-/** 화면에 쓰는 데이터 유형 이름 (DESIGN.md §9: signal → 데이터 유형). 연결 버튼(로그 연결, API 연결, 메트릭 연결)과 맞춘다. */
-const SIGNAL_LABELS: Record<string, string> = { logs: '로그', traces: 'API', metrics: '메트릭' };
-
-export const signalLabel = (signal: string) => SIGNAL_LABELS[signal] ?? signal;
+/** 화면에 쓰는 데이터 유형 이름 (DESIGN.md §9: signal → 데이터 유형). 연결 버튼과 같은 이름이다: traces는 `API 요청`. */
+export const signalLabel = (signal: string) => signal in SIGNAL_TARGET ? connectName(SIGNAL_TARGET[signal as keyof typeof SIGNAL_TARGET]) : signal;
 export const signalList = (signals: string[]) => signals.map(signalLabel).join(', ');
-
-/** 서버 상세의 탭 이름. traces의 탭은 API 요청이다. */
-const SIGNAL_TABS: Record<string, string> = { logs: '로그', traces: 'API 요청', metrics: '메트릭' };
-export const signalTabList = (signals: string[]) => signals.map((signal) => SIGNAL_TABS[signal] ?? signal).join(', ');
 
 /**
  * 서버 탭의 앱 제거 액션. 다른 데이터 유형도 받는 앱이라면 이 탭의 연결만 끊는다 —
@@ -23,7 +18,7 @@ export function serviceRemoval(service: ObservedService, signal: TelemetrySignal
       kind: 'detach' as const,
       button: `${label} 연결 해제`,
       title: `${label} 연결을 해제할까요?`,
-      message: `이 앱의 ${label} 데이터 수집을 멈추고 ${SIGNAL_TABS[signal]} 탭에서 뺍니다. ${signalList(others)} 수집은 그대로 유지되고, 이미 저장된 ${label} 데이터는 보관 기간이 지나면 삭제됩니다.`,
+      message: `이 앱의 ${label} 데이터 수집을 멈추고 ${label} 탭에서 뺍니다. ${signalList(others)} 수집은 그대로 유지되고, 이미 저장된 ${label} 데이터는 보관 기간이 지나면 삭제됩니다.`,
       signals: others,
       done: `${label} 연결을 해제했습니다`,
     };

@@ -39,26 +39,26 @@ test('connecting infrastructure to an empty server shows the setup once and then
   await page.goto(`./servers/${EMPTY}/infrastructure`);
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 인프라를 연결하세요' })).toBeVisible();
   await panel(page).getByRole('button', { name: '인프라 연결' }).click();
-  const dialog = page.getByRole('dialog', { name: 'OpenTelemetry Collector 연결' });
+  const dialog = page.getByRole('dialog', { name: '인프라 연결' });
   // 그룹은 서버의 것을 쓴다.
   await expect(dialog.getByRole('combobox', { name: '그룹' })).toHaveCount(0);
   // 리소스는 서버마다 하나라 이름을 묻지 않고 서버 이름을 쓴다.
   await expect(dialog.getByLabel('인프라 이름')).toHaveCount(0);
-  await dialog.getByRole('button', { name: '추가' }).click();
+  await dialog.getByRole('button', { name: '연결', exact: true }).click();
 
-  await expect(dialog.getByText('Collector 연결이 준비되었습니다')).toBeVisible();
+  await expect(dialog.getByText('인프라를 연결할 준비가 되었습니다')).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'API Key 복사' })).toBeVisible();
   // 서버 데이터를 다시 불러와 본문이 바뀌어도 한 번만 볼 수 있는 안내는 닫히지 않는다.
   // 대화 상자가 모달이라 새로고침을 누를 수 없다. 자동 갱신이 다시 보일 때 한 번 도는 것을 이용한다.
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(infraHeading(page)).toBeAttached();
-  await expect(dialog.getByText('Collector 연결이 준비되었습니다')).toBeVisible();
+  await expect(dialog.getByText('인프라를 연결할 준비가 되었습니다')).toBeVisible();
 
   await dialog.getByRole('button', { name: '인프라 보기' }).click();
   await expect(dialog).toBeHidden();
   await expect(page).toHaveURL(new RegExp(`/servers/${EMPTY}/infrastructure$`));
   await expect(infraHeading(page)).toBeAttached();
-  await expect(panel(page).getByRole('heading', { name: 'Collector 수신 대기' })).toBeVisible();
+  await expect(panel(page).getByRole('heading', { name: 'OpenTelemetry Collector 수신 대기' })).toBeVisible();
   // 서버 이름으로 만들었으므로 상태 줄에 리소스 이름을 따로 적지 않는다.
   await expect(panel(page).getByText('staging-empty', { exact: true })).toHaveCount(0);
   await expect(page.getByText('인프라 리소스를 추가했습니다')).toBeVisible();
@@ -133,7 +133,7 @@ test.describe('collection states outside the demo data', () => {
   for (const [name, changes, label, reason] of [
     ['stopped collecting', { lastSeenAt: new Date(Date.now() - 3_600_000).toISOString() }, '확인 필요', '수집 지연'],
     ['not received yet', {}, '확인 필요', '수신 대기'],
-    ['deactivated', { isActive: false }, '대기', 'Collector 비활성화됨'],
+    ['deactivated', { isActive: false }, '대기', '연결 중지됨'],
   ] as const) {
     test(`a resource that has ${name} says why without repeating the state`, async ({ page }) => {
       await serve(page, resource(changes));

@@ -14,18 +14,18 @@ test('connection URLs resolve relative API paths and respect the configured exte
 test('existing collector gains metrics from its Docker environment', async ({ page }) => {
   // 수집 프로필은 Docker 환경 화면에서만 바꾼다(ADR 0007).
   await page.goto('./agents/agent_demo_02');
-  await page.getByRole('button', { name: '메트릭 추가', exact: true }).click();
-  const chooser = page.getByRole('dialog', { name: '메트릭 수집 추가' });
-  await chooser.getByRole('button', { name: '메트릭 추가 및 적용 명령' }).click();
-  const installer = page.getByRole('dialog', { name: 'Docker Collector 설치 및 모니터링 설정' });
+  await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
+  const chooser = page.getByRole('dialog', { name: '메트릭 연결' });
+  await chooser.getByRole('button', { name: '적용 명령 받기' }).click();
+  const installer = page.getByRole('dialog', { name: '적용 명령' });
   await expect(installer.getByText('Docker Collector 연결을 기다리는 중', { exact: true })).toBeVisible();
-  await expect(installer.getByText(/사용: 업타임, 로그, 메트릭/)).toBeVisible();
+  await expect(installer.getByText(/사용: 컨테이너 상태, 로그, 메트릭/)).toBeVisible();
   await expect(installer.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
   await expect(installer.getByRole('button', { name: '설치 명령 복사' })).toBeEnabled();
   await expect(installer.getByText('Docker Collector 연결을 확인했습니다', { exact: true })).toHaveCount(0);
   await installer.getByRole('button', { name: '나중에 확인' }).click();
-  await expect(page.getByRole('button', { name: '메트릭 추가', exact: true })).toHaveCount(0);
-  await expect(page.getByText(/사용: 업타임, 로그, 메트릭/)).toBeVisible();
+  await expect(page.getByRole('button', { name: '메트릭 연결', exact: true })).toHaveCount(0);
+  await expect(page.getByText(/사용: 컨테이너 상태, 로그, 메트릭/)).toBeVisible();
 });
 
 // 로그 연결은 서버의 로그 탭에서 한다(전체 로그 화면의 로그 연결 버튼은 없앴다). db-primary-01에는 로그 앱이 없다.
@@ -36,7 +36,7 @@ test('direct setup uses an external endpoint and waits for actual data', async (
   await page.getByRole('tabpanel').getByRole('button', { name: '로그 연결', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('앱 이름').fill('new-log-service');
-  await dialog.getByRole('button', { name: '추가', exact: true }).click();
+  await dialog.getByRole('button', { name: '연결', exact: true }).click();
   await expect(dialog.getByLabel('EveryUp 외부 연결 주소')).toHaveValue('https://monitor.example.com');
   const env = dialog.locator('pre');
   await expect(env).toContainText('OTEL_EXPORTER_OTLP_ENDPOINT=https://monitor.example.com/api/v1/otlp');
@@ -96,7 +96,7 @@ test('mobile infrastructure setup stays within the viewport', async ({ page }) =
   await page.goto('./servers/server_mock_payments_api/infrastructure');
   await page.getByRole('button', { name: '인프라 연결', exact: true }).click();
   // 서버 탭의 대화 상자는 이름을 묻지 않는다(서버 이름을 쓴다). 첫 화면의 마지막 조작이 보이는지 본다.
-  await expect(page.getByRole('dialog', { name: 'OpenTelemetry Collector 연결' }).getByRole('button', { name: '추가', exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: '인프라 연결' }).getByRole('button', { name: '연결', exact: true })).toBeVisible();
   const bounds = await page.getByRole('dialog').boundingBox();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);

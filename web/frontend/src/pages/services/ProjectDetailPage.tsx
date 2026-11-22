@@ -133,7 +133,8 @@ export function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showKey, setShowKey] = useState(false);
-  const [showInstall, setShowInstall] = useState(false);
+  // 설치 명령(처음 설치·다시 설치) 또는 기능을 연결한 뒤의 적용 명령. 같은 대화 상자이고 제목만 다르다.
+  const [showInstall, setShowInstall] = useState<'install' | 'apply' | false>(false);
   const [showInstrumentation, setShowInstrumentation] = useState(false);
   const [addingCapability, setAddingCapability] = useState<AgentCollectionCapability | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -288,9 +289,9 @@ export function ProjectDetailPage() {
             fields={agent?.version ? [{ label: 'Version', value: `v${agent.version}` }] : []}
           />
         }
-        // 주 조작 하나(Collector 설치)와 더보기다. 드물게 쓰는 조작과 파괴적 조작은 메뉴에 둔다(DESIGN.md §4.1 상세 헤더).
+        // 주 조작 하나(설치 명령)와 더보기다. 드물게 쓰는 조작과 파괴적 조작은 메뉴에 둔다(DESIGN.md §4.1 상세 헤더).
         actions={agent && <>
-          <Button collapseLabel variant="secondary" onClick={() => setShowInstall(true)}><MaterialIcon name="download" />Collector 설치</Button>
+          <Button collapseLabel variant="secondary" onClick={() => setShowInstall('install')}><MaterialIcon name="download" />설치 명령</Button>
           <OverflowMenu items={[
             { label: 'API Key', icon: 'key', onSelect: () => setShowKey(true) },
             { label: '상세 수집 설정', icon: 'integration_instructions', onSelect: () => setShowInstrumentation(true) },
@@ -310,7 +311,7 @@ export function ProjectDetailPage() {
             <MonitoringSetupPanel
               agent={agent}
               services={services}
-              onInstall={() => setShowInstall(true)}
+              onInstall={() => setShowInstall('install')}
               onInstrument={() => setShowInstrumentation(true)}
               onAddCapability={setAddingCapability}
             />
@@ -452,6 +453,7 @@ export function ProjectDetailPage() {
       {showInstall && agent && (
         <AddServiceModal
           existingAgent={{ id: agent.id, name: agent.name }}
+          purpose={showInstall}
           onClose={() => setShowInstall(false)}
           onCreated={load}
           onOpenProject={() => setShowInstall(false)}
@@ -468,7 +470,7 @@ export function ProjectDetailPage() {
           onClose={() => setAddingCapability(null)}
           onApply={() => {
             setAddingCapability(null);
-            setShowInstall(true);
+            setShowInstall('apply');
             void load();
           }}
         />

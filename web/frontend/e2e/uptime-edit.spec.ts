@@ -10,7 +10,7 @@ for (const type of ['http', 'tcp'] as const) {
     state.monitors = [monitor('custom', { name: 'Custom', type, url: type === 'http' ? 'https://custom.example.com' : 'custom.example.com', port: type === 'tcp' ? 6443 : undefined, method: 'HEAD', expectedStatus: 204, isActive: false, status: 'unknown', interval: 45, timeout: 3200 })];
     await page.goto('./servers/server-1/uptime/custom');
     await page.getByRole('button', { name: '수정', exact: true }).click();
-    const dialog = page.getByRole('dialog', { name: '업타임 수정' });
+    const dialog = page.getByRole('dialog', { name: '업타임 모니터 수정' });
     const name = dialog.getByRole('textbox', { name: '이름', exact: true });
     await expect(name).toHaveValue('Custom');
     await expect(dialog.getByRole('combobox')).toBeDisabled();
