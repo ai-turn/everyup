@@ -29,8 +29,10 @@ func NewServerHandler(scheduler *checker.Scheduler) *ServerHandler {
 	}
 }
 
+// GetAll lists the servers. ?include=docker adds the servers that are Docker environments
+// (ADR 0012); the screens join their Docker Collector from GET /agents by serverId.
 func (h *ServerHandler) GetAll(c *fiber.Ctx) error {
-	servers, err := h.repo.GetAll()
+	servers, err := h.repo.GetAll(c.Query("include") == "docker")
 	if err != nil {
 		return internalError(c, "DATABASE_ERROR", err)
 	}

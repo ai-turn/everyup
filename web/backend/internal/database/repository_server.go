@@ -36,8 +36,14 @@ func scanServer(row interface{ Scan(...any) error }) (models.Server, error) {
 	return server, err
 }
 
-func (r *ServerRepository) GetAll() ([]models.Server, error) {
-	rows, err := DB.Query(`SELECT ` + serverColumns + ` FROM servers WHERE id NOT IN (` + dockerServerIDs + `) ORDER BY name`)
+// GetAll lists the servers. Servers that own a Docker Collector are listed only with
+// includeDocker, until every screen shows them (server and Docker unification, stage 2).
+func (r *ServerRepository) GetAll(includeDocker bool) ([]models.Server, error) {
+	query := `SELECT ` + serverColumns + ` FROM servers`
+	if !includeDocker {
+		query += ` WHERE id NOT IN (` + dockerServerIDs + `)`
+	}
+	rows, err := DB.Query(query + ` ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}

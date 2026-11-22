@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, type InfrastructureResource, type LogServiceSummary, type ObservedService, type ObservedServiceMetricName, type UptimeMonitor } from '../../services/api';
+import { api, type ConnectedAgent, type InfrastructureResource, type LogServiceSummary, type ObservedService, type ObservedServiceMetricName, type UptimeMonitor } from '../../services/api';
 
 /** 이보다 빨리 끝나는 다시 불러오기는 진행 중으로 보이지 않는다(30초마다 버튼이 깜빡이지 않게). */
 const BUSY_AFTER_MS = 300;
@@ -34,12 +34,17 @@ type BuildInput = Parameters<typeof buildServerRows>[0];
 interface LastLists { monitors: UptimeMonitor[] | null; apps: ObservedService[] | null; infrastructure: InfrastructureResource[] | null }
 
 // 서버 목록은 새 집계 API 없이 기존 목록 응답을 serverId로 묶어서 만든다.
-export function useServers({ logSummary = true }: {
+export function useServers({ logSummary = true, includeDocker = false }: {
   /**
    * 24시간 오류 로그 수(/logs/summary)를 불러온다. 무거운 조회라 그 수를 보여 주지 않는 화면(개요, 그룹)은 끈다.
    * 끄면 errorLogs는 "조회 실패"가 아니라 쓰지 않는 값이다(unavailable과 failed에 들어가지 않는다).
    */
   logSummary?: boolean;
+  /**
+   * Docker 환경인 서버도 불러오고 그 Docker Collector를 `targets.docker`로 붙인다(ADR 0012). 서버·Docker 통합 2단계에서
+   * 화면이 Docker 서버를 보이기 시작할 때 켠다. 끄면 서버 목록은 직접 연결한 서버만이다.
+   */
+  includeDocker?: boolean;
 } = {}): {
   rows: ServerRow[];
   /** 다시 불러오는 중이다(가장 최근 요청이 아직 끝나지 않았다). */
@@ -114,9 +119,10 @@ export function useServers({ logSummary = true }: {
       setBusy(false);
     }, ABANDON_AFTER_MS);
     const done: Promise<void> = Promise.allSettled([
-      api.getServers(), api.getUptimeMonitors(true), api.getObservedServices(), api.getInfrastructureResources(),
+      api.getServers({ includeDocker }), api.getUptimeMonitors(true), api.getObservedServices(), api.getInfrastructureResources(),
       logSummary ? api.getLogSummary() : Promise.resolve(undefined), api.getObservedServiceMetricCatalog(),
-    ]).then(([servers, monitors, apps, infrastructure, logSummaries, metricCatalog]) => {
+      includeDocker ? api.getAgents() : Promise.resolve(undefined),
+    ]).then(([servers, monitors, apps, infrastructure, logSummaries, metricCatalog, agents]) => {
       cancel(busyTimer);
       cancel(abandonTimer);
       if (id !== latest.current) return;
@@ -138,12 +144,14 @@ export function useServers({ logSummary = true }: {
       if (!serverList) return;
       lastBuild.current = {
         servers: serverList, ...lists, logSummaries: logSummary ? settled(logSummaries as PromiseSettledResult<LogServiceSummary[] | null>) : undefined, metricCatalog: settled(metricCatalog),
+        // Docker 환경 목록을 불러오지 못하면 이전 목록을 쓴다(서버가 Docker 서버인지는 서버 목록이 이미 말한다).
+        agents: includeDocker ? settled(agents as PromiseSettledResult<ConnectedAgent[] | null>) ?? lastBuild.current?.agents ?? null : undefined,
         stale: { monitors: !fresh.monitors, apps: !fresh.apps, infrastructure: !fresh.infrastructure },
       };
       setRows(buildServerRows(lastBuild.current));
       if (metricCatalog.status === 'fulfilled') setMetricCatalog(metricCatalog.value ?? []);
       const failures = ([[monitors, '업타임', lists.monitors], [apps, '앱', lists.apps], [infrastructure, '인프라', lists.infrastructure],
-        [logSummaries, '로그 요약', null], [metricCatalog, '메트릭 임계값', null]] as const)
+        [logSummaries, '로그 요약', null], [metricCatalog, '메트릭 임계값', null], [agents, 'Docker', null]] as const)
         .filter(([result]) => result.status === 'rejected').map(([, label, list]) => ({ label, stale: list !== null }));
       setFailed(failures);
       if ([servers, monitors, apps, infrastructure].every((result) => result.status === 'fulfilled')) setUpdatedAt(new Date());
@@ -151,7 +159,7 @@ export function useServers({ logSummary = true }: {
     }).then(() => (id === latest.current ? undefined : inFlight.current ?? undefined));
     inFlight.current = done;
     return done;
-  }, [logSummary]);
+  }, [logSummary, includeDocker]);
 
   // 시작한 지 ABANDON_AFTER_MS가 지난 요청은 끝나지 않았어도 기다리지 않는다(타이머와 같은 시각에 와도 판정이 같게 시각으로 본다).
   const waiting = () => pendingSince.current !== null && Date.now() - pendingSince.current < ABANDON_AFTER_MS;

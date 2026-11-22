@@ -164,12 +164,16 @@ func TestDockerServersStayOutOfDirectServerRules(t *testing.T) {
 	repo := NewServerRepository()
 
 	// Hidden from the server list until the screens show Docker servers.
-	servers, err := repo.GetAll()
+	servers, err := repo.GetAll(false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(servers) != 0 {
 		t.Fatalf("GetAll = %+v, want no Docker server", servers)
+	}
+	withDocker, err := repo.GetAll(true)
+	if err != nil || len(withDocker) != 1 || withDocker[0].ID != "agent_a" {
+		t.Fatalf("GetAll(includeDocker) = %+v (%v), want the Docker server", withDocker, err)
 	}
 
 	// A direct target named like the environment never joins its server.

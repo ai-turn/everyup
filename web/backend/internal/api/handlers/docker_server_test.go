@@ -40,6 +40,11 @@ func TestDockerEnvironmentIsAHiddenServerUntilTheScreensShowIt(t *testing.T) {
 	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 0 {
 		t.Fatalf("servers = %+v (%v), want none", servers, err)
 	}
+	// The screens that show Docker servers ask for them.
+	_, result = ts.doRequest(t, "GET", "/api/v1/servers?include=docker", nil, auth...)
+	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 1 || servers[0].ID != created.ID || servers[0].Name != "prod-server" {
+		t.Fatalf("servers?include=docker = %+v (%v), want the Docker server", servers, err)
+	}
 
 	// A direct server with the same name is a different server.
 	resp, result = ts.doRequest(t, "POST", "/api/v1/servers", map[string]string{"name": "prod-server (direct)"}, auth...)

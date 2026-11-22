@@ -1,6 +1,6 @@
 import { COLLECTION_STATUS_LABEL } from '../../components/common/collectionStatus';
 import type { StatusTone } from '../../components/common/statusTone';
-import type { InfrastructureResource, LogServiceSummary, ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../../services/api';
+import type { ConnectedAgent, InfrastructureResource, LogServiceSummary, ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../../services/api';
 import { formatDateTime, formatDuration } from '../../utils/incidentFormat';
 import { isCollectorFresh } from '../../utils/operationalStatus';
 import { infraCollection, peakUsage, WARNING_PCT } from '../infra/usage';
@@ -68,7 +68,11 @@ export function infrastructureState(resource: InfrastructureResource): TargetSta
   return { state: 'healthy', detail: '데이터 유입 중' };
 }
 
-export interface ServerTargets { monitors: UptimeMonitor[]; apps: ObservedService[]; infrastructure?: InfrastructureResource }
+export interface ServerTargets {
+  monitors: UptimeMonitor[]; apps: ObservedService[]; infrastructure?: InfrastructureResource;
+  /** 이 서버의 Docker Collector(ADR 0012: Docker 환경은 서버다). 서버 목록이 Docker 서버를 함께 불러올 때만 있다(`useServers({ includeDocker })`). */
+  docker?: ConnectedAgent;
+}
 
 /** 문제가 있는 대상 하나. 서버 목록의 원인 문구와 같은 판정과 문구다. */
 export interface TargetIssue {
@@ -169,7 +173,7 @@ export const worst = (states: StatusTone[]): StatusTone | null =>
   states.reduce<StatusTone | null>((current, state) => current === null || SEVERITY[state] < SEVERITY[current] ? state : current, null);
 
 export const hasTargets = (targets: ServerTargets) =>
-  targets.monitors.length > 0 || targets.apps.length > 0 || Boolean(targets.infrastructure);
+  targets.monitors.length > 0 || targets.apps.length > 0 || Boolean(targets.infrastructure) || Boolean(targets.docker);
 
 export interface TargetCounts { monitors: number; apps: number; infrastructure: number }
 
@@ -220,6 +224,8 @@ export function buildServerRows(input: {
   monitors: UptimeMonitor[] | null;        // null은 조회 실패
   apps: ObservedService[] | null;
   infrastructure: InfrastructureResource[] | null;
+  /** Docker 환경 목록. 서버에는 serverId가 같은 것이 붙는다. 없으면 이 화면이 Docker 서버를 쓰지 않는다. */
+  agents?: ConnectedAgent[] | null;
   /** null은 조회 실패, 없으면 이 화면이 쓰지 않는 값이다(errorLogs를 만들지 않고 불러오지 못한 것으로도 보지 않는다). */
   logSummaries?: LogServiceSummary[] | null;
   /** 모든 앱의 지표 목록(임계값 초과 판정용). null은 조회 실패: 수신 여부만으로 판정한다. */
@@ -303,7 +309,7 @@ export function buildServerRows(input: {
 
     return {
       server,
-      targets: { monitors, apps, infrastructure },
+      targets: { monitors, apps, infrastructure, docker: input.agents?.find((agent) => agent.serverId === server.id) },
       state,
       cause: culprit && { text: culprit.text, to: culprit.to },
       issues: candidates.filter((candidate): candidate is TargetIssue => candidate.state === 'error' || candidate.state === 'warn'),
