@@ -53,12 +53,12 @@ test('the overview and the server list agree on which servers need attention', a
   for (const name of calm) expect(servers).not.toContain(name);
 });
 
-test('the overview scope lists servers and Docker environments, with all logs on the scope line', async ({ page }) => {
+test('the overview scope counts servers once, Docker hosts included, with all logs on the scope line', async ({ page }) => {
   await page.goto('./');
   const scope = page.getByRole('navigation', { name: '모니터링 범위' });
-  await expect(scope.getByRole('link', { name: /^서버 \d+$/ })).toHaveAttribute('href', /\/servers$/);
-  // Docker 환경은 Docker Collector가 있는 서버다(ADR 0012). 그 수는 서버 목록을 Docker 서버로 걸러 연다.
-  await expect(scope.getByRole('link', { name: /^Docker 환경 \d+$/ })).toHaveAttribute('href', /\/servers\?connection=docker$/);
+  // Docker 환경은 같은 ID의 서버다(ADR 0012). 서버 수에 들어 있고 따로 세지 않는다. 데모는 서버 9개와 Docker 서버 4개다.
+  await expect(scope.getByRole('link', { name: '서버 13', exact: true })).toHaveAttribute('href', /\/servers$/);
+  await expect(scope).not.toContainText('Docker 환경');
   for (const old of ['업타임 모니터', '직접 연결 서비스', '인프라 리소스']) await expect(scope).not.toContainText(old);
   await scope.getByRole('link', { name: '전체 로그', exact: true }).click();
   await expect(page).toHaveURL(/\/logs$/);
@@ -89,19 +89,33 @@ test('a group lists its servers with the server list status and keeps the group 
   await expect(sidebarCurrent(page)).toHaveText('그룹');
 });
 
-test('a Docker environment in a group opens its server screen', async ({ page }) => {
+test('a Docker server in a group is a server member with its container outage as the cause', async ({ page }) => {
   await page.goto('./projects/project_mock_production');
-  await groupMembers(page).filter({ hasText: 'Docker 환경' }).getByRole('link', { name: 'prod-server', exact: true }).click();
+  const member = groupMembers(page).filter({ hasText: '서버 · Docker Collector' }).filter({ has: page.getByRole('link', { name: 'prod-server', exact: true }) });
+  await expect(member).toContainText('장애');
+  await expect(member).toContainText('payment-worker');
+  // 컨테이너는 서버 행의 원인이 말한다. 따로 한 줄 더 나오지 않는다.
+  await expect(groupMembers(page).filter({ has: page.getByRole('link', { name: 'payment-worker', exact: true }) })).toHaveCount(0);
+  await member.getByRole('link', { name: 'prod-server', exact: true }).click();
   await expect(page).toHaveURL(/\/servers\/agent_demo_01$/);
   await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
+});
+
+// Docker 환경은 같은 ID의 서버다(ADR 0012). 그룹 목록은 서버 수 하나만 세고, Docker 서버도 그 안에 한 번만 든다.
+test('a group counts its Docker server once, as a server', async ({ page }) => {
+  await page.goto('./projects');
+  const table = page.getByRole('table', { name: '그룹 그리드' });
+  await expect(table.getByRole('columnheader')).not.toContainText(['Docker 환경']);
+  // Production: 직접 연결한 서버 5개(edge-host-01, db-primary-01, payments-api, inventory-api, Public status)와 prod-server.
+  await expect(table.locator('tbody tr').filter({ hasText: 'Production' }).getByRole('cell').last()).toHaveText('6');
 });
 
 test('adding a server to a group shows the group on the server', async ({ page }) => {
   await page.goto('./projects/project_mock_staging');
   await page.getByRole('button', { name: '대상 추가', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: '대상 추가', exact: true });
-  // Docker 환경과 서버만 다룬다.
-  await expect(dialog.locator('legend')).toHaveText(['Docker 환경', '서버']);
+  // 대상은 서버 한 종류다. Docker 호스트도 서버로 나온다(ADR 0012).
+  await expect(dialog.locator('label').filter({ hasText: 'worker-cluster' })).toBeVisible();
   await dialog.locator('label').filter({ hasText: 'Mail relay' }).click();
   await dialog.getByRole('button', { name: '추가', exact: true }).click();
   await expect(dialog).toHaveCount(0);
@@ -125,7 +139,7 @@ test('the command palette finds servers', async ({ page }) => {
   await page.goto('./');
   await page.getByRole('button', { name: /^검색/ }).first().click();
   const palette = page.getByRole('dialog', { name: '검색' });
-  await expect(palette.getByRole('textbox')).toHaveAttribute('placeholder', '서버, Docker 환경, 서비스, 페이지 검색…');
+  await expect(palette.getByRole('textbox')).toHaveAttribute('placeholder', '서버, 대상, 그룹, 페이지 검색…');
   await palette.getByRole('textbox').fill('edge-host');
   // 그 서버의 모니터와 앱도 보조 문구(edge-host-01의 모니터)로 걸린다. 서버 자신은 이름이 edge-host-01로 시작한다.
   const option = palette.getByRole('option', { name: /^edge-host-01/ });

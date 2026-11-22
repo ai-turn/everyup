@@ -27,4 +27,4 @@ test('without the Docker list the rows are the direct servers as before', () => 
   expect(hasTargets(rows[0].targets)).toBe(false);
 });
 
-// 그룹 화면이 Docker 환경을 서버 행으로 한 번만 세는 규칙(projectMembers)은 화면이 Docker 서버를 보이는 2단계의 그룹 e2e가 확인한다.
+// 그룹 화면이 Docker 서버를 서버 행으로 한 번만 세는 규칙은 servers-cross.spec.ts의 그룹 테스트가 확인한다.

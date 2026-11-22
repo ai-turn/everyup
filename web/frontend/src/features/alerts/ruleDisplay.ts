@@ -11,7 +11,7 @@ export interface TargetNames {
   directServices: ObservedService[];
   infrastructureResources: InfrastructureResource[];
   uptimeMonitors: UptimeMonitor[];
-  /** 직접 대상의 이름 앞에 붙일 서버 이름 */
+  /** 대상의 이름 앞에 붙일 서버 이름. Docker 서버도 들어 있다(ADR 0012). */
   servers: Server[];
   /** 모든 목록을 받았는가. 하나라도 실패하면 이름이 없어도 지워졌다고 단정하지 않는다. */
   complete: boolean;
@@ -30,7 +30,7 @@ export function useTargetNames(): TargetNames {
       api.getObservedServices(),
       api.getInfrastructureResources(),
       api.getUptimeMonitors(),
-      api.getServers(),
+      api.getServers({ includeDocker: true }),
     ]).then(([agentServices, agents, directServices, infrastructureResources, uptimeMonitors, servers]) => {
       if (!active) return;
       const rows = <T,>(result: PromiseSettledResult<T[] | null | undefined>): T[] => result.status === 'fulfilled' ? result.value ?? [] : [];
@@ -50,10 +50,22 @@ export function useTargetNames(): TargetNames {
   return names;
 }
 
-/** 직접 대상(모니터, 앱, Collector 리소스)의 라벨: `서버 이름 / 대상 이름`. 서버를 찾지 못하면 대상 이름만 쓴다. */
+/**
+ * 서버의 대상(모니터, 앱, 인프라 리소스)의 라벨: `서버 이름 / 대상 이름`. 서버를 찾지 못하면 대상 이름만 쓴다.
+ * 대상 이름이 서버 이름과 같으면(Docker 호스트의 인프라처럼) 서버 이름만 쓴다(개요와 같다).
+ */
 export function directTargetLabel(target: { name: string; serverId?: string }, servers: Server[]): string {
   const server = servers.find(row => row.id === target.serverId);
-  return server ? `${server.name} / ${target.name}` : target.name;
+  return server && server.name !== target.name ? `${server.name} / ${target.name}` : target.name;
+}
+
+/**
+ * 컨테이너(Docker 서비스)의 라벨: `서버 이름 / 컨테이너 이름`. 서버는 Docker Collector가 속한 서버다(ADR 0012).
+ * 서버를 찾지 못하면 Docker Collector 이름을 쓴다(만들 때 서버와 같은 이름이다).
+ */
+export function containerLabel(service: AgentServiceFlat, agents: ConnectedAgent[], servers: Server[]): string {
+  const serverId = agents.find(agent => agent.id === service.agentId)?.serverId || service.agentId;
+  return `${servers.find(row => row.id === serverId)?.name ?? service.agentName} / ${service.name}`;
 }
 
 /** 서버 화면 쪽 대상(앱, 모니터)을 ID로 찾아 라벨을 만든다. */
@@ -62,7 +74,7 @@ function directName(id: string, names: TargetNames): string | undefined {
   return target && directTargetLabel(target, names.servers);
 }
 
-// Docker 환경의 리소스는 서버가 없으므로 이름만 쓴다(directTargetLabel이 그렇게 한다).
+// Docker 호스트의 리소스도 그 Docker 서버에 속한다(ADR 0012). 이름이 서버와 같아 서버 이름만 남는다.
 function infrastructureName(id: string, names: TargetNames): string | undefined {
   const resource = names.infrastructureResources.find(row => row.id === id);
   return resource && directTargetLabel(resource, names.servers);
@@ -97,7 +109,7 @@ export function targetParts(rule: AlertRule, names: TargetNames): TargetParts {
     if (rule.serviceId) return found(directName(rule.serviceId, names)) ?? missingTarget(rule.serviceId, names);
     if (rule.agentId && rule.serviceKey) {
       const svc = agentServices.find(s => s.agentId === rule.agentId && s.key === rule.serviceKey);
-      return svc ? { label: `${svc.agentName} / ${svc.name}` } : missingTarget(rule.serviceKey, names);
+      return svc ? { label: containerLabel(svc, agents, names.servers) } : missingTarget(rule.serviceKey, names);
     }
     // Request rules can also watch a whole Docker environment (API-created).
     if (rule.type === 'request' && rule.agentId) return found(agents.find(a => a.id === rule.agentId)?.name) ?? missingTarget(rule.agentId, names);
@@ -116,7 +128,7 @@ export function alertTargetName(target: AlertTarget, names: TargetNames): string
     return infrastructureName(target.resourceId, names) ?? joinTargetParts(missingTarget(target.resourceId, names));
   }
   const service = names.agentServices.find(item => item.agentId === target.agentId && item.key === target.serviceKey);
-  return service ? `${service.agentName} / ${service.name}` : joinTargetParts(missingTarget(target.serviceKey, names));
+  return service ? containerLabel(service, names.agents, names.servers) : joinTargetParts(missingTarget(target.serviceKey, names));
 }
 
 // ─── 조건 문구 ──────────────────────────────────────────────────────────────

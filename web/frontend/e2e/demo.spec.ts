@@ -63,8 +63,9 @@ test.describe('live demo', () => {
   test('project overview includes Docker service outages and resolves legacy environment URLs', async ({ page }) => {
     await page.goto('./projects/project_mock_production');
     await expect(page.getByRole('heading', { level: 1, name: 'Production' })).toBeVisible();
+    // 장애 컨테이너는 그 Docker 서버 행의 원인이다(ADR 0012).
     const outage = page.getByRole('row').filter({ hasText: 'payment-worker' });
-    await expect(outage).toContainText('Docker 서비스');
+    await expect(outage).toContainText('서버 · Docker Collector');
     await expect(outage).toContainText('장애');
 
     await page.goto('./projects/agent_demo_01');

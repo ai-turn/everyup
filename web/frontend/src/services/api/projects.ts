@@ -23,6 +23,4 @@ export const projectsApi = {
   createProject: (data: ProjectInput) => request<Project>('/projects', { method: 'POST', body: JSON.stringify(data) }),
   updateProject: (id: string, data: ProjectInput) => request<Project>(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProject: (id: string) => request<void>(`/projects/${id}`, { method: 'DELETE' }),
-  assignAgent: (projectId: string, agentId: string) => request<void>(`/projects/${projectId}/agents/${agentId}`, { method: 'PUT' }),
-  unassignAgent: (projectId: string, agentId: string) => request<void>(`/projects/${projectId}/agents/${agentId}`, { method: 'DELETE' }),
 };

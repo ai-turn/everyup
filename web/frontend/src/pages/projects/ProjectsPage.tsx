@@ -10,7 +10,7 @@ import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import { api, type Project, type ProjectInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 import { Field } from '../../features/alerts/components/FormLayout';
-import { assignableTargets, projectMembers, sourcesForProject, summarizeMembers, type ProjectSources } from './projectMembers';
+import { projectMembers, serversOfProject, summarizeMembers } from './projectMembers';
 
 export function ProjectDialog({ project, onClose, onSave }: {
   project: Project | null;
@@ -81,8 +81,6 @@ function ProjectCard({ project, returnTo, status, counts, onEdit, onDelete }: {
   );
 }
 
-type DockerSources = { agents: ProjectSources['agents']; services: ProjectSources['services'] | null };
-const COUNTS = [['agent', 'Docker 환경'], ['server', '서버']] as const;
 
 export function ProjectsPage() {
   const { view, setView, returnTo } = useListView();
@@ -90,11 +88,9 @@ export function ProjectsPage() {
   const status = parseStateFilter(params.get('status'));
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
-  // 상태 요약은 그룹 상세와 같은 입력으로 계산한다. Docker 서비스를 불러오지 못하면 services가 null이다.
-  // 장애를 모른 채 "정상"이라고 말하지 않는다. 서버는 서버 목록과 같은 훅에서 온다.
-  const [docker, setDocker] = useState<DockerSources>({ agents: [], services: [] });
+  // 상태 요약은 그룹 상세와 같은 입력(서버 목록과 같은 훅의 서버 행)으로 계산한다. Docker 호스트도 서버다(ADR 0012).
   // 오류 로그 수를 보여 주지 않으므로 로그 요약은 불러오지 않는다.
-  const servers = useServers({ logSummary: false });
+  const servers = useServers({ logSummary: false, includeDocker: true });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Project | null | undefined>(undefined);
@@ -104,9 +100,7 @@ export function ProjectsPage() {
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const [projectRows, agentRows, serviceRows] = await Promise.all([api.getProjects(), api.getAgents(), api.getAllAgentServicesFlat().catch(() => null)]);
-      setProjects(projectRows ?? []);
-      setDocker({ agents: agentRows ?? [], services: serviceRows });
+      setProjects(await api.getProjects() ?? []);
     } catch (requestError) { setError(getErrorMessage(requestError)); }
     finally { setLoading(false); }
   }, []);
@@ -128,13 +122,11 @@ export function ProjectsPage() {
 
   // 서버 목록을 불러오지 못했으면 그룹의 서버를 모른다. 0개나 "정상"이라고 말하지 않는다.
   const serversUnknown = !servers.loaded;
-  const countsOf = (project: Project): [string, number | string][] => {
-    const own = assignableTargets(sourcesForProject(project.id, { ...docker, services: [], servers: servers.rows }));
-    return COUNTS.map(([kind, label]) => [label, kind === 'server' && serversUnknown ? '-' : own.filter(target => target.kind === kind).length]);
-  };
-  // 상태를 모르면(Docker 서비스나 서버를 불러오지 못함) null이다. 그때는 상태 칩을 두지 않는다(모르는 것을 세지 않는다).
-  const summaryOf = (project: Project) => !docker.services || serversUnknown ? null
-    : summarizeMembers(projectMembers(sourcesForProject(project.id, { ...docker, services: docker.services, servers: servers.rows })));
+  const serverCount = (project: Project) => serversUnknown ? '-' : serversOfProject(project.id, servers.rows).length;
+  const countsOf = (project: Project): [string, number | string][] => [['서버', serverCount(project)]];
+  // 상태를 모르면(서버 목록을 불러오지 못함) null이다. 그때는 상태 칩을 두지 않는다(모르는 것을 세지 않는다).
+  // 컨테이너 목록만 실패하면 그 서버 행이 확인 불가(대기)라 정상이라고 하지 않는다.
+  const summaryOf = (project: Project) => serversUnknown ? null : summarizeMembers(projectMembers(serversOfProject(project.id, servers.rows)));
   const renderStatus = (project: Project) => {
     const summary = summaryOf(project);
     return summary ? <StatusLight tone={summary.tone} label={summary.label} /> : <StatusLight tone="idle" label="상태 확인 불가" />;
@@ -143,7 +135,7 @@ export function ProjectsPage() {
 
   // 검색은 그룹 이름과 설명을 찾는다. 상태 칩의 개수는 검색어를 따르고 상태 선택은 따르지 않는다(서버 목록과 같다).
   const searched = projects.filter(project => !search || project.name.toLowerCase().includes(search) || (project.description ?? '').toLowerCase().includes(search));
-  const statesKnown = Boolean(docker.services) && !serversUnknown;
+  const statesKnown = !serversUnknown;
   const visible = status && statesKnown ? searched.filter(project => summaryOf(project)?.tone === status) : searched;
   const ready = !loading && !error && (servers.loaded || Boolean(servers.error));
 
@@ -167,10 +159,10 @@ export function ProjectsPage() {
       columns={[
         { key: 'name', label: '그룹', render: project => <><Link to={`/projects/${project.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{project.name}</Link><p className="mt-1 line-clamp-2 break-words type-caption text-text-muted">{project.description || '설명 없음'}</p><div className="mt-2 md:hidden">{renderStatus(project)}</div><p className="mt-2 type-caption text-text-muted md:hidden">{countsOf(project).map(([label, count]) => `${label} ${count}`).join(', ')}</p></> },
         { key: 'status', label: '상태', className: 'hidden md:table-cell', render: renderStatus },
-        ...COUNTS.map(([kind, label], index) => ({ key: kind, label, className: 'hidden w-28 md:table-cell', align: 'right' as const, render: (project: Project) => countsOf(project)[index][1] })),
+        { key: 'servers', label: '서버', className: 'hidden w-28 md:table-cell', align: 'right' as const, render: serverCount },
       ]} /> : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{visible.map(project => <ProjectCard key={project.id} project={project} returnTo={returnTo} status={renderStatus(project)} counts={countsOf(project)} onEdit={() => setEditing(project)} onDelete={() => setDeleting(project)} />)}</div>}
     </div>
     {editing !== undefined && <ProjectDialog project={editing} onClose={() => setEditing(undefined)} onSave={saveProject} />}
-    <ConfirmDialog isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} onConfirm={() => void deleteProject()} title="그룹을 삭제할까요?" message="배정된 서버와 Docker 환경은 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
+    <ConfirmDialog isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} onConfirm={() => void deleteProject()} title="그룹을 삭제할까요?" message="배정된 서버는 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
   </div>;
 }

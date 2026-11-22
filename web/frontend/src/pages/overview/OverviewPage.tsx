@@ -4,13 +4,12 @@ import { Link } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, List, ListGroup, ListMore, ListRow, MaterialIcon, PageHeader, RefreshStatus, Section } from '../../components/common';
 import {
   api,
-  type ConnectedAgent,
   type TimelineIncident,
 } from '../../services/api';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
-import { ALL_LOGS_PATH, DOCKER_SERVERS_PATH, NEW_SERVER_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
+import { ALL_LOGS_PATH, NEW_SERVER_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
 import { useServers } from '../../features/servers/useServers';
 
 interface AttentionItem {
@@ -30,7 +29,6 @@ interface AttentionItem {
 const WARN_PREVIEW = 3;
 
 const SOURCE_LABELS: Record<string, string> = {
-  agents: 'Docker 환경',
   timeline: '장애 이력',
 };
 
@@ -38,7 +36,6 @@ const SOURCE_LABELS: Record<string, string> = {
 const ISSUE_ICON = { monitor: 'monitor_heart', infrastructure: 'memory', app: 'hub', container: 'deployed_code', docker: 'deployed_code' } as const;
 
 export function OverviewPage() {
-  const [agents, setAgents] = useState<ConnectedAgent[]>([]);
   const [failedSources, setFailedSources] = useState<string[]>([]);
   const [timeline, setTimeline] = useState<TimelineIncident[]>([]);
   const [showAllAttention, setShowAllAttention] = useState(false);
@@ -55,12 +52,9 @@ export function OverviewPage() {
     // 두 재시도 버튼과 수동·자동 갱신이 겹쳐도 같은 조회가 끝나기를 기다린다.
     if (pendingLoad.current) return pendingLoad.current;
     pendingLoad.current = (async () => {
-      const [agentsResult, timelineResult] = await Promise.allSettled([
-        api.getAgents(),
-        api.getIncidentTimeline(7, 6),
-      ]);
+      // Docker 환경은 서버 행이 센다(ADR 0012). 여기서는 장애 이력만 따로 불러온다.
+      const [timelineResult] = await Promise.allSettled([api.getIncidentTimeline(7, 6)]);
       const failed: string[] = [];
-      if (agentsResult.status === 'fulfilled') setAgents(agentsResult.value ?? []); else failed.push('agents');
       if (timelineResult.status === 'fulfilled') setTimeline(timelineResult.value ?? []); else failed.push('timeline');
       setFailedSources(failed);
       setUpdatedAt(new Date());
@@ -100,14 +94,14 @@ export function OverviewPage() {
   const statusUnknown = failedSources.some((source) => source !== 'timeline') || serverFailures.length > 0;
   const timelineFailed = failedSources.includes('timeline');
 
-  // 이력의 대상 주소로 부모(서버, Docker 환경)의 이름을 붙인다. 찾지 못한 이력(삭제된 대상)은 대상 이름만 쓴다.
+  // 이력의 대상 주소(`/servers/:id/…`, 컨테이너도 서버 아래다)로 부모 서버의 이름을 붙인다. 찾지 못한 이력(삭제된 대상,
+  // 비활성화한 Docker Collector의 옛 주소)은 대상 이름만 쓴다.
   const withParent = useCallback((name: string, path: string) => {
     const [, section, rawId = ''] = path.split('?')[0].split('/');
     const id = decodeURIComponent(rawId);
-    const parent = section === 'servers' ? servers.rows.find((row) => row.server.id === id)?.server.name
-      : section === 'services' ? agents.find((agent) => agent.id === id)?.name : undefined;
+    const parent = section === 'servers' ? servers.rows.find((row) => row.server.id === id)?.server.name : undefined;
     return parent && parent !== name ? `${parent} / ${name}` : name;
-  }, [agents, servers.rows]);
+  }, [servers.rows]);
 
   const attention = useMemo<AttentionItem[]>(() => {
     const items: AttentionItem[] = [
@@ -169,7 +163,7 @@ export function OverviewPage() {
   if (showAllAttention && warnItems.length <= WARN_PREVIEW) setShowAllAttention(false);
   const shownWarnItems = showAllAttention ? warnItems : warnItems.slice(0, WARN_PREVIEW);
 
-  const totalTargets = agents.length + servers.rows.length;
+  const totalTargets = servers.rows.length;
 
   // 첫 로드에만 스켈레톤을 보인다 — 대상이 0개인 상태에서 30초마다 다시 깜빡이지 않게.
   // 모양은 실제 배치(범위 스트립, 그 아래 확인 필요·이력 패널)를 따른다.
@@ -235,8 +229,8 @@ export function OverviewPage() {
           <div className="border-b border-ui-border-soft pb-4">
           <nav aria-label="모니터링 범위" className="-mx-2 flex flex-wrap items-center gap-x-1 gap-y-1">
             {([
+              // Docker 호스트도 서버다(ADR 0012). 서버 수에 들어 있으므로 따로 세지 않는다.
               ['서버', servers.rows.length, SERVERS_PATH, Boolean(servers.error) && !servers.loaded, 'dns'],
-              ['Docker 환경', agents.length, DOCKER_SERVERS_PATH, failedSources.includes('agents'), 'deployed_code'],
             ] as const).map(([label, count, to, unknown, icon]) => (
               unknown ? (
                 <span key={label} className="inline-flex h-8 items-center gap-1.5 px-2">
