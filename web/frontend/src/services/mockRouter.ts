@@ -869,6 +869,11 @@ function serverHasInfrastructureError(): never {
   throw new ApiError('server already has an infrastructure resource', 'SERVER_HAS_INFRASTRUCTURE', 409);
 }
 
+// 같은 호스트 합치기(ADR 0012)로 다른 서버에 들어간 Docker Collector의 서버. 없으면 Docker 서버의 ID가 Collector의 ID다(migrateV59).
+const mockAgentServer = new Map<string, string>();
+const serverOfAgent = (agentId: string) => mockAgentServer.get(agentId) ?? agentId;
+const dockerAgentOfServer = (serverId: string) => mockAgents.find(agent => serverOfAgent(agent.id) === serverId);
+
 function writeServer(input: Partial<ServerInput>, id?: string): Server {
   const name = String(input.name ?? '').trim();
   if (!name || name.length > 200) throw new ApiError('name is required and must be at most 200 characters', 'VALIDATION_ERROR', 400);
@@ -1216,9 +1221,9 @@ function serviceUptime(endpoint: string, scenario: MockScenario): ServiceUptimeD
 function scenarioAgents(scenario: MockScenario): ConnectedAgent[] {
   const agents = scenario === 'empty' ? mockAgents.filter(agent => !initialAgentIds.has(agent.id)) : mockAgents;
   const fresh = new Date(Date.now() - 20_000).toISOString();
-  return agents.map(agent => initialAgentIds.has(agent.id) ? { ...agent, serverId: agent.id,
+  return agents.map(agent => initialAgentIds.has(agent.id) ? { ...agent, serverId: serverOfAgent(agent.id),
     lastSeenAt: scenario === 'normal' ? fresh : fixtureTime(agent.lastSeenAt),
-    updatedAt: scenario === 'normal' ? fresh : fixtureTime(agent.updatedAt) } : { ...agent, serverId: agent.id });
+    updatedAt: scenario === 'normal' ? fresh : fixtureTime(agent.updatedAt) } : { ...agent, serverId: serverOfAgent(agent.id) });
 }
 
 function scenarioServices(scenario: MockScenario): AgentServiceFlat[] {
@@ -1269,8 +1274,9 @@ function scenarioServers(scenario: MockScenario): Server[] {
 }
 
 // 백엔드와 같다(migrateV59): Docker 환경마다 서버가 있고 ID가 같다. 데모 이름은 서버와 겹치지 않아 suffix가 없다.
+// 직접 연결 서버에 합친 Docker 환경은 그 서버가 대신한다.
 function scenarioDockerServers(scenario: MockScenario): Server[] {
-  return scenarioAgents(scenario).map(agent => ({ id: agent.id, name: agent.name, description: '', projectId: agent.projectId, createdAt: agent.createdAt, updatedAt: agent.updatedAt }));
+  return scenarioAgents(scenario).filter(agent => agent.serverId === agent.id).map(agent => ({ id: agent.id, name: agent.name, description: '', projectId: agent.projectId, createdAt: agent.createdAt, updatedAt: agent.updatedAt }));
 }
 
 // Outage history for the overview timeline. `normal` keeps the resolved
@@ -1580,7 +1586,11 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     }
     if (method === 'PUT' && serverMatch) {
       if (!findServer(serverMatch[1])) serverNotFound();
-      return { ...writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput, serverMatch[1]) } as T;
+      const written = writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput, serverMatch[1]);
+      // 백엔드처럼 이 서버의 Docker Collector도 그룹을 따른다.
+      const collector = dockerAgentOfServer(written.id);
+      if (collector) collector.projectId = written.projectId;
+      return { ...written } as T;
     }
     if (method === 'DELETE' && serverMatch) {
       const serverId = serverMatch[1];
@@ -1599,15 +1609,31 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     }
     if (method === 'POST' && serverMergeMatch) {
       const sourceId = serverMergeMatch[1];
-      const { targetServerId } = JSON.parse(typeof body === 'string' ? body : '{}') as { targetServerId?: string };
+      const { targetServerId, infrastructure } = JSON.parse(typeof body === 'string' ? body : '{}') as { targetServerId?: string; infrastructure?: string };
       if (!targetServerId || targetServerId === sourceId) throw new ApiError('targetServerId is required and must differ from the server', 'VALIDATION_ERROR', 400);
-      const target = findServer(targetServerId);
-      if (!findServer(sourceId) || !target) serverNotFound();
+      // 백엔드와 같다(같은 호스트 합치기): Docker 서버도 합치지만 서버에 Docker Collector는 하나다.
+      const sourceAgent = dockerAgentOfServer(sourceId);
+      const targetAgent = dockerAgentOfServer(targetServerId);
+      const target = findServer(targetServerId) ?? (targetAgent && scenarioDockerServers(scenario).find(server => server.id === targetServerId));
+      if (!(findServer(sourceId) || sourceAgent) || !target) serverNotFound();
+      if (sourceAgent && targetAgent) throw new ApiError('both servers have a Docker Collector', 'SERVER_HAS_TWO_DOCKER', 409);
       if (serverHasInfrastructure(sourceId) && serverHasInfrastructure(targetServerId)) serverHasInfrastructureError();
+      const agent = sourceAgent ?? targetAgent;
+      const otel = mockInfrastructureResources.find(row => (row.serverId === sourceId || row.serverId === targetServerId) && row.isActive);
+      if (agent && otel && (!agent.profile?.capabilities.length || agent.profile.capabilities.includes('infrastructure'))) {
+        if (infrastructure === 'docker') otel.isActive = false;
+        else if (infrastructure === 'otel') agent.profile = { kind: 'custom', capabilities: (agent.profile?.capabilities.length ? agent.profile.capabilities : ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] as AgentCollectionCapability[]).filter(item => item !== 'infrastructure') };
+        else throw new ApiError('choose the infrastructure source: docker or otel', 'INFRASTRUCTURE_SOURCE_REQUIRED', 409);
+      }
+      if (sourceAgent) {
+        mockAgentServer.set(sourceAgent.id, targetServerId);
+        sourceAgent.projectId = target.projectId;
+      }
       for (const row of [...mockUptimeMonitors, ...mockObservedServices, ...mockInfrastructureResources]) {
         if (row.serverId === sourceId) row.serverId = targetServerId;
       }
-      mockServers.splice(mockServers.findIndex(server => server.id === sourceId), 1);
+      const sourceIndex = mockServers.findIndex(server => server.id === sourceId);
+      if (sourceIndex !== -1) mockServers.splice(sourceIndex, 1);
       target.updatedAt = new Date().toISOString();
       return { ...target } as T;
     }
@@ -1705,7 +1731,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         id: agent.id,
         name: agent.name,
         projectId: agent.projectId,
-        serverId: agent.id,
+        serverId: agent.serverId,
         adapter: 'everyup-agent',
         isActive: true,
         lastSeenAt: agent.lastSeenAt,

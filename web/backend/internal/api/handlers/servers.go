@@ -124,10 +124,12 @@ func (h *ServerHandler) Delete(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-// Merge moves every target of the server into targetServerId and deletes it.
+// Merge moves every target of the server, its Docker Collector included, into targetServerId and
+// deletes it. infrastructure ("docker" or "otel") chooses the host metrics source when both would remain.
 func (h *ServerHandler) Merge(c *fiber.Ctx) error {
 	var request struct {
 		TargetServerID string `json:"targetServerId"`
+		Infrastructure string `json:"infrastructure"`
 	}
 	if err := c.BodyParser(&request); err != nil {
 		return agentBadRequest(c, "VALIDATION_ERROR", err.Error())
@@ -136,7 +138,10 @@ func (h *ServerHandler) Merge(c *fiber.Ctx) error {
 	if request.TargetServerID == "" || request.TargetServerID == sourceID {
 		return agentBadRequest(c, "VALIDATION_ERROR", "targetServerId is required and must differ from the server")
 	}
-	if err := h.repo.Merge(sourceID, request.TargetServerID); err != nil {
+	if request.Infrastructure != "" && request.Infrastructure != database.MergeInfrastructureDocker && request.Infrastructure != database.MergeInfrastructureOTel {
+		return agentBadRequest(c, "VALIDATION_ERROR", "infrastructure must be docker or otel")
+	}
+	if err := h.repo.Merge(sourceID, request.TargetServerID, request.Infrastructure); err != nil {
 		if errors.Is(err, database.ErrServerMissing) {
 			return serverNotFound(c)
 		}
@@ -191,6 +196,14 @@ func serverWriteError(c *fiber.Ctx, err error) error {
 	case errors.Is(err, database.ErrServerHasInfrastructure):
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"success": false, "error": fiber.Map{
 			"code": "SERVER_HAS_INFRASTRUCTURE", "message": err.Error(),
+		}})
+	case errors.Is(err, database.ErrServerHasTwoDocker):
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"success": false, "error": fiber.Map{
+			"code": "SERVER_HAS_TWO_DOCKER", "message": err.Error(),
+		}})
+	case errors.Is(err, database.ErrInfrastructureSourceRequired):
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"success": false, "error": fiber.Map{
+			"code": "INFRASTRUCTURE_SOURCE_REQUIRED", "message": err.Error(),
 		}})
 	case errors.Is(err, database.ErrServerHasDocker):
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"success": false, "error": fiber.Map{

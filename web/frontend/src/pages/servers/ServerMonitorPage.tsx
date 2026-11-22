@@ -1,3 +1,4 @@
+import { useMergedServerRedirect } from '../../features/servers/useMergedServerRedirect';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -28,8 +29,10 @@ const MISSING = {
  */
 export function ServerMonitorPage() {
   const { serverId = '', monitorId = '' } = useParams<{ serverId: string; monitorId: string }>();
-  const { rows, error, failed, updatedAt, reload, poll, refresh: joinRefresh, busy, loaded, loading, forgetTarget } = useServers();
+  const { rows, error, failed, updatedAt, reload, poll, refresh: joinRefresh, busy, loaded, loading, forgetTarget } = useServers({ includeDocker: true });
   const row = rows.find((candidate) => candidate.server.id === serverId);
+  // 합쳐서 사라진 Docker 서버 아래의 주소는 합친 서버로 간다(같은 호스트 합치기).
+  useMergedServerRedirect(serverId, loaded && !row && !error);
   const found = row?.targets.monitors.some((candidate) => candidate.id === monitorId);
   // 모니터 목록을 불러오지 못했거나 이전 정보다. 이때는 "이 서버의 모니터가 아니다"라고 단정하지 않는다.
   const unverified = Boolean(error) || Boolean(row && (row.unknownCapabilities.includes('uptime') || row.staleCapabilities.includes('uptime')));

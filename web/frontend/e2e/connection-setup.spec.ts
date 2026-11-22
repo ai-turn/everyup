@@ -61,6 +61,18 @@ test('direct setup uses an external endpoint and waits for actual data', async (
   await expect(dialog.getByRole('button', { name: '환경 변수 복사' })).toBeDisabled();
 });
 
+// Docker Collector는 서버에 속한다(ADR 0012). 그 서버의 연결 대화 상자는 같은 서버 안의 일로 안내한다(연결 진입점 D1-A).
+test('the connection dialogs of a Docker server point at its own Docker Collector', async ({ page }) => {
+  // staging-api의 Docker Collector는 기본 수집(컨테이너 상태, 로그)이라 인프라와 API 요청을 모으지 않는다.
+  await page.goto('./servers/agent_demo_02/api');
+  await page.getByRole('tabpanel').getByRole('button', { name: 'API 요청 연결', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('이 서버에는 Docker Collector가 있습니다. 컨테이너로 도는 앱은 그것으로 연결하세요.');
+  await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
+  await page.goto('./servers/agent_demo_02/infrastructure');
+  await page.getByRole('tabpanel').getByRole('button', { name: '인프라 연결', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '인프라 연결' })).toContainText('서버 개요의 설정 가이드에서 인프라를 더하면 따로 설치하지 않아도 됩니다.');
+});
+
 test('server connection offers direct targets only', async ({ page }) => {
   await page.goto(LOGS_TAB);
   await page.getByRole('tabpanel').getByRole('button', { name: '로그 연결', exact: true }).click();
@@ -124,12 +136,12 @@ test('a Docker server reads the same in the list, its header and its guide', asy
 });
 
 test('every connection dialog states its scope before it issues anything', async ({ page }) => {
-  // 인프라: 이 서버 하나, OpenTelemetry Collector 실행. Docker 환경이 있으면 그 Docker Collector를 안내한다.
+  // 인프라: 이 서버 하나, OpenTelemetry Collector 실행. Docker Collector가 있는 서버가 있으면 그 Docker Collector를 안내한다.
   await page.goto('./servers/server_mock_staging_empty/infrastructure');
   await page.getByRole('tabpanel').getByRole('button', { name: '인프라 연결', exact: true }).click();
   const infra = page.getByRole('dialog', { name: '인프라 연결' });
   await expect(infra.getByText(/^적용 범위 이 서버 하나에 적용됩니다\./)).toBeVisible();
-  await expect(infra.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/servers\?connection=docker$/);
+  await expect(infra.getByRole('link', { name: 'Docker Collector' })).toHaveAttribute('href', /\/servers\?connection=docker$/);
   await infra.getByRole('button', { name: '취소', exact: true }).click();
   // 업타임: 설치할 것이 없다.
   await page.goto('./servers/server_mock_staging_empty/uptime');

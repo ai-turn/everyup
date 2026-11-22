@@ -7,6 +7,7 @@ import { AgentHealthCheckDetailView } from '../../features/healthcheck/component
 import type { DetailTab } from '../../features/healthcheck/components/AgentServiceTabs';
 import { listBack } from '../../features/targets/listBack';
 import { SERVERS_PATH, serverPath } from '../../features/servers/serverPaths';
+import { useMergedServerRedirect } from '../../features/servers/useMergedServerRedirect';
 import { getErrorMessage } from '../../utils/errors';
 
 function serviceKeyFromPath(pathname: string): string | null {
@@ -68,8 +69,8 @@ function ContainerDetail({ serverId, serviceKey }: { serverId: string; serviceKe
       if (serviceKey === null) { setFound(null); return; }
       // 서버 이름은 크럼에만 쓴다. 서버를 불러오지 못해도 컨테이너는 보인다.
       const [all, agents, server] = await Promise.all([api.getAllAgentServicesFlat(), api.getAgents(), api.getServer(serverId).catch(() => null)]);
-      // 이 서버의 Docker Collector. 합치기 전에는 Docker 서버의 ID가 Docker Collector의 ID다(migrateV59).
-      const agent = agents.find((candidate) => candidate.serverId === serverId) ?? agents.find((candidate) => candidate.id === serverId);
+      // 이 서버의 Docker Collector. 합쳐서 사라진 Docker 서버의 주소는 아래 useMergedServerRedirect가 합친 서버로 옮긴다.
+      const agent = agents.find((candidate) => candidate.serverId === serverId);
       const service = agent && all.find((s) => s.agentId === agent.id && s.key === serviceKey);
       setFound(agent && service ? { agent, service, serverName: server?.name ?? agent.name } : null);
       setLoadError(null);
@@ -93,6 +94,7 @@ function ContainerDetail({ serverId, serviceKey }: { serverId: string; serviceKe
   }, [fetchService]);
 
   const { refresh } = useAutoRefresh(handleRefresh, 30_000, autoRefresh);
+  useMergedServerRedirect(serverId, !loading && !found && !loadError);
 
   if (loading) {
     return (

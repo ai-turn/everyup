@@ -71,7 +71,7 @@ export function InfrastructureCollectorSetupDialog({
       ) : (
         <form onSubmit={submit} className="space-y-item p-6">
           <ApplyScope>{APPLY_SCOPE.infrastructure}</ApplyScope>
-          <DockerHostNote serverName={serverName} infrastructure />
+          <DockerHostNote serverId={serverId} serverName={serverName} infrastructure />
           <div className="rounded-md bg-ui-hover-soft p-4 type-control text-text-muted">
             연결하면 OpenTelemetry Collector 설정 파일과 한 번만 표시되는 API Key를 발급합니다.
           </div>

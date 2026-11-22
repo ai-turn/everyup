@@ -188,10 +188,7 @@ func TestDockerServersStayOutOfDirectServerRules(t *testing.T) {
 		t.Fatalf("direct server name = %q, want web-01 (2)", row.name)
 	}
 
-	// Merging with a Docker server waits for the confirmed same-host merge.
-	if err := repo.Merge(serverID, "agent_a"); !errors.Is(err, ErrServerHasDocker) {
-		t.Fatalf("Merge into a Docker server = %v, want ErrServerHasDocker", err)
-	}
+	// Merging with a Docker server is the confirmed same-host merge (server_merge_docker_test.go).
 
 	// The legacy group move never merges into a Docker server of the same name.
 	if _, err := DB.Exec(v59Server("other", "web-01", "NULL")); err != nil {

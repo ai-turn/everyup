@@ -114,7 +114,7 @@ test('merging brings the chosen servers into this one and removes them', async (
   const merge = await openMerge(page);
   await expect(merge).toContainText('선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.');
   await expect(merge.getByRole('checkbox', { name: /^staging-empty/ })).toHaveCount(0);
-  await expect(merge.getByRole('list', { name: '합칠 서버 (8개)' })).toBeVisible();
+  await expect(merge.getByRole('list', { name: '합칠 서버 (12개)' })).toBeVisible();
   const payments = merge.getByRole('checkbox', { name: /^payments-api \(Production\)/ });
   await expect(payments).toHaveAccessibleName(/업타임 모니터 1개, 앱 1개/);
   await payments.check();
