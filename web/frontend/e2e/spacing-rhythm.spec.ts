@@ -33,7 +33,7 @@ const SCREENS: [string, string, ((page: Page) => Promise<void>)?][] = [
   ['new channel', './alerts/channels/new'],
   ['settings', './settings'],
   ['add monitor dialog', `./servers/${E}/uptime`, open('업타임 모니터 추가')],
-  ['docker connect dialog', './environments', open('Docker 연결')],
+  ['docker connect dialog', './servers/server_mock_staging_empty', open('Docker Collector 설치')],
 ];
 
 // 지금 어긋나 있는 자리(`토큰: 위 요소` 앞부분, 값은 OS 글꼴에 따라 다를 수 있어 적지 않는다)와, 아직 표지 붙은 프리미티브를 쓰지 않는 화면(§10.I). 고치는 단계에서 여기서 지운다.

@@ -81,6 +81,9 @@ func SetupRoutes(app *fiber.App, scheduler *checker.Scheduler, collectorMgr *col
 	local.Put("/projects/:projectId/monitors/:monitorId", projectHandler.AssignMonitor)
 	local.Delete("/projects/:projectId/monitors/:monitorId", projectHandler.UnassignMonitor)
 	serverHandler := handlers.NewServerHandler(scheduler)
+	// Same-host suggestion dismissals (ADR 0012). Registered before /servers/:id.
+	local.Get("/same-host-dismissals", serverHandler.SameHostDismissals)
+	local.Post("/same-host-dismissals", serverHandler.DismissSameHost)
 	local.Get("/servers", serverHandler.GetAll)
 	local.Post("/servers", serverHandler.Create)
 	local.Get("/servers/:id", serverHandler.GetByID)

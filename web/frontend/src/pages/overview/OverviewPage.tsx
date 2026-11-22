@@ -213,12 +213,9 @@ export function OverviewPage() {
             icon="sensors"
             headingLevel="h2"
             title="아직 모니터링 대상이 없습니다"
-            description="서버를 추가해 업타임, 로그, 인프라 같은 기능을 연결하거나 Docker 환경을 연결해 시작하세요."
+            description="서버를 추가해 업타임, 로그, 인프라 같은 기능을 연결하세요. Docker 호스트는 서버를 추가할 때 Docker Collector 설치를 고릅니다."
           >
-            <div className="flex flex-wrap justify-center gap-2">
-              <ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink>
-              <ButtonLink variant="secondary" to={`${SERVERS_PATH}?connect=docker`}>Docker 연결</ButtonLink>
-            </div>
+            <ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink>
           </EmptyState>
         </section>
       ) : (

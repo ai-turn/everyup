@@ -20,7 +20,7 @@ func TestAgentJoinCodeCanOnlyBeConsumedOnce(t *testing.T) {
 		Name:    "join-target",
 		Profile: models.AgentProfile{Kind: models.AgentProfileBasic, Capabilities: []string{models.AgentCapabilityUptime, models.AgentCapabilityLogs}},
 	}
-	if err := repo.CreateAgentWithJoinCode(agent, "api-hash", "encrypted-api-key", "join-hash", now.Add(10*time.Minute)); err != nil {
+	if err := repo.CreateAgentWithJoinCode(&agent, "api-hash", "encrypted-api-key", "join-hash", now.Add(10*time.Minute), "", ""); err != nil {
 		t.Fatalf("CreateAgentWithJoinCode: %v", err)
 	}
 
@@ -45,7 +45,7 @@ func TestAgentJoinCodeExpiryAndReplacement(t *testing.T) {
 	repo := database.NewAgentRepository()
 	now := time.Now().UTC().Truncate(time.Second)
 	agent := models.Agent{ID: "agent-expiry", Name: "expiry-target"}
-	if err := repo.CreateAgentWithJoinCode(agent, "api-hash-2", "encrypted-api-key", "expired-hash", now.Add(-time.Second)); err != nil {
+	if err := repo.CreateAgentWithJoinCode(&agent, "api-hash-2", "encrypted-api-key", "expired-hash", now.Add(-time.Second), "", ""); err != nil {
 		t.Fatalf("CreateAgentWithJoinCode: %v", err)
 	}
 	if _, err := repo.ConsumeJoinCode("expired-hash", now); !errors.Is(err, sql.ErrNoRows) {

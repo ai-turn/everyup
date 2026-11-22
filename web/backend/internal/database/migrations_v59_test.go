@@ -250,7 +250,7 @@ func TestNewEnvironmentGetsAServer(t *testing.T) {
 	setupV59(t, v59Server("direct", "build", "NULL"))
 	agents := &AgentRepository{}
 	agent := models.Agent{ID: "agent_new", Name: "build", Profile: models.DefaultAgentProfile()}
-	if err := agents.CreateAgentWithJoinCode(agent, "hash", "enc", "join", time.Now().Add(time.Minute)); err != nil {
+	if err := agents.CreateAgentWithJoinCode(&agent, "hash", "enc", "join", time.Now().Add(time.Minute), "", ""); err != nil {
 		t.Fatal(err)
 	}
 	if row, ok := v59ServerRow(t, "agent_new"); !ok || row.name != "build (2)" {

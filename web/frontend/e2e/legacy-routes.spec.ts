@@ -103,11 +103,13 @@ test('the old Docker environment list goes to the Docker servers in the server l
   await expect(grid.getByRole('link', { name: 'worker-cluster', exact: true })).toBeVisible();
 });
 
-test('the old Docker connect address opens the connect dialog on the server list', async ({ page }) => {
-  await page.goto('./environments?connect=docker');
-  await expect(page.getByRole('dialog')).toBeVisible();
-  // 새로고침 때 다시 열리지 않게 파라미터는 지운다.
-  await expect(page).toHaveURL(/\/servers\?connection=docker$/);
+// 옛 `Docker 연결`은 서버 추가에서 Docker Collector 설치를 고른 화면이다(통합 3단계).
+test('the old Docker connect address opens server adding with Docker Collector chosen', async ({ page }) => {
+  for (const old of ['./environments?connect=docker', './servers?q=staging&connect=docker']) {
+    await page.goto(old);
+    await expect(page).toHaveURL(/\/servers\/new\?connection=docker$/);
+    await expect(page.getByRole('radio', { name: /^Docker Collector 설치/ })).toBeChecked();
+  }
 });
 
 for (const [old, tab] of [['', ''], ['/infrastructure', '/infrastructure'], ['/logs', '/logs'], ['/api', '/api'], ['/services', '']] as const) {

@@ -80,6 +80,14 @@ func (m *Manager) Create(input models.InfrastructureResourceInput) (*models.Infr
 	if server == nil {
 		return nil, database.ErrServerMissing
 	}
+	// One source of host metrics per server (ADR 0012): the server's Docker Collector stops collecting them.
+	docker, err := m.servers.DockerInfrastructureCollector(serverID)
+	if err != nil {
+		return nil, err
+	}
+	if docker != nil && input.Infrastructure != database.MergeInfrastructureOTel {
+		return nil, database.ErrInfrastructureSourceRequired
+	}
 	plainKey := crypto.GenerateApiKey()
 	now := time.Now()
 	resource := models.InfrastructureResource{
@@ -95,6 +103,11 @@ func (m *Manager) Create(input models.InfrastructureResourceInput) (*models.Infr
 	}
 	if err := m.repo.Create(&resource, crypto.HashApiKey(plainKey)); err != nil {
 		return nil, err
+	}
+	if docker != nil {
+		if err := m.servers.DropDockerInfrastructure(docker); err != nil {
+			return nil, err
+		}
 	}
 	return &models.InfrastructureResourceSetup{InfrastructureResource: resource, ApiKey: plainKey}, nil
 }

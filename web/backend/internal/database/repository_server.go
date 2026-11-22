@@ -302,30 +302,24 @@ func mergeServersTx(tx *sql.Tx, sourceID, targetID, infrastructure string) error
 	if agent == nil {
 		agent = targetAgent
 	}
-	if agent != nil && agent.Profile.Has(models.AgentCapabilityInfrastructure) && (sourceHasInfra || targetHasInfra) {
-		switch infrastructure {
-		case MergeInfrastructureDocker:
-			if _, err := tx.Exec(`UPDATE hosts SET is_active = 0, updated_at = ? WHERE server_id IN (?, ?) AND collector_type = 'otel-collector'`,
-				time.Now(), sourceID, targetID); err != nil {
-				return err
-			}
-		case MergeInfrastructureOTel:
-			kept := make([]string, 0, len(agent.Profile.Capabilities))
-			for _, capability := range agent.Profile.Capabilities {
-				if capability != models.AgentCapabilityInfrastructure {
-					kept = append(kept, capability)
+	if agent != nil && agent.Profile.Has(models.AgentCapabilityInfrastructure) {
+		active, err := otelInfrastructureActiveTx(tx, sourceID, targetID)
+		if err != nil {
+			return err
+		}
+		if active {
+			switch infrastructure {
+			case MergeInfrastructureDocker:
+				if err := stopOTelInfrastructureTx(tx, sourceID, targetID); err != nil {
+					return err
 				}
+			case MergeInfrastructureOTel:
+				if err := setAgentProfileTx(tx, agent.ID, withoutInfrastructure(agent.Profile)); err != nil {
+					return err
+				}
+			default:
+				return ErrInfrastructureSourceRequired
 			}
-			encoded, err := encodeAgentProfile(models.AgentProfile{Kind: models.AgentProfileCustom, Capabilities: kept})
-			if err != nil {
-				return err
-			}
-			if _, err := tx.Exec(`UPDATE agents SET profile_kind = ?, profile_capabilities = ?, updated_at = ? WHERE id = ?`,
-				encoded.Kind, encoded.Capabilities, time.Now(), agent.ID); err != nil {
-				return err
-			}
-		default:
-			return ErrInfrastructureSourceRequired
 		}
 	}
 	// The Docker Collector moves with its server; its data follows the target's group (ADR 0003).
@@ -347,6 +341,76 @@ func mergeServersTx(tx *sql.Tx, sourceID, targetID, infrastructure string) error
 	}
 	_, err = tx.Exec(`DELETE FROM servers WHERE id = ?`, sourceID)
 	return err
+}
+
+// One source of host metrics per server (ADR 0012): a Docker Collector whose profile collects
+// infrastructure and an active OpenTelemetry Collector resource never collect the same host together.
+// Every path that would make both collect (merge, installing a Docker Collector on a server, adding
+// infrastructure to its profile, connecting an OpenTelemetry Collector) asks which one to keep.
+
+// otelInfrastructureActiveTx reports whether any of the servers has an active OpenTelemetry Collector resource.
+func otelInfrastructureActiveTx(tx *sql.Tx, serverIDs ...string) (bool, error) {
+	args := make([]any, 0, len(serverIDs))
+	for _, id := range serverIDs {
+		args = append(args, id)
+	}
+	var active bool
+	err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM hosts WHERE collector_type = 'otel-collector' AND is_active = 1
+		AND server_id IN (`+strings.TrimSuffix(strings.Repeat("?,", len(serverIDs)), ",")+`))`, args...).Scan(&active)
+	return active, err
+}
+
+// stopOTelInfrastructureTx stops the servers' OpenTelemetry Collector resources (is_active = 0); their
+// history stays.
+func stopOTelInfrastructureTx(tx *sql.Tx, serverIDs ...string) error {
+	args := []any{time.Now()}
+	for _, id := range serverIDs {
+		args = append(args, id)
+	}
+	_, err := tx.Exec(`UPDATE hosts SET is_active = 0, updated_at = ? WHERE collector_type = 'otel-collector'
+		AND server_id IN (`+strings.TrimSuffix(strings.Repeat("?,", len(serverIDs)), ",")+`)`, args...)
+	return err
+}
+
+// withoutInfrastructure is the profile minus host metrics; the host applies it with the apply command.
+func withoutInfrastructure(profile models.AgentProfile) models.AgentProfile {
+	kept := make([]string, 0, len(profile.Capabilities))
+	for _, capability := range profile.Capabilities {
+		if capability != models.AgentCapabilityInfrastructure {
+			kept = append(kept, capability)
+		}
+	}
+	return models.AgentProfile{Kind: models.AgentProfileCustom, Capabilities: kept}
+}
+
+func setAgentProfileTx(tx *sql.Tx, agentID string, profile models.AgentProfile) error {
+	encoded, err := encodeAgentProfile(profile)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`UPDATE agents SET profile_kind = ?, profile_capabilities = ?, updated_at = ? WHERE id = ?`,
+		encoded.Kind, encoded.Capabilities, time.Now(), agentID)
+	return err
+}
+
+// DockerInfrastructureCollector returns the server's Docker Collector when it collects host metrics, or nil.
+func (r *ServerRepository) DockerInfrastructureCollector(serverID string) (*models.Agent, error) {
+	var agent *models.Agent
+	err := Transaction(func(tx *sql.Tx) error {
+		found, err := dockerCollectorOfTx(tx, serverID)
+		if err == nil && found != nil && found.Profile.Has(models.AgentCapabilityInfrastructure) {
+			agent = found
+		}
+		return err
+	})
+	return agent, err
+}
+
+// DropDockerInfrastructure removes host metrics from the Docker Collector's profile.
+func (r *ServerRepository) DropDockerInfrastructure(agent *models.Agent) error {
+	return Transaction(func(tx *sql.Tx) error {
+		return setAgentProfileTx(tx, agent.ID, withoutInfrastructure(agent.Profile))
+	})
 }
 
 // dockerCollectorOfTx returns the active Docker Collector of the server with its profile, or nil.
@@ -611,3 +675,59 @@ func attachAgentServerTx(tx *sql.Tx, agentID, name, projectID string, now time.T
 	_, err := tx.Exec(`UPDATE agents SET server_id = ?, project_id = ? WHERE id = ?`, agentID, nullableProjectID(projectID), agentID)
 	return err
 }
+
+// migrateV60 records the server pairs a user said are not the same host, so the same-host suggestion
+// (ADR 0012) stays dismissed for every browser and user. Deleting either server (merge, delete)
+// removes the record. Idempotent.
+func migrateV60() error {
+	_, err := DB.Exec(`CREATE TABLE IF NOT EXISTS same_host_dismissals (
+		docker_server_id TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+		server_id TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+		created_at DATETIME NOT NULL,
+		PRIMARY KEY (docker_server_id, server_id)
+	)`)
+	return err
+}
+
+// SameHostDismissal is a pair the user said is not the same host: a Docker server and a direct server.
+type SameHostDismissal struct {
+	DockerServerID string `json:"dockerServerId"`
+	ServerID       string `json:"serverId"`
+}
+
+func (r *ServerRepository) SameHostDismissals() ([]SameHostDismissal, error) {
+	rows, err := DB.Query(`SELECT docker_server_id, server_id FROM same_host_dismissals ORDER BY created_at`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make([]SameHostDismissal, 0)
+	for rows.Next() {
+		var pair SameHostDismissal
+		if err := rows.Scan(&pair.DockerServerID, &pair.ServerID); err != nil {
+			return nil, err
+		}
+		out = append(out, pair)
+	}
+	return out, rows.Err()
+}
+
+// DismissSameHost records the pair; repeating it is a no-op. ErrServerMissing when a server is unknown.
+func (r *ServerRepository) DismissSameHost(pair SameHostDismissal) error {
+	_, err := DB.Exec(`INSERT OR IGNORE INTO same_host_dismissals (docker_server_id, server_id, created_at)
+		SELECT ?, ?, ? WHERE (SELECT COUNT(*) FROM servers WHERE id IN (?, ?)) = 2`,
+		pair.DockerServerID, pair.ServerID, time.Now(), pair.DockerServerID, pair.ServerID)
+	if err != nil {
+		return err
+	}
+	var exists bool
+	if err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM same_host_dismissals WHERE docker_server_id = ? AND server_id = ?)`,
+		pair.DockerServerID, pair.ServerID).Scan(&exists); err != nil {
+		return err
+	}
+	if !exists {
+		return ErrServerMissing
+	}
+	return nil
+}
+

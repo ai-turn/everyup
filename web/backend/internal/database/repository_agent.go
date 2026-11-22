@@ -87,24 +87,69 @@ VALUES (?, ?, '', ?, ?, 'active', ?, ?, ?, ?, ?)`,
 
 // CreateAgentWithJoinCode atomically creates a project and its initial
 // short-lived installer credential. The join code itself is never persisted.
-func (r *AgentRepository) CreateAgentWithJoinCode(agent models.Agent, keyHash, keyEnc, joinCodeHash string, expiresAt time.Time) error {
+//
+// serverID installs the Docker Collector on an existing server (ADR 0012) instead of creating its own
+// server: the server must not have a Docker Collector yet (ErrServerHasDocker). When the profile
+// collects host metrics and the server has an active OpenTelemetry Collector resource, infrastructure
+// (MergeInfrastructure*) keeps one source, and agent.Profile reflects the choice.
+func (r *AgentRepository) CreateAgentWithJoinCode(agent *models.Agent, keyHash, keyEnc, joinCodeHash string, expiresAt time.Time, serverID, infrastructure string) error {
 	now := time.Now()
-	profile, err := encodeAgentProfile(agent.Profile)
-	if err != nil {
-		return err
-	}
 	return Transaction(func(tx *sql.Tx) error {
+		if serverID != "" {
+			var exists bool
+			if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers WHERE id = ?)`, serverID).Scan(&exists); err != nil {
+				return err
+			}
+			if !exists {
+				return ErrServerMissing
+			}
+			existing, err := dockerCollectorOfTx(tx, serverID)
+			if err != nil {
+				return err
+			}
+			if existing != nil {
+				return ErrServerHasDocker
+			}
+			if agent.Profile.Has(models.AgentCapabilityInfrastructure) {
+				active, err := otelInfrastructureActiveTx(tx, serverID)
+				if err != nil {
+					return err
+				}
+				if active {
+					switch infrastructure {
+					case MergeInfrastructureDocker:
+						if err := stopOTelInfrastructureTx(tx, serverID); err != nil {
+							return err
+						}
+					case MergeInfrastructureOTel:
+						agent.Profile = withoutInfrastructure(agent.Profile)
+					default:
+						return ErrInfrastructureSourceRequired
+					}
+				}
+			}
+		}
+		profile, err := encodeAgentProfile(agent.Profile)
+		if err != nil {
+			return err
+		}
 		if _, err := tx.Exec(`
 INSERT INTO agents(id, name, version, api_key_hash, api_key_enc, status, profile_kind, profile_capabilities, last_seen_at, created_at, updated_at)
 VALUES (?, ?, '', ?, ?, 'active', ?, ?, ?, ?, ?)`,
 			agent.ID, agent.Name, keyHash, keyEnc, profile.Kind, profile.Capabilities, now, now, now); err != nil {
 			return err
 		}
-		// Every Docker environment is a server (migrateV59).
-		if err := attachAgentServerTx(tx, agent.ID, agent.Name, "", now); err != nil {
+		if serverID != "" {
+			// The Docker Collector follows the server's group (ADR 0003).
+			if _, err := tx.Exec(`UPDATE agents SET server_id = ?, project_id = (SELECT project_id FROM servers WHERE id = ?) WHERE id = ?`,
+				serverID, serverID, agent.ID); err != nil {
+				return err
+			}
+		} else if err := attachAgentServerTx(tx, agent.ID, agent.Name, "", now); err != nil {
+			// Every Docker environment is a server (migrateV59).
 			return err
 		}
-		_, err := tx.Exec(`
+		_, err = tx.Exec(`
 INSERT INTO agent_join_codes(code_hash, agent_id, expires_at, created_at)
 VALUES (?, ?, ?, ?)`, joinCodeHash, agent.ID, expiresAt, now)
 		return err

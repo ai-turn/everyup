@@ -37,6 +37,8 @@ export async function uptimeFixture(page: Page) {
     requests: [] as { method: string; path: string; query: string; body: UptimeMonitorInput | null }[],
     /** 아래 분기 어디에도 걸리지 않아 기본값([])으로 응답한 요청. 서버 화면이 부르는 API를 빠짐없이 처리하는지 확인할 때 본다. */
     unhandled: [] as string[],
+    /** `같은 호스트인가요?`에서 `아님`으로 답한 쌍(백엔드처럼 POST가 기록하고 GET이 돌려준다). */
+    sameHostDismissals: [] as { dockerServerId: string; serverId: string }[],
   };
   await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
@@ -106,6 +108,10 @@ export async function uptimeFixture(page: Page) {
       }
     } else if (path === '/agents') data = state.dockerServer ? [{ id: 'docker-host', name: 'Production Docker', serverId: 'docker-host', lastSeenAt: new Date().toISOString() }] : [];
     else if (path.endsWith('/request-stats')) data = { buckets: [], truncated: false };
+    else if (path === '/same-host-dismissals') {
+      if (method === 'POST' && body) state.sameHostDismissals.push(body as unknown as { dockerServerId: string; serverId: string });
+      data = method === 'POST' ? body : state.sameHostDismissals;
+    }
     else state.unhandled.push(key);
     await route.fulfill({ json: { success: true, data } });
   });

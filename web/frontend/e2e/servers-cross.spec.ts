@@ -214,12 +214,13 @@ test.describe('against the API', () => {
     await expect(attention(page)).toContainText('전체가 정상인지는 아직 알 수 없습니다');
   });
 
-  test('an overview with no servers or Docker environments offers to add a server or connect Docker', async ({ page }) => {
+  test('an overview with no servers offers to add a server, Docker hosts included', async ({ page }) => {
     await page.route('**/api/v1/**', (route) => route.fulfill({ json: { success: true, data: [] } }));
     await page.goto('./');
     await expect(page.getByRole('heading', { name: '아직 모니터링 대상이 없습니다' })).toBeVisible();
     await expect(page.getByRole('link', { name: '서버 추가', exact: true })).toHaveAttribute('href', /\/servers\/new$/);
-    await expect(page.getByRole('link', { name: 'Docker 연결', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Docker 연결', exact: true })).toHaveCount(0);
+    await expect(page.getByText('Docker 호스트는 서버를 추가할 때 Docker Collector 설치를 고릅니다.')).toBeVisible();
     await expect(page.getByRole('link', { name: '업타임 모니터 추가' })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'OpenTelemetry 직접 연결' })).toHaveCount(0);
   });

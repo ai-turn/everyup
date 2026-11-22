@@ -39,12 +39,34 @@ func (r *ConnectionSetupRepository) AgentProfile(id string) (models.AgentProfile
 }
 
 // Existing identity, project membership, credentials and history remain intact.
-func (r *ConnectionSetupRepository) UpdateProfile(id string, profile models.AgentProfile) error {
+// Adding host metrics to a server that has an active OpenTelemetry Collector resource needs
+// infrastructure = MergeInfrastructureDocker, which stops that resource (one source per server, ADR 0012).
+func (r *ConnectionSetupRepository) UpdateProfile(id string, profile models.AgentProfile, infrastructure string) error {
 	encoded, err := encodeAgentProfile(profile)
 	if err != nil {
 		return err
 	}
 	return Transaction(func(tx *sql.Tx) error {
+		if profile.Has(models.AgentCapabilityInfrastructure) {
+			var serverID sql.NullString
+			if err := tx.QueryRow(`SELECT server_id FROM agents WHERE id = ?`, id).Scan(&serverID); err != nil {
+				return err
+			}
+			if serverID.Valid {
+				active, err := otelInfrastructureActiveTx(tx, serverID.String)
+				if err != nil {
+					return err
+				}
+				if active {
+					if infrastructure != MergeInfrastructureDocker {
+						return ErrInfrastructureSourceRequired
+					}
+					if err := stopOTelInfrastructureTx(tx, serverID.String); err != nil {
+						return err
+					}
+				}
+			}
+		}
 		result, err := tx.Exec(`UPDATE agents SET profile_kind=?,profile_capabilities=?,updated_at=? WHERE id=? AND COALESCE(status,'active')='active'`, encoded.Kind, encoded.Capabilities, time.Now(), id)
 		if err != nil {
 			return err

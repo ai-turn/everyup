@@ -97,7 +97,10 @@ test.describe('live demo', () => {
     await page.getByRole('option', { name: '첫 시작' }).click();
 
     await expect(page.getByText('아직 모니터링 대상이 없습니다')).toBeVisible();
-    await expect(page.locator('section').filter({ hasText: '아직 모니터링 대상이 없습니다' }).getByRole('link', { name: 'Docker 연결', exact: true })).toBeVisible();
+    // 시작은 서버 추가 하나다. Docker 호스트도 서버 추가에서 연결 방식으로 고른다.
+    const empty = page.locator('section').filter({ hasText: '아직 모니터링 대상이 없습니다' });
+    await expect(empty.getByRole('link', { name: '서버 추가', exact: true })).toBeVisible();
+    await expect(empty.getByRole('link', { name: 'Docker 연결', exact: true })).toHaveCount(0);
   });
 
   test('normal scenario shows that no action is needed', async ({ page }) => {

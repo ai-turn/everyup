@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -269,9 +270,16 @@ func (h *AgentHandler) Create(c *fiber.Ctx) error {
 	var req struct {
 		Name    string              `json:"name"`
 		Profile models.AgentProfile `json:"profile"`
+		// ServerID installs the Docker Collector on an existing server (ADR 0012); empty creates its own.
+		ServerID string `json:"serverId"`
+		// Infrastructure ("docker" or "otel") keeps one source of host metrics on that server.
+		Infrastructure string `json:"infrastructure"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return agentBadRequest(c, "INVALID_REQUEST", "invalid request body")
+	}
+	if req.Infrastructure != "" && req.Infrastructure != database.MergeInfrastructureDocker && req.Infrastructure != database.MergeInfrastructureOTel {
+		return agentBadRequest(c, "VALIDATION_ERROR", "infrastructure must be docker or otel")
 	}
 	req.Name = strings.TrimSpace(req.Name)
 	if req.Name == "" {
@@ -300,7 +308,10 @@ func (h *AgentHandler) Create(c *fiber.Ctx) error {
 	if err != nil {
 		return internalError(c, "KEY_GENERATION_ERROR", err)
 	}
-	if err := h.repo.CreateAgentWithJoinCode(agent, hash, keyEnc, joinHash, expiresAt); err != nil {
+	if err := h.repo.CreateAgentWithJoinCode(&agent, hash, keyEnc, joinHash, expiresAt, strings.TrimSpace(req.ServerID), req.Infrastructure); err != nil {
+		if errors.Is(err, database.ErrServerMissing) || errors.Is(err, database.ErrServerHasDocker) || errors.Is(err, database.ErrInfrastructureSourceRequired) {
+			return serverWriteError(c, err)
+		}
 		return internalError(c, "DATABASE_ERROR", err)
 	}
 

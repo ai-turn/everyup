@@ -100,7 +100,8 @@ function ContainersRow({ row }: { row: ServerRow }) {
   );
 }
 
-export function ServerOverviewTab({ row }: { row: ServerRow }) {
+/** onInstallDocker: Docker Collector가 없는 서버에 설치 창을 연다(ADR 0012). 연결할 수 있는 기능의 끝에 둔다. */
+export function ServerOverviewTab({ row, onInstallDocker }: { row: ServerRow; onInstallDocker?: () => void }) {
   const navigate = useNavigate();
   // 연결은 데이터가 보일 자리(기능 탭)에서 시작한다. 개요는 그 탭으로 옮기면서 대화 상자를 열어 달라고만 한다(연결 진입점 정리 D2).
   const startConnect = (key: ServerCapability) => navigate(serverPath(row.server.id, key), { state: { [CONNECT_STATE]: true } });
@@ -125,6 +126,7 @@ export function ServerOverviewTab({ row }: { row: ServerRow }) {
           {SERVER_CAPABILITIES.filter(({ key }) => key !== 'uptime').map(({ key }) => (
             <Button key={key} variant="secondary" onClick={() => startConnect(key)}>{connectAction(key)}</Button>
           ))}
+          {onInstallDocker && <Button variant="secondary" onClick={onInstallDocker}>Docker Collector 설치</Button>}
         </div>
       </EmptyState>
     );
@@ -160,11 +162,12 @@ export function ServerOverviewTab({ row }: { row: ServerRow }) {
           {row.containers !== null && <ContainersRow row={row} />}
           {connected.map(({ key, label, tone, known }) => <CapabilityRow key={key} row={row} capability={key} label={label} tone={tone} known={known} />)}
         </section>
-        {connectable.length > 0 && (
+        {(connectable.length > 0 || onInstallDocker) && (
           <section aria-labelledby="server-connectable" className="space-y-label">
             <h2 id="server-connectable" className="type-section-title text-text-base">연결할 수 있는 기능</h2>
             <div className="-mx-2 flex flex-wrap gap-x-2">
               {connectable.map(({ key }) => <Button key={key} variant="text" className="px-2" onClick={() => startConnect(key)}>{connectAction(key)}</Button>)}
+              {onInstallDocker && <Button variant="text" className="px-2" onClick={onInstallDocker}>Docker Collector 설치</Button>}
             </div>
           </section>
         )}
