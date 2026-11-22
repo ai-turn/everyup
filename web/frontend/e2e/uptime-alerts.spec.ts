@@ -17,7 +17,7 @@ for (const kind of ['direct', 'agent'] as const) {
       rule('Other metric', 666, { ...fields, metric: 'cpu' }),
     ]);
     state.responses.set(`GET /agents/docker-host/services/${encodeURIComponent(serviceKey)}/history`, [{ time: new Date().toISOString(), latencyMs: 100, total: 1, uptimePct: 100 }]);
-    await page.goto(kind === 'direct' ? './servers/server-1/monitors/http-monitor' : `./services/docker-host/${encodeURIComponent(serviceKey)}`);
+    await page.goto(kind === 'direct' ? './servers/server-1/monitors/http-monitor' : `./servers/docker-host/containers/${encodeURIComponent(serviceKey)}`);
     await expect(page.getByText('알림 > 111ms', { exact: true })).toBeVisible();
     for (const threshold of [333, 444, 555, 666]) await expect(page.getByText(`알림 > ${threshold}ms`, { exact: true })).toHaveCount(0);
     // Both details hand off to the rules tab filtered to this target.

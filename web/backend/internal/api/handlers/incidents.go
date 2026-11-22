@@ -73,11 +73,18 @@ func (h *IncidentHandler) GetTimeline(c *fiber.Ctx) error {
 		out = append(out, uptimeEpisode(in, now))
 	}
 	for _, in := range docker {
+		// The frontend's container page (/servers/:serverId/containers/:key, ADR 0012).
+		// The old /services/:agentId/:key path is a fallback for a deactivated Docker
+		// Collector, which has no server; the frontend redirects it.
+		// The key travels in a path segment and may contain ':' or '/'.
+		path := "/services/" + in.AgentID + "/" + encodeURIPathSegment(in.Key)
+		if in.ServerID != "" {
+			path = "/servers/" + in.ServerID + "/containers/" + encodeURIPathSegment(in.Key)
+		}
 		out = append(out, models.TimelineIncident{
-			Source:     models.IncidentSourceDocker,
-			TargetName: in.ServiceName,
-			// The key travels in a path segment and may contain ':' or '/'.
-			TargetPath:  "/services/" + in.AgentID + "/" + encodeURIPathSegment(in.Key),
+			Source:      models.IncidentSourceDocker,
+			TargetName:  in.ServiceName,
+			TargetPath:  path,
 			StartedAt:   in.StartedAt,
 			EndedAt:     in.EndedAt,
 			DurationSec: in.DurationSec,

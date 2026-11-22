@@ -66,7 +66,7 @@ test('[17] 200 percent root text, long errors and a short viewport keep forms an
   expect(overflow).toBeLessThanOrEqual(1);
   await page.screenshot({ path: testInfo.outputPath('text-200-create.png') });
   await dialog.getByRole('button', { name: '취소', exact: true }).click();
-  for (const route of ['./servers/server-1/monitors/http-monitor', './services/docker-host/shop%3Aapi']) {
+  for (const route of ['./servers/server-1/monitors/http-monitor', './servers/docker-host/containers/shop%3Aapi']) {
     await page.goto(route);
     await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
     await expect(page.getByRole('heading', { name: route.includes('http-monitor') ? 'Public API' : 'Docker API', exact: true })).toBeVisible();

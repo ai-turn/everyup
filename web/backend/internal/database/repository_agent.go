@@ -834,9 +834,10 @@ func (r *AgentRepository) agentIncidents(agentID string, days, limit int) ([]mod
 	}
 	since := time.Now().AddDate(0, 0, -days)
 	query := `
-SELECT h.agent_id, h.key, COALESCE(s.name, h.key), h.healthy, h.recorded_at
+SELECT h.agent_id, COALESCE(a.server_id, ''), h.key, COALESCE(s.name, h.key), h.healthy, h.recorded_at
 FROM agent_service_history h
 LEFT JOIN agent_services s ON s.agent_id = h.agent_id AND s.key = h.key
+LEFT JOIN agents a ON a.id = h.agent_id
 WHERE h.recorded_at >= ?`
 	args := []any{since}
 	if agentID != "" {
@@ -855,10 +856,10 @@ WHERE h.recorded_at >= ?`
 	var open *models.AgentIncident
 	prevAgent, prevKey := "", ""
 	for rows.Next() {
-		var agent, key, name string
+		var agent, serverID, key, name string
 		var healthy int
 		var recordedAt time.Time
-		if err := rows.Scan(&agent, &key, &name, &healthy, &recordedAt); err != nil {
+		if err := rows.Scan(&agent, &serverID, &key, &name, &healthy, &recordedAt); err != nil {
 			return nil, err
 		}
 		if agent != prevAgent || key != prevKey {
@@ -871,7 +872,7 @@ WHERE h.recorded_at >= ?`
 		}
 		switch {
 		case healthy == 0 && open == nil:
-			open = &models.AgentIncident{AgentID: agent, Key: key, ServiceName: name, StartedAt: recordedAt, Active: true}
+			open = &models.AgentIncident{AgentID: agent, ServerID: serverID, Key: key, ServiceName: name, StartedAt: recordedAt, Active: true}
 		case healthy == 1 && open != nil:
 			ended := recordedAt
 			open.EndedAt = &ended

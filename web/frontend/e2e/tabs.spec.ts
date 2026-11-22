@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 test.describe('shared tabs', () => {
   test('arrow, Home and End keys move focus and selection', async ({ page }) => {
-    await page.goto('./services/agent_demo_01/shop%3Aapi');
+    await page.goto('./servers/agent_demo_01/containers/shop%3Aapi');
     const tabs = page.getByRole('tablist', { name: '서비스 데이터' }).getByRole('tab');
     await expect(tabs).toHaveCount(6);
     const last = tabs.nth(5);
@@ -32,7 +32,7 @@ test.describe('shared tabs', () => {
   });
 
   test('only the selected tab is in the tab order', async ({ page }) => {
-    await page.goto('./services/agent_demo_01/shop%3Aapi');
+    await page.goto('./servers/agent_demo_01/containers/shop%3Aapi');
     const tabs = page.getByRole('tablist', { name: '서비스 데이터' }).getByRole('tab');
     await tabs.nth(2).click();
 

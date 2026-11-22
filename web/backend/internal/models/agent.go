@@ -70,7 +70,10 @@ type ServiceUptimeDay struct {
 type AgentIncident struct {
 	// AgentID is set on every episode so a cross-agent timeline can link back to
 	// the right service; the per-agent endpoint already knows it from the URL.
-	AgentID     string     `json:"agentId,omitempty"`
+	AgentID string `json:"agentId,omitempty"`
+	// ServerID is the server the Docker Collector belongs to (ADR 0012), so the
+	// timeline can link to the container page under it. Empty for a deactivated one.
+	ServerID    string     `json:"serverId,omitempty"`
 	Key         string     `json:"key"`
 	ServiceName string     `json:"serviceName"`
 	StartedAt   time.Time  `json:"startedAt"`

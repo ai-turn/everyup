@@ -128,3 +128,15 @@ export function LegacyEnvironmentsRedirect() {
   params.set('connection', 'docker');
   return <Navigate to={`${SERVERS_PATH}?${params}${hash}`} replace />;
 }
+
+/**
+ * 옛 Docker 서비스 상세(`/services/:agentId/:key`). 컨테이너 페이지는 서버 아래다(ADR 0012). Docker 서버의 ID는 Docker Collector의
+ * ID와 같다(migrateV59). 키는 주소의 원래 조각을 그대로 옮긴다: 라우터 파라미터는 인코딩된 `/`(`%2F`)를 풀어 키를 바꾼다.
+ * 쿼리(`?tab=`, `?range=` 등)·해시·state를 넘긴다.
+ */
+export function LegacyContainerRedirect() {
+  const { agentId = '' } = useParams<{ agentId: string }>();
+  const { pathname, search, hash, state } = useLocation();
+  const rawKey = pathname.replace(/\/$/, '').split('/').pop() ?? '';
+  return <Navigate to={`/servers/${encodeURIComponent(agentId)}/containers/${rawKey}${search}${hash}`} replace state={state} />;
+}

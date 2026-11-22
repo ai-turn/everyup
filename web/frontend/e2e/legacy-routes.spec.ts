@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { API_URL } from './fixtures/ports';
-import { uptimeFixture } from './fixtures/uptime';
+import { dockerService, uptimeFixture } from './fixtures/uptime';
 
 // 옛 기능별 메뉴의 주소는 서버 화면으로 바뀐다(설계 6.2). 이미 보낸 알림과 북마크의 링크가 이 경로로 온다.
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표를 따른다.
@@ -129,8 +129,27 @@ test('a missing target explains itself and links to the server list', async ({ p
   await expect(page).toHaveURL(/\/servers$/);
 });
 
+// 옛 Docker 서비스 상세(`/services/:agentId/:key`)는 그 Docker 서버의 컨테이너 페이지로 간다(ADR 0012). 장애 이력, 알림, 북마크의 링크다.
+test('an old Docker service address goes to the container page under its server with its query and hash', async ({ page }) => {
+  await page.goto('./servers');
+  await page.goto('./services/agent_demo_01/shop%3Apayment-worker?tab=logs&range=24h#latest');
+  await expect(page).toHaveURL(/\/servers\/agent_demo_01\/containers\/shop%3Apayment-worker\?tab=logs&range=24h#latest$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'payment-worker' })).toBeVisible();
+  await expect(page.getByRole('tab', { selected: true })).toHaveText('로그');
+  await page.goBack();
+  await expect(page).toHaveURL(/\/servers$/);
+});
+
 test.describe('against the API', () => {
   test.use({ baseURL: API_URL });
+
+  test('an old Docker service address keeps a key with an encoded slash', async ({ page }) => {
+    const state = await uptimeFixture(page);
+    state.services = [dockerService({ key: 'svc%2Fraw' })];
+    await page.goto(`./services/docker-host/${encodeURIComponent('svc%2Fraw')}?tab=logs`);
+    await expect(page).toHaveURL(/\/servers\/docker-host\/containers\/svc%252Fraw\?tab=logs$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Docker API' })).toBeVisible();
+  });
 
   test('a 404 is not found, a failed lookup offers a retry', async ({ page }) => {
     const state = await uptimeFixture(page);

@@ -2,7 +2,7 @@ import { expect, test, type Locator } from '@playwright/test';
 import { mockRouter } from '../src/services/mockRouter';
 import type { ApiRequest, LogEntry, ServiceHistoryPoint, TraceDetail } from '../src/services/api';
 
-const payment = './services/agent_demo_01/shop%3Apayment-worker';
+const payment = './servers/agent_demo_01/containers/shop%3Apayment-worker';
 const endpoint = '/agents/agent_demo_01/services/shop%3Apayment-worker';
 
 test('the ongoing demo outage has failed checks and linked HTTP evidence', () => {

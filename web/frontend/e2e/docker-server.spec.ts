@@ -39,7 +39,23 @@ test.describe('docker server', () => {
     const logs = page.locator('section', { has: page.getByRole('heading', { name: '컨테이너 로그', exact: true }) });
     await expect(logs.getByRole('link').first()).toHaveText('payment-worker');
     await page.getByRole('link', { name: /Payment gateway timeout after 5000ms.*24회/ }).click();
-    await expect(page).toHaveURL(/\/services\/agent_demo_01\/shop%3Apayment-worker\?tab=logs&range=24h&pattern=/);
+    await expect(page).toHaveURL(/\/servers\/agent_demo_01\/containers\/shop%3Apayment-worker\?tab=logs&range=24h&pattern=/);
+  });
+
+  test('a container opens under its server and returns to the containers tab', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('./servers/agent_demo_01/containers');
+    await page.getByRole('table', { name: '컨테이너 그리드' }).getByRole('link', { name: 'payment-worker', exact: true }).click();
+    await expect(page).toHaveURL(/\/servers\/agent_demo_01\/containers\/shop%3Apayment-worker$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'payment-worker' })).toBeVisible();
+    // 좁은 화면의 복귀 링크는 연 목록이다.
+    await page.getByRole('link', { name: '컨테이너 목록', exact: true }).click();
+    await expect(page).toHaveURL(/\/servers\/agent_demo_01\/containers$/);
+  });
+
+  test('a container of another server is not found', async ({ page }) => {
+    await page.goto('./servers/server_mock_edge_host_01/containers/shop%3Aapi');
+    await expect(page.getByText('컨테이너를 찾을 수 없습니다')).toBeVisible();
   });
 
   test('the header carries the Docker Collector actions', async ({ page }) => {

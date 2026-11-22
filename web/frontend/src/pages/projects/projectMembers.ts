@@ -6,6 +6,7 @@ import { STATE_LABEL, STATE_ORDER, worst, type ServerRow } from '../../features/
 import { readLatest } from '../../utils/readLatest';
 import { COLLECTION_STATUS_LABEL } from '../../components/common/collectionStatus';
 import { ApiError, getErrorMessage } from '../../utils/errors';
+import { containerPath } from '../../features/docker/dockerPaths';
 
 // 그룹 목록의 상태 요약과 그룹 상세의 구성원 목록이 같은 판정을 쓰도록 한곳에 둔다.
 // 둘이 따로 계산하면 목록은 "정상"인데 상세는 "장애"인 그룹이 생긴다.
@@ -42,7 +43,7 @@ export function projectMembers({ agents, services, servers }: ProjectSources): M
   const asServers = new Set(servers.flatMap((row) => (row.targets.docker ? [row.targets.docker.id] : [])));
   return [
     ...agents.filter((agent) => !asServers.has(agent.id)).map((agent): Member => ({ assignment: { kind: 'agent', item: agent }, key: `agent-${agent.id}`, to: serverPath(agent.id), icon: 'deployed_code', type: 'Docker 환경', name: agent.name, detail: COLLECTION_STATUS_LABEL[isCollectorFresh(agent.lastSeenAt) ? 'collecting' : 'delayed'], state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
-    ...services.filter((service) => !service.healthy).map((service): Member => ({ key: `service-${service.agentId}-${service.key}`, to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`, icon: 'deployed_code', type: `${service.agentName}의 Docker 서비스`, name: service.name, detail: '장애', state: 'error' })),
+    ...services.filter((service) => !service.healthy).map((service): Member => ({ key: `service-${service.agentId}-${service.key}`, to: containerPath(service.agentId, service.key), icon: 'deployed_code', type: `${service.agentName}의 Docker 서비스`, name: service.name, detail: '장애', state: 'error' })),
     ...servers.map((row): Member => ({ assignment: { kind: 'server', item: row.server }, key: `server-${row.server.id}`, to: serverPath(row.server.id), icon: 'dns', type: '서버', name: row.server.name, detail: STATE_LABEL[row.state], cause: row.cause?.text, state: row.state })),
   ].sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);
 }

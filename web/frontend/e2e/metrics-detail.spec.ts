@@ -109,7 +109,7 @@ test('long names and attributes stay inside the mobile viewport in light and dar
 });
 
 test('Docker metric search does not reuse the log or request search', async ({ page }) => {
-  await page.goto('./services/agent_demo_03/jobs%3Acatalog-worker?tab=metrics&range=24h&q=log-only-filter');
+  await page.goto('./servers/agent_demo_03/containers/jobs%3Acatalog-worker?tab=metrics&range=24h&q=log-only-filter');
   await expect(page.getByRole('heading', { name: 'JVM 메모리 사용량', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: '응답 시간', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '24h', exact: true })).toHaveAttribute('aria-pressed', 'true');

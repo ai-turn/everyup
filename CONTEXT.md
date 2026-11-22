@@ -13,7 +13,7 @@ One of the Uptime, Infrastructure, Logs, API, and Metrics tabs in a Server. It s
 _Avoid_: Capability Menu, Docker Environment view
 
 **Docker Environment**:
-A connected Docker host monitored through an EveryUp Docker Collector. Its discovered workloads and infrastructure data share the Docker Environment's Group membership. Being retired by ADR 0012: every Docker Environment is stored as a Server with the same id (`agents.server_id`) and shown in the Server list; the Docker Environment menu and screens are gone (old `/environments` and `/agents/:id` addresses redirect to the Server list and Server). The term leaves product copy in the terminology stage.
+A connected Docker host monitored through an EveryUp Docker Collector. Its discovered workloads and infrastructure data share the Docker Environment's Group membership. Being retired by ADR 0012: every Docker Environment is stored as a Server with the same id (`agents.server_id`) and shown in the Server list; the Docker Environment menu and screens are gone (old `/environments` and `/agents/:id` addresses redirect to the Server list and Server). Each discovered workload has a container page under its Server (`/servers/:serverId/containers/:key`); the old `/services/:agentId/:key` address redirects there. The term leaves product copy in the terminology stage.
 _Avoid_: Agent, Group, Docker Project
 
 **Docker Collector**:
@@ -33,11 +33,11 @@ A configured availability check, such as HTTP or TCP, with its own target and sc
 _Avoid_: Service, Group
 
 **Response Check**:
-A check that asks a target to answer, such as an HTTP request or TCP connection. Independent Uptime Monitors and Docker Collector HTTP checks are both Response Checks. A Server's Uptime tab shows only that Server's Uptime Monitors; Docker Collector Response Checks appear in their Docker Environment.
+A check that asks a target to answer, such as an HTTP request or TCP connection. Independent Uptime Monitors and Docker Collector HTTP checks are both Response Checks. A Server's Uptime tab shows only that Server's Uptime Monitors; Docker Collector Response Checks appear in the containers tab of the Server their Docker Collector belongs to.
 _Avoid_: Liveness Check
 
 **Liveness Check**:
-A Docker Collector check that is healthy while the container is running, without asking the workload to answer. It appears only in its Docker Environment.
+A Docker Collector check that is healthy while the container is running, without asking the workload to answer. It appears only in the containers tab of its Docker Collector's Server.
 _Avoid_: Uptime, Response Check
 
 **Observed Service**:

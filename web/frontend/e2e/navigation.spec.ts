@@ -25,7 +25,7 @@ test.describe('desktop', () => {
   });
 
   test('a Docker service detail is inside the servers section', async ({ page }) => {
-    await page.goto('./services/agent_demo_01/shop%3Aapi');
+    await page.goto('./servers/agent_demo_01/containers/shop%3Aapi');
     await expect(mainNav(page).getByRole('link', { name: '서버', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(crumbs(page).getByRole('listitem').first()).toHaveText('서버');
   });

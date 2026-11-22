@@ -11,6 +11,7 @@ import { statusClass } from '../../api-requests/useRequestQuery';
 import { spanKindBadge } from '../spanKind';
 import { appPath } from '../../servers/serverPaths';
 import { formatClock } from '../../../utils/incidentFormat';
+import { containerPath } from '../../docker/dockerPaths';
 
 interface TracePanelProps {
   traceId: string;
@@ -27,7 +28,7 @@ export type TraceTarget =
 function traceTargetPath(target: TraceTarget, tab: 'logs' | 'requests', traceId: string, serverId?: string): string {
   const query = `traceId=${encodeURIComponent(traceId)}`;
   if (target.kind === 'agent') {
-    return `/services/${target.agentId}/${encodeURIComponent(target.serviceKey)}?tab=${tab}&${query}`;
+    return `${containerPath(target.agentId, target.serviceKey)}?tab=${tab}&${query}`;
   }
   if (!serverId) return `/${tab === 'logs' ? 'logs' : 'api'}/${encodeURIComponent(target.observedServiceId)}?${query}`;
   return `${appPath(serverId, target.observedServiceId, tab)}&${query}`;

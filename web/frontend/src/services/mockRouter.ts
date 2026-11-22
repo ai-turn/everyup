@@ -1281,7 +1281,8 @@ function scenarioTimeline(scenario: MockScenario): TimelineIncident[] {
   const uptime = scenarioMonitors(scenario).flatMap(monitorIncidents);
   const docker: TimelineIncident[] = mockAgentIncidents.filter(incident => scenario !== 'normal' || !incident.active).map(incident => ({
     source: 'docker', targetName: incident.serviceName,
-    targetPath: `/services/${incident.agentId}/${encodeURIComponent(incident.key)}`,
+    // 백엔드처럼 컨테이너 페이지다(Docker 서버의 ID는 Docker Collector의 ID다, ADR 0012).
+    targetPath: `/servers/${incident.agentId}/containers/${encodeURIComponent(incident.key)}`,
     startedAt: fixtureTime(incident.startedAt), endedAt: incident.endedAt ? fixtureTime(incident.endedAt) : undefined,
     durationSec: incident.durationSec, active: incident.active,
   }));

@@ -5,6 +5,7 @@ import { SCRIM_PANEL, useOverlay } from '../../hooks/useOverlay';
 import { api, type AgentServiceFlat, type ConnectedAgent, type ObservedService, type Project, type Server, type UptimeMonitor } from '../../services/api';
 import { NAV_SECTIONS } from './navSections';
 import { ALL_LOGS_PATH, appPath, monitorPath, serverPath } from '../../features/servers/serverPaths';
+import { containerPath } from '../../features/docker/dockerPaths';
 
 // Fired by the sidebar search button; ⌘K/Ctrl+K toggles directly.
 export const OPEN_PALETTE_EVENT = 'everyup:command-palette';
@@ -118,7 +119,7 @@ export function CommandPalette() {
     ...services.map((s) => ({
       // 환경 이름만 쓰면 같은 이름의 서버의 대상처럼 읽혔다.
       id: `svc-${s.agentId}-${s.key}`, icon: '', label: s.name, meta: `${s.agentName}의 Docker 서비스`,
-      to: `/services/${s.agentId}/${encodeURIComponent(s.key)}`, healthy: s.healthy,
+      to: containerPath(s.agentId, s.key), healthy: s.healthy,
     })),
     ];
   }, [agents, apps, groups, monitors, servers, services]);

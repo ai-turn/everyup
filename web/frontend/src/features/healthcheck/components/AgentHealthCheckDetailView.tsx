@@ -5,15 +5,22 @@ import { Button, ButtonLink, MaterialIcon, type DetailMetaField, type GlobalTime
 import { TargetHeader } from '../../targets/TargetHeader';
 import { LogIngestLevels } from '../../logs/components/LogIngestLevels';
 import { DockerUptimeStatus } from '../../uptime/components/DockerUptimeStatus';
-import type { AgentServiceFlat } from '../../../services/api';
+import type { AgentServiceFlat, ConnectedAgent } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { runtimeLabel } from '../runtimeLabels';
 import { serverPath } from '../../servers/serverPaths';
+import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 
 export interface AgentHealthCheckDetailViewProps {
   service: AgentServiceFlat;
-  agentId: string;
+  /** 이 컨테이너를 발견한 Docker Collector. 데이터는 이 ID로 조회한다. */
+  agent: ConnectedAgent;
+  /** 컨테이너가 속한 서버(ADR 0012). 크럼과 설정 가이드가 이 서버를 가리킨다. */
+  serverId: string;
+  serverName: string;
+  /** 컨테이너 목록에서 열었으면 그 목록으로 돌아가는 링크. */
+  back?: { label: string; to: string };
   serviceKey: string;
   refreshKey: number;
   onRefresh: () => void;
@@ -67,30 +74,41 @@ function containerFields(service: AgentServiceFlat): DetailMetaField[] {
   ];
 }
 
+// Docker Collector가 모으는 데이터 유형(수집 프로필). 프로필이 비어 있으면 모두 모은다(MonitoringSetupPanel과 같다).
+const DOCKER_CAPABILITY_ORDER = ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] as const;
+function collected(agent: ConnectedAgent): string {
+  const enabled = new Set<string>(agent.profile?.capabilities ?? []);
+  return DOCKER_CAPABILITY_ORDER.filter((capability) => enabled.size === 0 || enabled.has(capability))
+    .map((capability) => DOCKER_CAPABILITY_NAME[capability]).join('·');
+}
+
 export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProps) {
-  const { service, agentId, serviceKey } = props;
+  const { service, agent, serverId, serviceKey } = props;
+  const agentId = agent.id;
   // Shared chart range for all tabs; survives service switches (Tabs remount on key).
   const [range, setRange] = useState<GlobalTimeRange>(props.initialRange ?? '6h');
   const lastChecked = service.observedAt
     ? formatDistanceToNow(new Date(service.observedAt), { addSuffix: true, locale: ko })
     : '없음';
-  // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 크럼에 넣지 않는다. 실제 담김 관계는 Docker 환경 › 에이전트 › 서비스다.
-  const environment = serverPath(agentId);
+  // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 크럼에 넣지 않는다. 담김 관계는 서버 › 컨테이너다(앱 페이지와 같다).
+  const server = serverPath(serverId);
   const refresh = { updatedAt: props.updatedAt, onRefresh: props.onRefresh, refreshing: props.refreshing, autoRefresh: props.autoRefresh, onAutoRefreshChange: props.onAutoRefreshChange };
 
   return (
     <>
       <TargetHeader
         title={service.name}
-        crumbs={[{ label: service.agentName, to: environment }]}
+        crumbs={[{ label: props.serverName, to: server }]}
+        back={props.back}
         status={<>
           <DockerUptimeStatus service={service} />
           {service.lastLatency && <span>지연 시간 {service.lastLatency}</span>}
           <span>마지막 체크 {lastChecked}</span>
           {(service.restartCount ?? 0) >= 3 && <span className="text-status-warn sm:hidden">재시작 {service.restartCount}회</span>}
         </>}
-        // 수집 방식은 환경 단위다: 기능을 더하거나 연결을 고치는 곳은 그 Docker 환경의 설정 가이드다.
-        connection={{ kind: 'docker', detail: <>{service.agentName} 환경</>, action: { label: '설정 가이드', to: environment } }}
+        // 수집 방식은 서버 단위다: 기능을 더하거나 연결을 고치는 곳은 서버 개요의 설정 가이드다. 서버 이름은 크럼에 있으므로
+        // 세부는 Docker Collector가 모으는 데이터 유형이다.
+        connection={{ kind: 'docker', detail: collected(agent), action: { label: '설정 가이드', to: server } }}
         fields={[...checkFields(service), ...containerFields(service), { label: '수집 레벨', value: <LogIngestLevels agentId={agentId} serviceKey={serviceKey} /> }]}
         // 주 조작은 제목 줄의 알림 규칙이다. 장애일 때만 에러 로그로 가는 조작을 더한다(이전에는 정상일 때 이유 없이 비활성이었다).
         actions={<>

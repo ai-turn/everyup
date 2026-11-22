@@ -49,7 +49,7 @@ export function ServerLogsTab({ row, onChanged, unknown, stale, onRetry, refresh
   const label = connectAction('logs');
   // Docker Collector가 컨테이너 로그를 모으면 그 요약이 이 탭의 본문이다(ADR 0012). 앱 로그 연결은 탭 줄의 조작 자리로 간다.
   const docker = dockerCollects(row.targets, 'logs') ? row.targets.docker : undefined;
-  const dockerLogs = docker && <DockerLogsSection agentId={docker.id} containers={row.targets.containers} refreshKey={refreshToken} />;
+  const dockerLogs = docker && <DockerLogsSection serverId={row.server.id} agentId={docker.id} containers={row.targets.containers} refreshKey={refreshToken} />;
   const content = () => {
     // 이전 목록에 로그 앱이 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
     if (unknown || (stale && apps.length === 0)) return <LoadErrorBanner inline title="로그 앱 정보를 불러오지 못했습니다" onRetry={onRetry} />;

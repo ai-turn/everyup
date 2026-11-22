@@ -25,9 +25,9 @@ function formatMetricValue(v: number, unit?: string): string {
 const metricLabel = (name: string) => name.split('.').slice(-2).join('.');
 
 /** 컨테이너 하나의 카드. 상태·응답 시간·상태 코드는 목록 응답 그대로이고, 대표 지표는 그 컨테이너가 보낸 OTel 지표다. */
-function ContainerCard({ service, metric, returnTo }: { service: AgentServiceFlat; metric?: OtelServiceMetric; returnTo: string }) {
+function ContainerCard({ serverId, service, metric, returnTo }: { serverId: string; service: AgentServiceFlat; metric?: OtelServiceMetric; returnTo: string }) {
   return (
-    <Link to={containerPath(service)} state={{ returnTo }} aria-label={service.name}
+    <Link to={containerPath(serverId, service.key)} state={{ returnTo }} aria-label={service.name}
       className="card-interactive group bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-heading">
       <ResourceCardHeader
         title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{service.name}</h3>}
@@ -59,7 +59,7 @@ function ContainerCard({ service, metric, returnTo }: { service: AgentServiceFla
  * 서버의 컨테이너 탭(ADR 0012). 옛 Docker 환경 개요의 본문이다: 진행 중 장애, 컨테이너 목록, 90일 체크 기록, 장애 이력과 타임라인.
  * 장애 이력·타임라인·대표 지표는 부가 정보라 각자 실패해도 목록은 그대로다.
  */
-export function DockerContainersPanel({ agentId, containers, refreshToken }: { agentId: string; containers: AgentServiceFlat[]; refreshToken: number }) {
+export function DockerContainersPanel({ serverId, agentId, containers, refreshToken }: { serverId: string; agentId: string; containers: AgentServiceFlat[]; refreshToken: number }) {
   const { view, setView, returnTo } = useListView();
   const [incidents, setIncidents] = useState<AgentIncident[]>([]);
   const [events, setEvents] = useState<AgentEvent[]>([]);
@@ -74,7 +74,7 @@ export function DockerContainersPanel({ agentId, containers, refreshToken }: { a
 
   const active = incidents.filter((incident) => incident.active);
   const banner = active[0];
-  const to = (key: string) => containerPath({ agentId, key });
+  const to = (key: string) => containerPath(serverId, key);
 
   return (
     <div className="space-y-section">
@@ -109,7 +109,7 @@ export function DockerContainersPanel({ agentId, containers, refreshToken }: { a
           ]} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {containers.map((service) => <ContainerCard key={service.key} service={service} metric={metrics[service.name]} returnTo={returnTo} />)}
+            {containers.map((service) => <ContainerCard key={service.key} serverId={serverId} service={service} metric={metrics[service.name]} returnTo={returnTo} />)}
           </div>
         )}
       </Section>

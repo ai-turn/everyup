@@ -1092,8 +1092,9 @@ func TestIncidentTimelineMergesUptimeAndDockerSources(t *testing.T) {
 
 	// --- Docker service still down, more recent than the uptime episode ---
 	agentRepo := database.NewAgentRepository()
-	if err := agentRepo.UpsertAgent(models.Agent{ID: "agent-1", Name: "prod-server", LastSeenAt: now}); err != nil {
-		t.Fatalf("UpsertAgent: %v", err)
+	// Created like POST /agents, so the Docker environment is also a server (migrateV59).
+	if err := agentRepo.CreateAgent(models.Agent{ID: "agent-1", Name: "prod-server", LastSeenAt: now}, "hash-agent-1", "enc"); err != nil {
+		t.Fatalf("CreateAgent: %v", err)
 	}
 	dockerSvc := func(healthy bool) models.AgentService {
 		// A ':' in the key must survive the round trip into a URL path segment.
@@ -1140,7 +1141,8 @@ func TestIncidentTimelineMergesUptimeAndDockerSources(t *testing.T) {
 	if !docker.Active || docker.EndedAt != nil {
 		t.Fatalf("docker episode should still be open: %+v", docker)
 	}
-	if docker.TargetName != "payment-worker" || docker.TargetPath != "/services/agent-1/shop%3Apayment-worker" {
+	// A Docker environment is the server with the same id (ADR 0012): the link is its container page.
+	if docker.TargetName != "payment-worker" || docker.TargetPath != "/servers/agent-1/containers/shop%3Apayment-worker" {
 		t.Fatalf("docker link is not followable: %+v", docker)
 	}
 	if uptime.Active || uptime.EndedAt == nil {
@@ -1154,6 +1156,21 @@ func TestIncidentTimelineMergesUptimeAndDockerSources(t *testing.T) {
 	}
 	if uptime.DurationSec != 3600 {
 		t.Fatalf("resolved duration should be start→resolve, got %d", uptime.DurationSec)
+	}
+
+	// A deactivated Docker Collector has no server any more; its episode keeps the old
+	// address, which the frontend redirects.
+	if err := agentRepo.DeactivateAgent("agent-1"); err != nil {
+		t.Fatalf("DeactivateAgent: %v", err)
+	}
+	_, result = ts.doRequest(t, "GET", "/api/v1/incidents/timeline?days=7&limit=20", nil, authHeader(token)...)
+	raw, _ = json.Marshal(result.Data)
+	episodes = nil
+	if err := json.Unmarshal(raw, &episodes); err != nil {
+		t.Fatalf("decode timeline: %v", err)
+	}
+	if len(episodes) == 0 || episodes[0].TargetPath != "/services/agent-1/shop%3Apayment-worker" {
+		t.Fatalf("deactivated Docker Collector should fall back to the old address: %+v", episodes)
 	}
 }
 
