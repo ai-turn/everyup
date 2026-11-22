@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/aiturn/everyup/internal/models"
@@ -117,19 +118,36 @@ func (r *ProjectRepository) Delete(id string) error {
 	})
 }
 
+// AssignAgent moves a Docker environment and its server into projectID. A same-name server
+// there is never merged with it: the server takes a suffixed name instead.
 func (r *ProjectRepository) AssignAgent(projectID, agentID string) error {
-	result, err := DB.Exec(`UPDATE agents SET project_id = ?, updated_at = ? WHERE id = ? AND COALESCE(status, 'active') = 'active'`, nullableProjectID(projectID), time.Now(), agentID)
-	if err != nil {
+	return Transaction(func(tx *sql.Tx) error {
+		now := time.Now()
+		result, err := tx.Exec(`UPDATE agents SET project_id = ?, updated_at = ? WHERE id = ? AND COALESCE(status, 'active') = 'active'`, nullableProjectID(projectID), now, agentID)
+		if err != nil {
+			return err
+		}
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if rows == 0 {
+			return sql.ErrNoRows
+		}
+		var serverID, name, current string
+		err = tx.QueryRow(`SELECT s.id, s.name, COALESCE(s.project_id, '') FROM agents a JOIN servers s ON s.id = a.server_id WHERE a.id = ?`, agentID).Scan(&serverID, &name, &current)
+		if errors.Is(err, sql.ErrNoRows) || (err == nil && current == projectID) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if name, err = nextFreeServerNameTx(tx, name, projectID); err != nil {
+			return err
+		}
+		_, err = tx.Exec(`UPDATE servers SET name = ?, project_id = ?, updated_at = ? WHERE id = ?`, name, nullableProjectID(projectID), now, serverID)
 		return err
-	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rows == 0 {
-		return sql.ErrNoRows
-	}
-	return nil
+	})
 }
 
 // AssignMonitor moves the monitor's server, and so every target on it, into projectID.

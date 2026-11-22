@@ -30,6 +30,8 @@ export interface ConnectedAgent {
   id: string;
   name: string;
   projectId?: string;
+  /** The server this Docker environment is stored as (ADR 0012, same id). */
+  serverId?: string;
   version?: string;
   lastSeenAt: string;
   createdAt: string;
