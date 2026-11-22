@@ -21,19 +21,19 @@ Collector로 보냅니다. Linux Docker 서버라면 선택 통합인 **Docker �
 
 ## 핵심 기능
 
-업타임·로그·인프라·API 요청·메트릭 화면은 직접 설정한 대상만 보여줍니다. Docker Collector가 수집한
+서버의 업타임·인프라·로그·API 요청·메트릭 탭은 그 서버에 직접 설정한 대상만 보여줍니다. Docker Collector가 수집한
 응답 검사·컨테이너 상태·로그·호스트 자원·API 요청은 해당 Docker 환경 화면에서 확인하세요.
 개요·그룹·알림은 두 경로의 대상을 함께 다룹니다.
 
 | 기능 | 확인할 내용 | 필요한 설정 |
 | --- | --- | --- |
 | 개요 | 장애·수집 지연, 모니터링 범위, 최근 장애 이력 | 모니터링 대상 연결 |
-| 업타임 | 직접 등록한 업타임 모니터의 HTTP·TCP 응답 검사 | [모니터 추가](./uptime-monitors) |
-| 인프라 | 호스트 CPU·메모리·디스크·네트워크 추이 | [표준 Collector 연결](./monitoring-setup#direct-otel) 또는 Docker 환경의 인프라 수집 |
+| 업타임 | 직접 등록한 업타임 모니터의 HTTP·TCP 응답 검사 | [업타임 모니터 추가](./uptime-monitors) |
+| 인프라 | 호스트 CPU·메모리·디스크·네트워크 추이 | [OpenTelemetry Collector로 인프라 연결](./monitoring-setup#direct-otel) 또는 Docker 환경의 인프라 수집 |
 | 로그 | 오류·경고 추이, 반복 메시지 묶기, 검색 | 직접 OTLP 로그 전송 또는 Docker 환경의 stdout/stderr 수집 |
 | API 응답 시간·트레이스 | 요청 수·에러율·응답 시간 추이와 span | 앱의 [OpenTelemetry 직접 연결](./monitoring-setup#direct-otel) 또는 Docker 환경의 [eBPF Observer](./ebpf-observer) |
-| 앱 메트릭 | 앱이 보낸 메트릭별 수치와 추이 | 앱·Collector의 OTLP 메트릭 전송 설정 |
-| 컨테이너 상태 | 자동 발견한 컨테이너의 실행 상태와 검사 결과 | Docker 환경의 업타임 수집 선택 |
+| 앱 메트릭 | 앱이 보낸 메트릭별 수치와 추이 | 앱이나 OpenTelemetry Collector의 OTLP 메트릭 전송 설정 |
+| 컨테이너 상태 | 자동 발견한 컨테이너의 실행 상태와 검사 결과 | Docker 환경의 컨테이너 상태 수집 선택 |
 | API 상태 | access log에서 추출한 요청 메서드·경로·상태 코드 | Docker 환경에서 앱이나 프록시의 access log 출력 |
 | 헤더·바디 상세 수집 | 요청 진단 정보와 캡처된 바디 | [언어별 계측](./otel-instrumentation). 바디 자동 수집은 Node.js에서 선택적으로 활성화 |
 | 알림 | 규칙·채널·발송 결과 | [알림 채널과 활성 규칙 설정](./notifications) |

@@ -28,19 +28,19 @@ configuration in English; the running UI looks like the screenshot above.
 
 ## Features
 
-The Uptime, Logs, Infrastructure, API requests, and Metrics pages show only the targets you configure
-directly. Response checks, container state, logs, host resources, and API requests collected by a Docker
+A server's Uptime, Infrastructure, Logs, API requests, and Metrics tabs show only the targets you
+configure directly on that server. Response checks, container state, logs, host resources, and API requests collected by a Docker
 Collector appear in that Docker environment. Overview, groups, and alerts cover both paths.
 
 | Feature | What you can inspect | Required setup |
 | --- | --- | --- |
 | Overview | Failures, delayed collection, monitoring scope, recent incidents | Connect monitoring targets |
-| Uptime | HTTP and TCP response checks from the uptime monitors you add | [Add monitors](./uptime-monitors) |
-| Infrastructure | Host CPU, memory, disk, and network trends | [Connect a standard Collector](./monitoring-setup#direct-otel) or enable infrastructure collection in a Docker environment |
+| Uptime | HTTP and TCP response checks from the uptime monitors you add | [Add uptime monitors](./uptime-monitors) |
+| Infrastructure | Host CPU, memory, disk, and network trends | [Connect infrastructure through an OpenTelemetry Collector](./monitoring-setup#direct-otel) or enable infrastructure collection in a Docker environment |
 | Logs | Error and warning trends, recurring messages, search | Export OTLP logs directly or collect stdout/stderr in a Docker environment |
 | API response times and traces | Request count, error rate, response time trends, spans | [Connect the app directly through OpenTelemetry](./monitoring-setup#direct-otel) or the [eBPF Observer](./ebpf-observer) in a Docker environment |
-| Application metrics | Values and trends for metrics your app exports | Configure OTLP metric export in the app or Collector |
-| Container state | Discovered containers, their running state and check results | Enable uptime collection in a Docker environment |
+| Application metrics | Values and trends for metrics your app exports | Configure OTLP metric export in the app or an OpenTelemetry Collector |
+| Container state | Discovered containers, their running state and check results | Enable container state collection in a Docker environment |
 | API status | Request method, path, and status code parsed from access logs | App or proxy access-log output in a Docker environment |
 | Header and body capture | Request details and captured bodies | [Language-specific instrumentation](./otel-instrumentation). Automatic body capture is opt-in for Node.js |
 | Notifications | Rules, channels, delivery results | [Configure channels and enabled rules](./notifications) |

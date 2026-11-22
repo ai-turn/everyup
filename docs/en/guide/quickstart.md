@@ -73,9 +73,10 @@ If it does not open, see [The dashboard does not open](./troubleshooting#web-not
 
 ## 2. Add an uptime monitor (browser)
 
-On the **업타임** (Uptime) screen, click **추가** (Add). Leave **체크 방식** (Check type) at **HTTP**,
-enter a **이름** (Name) and the public **URL** to check (for example `https://api.example.com/health`),
-and click **추가** (Add). The other fields can keep their defaults.
+On the **서버** (Servers) screen, click **추가** (Add) to create a server; a name is all it needs. When
+the server opens, click **업타임 모니터 추가** (Add uptime monitor). Leave **체크 방식** (Check type) at
+**HTTP**, enter a **이름** (Name) and the public **URL** to check (for example
+`https://api.example.com/health`), and click **추가** (Add). The other fields can keep their defaults.
 
 Web runs the check, so nothing is installed on the target. The first check runs as soon as you add
 the monitor and repeats every 30 seconds. On a 2xx response the monitor shows **정상** (Healthy).
@@ -91,12 +92,14 @@ capabilities you need.
 
 | Data | Dashboard path |
 | --- | --- |
-| Logs | **로그** (Logs) → **로그 연결** (Connect logs) → **OpenTelemetry로 직접 연결** (Connect directly through OpenTelemetry) |
-| API requests and traces | **API 요청** (API requests) → **API 연결** (Connect API) → **OpenTelemetry로 직접 연결** |
-| App metrics | **메트릭** (Metrics) → **메트릭 연결** (Connect metrics) → **OpenTelemetry로 직접 연결** |
-| Server resources | **인프라** (Infrastructure) → **인프라 연결** (Connect infrastructure) |
+| Logs | **서버** (Servers) → a server → **로그** (Logs) tab → **로그 연결** (Connect logs) |
+| API requests and traces | **서버** (Servers) → a server → **API 요청** (API requests) tab → **API 요청 연결** (Connect API requests) |
+| App metrics | **서버** (Servers) → a server → **메트릭** (Metrics) tab → **메트릭 연결** (Connect metrics) |
+| Server resources | **서버** (Servers) → a server → **인프라** (Infrastructure) tab → **인프라 연결** (Connect infrastructure) |
 
-The connection screen shows the export address and API Key to apply in your app or Collector. See
+The same buttons on the server's **개요** (Overview) tab open the same dialog in that tab. The dialog's
+first line, **적용 범위** (Scope), says what the connection applies to and what the app or server has to
+do. Connecting shows the export address and API Key to apply in your app or OpenTelemetry Collector. See
 [Connecting OpenTelemetry directly](./monitoring-setup#direct-otel) for language-specific setup and
 how to confirm receipt.
 
@@ -105,7 +108,7 @@ how to confirm receipt.
 Installing the monitoring bundle (the Docker Collector plus the components it needs) on a Linux
 Docker server collects container state, logs, host resources, and API requests in one install,
 without changing your apps. This data appears in that **Docker 환경** (Docker environment), not in
-capability menus such as Uptime, Logs, or Infrastructure. With a single server you can install it
+a server's tabs such as Uptime, Logs, or Infrastructure. With a single server you can install it
 next to Web.
 
 The monitored server needs:
@@ -123,19 +126,19 @@ The monitored server needs:
 | Scope | Collection and reception | Installs |
 |---|---|---|
 | **전체** (All) | Container state, logs, infrastructure, API tracing, and OTLP metric reception | Docker Collector, eBPF Observer |
-| **기본** (Basic) | Docker service state, logs | Docker Collector |
+| **기본** (Basic) | Container state, logs | Docker Collector |
 | **사용자 지정** (Custom) | Only what you select (and only the permissions it needs) | Docker Collector, plus the eBPF Observer if you select API tracing |
 
 To see app metrics, enable reception and configure the app or an OpenTelemetry Collector to export
-them. Selecting logs or API tracing also enables the uptime capability required for Docker discovery.
+them. Selecting logs or API tracing also enables the container state capability required for Docker discovery.
 
 The [eBPF Observer](./ebpf-observer) records API latency and traces without changing your
 application. It runs with permissions separate from the Docker Collector and discovers container
 processes automatically, so there is no port list to maintain.
 
-::: details Custom profiles without uptime collection
-If a custom profile omits Docker uptime collection (for example, a metrics-only profile), apps
-sending telemetry to the Collector's OTLP gateway (`:4318`) need a service-scoped bearer token.
+::: details Custom profiles without container state
+If a custom profile omits container state collection (for example, a metrics-only profile), apps
+sending telemetry to the Docker Collector's OTLP gateway (`:4318`) need a service-scoped bearer token.
 Generate a token for each app and set its `Authorization` header. See the
 [Collector networking notes](../reference/collector#networking) for the command and exporter settings.
 :::
@@ -190,7 +193,7 @@ on that server also appear as services.
 
 If the environment stays at **설치 대기**, see [Troubleshooting](./troubleshooting#not-collecting).
 
-**수집 중** describes Collector contact. Open the environment's **모니터링 설정 가이드** (monitoring setup
+**수집 중** describes Docker Collector contact. Open the environment's **모니터링 설정 가이드** (monitoring setup
 guide) and check configuration application and **데이터 수신 확인** (data receipt) too. Generate app
 requests to produce logs and traces. For app metrics, apply export settings and wait for a collection
 interval before checking receipt.

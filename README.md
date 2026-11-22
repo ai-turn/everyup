@@ -50,7 +50,7 @@ docker compose up -d
 ```
 
 `http://<대시보드 서버 IP>:3001`에서 첫 관리자 계정을 만든 뒤, **Docker 환경** 화면의
-**Docker 연결**로 Collector를 설치합니다. 외부 접속 주소 지정과 Collector 설치는
+**Docker 연결**로 Docker Collector를 설치합니다. 외부 접속 주소 지정과 Docker Collector 설치는
 [Quick Start 문서](https://ai-turn.github.io/everyup/guide/quickstart)를 참고하세요.
 
 ## 문서
