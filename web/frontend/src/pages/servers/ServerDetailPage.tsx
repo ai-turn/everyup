@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ButtonLink, EmptyState, LoadErrorBanner, Tabs, tabId, tabPanelId, type TabItem } from '../../components/common';
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
+import { DockerContainersPanel } from '../../features/docker/DockerContainersPanel';
+import { useDockerActions } from '../../features/docker/useDockerActions';
+import { MonitoringSetupPanel } from '../../features/services/components/MonitoringSetupPanel';
 import { ServerAppTab } from '../../features/servers/components/ServerAppTab';
 import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
@@ -17,7 +20,8 @@ import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import { api, type Project } from '../../services/api';
 
-type ServerTab = 'overview' | ServerCapability;
+// 컨테이너 탭은 Docker Collector가 있는 서버에만 있다(ADR 0012).
+type ServerTab = 'overview' | 'containers' | ServerCapability;
 const ID_PREFIX = 'server';
 
 const TARGET_NOUN: Record<ServerCapability, string> = { uptime: '모니터', infrastructure: '리소스', logs: '앱', api: '앱', metrics: '앱' };
@@ -27,8 +31,9 @@ export function ServerDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const capability = SERVER_CAPABILITIES.find(({ key }) => key === rawCapability)?.key;
-  const invalidCapability = rawCapability !== undefined && capability === undefined;
-  const active: ServerTab = capability ?? 'overview';
+  const containersTab = rawCapability === 'containers';
+  const invalidCapability = rawCapability !== undefined && capability === undefined && !containersTab;
+  const active: ServerTab = containersTab ? 'containers' : capability ?? 'overview';
 
   useEffect(() => {
     if (invalidCapability) navigate(serverPath(serverId), { replace: true });
@@ -38,8 +43,18 @@ export function ServerDetailPage() {
   const pendingKeyboard = useRef<string | null>(null);
   useEffect(() => { pendingKeyboard.current = null; }, [location]);
 
-  const { rows, error, failed, updatedAt, reload, poll, refresh: joinRefresh, busy, loaded, loading, forgetTarget } = useServers();
+  const { rows, error, failed, updatedAt, reload, poll, refresh: joinRefresh, busy, loaded, loading, forgetTarget } = useServers({ includeDocker: true });
   const row = rows.find((candidate) => candidate.server.id === serverId);
+  // Docker Collector가 없는 서버의 컨테이너 주소는 개요로 보낸다.
+  const noContainers = containersTab && Boolean(row) && row?.containers === null;
+  useEffect(() => {
+    if (noContainers) navigate(serverPath(serverId), { replace: true });
+  }, [noContainers, serverId, navigate]);
+  const dockerActions = useDockerActions(row?.targets.docker, {
+    onChanged: () => void reload(),
+    // 다른 대상이 없으면 서버도 사라진다. 남는 서버면 그 화면에 머문다.
+    onDeactivated: () => { void reload(); if (row && !row.targets.monitors.length && !row.targets.apps.length) navigate(serversListPath(), { replace: true }); },
+  });
 
   // 그룹 이름은 보조 정보다. 실패하면 그룹 칸만 숨긴다.
   const [projects, setProjects] = useState<Project[] | null>(null);
@@ -117,8 +132,13 @@ export function ServerDetailPage() {
   const groupName = projects === null ? undefined
     : row.server.projectId ? projects.find((project) => project.id === row.server.projectId)?.name ?? '-' : '미분류';
 
+  const containersTone = row.containers;
   const tabs: TabItem<ServerTab>[] = [
     { key: 'overview', label: '개요' },
+    ...(containersTone === null ? [] : [{
+      key: 'containers' as const, label: '컨테이너', srDetail: `, 컨테이너 ${row.targets.containers.length}개`,
+      ...(containersTone === 'error' || containersTone === 'warn' ? { tone: containersTone, toneLabel: containersTone === 'error' ? '장애' : '확인 필요' } : {}),
+    }]),
     ...SERVER_CAPABILITIES.map(({ key, label }): TabItem<ServerTab> => {
       const state = row.capabilities[key];
       // 모르는 기능은 연결 전이 아니다: 흐리게 두지 않고 상태 점도 붙이지 않는다.
@@ -154,7 +174,8 @@ export function ServerDetailPage() {
     // 머리말 → 탭 → 패널은 페이지 블록 24px(page-stack), 알림 배너 → 탭은 16px이다.
     <div className="page-stack">
       <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')}
-        updatedAt={updatedAt} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh} />
+        updatedAt={updatedAt} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh}
+        docker={row.targets.docker ? { primary: dockerActions.primary, menuItems: dockerActions.menuItems } : undefined} />
       <div className="space-y-heading">
       {error && <LoadErrorBanner title="서버 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} />}
       {!error && failed.length > 0 && (
@@ -171,7 +192,10 @@ export function ServerDetailPage() {
       </div>
       <div ref={panelRef} tabIndex={-1} role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
         {active === 'overview'
-          ? <ServerOverviewTab row={row} />
+          // Docker 설정 가이드는 서버 전체의 일이라 개요 맨 위다. 설정이 끝나면 한 줄로 접힌다(옛 Docker 환경 개요와 같다).
+          ? <div className="space-y-section">{row.targets.docker && <MonitoringSetupPanel agent={row.targets.docker} services={row.targets.containers}
+              onInstall={dockerActions.openInstall} onInstrument={dockerActions.openInstrumentation} onAddCapability={dockerActions.addCapability} />}<ServerOverviewTab row={row} /></div>
+          : active === 'containers' ? (row.targets.docker ? <DockerContainersPanel agentId={row.targets.docker.id} containers={row.targets.containers} refreshToken={refreshToken} /> : null)
           : active === 'uptime' ? <ServerUptimeTab {...tabProps(active)} />
             : active === 'infrastructure' ? <ServerInfrastructureTab {...tabProps(active)} />
               : active === 'logs' ? <ServerLogsTab {...tabProps(active)} />
@@ -179,6 +203,7 @@ export function ServerDetailPage() {
                 : <ServerAppTab key={active} capability={active} {...tabProps(active)} />}
       </div>
       {/* 대화 상자를 겹쳐 열지 않는다. 설정에서 합치기나 삭제를 고르면 설정을 닫고 그 대화 상자를 연다. */}
+      {dockerActions.dialogs}
       {dialog === 'settings' && (
         <ServerSettingsDialog row={row} onClose={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }}
           onMerge={() => setDialog('merge')} onDelete={() => setDialog('delete')} />

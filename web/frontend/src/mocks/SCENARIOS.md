@@ -27,7 +27,16 @@ Every direct target (uptime monitor, app, `otel-collector` infrastructure resour
 | `server_mock_staging_host_01` | staging-host-01 | Staging | infra `infra_mock_staging_01`; monitors `uptime_mock_docs`, `uptime_mock_redis` (paused); app `observed_mock_search` (logs, traces) | 정상 (the paused Redis TCP does not outweigh healthy targets) | 정상 |
 | `server_mock_staging_empty` | staging-empty | none | none | 대기 (연결한 대상 없음) | 대기 |
 
-In `normal`, no server is 장애 or 확인 필요 on the server list or the overview: the three hosts above the 70% usage warning get the lower values in the normal column (`NORMAL_USAGE` in `mockRouter.ts`), and the host charts follow them (the chart's swing, CPU ±12 and memory ±4 around the current value, stays below 70%). The other scenarios keep the high values.
+Docker servers (ADR 0012): every Docker environment (`mockAgents`) is also a server with the same ID, listed only by `GET /servers?include=docker`. Its host metrics are the `everyup-agent` infrastructure resource with `serverId` = the agent ID, and its containers are `/agents/services/all` rows with that `agentId`.
+
+| ID | Name | Group | Docker Collector | attention, partial-failure | normal |
+|---|---|---|---|---|---|
+| `agent_demo_01` | prod-server | Production | all-in-one, 3 containers | 장애 (payment-worker), also 메모리 72.8% | 정상 (CPU 47.6%, 메모리 58.4%) |
+| `agent_demo_02` | staging-api | Staging | basic, never reported | 대기 (Docker Collector 설치 대기) | 대기 |
+| `agent_demo_03` | worker-cluster | Backoffice | 3 containers | 확인 필요 (CPU 76.1%) | 정상 (CPU 46.3%) |
+| `agent_demo_04` | edge-node | Staging | 3 containers | 정상 | 정상 |
+
+In `normal`, no server is 장애 or 확인 필요 on the server list or the overview: the hosts above the 70% usage warning (three direct, two Docker) get the lower values in the normal column (`NORMAL_USAGE` in `mockRouter.ts`), and the host charts follow them (the chart's swing, CPU ±12 and memory ±4 around the current value, stays below 70%). The other scenarios keep the high values.
 
 In `attention` and `partial-failure`, `uptime_mock_checkout` is down with an outage that started six minutes ago; its timeline entry links to `/servers/server_mock_edge_host_01/monitors/uptime_mock_checkout`. In `partial-failure` the app list fails, so the apps drop out of the server rows. The outage turns the checks after its start into failures, and every uptime figure of the monitor (list and 24h KPI, today's bar, 30-day and 90-day uptime) is computed from those checks, so they agree with `체크 N회 중 실패 N회`.
 

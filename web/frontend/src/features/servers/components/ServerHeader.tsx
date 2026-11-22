@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { DetailMeta, IconButton, MaterialIcon, PageHeader, RefreshStatus, StatusLight, Tooltip } from '../../../components/common';
+import { DetailMeta, IconButton, MaterialIcon, OverflowMenu, PageHeader, RefreshStatus, StatusLight, Tooltip, type OverflowMenuItem } from '../../../components/common';
 import { SERVERS_PATH } from '../serverPaths';
 import { STATE_LABEL, type ServerRow } from '../serverStatus';
 
-export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange }: {
+export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange, docker }: {
   row: ServerRow;
   /** 그룹 목록을 불러오지 못했으면 undefined. 그룹 항목을 숨긴다. */
   groupName?: string;
@@ -15,6 +16,8 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
   updatedAt: Date | null;
   autoRefresh: boolean;
   onAutoRefreshChange: (enabled: boolean) => void;
+  /** Docker Collector가 있는 서버의 조작(ADR 0012): 설치 전의 설치 명령과 더보기(다시 설치, API Key, 상세 수집, 비활성화). */
+  docker?: { primary: ReactNode; menuItems: OverflowMenuItem[] };
 }) {
   const { pathname } = useLocation();
   const cause = row.cause;
@@ -61,7 +64,9 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
         </>}
       >
         {/* 누구나 아는 아이콘이라 라벨 없이 둔다. 이름은 툴팁과 aria-label이 맡는다. 새로고침은 상태 줄의 갱신 시각 옆에 있다. */}
+        {docker?.primary}
         <IconButton icon="settings" label="서버 설정" tone="quiet" onClick={onSettings} />
+        {docker && docker.menuItems.length > 0 && <OverflowMenu items={docker.menuItems} />}
       </PageHeader>
     </header>
   );

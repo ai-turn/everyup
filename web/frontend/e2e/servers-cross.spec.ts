@@ -57,7 +57,8 @@ test('the overview scope lists servers and Docker environments, with all logs on
   await page.goto('./');
   const scope = page.getByRole('navigation', { name: '모니터링 범위' });
   await expect(scope.getByRole('link', { name: /^서버 \d+$/ })).toHaveAttribute('href', /\/servers$/);
-  await expect(scope.getByRole('link', { name: /^Docker 환경 \d+$/ })).toHaveAttribute('href', /\/environments$/);
+  // Docker 환경은 Docker Collector가 있는 서버다(ADR 0012). 그 수는 서버 목록을 Docker 서버로 걸러 연다.
+  await expect(scope.getByRole('link', { name: /^Docker 환경 \d+$/ })).toHaveAttribute('href', /\/servers\?connection=docker$/);
   for (const old of ['업타임 모니터', '직접 연결 서비스', '인프라 리소스']) await expect(scope).not.toContainText(old);
   await scope.getByRole('link', { name: '전체 로그', exact: true }).click();
   await expect(page).toHaveURL(/\/logs$/);
@@ -88,10 +89,10 @@ test('a group lists its servers with the server list status and keeps the group 
   await expect(sidebarCurrent(page)).toHaveText('그룹');
 });
 
-test('a Docker environment in a group opens its environment screen', async ({ page }) => {
+test('a Docker environment in a group opens its server screen', async ({ page }) => {
   await page.goto('./projects/project_mock_production');
   await groupMembers(page).filter({ hasText: 'Docker 환경' }).getByRole('link', { name: 'prod-server', exact: true }).click();
-  await expect(page).toHaveURL(/\/agents\/agent_demo_01$/);
+  await expect(page).toHaveURL(/\/servers\/agent_demo_01$/);
   await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
 });
 
@@ -249,17 +250,19 @@ test.describe('against the API', () => {
     await expect(row.getByRole('cell').last()).toHaveText('-');
   });
 
-  test('a delayed Docker host on the overview opens its Docker environment', async ({ page }) => {
-    // 환경 자체는 수신 중이지만 그 호스트의 인프라 수집이 끊긴 경우. 리소스 ID는 환경 ID와 같다.
+  test('a delayed Docker host on the overview opens its server infrastructure tab', async ({ page }) => {
+    // Docker Collector 자체는 수신 중이지만 그 호스트의 인프라 수집이 끊긴 경우. Docker 환경은 같은 ID의 서버이고(ADR 0012),
+    // 그 인프라 리소스도 그 서버에 속한다.
     const state = await uptimeFixture(page);
-    // 환경 화면의 연결 상태(fixture의 기본 응답은 빈 배열이라 화면이 그리지 못한다).
-    state.responses.set('GET /agents/docker-host/setup-status', { connected: true, configApplied: true, signals: [] });
-    state.responses.set('GET /infrastructure-resources', [{ id: 'docker-host', name: 'Production Docker', adapter: 'everyup-agent', isActive: true, lastSeenAt: new Date(Date.now() - 3_600_000).toISOString(), createdAt: at, updatedAt: at }]);
+    state.responses.set('GET /servers', [state.server, { id: 'docker-host', name: 'Production Docker', createdAt: at, updatedAt: at }]);
+    state.responses.set('GET /agents', [{ id: 'docker-host', name: 'Production Docker', serverId: 'docker-host', version: '0.3.0', lastSeenAt: new Date().toISOString(), createdAt: at, updatedAt: at }]);
+    state.responses.set('GET /infrastructure-resources', [{ id: 'docker-host', name: 'Production Docker', serverId: 'docker-host', adapter: 'everyup-agent', isActive: true, lastSeenAt: new Date(Date.now() - 3_600_000).toISOString(), createdAt: at, updatedAt: at }]);
     await page.goto('./');
-    const item = attention(page).getByRole('link', { name: /인프라 데이터가 지연/ });
+    // 서버 목록의 판정과 같은 항목 하나다(Docker Collector는 정상이라 따로 나오지 않는다).
+    const item = attention(page).getByRole('link', { name: /^Production Docker.*데이터 확인 필요/ });
     await expect(item).toHaveCount(1);
     await item.click();
-    await expect(page).toHaveURL(/\/agents\/docker-host$/);
+    await expect(page).toHaveURL(/\/servers\/docker-host\/infrastructure$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Production Docker' })).toBeVisible();
   });
 });

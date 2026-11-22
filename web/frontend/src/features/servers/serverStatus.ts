@@ -1,10 +1,12 @@
 import { COLLECTION_STATUS_LABEL } from '../../components/common/collectionStatus';
 import type { StatusTone } from '../../components/common/statusTone';
-import type { ConnectedAgent, InfrastructureResource, LogServiceSummary, ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../../services/api';
+import type { AgentServiceFlat, ConnectedAgent, InfrastructureResource, LogServiceSummary, ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../../services/api';
 import { formatDateTime, formatDuration } from '../../utils/incidentFormat';
 import { isCollectorFresh } from '../../utils/operationalStatus';
 import { infraCollection, peakUsage, WARNING_PCT } from '../infra/usage';
 import { metricTitle } from '../metrics/metricPresentation';
+import { environmentState } from '../services/environmentState';
+import { containerPath } from '../docker/dockerPaths';
 import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
 import { SERVER_CAPABILITIES, appPath, monitorPath, serverPath, type ServerCapability } from './serverPaths';
 import type { ForgetTarget } from './useServers';
@@ -72,11 +74,13 @@ export interface ServerTargets {
   monitors: UptimeMonitor[]; apps: ObservedService[]; infrastructure?: InfrastructureResource;
   /** 이 서버의 Docker Collector(ADR 0012: Docker 환경은 서버다). 서버 목록이 Docker 서버를 함께 불러올 때만 있다(`useServers({ includeDocker })`). */
   docker?: ConnectedAgent;
+  /** Docker Collector가 발견한 컨테이너(Docker 서비스). Docker Collector가 없으면 비어 있다. */
+  containers: AgentServiceFlat[];
 }
 
 /** 문제가 있는 대상 하나. 서버 목록의 원인 문구와 같은 판정과 문구다. */
 export interface TargetIssue {
-  kind: 'monitor' | 'infrastructure' | 'app';
+  kind: 'monitor' | 'infrastructure' | 'app' | 'container' | 'docker';
   id: string;
   name: string;
   state: 'error' | 'warn';
@@ -99,8 +103,10 @@ export interface ServerRow {
   issues: TargetIssue[];
   /** 서버 상태의 원인과 그 대상의 주소. 정상이면 없고, 대상이 없으면 주소가 없다. */
   cause?: { text: string; to?: string };
-  /** 기능별 상태. 연결된 대상이 없으면 null. */
+  /** 기능별 상태. 연결된 대상이 없으면 null. Docker Collector가 수집하는 로그·API 요청·인프라도 그 기능에 연결된 것이다. */
   capabilities: Record<ServerCapability, StatusTone | null>;
+  /** 컨테이너 탭의 상태. Docker Collector가 없으면 null(탭이 없다). */
+  containers: StatusTone | null;
   cpu?: number; memory?: number; disk?: number;
   /** 소속 모니터들의 24시간 가용률 가운데 가장 낮은 값 */
   uptime?: number;
@@ -175,6 +181,10 @@ export const worst = (states: StatusTone[]): StatusTone | null =>
 export const hasTargets = (targets: ServerTargets) =>
   targets.monitors.length > 0 || targets.apps.length > 0 || Boolean(targets.infrastructure) || Boolean(targets.docker);
 
+/** 서버 화면이 Docker Collector의 이 기능 데이터를 보여야 한다(프로필이 없으면 모든 기능을 수집한다). */
+export const dockerCollects = (targets: ServerTargets, capability: 'logs' | 'api' | 'infrastructure') =>
+  Boolean(targets.docker && (!targets.docker.profile?.capabilities.length || targets.docker.profile.capabilities.includes(capability)));
+
 export interface TargetCounts { monitors: number; apps: number; infrastructure: number }
 
 export const countTargets = (targets: ServerTargets): TargetCounts =>
@@ -226,6 +236,8 @@ export function buildServerRows(input: {
   infrastructure: InfrastructureResource[] | null;
   /** Docker 환경 목록. 서버에는 serverId가 같은 것이 붙는다. 없으면 이 화면이 Docker 서버를 쓰지 않는다. */
   agents?: ConnectedAgent[] | null;
+  /** Docker 서비스(컨테이너) 목록. null은 조회 실패: 컨테이너 상태를 판정하지 않는다. */
+  services?: AgentServiceFlat[] | null;
   /** null은 조회 실패, 없으면 이 화면이 쓰지 않는 값이다(errorLogs를 만들지 않고 불러오지 못한 것으로도 보지 않는다). */
   logSummaries?: LogServiceSummary[] | null;
   /** 모든 앱의 지표 목록(임계값 초과 판정용). null은 조회 실패: 수신 여부만으로 판정한다. */
@@ -248,8 +260,16 @@ export function buildServerRows(input: {
   return input.servers.map((server): ServerRow => {
     const monitors = input.monitors?.filter((monitor) => monitor.serverId === server.id) ?? [];
     const apps = input.apps?.filter((app) => app.serverId === server.id) ?? [];
-    // Docker 환경에서 온 리소스에는 serverId가 없으므로 어느 서버에도 들어오지 않는다.
+    // Docker Collector의 호스트도 서버 ID를 가진다(ADR 0012). Docker 서버를 불러오지 않는 화면에서는 그 서버가 없어 붙지 않는다.
     const infrastructure = input.infrastructure?.find((resource) => resource.serverId === server.id);
+    const docker = input.agents?.find((agent) => agent.serverId === server.id);
+    const containers = docker ? input.services?.filter((service) => service.agentId === docker.id) ?? [] : [];
+    // Docker Collector 자체의 상태: 설치 전은 대기, 보고가 끊기면 확인 필요(environmentState, 목록·머리말과 같은 판정).
+    const dockerState = docker ? environmentState(docker) : undefined;
+    const dockerTone: StatusTone | null = dockerState === undefined ? null : dockerState === 'install' ? 'idle' : dockerState === 'delayed' ? 'warn' : 'healthy';
+    const dockerCollectsHere = (capability: 'logs' | 'api') => Boolean(docker && (!docker.profile?.capabilities.length || docker.profile.capabilities.includes(capability)));
+    // 개요와 사이드바 장애 수(useFailureCount)와 같은 기준이다: 알림을 꺼도 응답하지 않는 컨테이너는 장애다.
+    const containerTone = (service: AgentServiceFlat): StatusTone => service.healthy ? 'healthy' : 'error';
     // 상태, 원인, 수치는 지금 불러온 대상으로만 정한다.
     const current = {
       monitors: known.monitors ? monitors : [],
@@ -269,6 +289,19 @@ export function buildServerRows(input: {
         const result = infrastructureState(resource);
         return { kind: 'infrastructure' as const, id: resource.id, name: resource.name, state: result.state, detail: result.detail, text: result.detail, to: serverPath(server.id, 'infrastructure'), observedAt: resource.lastSeenAt, threshold: result.threshold };
       }) : []),
+      // 수집 중인 Docker Collector도 후보다(정상): Docker Collector만 있는 서버가 '연결한 대상 없음'이 되지 않게.
+      ...(docker ? [{
+        kind: 'docker' as const, id: docker.id, name: docker.name, state: dockerTone!,
+        detail: dockerState === 'install' ? '설치 대기' : dockerState === 'delayed' ? 'Docker Collector 보고 없음' : '수집 중',
+        text: dockerState === 'install' ? 'Docker Collector 설치 대기' : dockerState === 'delayed' ? 'Docker Collector 보고 없음' : 'Docker Collector 수집 중',
+        to: serverPath(server.id), observedAt: docker.lastSeenAt,
+      }] : []),
+      ...(input.services ? containers : []).map((service) => {
+        const state = containerTone(service);
+        const detail = state === 'error' ? (service.lastError || '응답 없음') : '정상';
+        return { kind: 'container' as const, id: service.key, name: service.name, state, detail, text: `${service.name} ${detail}`,
+          to: containerPath(service), observedAt: service.observedAt };
+      }),
       ...current.apps.map((app) => {
         const breached = breachedOf(app);
         const base = { kind: 'app' as const, id: app.id, name: app.name, observedAt: app.lastSeenAt ?? app.createdAt };
@@ -285,6 +318,8 @@ export function buildServerRows(input: {
     const unverified = [
       ...(!input.monitors || (!known.monitors && monitors.length > 0) ? ['업타임'] : []),
       ...(!input.infrastructure || (!known.infrastructure && infrastructure) ? ['인프라'] : []),
+      // 컨테이너 목록을 불러오지 못하면 컨테이너가 정상이라고 하지 않는다.
+      ...(docker && input.services === null ? ['컨테이너'] : []),
       ...(!input.apps ? ['앱'] : known.apps ? [] : SERVER_CAPABILITIES
         .filter(({ key }) => key !== 'uptime' && key !== 'infrastructure' && apps.some((app) => app.signals.includes(SIGNAL_OF[key as 'logs' | 'api' | 'metrics'])))
         .map(({ label }) => label)),
@@ -309,17 +344,18 @@ export function buildServerRows(input: {
 
     return {
       server,
-      targets: { monitors, apps, infrastructure, docker: input.agents?.find((agent) => agent.serverId === server.id) },
+      targets: { monitors, apps, infrastructure, docker, containers },
       state,
       cause: culprit && { text: culprit.text, to: culprit.to },
       issues: candidates.filter((candidate): candidate is TargetIssue => candidate.state === 'error' || candidate.state === 'warn'),
       capabilities: {
         uptime: worst(current.monitors.map((monitor) => monitorState(monitor).state)),
         infrastructure: current.infrastructure ? infrastructureState(current.infrastructure).state : null,
-        logs: worst(logApps.map((app) => appState(app).state)),
-        api: worst(appsWith('api').map((app) => appState(app).state)),
+        logs: worst([...logApps.map((app) => appState(app).state), ...(dockerCollectsHere('logs') ? [dockerTone!] : [])]),
+        api: worst([...appsWith('api').map((app) => appState(app).state), ...(dockerCollectsHere('api') ? [dockerTone!] : [])]),
         metrics: worst(appsWith('metrics').map((app) => (breachedOf(app).length > 0 ? 'warn' : appState(app).state))),
       },
+      containers: docker ? (input.services ? worst([dockerTone!, ...containers.map(containerTone)]) : dockerTone) : null,
       cpu: current.infrastructure?.cpuUsage,
       memory: current.infrastructure?.memoryUsage,
       disk: current.infrastructure?.diskUsage,

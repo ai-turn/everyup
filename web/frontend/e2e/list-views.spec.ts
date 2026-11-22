@@ -3,13 +3,13 @@ import { API_URL } from './fixtures/ports';
 
 const menus = [
   ['projects', '그룹', '그룹 그리드'],
-  ['environments', 'Docker 환경', 'Docker 환경 그리드'],
   ['logs', '전체 로그', '앱 그리드'],
   // 옛 인프라, API 요청, 메트릭 목록은 서버 목록이 대신한다. 서버 목록에는 보기 전환이 없다.
   ['alerts?tab=channels', '알림', '알림 채널 그리드'],
   ['alerts?tab=rules', '알림', '알림 규칙 그리드'],
   ['alerts?tab=history', '알림', '발송 이력 그리드'],
-  ['agents/agent_demo_01', 'prod-server', 'Docker 서비스 그리드'],
+  // 옛 Docker 환경의 서비스 표는 Docker 서버의 컨테이너 탭이다(ADR 0012).
+  ['servers/agent_demo_01/containers', 'prod-server', '컨테이너 그리드'],
   ['projects/project_mock_production', 'Production', '그룹 구성 그리드'],
 ] as const;
 
@@ -56,23 +56,18 @@ for (const width of [1440, 375]) for (const [route, title, label] of menus) {
   });
 }
 
-test('Docker search and connect cleanup retain the chosen view and pending actions', async ({ page }) => {
-  await page.goto('./environments?view=card&q=staging&connect=docker');
+// 옛 Docker 환경 목록의 `?connect=docker`는 서버 목록에서 연결 대화 상자를 연다. 파라미터만 지우고 검색어는 남긴다.
+test('Docker connect cleanup keeps the search on the server list', async ({ page }) => {
+  await page.goto('./servers?q=staging&connect=docker');
   await expect(page).not.toHaveURL(/connect=/);
-  expect(new URL(page.url()).searchParams.get('view')).toBe('card');
   expect(new URL(page.url()).searchParams.get('q')).toBe('staging');
   await page.getByRole('dialog').getByRole('button', { name: '닫기', exact: true }).click();
-  const search = page.getByRole('textbox', { name: '서비스 또는 Docker 환경 검색' });
+  const search = page.getByRole('textbox', { name: '서버 또는 대상 검색' });
   await expect(search).toHaveValue('staging');
-  await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '그리드', exact: true }).click();
-  await page.getByText('설치·작업', { exact: true }).click();
-  await expect(page.getByRole('button', { name: 'API Key', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: '비활성화', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'Docker 환경 비활성화', exact: true })).toBeVisible();
-  await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
   await page.reload();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(search).toHaveValue('staging');
-  await expect(page.getByRole('table', { name: 'Docker 환경 그리드' })).toContainText('staging-api');
+  await expect(page.getByRole('table', { name: '서버 그리드' })).toContainText('staging-api');
 });
 
 test('Group cards expose editing and deletion without changing views', async ({ page }) => {
@@ -187,21 +182,9 @@ test('Group status summary on the list counts the same members as the group deta
   await expect(page.getByRole('table', { name: '그룹 구성 그리드', exact: true }).locator('tbody tr')).toHaveCount(total);
 });
 
-test('Docker environments nest their services and collapse per environment', async ({ page }) => {
-  await page.goto('./environments');
-  const table = page.getByRole('table', { name: 'Docker 환경 그리드' });
-  const service = table.getByRole('link', { name: 'payment-worker', exact: true });
-  await expect(service).toHaveAttribute('href', /\/services\/agent_demo_01\//);
-  await table.getByRole('button', { name: 'prod-server 서비스 접기', exact: true }).click();
-  await expect(service).toHaveCount(0);
-  await expect(table.getByRole('link', { name: 'prod-server', exact: true })).toBeVisible();
-  await table.getByRole('button', { name: 'prod-server 서비스 펼치기', exact: true }).click();
-  await expect(service).toBeVisible();
-});
-
 // URL(?q=)에 입력값을 직접 묶으면 react-router transition이 값을 한 박자 늦게 돌려줘 한글 조합이 깨졌다(ㄱ겨결결ㅈ제제).
 // 옛 메트릭 목록의 검색은 서버 목록의 검색이, 옛 업타임 목록의 검색은 서버 업타임 탭의 모니터 검색이 대신한다.
-for (const [route, name] of [['environments', '서비스 또는 Docker 환경 검색'], ['servers/server_mock_edge_host_01/uptime', '모니터 검색'], ['servers', '서버 또는 대상 검색']] as const) {
+for (const [route, name] of [['servers/server_mock_edge_host_01/uptime', '모니터 검색'], ['servers', '서버 또는 대상 검색']] as const) {
   test(`${route} search keeps Korean IME composition and fast typing, mirrored to ?q=`, async ({ page }) => {
     await page.goto(`./${route}`);
     const input = page.getByRole('textbox', { name, exact: true });

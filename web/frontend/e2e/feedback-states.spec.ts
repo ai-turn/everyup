@@ -8,15 +8,16 @@ async function scenario(page: Page, value: 'attention' | 'normal' | 'partial-fai
 }
 
 test.describe('A1·A2 load failures', () => {
-  test('a failed Docker environment list shows the banner in user wording, without an empty or no-results state', async ({ page }) => {
+  test('a failed container list keeps the Docker servers and says what is missing, without an empty or no-results state', async ({ page }) => {
     await scenario(page, 'partial-failure');
-    await page.goto('./environments');
-    const banner = page.getByRole('alert').filter({ hasText: 'Docker 환경을 불러오지 못했습니다' });
+    await page.goto('./servers?connection=docker');
+    const banner = page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' });
     await expect(banner).toBeVisible();
-    await expect(banner).toContainText('서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.');
+    await expect(banner).toContainText('컨테이너');
     await expect(banner).not.toContainText('Demo scenario');
+    await expect(page.getByRole('table', { name: '서버 그리드' }).getByRole('link', { name: 'prod-server', exact: true })).toBeVisible();
     await expect(page.getByText('검색 결과가 없습니다')).toHaveCount(0);
-    await expect(page.getByText('아직 연결된 Docker 환경이 없습니다')).toHaveCount(0);
+    await expect(page.getByText('아직 서버가 없습니다')).toHaveCount(0);
   });
 
   test('a rule whose target name could not be loaded says so and dims the ID', async ({ page }) => {

@@ -30,7 +30,6 @@ import type {
   ServiceHistoryPoint,
   ServiceUptimeDay,
   AgentIncident,
-  AgentOverview,
   AgentProfile,
   AgentCollectionCapability,
   UptimeMonitor,
@@ -423,25 +422,6 @@ const mockAgents: ConnectedAgent[] = [
     profile: { kind: 'basic', capabilities: ['uptime', 'logs'] },
   },
   ...additionalAgents,
-];
-
-// Home card KPI rollup — mirrors the demo dashboard numbers (99.87% / 2.6K / 121ms).
-const mockAgentOverview: AgentOverview[] = [
-  { agentId: 'agent_demo_01', uptimePct: 99.87, activeIncidents: 1, requests24h: 2600, p95Ms: 121, services: [
-    { key: 'shop:api', uptimePct: 100, requests24h: 2350, p95Ms: 118 },
-    { key: 'shop:payment-worker', uptimePct: 99.61, requests24h: 250, p95Ms: 4980 },
-    { key: 'postgres', uptimePct: 100, requests24h: 0, p95Ms: null },
-  ] },
-  { agentId: 'agent_demo_03', uptimePct: 99.99, activeIncidents: 0, requests24h: 0, p95Ms: null, services: [
-    { key: 'jobs:catalog-worker', uptimePct: 99.98, requests24h: 0, p95Ms: null },
-    { key: 'jobs:notification-worker', uptimePct: 100, requests24h: 0, p95Ms: null },
-    { key: 'redis', uptimePct: 100, requests24h: 0, p95Ms: null },
-  ] },
-  { agentId: 'agent_demo_04', uptimePct: 99.95, activeIncidents: 0, requests24h: 4800, p95Ms: 86, services: [
-    { key: 'edge:nginx', uptimePct: 100, requests24h: 2900, p95Ms: 41 },
-    { key: 'edge:search-api', uptimePct: 99.86, requests24h: 1100, p95Ms: 86 },
-    { key: 'edge:inventory-api', uptimePct: 100, requests24h: 800, p95Ms: 64 },
-  ] },
 ];
 
 const mockAgentServicesFlat: AgentServiceFlat[] = [
@@ -1086,6 +1066,9 @@ const NORMAL_USAGE: Record<string, Pick<InfrastructureResource, 'cpuUsage' | 'me
   infra_mock_edge_01: { cpuUsage: 47.6, memoryUsage: 58.4 },
   infra_mock_db_01: { memoryUsage: 61.2 },
   infra_mock_worker_01: { cpuUsage: 46.3 },
+  // Docker 호스트도 서버라(ADR 0012) 그 사용률이 서버 목록과 개요의 판정에 들어간다.
+  agent_demo_01: { cpuUsage: 47.6, memoryUsage: 58.4 },
+  agent_demo_03: { cpuUsage: 46.3 },
 };
 
 const withScenarioUsage = <T extends InfrastructureResource>(resource: T, scenario: MockScenario): T =>
@@ -1097,9 +1080,10 @@ function mockHostInfo(id: string) {
   // 목록(scenarioInfrastructureResources)과 같은 값이어야 현재 값과 차트가 어긋나지 않는다.
   const resource = stored && withScenarioUsage(stored, getDemoScenario());
   const agent = mockAgents.find(row => row.id === id);
+  const agentUsage = !stored && getDemoScenario() === 'normal' ? NORMAL_USAGE[id] : undefined;
   const index = stored ? mockInfrastructureResources.indexOf(stored) : Math.max(0, mockAgents.findIndex(row => row.id === id));
-  const cpu = resource?.cpuUsage ?? [67.4, 18.5, 76.1, 28.4][index] ?? 25;
-  const memory = resource?.memoryUsage ?? [72.8, 31.8, 62.4, 42.1][index] ?? 40;
+  const cpu = resource?.cpuUsage ?? agentUsage?.cpuUsage ?? [67.4, 18.5, 76.1, 28.4][index] ?? 25;
+  const memory = resource?.memoryUsage ?? agentUsage?.memoryUsage ?? [72.8, 31.8, 62.4, 42.1][index] ?? 40;
   const disk = resource?.diskUsage ?? [41.2, 22.1, 35.7, 28.3][index] ?? 30;
   const totalMemory = index === 1 ? 32 : 16;
   return {
@@ -1720,6 +1704,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         id: agent.id,
         name: agent.name,
         projectId: agent.projectId,
+        serverId: agent.id,
         adapter: 'everyup-agent',
         isActive: true,
         lastSeenAt: agent.lastSeenAt,
@@ -1833,8 +1818,6 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   if (endpoint.startsWith('/incidents/timeline')) return scenarioTimeline(scenario) as T;
   // /agents/services/all — must come before /agents/:id/services
   if (endpoint === '/agents/services/all') return scenarioServices(scenario) as T;
-  // /agents/overview — home card KPI rollup
-  if (endpoint === '/agents/overview') return (scenario === 'empty' ? [] : mockAgentOverview.map(row => ({ ...row, activeIncidents: scenario === 'normal' ? 0 : row.activeIncidents }))) as T;
   // /agents/:agentId/key
   if (/^\/agents\/[^/]+\/key$/.test(endpoint))
     return { apiKey: 'evup_svc_3f9c4a1b8e3d6f0a5c7b9d2e4f6a8c0b1d3e5f7a9c2b4d6e', available: true } as T;

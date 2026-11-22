@@ -8,7 +8,7 @@ const titleSize = (page: Page) => crumbs(page).locator('[aria-current="page"]').
 test.describe('the title of a menu screen is said once', () => {
   test('desktop: the top bar carries the title and the count, the body h1 is for screen readers', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    for (const [route, name] of [['servers', '서버'], ['environments', 'Docker 환경'], ['projects', '그룹']] as const) {
+    for (const [route, name] of [['servers', '서버'], ['projects', '그룹']] as const) {
       await page.goto(`./${route}`);
       await expect(crumbs(page)).toHaveText(new RegExp(`^${name} \\d+$`));
       expect(await titleSize(page)).toBe('24px');
@@ -61,20 +61,6 @@ test.describe('summaries are filter chips whose counts follow the other filters'
     await page.getByRole('button', { name: '필터 해제', exact: true }).click();
     await expect(table.locator('tbody tr')).toHaveCount(3);
     await expect(page).not.toHaveURL(/status=|q=/);
-  });
-
-  test('Docker environments: service status chips narrow the tree', async ({ page }) => {
-    await page.goto('./environments');
-    const table = page.getByRole('table', { name: 'Docker 환경 그리드' });
-    const down = chips(page).getByRole('button', { name: /^장애/ });
-    await expect(down).toHaveText(/장애\s*1$/);
-    await down.click();
-    await expect(page).toHaveURL(/[?&]status=error/);
-    // 장애 서비스가 있는 환경과 그 서비스만 남는다.
-    await expect(table.locator('tbody tr')).toHaveCount(2);
-    await expect(table).toContainText('prod-server');
-    await expect(table).toContainText('payment-worker');
-    await expect(table).not.toContainText('postgres');
   });
 
   test('alert rules: type chips follow the severity filter', async ({ page }) => {

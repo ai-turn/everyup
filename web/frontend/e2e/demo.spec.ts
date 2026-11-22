@@ -16,16 +16,17 @@ test.describe('live demo', () => {
   test('visitor can inspect logs for a Docker service', async ({ page }) => {
     await page.goto('./');
 
-    await page.getByRole('link', { name: 'Docker 환경', exact: true }).click();
+    // Docker 호스트도 서버다(ADR 0012). 컨테이너는 그 서버의 컨테이너 탭에 있다.
+    await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: '서버', exact: true }).click();
     await page.getByRole('link', { name: 'prod-server', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
+    await page.getByRole('tab', { name: /^컨테이너/ }).click();
 
-    // 환경 상세의 로그 표에도 같은 서비스 링크가 있다 — 서비스 표의 것을 연다.
-    await page.getByRole('table', { name: 'Docker 서비스 그리드' }).getByRole('link', { name: 'api', exact: true }).click();
+    await page.getByRole('table', { name: '컨테이너 그리드' }).getByRole('link', { name: 'api', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'api' })).toBeVisible();
     // 상세 경로도 담긴 섹션에 속한다(navSections.ts) — 사이드바 활성 항목과 첫 크럼이 같은 섹션이다.
-    await expect(page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: 'Docker 환경', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('navigation', { name: '현재 위치' }).getByRole('link', { name: 'Docker 환경', exact: true })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: '서버', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('navigation', { name: '현재 위치' }).getByRole('link', { name: '서버', exact: true })).toBeVisible();
 
     await page.getByRole('tab', { name: '로그', exact: true }).click();
     await expect(page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms').first()).toBeVisible();
@@ -67,7 +68,7 @@ test.describe('live demo', () => {
     await expect(outage).toContainText('장애');
 
     await page.goto('./projects/agent_demo_01');
-    await expect(page).toHaveURL(/\/agents\/agent_demo_01$/);
+    await expect(page).toHaveURL(/\/servers\/agent_demo_01$/);
     await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
   });
 
@@ -83,7 +84,7 @@ test.describe('live demo', () => {
     await expect(page.getByRole('heading', { level: 1, name: '더보기' })).toBeVisible();
     await expect(page.getByRole('link', { name: '더보기', exact: true })).toHaveAttribute('aria-current', 'page');
     // 사이드바가 없는 폭에서는 더보기가 하단 내비 밖의 섹션에 닿는 유일한 경로다.
-    for (const section of ['Docker 환경', '그룹', '환경 설정']) {
+    for (const section of ['그룹', '환경 설정']) {
       await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
     }
   });

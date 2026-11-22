@@ -664,7 +664,8 @@ func TestProjectDeleteRenamesCollidingServers(t *testing.T) {
 	}
 }
 
-func TestInfrastructureListKeepsDockerBackedResourcesWithoutServer(t *testing.T) {
+// A Docker environment is the server with the same id (ADR 0012), so its host metrics belong to that server.
+func TestInfrastructureListPutsDockerBackedResourcesOnTheirDockerServer(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
 
@@ -686,8 +687,8 @@ func TestInfrastructureListKeepsDockerBackedResourcesWithoutServer(t *testing.T)
 		seen[resource.Adapter] = true
 		switch resource.Adapter {
 		case "everyup-agent":
-			if resource.ServerID != "" {
-				t.Fatalf("Docker-backed resource must have no serverId: %+v", resource)
+			if resource.ServerID != resource.ID {
+				t.Fatalf("Docker-backed resource must belong to the Docker server with its id: %+v", resource)
 			}
 		case "otel-collector":
 			if resource.ServerID == "" {

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Button, ButtonLink, EmptyState, FilterChips, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, RefreshStatus, SearchInput, Select,
 } from '../../components/common';
 import { ServerTable } from '../../features/servers/components/ServerTable';
-import { ALL_LOGS_PATH, NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
+import { AddServiceModal } from '../../features/services/components/AddServiceModal';
+import { ALL_LOGS_PATH, NEW_SERVER_PATH, rememberServersSearch, serverPath } from '../../features/servers/serverPaths';
 import { parseStateFilter, stateChipOptions, type ServerRow } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 
@@ -20,7 +21,7 @@ const NO_GROUP = 'none';
 // 옛 메트릭 목록처럼 지표 이름으로도 찾는다. 일치한 지표는 "앱 이름 지표 이름"으로 보인다.
 function matchTargets(row: ServerRow, query: string, catalog: ObservedServiceMetricName[]): string[] | null {
   if (!query || row.server.name.toLowerCase().includes(query)) return [];
-  const { monitors, apps, infrastructure } = row.targets;
+  const { monitors, apps, infrastructure, containers } = row.targets;
   const metrics = catalog.flatMap((metric) => {
     const app = apps.find((candidate) => candidate.id === metric.serviceId);
     const title = metricTitle(metric);
@@ -30,6 +31,7 @@ function matchTargets(row: ServerRow, query: string, catalog: ObservedServiceMet
     ...monitors.filter((monitor) => monitor.name.toLowerCase().includes(query) || monitor.url.toLowerCase().includes(query)).map((monitor) => monitor.name),
     ...apps.filter((app) => app.name.toLowerCase().includes(query)).map((app) => app.name),
     ...(infrastructure?.name.toLowerCase().includes(query) ? [infrastructure.name] : []),
+    ...containers.filter((container) => container.name.toLowerCase().includes(query)).map((container) => container.name),
     ...new Set(metrics),
   ];
   return names.length ? names : null;
@@ -42,25 +44,33 @@ function ServerListSkeleton() {
   </div>;
 }
 
+/** 직접 연결한 대상이 있다: 업타임 모니터, 앱, OpenTelemetry Collector 인프라(Docker Collector의 호스트 지표는 빼고). */
+const hasDirectTargets = ({ targets }: ServerRow) =>
+  targets.monitors.length > 0 || targets.apps.length > 0 || Boolean(targets.infrastructure && targets.infrastructure.adapter !== 'everyup-agent');
+
 export function ServersPage() {
   const { params, query, search, setQuery, setParam, clearFilters } = useListSearch();
   const location = useLocation();
   useEffect(() => { rememberServersSearch(location.search); }, [location.search]);
   const status = parseStateFilter(params.get('status'));
   const requestedGroup = params.get('group');
-  const { rows, loading, loaded, error, failed, metricCatalog, updatedAt, reload, poll, refresh: joinRefresh } = useServers();
-  // 그룹 이름과 Docker 환경 안내는 보조 정보다. 실패해도 목록은 그린다.
+  // Docker Collector로 연결한 호스트도 서버다(ADR 0012). 목록 하나에 모두 보인다.
+  const { rows, loading, loaded, error, failed, metricCatalog, updatedAt, reload, poll, refresh: joinRefresh } = useServers({ includeDocker: true });
+  const navigate = useNavigate();
+  // 개요의 `Docker 연결`과 옛 `/environments?connect=docker`는 연결 모달을 바로 연다. 새로고침 때 다시 열리지 않게
+  // 파라미터는 읽자마자 지운다.
+  const [connectingDocker, setConnectingDocker] = useState(() => params.get('connect') === 'docker');
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.has('connect')) setSearchParams((current) => { const next = new URLSearchParams(current); next.delete('connect'); return next; }, { replace: true });
+  }, [searchParams, setSearchParams]);
+  // 그룹 이름은 보조 정보다. 실패해도 목록은 그린다.
   const [projects, setProjects] = useState<Project[] | null>(null);
-  const [hasDockerEnvironments, setHasDockerEnvironments] = useState(false);
   const [extrasKey, setExtrasKey] = useState(0);
 
   useEffect(() => {
     let alive = true;
-    void Promise.allSettled([api.getProjects(), api.getAgents()]).then(([projectsResult, agentsResult]) => {
-      if (!alive) return;
-      setProjects(projectsResult.status === 'fulfilled' ? projectsResult.value ?? [] : null);
-      setHasDockerEnvironments(agentsResult.status === 'fulfilled' && (agentsResult.value ?? []).length > 0);
-    });
+    api.getProjects().then((result) => { if (alive) setProjects(result ?? []); }, () => { if (alive) setProjects(null); });
     return () => { alive = false; };
   }, [extrasKey]);
 
@@ -71,19 +81,25 @@ export function ServersPage() {
   // 그룹 목록을 모르거나 없는 그룹이면 걸러지는 까닭이 화면에 보이지 않으므로 적용하지 않는다.
   const group = projects && (requestedGroup === NO_GROUP || projects.some((project) => project.id === requestedGroup)) ? requestedGroup : null;
   // 그룹 목록을 모르면 그룹 줄을 비운다(모르는 것을 `-`로 채우지 않는다).
+  // 연결 방식(ADR 0012): Docker Collector가 있는 서버, 직접 연결한 대상(모니터, 앱, OpenTelemetry 인프라)이 있는 서버.
+  // 옛 Docker 환경 목록(`/environments`)은 `?connection=docker`로 온다. Docker 서버가 없으면 거르는 까닭이 보이지 않으므로 적용하지 않는다.
+  const hasDocker = rows.some((row) => row.targets.docker);
+  const requestedConnection = params.get('connection');
+  const connection = hasDocker && (requestedConnection === 'docker' || requestedConnection === 'direct') ? requestedConnection : null;
   const groupName = (projectId?: string) => projects === null ? '' : projectId ? projects.find((project) => project.id === projectId)?.name ?? '' : '미분류';
   // 상태 칩의 개수는 검색어와 그룹을 따르고 상태 선택은 따르지 않는다. 고른 칩 옆의 다른 칩이 0이 되지 않는다.
   const { scoped, matches } = useMemo(() => {
     const found = new Map<string, string[]>();
     const list = rows.filter((row) => {
       if (group && (group === NO_GROUP ? Boolean(row.server.projectId) : row.server.projectId !== group)) return false;
+      if (connection && (connection === 'docker' ? !row.targets.docker : !hasDirectTargets(row))) return false;
       const matched = matchTargets(row, search, metricCatalog);
       if (matched === null) return false;
       found.set(row.server.id, matched);
       return true;
     });
     return { scoped: list, matches: found };
-  }, [rows, group, search, metricCatalog]);
+  }, [rows, group, connection, search, metricCatalog]);
   const visible = status ? scoped.filter((row) => row.state === status) : scoped;
   const hasRows = rows.length > 0;
 
@@ -100,7 +116,9 @@ export function ServersPage() {
             <ButtonLink to={ALL_LOGS_PATH} variant="quiet">전체 로그</ButtonLink>
           </div>
         }>
-        {/* 메뉴 첫 화면의 생성 버튼은 `추가` 하나다(DESIGN.md §4.1 액션 앵커). 대상은 화면 제목이 말한다. 그룹 목록과 같다. */}
+        {/* 메뉴 첫 화면의 생성 버튼은 `추가`다(DESIGN.md §4.1 액션 앵커). Docker 호스트는 Docker Collector를 설치해 연결한다:
+            서버 추가에서 연결 방식을 고르는 흐름(통합 3단계)이 오기 전까지 옛 Docker 환경 목록의 버튼을 여기 둔다. */}
+        <Button variant="secondary" onClick={() => setConnectingDocker(true)}>Docker 연결</Button>
         <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />추가</ButtonLink>
       </PageHeader>
 
@@ -114,6 +132,13 @@ export function ServersPage() {
               <option value="">전체 그룹</option>
               {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
               <option value={NO_GROUP}>미분류</option>
+            </Select>
+          )}
+          {hasDocker && (
+            <Select aria-label="연결 방식으로 거르기" wrapperClassName="w-44" value={connection ?? ''} onChange={(event) => setParam('connection', event.target.value || null)}>
+              <option value="">모든 연결 방식</option>
+              <option value="docker">Docker Collector</option>
+              <option value="direct">직접 연결</option>
             </Select>
           )}
         </ListToolbar>
@@ -136,17 +161,24 @@ export function ServersPage() {
         )
           : !hasRows ? (
             <EmptyState icon="dns" headingLevel="h2" title="아직 서버가 없습니다"
-              description={`서버를 추가하고 업타임, 인프라, 로그, API 요청, 메트릭을 연결하세요.${hasDockerEnvironments ? ' Docker Collector가 수집한 데이터는 Docker 환경에서 확인합니다.' : ''}`}>
-              <ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink>
+              description="서버를 추가하고 업타임, 인프라, 로그, API 요청, 메트릭을 연결하세요. Docker 호스트는 Docker Collector를 설치하면 서버가 됩니다.">
+              <div className="flex flex-wrap justify-center gap-2">
+                <ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink>
+                <Button variant="secondary" onClick={() => setConnectingDocker(true)}>Docker 연결</Button>
+              </div>
             </EmptyState>
           ) : (
             <section aria-label="서버" aria-busy={loading || undefined}>
               <h2 className="sr-only">서버 목록</h2>
               {visible.length > 0 ? <ServerTable rows={visible} matches={matches} groupName={groupName} />
-                : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: () => clearFilters(['status', 'group']) }} />}
+                : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: () => clearFilters(['status', 'group', 'connection']) }} />}
             </section>
           )}
       </div>
+      {connectingDocker && (
+        <AddServiceModal onClose={() => setConnectingDocker(false)} onCreated={() => void reload()}
+          onOpenProject={(agentId) => { setConnectingDocker(false); navigate(serverPath(agentId)); }} />
+      )}
     </div>
   );
 }

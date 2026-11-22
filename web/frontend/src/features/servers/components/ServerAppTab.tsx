@@ -5,9 +5,10 @@ import { Button, LoadErrorBanner, MaterialIcon, ResourceTable, StatusLight, Tool
 import { formatDateTime } from '../../../utils/incidentFormat';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
 import { connectAction, connectDone, connectName } from '../../connections/connectCopy';
+import { DockerRequestsSection } from '../../docker/DockerDataSections';
 import { appPath } from '../serverPaths';
 import { useConnectRequested } from '../useConnectRequested';
-import { appPanelStatus, capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
+import { appPanelStatus, capabilityTargets, dockerCollects, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 
 const COPY = {
@@ -25,7 +26,7 @@ const COPY = {
 const STATE_ORDER: Record<StatusTone, number> = { error: 0, warn: 1, idle: 2, healthy: 3 };
 
 /** API 요청 탭과 메트릭 탭: 앱이 없으면 연결 안내, 있으면 앱 목록. 앱을 누르면 그 앱의 페이지(그 탭)로 간다(DESIGN.md §4.7 대상 상세). */
-export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSlot, capability }: ServerCapabilityTabProps & { capability: 'api' | 'metrics' }) {
+export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSlot, capability, refreshToken }: ServerCapabilityTabProps & { capability: 'api' | 'metrics' }) {
   const navigate = useNavigate();
   const location = useLocation();
   // 앱 페이지의 복귀 링크가 이 목록으로 돌아온다.
@@ -64,9 +65,13 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
 
   const label = connectAction(capability);
   const name = connectName(capability);
+  // Docker Collector가 컨테이너의 요청을 모으면 그 추이가 API 요청 탭의 본문이다(ADR 0012). 앱 연결은 탭 줄의 조작 자리로 간다.
+  const docker = capability === 'api' && dockerCollects(row.targets, 'api') ? row.targets.docker : undefined;
+  const dockerRequests = docker && <DockerRequestsSection agentId={docker.id} refreshKey={refreshToken} />;
   const content = () => {
     // 이전 목록에 앱이 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
     if (unknown || (stale && apps.length === 0)) return <LoadErrorBanner inline title={`${name} 앱 정보를 불러오지 못했습니다`} onRetry={onRetry} />;
+    if (apps.length === 0 && dockerRequests) return dockerRequests;
     if (apps.length === 0) {
       return (
         <ConnectPrompt title={copy.connectTitle} description={copy.connectDescription}>
@@ -74,7 +79,7 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
         </ConnectPrompt>
       );
     }
-    return (
+    const table = (
       <ResourceTable rows={apps} rowKey={({ app }) => app.id} ariaLabel={`${name} 앱`} columns={[
         { key: 'app', label: '앱', render: ({ app }) => (
           <Tooltip content={app.name}><Link data-row-link to={appPath(serverId, app.id, copy.tab)} state={{ returnTo }} className="block truncate font-medium text-action">{app.name}</Link></Tooltip>
@@ -85,13 +90,14 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
         ) },
       ]} />
     );
+    return dockerRequests ? <div className="space-y-section">{table}{dockerRequests}</div> : table;
   };
 
   // 대화 상자는 본문이 바뀌어도 같은 자리에 둔다. 자리가 바뀌면 다시 마운트되어 한 번만 보이는 키가 사라진다.
   return (
     <>
       {content()}
-      {!unknown && apps.length > 0 && (
+      {!unknown && (apps.length > 0 || docker) && (
         <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
       )}
       {adding && <DirectTelemetrySetupDialog signal={copy.signal} serverName={row.server.name} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."

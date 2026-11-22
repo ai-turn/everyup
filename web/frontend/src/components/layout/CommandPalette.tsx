@@ -110,7 +110,7 @@ export function CommandPalette() {
     }] : []),
     // 아이콘은 사이드바와 같다: 서버 dns, Docker 환경 deployed_code, 그룹 folder_open.
     ...agents.map((a) => ({
-      id: `agent-${a.id}`, icon: 'deployed_code', label: a.name, meta: 'Docker 환경', to: `/agents/${a.id}`,
+      id: `agent-${a.id}`, icon: 'deployed_code', label: a.name, meta: 'Docker 환경', to: serverPath(a.id),
     })),
     ...groups.map((group) => ({
       id: `group-${group.id}`, icon: 'folder_open', label: group.name, meta: '그룹', to: `/projects/${group.id}`,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, type ConnectedAgent } from '../../services/api';
+import { DOCKER_SERVERS_PATH, serverPath } from '../servers/serverPaths';
 
 /**
  * 직접 연결·인프라 대화 상자의 Docker 안내(연결 진입점 정리 D1-A). Docker 데이터는 Docker 환경에만 있으므로(ADR 0011), 같은 호스트를
@@ -32,8 +33,8 @@ export function DockerHostNote({ serverName, infrastructure = false, sameNameOnl
     <p className="type-body text-text-muted">
       {same
         // 조사가 이름의 받침에 따라 갈리지 않게 이름은 괄호 안에 둔다.
-        ? <>이 서버와 이름이 같은 Docker 환경이 있습니다(<Link to={`/agents/${encodeURIComponent(same.id)}`} className={link}>{same.name}</Link>). 같은 호스트라면 {what}</>
-        : <>이 호스트가 <Link to="/environments" className={link}>Docker 환경</Link>으로도 연결되어 있다면, {what}</>}
+        ? <>이 서버와 이름이 같은 Docker 환경이 있습니다(<Link to={serverPath(same.id)} className={link}>{same.name}</Link>). 같은 호스트라면 {what}</>
+        : <>이 호스트가 <Link to={DOCKER_SERVERS_PATH} className={link}>Docker 환경</Link>으로도 연결되어 있다면, {what}</>}
     </p>
   );
 }

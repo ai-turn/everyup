@@ -1,6 +1,7 @@
 import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { serverPath } from '../../features/servers/serverPaths';
 import { toast } from 'react-hot-toast';
 import { Button, ConfirmDialog, DetailMeta, EmptyState, ListViewToggle, MaterialIcon, OverflowMenu, PageHeader, RefreshStatus, ResourceTable, Section, StatusLight } from '../../components/common';
 import { partialFailureMessage, useServers, type FailedTargets } from '../../features/servers/useServers';
@@ -77,7 +78,7 @@ export function ProjectOverviewPage() {
     const agents = agentsResult.status === 'fulfilled' ? agentsResult.value ?? [] : [];
     const project = projects.find((item) => item.id === projectId) ?? null;
     if (!project && agentsResult.status === 'fulfilled' && agents.some((agent) => agent.id === projectId)) {
-      navigate(`/agents/${projectId}`, { replace: true });
+      navigate(serverPath(projectId), { replace: true });
       return;
     }
     if (!project && agentsResult.status === 'rejected') {
