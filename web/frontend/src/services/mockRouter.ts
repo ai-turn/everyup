@@ -1398,7 +1398,6 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   // Mutations in mock mode: mutate the in-memory fixtures so flows feel real.
   if (method !== 'GET') {
     const projectMatch = endpoint.match(/^\/projects\/([^/]+)$/);
-    const projectMemberMatch = endpoint.match(/^\/projects\/([^/]+)\/agents\/([^/]+)$/);
     const observedMatch = endpoint.match(/^\/observed-services\/([^/]+)$/);
     const observedLogFilterMatch = endpoint.match(/^\/observed-services\/([^/]+)\/log-filter$/);
     const observedApiExclusionsMatch = endpoint.match(/^\/observed-services\/([^/]+)\/api-exclusions$/);
@@ -1517,16 +1516,6 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       mockProjects.push(project);
       return project as T;
     }
-    if (method === 'PUT' && projectMemberMatch) {
-      const agent = mockAgents.find(({ id }) => id === projectMemberMatch[2]);
-      if (agent) agent.projectId = projectMemberMatch[1];
-      return undefined as T;
-    }
-    if (method === 'DELETE' && projectMemberMatch) {
-      const agent = mockAgents.find(({ id }) => id === projectMemberMatch[2]);
-      if (agent) delete agent.projectId;
-      return undefined as T;
-    }
     if (method === 'PUT' && projectMatch) {
       const project = mockProjects.find(({ id }) => id === projectMatch[1]);
       if (project) Object.assign(project, JSON.parse(typeof body === 'string' ? body : '{}'), { updatedAt: new Date().toISOString() });
@@ -1577,6 +1566,17 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const serverMergeMatch = endpoint.match(/^\/servers\/([^/]+)\/merge$/);
     if (method === 'POST' && endpoint === '/servers') {
       return { ...writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput) } as T;
+    }
+    // Docker 서버(ADR 0012): 데모의 Docker 서버는 Docker 환경에서 나오므로 그 환경의 이름과 그룹을 고친다(백엔드도 그룹을 함께 옮긴다).
+    const dockerAgent = method === 'PUT' && serverMatch ? mockAgents.find(agent => agent.id === serverMatch[1]) : undefined;
+    if (dockerAgent) {
+      const input = JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput;
+      const name = String(input.name ?? '').trim();
+      if (!name) throw new ApiError('name is required and must be at most 200 characters', 'VALIDATION_ERROR', 400);
+      const projectId = input.projectId || undefined;
+      if (mockServers.some(server => sameServerName(server, name, projectId))) throw new ApiError('server name already exists in this group', 'SERVER_NAME_TAKEN', 409);
+      Object.assign(dockerAgent, { name, projectId, updatedAt: new Date().toISOString() });
+      return scenarioDockerServers(scenario).find(server => server.id === dockerAgent.id) as T;
     }
     if (method === 'PUT' && serverMatch) {
       if (!findServer(serverMatch[1])) serverNotFound();

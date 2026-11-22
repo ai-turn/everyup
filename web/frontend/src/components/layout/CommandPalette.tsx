@@ -72,7 +72,8 @@ export function CommandPalette() {
     const loadTimer = window.setTimeout(() => {
       setDataStatus('loading');
       // 하나가 실패해도 불러온 대상은 검색할 수 있게 한다.
-      const lists = [api.getAgents(), api.getAllAgentServicesFlat(), api.getServers(), api.getUptimeMonitors(), api.getObservedServices(), api.getProjects()] as const;
+      // Docker 호스트도 서버다(ADR 0012): 서버 목록은 Docker 서버를 함께 받는다. Docker Collector 목록은 컨테이너의 서버를 찾는 데 쓴다.
+      const lists = [api.getAgents(), api.getAllAgentServicesFlat(), api.getServers({ includeDocker: true }), api.getUptimeMonitors(), api.getObservedServices(), api.getProjects()] as const;
       void Promise.allSettled(lists)
         .then((results) => {
           const [agts, svcs, srvs, mons, obs, prjs] = results;
@@ -92,6 +93,8 @@ export function CommandPalette() {
     const serverNames = new Map(servers.map((server) => [server.id, server.name]));
     // 모니터와 앱은 서버의 대상이다. 서버 이름을 몰라도(서버 목록 조회 실패) 대상은 찾을 수 있다.
     const ownerOf = (serverId: string, noun: string) => (serverNames.has(serverId) ? `${serverNames.get(serverId)}의 ${noun}` : noun);
+    // 컨테이너의 서버는 그것을 발견한 Docker Collector의 서버다. Collector 목록을 모르면 Collector ID가 곧 서버 ID다(migrateV59).
+    const serverOfCollector = (agentId: string) => agents.find((agent) => agent.id === agentId)?.serverId || agentId;
     return [
     ...NAV_SECTIONS.map((section) => ({
       id: `page-${section.to.slice(1) || 'home'}`, icon: section.icon, label: section.label, to: section.to,
@@ -109,18 +112,15 @@ export function CommandPalette() {
     ...apps.flatMap((app) => app.serverId ? [{
       id: `app-${app.id}`, icon: 'hub', label: app.name, meta: ownerOf(app.serverId, '앱'), to: appPath(app.serverId, app.id),
     }] : []),
-    // 아이콘은 사이드바와 같다: 서버 dns, Docker 환경 deployed_code, 그룹 folder_open.
-    ...agents.map((a) => ({
-      id: `agent-${a.id}`, icon: 'deployed_code', label: a.name, meta: 'Docker 환경', to: serverPath(a.id),
-    })),
+    // 아이콘은 사이드바와 같다: 서버 dns, 그룹 folder_open.
     ...groups.map((group) => ({
       id: `group-${group.id}`, icon: 'folder_open', label: group.name, meta: '그룹', to: `/projects/${group.id}`,
     })),
-    ...services.map((s) => ({
-      // 환경 이름만 쓰면 같은 이름의 서버의 대상처럼 읽혔다.
-      id: `svc-${s.agentId}-${s.key}`, icon: '', label: s.name, meta: `${s.agentName}의 Docker 서비스`,
-      to: containerPath(s.agentId, s.key), healthy: s.healthy,
-    })),
+    ...services.map((s) => {
+      // 컨테이너도 서버의 대상이다(모니터, 앱과 같은 `<서버>의 …`).
+      const serverId = serverOfCollector(s.agentId);
+      return { id: `svc-${s.agentId}-${s.key}`, icon: '', label: s.name, meta: ownerOf(serverId, '컨테이너'), to: containerPath(serverId, s.key), healthy: s.healthy };
+    }),
     ];
   }, [agents, apps, groups, monitors, servers, services]);
 
@@ -183,7 +183,7 @@ export function CommandPalette() {
             aria-label="검색"
             aria-controls="command-palette-results"
             aria-activedescendant={filtered[index] ? `command-palette-option-${filtered[index].id}` : undefined}
-            placeholder="서버, Docker 환경, 서비스, 페이지 검색…"
+            placeholder="서버, 대상, 그룹, 페이지 검색…"
             className="flex-1 bg-transparent py-3.5 type-control max-sm:text-base text-text-base outline-none placeholder:text-text-dim"
           />
           <kbd className="shrink-0 font-sans px-1.5 py-0.5 rounded border border-ui-border type-label-sm text-text-dim">

@@ -164,13 +164,15 @@ test.describe('demo', () => {
     await expect(page).toHaveURL(new RegExp(`/projects/${group.id}$`));
   });
 
-  test('a group says which Docker environment a Docker service belongs to', async ({ page }) => {
+  test('a group shows a failing container on the row of its Docker server', async ({ page }) => {
     const agents = mockRouter<ConnectedAgent[]>('/agents');
     const down = mockRouter<AgentServiceFlat[]>('/agents/services/all').find((service) => !service.healthy && agents.find((agent) => agent.id === service.agentId)?.projectId)!;
-    const projectId = agents.find((agent) => agent.id === down.agentId)!.projectId!;
-    await page.goto(`./projects/${projectId}`);
+    const agent = agents.find((candidate) => candidate.id === down.agentId)!;
+    await page.goto(`./projects/${agent.projectId}`);
     const row = page.getByRole('table', { name: '그룹 구성 그리드' }).locator('tbody tr').filter({ hasText: down.name });
-    await expect(row).toContainText(`${down.agentName}의 Docker 서비스`);
+    await expect(row).toHaveCount(1);
+    await expect(row.getByRole('link', { name: agent.name, exact: true })).toBeVisible();
+    await expect(row).toContainText('서버 · Docker Collector');
   });
 
   test('screens that are a single notice or a form keep one h1 and do not skip levels', async ({ page }) => {
@@ -196,13 +198,14 @@ test.describe('demo', () => {
     await expectHeadingOutline(page.locator('body'));
   });
 
-  test('the alert target picker groups Docker environments and servers', async ({ page }) => {
+  test('the alert target picker groups containers and directly connected targets, both under their server', async ({ page }) => {
     await page.goto('./alerts?tab=rules');
     await page.getByRole('button', { name: '규칙 추가' }).click();
     await page.getByRole('combobox', { name: '대상' }).click();
     const listbox = page.getByRole('listbox');
-    await expect(listbox.getByRole('group', { name: 'Docker 환경' })).toBeVisible();
-    const servers = listbox.getByRole('group', { name: '서버' });
+    // 컨테이너 앞의 이름은 그 Docker 서버의 이름이다(ADR 0012).
+    await expect(listbox.getByRole('group', { name: 'Docker Collector' }).getByRole('option', { name: 'prod-server / payment-worker' })).toBeVisible();
+    const servers = listbox.getByRole('group', { name: '직접 연결' });
     await expect(servers.getByRole('option', { name: 'edge-host-01 / Checkout API' })).toBeVisible();
     const labels = await servers.getByRole('option').allInnerTexts();
     expect(labels).toEqual([...labels].sort((a, b) => a.localeCompare(b, 'ko')));
@@ -220,7 +223,7 @@ test.describe('demo', () => {
     test('the overview scope links and the palette results are tall enough to tap', async ({ page }) => {
       await page.goto('./');
       const scope = page.getByRole('navigation', { name: '모니터링 범위' }).getByRole('link');
-      await expect(scope).toHaveCount(4);
+      await expect(scope).toHaveCount(3);
       for (const box of await scope.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
       // 모바일의 새로고침은 테두리 버튼이다(검은 채움이 아니다).
       await expect(page.getByRole('button', { name: '새로고침' })).not.toHaveClass(/bg-primary\b/);

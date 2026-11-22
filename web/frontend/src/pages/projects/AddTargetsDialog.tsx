@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, IconButton, MaterialIcon, OptionText, SearchInput } from '../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import type { Project } from '../../services/api';
-import { TARGET_KINDS, groupChangeFailure, setTargetGroup, targetKey, type AssignableTarget } from './projectMembers';
+import { groupChangeFailure, setTargetGroup, targetKey, type AssignableTarget } from './projectMembers';
 
 // 그룹 상세의 "대상 추가". 이미 이 그룹에 있는 대상은 빼고, 다른 그룹에 있는 대상은 현재 그룹을 보여 준 채
 // 고를 수 있게 한다(배정은 덮어쓰기라 그대로 옮겨진다). 미분류를 먼저 보여 준다.
@@ -10,7 +10,7 @@ export function AddTargetsDialog({ project, projects, targets, loadFailed = fals
   project: Project;
   projects: Project[];
   targets: AssignableTarget[];
-  /** 서버나 Docker 환경 목록을 불러오지 못했다. 고를 대상이 없을 때 없다고 단정하지 않는다. */
+  /** 서버 목록을 불러오지 못했다. 고를 대상이 없을 때 없다고 단정하지 않는다. */
   loadFailed?: boolean;
   onRetry?: () => Promise<void>;
   onClose: () => void;
@@ -77,12 +77,12 @@ export function AddTargetsDialog({ project, projects, targets, loadFailed = fals
           {loadFailed ? (
             <div role="alert" className="px-6 py-8">
               <p className="type-label text-text-base">대상 목록을 불러오지 못했습니다</p>
-              <p className="mt-1 type-body text-text-muted">서버나 Docker 환경 목록을 다시 불러온 뒤에 고를 수 있습니다.</p>
+              <p className="mt-1 type-body text-text-muted">서버 목록을 다시 불러온 뒤에 고를 수 있습니다.</p>
             </div>
           ) : (
             <div className="px-6 py-8">
               <p className="type-label text-text-base">추가할 수 있는 대상이 없습니다</p>
-              <p className="mt-1 type-body text-text-muted">서버나 Docker 환경을 먼저 등록하면 여기에 나타납니다.</p>
+              <p className="mt-1 type-body text-text-muted">서버를 먼저 등록하면 여기에 나타납니다. Docker 호스트는 Docker Collector를 설치하면 서버가 됩니다.</p>
             </div>
           )}
           <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
@@ -99,25 +99,22 @@ export function AddTargetsDialog({ project, projects, targets, loadFailed = fals
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
             {visible.length === 0 && <p className="py-6 text-center type-body text-text-muted">검색 결과가 없습니다</p>}
-            {TARGET_KINDS.map(({ kind, label }) => {
-              const rows = visible.filter(target => target.kind === kind);
-              if (rows.length === 0) return null;
-              return (
-                <fieldset key={kind} className="mb-4 last:mb-0">
-                  <legend className="mb-1 type-caption text-text-muted">{label}</legend>
-                  {rows.map(target => {
-                    const key = targetKey(target);
-                    const current = groupName(target.item.projectId);
-                    return (
-                      <label key={key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-ui-hover-soft">
-                        <input type="checkbox" checked={selected.has(key)} disabled={saving} onChange={event => toggle(key, event.target.checked)} className="h-4 w-4 shrink-0 cursor-pointer accent-primary" />
-                        <OptionText truncate title={target.item.name} description={current ? `현재 그룹: ${current}` : '미분류'} />
-                      </label>
-                    );
-                  })}
-                </fieldset>
-              );
-            })}
+            {/* 대상은 서버 한 종류다(Docker 호스트도 서버다, ADR 0012). 종류 제목을 두지 않는다. */}
+            {visible.length > 0 && (
+              <fieldset>
+                <legend className="sr-only">서버</legend>
+                {visible.map(target => {
+                  const key = targetKey(target);
+                  const current = groupName(target.item.projectId);
+                  return (
+                    <label key={key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-ui-hover-soft">
+                      <input type="checkbox" checked={selected.has(key)} disabled={saving} onChange={event => toggle(key, event.target.checked)} className="h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+                      <OptionText truncate title={target.item.name} description={current ? `현재 그룹: ${current}` : '미분류'} />
+                    </label>
+                  );
+                })}
+              </fieldset>
+            )}
           </div>
           {failures.length > 0 && (
             <div role="alert" className="px-6 pb-4">

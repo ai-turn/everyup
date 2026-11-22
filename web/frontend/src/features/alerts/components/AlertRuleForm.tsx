@@ -23,7 +23,7 @@ import {
     type UptimeMonitor,
     type TelemetrySignal,
 } from '../../../services/api';
-import { directTargetLabel } from '../ruleDisplay';
+import { containerLabel, directTargetLabel } from '../ruleDisplay';
 
 const ruleSchema = z.object({
     name: z.string().trim().min(1, '규칙 이름을 입력하세요'),
@@ -304,7 +304,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
         // 업타임 규칙은 업타임 모니터 하나를 대상으로 할 수 있다(서버는 service_id로 평가한다).
         api.getUptimeMonitors().then(rows => setUptimeMonitors(rows ?? [])).catch(() => { });
         // 직접 대상의 이름 앞에 서버 이름을 붙인다. 못 불러오면 대상 이름만 보인다.
-        api.getServers().then(rows => setServers(rows ?? [])).catch(() => { });
+        api.getServers({ includeDocker: true }).then(rows => setServers(rows ?? [])).catch(() => { });
     }, [isEdit, initial?.ruleCategory, initial?.serviceId, setValue]);
 
     useEffect(() => {
@@ -452,17 +452,18 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
     const selectedDirectService = isEndpoint
         ? uptimeMonitors.find(monitor => monitor.id === watchedServiceId)
         : directServices.find(service => service.id === watchedServiceId);
-    // 대상 선택지는 종류(Docker 환경, 서버)로 묶고 묶음 안에서 라벨순이다. 문구는 그대로 "부모 / 대상"이다.
+    // 대상 선택지는 종류(컨테이너, 서버의 직접 대상)로 묶고 묶음 안에서 라벨순이다. 문구는 그대로 "서버 / 대상"이다.
+    // Docker 호스트도 서버라(ADR 0012) 컨테이너 앞의 이름도 서버 이름이다.
     const byLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label, 'ko');
-    const dockerTargets = agentServices.map(svc => ({ value: `${svc.agentId}:::${svc.key}`, label: `${svc.agentName} / ${svc.name}` })).sort(byLabel);
+    const dockerTargets = agentServices.map(svc => ({ value: `${svc.agentId}:::${svc.key}`, label: containerLabel(svc, agents, servers) })).sort(byLabel);
     const serverTargets = [...availableDirectServices, ...(isEndpoint ? uptimeMonitors : [])]
         .map(target => ({ value: `direct:::${target.id}`, label: directTargetLabel(target, servers) })).sort(byLabel);
     const dockerResources = infrastructureResources.filter(resource => resource.adapter !== 'otel-collector')
-        .map(resource => ({ value: resource.id, label: `Docker / ${resource.name}` })).sort(byLabel);
+        .map(resource => ({ value: resource.id, label: directTargetLabel(resource, servers) })).sort(byLabel);
     const serverResources = infrastructureResources.filter(resource => resource.adapter === 'otel-collector')
         .map(resource => ({ value: resource.id, label: directTargetLabel(resource, servers) })).sort(byLabel);
     const targetGroups = (docker: { value: string; label: string }[], direct: { value: string; label: string }[]) =>
-        ([['Docker 환경', docker], ['서버', direct]] as const).filter(([, items]) => items.length > 0).map(([label, items]) => (
+        ([['Docker Collector', docker], ['직접 연결', direct]] as const).filter(([, items]) => items.length > 0).map(([label, items]) => (
             <optgroup key={label} label={label}>
                 {items.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
             </optgroup>
@@ -472,7 +473,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
         ? (selectedDirectService
             ? directTargetLabel(selectedDirectService, servers)
             : watchedAgentId && watchedServiceKey
-            ? (selectedAgentService ? `${selectedAgentService.agentName} / ${selectedAgentService.name}` : watchedServiceKey)
+            ? (selectedAgentService ? containerLabel(selectedAgentService, agents, servers) : watchedServiceKey)
             : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 업타임 대상'))
         : watchedCategory === 'resource' && watchedAgentId
             ? (selectedInfrastructureResource ? directTargetLabel(selectedInfrastructureResource, servers) : selectedAgent?.name ?? watchedAgentId)

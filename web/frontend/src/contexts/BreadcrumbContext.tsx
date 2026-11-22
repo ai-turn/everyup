@@ -68,7 +68,7 @@ export function useBreadcrumbTrail() {
  *
  * ```tsx
  * useBreadcrumb([{ label: monitor.name }]);                        // 업타임 › Storefront
- * useBreadcrumb([{ label: agentName, to: `/agents/${id}` },
+ * useBreadcrumb([{ label: serverName, to: `/servers/${id}` },
  *                { label: service.name }]);                        // Docker 환경 › prod-server › api
  * ```
  *

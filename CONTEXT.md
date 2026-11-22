@@ -13,7 +13,7 @@ One of the Uptime, Infrastructure, Logs, API, and Metrics tabs in a Server. It s
 _Avoid_: Capability Menu, Docker Environment view
 
 **Docker Environment**:
-A connected Docker host monitored through an EveryUp Docker Collector. Its discovered workloads and infrastructure data share the Docker Environment's Group membership. Being retired by ADR 0012: every Docker Environment is stored as a Server with the same id (`agents.server_id`) and shown in the Server list; the Docker Environment menu and screens are gone (old `/environments` and `/agents/:id` addresses redirect to the Server list and Server). Each discovered workload has a container page under its Server (`/servers/:serverId/containers/:key`); the old `/services/:agentId/:key` address redirects there. The term leaves product copy in the terminology stage.
+A connected Docker host monitored through an EveryUp Docker Collector. Its discovered workloads and infrastructure data share the Docker Environment's Group membership. Being retired by ADR 0012: every Docker Environment is stored as a Server with the same id (`agents.server_id`) and shown in the Server list; the Docker Environment menu and screens are gone (old `/environments` and `/agents/:id` addresses redirect to the Server list and Server). Each discovered workload has a container page under its Server (`/servers/:serverId/containers/:key`); the old `/services/:agentId/:key` address redirects there. Its Group is its Server's Group: a Group counts and lists it once, as a Server, and moving the Server moves the Docker Collector. The term leaves product copy in the terminology stage.
 _Avoid_: Agent, Group, Docker Project
 
 **Docker Collector**:
@@ -49,7 +49,7 @@ An OTLP ingestion connection bound to one Observed Service. Its credential autho
 _Avoid_: Docker Environment, Docker Collector, Independent Collector
 
 **Infrastructure Resource**:
-A host or other operational resource whose capacity and availability are monitored. It can be backed by an EveryUp Docker Collector or by a directly configured standard OpenTelemetry Collector. A direct Infrastructure Resource belongs to a Server, at most one per Server, and inherits that Server's Group; a Docker-backed one inherits its Docker Environment's Group.
+A host or other operational resource whose capacity and availability are monitored. It can be backed by an EveryUp Docker Collector or by a directly configured standard OpenTelemetry Collector. A direct Infrastructure Resource belongs to a Server, at most one per Server, and inherits that Server's Group; a Docker-backed one belongs to its Docker Collector's Server (ADR 0012) and inherits that Server's Group.
 _Avoid_: Docker Environment, Docker Collector
 
 **Connect**:

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { API_URL } from './fixtures/ports';
-import type { ConnectedAgent, TimelineIncident } from '../src/services/api';
+import type { ConnectedAgent, Server, TimelineIncident } from '../src/services/api';
 
 test.use({ baseURL: API_URL });
 
@@ -35,9 +35,12 @@ async function mockOverviewApi(page: Page, state: OverviewApiState) {
       return;
     }
 
+    // Docker 환경 하나만 있는 설치다. Docker 환경은 같은 ID의 서버다(ADR 0012, `GET /servers?include=docker`).
     const now = new Date().toISOString();
-    const agents: ConnectedAgent[] = [{ id: 'overview-test', name: 'prod-server', lastSeenAt: now, createdAt: now, updatedAt: now }];
-    await route.fulfill({ json: { success: true, data: pathname === '/api/v1/agents' ? agents : [] } });
+    const agents: ConnectedAgent[] = [{ id: 'overview-test', name: 'prod-server', serverId: 'overview-test', version: '0.3.0', lastSeenAt: now, createdAt: now, updatedAt: now }];
+    const servers: Server[] = [{ id: 'overview-test', name: 'prod-server', createdAt: now, updatedAt: now }];
+    const data = pathname === '/api/v1/agents' ? agents : pathname === '/api/v1/servers' ? servers : [];
+    await route.fulfill({ json: { success: true, data } });
   });
 }
 
@@ -52,7 +55,7 @@ test('timeline fetch failure stays unknown and recovers on retry', async ({ page
   await expect(timeline.getByText('최근 장애 확인 불가', { exact: true })).toBeAttached();
   await expect(timeline).not.toContainText('최근 7일간 기록된 장애가 없습니다');
   await expect(timeline).not.toContainText('중단 없이 동작했습니다');
-  await expect(page.locator('main').getByRole('link', { name: 'Docker 환경 1', exact: true })).toBeVisible();
+  await expect(page.locator('main').getByRole('link', { name: '서버 1', exact: true })).toBeVisible();
 
   state.failed = false;
   await timeline.getByRole('button', { name: '다시 시도', exact: true }).click();
