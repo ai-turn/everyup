@@ -6,6 +6,7 @@ import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type MergeInfrastructure, type Project } from '../../../services/api';
 import { ApiError, getErrorMessage } from '../../../utils/errors';
 import { capabilityUnverified, countTargets, dockerCollects, hasTargets, targetCountLabels, type ServerRow } from '../serverStatus';
+import { InfraSourceChoice } from './InfraSourceChoice';
 import { TargetCountList } from './TargetCountList';
 
 const INFRA_TAKEN = '인프라 리소스가 이미 있습니다';
@@ -21,10 +22,10 @@ const errorMessage = (error: unknown) => (error instanceof ApiError && ERRORS[er
 // OpenTelemetry Collector로 직접 연결한 인프라 리소스. Docker Collector의 호스트 지표(`everyup-agent`)는 Docker Collector를 따른다.
 const otelInfrastructure = (row: ServerRow) => row.targets.infrastructure?.adapter === 'otel-collector' ? row.targets.infrastructure : undefined;
 
-const INFRA_SOURCES: { value: MergeInfrastructure; title: string; description: string }[] = [
-  { value: 'docker', title: 'Docker Collector', description: 'OpenTelemetry Collector 리소스는 연결을 중지합니다. 수집한 기록은 남습니다.' },
-  { value: 'otel', title: 'OpenTelemetry Collector', description: 'Docker Collector의 수집에서 인프라를 뺍니다. 합친 뒤 서버에서 적용 명령을 한 번 실행합니다.' },
-];
+const INFRA_SOURCE_EFFECTS: Record<MergeInfrastructure, string> = {
+  docker: 'OpenTelemetry Collector 리소스는 연결을 중지합니다. 수집한 기록은 남습니다.',
+  otel: 'Docker Collector의 수집에서 인프라를 뺍니다. 합친 뒤 서버에서 적용 명령을 한 번 실행합니다.',
+};
 
 /**
  * 이 서버(row)와 고른 서버들을 합칠 때의 규칙(같은 호스트 합치기, ADR 0012). 고르지 않은 후보를 막는 까닭과, 호스트 지표 출처를
@@ -45,22 +46,7 @@ function mergeRules(row: ServerRow, selected: ServerRow[], checked: ReadonlySet<
   return { blockedBy, needsInfraSource };
 }
 
-// 두 번 수집하지 않도록 하나를 고른다. 고르기 전에는 합치지 않는다.
-function InfraSourceChoice({ value, onChange }: { value: MergeInfrastructure | null; onChange: (value: MergeInfrastructure) => void }) {
-  return (
-    <fieldset className="space-y-label">
-      <legend className="type-label text-text-base">호스트 지표 출처</legend>
-      <p className="type-body text-text-muted">Docker Collector와 OpenTelemetry Collector가 같은 호스트의 CPU·메모리·디스크를 모읍니다. 하나만 남기세요.</p>
-      {INFRA_SOURCES.map((source) => (
-        <label key={source.value} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-ui-hover-soft">
-          <input type="radio" name="merge-infrastructure" value={source.value} checked={value === source.value} onChange={() => onChange(source.value)}
-            className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary" />
-          <OptionText title={source.title} description={source.description} />
-        </label>
-      ))}
-    </fieldset>
-  );
-}
+
 
 /**
  * 다른 서버들을 이 서버로 가져온다. 선택한 서버의 대상은 이 서버로 옮겨지고 선택한 서버는 삭제된다.
@@ -194,7 +180,8 @@ export function MergeServerDialog({ row, rows, projects, initialSelected = [], o
             </div>
           )}
           {infraUnknown && <p className="type-body text-text-muted">인프라 리소스 목록을 불러오지 못해 충돌 여부를 미리 확인하지 못했습니다.</p>}
-          {needsInfraSource && <InfraSourceChoice value={infraSource} onChange={setInfraSource} />}
+          {/* 두 번 수집하지 않도록 하나를 고른다. 고르기 전에는 합치지 않는다. */}
+          {needsInfraSource && <InfraSourceChoice value={infraSource} onChange={setInfraSource} descriptions={INFRA_SOURCE_EFFECTS} />}
           {selected.length > 0 && (
             <div className="space-y-label" aria-live="polite">
               <p className="type-body text-text-base">

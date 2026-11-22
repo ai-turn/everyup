@@ -56,20 +56,6 @@ for (const width of [1440, 375]) for (const [route, title, label] of menus) {
   });
 }
 
-// 옛 Docker 환경 목록의 `?connect=docker`는 서버 목록에서 연결 대화 상자를 연다. 파라미터만 지우고 검색어는 남긴다.
-test('Docker connect cleanup keeps the search on the server list', async ({ page }) => {
-  await page.goto('./servers?q=staging&connect=docker');
-  await expect(page).not.toHaveURL(/connect=/);
-  expect(new URL(page.url()).searchParams.get('q')).toBe('staging');
-  await page.getByRole('dialog').getByRole('button', { name: '닫기', exact: true }).click();
-  const search = page.getByRole('textbox', { name: '서버 또는 대상 검색' });
-  await expect(search).toHaveValue('staging');
-  await page.reload();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(search).toHaveValue('staging');
-  await expect(page.getByRole('table', { name: '서버 그리드' })).toContainText('staging-api');
-});
-
 test('Group cards expose editing and deletion without changing views', async ({ page }) => {
   await page.goto('./projects');
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();

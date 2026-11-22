@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button, ButtonLink, EmptyState, FilterChips, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, RefreshStatus, SearchInput, Select,
 } from '../../components/common';
 import { ServerTable } from '../../features/servers/components/ServerTable';
-import { AddServiceModal } from '../../features/services/components/AddServiceModal';
-import { ALL_LOGS_PATH, NEW_SERVER_PATH, rememberServersSearch, serverPath } from '../../features/servers/serverPaths';
+import { ALL_LOGS_PATH, NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
 import { parseStateFilter, stateChipOptions, type ServerRow } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 
@@ -57,13 +56,11 @@ export function ServersPage() {
   // Docker Collector로 연결한 호스트도 서버다(ADR 0012). 목록 하나에 모두 보인다.
   const { rows, loading, loaded, error, failed, metricCatalog, updatedAt, reload, poll, refresh: joinRefresh } = useServers({ includeDocker: true });
   const navigate = useNavigate();
-  // 개요의 `Docker 연결`과 옛 `/environments?connect=docker`는 연결 모달을 바로 연다. 새로고침 때 다시 열리지 않게
-  // 파라미터는 읽자마자 지운다.
-  const [connectingDocker, setConnectingDocker] = useState(() => params.get('connect') === 'docker');
-  const [searchParams, setSearchParams] = useSearchParams();
+  // 옛 `Docker 연결`(`?connect=docker`, `/environments?connect=docker`)은 서버 추가에서 Docker Collector 설치를 고른 화면으로 간다.
+  const connectDocker = params.get('connect') === 'docker';
   useEffect(() => {
-    if (searchParams.has('connect')) setSearchParams((current) => { const next = new URLSearchParams(current); next.delete('connect'); return next; }, { replace: true });
-  }, [searchParams, setSearchParams]);
+    if (connectDocker) navigate(`${NEW_SERVER_PATH}?connection=docker`, { replace: true });
+  }, [connectDocker, navigate]);
   // 그룹 이름은 보조 정보다. 실패해도 목록은 그린다.
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [extrasKey, setExtrasKey] = useState(0);
@@ -116,9 +113,7 @@ export function ServersPage() {
             <ButtonLink to={ALL_LOGS_PATH} variant="quiet">전체 로그</ButtonLink>
           </div>
         }>
-        {/* 메뉴 첫 화면의 생성 버튼은 `추가`다(DESIGN.md §4.1 액션 앵커). Docker 호스트는 Docker Collector를 설치해 연결한다:
-            서버 추가에서 연결 방식을 고르는 흐름(통합 3단계)이 오기 전까지 옛 Docker 환경 목록의 버튼을 여기 둔다. */}
-        <Button variant="secondary" onClick={() => setConnectingDocker(true)}>Docker 연결</Button>
+        {/* 메뉴 첫 화면의 생성 버튼은 `추가` 하나다(DESIGN.md §4.1 액션 앵커). Docker 호스트도 서버 추가에서 연결 방식으로 고른다. */}
         <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />추가</ButtonLink>
       </PageHeader>
 
@@ -161,11 +156,8 @@ export function ServersPage() {
         )
           : !hasRows ? (
             <EmptyState icon="dns" headingLevel="h2" title="아직 서버가 없습니다"
-              description="서버를 추가하고 업타임, 인프라, 로그, API 요청, 메트릭을 연결하세요. Docker 호스트는 Docker Collector를 설치하면 서버가 됩니다.">
-              <div className="flex flex-wrap justify-center gap-2">
-                <ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink>
-                <Button variant="secondary" onClick={() => setConnectingDocker(true)}>Docker 연결</Button>
-              </div>
+              description="서버를 추가하고 업타임, 인프라, 로그, API 요청, 메트릭을 연결하세요. Docker 호스트는 서버를 추가할 때 Docker Collector 설치를 고릅니다.">
+              <ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink>
             </EmptyState>
           ) : (
             <section aria-label="서버" aria-busy={loading || undefined}>
@@ -175,10 +167,6 @@ export function ServersPage() {
             </section>
           )}
       </div>
-      {connectingDocker && (
-        <AddServiceModal onClose={() => setConnectingDocker(false)} onCreated={() => void reload()}
-          onOpenProject={(agentId) => { setConnectingDocker(false); navigate(serverPath(agentId)); }} />
-      )}
     </div>
   );
 }

@@ -163,3 +163,24 @@ func TestGroupMoveNeverMergesADockerServer(t *testing.T) {
 		t.Fatalf("Docker server = %+v (%v), want prod-server (2) in P", row, ok)
 	}
 }
+
+// migrateV60 runs on every start: running it again keeps the recorded pairs.
+func TestMigrateV60IsIdempotent(t *testing.T) {
+	repo := mergeFixture(t, `["uptime"]`)
+	if err := repo.DismissSameHost(SameHostDismissal{DockerServerID: "agent_a", ServerID: "direct"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := migrateV60(); err != nil {
+		t.Fatal(err)
+	}
+	if pairs, err := repo.SameHostDismissals(); err != nil || len(pairs) != 1 {
+		t.Fatalf("dismissals after migrateV60 again = %+v (%v), want the pair", pairs, err)
+	}
+	// Merging the Docker server away removes the pair with it.
+	if err := repo.Merge("agent_a", "direct", ""); err != nil {
+		t.Fatal(err)
+	}
+	if pairs, err := repo.SameHostDismissals(); err != nil || len(pairs) != 0 {
+		t.Fatalf("dismissals after merge = %+v (%v), want none", pairs, err)
+	}
+}

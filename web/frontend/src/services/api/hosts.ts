@@ -52,6 +52,8 @@ export interface InfrastructureResourceInput {
   name: string;
   /** 수정 요청에서도 필수다(ObservedServiceInput과 같은 이유). */
   serverId: string;
+  /** `otel`: 서버의 Docker Collector가 호스트 지표를 모으면 그 수집을 빼고 이 리소스를 출처로 남긴다(ADR 0012). */
+  infrastructure?: 'otel';
 }
 
 export interface InfrastructureResourceSetup extends InfrastructureResource {

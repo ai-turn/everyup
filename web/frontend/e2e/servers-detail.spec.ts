@@ -41,7 +41,8 @@ test('capabilities without targets read as not connected yet', async ({ page }) 
   await expect(tablist(page).getByRole('tab', { name: '인프라 연결 전', exact: true })).toBeVisible();
   await expect(tablist(page).getByRole('tab', { name: /^로그\W*앱 1개$/ })).toBeVisible();
   const connectable = page.getByRole('region', { name: '연결할 수 있는 기능' });
-  await expect(connectable.getByRole('button')).toHaveText(['인프라 연결', '메트릭 연결']);
+  // Docker Collector가 없는 서버는 설치를 마지막에 더한다(ADR 0012).
+  await expect(connectable.getByRole('button')).toHaveText(['인프라 연결', '메트릭 연결', 'Docker Collector 설치']);
   // 연결은 데이터가 보일 탭에서 시작한다: 그 탭으로 옮기면서 대화 상자를 연다. 새로고침하면 다시 열리지 않는다.
   await connectable.getByRole('button', { name: '메트릭 연결' }).click();
   await expect(page).toHaveURL(/\/servers\/server_mock_payments_api\/metrics$/);
@@ -132,7 +133,8 @@ test('a failed app list reads as unknown, not as not connected', async ({ page }
   const logs = tablist(page).getByRole('tab', { name: /^로그.*확인 불가/ });
   await expect(logs).toBeVisible();
   await expect(logs).not.toContainText('연결 전');
-  await expect(page.getByRole('region', { name: '연결할 수 있는 기능' })).toHaveCount(0);
+  // 모르는 기능을 연결 전이라고 하지 않는다. Docker Collector 설치만 남는다.
+  await expect(page.getByRole('region', { name: '연결할 수 있는 기능' }).getByRole('button')).toHaveText(['Docker Collector 설치']);
   // 모르는 기능은 경고가 아니라 대기 톤이고, 연결된 기능들 다음에 온다.
   const sections = page.getByRole('region', { name: '연결된 기능' }).getByRole('heading', { level: 2 });
   await expect(sections).toHaveText(['업타임', '인프라', '로그', 'API 요청', '메트릭']);

@@ -45,16 +45,21 @@ test('first-start creation stays visible and identifies the simulated installati
   await page.goto('./');
   await page.getByRole('combobox', { name: '데모 시나리오' }).click();
   await page.getByRole('option', { name: '첫 시작', exact: true }).click();
+  // Docker 호스트도 서버 추가에서 시작한다(ADR 0012): 이름을 정하고 연결 방식으로 Docker Collector 설치를 고른다.
   await page.locator('section').filter({ hasText: '아직 모니터링 대상이 없습니다' })
-    .getByRole('link', { name: 'Docker 연결', exact: true }).click();
-  const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Docker 환경 이름').fill('first-visit-example');
+    .getByRole('link', { name: '서버 추가', exact: true }).click();
+  await page.getByRole('textbox', { name: '이름' }).fill('first-visit-example');
+  await page.getByRole('radio', { name: /^Docker Collector 설치/ }).check();
+  await page.getByRole('button', { name: '서버 추가', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Docker Collector 설치' });
+  await expect(dialog).toContainText('서버 first-visit-example에 Docker Collector를 설치합니다.');
   await dialog.getByRole('button', { name: '추가', exact: true }).click();
   await expect(dialog.getByText(/예시 설치 화면입니다/)).toBeVisible();
   await expect(dialog.getByRole('alert')).toHaveCount(0);
   await expect(dialog.getByRole('link', { name: '실제 설치 방법 보기' })).toHaveAttribute('href', /guide\/quickstart/);
   await dialog.getByRole('button', { name: '닫기', exact: true }).click();
-  await expect(page.getByRole('row').filter({ hasText: 'first-visit-example' })).toContainText('설치 대기');
+  await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: '서버', exact: true }).click();
+  await expect(page.getByRole('row').filter({ hasText: 'first-visit-example' })).toContainText('Docker Collector 설치 대기');
 });
 
 for (const key of ['Enter', 'Space']) {

@@ -8,13 +8,14 @@ import { MonitoringSetupPanel } from '../../features/services/components/Monitor
 import { ServerAppTab } from '../../features/servers/components/ServerAppTab';
 import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
 import { useMergedServerRedirect } from '../../features/servers/useMergedServerRedirect';
+import { AddServiceModal } from '../../features/services/components/AddServiceModal';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerInfrastructureTab } from '../../features/servers/components/ServerInfrastructureTab';
 import { ServerLogsTab } from '../../features/servers/components/ServerLogsTab';
 import { ServerOverviewTab } from '../../features/servers/components/ServerOverviewTab';
 import { ServerUptimeTab } from '../../features/servers/components/ServerUptimeTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
-import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, serversListPath, type ServerCapability } from '../../features/servers/serverPaths';
+import { INSTALL_DOCKER_STATE, SERVER_CAPABILITIES, SERVERS_PATH, serverPath, serversListPath, type ServerCapability } from '../../features/servers/serverPaths';
 import { capabilityLabel, capabilityTargets, capabilityUnverified, type ServerCapabilityTabProps } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
@@ -91,6 +92,13 @@ export function ServerDetailPage() {
     if (mergeFrom) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
   };
   const [dialog, setDialog] = useState<'settings' | 'merge' | 'delete' | null>(mergeFrom ? 'merge' : null);
+  // Docker Collector 설치(ADR 0012): 서버 추가에서 Docker를 고르고 오거나(state.installDocker), 개요의 `연결할 수 있는 기능`에서 연다.
+  const installRequested = (location.state as Record<string, unknown> | null)?.[INSTALL_DOCKER_STATE] === true;
+  const [installingDocker, setInstallingDocker] = useState(installRequested);
+  const closeInstall = () => {
+    setInstallingDocker(false);
+    if (installRequested) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  };
   // OpenTelemetry Collector를 호스트 지표 출처로 남기고 합쳤으면, Docker Collector의 수집에서 인프라를 뺀 것을 서버에 적용하는
   // 명령을 연다. 합친 Docker Collector는 다시 불러온 뒤에야 이 행에 붙으므로 그때 연다.
   // 그리기와 무관한 표시라 ref다. dockerActions는 그릴 때마다 새로 만들어지므로 다시 불러온 뒤의 그리기에서 이 효과가 돈다.
@@ -212,7 +220,7 @@ export function ServerDetailPage() {
         {active === 'overview'
           // Docker 설정 가이드는 서버 전체의 일이라 개요 맨 위다. 설정이 끝나면 한 줄로 접힌다(옛 Docker 환경 개요와 같다).
           ? <div className="space-y-section">{row.targets.docker && <MonitoringSetupPanel agent={row.targets.docker} services={row.targets.containers}
-              onInstall={dockerActions.openInstall} onInstrument={dockerActions.openInstrumentation} onAddCapability={dockerActions.addCapability} />}<ServerOverviewTab row={row} /></div>
+              onInstall={dockerActions.openInstall} onInstrument={dockerActions.openInstrumentation} onAddCapability={dockerActions.addCapability} />}<ServerOverviewTab row={row} onInstallDocker={row.targets.docker ? undefined : () => setInstallingDocker(true)} /></div>
           : active === 'containers' ? (row.targets.docker ? <DockerContainersPanel serverId={row.server.id} agentId={row.targets.docker.id} containers={row.targets.containers} refreshToken={refreshToken} /> : null)
           : active === 'uptime' ? <ServerUptimeTab {...tabProps(active)} />
             : active === 'infrastructure' ? <ServerInfrastructureTab {...tabProps(active)} />
@@ -222,6 +230,8 @@ export function ServerDetailPage() {
       </div>
       {/* 대화 상자를 겹쳐 열지 않는다. 설정에서 합치기나 삭제를 고르면 설정을 닫고 그 대화 상자를 연다. */}
       {dockerActions.dialogs}
+      {/* 설치 중에 Docker Collector가 생겨도 창은 설치 확인까지 남는다. */}
+      {installingDocker && <AddServiceModal server={{ id: row.server.id, name: row.server.name }} onClose={closeInstall} onCreated={() => void reload()} />}
       {dialog === 'settings' && (
         <ServerSettingsDialog row={row} onClose={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }}
           onMerge={() => setDialog('merge')} onDelete={() => setDialog('delete')} />

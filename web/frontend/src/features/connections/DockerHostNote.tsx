@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, type ConnectedAgent } from '../../services/api';
 import { DOCKER_SERVERS_PATH, serverPath } from '../servers/serverPaths';
 import { sameHostName } from '../servers/serverStatus';
+import { collectsHostMetrics } from '../servers/useInfrastructureSources';
 
 /**
  * 직접 연결·인프라 대화 상자의 Docker 안내(연결 진입점 정리 D1-A, ADR 0012). Docker Collector는 서버에 속하므로 같은 서버 안의
@@ -26,11 +27,10 @@ export function DockerHostNote({ serverId, serverName, infrastructure = false, s
 
   const own = agents.find((agent) => agent.serverId === serverId);
   if (own) {
-    const collectsInfra = !own.profile?.capabilities.length || own.profile.capabilities.includes('infrastructure');
+    // Docker Collector가 이미 호스트 지표를 모으면 인프라 대화 상자가 출처를 하나 고르게 한다(서버당 하나). 여기서는 말하지 않는다.
     if (infrastructure) {
-      return <p className="type-body text-text-muted">{collectsInfra
-        ? '이 서버의 Docker Collector가 호스트 지표를 수집합니다. 두 번 수집하지 않도록 OpenTelemetry Collector를 따로 연결하지 마세요.'
-        : '이 서버에는 Docker Collector가 있습니다. 서버 개요의 설정 가이드에서 인프라를 더하면 따로 설치하지 않아도 됩니다.'}</p>;
+      return collectsHostMetrics(own) ? null
+        : <p className="type-body text-text-muted">이 서버에는 Docker Collector가 있습니다. 서버 개요의 설정 가이드에서 인프라를 더하면 따로 설치하지 않아도 됩니다.</p>;
     }
     return sameNameOnly ? null : <p className="type-body text-text-muted">이 서버에는 Docker Collector가 있습니다. 컨테이너로 도는 앱은 그것으로 연결하세요.</p>;
   }

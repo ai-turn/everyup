@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '../../../components/common/Button';
 import { IconButton } from '../../../components/common/IconButton';
 import { CopyButton } from '../../../components/common/CopyButton';
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
-import { Input } from '../../../components/common/Input';
 import { SegmentedControl } from '../../../components/common/SegmentedControl';
 import { Toggle } from '../../../components/common/Toggle';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
@@ -14,7 +13,10 @@ import {
   type AgentProfileKind,
   type AgentServiceSnapshot,
   type ConnectedAgent,
+  type MergeInfrastructure,
 } from '../../../services/api';
+import { InfraSourceChoice } from '../../servers/components/InfraSourceChoice';
+import { useActiveOtelInfrastructure } from '../../servers/useInfrastructureSources';
 import { COPY_ACTION_PRIMARY } from '../../../components/common';
 import { copyTextToClipboard } from '../../../hooks/useClipboardCopy';
 import { getErrorMessage } from '../../../utils/errors';
@@ -26,7 +28,6 @@ import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { env } from '../../../config/env';
 import { QUICKSTART_URL } from '../../../components/layout/DemoHelpLinks';
 import { formatClock } from '../../../utils/incidentFormat';
-import { Field } from '../../alerts/components/FormLayout';
 import { ApplyScope } from '../../connections/ApplyScope';
 import { APPLY_SCOPE, DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 
@@ -34,6 +35,11 @@ interface Props {
   onClose: () => void;
   onCreated: () => void;
   existingAgent?: { id: string; name: string };
+  /**
+   * 이 서버에 Docker Collector를 설치한다(서버 추가에서 Docker를 고른 뒤, 기존 서버의 `Docker Collector 설치`). 이름은 서버의 것이고
+   * 새 서버를 만들지 않는다(ADR 0012). 이미 있는 Docker Collector의 다시 설치·적용 명령은 existingAgent다.
+   */
+  server?: { id: string; name: string };
   /** 설치한 Docker Collector에 바뀐 수집 설정을 적용하는 명령이다(기능 연결 뒤). 다시 설치하는 것이 아니다. */
   purpose?: 'install' | 'apply';
   onOpenProject?: (agentId: string) => void;
@@ -44,7 +50,7 @@ type Step = 'form' | 'install';
 
 function SetupProgress({ step, connected, diagnosed }: { step: Step; connected: boolean; diagnosed: boolean }) {
   const steps = [
-    { label: 'Docker 환경', complete: step === 'install', active: step === 'form' },
+    { label: '수집 범위', complete: step === 'install', active: step === 'form' },
     { label: 'Docker Collector 설치', complete: connected, active: step === 'install' && !connected },
     { label: '기능 확인', complete: diagnosed, active: connected && !diagnosed },
     { label: '상세 수집', complete: false, active: diagnosed },
@@ -108,21 +114,26 @@ const CAPABILITY_OPTIONS: { capability: AgentCollectionCapability; label: string
 ];
 
 function AgentForm({
-  name,
+  serverName,
+  extra,
+  blocked = false,
   submitting,
   profileKind,
   customCapabilities,
-  onNameChange,
   onProfileKindChange,
   onCustomCapabilitiesChange,
   onClose,
   onSubmit,
 }: {
-  name: string;
+  /** Docker Collector를 설치할 서버. 이름은 서버의 것이다. */
+  serverName: string;
+  /** 수집 범위 아래의 추가 선택(호스트 지표 출처). */
+  extra?: ReactNode;
+  /** 추가 선택을 마치기 전에는 설치하지 않는다. */
+  blocked?: boolean;
   submitting: boolean;
   profileKind: AgentProfileKind;
   customCapabilities: AgentCollectionCapability[];
-  onNameChange: (name: string) => void;
   onProfileKindChange: (profile: AgentProfileKind) => void;
   onCustomCapabilitiesChange: (capabilities: AgentCollectionCapability[]) => void;
   onClose: () => void;
@@ -145,19 +156,11 @@ function AgentForm({
     <form onSubmit={onSubmit}>
       <div className="space-y-item p-6">
         <ApplyScope>{APPLY_SCOPE.docker}</ApplyScope>
-        <Field label="Docker 환경 이름" htmlFor="new-project-name" hint="대시보드에서 Docker 호스트를 구분할 이름입니다">
-          <Input
-            id="new-project-name"
-            type="text"
-            value={name}
-            onChange={event => onNameChange(event.target.value)}
-            placeholder="예: my-api, payment-service"
-          />
-        </Field>
+        <p className="type-body text-text-base">서버 <span className="font-medium">{serverName}</span>에 Docker Collector를 설치합니다.</p>
         <div className="space-y-label">
           <div>
-            <span className="type-label text-text-muted">수집 범위</span>
-            <p className="mt-1 type-body text-text-muted">필요한 권한과 Docker Collector만 설치합니다.</p>
+            <span className="block type-label text-text-muted">수집 범위</span>
+            <p data-gap="intra" className="mt-intra type-body text-text-muted">필요한 권한과 Docker Collector만 설치합니다.</p>
           </div>
           <SegmentedControl
             options={PROFILE_OPTIONS}
@@ -196,12 +199,13 @@ function AgentForm({
             </div>
           )}
         </div>
+        {extra}
       </div>
       <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
         <Button type="button" variant="secondary" onClick={onClose}>
           취소
         </Button>
-        <Button type="submit" disabled={!name.trim() || (profileKind === 'custom' && customCapabilities.length === 0)} loading={submitting}>
+        <Button type="submit" disabled={blocked || (profileKind === 'custom' && customCapabilities.length === 0)} loading={submitting}>
           <MaterialIcon name="add" />
           추가
         </Button>
@@ -297,15 +301,22 @@ export function AddServiceModal({
   onClose,
   onCreated,
   existingAgent,
+  server,
   purpose = 'install',
   onOpenProject,
   onConfigureInstrumentation,
 }: Props) {
   const title = purpose === 'apply' ? '적용 명령' : 'Docker Collector 설치';
   const [step, setStep] = useState<Step>(existingAgent ? 'install' : 'form');
-  const [name, setName] = useState(existingAgent?.name ?? '');
+  const name = existingAgent?.name ?? server?.name ?? '';
   const [profileKind, setProfileKind] = useState<AgentProfileKind>('all-in-one');
   const [customCapabilities, setCustomCapabilities] = useState<AgentCollectionCapability[]>(['uptime']);
+  // 서버당 호스트 지표 출처는 하나다(ADR 0012). 이 서버에 OpenTelemetry Collector 인프라가 있고 고른 수집 범위가 호스트 지표를
+  // 모으면 하나를 고른다.
+  const otelInfrastructure = useActiveOtelInfrastructure(server?.id) === true;
+  const collectsInfrastructure = profileKind === 'all-in-one' || (profileKind === 'custom' && customCapabilities.includes('infrastructure'));
+  const needsInfraSource = otelInfrastructure && collectsInfrastructure;
+  const [infraSource, setInfraSource] = useState<MergeInfrastructure | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [refreshingCode, setRefreshingCode] = useState(Boolean(existingAgent));
   const [agentId, setAgentId] = useState(existingAgent?.id ?? '');
@@ -399,14 +410,14 @@ export function AddServiceModal({
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed || !server) return;
     setSubmitting(true);
     try {
       const profile: AgentProfile = {
         kind: profileKind,
         capabilities: profileKind === 'custom' ? customCapabilities : [],
       };
-      const res = await api.createAgent(trimmed, profile);
+      const res = await api.createAgent(trimmed, profile, { serverId: server.id, ...(needsInfraSource && infraSource ? { infrastructure: infraSource } : {}) });
       setAgentId(res.id);
       setJoinCode(res.joinCode);
       setExpiresAt(res.expiresAt);
@@ -450,14 +461,14 @@ export function AddServiceModal({
     <dialog
       ref={dialogRef}
       className={`fixed inset-0 z-50 m-auto h-full max-h-none w-full max-w-none items-center justify-center bg-transparent p-4 open:flex ${SCRIM_MODAL_DIALOG}`}
-      aria-label={step === 'form' ? 'Docker 연결' : title}
+      aria-label={title}
       onCancel={(event) => { event.preventDefault(); onClose(); }}
     >
       <div className={`w-full ${step === 'install' ? 'max-w-2xl' : 'max-w-md'} max-h-[92vh] bg-bg-surface rounded-xl shadow-lg border border-ui-border overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ui-border-soft">
           <h2 className="type-card-title text-text-base">
-            {step === 'form' ? 'Docker 연결' : title}
+            {title}
           </h2>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
@@ -466,11 +477,17 @@ export function AddServiceModal({
 
         {step === 'form' ? (
           <AgentForm
-            name={name}
+            serverName={name}
+            blocked={needsInfraSource && !infraSource}
+            extra={needsInfraSource && (
+              <InfraSourceChoice value={infraSource} onChange={setInfraSource} descriptions={{
+                docker: 'Docker Collector가 호스트 지표를 모읍니다. 이 서버의 OpenTelemetry Collector 리소스는 연결을 중지합니다. 수집한 기록은 남습니다.',
+                otel: '지금처럼 OpenTelemetry Collector가 호스트 지표를 모읍니다. Docker Collector의 수집에서 인프라를 뺍니다.',
+              }} />
+            )}
             submitting={submitting}
             profileKind={profileKind}
             customCapabilities={customCapabilities}
-            onNameChange={setName}
             onProfileKindChange={setProfileKind}
             onCustomCapabilitiesChange={setCustomCapabilities}
             onClose={onClose}

@@ -14,6 +14,7 @@ import type {
   OtelServiceMetric,
 } from './telemetry';
 import { request } from './base';
+import type { MergeInfrastructure } from './servers';
 
 function traceQuery(params?: TraceListQuery): URLSearchParams {
   const query = new URLSearchParams();
@@ -187,11 +188,17 @@ export interface TimelineIncident {
 
 export const agentsApi = {
 	getCollectorSetupStatus: (id: string) => request<CollectorSetupStatus>(`/agents/${id}/setup-status`),
-	updateAgentProfile: (id: string, profile: AgentProfile) => request<AgentProfile>(`/agents/${id}/profile`, { method: 'PUT', body: JSON.stringify(profile) }),
-  createAgent: (name: string, profile: AgentProfile) =>
+	/** `infrastructure: 'docker'`는 호스트 지표를 더할 때 서버의 OpenTelemetry Collector 리소스 연결을 중지한다(서버당 출처 하나, ADR 0012). */
+	updateAgentProfile: (id: string, profile: AgentProfile, infrastructure?: 'docker') =>
+		request<AgentProfile>(`/agents/${id}/profile${infrastructure ? `?infrastructure=${infrastructure}` : ''}`, { method: 'PUT', body: JSON.stringify(profile) }),
+  /**
+   * Docker Collector를 만든다. `serverId`가 있으면 그 서버에 설치하고(새 서버를 만들지 않는다), 서버에 OpenTelemetry Collector
+   * 인프라가 있으면 `infrastructure`로 호스트 지표 출처를 하나 고른다.
+   */
+  createAgent: (name: string, profile: AgentProfile, target?: { serverId: string; infrastructure?: MergeInfrastructure }) =>
     request<{ id: string; name: string; profile: AgentProfile } & AgentJoinCode>('/agents', {
       method: 'POST',
-      body: JSON.stringify({ name, profile }),
+      body: JSON.stringify({ name, profile, ...target }),
     }),
   createAgentJoinCode: (agentId: string) =>
     request<AgentJoinCode>(`/agents/${agentId}/join-code`, { method: 'POST' }),

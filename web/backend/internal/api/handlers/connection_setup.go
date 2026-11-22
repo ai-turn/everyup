@@ -37,7 +37,11 @@ func (h *AgentHandler) UpdateProfile(c *fiber.Ctx) error {
 		return agentBadRequest(c, ErrCodeInvalidRequest, err.Error())
 	}
 	repo := database.ConnectionSetupRepository{}
-	if err := repo.UpdateProfile(c.Params("agentId"), profile); err != nil {
+	// ?infrastructure=docker stops the server's OpenTelemetry Collector resource when the profile adds host metrics.
+	if err := repo.UpdateProfile(c.Params("agentId"), profile, c.Query("infrastructure")); err != nil {
+		if errors.Is(err, database.ErrInfrastructureSourceRequired) {
+			return serverWriteError(c, err)
+		}
 		return setupError(c, err)
 	}
 	return c.JSON(fiber.Map{"success": true, "data": profile})

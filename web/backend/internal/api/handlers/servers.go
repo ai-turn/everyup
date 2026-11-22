@@ -212,3 +212,25 @@ func serverWriteError(c *fiber.Ctx, err error) error {
 	}
 	return internalError(c, "DATABASE_ERROR", err)
 }
+
+// SameHostDismissals lists the server pairs a user said are not the same host (ADR 0012).
+func (h *ServerHandler) SameHostDismissals(c *fiber.Ctx) error {
+	pairs, err := h.repo.SameHostDismissals()
+	if err != nil {
+		return internalError(c, "DATABASE_ERROR", err)
+	}
+	return c.JSON(fiber.Map{"success": true, "data": pairs})
+}
+
+// DismissSameHost records that a Docker server and a server are not the same host.
+func (h *ServerHandler) DismissSameHost(c *fiber.Ctx) error {
+	var pair database.SameHostDismissal
+	if err := c.BodyParser(&pair); err != nil || pair.DockerServerID == "" || pair.ServerID == "" || pair.DockerServerID == pair.ServerID {
+		return agentBadRequest(c, "VALIDATION_ERROR", "dockerServerId and serverId are required and must differ")
+	}
+	if err := h.repo.DismissSameHost(pair); err != nil {
+		return serverWriteError(c, err)
+	}
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"success": true, "data": pair})
+}
+

@@ -29,6 +29,9 @@ type InfrastructureResourceInput struct {
 	Name      string `json:"name"`
 	ProjectID string `json:"projectId,omitempty"`
 	ServerID  string `json:"serverId,omitempty"`
+	// Infrastructure "otel" removes host metrics from the server's Docker Collector so that this
+	// resource is the server's one source (ADR 0012). Required when that Docker Collector collects them.
+	Infrastructure string `json:"infrastructure,omitempty"`
 }
 
 type InfrastructureResourceSetup struct {

@@ -31,7 +31,7 @@ func infrastructureError(c *fiber.Ctx, err error) error {
 	case errors.Is(err, infrastructure.ErrInvalidInput):
 		return agentBadRequest(c, ErrCodeValidation, err.Error())
 	case errors.Is(err, database.ErrServerMissing), errors.Is(err, database.ErrServerNameTaken),
-		errors.Is(err, database.ErrServerHasInfrastructure):
+		errors.Is(err, database.ErrServerHasInfrastructure), errors.Is(err, database.ErrInfrastructureSourceRequired):
 		return serverWriteError(c, err)
 	default:
 		return internalError(c, ErrCodeDatabase, err)

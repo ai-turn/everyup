@@ -873,6 +873,13 @@ function serverHasInfrastructureError(): never {
 const mockAgentServer = new Map<string, string>();
 const serverOfAgent = (agentId: string) => mockAgentServer.get(agentId) ?? agentId;
 const dockerAgentOfServer = (serverId: string) => mockAgents.find(agent => serverOfAgent(agent.id) === serverId);
+// 서버당 호스트 지표 출처는 하나다(백엔드와 같다, ADR 0012).
+const collectsHostMetrics = (agent: ConnectedAgent) => !agent.profile?.capabilities.length || agent.profile.capabilities.includes('infrastructure');
+const activeOtelOn = (serverId: string) => mockInfrastructureResources.filter(row => row.serverId === serverId && row.isActive);
+const infrastructureSourceRequired = (): never => { throw new ApiError('choose the infrastructure source: docker or otel', 'INFRASTRUCTURE_SOURCE_REQUIRED', 409); };
+const withoutHostMetrics = (agent: ConnectedAgent): AgentProfile => ({ kind: 'custom', capabilities: (agent.profile?.capabilities.length ? agent.profile.capabilities : ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] as AgentCollectionCapability[]).filter(item => item !== 'infrastructure') });
+// `아님`으로 답한 같은 호스트 쌍(ADR 0012).
+const mockSameHostDismissals: { dockerServerId: string; serverId: string }[] = [];
 
 function writeServer(input: Partial<ServerInput>, id?: string): Server {
   const name = String(input.name ?? '').trim();
@@ -894,7 +901,8 @@ function writeServer(input: Partial<ServerInput>, id?: string): Server {
 
 // 대상이 들어갈 서버가 있는지, 인프라 리소스라면 그 서버에 이미 인프라 리소스가 없는지 확인한다.
 function checkTargetServer(serverId: string, infrastructure: boolean) {
-  if (!findServer(serverId)) throw new ApiError('server not found', 'VALIDATION_ERROR', 400);
+  // Docker 서버도 서버다(ADR 0012).
+  if (!findServer(serverId) && !dockerAgentOfServer(serverId)) throw new ApiError('server not found', 'VALIDATION_ERROR', 400);
   if (infrastructure && serverHasInfrastructure(serverId)) serverHasInfrastructureError();
 }
 
@@ -1383,13 +1391,29 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     const signals = infrastructure ? ['infrastructure'] : mockObservedServices.find(row => row.id === directSetup[2])?.signals ?? [];
     return (resource?.lastSeenAt ? signals.map(signal => ({ serviceName: resource.name, signal, firstReceivedAt: resource.createdAt, lastReceivedAt: resource.lastSeenAt })) : []) as T;
   }
-  const collectorProfile = endpoint.match(/^\/agents\/([^/]+)\/profile$/);
+  const collectorProfile = endpoint.match(/^\/agents\/([^/]+)\/profile(\?.*)?$/);
   if (method === 'PUT' && collectorProfile) {
     const agent = mockAgents.find(row => row.id === collectorProfile[1]);
     if (!agent) throw new Error('Docker 환경을 찾을 수 없습니다');
-    agent.profile = normalizeMockAgentProfile(JSON.parse(typeof body === 'string' ? body : '{}'));
+    const profile = normalizeMockAgentProfile(JSON.parse(typeof body === 'string' ? body : '{}'));
+    // 호스트 지표를 더하는데 서버에 OpenTelemetry Collector 인프라가 있으면 ?infrastructure=docker로 그 연결을 중지한다.
+    const otel = activeOtelOn(serverOfAgent(agent.id));
+    if (collectsHostMetrics({ ...agent, profile }) && otel.length > 0) {
+      if (collectorProfile[2] !== '?infrastructure=docker') infrastructureSourceRequired();
+      otel.forEach(row => { row.isActive = false; });
+    }
+    agent.profile = profile;
     pendingCollectorProfiles.add(agent.id);
     return agent.profile as T;
+  }
+  // 같은 호스트 제안의 `아님`(ADR 0012). 백엔드처럼 모든 사용자에게 같다(데모에서는 이 창 안에서만).
+  if (endpoint === '/same-host-dismissals') {
+    if (method === 'POST') {
+      const pair = JSON.parse(typeof body === 'string' ? body : '{}') as { dockerServerId: string; serverId: string };
+      if (!mockSameHostDismissals.some(row => row.dockerServerId === pair.dockerServerId && row.serverId === pair.serverId)) mockSameHostDismissals.push(pair);
+      return pair as T;
+    }
+    return mockSameHostDismissals.map(row => ({ ...row })) as T;
   }
 
   // Keep successful regions visible while exercising the overview's per-source
@@ -1415,6 +1439,12 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     if (method === 'POST' && endpoint === '/infrastructure-resources') {
       const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as WireInput<InfrastructureResourceInput>;
       const now = new Date().toISOString();
+      // 서버의 Docker Collector가 호스트 지표를 모으면 infrastructure=otel로 그 수집을 뺀다(서버당 출처 하나).
+      const collector = parsed.serverId ? dockerAgentOfServer(parsed.serverId) : undefined;
+      if (collector && collectsHostMetrics(collector)) {
+        if (parsed.infrastructure !== 'otel') infrastructureSourceRequired();
+        collector.profile = withoutHostMetrics(collector);
+      }
       const resource: InfrastructureResourceSetup = {
         id: mockId('infra_mock'),
         name: parsed.name,
@@ -1646,15 +1676,30 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     if (method === 'POST' && endpoint === '/agents') {
       let name = 'new-service';
       let profile: AgentProfile;
+      let serverId: string | undefined;
+      let infrastructure: string | undefined;
       try {
-        const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as { name?: unknown; profile?: AgentProfile };
+        const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as { name?: unknown; profile?: AgentProfile; serverId?: string; infrastructure?: string };
         if (parsed?.name) name = String(parsed.name);
         profile = normalizeMockAgentProfile(parsed.profile);
+        serverId = parsed.serverId;
+        infrastructure = parsed.infrastructure;
       } catch { /* keep default */ }
       profile ??= normalizeMockAgentProfile();
       const id = `agent_mock_${Date.now()}`;
       const now = new Date().toISOString();
-      mockAgents.push({ id, name, profile, lastSeenAt: now, createdAt: now, updatedAt: now });
+      // 기존 서버에 설치한다(ADR 0012). 서버당 Docker Collector는 하나, 호스트 지표 출처도 하나다.
+      const server = serverId ? findServer(serverId) : undefined;
+      if (serverId && !server) throw new ApiError('server not found', 'VALIDATION_ERROR', 400);
+      if (serverId && dockerAgentOfServer(serverId)) throw new ApiError('server has a Docker Collector', 'SERVER_HAS_DOCKER', 409);
+      const otel = serverId ? activeOtelOn(serverId) : [];
+      if (otel.length > 0 && collectsHostMetrics({ id, name, profile, lastSeenAt: now, createdAt: now, updatedAt: now })) {
+        if (infrastructure === 'docker') otel.forEach(row => { row.isActive = false; });
+        else if (infrastructure === 'otel') profile = withoutHostMetrics({ id, name, profile, lastSeenAt: now, createdAt: now, updatedAt: now });
+        else infrastructureSourceRequired();
+      }
+      mockAgents.push({ id, name, profile, projectId: server?.projectId, lastSeenAt: now, createdAt: now, updatedAt: now });
+      if (serverId) mockAgentServer.set(id, serverId);
       return {
         id,
         name,
