@@ -1232,9 +1232,9 @@ function serviceUptime(endpoint: string, scenario: MockScenario): ServiceUptimeD
 function scenarioAgents(scenario: MockScenario): ConnectedAgent[] {
   const agents = scenario === 'empty' ? mockAgents.filter(agent => !initialAgentIds.has(agent.id)) : mockAgents;
   const fresh = new Date(Date.now() - 20_000).toISOString();
-  return agents.map(agent => initialAgentIds.has(agent.id) ? { ...agent,
+  return agents.map(agent => initialAgentIds.has(agent.id) ? { ...agent, serverId: agent.id,
     lastSeenAt: scenario === 'normal' ? fresh : fixtureTime(agent.lastSeenAt),
-    updatedAt: scenario === 'normal' ? fresh : fixtureTime(agent.updatedAt) } : agent);
+    updatedAt: scenario === 'normal' ? fresh : fixtureTime(agent.updatedAt) } : { ...agent, serverId: agent.id });
 }
 
 function scenarioServices(scenario: MockScenario): AgentServiceFlat[] {
@@ -1282,6 +1282,11 @@ function monitorIncidents(monitor: UptimeMonitor): TimelineIncident[] {
 
 function scenarioServers(scenario: MockScenario): Server[] {
   return scenario === 'empty' ? mockServers.filter(server => !initialServerIds.has(server.id)) : mockServers;
+}
+
+// 백엔드와 같다(migrateV59): Docker 환경마다 서버가 있고 ID가 같다. 데모 이름은 서버와 겹치지 않아 suffix가 없다.
+function scenarioDockerServers(scenario: MockScenario): Server[] {
+  return scenarioAgents(scenario).map(agent => ({ id: agent.id, name: agent.name, description: '', projectId: agent.projectId, createdAt: agent.createdAt, updatedAt: agent.updatedAt }));
 }
 
 // Outage history for the overview timeline. `normal` keeps the resolved
@@ -1703,8 +1708,11 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
     })) as T;
   }
   if (endpoint === '/servers') return scenarioServers(scenario).map(server => ({ ...server })) as T;
+  if (endpoint === '/servers?include=docker') {
+    return [...scenarioServers(scenario), ...scenarioDockerServers(scenario)].sort((a, b) => a.name.localeCompare(b.name)).map(server => ({ ...server })) as T;
+  }
   const serverDetailMatch = endpoint.match(/^\/servers\/([^/?]+)$/);
-  if (serverDetailMatch) return { ...(scenarioServers(scenario).find(server => server.id === serverDetailMatch[1]) ?? serverNotFound()) } as T;
+  if (serverDetailMatch) return { ...([...scenarioServers(scenario), ...scenarioDockerServers(scenario)].find(server => server.id === serverDetailMatch[1]) ?? serverNotFound()) } as T;
   if (endpoint === '/infrastructure-resources') {
     const agentResources: InfrastructureResource[] = scenarioAgents(scenario)
       .filter(agent => agent.version && agent.profile?.capabilities.includes('infrastructure'))

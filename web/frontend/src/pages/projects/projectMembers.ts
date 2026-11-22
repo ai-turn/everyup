@@ -38,8 +38,10 @@ export function sourcesForProject(projectId: string, all: ProjectSources): Proje
 
 // 서버의 상태와 원인은 서버 목록과 같은 행(ServerRow)을 쓴다.
 export function projectMembers({ agents, services, servers }: ProjectSources): Member[] {
+  // 서버 목록에 Docker 서버가 함께 오면(ADR 0012) 그 Docker 환경은 서버 행이 대신한다. 같은 호스트를 두 번 세지 않는다.
+  const asServers = new Set(servers.flatMap((row) => (row.targets.docker ? [row.targets.docker.id] : [])));
   return [
-    ...agents.map((agent): Member => ({ assignment: { kind: 'agent', item: agent }, key: `agent-${agent.id}`, to: `/agents/${agent.id}`, icon: 'deployed_code', type: 'Docker 환경', name: agent.name, detail: COLLECTION_STATUS_LABEL[isCollectorFresh(agent.lastSeenAt) ? 'collecting' : 'delayed'], state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
+    ...agents.filter((agent) => !asServers.has(agent.id)).map((agent): Member => ({ assignment: { kind: 'agent', item: agent }, key: `agent-${agent.id}`, to: `/agents/${agent.id}`, icon: 'deployed_code', type: 'Docker 환경', name: agent.name, detail: COLLECTION_STATUS_LABEL[isCollectorFresh(agent.lastSeenAt) ? 'collecting' : 'delayed'], state: isCollectorFresh(agent.lastSeenAt) ? 'healthy' : 'warn' })),
     ...services.filter((service) => !service.healthy).map((service): Member => ({ key: `service-${service.agentId}-${service.key}`, to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`, icon: 'deployed_code', type: `${service.agentName}의 Docker 서비스`, name: service.name, detail: '장애', state: 'error' })),
     ...servers.map((row): Member => ({ assignment: { kind: 'server', item: row.server }, key: `server-${row.server.id}`, to: serverPath(row.server.id), icon: 'dns', type: '서버', name: row.server.name, detail: STATE_LABEL[row.state], cause: row.cause?.text, state: row.state })),
   ].sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state]);
@@ -53,8 +55,9 @@ export const TARGET_KINDS: { kind: AssignableTarget['kind']; label: string }[] =
 export const targetKey = (target: AssignableTarget) => `${target.kind}-${target.item.id}`;
 
 export function assignableTargets(all: ProjectSources): AssignableTarget[] {
+  const asServers = new Set(all.servers.flatMap((row) => (row.targets.docker ? [row.targets.docker.id] : [])));
   return [
-    ...all.agents.map((item): AssignableTarget => ({ kind: 'agent', item })),
+    ...all.agents.filter((agent) => !asServers.has(agent.id)).map((item): AssignableTarget => ({ kind: 'agent', item })),
     ...all.servers.map((row): AssignableTarget => ({ kind: 'server', item: row.server })),
   ];
 }

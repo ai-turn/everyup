@@ -26,7 +26,8 @@ export interface ServerUpdate {
 }
 
 export const serversApi = {
-  getServers: () => request<Server[]>('/servers'),
+  /** includeDocker adds the servers that are Docker environments (ADR 0012). Their Docker Collector comes from `getAgents` by `serverId`. */
+  getServers: (options?: { includeDocker?: boolean }) => request<Server[]>(options?.includeDocker ? '/servers?include=docker' : '/servers'),
   getServer: (id: string) => request<Server>(`/servers/${id}`),
   createServer: (data: ServerInput) => request<Server>('/servers', { method: 'POST', body: JSON.stringify(data) }),
   updateServer: (id: string, data: ServerUpdate) => request<Server>(`/servers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
