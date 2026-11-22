@@ -98,14 +98,19 @@ test('[16] mobile keyboard focus remains above bottom navigation and charts are 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('group', { name: '장애 이력 구분' }).getByRole('button', { name, exact: true })).toBeFocused();
   }
+  // Measure the real bottom navigation; a guessed height would hide a focus ring it covers.
+  const bottomNav = page.getByRole('navigation', { name: '하단 메뉴' });
+  await expect(bottomNav).toBeVisible();
   for (const key of ['Tab', 'Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab']) {
     await page.keyboard.press(key);
-    await expect.poll(async () => page.evaluate(() => {
-      const element = document.activeElement as HTMLElement;
-      if (!element.closest('main')) return true;
-      const bottom = document.querySelector('nav[aria-label="모바일 내비게이션"]')?.getBoundingClientRect().top ?? innerHeight - 64;
-      const rect = element.getBoundingClientRect();
-      return rect.bottom <= bottom + 1 && rect.top >= 0;
-    })).toBe(true);
+    await expect.poll(async () => {
+      const navTop = (await bottomNav.boundingBox())!.y;
+      return page.evaluate((bottom) => {
+        const element = document.activeElement as HTMLElement;
+        if (!element.closest('main')) return true;
+        const rect = element.getBoundingClientRect();
+        return rect.bottom <= bottom + 1 && rect.top >= 0;
+      }, navTop);
+    }).toBe(true);
   }
 });
