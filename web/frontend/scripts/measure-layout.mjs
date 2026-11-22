@@ -53,7 +53,14 @@ const SCREENS = [
   ['server-empty-api', '/servers/server_mock_staging_empty/api'],
   ['server-new', '/servers/new'],
   ['server-settings-dialog', `/servers/${E}`, null, click('서버 설정')],
-  ['uptime-add-dialog', `/servers/${E}/uptime`, null, click('모니터 추가')],
+  ['uptime-add-dialog', `/servers/${E}/uptime`, null, click('업타임 모니터 추가')],
+  // 연결 대화 상자(연결 진입점 정리, 2026-11-22). 새 앱, 기존 앱(고를 앱 있음·없음), 이 앱에 더하기, Docker 기능 연결.
+  ['direct-new-dialog', '/servers/server_mock_staging_empty/api', null, click('API 요청 연결')],
+  ['direct-existing-dialog', '/servers/server_mock_db_primary_01/logs', null, async (page) => { await click('로그 연결')(page); await click('기존 앱')(page); }],
+  ['direct-no-candidate-dialog', '/servers/server_mock_staging_empty/logs', null, async (page) => { await click('로그 연결')(page); await click('기존 앱')(page); }],
+  ['direct-attach-dialog', `/servers/${E}/apps/observed_mock_checkout?tab=metrics`, null, click('메트릭 연결')],
+  ['app-connect-menu', `/servers/${E}/apps/observed_mock_checkout`, null, click('연결 추가')],
+  ['docker-capability-dialog', '/agents/agent_demo_02', null, click('메트릭 연결')],
   ['environments', '/environments'],
   ['env-connect-dialog', '/environments', null, click('Docker 연결')],
   ['env-overview', '/agents/agent_demo_01'],
@@ -182,7 +189,9 @@ async function measure() {
     if (errors.length) process.exitCode = 1;
   } finally {
     await browser.close();
-    server.kill();
+    // shell: true라 Windows에서는 kill()이 셸만 끝내고 vite는 남는다. 남은 서버가 포트를 잡으면 다음 측정이 그 서버를 잰다.
+    if (process.platform === 'win32') spawn('taskkill', ['/pid', String(server.pid), '/T', '/F'], { stdio: 'ignore' });
+    else server.kill();
   }
 }
 
