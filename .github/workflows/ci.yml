@@ -67,8 +67,22 @@ jobs:
     needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read # find the pull_request run that already passed e2e on this tree
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # A main push skips e2e only when a successful pull_request run of this workflow passed it
+      # on the identical git tree (same code, workflow, and specs); see reuse-e2e.mjs. Anything
+      # else runs e2e: new trees from stale branches, failed lookups, tag pushes, and manual runs
+      # (Actions > Verify > Run workflow on main forces it). Setting the FORCE_E2E repository
+      # variable to true turns reuse off everywhere. PR runs only report what main would do.
+      - name: Decide whether to reuse a pull request's e2e result
+        id: reuse
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FORCE_E2E: ${{ vars.FORCE_E2E }}
+        run: node .github/scripts/reuse-e2e.mjs
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           version: 10.27.0
@@ -84,9 +98,11 @@ jobs:
           pnpm --dir web/frontend typecheck
           pnpm --dir web/frontend build
       - name: Read the Playwright version
+        if: steps.reuse.outputs.reuse != 'true'
         id: playwright
         run: echo "version=$(pnpm --dir web/frontend exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
       - name: Restore Playwright browsers
+        if: steps.reuse.outputs.reuse != 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
@@ -94,9 +110,26 @@ jobs:
       # The runner image already has Chromium's system libraries; --with-deps only added apt
       # updates that occasionally stalled for minutes.
       - name: Install Playwright Chromium
+        if: steps.reuse.outputs.reuse != 'true'
         run: pnpm --dir web/frontend exec playwright install chromium
       - name: Build and test demo
+        if: steps.reuse.outputs.reuse != 'true'
         run: pnpm --dir web/frontend test:e2e
+      - name: Build the demo whose tree already passed e2e
+        if: steps.reuse.outputs.reuse == 'true'
+        run: pnpm --dir web/frontend build:demo
+      # Only PR runs record a pass; main only ever reuses results from pull_request runs.
+      - name: Record the tree that passed e2e
+        if: github.event_name == 'pull_request'
+        run: git rev-parse 'HEAD^{tree}' > e2e-tree.txt
+      - name: Upload the e2e pass record
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-passed-tree-${{ steps.reuse.outputs.tree }}
+          path: e2e-tree.txt
+          retention-days: 30
+          overwrite: true # a re-run attempt records the same tree again
       - name: Preserve Playwright failure evidence
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -199,10 +232,11 @@ jobs:
         working-directory: web/backend
         run: go test ./internal/api/handlers -run 'TestBuildAgentComposePassesDockerComposeValidation|TestBuildAgentComposeOmitsUnselectedPrivileges|TestAgentCustomProfileControlsJoinBundle' -v
 
-  # Builds and pushes only commit-addressable sha- tags, so it runs alongside the tests.
-  # Nothing points users at these images until promote has seen every check pass.
+  # Builds and pushes only commit-addressable sha- tags, so it runs alongside the tests and
+  # docker-smoke. Nothing points users at these images until promote has seen every check pass
+  # (compose-profile-smoke fails unless docker-smoke succeeded).
   publish:
-    needs: [changes, docker-smoke]
+    needs: changes
     if: github.event_name != 'pull_request' && needs.changes.outputs.images == 'true' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     uses: ./.github/workflows/docker-publish.yml
     secrets:

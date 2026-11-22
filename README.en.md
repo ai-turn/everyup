@@ -92,7 +92,9 @@ pnpm docs:dev                                                 # run the docs sit
 
 `pnpm build` does not type-check, so run `typecheck` separately. If you changed the UI, run
 `pnpm test:e2e` in `web/frontend` before merging. The demo e2e runs in PR CI, before Docker image
-publication, and in the Pages deploy. Docker images are published only after every check passes
+publication, and in the Pages deploy. A push to main reuses the result when a PR run already passed
+e2e on the identical git tree, and runs e2e otherwise; to force it on main, use **Run workflow** on
+the Verify workflow in Actions. Docker images are published only after every check passes
 for the same commit. If screens look different, regenerate the docs and README screenshots with
 `pnpm screenshot`.
 

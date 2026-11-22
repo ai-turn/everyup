@@ -88,7 +88,9 @@ pnpm docs:dev                                                 # 문서 사이트
 
 `pnpm build`는 타입을 검사하지 않으므로 `typecheck`를 따로 돌립니다. UI를 바꿨다면 머지 전에
 `web/frontend`에서 `pnpm test:e2e`를 실행하세요. 데모 e2e는 PR CI와 Docker 이미지 발행 전 검증,
-Pages 배포에서 실행합니다. Docker 이미지는 같은 커밋의 모든 검증이 통과해야 발행됩니다.
+Pages 배포에서 실행합니다. main 푸시는 같은 git 트리가 PR 실행에서 이미 e2e를 통과했으면 그 결과를
+재사용하고, 그렇지 않으면 e2e를 다시 실행합니다. main에서 e2e를 강제로 다시 돌리려면 Actions의
+Verify에서 **Run workflow**를 실행합니다. Docker 이미지는 같은 커밋의 모든 검증이 통과해야 발행됩니다.
 화면 모습이 바뀌었다면 `pnpm screenshot`으로 문서와 README의 스크린샷을 다시 만듭니다.
 
 로컬 실행 방법은 [web/README.md](web/README.md)와 [agent/README.md](agent/README.md),
