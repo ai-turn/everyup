@@ -101,3 +101,40 @@ test('mobile infrastructure setup stays within the viewport', async ({ page }) =
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
 });
+
+// 연결 진입점 정리(2026-11-22): Docker 환경의 상태는 한 판정이고, 설치 명령은 설치 전에만 주 조작이다.
+test('a Docker environment reads the same in the list, its header and its guide', async ({ page }) => {
+  // staging-api는 Docker Collector가 한 번도 보고하지 않았다(버전이 없다).
+  await page.goto('./environments');
+  const row = (name: string) => page.getByRole('row').filter({ has: page.getByText(name, { exact: true }) });
+  await expect(row('staging-api').getByText('설치 대기', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await page.goto('./agents/agent_demo_02');
+  await expect(page.getByText('설치 대기', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('수집 중', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '설치 명령', exact: true }).first()).toBeVisible();
+  // 설치한 환경은 설치하라고 하지 않는다. 다시 설치는 더보기에 있다.
+  await page.goto('./agents/agent_demo_01');
+  await expect(page.getByText('수집 중', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('설치 대기', { exact: true })).toHaveCount(0);
+  await (await menuItem(page, '다시 설치')).click();
+  await expect(page.getByRole('dialog', { name: 'Docker Collector 설치' })).toBeVisible();
+});
+
+test('every connection dialog states its scope before it issues anything', async ({ page }) => {
+  // 인프라: 이 서버 하나, OpenTelemetry Collector 실행. Docker 환경이 있으면 그 Docker Collector를 안내한다.
+  await page.goto('./servers/server_mock_staging_empty/infrastructure');
+  await page.getByRole('tabpanel').getByRole('button', { name: '인프라 연결', exact: true }).click();
+  const infra = page.getByRole('dialog', { name: '인프라 연결' });
+  await expect(infra.getByText(/^적용 범위 이 서버 하나에 적용됩니다\./)).toBeVisible();
+  await expect(infra.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/environments$/);
+  await infra.getByRole('button', { name: '취소', exact: true }).click();
+  // 업타임: 설치할 것이 없다.
+  await page.goto('./servers/server_mock_staging_empty/uptime');
+  await page.getByRole('tabpanel').getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '업타임 모니터 추가' }).getByText(/서버에 설치할 것이 없습니다/)).toBeVisible();
+  await page.keyboard.press('Escape');
+  // Docker 기능: 환경 전체, 적용 명령 한 번.
+  await page.goto('./agents/agent_demo_02');
+  await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '메트릭 연결' }).getByText(/^적용 범위 이 Docker 환경 전체에 적용됩니다\./)).toBeVisible();
+});

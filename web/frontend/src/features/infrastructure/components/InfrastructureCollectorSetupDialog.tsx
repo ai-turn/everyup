@@ -4,7 +4,9 @@ import { Button, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { api, type InfrastructureResource, type InfrastructureResourceSetup } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
-import { connectAction, connectReady } from '../../connections/connectCopy';
+import { ApplyScope } from '../../connections/ApplyScope';
+import { DockerHostNote } from '../../connections/DockerHostNote';
+import { APPLY_SCOPE, connectAction, connectReady } from '../../connections/connectCopy';
 import { InfrastructureCollectorSetupResult } from './InfrastructureCollectorSetupResult';
 
 export function InfrastructureCollectorSetupDialog({
@@ -68,6 +70,8 @@ export function InfrastructureCollectorSetupDialog({
         <InfrastructureCollectorSetupResult setup={setup} title={connectReady('infrastructure')} onDone={done} />
       ) : (
         <form onSubmit={submit} className="space-y-item p-6">
+          <ApplyScope>{APPLY_SCOPE.infrastructure}</ApplyScope>
+          <DockerHostNote serverName={serverName} infrastructure />
           <div className="rounded-md bg-ui-hover-soft p-4 type-control text-text-muted">
             연결하면 OpenTelemetry Collector 설정 파일과 한 번만 표시되는 API Key를 발급합니다.
           </div>

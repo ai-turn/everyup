@@ -18,8 +18,8 @@ export const SERVER_CAPABILITIES: readonly { key: ServerCapability; label: strin
   { key: 'metrics', label: '메트릭' },
 ];
 
-/** 개요의 첫 버튼이 업타임 탭으로 옮기면서 넘기는 router state의 키. 탭이 모니터 추가 대화 상자를 한 번 연다. */
-export const ADD_MONITOR_STATE = 'addMonitor';
+/** 개요의 연결 버튼이 기능 탭으로 옮기면서 넘기는 router state의 키. 탭이 연결(업타임은 추가) 대화 상자를 한 번 연다(`useConnectRequested`). */
+export const CONNECT_STATE = 'connect';
 
 
 // 삭제 뒤 목록으로 돌아갈 때 사용자가 마지막으로 보던 검색어와 필터를 되살린다. 새로고침하면 사라진다.

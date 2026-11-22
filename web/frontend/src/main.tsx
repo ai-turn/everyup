@@ -13,6 +13,9 @@ createRoot(document.getElementById('root')!).render(
         <App />
         <Toaster
           position="top-right"
+          // 넓은 화면에서는 상단 바(h-16) 아래에 띄운다. 상단 바 오른쪽의 목록 복귀 링크와 조작을 덮으면, 누르려고 올린 포인터가
+          // 토스트를 멈춰(hover 동안 사라지지 않는다) 링크를 계속 가렸다.
+          containerClassName="lg:!top-20"
           toastOptions={{
             duration: 3000,
             style: {

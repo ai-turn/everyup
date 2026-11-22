@@ -171,7 +171,7 @@ export function ServerDetailPage() {
       </div>
       <div ref={panelRef} tabIndex={-1} role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
         {active === 'overview'
-          ? <ServerOverviewTab row={row} onOpen={(capability) => open(capability)} />
+          ? <ServerOverviewTab row={row} />
           : active === 'uptime' ? <ServerUptimeTab {...tabProps(active)} />
             : active === 'infrastructure' ? <ServerInfrastructureTab {...tabProps(active)} />
               : active === 'logs' ? <ServerLogsTab {...tabProps(active)} />

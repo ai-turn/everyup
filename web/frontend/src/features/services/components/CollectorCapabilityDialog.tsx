@@ -6,7 +6,8 @@ import { api, type AgentCollectionCapability, type ConnectedAgent } from '../../
 import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { getErrorMessage } from '../../../utils/errors';
 import { useSetupStatus } from '../useSetupStatus';
-import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
+import { ApplyScope } from '../../connections/ApplyScope';
+import { APPLY_SCOPE, DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 import { ReceiptPanel } from './TelemetryReceiptStatus';
 
 const labels: Record<AgentCollectionCapability, string> = DOCKER_CAPABILITY_NAME;
@@ -38,12 +39,13 @@ export function CollectorCapabilityDialog({ agent, capability, onClose, onApply 
     <h2 id="collector-capability-title" className="type-card-title text-text-base">{labels[capability]} 연결</h2>
     <p className="mt-2 type-body text-text-muted">{agent.name}의 Docker Collector에 기능을 더합니다. ID·키·수집 이력이 유지됩니다.</p>
     <div className="mt-4 space-y-label">
+      <ApplyScope>{APPLY_SCOPE.dockerCapability}</ApplyScope>
       {statusError ? <p role="alert" className="type-body text-status-warn">{statusError}</p> : status ? <>
         <p className="type-body text-text-muted">{status.connected ? '최근 Docker Collector 통신 확인됨' : '최근 Docker Collector 통신 없음'} · 현재 선택: {status.profile.capabilities.map(item => labels[item]).join(', ')}</p>
         {enabled ? <>
           <p className="type-body text-text-secondary">이미 선택된 기능입니다. 데이터 수신 기록을 확인하세요.</p>
           <ReceiptPanel signals={status.signals} expected={[capability === 'api' ? 'traces' : capability]} />
-        </> : <p className="type-body text-text-muted">이 Docker 환경 전체에 기능을 추가합니다. 적용 명령을 서버에서 실행해야 하며, API 요청 수집은 eBPF Observer와 호스트 권한을 추가합니다. 앱 재시작은 필요하지 않습니다.</p>}
+        </> : (capability === 'api' ? <p className="type-body text-text-muted">API 요청 수집은 eBPF Observer와 호스트 권한을 추가합니다.</p> : null)}
         {(!enabled || !status.configApplied || !status.connected) && <Button onClick={() => void apply()} loading={saving}>적용 명령 받기</Button>}
       </> : <p className="type-body text-text-muted">수집 설정 확인 중…</p>}
     </div>

@@ -133,8 +133,8 @@ test.describe('demo', () => {
 
   test('the first button of an empty server opens the monitor dialog once', async ({ page }) => {
     await page.goto('./servers/server_mock_staging_empty');
-    await expect(panel(page).getByRole('button')).toHaveCount(1);
-    await expect(panel(page)).toContainText('다른 기능은 각 탭에서 연결합니다.');
+    // 다섯 기능 모두 여기서 시작할 수 있다. 설치가 필요 없는 업타임이 주 버튼이다.
+    await expect(panel(page).getByRole('button')).toHaveText(['업타임 모니터 추가', '인프라 연결', '로그 연결', 'API 요청 연결', '메트릭 연결']);
     await panel(page).getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
     await expect(page).toHaveURL(/\/servers\/server_mock_staging_empty\/uptime$/);
     const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });

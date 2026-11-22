@@ -5,6 +5,7 @@ import { useSetupStatus } from '../useSetupStatus';
 import { useState } from 'react';
 import { ReceiptPanel } from './TelemetryReceiptStatus';
 import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
+import { environmentState } from '../environmentState';
 import { lastReceipt, receiptState } from '../../telemetry/signals';
 import type {
 	AgentCollectionCapability,
@@ -177,6 +178,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
     .filter((item) => !enabledCapabilities.includes(item.capability));
   const unavailableCapabilityLabels = unavailableCapabilities.map((item) => item.label);
   const connected = Boolean(status?.connected) && !statusRequest.error;
+  const installed = environmentState(agent) !== 'install';
   const received = (signal: string) => Boolean(status?.signals.some(item => item.signal === signal));
   const containerCollectionEnabled = enabledCapabilities.includes('uptime') || enabledCapabilities.includes('logs');
   const infrastructureEnabled = enabledCapabilities.includes('infrastructure');
@@ -287,9 +289,10 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           title="Docker Collector 설치"
           description="대상 Docker 서버와 EveryUp을 안전하게 연결합니다."
           state={connected ? 'ready' : 'waiting'}
-          stateLabel={connected ? '완료' : '설치 필요'}
-          detail={connected ? `Docker Collector ${agent.version ? `v${agent.version}` : ''} 연결됨` : '일회용 명령을 서버에서 실행하세요.'}
-          actionLabel={onInstall ? (connected ? '재설치 명령' : '설치 명령') : undefined}
+          // 설치 전인지는 목록·머리말과 같은 판정이다(environmentState). 설치했는데 보고가 끊겼으면 설치하라고 하지 않는다.
+          stateLabel={connected ? '완료' : installed ? '통신 지연' : '설치 대기'}
+          detail={connected ? `Docker Collector ${agent.version ? `v${agent.version}` : ''} 연결됨` : installed ? '최근 2분 동안 Docker Collector 보고가 없습니다. 서버에서 Collector가 실행 중인지 확인하세요.' : '일회용 명령을 서버에서 실행하세요.'}
+          actionLabel={onInstall ? (connected || installed ? '다시 설치' : '설치 명령') : undefined}
           onAction={onInstall}
         />
         <SetupStep

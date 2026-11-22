@@ -70,6 +70,7 @@ export function SegmentedControl<T extends string>({
           <Tooltip key={o.value} content={o.icon ? o.label
             : [scroll ? o.label : undefined, o.tone === 'healthy' ? o.toneLabel : undefined].filter(Boolean).join(', ') || undefined}><button
             aria-label={o.icon ? o.label : undefined}
+            type="button"
             aria-pressed={active}
             onClick={() => onChange(o.value)}
             className={`inline-flex ${scroll ? 'shrink-0' : 'min-w-0 max-w-full'} items-center justify-center gap-1.5 ${o.icon ? ICON_SIZES[resolved] : SIZES[resolved]} font-medium rounded-md transition-colors ${

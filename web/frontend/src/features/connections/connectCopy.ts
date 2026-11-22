@@ -41,3 +41,16 @@ export const SIGNAL_TARGET = { logs: 'logs', traces: 'api', metrics: 'metrics' }
 export const DOCKER_CAPABILITY_NAME = {
   uptime: '컨테이너 상태', logs: '로그', infrastructure: '인프라', api: 'API 요청', metrics: '메트릭',
 } as const;
+
+/**
+ * 연결 대화 상자의 적용 범위 한 줄(설명 바로 아래 같은 자리). 무엇에 적용되고, 서버나 앱에서 무엇을 해야 하는지를
+ * 연결하기 전에 비교할 수 있게 한다(연결 진입점 정리 5번).
+ */
+export const APPLY_SCOPE = {
+  directNew: '이 앱 하나에 적용됩니다. 앱의 OpenTelemetry 설정에 주소와 API Key를 넣고 앱을 다시 시작해야 합니다.',
+  directAttach: '이 앱 하나에 적용됩니다. API Key는 그대로이고, 앱 설정에서 이 데이터의 전송을 켠 뒤 앱을 다시 시작해야 합니다.',
+  infrastructure: '이 서버 하나에 적용됩니다. 서버에서 OpenTelemetry Collector를 실행해야 하고, 앱은 다시 시작하지 않아도 됩니다.',
+  docker: '이 Docker 호스트 전체에 적용됩니다. 서버에서 설치 명령을 한 번 실행하면 되고, 앱은 수정하지 않습니다.',
+  dockerCapability: '이 Docker 환경 전체에 적용됩니다. 서버에서 적용 명령을 한 번 실행하면 되고, 앱은 다시 시작하지 않아도 됩니다.',
+  uptime: '이 모니터 하나에 적용됩니다. 서버에 설치할 것이 없습니다. EveryUp이 주소를 직접 확인합니다.',
+} as const;

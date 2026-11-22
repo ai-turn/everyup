@@ -10,13 +10,15 @@ import { logScopeKey, withLogSummaries } from '../../logs/logServiceRows';
 import { connectAction, connectDone } from '../../connections/connectCopy';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
 import { ALL_LOGS_PATH, appPath } from '../serverPaths';
+import { useConnectRequested } from '../useConnectRequested';
 import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 
 /** 로그 탭: 로그 앱이 없으면 연결 안내, 있으면 서버 범위의 요약과 패턴, 앱 목록. 앱을 누르면 그 앱의 페이지(로그 탭)로 간다. */
 export function ServerLogsTab({ row, onChanged, unknown, stale, onRetry, refreshToken, actionSlot }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
-  const [adding, setAdding] = useState(false);
+  // 개요의 `로그 연결`로 왔으면 연결 대화 상자를 연 채로 시작한다.
+  const [adding, setAdding] = useState(useConnectRequested());
   // 설정 안내의 "로그 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
   const serverId = row.server.id;
@@ -64,7 +66,7 @@ export function ServerLogsTab({ row, onChanged, unknown, stale, onRetry, refresh
       {!unknown && apps.length > 0 && (
         <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
       )}
-      {adding && <DirectTelemetrySetupDialog signal="logs" description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
+      {adding && <DirectTelemetrySetupDialog signal="logs" serverName={row.server.name} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
         serverId={serverId} onClose={closeSetup} onIssued={() => { issued.current = true; }} onCreated={(service) => void finishCreate(service.id)} />}
     </>
   );

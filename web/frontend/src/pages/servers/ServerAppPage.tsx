@@ -99,7 +99,9 @@ function appSummary(row: ServerRow, app: ObservedService, stale: boolean) {
     const itemStatus = appPanelStatus(row, item.capability, app, stale);
     return { key: item.key, label: item.label, ...(itemStatus.tone === 'error' || itemStatus.tone === 'warn' ? { tone: itemStatus.tone, toneLabel: itemStatus.label } : {}) };
   });
-  return { status: statuses.find((candidate) => candidate.tone === worstTone) ?? statuses[0], tabs, missing: TABS.find((item) => !connected(item.signal)) };
+  // 받지 않는 데이터 유형마다 그 유형의 첫 탭(traces는 API 요청 탭). 같은 유형의 탭은 하나로 센다.
+  const missing = TABS.filter((item, index) => !connected(item.signal) && TABS.findIndex((other) => other.signal === item.signal) === index);
+  return { status: statuses.find((candidate) => candidate.tone === worstTone) ?? statuses[0], tabs, missing };
 }
 
 function AppDetail({ row, app, stale, refresh, refreshToken, onChanged, forgetTarget, onReset, banner }: {
@@ -187,6 +189,8 @@ function AppDetail({ row, app, stale, refresh, refreshToken, onChanged, forgetTa
   const issued = useRef(false);
   const created = useRef(false);
   const openSetup = (item: (typeof TABS)[number]) => { issued.current = false; created.current = false; setAdding(item); };
+  // 연결 줄에서 시작하면 데이터가 들어올 탭을 먼저 보인다. 대화 상자를 마치면 그 자리에 있다.
+  const startSetup = (item: (typeof TABS)[number]) => { openTab(item.key); openSetup(item); };
   const finishSetup = async () => {
     if (created.current) return;
     created.current = true;
@@ -216,10 +220,13 @@ function AppDetail({ row, app, stale, refresh, refreshToken, onChanged, forgetTa
           {/* 상태와 그 상태를 바꾸는 액션을 붙여 둔다. */}
           {connection.isActive && <Button variant="ghost" onClick={connection.onRevoke}><MaterialIcon name="block" />연결 중지</Button>}
         </>}
-        // 직접 연결은 앱과 데이터 유형 단위다. 받지 않는 유형이 있으면 그 탭의 연결 안내로, 다 받으면 설정을 다시 받는다.
+        // 직접 연결은 앱과 데이터 유형 단위다. 받지 않는 유형이 있으면 그 유형의 탭으로 옮기면서 연결 대화 상자를 연다(둘 이상이면 고르는 메뉴).
+        // 다 받으면 설정을 다시 받는다. 예전 `데이터 추가`는 탭만 옮겨서 한 번 더 눌러야 했다.
         connection={{
           kind: 'otel', detail: <>{signalList(app.signals)} 수신</>,
-          action: missing ? { label: '데이터 추가', onClick: () => openTab(missing.key) } : { label: '설정 다시 받기', onClick: connection.onRotateKey },
+          action: missing.length === 1 ? { label: '연결 추가', onClick: () => startSetup(missing[0]) }
+            : missing.length > 1 ? { label: '연결 추가', menu: missing.map((item) => ({ label: connectAction(SIGNAL_TARGET[item.signal]), onSelect: () => startSetup(item) })) }
+            : { label: '설정 다시 받기', onClick: connection.onRotateKey },
         }}
         fieldsLabel="연결 정보"
         fields={[
@@ -254,7 +261,7 @@ function AppDetail({ row, app, stale, refresh, refreshToken, onChanged, forgetTa
         </div>
       </div>
       {dialogs}
-      {adding && <DirectTelemetrySetupDialog signal={adding.signal}
+      {adding && <DirectTelemetrySetupDialog signal={adding.signal} serverName={row.server.name}
         description={`${app.name} 앱에 ${connectObject(SIGNAL_TARGET[adding.signal])} 더합니다.`} serverId={serverId} attachToId={app.id}
         onClose={closeSetup} onIssued={() => { issued.current = true; }} onCreated={() => void finishSetup()} />}
       {moving && <MoveTargetDialog kind="app" targetName={moving.name} signals={moving.signals} currentServerId={serverId}

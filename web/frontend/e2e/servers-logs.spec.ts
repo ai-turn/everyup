@@ -79,7 +79,12 @@ test('connecting logs to an empty server keeps the key guidance open and the app
   // 그룹은 서버의 것을 쓴다. 다른 서버의 앱(catalog-worker)은 기존 앱 후보가 아니다.
   await expect(dialog.getByText('연결 정보를 확인하고 있습니다…')).toHaveCount(0);
   await expect(dialog.getByRole('combobox', { name: '그룹' })).toHaveCount(0);
-  await expect(dialog.getByRole('button', { name: '기존 앱', exact: true })).toHaveCount(0);
+  // 기존 앱은 이 서버의 앱만 고를 수 있다. 고를 앱이 없으면 선택은 막히고 이유를 말한다.
+  await dialog.getByRole('button', { name: '기존 앱', exact: true }).click();
+  await expect(dialog.getByRole('combobox', { name: '앱' })).toBeDisabled();
+  await expect(dialog.getByText('이 서버에 로그를 더할 수 있는 앱이 없습니다. 다른 서버의 앱은 그 앱 페이지에서 이 서버로 옮긴 뒤 연결하세요.')).toBeVisible();
+  await expect(dialog.getByRole('button', { name: '연결', exact: true })).toBeDisabled();
+  await dialog.getByRole('button', { name: '새 앱', exact: true }).click();
   await dialog.getByLabel('앱 이름').fill('staging-logs');
   await dialog.getByRole('button', { name: '연결', exact: true }).click();
 

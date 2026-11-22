@@ -14,6 +14,8 @@ import { useListSearch } from '../../hooks/useListSearch';
 import { useListView } from '../../hooks/useListView';
 import { api, type AgentOverview, type AgentServiceFlat, type ConnectedAgent } from '../../services/api';
 import { PendingServiceCard } from '../../features/services/components/PendingServiceCard';
+import { EnvironmentStatus } from '../../features/services/components/EnvironmentStatus';
+import { ENVIRONMENT_INSTALL_LABEL } from '../../features/services/environmentState';
 import { AddServiceModal } from '../../features/services/components/AddServiceModal';
 import { InstrumentationOverrideModal } from '../../features/services/components/InstrumentationOverrideModal';
 import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
@@ -26,10 +28,6 @@ const SERVICE_STATUSES = ['error', 'healthy'] as const;
 type ServiceStatus = typeof SERVICE_STATUSES[number];
 const parseServiceStatus = (value: string | null) => SERVICE_STATUSES.find((status) => status === value) ?? null;
 const serviceTone = (service: AgentServiceFlat): ServiceStatus => service.healthy ? 'healthy' : 'error';
-
-function agentOnline(agent: ConnectedAgent): boolean {
-  return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
-}
 
 interface ProjectCardProps {
   agentId: string;
@@ -50,7 +48,6 @@ const byAttention = (a: AgentServiceFlat, b: AgentServiceFlat) => Number(a.healt
 // 카드 전체는 제목 링크를 늘려(after:inset-0) 환경 상세로 가고, 하위 서비스는 각자 링크다 —
 // 그리드의 트리 행과 같은 목적지를 카드에서도 고를 수 있어야 한다(DESIGN.md §4.5 두 보기 동일).
 function ProjectCard({ agentId, agent, agentName, services, shownServices, overview, returnTo }: ProjectCardProps) {
-  const online = agent ? agentOnline(agent) : true;
   const total = services.length;
   const healthy = services.filter(s => s.healthy).length;
   const allHealthy = healthy === total;
@@ -60,7 +57,7 @@ function ProjectCard({ agentId, agent, agentName, services, shownServices, overv
       {/* Header: collection state + environment name */}
       <ResourceCardHeader
         title={<h2 className="type-card-title text-text-base truncate"><Link to={`/agents/${agentId}`} state={{ returnTo }} className="after:absolute after:inset-0 after:rounded-xl">{agentName}</Link></h2>}
-        status={<CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />}
+        status={agent ? <EnvironmentStatus agent={agent} /> : <CollectionStatusBadge status="collecting" />}
       />
 
       {/* Summary: service count + health */}
@@ -242,7 +239,8 @@ export function ServiceGridPage() {
     const children = [...row.shown].sort(byAttention);
     return [row, ...children.map((service, index) => ({ kind: 'service' as const, agentId: row.agentId, service, last: index === children.length - 1 }))];
   });
-  const envStatus = (row: EnvRow) => row.pending ? <StatusLight tone="idle" label="설치 대기" /> : <CollectionStatusBadge status={row.agent && agentOnline(row.agent) ? 'collecting' : 'delayed'} />;
+  // 상태는 환경 머리말·설정 가이드와 같은 판정이다(environmentState). 서비스가 아직 없어도 설치한 환경은 설치 대기가 아니다.
+  const envStatus = (row: EnvRow) => row.agent ? <EnvironmentStatus agent={row.agent} /> : <StatusLight tone="idle" label={ENVIRONMENT_INSTALL_LABEL} />;
   // 업타임·요청·p95는 환경 행과 서비스 행이 같은 열을 쓴다 — 서비스 값은 같은 집계의 서비스별 조각이다.
   const rollupOf = (row: EnvRow | ServiceRow): { uptimePct: number | null; requests24h: number; p95Ms: number | null } | undefined =>
     row.kind === 'env' ? row.rollup : overview[row.agentId]?.services?.find(item => item.key === row.service.key);

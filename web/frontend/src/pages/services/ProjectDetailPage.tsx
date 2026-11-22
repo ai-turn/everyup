@@ -22,6 +22,8 @@ import { useInfraMetrics } from '../../hooks/useInfra';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries } from '../../features/logs/logServiceRows';
 import { ApiKeyModal } from '../../features/services/components/ApiKeyModal';
+import { EnvironmentStatus } from '../../features/services/components/EnvironmentStatus';
+import { environmentState } from '../../features/services/environmentState';
 import { AddServiceModal } from '../../features/services/components/AddServiceModal';
 import { InstrumentationOverrideModal } from '../../features/services/components/InstrumentationOverrideModal';
 import { MonitoringSetupPanel } from '../../features/services/components/MonitoringSetupPanel';
@@ -41,9 +43,6 @@ function HostGauges({ hostId, refreshKey }: { hostId: string; refreshKey: number
 type EnvTab = 'overview' | 'infrastructure' | 'logs' | 'api';
 const ID_PREFIX = 'docker-env';
 
-function agentOnline(agent: ConnectedAgent): boolean {
-  return Date.now() - new Date(agent.lastSeenAt).getTime() < 2 * 60 * 1000;
-}
 
 
 // Formats a representative metric value; OTel bytes ("By") as KB/MB/GB, else a
@@ -225,7 +224,6 @@ export function ProjectDetailPage() {
   }
 
   const agentName = agent?.name ?? services[0]?.agentName ?? agentId ?? '';
-  const online = agent ? agentOnline(agent) : true;
   const healthy = services.filter((s) => s.healthy).length;
   const allHealthy = healthy === services.length;
 
@@ -276,7 +274,7 @@ export function ProjectDetailPage() {
           <DetailMeta
             status={
               <>
-                <CollectionStatusBadge status={online ? 'collecting' : 'delayed'} />
+                {agent ? <EnvironmentStatus agent={agent} /> : <CollectionStatusBadge status="collecting" />}
                 <span>서비스 {services.length}개</span>
                 <span>정상 {healthy}</span>
                 {!allHealthy && <span>장애 {services.length - healthy}</span>}
@@ -289,10 +287,12 @@ export function ProjectDetailPage() {
             fields={agent?.version ? [{ label: 'Version', value: `v${agent.version}` }] : []}
           />
         }
-        // 주 조작 하나(설치 명령)와 더보기다. 드물게 쓰는 조작과 파괴적 조작은 메뉴에 둔다(DESIGN.md §4.1 상세 헤더).
+        // 설치 전에만 주 조작이 설치 명령이다. 설치한 뒤에는 다시 설치할 일이 드물어 더보기로 옮긴다(연결 진입점 정리 E6:
+        // 수집 중인 환경에서도 머리말의 유일한 버튼이 설치였다). 드물게 쓰는 조작과 파괴적 조작은 메뉴에 둔다(DESIGN.md §4.1 상세 헤더).
         actions={agent && <>
-          <Button collapseLabel variant="secondary" onClick={() => setShowInstall('install')}><MaterialIcon name="download" />설치 명령</Button>
+          {environmentState(agent) === 'install' && <Button collapseLabel variant="secondary" onClick={() => setShowInstall('install')}><MaterialIcon name="download" />설치 명령</Button>}
           <OverflowMenu items={[
+            ...(environmentState(agent) === 'install' ? [] : [{ label: '다시 설치', icon: 'download', onSelect: () => setShowInstall('install') }]),
             { label: 'API Key', icon: 'key', onSelect: () => setShowKey(true) },
             { label: '상세 수집 설정', icon: 'integration_instructions', onSelect: () => setShowInstrumentation(true) },
             { label: '비활성화', icon: 'delete_outline', danger: true, onSelect: () => setDeleteConfirm(true) },

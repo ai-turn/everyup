@@ -6,7 +6,8 @@ import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type UptimeMonitor, type UptimeMonitorInput, type UptimeMonitorType } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
 import { Field } from '../../alerts/components/FormLayout';
-import { connectAction } from '../../connections/connectCopy';
+import { ApplyScope } from '../../connections/ApplyScope';
+import { APPLY_SCOPE, connectAction } from '../../connections/connectCopy';
 
 type MonitorDraft = {
   name: string;
@@ -139,6 +140,7 @@ export function UptimeMonitorDialog({
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
         </div>
         <fieldset disabled={saving} className="space-y-heading p-6">
+          {!monitor && <ApplyScope>{APPLY_SCOPE.uptime}</ApplyScope>}
           <Field label="이름" htmlFor={fieldId('name')} required error={errors.name}>
             <Input id={fieldId('name')} invalid={Boolean(errors.name)} value={draft.name} onChange={(event) => update('name', event.target.value)} placeholder="예: 공개 API" />
           </Field>
