@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, EmptyState, StatusLight, type StatusTone } from '../../../components/common';
 import type { UptimeMonitor } from '../../../services/api';
@@ -7,7 +7,8 @@ import { WARNING_PCT } from '../../infra/usage';
 import { RecentUptimeChecks } from '../../uptime/components/RecentUptimeChecks';
 import { connectAction } from '../../connections/connectCopy';
 import { CONNECT_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability, monitorPath } from '../serverPaths';
-import { capabilityLabel, capabilityTargets, capabilityUnverified, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
+import { ENVIRONMENT_INSTALL_LABEL, environmentState } from '../../services/environmentState';
+import { capabilityLabel, capabilityTargets, capabilityUnverified, dockerCollects, monitorState, STATE_LABEL, STATE_ORDER, type ServerRow } from '../serverStatus';
 
 const percent = (value: number | undefined, digits: number) => value === undefined ? '-' : `${value.toFixed(digits)}%`;
 const count = (value: number) => `${value}개`;
@@ -18,11 +19,15 @@ function stats(row: ServerRow, capability: ServerCapability, known: boolean): St
   const targets = known ? capabilityTargets(row.targets, capability).length : undefined;
   const n = targets === undefined ? '-' : count(targets);
   const usage = (label: string, value?: number): Stat => ({ label, value: percent(value, 1), warn: value !== undefined && value >= WARNING_PCT });
+  // Docker Collector가 이 기능을 모으면 컨테이너 수를 함께 적는다. 앱이 없으면 `앱 0개`는 빼고 컨테이너만 적는다.
+  const fromDocker = (capability === 'logs' || capability === 'api') && dockerCollects(row.targets, capability);
+  const apps: Stat[] = fromDocker && targets === 0 ? [] : [{ label: '앱', value: n }];
+  const containers: Stat[] = fromDocker ? [{ label: '컨테이너', value: count(row.targets.containers.length) }] : [];
   switch (capability) {
     case 'uptime': return [{ label: '모니터', value: n }, { label: '24시간 가용률', value: percent(row.uptime, 2) }];
     case 'infrastructure': return [usage('CPU', row.cpu), usage('메모리', row.memory), usage('디스크', row.disk)];
-    case 'logs': return [{ label: '앱', value: n }, { label: '24시간 오류 로그', value: row.errorLogs === undefined ? '-' : row.errorLogs.toLocaleString() }];
-    default: return [{ label: '앱', value: n }];
+    case 'logs': return [...apps, ...containers, { label: '24시간 오류 로그', value: row.errorLogs === undefined ? '-' : row.errorLogs.toLocaleString() }];
+    default: return [...apps, ...containers];
   }
 }
 
@@ -37,39 +42,61 @@ function MonitorChecks({ monitor, stale }: { monitor: UptimeMonitor; stale: bool
   );
 }
 
-function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow; capability: ServerCapability; label: string; tone: StatusTone; known: boolean }) {
+/** 개요의 한 행: 제목·상태·이동 링크와 수치. 기능 행과 컨테이너 행이 같은 틀이다. */
+function OverviewRow({ title, status, to, stats: values, children }: { title: string; status: ReactNode; to: string; stats: Stat[]; children?: ReactNode }) {
   const headingId = useId();
-  // 모니터가 많으면 상태가 나쁜 순으로 셋까지만 띠를 그린다. 나머지는 업타임 탭에 있다.
-  const monitors = capability === 'uptime'
-    ? [...row.targets.monitors].sort((a, b) => STATE_ORDER[monitorState(a).state] - STATE_ORDER[monitorState(b).state]).slice(0, 3)
-    : [];
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-label sm:flex-row sm:items-start sm:gap-group">
       {/* 이동 링크는 제목·상태 바로 아래다. 행 오른쪽 끝(제목에서 약 1,070px)에 다섯 번 반복되면 무엇을 여는지 제목과 짝지어
           읽기 어려웠다(2026-11-20 시각 점검 2.4). */}
       <div className="space-y-label sm:w-40 sm:shrink-0">
         <div className="space-y-intra">
-          <h2 id={headingId} className="type-section-title text-text-base">{label}</h2>
-          <div><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
+          <h2 id={headingId} className="type-section-title text-text-base">{title}</h2>
+          <div>{status}</div>
         </div>
-        <Link to={serverPath(row.server.id, capability)} className="inline-flex min-h-11 items-center type-label text-action link-underline sm:min-h-6">{label} 보기</Link>
+        <Link to={to} className="inline-flex min-h-11 items-center type-label text-action link-underline sm:min-h-6">{title} 보기</Link>
       </div>
       <div className="min-w-0 flex-1 space-y-heading">
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {stats(row, capability, known).map((stat) => (
+          {values.map((stat) => (
             <div key={stat.label} className="min-w-0">
               <dt className="type-caption text-text-muted">{stat.label}</dt>
               <dd className={`mt-1 type-label tabular-nums ${stat.warn ? 'text-status-warn' : 'text-text-base'}`}>{stat.value}{stat.warn && <span className="sr-only">, 주의 기준 초과</span>}</dd>
             </div>
           ))}
         </dl>
-        {monitors.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {monitors.map((monitor) => <MonitorChecks key={monitor.id} monitor={monitor} stale={!known} />)}
-          </div>
-        )}
+        {children}
       </div>
     </section>
+  );
+}
+
+function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow; capability: ServerCapability; label: string; tone: StatusTone; known: boolean }) {
+  // 모니터가 많으면 상태가 나쁜 순으로 셋까지만 띠를 그린다. 나머지는 업타임 탭에 있다.
+  const monitors = capability === 'uptime'
+    ? [...row.targets.monitors].sort((a, b) => STATE_ORDER[monitorState(a).state] - STATE_ORDER[monitorState(b).state]).slice(0, 3)
+    : [];
+  return (
+    <OverviewRow title={label} to={serverPath(row.server.id, capability)} stats={stats(row, capability, known)}
+      status={<StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} />}>
+      {monitors.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {monitors.map((monitor) => <MonitorChecks key={monitor.id} monitor={monitor} stale={!known} />)}
+        </div>
+      )}
+    </OverviewRow>
+  );
+}
+
+/** Docker Collector가 발견한 컨테이너(ADR 0012). 설치 전이면 `설치 대기`다(환경 상태와 같은 판정). */
+function ContainersRow({ row }: { row: ServerRow }) {
+  const tone = row.containers ?? 'idle';
+  const installing = row.targets.docker && environmentState(row.targets.docker) === 'install';
+  const failing = row.targets.containers.filter((container) => !container.healthy).length;
+  return (
+    <OverviewRow title="컨테이너" to={serverPath(row.server.id, 'containers')}
+      status={<StatusLight tone={tone} label={installing ? ENVIRONMENT_INSTALL_LABEL : STATE_LABEL[tone]} />}
+      stats={[{ label: '컨테이너', value: count(row.targets.containers.length) }, { label: '장애', value: count(failing) }]} />
   );
 }
 
@@ -83,9 +110,13 @@ export function ServerOverviewTab({ row }: { row: ServerRow }) {
     .filter(({ key }) => row.capabilities[key] !== null || unknown(key))
     .map((item) => ({ ...item, known: !unknown(item.key), tone: row.capabilities[item.key] ?? 'idle' }))
     .sort((a, b) => Number(!a.known) - Number(!b.known) || STATE_ORDER[a.tone] - STATE_ORDER[b.tone]);
-  const connectable = SERVER_CAPABILITIES.filter(({ key }) => row.capabilities[key] === null && !unknown(key));
+  // Docker Collector가 아직 모으지 않는 기능(인프라, 로그, API 요청, 메트릭)은 위의 설정 가이드가 같은 이름의 버튼(`메트릭 연결` 등)으로
+  // Docker Collector에 더한다. 같은 이름으로 다른 일을 하는 버튼을 한 화면에 두지 않는다. 업타임 모니터는 Docker 기능이 아니다.
+  const dockerProfile = row.targets.docker?.profile?.capabilities ?? [];
+  const offeredByGuide = (key: ServerCapability) => key !== 'uptime' && dockerProfile.length > 0 && !dockerProfile.includes(key);
+  const connectable = SERVER_CAPABILITIES.filter(({ key }) => row.capabilities[key] === null && !unknown(key) && !offeredByGuide(key));
 
-  if (connected.length === 0) {
+  if (connected.length === 0 && row.containers === null) {
     return (
       <EmptyState icon="dns" headingLevel="h2" title="아직 연결한 기능이 없습니다" description="업타임 모니터는 설치 없이 바로 추가할 수 있습니다. 다른 기능은 연결하면 API Key와 설정 예시를 받습니다.">
         {/* 버튼마다 그 기능의 탭으로 옮기면서 대화 상자를 연다. 같은 뜻의 버튼을 탭에서 한 번 더 누르지 않게. */}
@@ -126,6 +157,7 @@ export function ServerOverviewTab({ row }: { row: ServerRow }) {
       )}
       <div className="section-stack">
         <section aria-label="연결된 기능" className="section-stack">
+          {row.containers !== null && <ContainersRow row={row} />}
           {connected.map(({ key, label, tone, known }) => <CapabilityRow key={key} row={row} capability={key} label={label} tone={tone} known={known} />)}
         </section>
         {connectable.length > 0 && (

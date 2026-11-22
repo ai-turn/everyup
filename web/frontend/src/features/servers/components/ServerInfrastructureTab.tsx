@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { Button, LoadErrorBanner, MaterialIcon } from '../../../components/common';
 import { api } from '../../../services/api';
+import { DockerHostGauges } from '../../docker/DockerDataSections';
 import { InfrastructurePanel } from '../../infra/components/InfrastructurePanel';
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
 import { connectAction, connectDone } from '../../connections/connectCopy';
@@ -89,6 +90,8 @@ export function ServerInfrastructureTab({ row, onChanged, unknown, stale, onRetr
         </ConnectPrompt>
       );
     }
+    // Docker Collector가 수집하는 호스트(ADR 0012)는 Docker Collector가 관리한다. 키·이동·연결 중지는 서버 머리말의 Docker 조작이다.
+    if (resource.adapter === 'everyup-agent') return <DockerHostGauges hostId={resource.id} refreshKey={refreshToken} />;
     return (
       <InfrastructurePanel key={resource.id} resource={resource} status={infrastructurePanelStatus(resource, Boolean(stale))} serverName={row.server.name} refreshToken={refreshToken}
         onChanged={onChanged} onDeleted={() => void removed(resource.id)}

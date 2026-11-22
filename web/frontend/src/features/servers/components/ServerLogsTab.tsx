@@ -9,9 +9,10 @@ import { LogServiceOverview } from '../../logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries } from '../../logs/logServiceRows';
 import { connectAction, connectDone } from '../../connections/connectCopy';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
+import { DockerLogsSection } from '../../docker/DockerDataSections';
 import { ALL_LOGS_PATH, appPath } from '../serverPaths';
 import { useConnectRequested } from '../useConnectRequested';
-import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
+import { capabilityTargets, dockerCollects, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 
 /** 로그 탭: 로그 앱이 없으면 연결 안내, 있으면 서버 범위의 요약과 패턴, 앱 목록. 앱을 누르면 그 앱의 페이지(로그 탭)로 간다. */
@@ -46,9 +47,13 @@ export function ServerLogsTab({ row, onChanged, unknown, stale, onRetry, refresh
   };
 
   const label = connectAction('logs');
+  // Docker Collector가 컨테이너 로그를 모으면 그 요약이 이 탭의 본문이다(ADR 0012). 앱 로그 연결은 탭 줄의 조작 자리로 간다.
+  const docker = dockerCollects(row.targets, 'logs') ? row.targets.docker : undefined;
+  const dockerLogs = docker && <DockerLogsSection agentId={docker.id} containers={row.targets.containers} refreshKey={refreshToken} />;
   const content = () => {
     // 이전 목록에 로그 앱이 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
     if (unknown || (stale && apps.length === 0)) return <LoadErrorBanner inline title="로그 앱 정보를 불러오지 못했습니다" onRetry={onRetry} />;
+    if (apps.length === 0 && dockerLogs) return dockerLogs;
     if (apps.length === 0) {
       return (
         <ConnectPrompt title="이 서버의 로그를 연결하세요" description="앱의 OpenTelemetry 설정에 EveryUp 주소와 API Key를 넣으면 로그가 들어옵니다. 연결을 누르면 앱 이름을 정하고 키와 설정 예시를 받습니다.">
@@ -56,14 +61,14 @@ export function ServerLogsTab({ row, onChanged, unknown, stale, onRetry, refresh
         </ConnectPrompt>
       );
     }
-    return <ServerLogOverview serverId={serverId} apps={apps} refreshToken={refreshToken} />;
+    return <div className="space-y-section"><ServerLogOverview serverId={serverId} apps={apps} refreshToken={refreshToken} />{dockerLogs}</div>;
   };
 
   // 대화 상자는 본문이 바뀌어도 같은 자리에 둔다. 자리가 바뀌면 다시 마운트되어 한 번만 보이는 키가 사라진다.
   return (
     <>
       {content()}
-      {!unknown && apps.length > 0 && (
+      {!unknown && (apps.length > 0 || docker) && (
         <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
       )}
       {adding && <DirectTelemetrySetupDialog signal="logs" serverName={row.server.name} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { DOCKER_SERVERS_PATH } from '../../servers/serverPaths';
 import { toast } from 'react-hot-toast';
 import { Button, Input, LoadErrorBanner, SegmentedControl, Select } from '../../../components/common';
 import { api, type ObservedService, type TelemetrySignal } from '../../../services/api';
@@ -141,7 +142,7 @@ function DockerNotes({ signal, serverName, attaching }: { signal: TelemetrySigna
   return <>
     {signal === 'logs' && (
       <p className="type-body text-text-muted">
-        컨테이너가 stdout으로 내보내는 로그는 <Link to="/environments" className="text-action underline underline-offset-2">Docker 환경</Link>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
+        컨테이너가 stdout으로 내보내는 로그는 <Link to={DOCKER_SERVERS_PATH} className="text-action underline underline-offset-2">Docker 환경</Link>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
       </p>
     )}
     {!attaching && <DockerHostNote serverName={serverName} sameNameOnly={signal === 'logs'} />}

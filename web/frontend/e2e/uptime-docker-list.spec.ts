@@ -15,9 +15,9 @@ test('[01 audit] Docker environment states paused, unseen and delayed snapshots 
   ];
   // The setup panel reads a status object; the fixture answers unknown paths with [].
   state.responses.set('GET /agents/docker-host/setup-status', { connected: true, configApplied: true, profile: { kind: 'basic', capabilities: ['uptime'] }, signals: [] });
-  // Docker Collector checks live in their Docker Environment, not on Uptime (ADR 0007).
-  await page.goto('./agents/docker-host');
-  const table = page.getByRole('table', { name: 'Docker 서비스 그리드' });
+  // Docker Collector checks live in the containers tab of their Docker server, not on Uptime (ADR 0007, 0012).
+  await page.goto('./servers/docker-host/containers');
+  const table = page.getByRole('table', { name: '컨테이너 그리드' });
   for (const [name, label] of [['Fresh up', '정상'], ['Fresh down', '장애'], ['Paused Docker', '일시정지'], ['Waiting Docker', '확인 대기'], ['Delayed Docker', '수집 지연']]) {
     const row = table.getByRole('row').filter({ has: page.getByRole('link', { name, exact: true }) });
     await expect(row.getByText(label, { exact: true })).toBeVisible();
@@ -38,12 +38,12 @@ test('Uptime lists independent monitors only (ADR 0007)', async ({ page }) => {
   await expect(page.getByRole('combobox', { name: '검사 출처' })).toHaveCount(0);
 });
 
-test('an empty server uptime tab shows its add prompt and the sidebar still reaches Docker environments', async ({ page }) => {
+test('an empty server uptime tab shows its add prompt and the server list still holds the Docker server', async ({ page }) => {
   const state = await uptimeFixture(page); state.monitors = [];
   await page.goto('./servers/server-1/uptime');
   await expect(page.getByRole('heading', { name: '이 서버의 업타임 모니터를 추가하세요' })).toBeVisible();
-  await page.getByRole('link', { name: 'Docker 환경', exact: true }).last().click();
-  await expect(page).toHaveURL(/\/environments$/);
+  await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('link', { name: '서버', exact: true }).click();
+  await expect(page.getByRole('table', { name: '서버 그리드' }).getByRole('link', { name: 'Production Docker', exact: true })).toBeVisible();
 });
 
 test('Uptime list shows 24h uptime and average response, and 0% is not "no data"', async ({ page }) => {

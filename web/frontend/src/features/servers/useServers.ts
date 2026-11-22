@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, type ConnectedAgent, type InfrastructureResource, type LogServiceSummary, type ObservedService, type ObservedServiceMetricName, type UptimeMonitor } from '../../services/api';
+import { api, type AgentServiceFlat, type ConnectedAgent, type InfrastructureResource, type LogServiceSummary, type ObservedService, type ObservedServiceMetricName, type UptimeMonitor } from '../../services/api';
 
 /** 이보다 빨리 끝나는 다시 불러오기는 진행 중으로 보이지 않는다(30초마다 버튼이 깜빡이지 않게). */
 const BUSY_AFTER_MS = 300;
@@ -122,7 +122,8 @@ export function useServers({ logSummary = true, includeDocker = false }: {
       api.getServers({ includeDocker }), api.getUptimeMonitors(true), api.getObservedServices(), api.getInfrastructureResources(),
       logSummary ? api.getLogSummary() : Promise.resolve(undefined), api.getObservedServiceMetricCatalog(),
       includeDocker ? api.getAgents() : Promise.resolve(undefined),
-    ]).then(([servers, monitors, apps, infrastructure, logSummaries, metricCatalog, agents]) => {
+      includeDocker ? api.getAllAgentServicesFlat() : Promise.resolve(undefined),
+    ]).then(([servers, monitors, apps, infrastructure, logSummaries, metricCatalog, agents, services]) => {
       cancel(busyTimer);
       cancel(abandonTimer);
       if (id !== latest.current) return;
@@ -146,12 +147,14 @@ export function useServers({ logSummary = true, includeDocker = false }: {
         servers: serverList, ...lists, logSummaries: logSummary ? settled(logSummaries as PromiseSettledResult<LogServiceSummary[] | null>) : undefined, metricCatalog: settled(metricCatalog),
         // Docker 환경 목록을 불러오지 못하면 이전 목록을 쓴다(서버가 Docker 서버인지는 서버 목록이 이미 말한다).
         agents: includeDocker ? settled(agents as PromiseSettledResult<ConnectedAgent[] | null>) ?? lastBuild.current?.agents ?? null : undefined,
+        // 컨테이너 목록은 이전 것을 쓰지 않는다: 장애를 정상으로 보이게 할 수 있다(null이면 확인 불가).
+        services: includeDocker ? settled(services as PromiseSettledResult<AgentServiceFlat[] | null>) : undefined,
         stale: { monitors: !fresh.monitors, apps: !fresh.apps, infrastructure: !fresh.infrastructure },
       };
       setRows(buildServerRows(lastBuild.current));
       if (metricCatalog.status === 'fulfilled') setMetricCatalog(metricCatalog.value ?? []);
       const failures = ([[monitors, '업타임', lists.monitors], [apps, '앱', lists.apps], [infrastructure, '인프라', lists.infrastructure],
-        [logSummaries, '로그 요약', null], [metricCatalog, '메트릭 임계값', null], [agents, 'Docker', null]] as const)
+        [logSummaries, '로그 요약', null], [metricCatalog, '메트릭 임계값', null], [agents, 'Docker', null], [services, '컨테이너', null]] as const)
         .filter(([result]) => result.status === 'rejected').map(([, label, list]) => ({ label, stale: list !== null }));
       setFailed(failures);
       if ([servers, monitors, apps, infrastructure].every((result) => result.status === 'fulfilled')) setUpdatedAt(new Date());

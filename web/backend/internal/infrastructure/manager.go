@@ -119,6 +119,8 @@ func (m *Manager) GetAll() ([]models.InfrastructureResource, error) {
 			ID:         agent.ID,
 			Name:       agent.Name,
 			ProjectID:  agent.ProjectID,
+			// The Docker environment is a server (ADR 0012); its host belongs to that server.
+			ServerID:   agent.ServerID,
 			Adapter:    models.InfrastructureAdapterAgent,
 			IsActive:   agent.Status == "active",
 			LastSeenAt: &seen,

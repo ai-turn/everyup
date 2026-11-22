@@ -4,16 +4,13 @@ import { Link } from 'react-router-dom';
 import { Button, ButtonLink, EmptyState, List, ListGroup, ListMore, ListRow, MaterialIcon, PageHeader, RefreshStatus, Section } from '../../components/common';
 import {
   api,
-  type AgentServiceFlat,
   type ConnectedAgent,
-  type InfrastructureResource,
   type TimelineIncident,
 } from '../../services/api';
-import { isCollectorFresh } from '../../utils/operationalStatus';
 import { formatDuration, formatIncidentTime } from '../../utils/incidentFormat';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
-import { ALL_LOGS_PATH, NEW_SERVER_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
+import { ALL_LOGS_PATH, DOCKER_SERVERS_PATH, NEW_SERVER_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
 import { useServers } from '../../features/servers/useServers';
 
 interface AttentionItem {
@@ -34,19 +31,14 @@ const WARN_PREVIEW = 3;
 
 const SOURCE_LABELS: Record<string, string> = {
   agents: 'Docker 환경',
-  services: 'Docker 서비스 상태',
-  infrastructure: 'Docker 인프라',
   timeline: '장애 이력',
 };
 
 // 문제가 있는 직접 대상의 아이콘. 장애는 종류와 관계없이 같은 표시다.
-const ISSUE_ICON = { monitor: 'monitor_heart', infrastructure: 'memory', app: 'hub' } as const;
+const ISSUE_ICON = { monitor: 'monitor_heart', infrastructure: 'memory', app: 'hub', container: 'deployed_code', docker: 'deployed_code' } as const;
 
 export function OverviewPage() {
   const [agents, setAgents] = useState<ConnectedAgent[]>([]);
-  const [services, setServices] = useState<AgentServiceFlat[]>([]);
-  // Docker 환경의 인프라 리소스. 직접 연결 리소스는 서버 행(useServers)이 판정한다.
-  const [dockerInfrastructure, setDockerInfrastructure] = useState<InfrastructureResource[]>([]);
   const [failedSources, setFailedSources] = useState<string[]>([]);
   const [timeline, setTimeline] = useState<TimelineIncident[]>([]);
   const [showAllAttention, setShowAllAttention] = useState(false);
@@ -54,24 +46,21 @@ export function OverviewPage() {
   const [retrying, setRetrying] = useState(false);
   const pendingLoad = useRef<Promise<void> | null>(null);
   // 서버와 직접 대상의 상태는 서버 목록과 같은 훅과 판정을 쓴다. 따로 계산하면 개요와 서버 목록이 어긋난다.
-  // 오류 로그 수를 보여 주지 않으므로 로그 요약은 불러오지 않는다.
-  const servers = useServers({ logSummary: false });
+  // 오류 로그 수를 보여 주지 않으므로 로그 요약은 불러오지 않는다. Docker 호스트도 서버다(ADR 0012): 컨테이너, Docker Collector,
+  // 호스트 지표의 판정도 서버 행이 한다.
+  const servers = useServers({ logSummary: false, includeDocker: true });
   const { poll, refresh: refreshServers } = servers;
 
   const load = useCallback(() => {
     // 두 재시도 버튼과 수동·자동 갱신이 겹쳐도 같은 조회가 끝나기를 기다린다.
     if (pendingLoad.current) return pendingLoad.current;
     pendingLoad.current = (async () => {
-      const [agentsResult, servicesResult, infrastructureResult, timelineResult] = await Promise.allSettled([
+      const [agentsResult, timelineResult] = await Promise.allSettled([
         api.getAgents(),
-        api.getAllAgentServicesFlat(),
-        api.getInfrastructureResources(),
         api.getIncidentTimeline(7, 6),
       ]);
       const failed: string[] = [];
       if (agentsResult.status === 'fulfilled') setAgents(agentsResult.value ?? []); else failed.push('agents');
-      if (servicesResult.status === 'fulfilled') setServices(servicesResult.value ?? []); else failed.push('services');
-      if (infrastructureResult.status === 'fulfilled') setDockerInfrastructure((infrastructureResult.value ?? []).filter((resource) => resource.adapter === 'everyup-agent')); else failed.push('infrastructure');
       if (timelineResult.status === 'fulfilled') setTimeline(timelineResult.value ?? []); else failed.push('timeline');
       setFailedSources(failed);
       setUpdatedAt(new Date());
@@ -98,17 +87,13 @@ export function OverviewPage() {
   // 직접 누른 새로고침만 아이콘을 돌린다 — 30초 자동 갱신마다 버튼을 비활성으로 깜빡이지 않게 (상세 화면과 같은 방식).
   const { spinning, trigger: handleRefresh } = useSpinAction(loadAll);
 
-  const staleAgents = agents.filter((agent) => !isCollectorFresh(agent.lastSeenAt));
-  const unhealthyServices = services.filter((service) => !service.healthy);
-  // Docker 환경의 인프라는 그 환경과 ID와 수신 시각이 같다. 환경 항목이 이미 있으면 같은 곳으로 가는 두 번째 항목을 만들지 않는다.
-  const staleDockerInfrastructure = dockerInfrastructure.filter((resource) =>
-    resource.isActive && !isCollectorFresh(resource.lastSeenAt) && !staleAgents.some((agent) => agent.id === resource.id));
   // 서버 목록 자체나 대상 목록(업타임, 앱, 인프라, 메트릭 임계값)을 불러오지 못했다. 로그 요약은 불러오지 않는다.
   const serverFailures = [
     ...(servers.error ? ['서버'] : []),
     ...servers.failed.map((item) => item.label),
   ];
   const monitorsUnknown = Boolean(servers.error) || servers.failed.some((item) => item.label === '업타임');
+  const containersUnknown = Boolean(servers.error) || servers.failed.some((item) => item.label === '컨테이너');
   const failedLabels = [...failedSources.map((source) => SOURCE_LABELS[source] ?? source), ...serverFailures];
 
   // 상태 소스가 하나라도 실패하면 "이상 없음"을 단정할 수 없다. 이력(timeline)만 실패한 경우는 현재 상태 판단과 무관하다.
@@ -126,18 +111,11 @@ export function OverviewPage() {
 
   const attention = useMemo<AttentionItem[]>(() => {
     const items: AttentionItem[] = [
-      ...unhealthyServices.map((service) => ({
-        id: `service-${service.agentId}-${service.key}`,
-        // 서버의 대상과 같이 "부모 / 대상"이다.
-        title: `${service.agentName} / ${service.name}`,
-        detail: service.lastError || '상태 체크에 실패했습니다',
-        to: `/services/${service.agentId}/${encodeURIComponent(service.key)}?tab=uptime`,
-        tone: 'error' as const,
-        icon: 'error_outline',
-        observedAt: service.observedAt,
-      })),
       // 서버 목록의 원인과 같은 판정이다. 서버 이름을 앞에 붙인다(인프라 리소스는 보통 서버와 이름이 같다).
-      ...servers.rows.flatMap((row) => row.issues.map((issue) => {
+      // Docker 호스트의 인프라는 Docker Collector와 수신 시각이 같다. Docker Collector 항목이 이미 있으면 같은 곳으로 가는
+      // 두 번째 항목(인프라 수신 지연)을 만들지 않는다.
+      ...servers.rows.flatMap((row) => row.issues.filter((issue) => !(issue.kind === 'infrastructure' && issue.threshold === undefined
+        && row.issues.some((other) => other.kind === 'docker'))).map((issue) => {
         const app = issue.kind === 'app' ? row.targets.apps.find((item) => item.id === issue.id) : undefined;
         return {
           id: `${issue.kind}-${issue.id}`,
@@ -146,7 +124,7 @@ export function OverviewPage() {
           detail: issue.threshold !== undefined ? `${issue.detail}, 기준 ${issue.threshold}%` : issue.detail,
           to: issue.to,
           tone: issue.state,
-          icon: issue.state === 'error' ? 'error_outline' : ISSUE_ICON[issue.kind],
+          icon: issue.state === 'error' ? 'error_outline' : issue.kind === 'docker' ? 'sensors_off' : ISSUE_ICON[issue.kind],
           observedAt: issue.observedAt,
           warnRank: issue.threshold !== undefined ? 2 : issue.kind === 'app' && row.breachedApps.includes(issue.id) ? 1 : 0,
           timeLabel: issue.kind === 'monitor' || issue.threshold !== undefined ? undefined
@@ -154,35 +132,12 @@ export function OverviewPage() {
               : issue.observedAt ? `마지막 수신 ${formatIncidentTime(issue.observedAt)}` : '수신 기록 없음',
         };
       })),
-      ...staleAgents.map((agent) => ({
-        id: `agent-${agent.id}`,
-        title: agent.name,
-        detail: 'Docker Collector 데이터가 지연되었거나 끊겼습니다',
-        to: `/agents/${agent.id}`,
-        tone: 'warn' as const,
-        icon: 'sensors_off',
-        warnRank: 0,
-        observedAt: agent.lastSeenAt,
-        timeLabel: agent.lastSeenAt ? `마지막 수신 ${formatIncidentTime(agent.lastSeenAt)}` : '수신 기록 없음',
-      })),
-      ...staleDockerInfrastructure.map((resource) => ({
-        id: `infrastructure-${resource.id}`,
-        title: resource.name,
-        detail: '인프라 데이터가 지연되었거나 끊겼습니다',
-        // Docker 환경의 인프라 리소스는 서버가 없고 ID가 그 환경과 같다.
-        to: `/agents/${resource.id}`,
-        tone: 'warn' as const,
-        icon: 'sensors_off',
-        warnRank: 0,
-        observedAt: resource.lastSeenAt,
-        timeLabel: resource.lastSeenAt ? `마지막 수신 ${formatIncidentTime(resource.lastSeenAt)}` : '수신 기록 없음',
-      })),
     ];
     // 서비스·모니터 목록을 못 불러왔어도 이력에 진행 중인 장애가 있으면 그것만큼은 확실한 이상이다.
     const listedPaths = new Set(items.map((item) => item.to.split('?')[0]));
     const unlistedActive = timeline.filter((episode) =>
       episode.active
-      && (episode.source === 'uptime' ? monitorsUnknown : failedSources.includes('services'))
+      && (episode.source === 'uptime' ? monitorsUnknown : containersUnknown)
       && !listedPaths.has(episode.targetPath));
     items.push(...unlistedActive.map((episode) => ({
       id: `episode-${episode.source}-${episode.targetPath}`,
@@ -199,7 +154,7 @@ export function OverviewPage() {
       if (Number.isFinite(observedDelta) && observedDelta !== 0) return observedDelta;
       return a.id.localeCompare(b.id);
     });
-  }, [failedSources, monitorsUnknown, servers.rows, staleAgents, staleDockerInfrastructure, timeline, unhealthyServices, withParent]);
+  }, [containersUnknown, monitorsUnknown, servers.rows, timeline, withParent]);
 
   // 확인 필요 행에 "언제부터"를 붙이기 위해 진행 중인 에피소드를 대상 경로로 찾는다.
   const activeEpisodes = new Map(timeline.filter((episode) => episode.active).map((episode) => [episode.targetPath, episode]));
@@ -267,7 +222,7 @@ export function OverviewPage() {
           >
             <div className="flex flex-wrap justify-center gap-2">
               <ButtonLink to={NEW_SERVER_PATH}>서버 추가</ButtonLink>
-              <ButtonLink variant="secondary" to="/environments?connect=docker">Docker 연결</ButtonLink>
+              <ButtonLink variant="secondary" to={`${SERVERS_PATH}?connect=docker`}>Docker 연결</ButtonLink>
             </div>
           </EmptyState>
         </section>
@@ -281,7 +236,7 @@ export function OverviewPage() {
           <nav aria-label="모니터링 범위" className="-mx-2 flex flex-wrap items-center gap-x-1 gap-y-1">
             {([
               ['서버', servers.rows.length, SERVERS_PATH, Boolean(servers.error) && !servers.loaded, 'dns'],
-              ['Docker 환경', agents.length, '/environments', failedSources.includes('agents'), 'deployed_code'],
+              ['Docker 환경', agents.length, DOCKER_SERVERS_PATH, failedSources.includes('agents'), 'deployed_code'],
             ] as const).map(([label, count, to, unknown, icon]) => (
               unknown ? (
                 <span key={label} className="inline-flex h-8 items-center gap-1.5 px-2">

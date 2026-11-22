@@ -11,10 +11,13 @@ test('connection URLs resolve relative API paths and respect the configured exte
   }
 });
 
-test('existing collector gains metrics from its Docker environment', async ({ page }) => {
-  // 수집 프로필은 Docker 환경 화면에서만 바꾼다(ADR 0007).
-  await page.goto('./agents/agent_demo_02');
-  await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
+test('existing collector gains metrics from its Docker server', async ({ page }) => {
+  // 수집 프로필은 Docker Collector가 있는 서버의 설정 가이드에서 바꾼다(ADR 0007, 0012).
+  await page.goto('./servers/agent_demo_02');
+  const guide = page.locator('section', { has: page.getByRole('heading', { name: '모니터링 설정 가이드' }) });
+  // 같은 이름으로 직접 연결을 여는 버튼은 개요에 두지 않는다.
+  await expect(page.getByRole('button', { name: '메트릭 연결', exact: true })).toHaveCount(1);
+  await guide.getByRole('button', { name: '메트릭 연결', exact: true }).click();
   const chooser = page.getByRole('dialog', { name: '메트릭 연결' });
   await chooser.getByRole('button', { name: '적용 명령 받기' }).click();
   const installer = page.getByRole('dialog', { name: '적용 명령' });
@@ -24,7 +27,7 @@ test('existing collector gains metrics from its Docker environment', async ({ pa
   await expect(installer.getByRole('button', { name: '설치 명령 복사' })).toBeEnabled();
   await expect(installer.getByText('Docker Collector 연결을 확인했습니다', { exact: true })).toHaveCount(0);
   await installer.getByRole('button', { name: '나중에 확인' }).click();
-  await expect(page.getByRole('button', { name: '메트릭 연결', exact: true })).toHaveCount(0);
+  await expect(guide.getByRole('button', { name: '메트릭 연결', exact: true })).toHaveCount(0);
   await expect(page.getByText(/사용: 컨테이너 상태, 로그, 메트릭/)).toBeVisible();
 });
 
@@ -63,7 +66,7 @@ test('server connection offers direct targets only', async ({ page }) => {
   await page.getByRole('tabpanel').getByRole('button', { name: '로그 연결', exact: true }).click();
   const dialog = page.getByRole('dialog');
   // Container stdout logs are a Docker environment's job, not this dialog's.
-  await expect(dialog.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/environments$/);
+  await expect(dialog.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/servers\?connection=docker$/);
   await dialog.getByRole('button', { name: '기존 앱', exact: true }).click();
   await dialog.getByRole('combobox', { name: '앱' }).click();
   await expect(page.getByRole('option', { name: /Docker|prod-server/ })).toHaveCount(0);
@@ -102,18 +105,18 @@ test('mobile infrastructure setup stays within the viewport', async ({ page }) =
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
 });
 
-// 연결 진입점 정리(2026-11-22): Docker 환경의 상태는 한 판정이고, 설치 명령은 설치 전에만 주 조작이다.
-test('a Docker environment reads the same in the list, its header and its guide', async ({ page }) => {
+// 연결 진입점 정리(2026-11-22): Docker Collector의 상태는 한 판정이고, 설치 명령은 설치 전에만 주 조작이다.
+test('a Docker server reads the same in the list, its header and its guide', async ({ page }) => {
   // staging-api는 Docker Collector가 한 번도 보고하지 않았다(버전이 없다).
-  await page.goto('./environments');
-  const row = (name: string) => page.getByRole('row').filter({ has: page.getByText(name, { exact: true }) });
-  await expect(row('staging-api').getByText('설치 대기', { exact: true }).filter({ visible: true }).first()).toBeVisible();
-  await page.goto('./agents/agent_demo_02');
+  await page.goto('./servers');
+  const row = (name: string) => page.getByRole('row').filter({ has: page.getByRole('link', { name, exact: true }) });
+  await expect(row('staging-api').getByText('Docker Collector 설치 대기', { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await page.goto('./servers/agent_demo_02');
   await expect(page.getByText('설치 대기', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('수집 중', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '설치 명령', exact: true }).first()).toBeVisible();
   // 설치한 환경은 설치하라고 하지 않는다. 다시 설치는 더보기에 있다.
-  await page.goto('./agents/agent_demo_01');
+  await page.goto('./servers/agent_demo_01');
   await expect(page.getByText('수집 중', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('설치 대기', { exact: true })).toHaveCount(0);
   await (await menuItem(page, '다시 설치')).click();
@@ -126,7 +129,7 @@ test('every connection dialog states its scope before it issues anything', async
   await page.getByRole('tabpanel').getByRole('button', { name: '인프라 연결', exact: true }).click();
   const infra = page.getByRole('dialog', { name: '인프라 연결' });
   await expect(infra.getByText(/^적용 범위 이 서버 하나에 적용됩니다\./)).toBeVisible();
-  await expect(infra.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/environments$/);
+  await expect(infra.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/servers\?connection=docker$/);
   await infra.getByRole('button', { name: '취소', exact: true }).click();
   // 업타임: 설치할 것이 없다.
   await page.goto('./servers/server_mock_staging_empty/uptime');

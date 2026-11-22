@@ -9,6 +9,7 @@ import type { AgentServiceFlat } from '../../../services/api';
 import { AgentServiceTabs, type DetailTab } from './AgentServiceTabs';
 import { alertRulesPath } from '../../alerts/alertTarget';
 import { runtimeLabel } from '../runtimeLabels';
+import { serverPath } from '../../servers/serverPaths';
 
 export interface AgentHealthCheckDetailViewProps {
   service: AgentServiceFlat;
@@ -74,7 +75,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
     ? formatDistanceToNow(new Date(service.observedAt), { addSuffix: true, locale: ko })
     : '없음';
   // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 크럼에 넣지 않는다. 실제 담김 관계는 Docker 환경 › 에이전트 › 서비스다.
-  const environment = `/agents/${agentId}`;
+  const environment = serverPath(agentId);
   const refresh = { updatedAt: props.updatedAt, onRefresh: props.onRefresh, refreshing: props.refreshing, autoRefresh: props.autoRefresh, onAutoRefreshChange: props.onAutoRefreshChange };
 
   return (

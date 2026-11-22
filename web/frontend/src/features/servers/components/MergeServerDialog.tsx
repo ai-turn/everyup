@@ -32,8 +32,9 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMe
   const [merging, setMerging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Docker Collector가 있는 서버는 아직 합칠 수 없다(백엔드 409 SERVER_HAS_DOCKER, 같은 호스트 합치기는 통합 3단계).
   const candidates = rows
-    .filter((candidate) => candidate.server.id !== row.server.id)
+    .filter((candidate) => candidate.server.id !== row.server.id && !candidate.targets.docker)
     .sort((a, b) => a.server.name.localeCompare(b.server.name));
   // 다시 불러온 뒤 사라진 서버(이미 합쳐진 서버)는 선택에서도 빠진다.
   const selected = candidates.filter((candidate) => checked.has(candidate.server.id));

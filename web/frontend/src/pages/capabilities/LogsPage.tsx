@@ -5,7 +5,7 @@ import { useBreadcrumb } from '../../contexts/BreadcrumbContext';
 import { useListView } from '../../hooks/useListView';
 import { LogServiceOverview } from '../../features/logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries, type LogPatternRow, type LogServiceRow } from '../../features/logs/logServiceRows';
-import { appPath, SERVERS_PATH } from '../../features/servers/serverPaths';
+import { appPath, DOCKER_SERVERS_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
 import { api } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
 
@@ -78,7 +78,7 @@ export function LogsPage() {
           {/* 이 화면은 직접 연결한 앱만 모은다. Docker Collector의 로그를 여기서 찾는 사용자에게 자리를 알린다. */}
           {hasDockerEnvironments && (
             <p className="mt-8 type-body text-text-muted">
-              Docker 서비스의 로그는 Docker 환경에 있습니다. <Link to="/environments" className="text-action link-underline">Docker 환경</Link>
+              Docker 서비스의 로그는 Docker 환경에 있습니다. <Link to={DOCKER_SERVERS_PATH} className="text-action link-underline">Docker 환경</Link>
             </p>
           )}
         </>

@@ -70,7 +70,7 @@ test.describe('demo', () => {
     const payment = mockRouter<AgentServiceFlat[]>('/agents/services/all').find((service) => service.name === 'payment-worker')!;
     await page.goto('./');
     await expect(attention(page).getByText('장애 2', { exact: true })).toBeVisible();
-    await expect(attention(page).getByText('확인 필요 4', { exact: true })).toBeVisible();
+    await expect(attention(page).getByText('확인 필요 6', { exact: true })).toBeVisible();
     // 사이드바의 배지와 같은 수다(링크 이름은 "개요 장애 2건").
     await expect(page.locator('aside').getByRole('link', { name: /^개요/ })).toHaveAccessibleName(/^개요 장애 2\s*건$/);
 
@@ -84,11 +84,11 @@ test.describe('demo', () => {
     const preview = await expectWarnRows(page, 3);
     await expect(preview.first()).toContainText('임계값 초과');
     await expect(warnings(page).getByRole('link', { name: /모두 보기/ })).toHaveCount(0);
-    const more = warnings(page).getByRole('button', { name: '확인 필요 4건 모두 보기' });
+    const more = warnings(page).getByRole('button', { name: '확인 필요 6건 모두 보기' });
     await expect(more).toHaveAttribute('aria-expanded', 'false');
     await more.click();
     await expect(warnings(page).getByRole('button', { name: '우선 항목만 보기' })).toHaveAttribute('aria-expanded', 'true');
-    await expectWarnRows(page, 4);
+    await expectWarnRows(page, 6);
     const usage = warnings(page).getByRole('link', { name: /db-primary-01/ }).filter({ hasText: '메모리 84.6%' });
     await expect(usage).toContainText('메모리 84.6%, 기준 70%');
     // 사용률 경고는 늘 방금 받은 값이라 수신 시각 대신 기준을 적는다.
@@ -108,9 +108,9 @@ test.describe('demo', () => {
     await page.goto(`./servers/${EDGE}/logs`);
     await panel(page).getByRole('link', { name: '모든 서버의 로그', exact: true }).click();
     await expect(page).toHaveURL(/\/logs$/);
-    // 직접 연결한 앱만 나온다. Docker 환경이 있으면 끝에 그 로그의 자리를 알린다.
+    // 직접 연결한 앱만 나온다. Docker 서버가 있으면 끝에 그 로그의 자리(Docker 서버만 걸러 본 서버 목록)를 알린다.
     await expect(page.getByText('Docker 서비스의 로그는 Docker 환경에 있습니다.')).toBeVisible();
-    await expect(page.getByRole('main').getByRole('link', { name: 'Docker 환경', exact: true })).toHaveAttribute('href', /\/environments$/);
+    await expect(page.getByRole('main').getByRole('link', { name: 'Docker 환경', exact: true })).toHaveAttribute('href', /\/servers\?connection=docker$/);
 
     // 앱은 자기 페이지가 있다. 좁은 화면의 복귀 링크는 앱을 연 목록이다(넓은 화면은 크럼과 뒤로 가기, Docker 서비스 상세와 같다).
     await page.setViewportSize({ width: 390, height: 844 });

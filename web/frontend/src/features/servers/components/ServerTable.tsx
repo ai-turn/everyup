@@ -61,6 +61,8 @@ export function ServerTable({ rows, matches, groupName }: {
             {row.uptime !== undefined && <span className="whitespace-nowrap tabular-nums @3xl:hidden">업타임 {percent(row.uptime, 2)}</span>}
             {row.errorLogs !== undefined && <span className="whitespace-nowrap tabular-nums @3xl:hidden">오류 로그 {row.errorLogs.toLocaleString()}</span>}
             {groupName(row.server.projectId) && <span className="min-w-0 truncate"><span className="sr-only">그룹 </span>{groupName(row.server.projectId)}</span>}
+            {/* 연결 방식은 분류 축이라 칩이 아니라 글자다(DESIGN.md §9.13). 직접 연결은 대상으로 드러나므로 Docker만 적는다. */}
+            {row.targets.docker && <span className="whitespace-nowrap">Docker Collector{row.targets.containers.length > 0 ? ` · 컨테이너 ${row.targets.containers.length}개` : ''}</span>}
           </p>
         </>;
       } },

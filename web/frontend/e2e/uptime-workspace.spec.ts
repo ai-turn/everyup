@@ -5,11 +5,9 @@ import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 test.use({ baseURL: API_URL, viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
 // 모니터는 자기 페이지가 있다(대상 상세). 탭 패널이 없으므로 본문 전체를 범위로 쓴다.
 const panel = (page: Page) => page.locator('#main-content');
-// 사이드바는 Docker 스냅샷과 모니터를 함께 조회한다. 그 요청 쌍을 빼고 목록 조회만 센다.
-// 쌍의 두 요청은 따로 도착하므로 한쪽만 온 순간에는 1이 어긋난다. 그래서 값은 expect.poll로만 읽는다.
+// 사이드바도 모니터를 읽지만 체크 없이 읽는다. 서버 화면의 목록 조회(`include=checks`)만 센다.
 const listReads = (state: Awaited<ReturnType<typeof uptimeFixture>>) => () =>
-  state.requests.filter((request) => request.method === 'GET' && request.path === '/services').length
-  - state.requests.filter((request) => request.method === 'GET' && request.path === '/agents/services/all').length;
+  state.requests.filter((request) => request.method === 'GET' && request.path === '/services' && request.query.includes('include=checks')).length;
 
 test('manual refresh keeps filters, a failed refresh is reported and recovery replaces stale status', async ({ page }) => {
   const state = await uptimeFixture(page);

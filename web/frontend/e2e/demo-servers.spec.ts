@@ -36,12 +36,12 @@ test('demo servers cover every layout the server screens need', () => {
   const apps = mockRouter<ObservedService[]>('/observed-services');
   const infrastructure = mockRouter<InfrastructureResource[]>('/infrastructure-resources');
   const ids = new Set(rows.map(row => row.server.id));
-  // 모든 직접 대상은 서버 하나에 속하고, 그룹은 그 서버의 그룹이다. Docker 환경의 리소스에는 서버가 없다.
+  // 모든 직접 대상은 서버 하나에 속하고, 그룹은 그 서버의 그룹이다. Docker 환경의 리소스는 같은 ID의 서버에 속한다(ADR 0012).
   for (const target of [...monitors, ...apps, ...infrastructure.filter(row => row.adapter === 'otel-collector')]) {
     expect(ids.has(target.serverId!)).toBe(true);
     expect(target.projectId).toBe(rows.find(row => row.server.id === target.serverId)!.server.projectId);
   }
-  expect(infrastructure.filter(row => row.adapter === 'everyup-agent').every(row => row.serverId === undefined)).toBe(true);
+  expect(infrastructure.filter(row => row.adapter === 'everyup-agent').every(row => row.serverId === row.id)).toBe(true);
 
   const signals = (row: typeof rows[number]) => new Set([
     ...(row.monitors.length ? ['uptime'] : []), ...(row.infrastructure.length ? ['infrastructure'] : []),

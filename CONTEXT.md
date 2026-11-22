@@ -13,7 +13,7 @@ One of the Uptime, Infrastructure, Logs, API, and Metrics tabs in a Server. It s
 _Avoid_: Capability Menu, Docker Environment view
 
 **Docker Environment**:
-A connected Docker host monitored through an EveryUp Docker Collector. Its discovered workloads and infrastructure data share the Docker Environment's Group membership. Being retired by ADR 0012: every Docker Environment is stored as a Server with the same id (`agents.server_id`), and the screens are moving to one Server menu, after which this term leaves product copy.
+A connected Docker host monitored through an EveryUp Docker Collector. Its discovered workloads and infrastructure data share the Docker Environment's Group membership. Being retired by ADR 0012: every Docker Environment is stored as a Server with the same id (`agents.server_id`) and shown in the Server list; the Docker Environment menu and screens are gone (old `/environments` and `/agents/:id` addresses redirect to the Server list and Server). The term leaves product copy in the terminology stage.
 _Avoid_: Agent, Group, Docker Project
 
 **Docker Collector**:

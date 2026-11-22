@@ -12,11 +12,11 @@ const OLD_MENUS = ['업타임', '로그', '인프라', 'API 요청', '메트릭'
 test.describe('desktop', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test('the sidebar lists servers instead of the capability menus', async ({ page }) => {
+  test('the sidebar lists servers instead of the capability menus and Docker environments', async ({ page }) => {
     await page.goto('./');
     const links = mainNav(page).getByRole('link');
-    // 개요 링크의 이름에는 장애 배지가 붙을 수 있다.
-    await expect(links).toHaveText([/^개요/, '서버', 'Docker 환경', '그룹', '알림', '환경 설정']);
+    // 개요 링크의 이름에는 장애 배지가 붙을 수 있다. Docker 환경은 서버다(ADR 0012).
+    await expect(links).toHaveText([/^개요/, '서버', '그룹', '알림', '환경 설정']);
     for (const menu of OLD_MENUS) await expect(mainNav(page).getByRole('link', { name: menu, exact: true })).toHaveCount(0);
     await expect(mainNav(page).getByText('모니터링 대상', { exact: true })).toBeVisible();
     await expect(mainNav(page).getByText('관리', { exact: true })).toBeVisible();
@@ -24,10 +24,10 @@ test.describe('desktop', () => {
     await expect(mainNav(page).getByText('모아 보기', { exact: true })).toHaveCount(0);
   });
 
-  test('servers and Docker environments do not share an icon', async ({ page }) => {
-    await page.goto('./');
-    const iconOf = (name: string) => mainNav(page).getByRole('link', { name, exact: true }).locator('svg').innerHTML();
-    expect(await iconOf('서버')).not.toBe(await iconOf('Docker 환경'));
+  test('a Docker service detail is inside the servers section', async ({ page }) => {
+    await page.goto('./services/agent_demo_01/shop%3Aapi');
+    await expect(mainNav(page).getByRole('link', { name: '서버', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(crumbs(page).getByRole('listitem').first()).toHaveText('서버');
   });
 
   test('a server detail is inside the servers section', async ({ page }) => {
@@ -113,7 +113,7 @@ test.describe('mobile', () => {
 
     await bottom.getByRole('link', { name: '더보기', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: '더보기' })).toBeVisible();
-    await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText(['전체 로그', 'Docker 환경', '그룹', '환경 설정']);
+    await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText(['전체 로그', '그룹', '환경 설정']);
   });
 });
 

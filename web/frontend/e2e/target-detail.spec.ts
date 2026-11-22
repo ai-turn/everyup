@@ -10,7 +10,7 @@ test('a Docker service shows how it is connected and where to change it', async 
   await expect(connection).toContainText('연결 Docker Collector');
   await expect(connection).toContainText('prod-server 환경');
   await connection.getByRole('link', { name: '설정 가이드' }).click();
-  await expect(page).toHaveURL(/\/agents\/agent_demo_01$/);
+  await expect(page).toHaveURL(/\/servers\/agent_demo_01$/);
 });
 
 test('an uptime monitor and a Docker service show the same uptime figures, in the same order', async ({ page }) => {

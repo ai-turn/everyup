@@ -39,9 +39,9 @@ for (const key of ['shop:api', 'worker%ready', 'svc%2Fraw', '주문 서비스'])
     state.responses.set('GET /agents/docker-host/setup-status', { connected: true, configApplied: true, profile: { kind: 'basic', capabilities: ['uptime'] }, signals: [] });
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
-    // Docker checks open from their Docker Environment (ADR 0007).
-    await page.goto('./agents/docker-host');
-    await page.getByRole('table', { name: 'Docker 서비스 그리드' }).getByRole('link', { name: 'Docker API', exact: true }).click();
+    // Docker checks open from the containers tab of their Docker server (ADR 0007, 0012).
+    await page.goto('./servers/docker-host/containers');
+    await page.getByRole('table', { name: '컨테이너 그리드' }).getByRole('link', { name: 'Docker API', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Docker API', exact: true })).toBeVisible();
     await expect(page.getByRole('tab', { name: '업타임', exact: true })).toHaveAttribute('aria-selected', 'true');
     await page.reload();

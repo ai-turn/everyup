@@ -108,8 +108,9 @@ func TestProjectGroupsAgentsAndIndependentMonitors(t *testing.T) {
 
 	_, resourcesResult := ts.doRequest(t, "GET", "/api/v1/infrastructure-resources", nil, auth...)
 	var resources []struct {
-		ID      string `json:"id"`
-		Adapter string `json:"adapter"`
+		ID       string `json:"id"`
+		Adapter  string `json:"adapter"`
+		ServerID string `json:"serverId"`
 	}
 	if err := json.Unmarshal(resourcesResult.Data, &resources); err != nil {
 		t.Fatal(err)
@@ -117,6 +118,12 @@ func TestProjectGroupsAgentsAndIndependentMonitors(t *testing.T) {
 	adapters := map[string]string{}
 	for _, resource := range resources {
 		adapters[resource.ID] = resource.Adapter
+	}
+	// A Docker environment is a server (ADR 0012): its host belongs to that server, which has its id.
+	for _, resource := range resources {
+		if resource.ID == agent.ID && resource.ServerID != agent.ID {
+			t.Fatalf("Docker host serverId = %q, want %q", resource.ServerID, agent.ID)
+		}
 	}
 	if adapters[agent.ID] != "everyup-agent" || adapters[infrastructure.ID] != "otel-collector" {
 		t.Fatalf("shared infrastructure adapters: %+v", resources)

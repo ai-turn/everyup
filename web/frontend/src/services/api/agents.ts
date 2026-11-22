@@ -151,24 +151,6 @@ export interface ServiceUptimeDay {
   totalChecks: number;
 }
 
-// Per-project KPI rollup for the home project cards (one row per agent).
-export interface AgentOverview {
-  agentId: string;
-  uptimePct: number | null; // 30d weighted, null when no checks yet
-  activeIncidents: number;
-  requests24h: number;
-  p95Ms: number | null; // latest timed bucket, null when no latency data
-  /** 같은 집계의 서비스별 값 — 환경 목록 트리의 서비스 행이 환경 행과 같은 열을 채운다. */
-  services?: AgentServiceOverview[];
-}
-
-export interface AgentServiceOverview {
-  key: string;
-  uptimePct: number | null;
-  requests24h: number;
-  p95Ms: number | null;
-}
-
 // One unhealthy episode derived from service history (project dashboard).
 export interface AgentIncident {
   agentId?: string; // set on cross-agent queries so the episode can be linked
@@ -222,7 +204,6 @@ export const agentsApi = {
     request<{ apiKey: string }>(`/agents/${agentId}/rotate-key`, { method: 'POST' }),
   getAgents: () => request<ConnectedAgent[]>('/agents'),
   // Home project cards: per-agent KPI rollup in one call (no N+1).
-  getAgentsOverview: () => request<AgentOverview[]>('/agents/overview'),
   getAgentServices: (agentId: string) => request<AgentServiceSnapshot[]>(`/agents/${agentId}/services`),
   getAgentEvents: (agentId: string, limit = 100) =>
     request<AgentEvent[]>(`/agents/${agentId}/events?limit=${limit}`),

@@ -53,14 +53,19 @@ export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete 
         {/* 서버 자체를 바꾸는 조작은 입력란 아래에 떼어 두고, 저장 줄은 맨 아래에 둔다.
             오른쪽 아래 끝(주 액션 자리)에 삭제가 오지 않게 한다. 중립 표면에 붉은 글자의 조작이다(DESIGN.md §9.2). */}
         <section aria-label="서버 관리" className="space-y-heading border-t border-ui-border px-6 py-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.</p>
-            <Button type="button" variant="secondary" onClick={onMerge} disabled={saving}>다른 서버 합치기</Button>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">연결된 대상과 수집된 데이터를 함께 삭제합니다.</p>
-            <Button type="button" variant="destructive" onClick={onDelete} disabled={saving}>서버 삭제</Button>
-          </div>
+          {/* Docker Collector가 있는 서버는 합치거나 삭제하지 않는다(백엔드 409). 서버는 Docker Collector를 비활성화할 때 함께 사라진다. */}
+          {row.targets.docker ? (
+            <p className="type-body text-text-muted">Docker Collector가 있는 서버는 합치거나 삭제할 수 없습니다. 더보기의 Docker Collector 비활성화로 수집을 멈춥니다.</p>
+          ) : (<>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.</p>
+              <Button type="button" variant="secondary" onClick={onMerge} disabled={saving}>다른 서버 합치기</Button>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">연결된 대상과 수집된 데이터를 함께 삭제합니다.</p>
+              <Button type="button" variant="destructive" onClick={onDelete} disabled={saving}>서버 삭제</Button>
+            </div>
+          </>)}
         </section>
         <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button>

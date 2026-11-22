@@ -70,7 +70,6 @@ export type {
   ServiceHistoryPoint,
   ServiceUptimeDay,
   AgentIncident,
-  AgentOverview,
   IncidentSource,
   TimelineIncident,
   SignalReceipt,

@@ -21,6 +21,8 @@ export async function uptimeFixture(page: Page) {
   const state = {
     // 서버 화면은 이 서버의 업타임 탭(/servers/server-1/uptime)에서 모니터를 보여 준다.
     server: { id: 'server-1', name: 'web-01', createdAt: at, updatedAt: at } as Server,
+    // Docker 환경은 같은 ID의 서버다(ADR 0012). 백엔드처럼 `GET /servers?include=docker`에만 나온다. null이면 Docker 환경이 없다.
+    dockerServer: { id: 'docker-host', name: 'Production Docker', createdAt: at, updatedAt: at } as Server | null,
     monitors: [monitor(), monitor('tcp-monitor', { name: 'Database', type: 'tcp', url: 'db.example.com', port: 5432 })],
     services: [dockerService()],
     metrics: [
@@ -66,8 +68,9 @@ export async function uptimeFixture(page: Page) {
       state.monitors = state.monitors.filter((item) => path !== `/services/${item.id}`);
       await route.fulfill({ status: 204 });
       return;
-    } else if (path === '/servers') data = [state.server];
+    } else if (path === '/servers') data = url.searchParams.get('include') === 'docker' && state.dockerServer ? [state.server, state.dockerServer] : [state.server];
     else if (path === `/servers/${state.server.id}`) data = state.server;
+    else if (state.dockerServer && path === `/servers/${state.dockerServer.id}`) data = state.dockerServer;
     // 서버 화면이 서버 데이터와 함께 불러오는 다른 대상들. 이 fixture의 서버에는 앱, 인프라, 그룹, 로그가 없다.
     else if (['/observed-services', '/infrastructure-resources', '/projects', '/logs/summary', '/observed-services/metric-catalog'].includes(path)) data = [];
     else if (path === '/agents/services/all') data = state.services;
@@ -101,7 +104,7 @@ export async function uptimeFixture(page: Page) {
         await route.fulfill({ status: 404, json: { success: false, error: { code: 'SERVICE_NOT_FOUND' } } });
         return;
       }
-    } else if (path === '/agents') data = [{ id: 'docker-host', name: 'Production Docker', lastSeenAt: new Date().toISOString() }];
+    } else if (path === '/agents') data = state.dockerServer ? [{ id: 'docker-host', name: 'Production Docker', serverId: 'docker-host', lastSeenAt: new Date().toISOString() }] : [];
     else if (path.endsWith('/request-stats')) data = { buckets: [], truncated: false };
     else state.unhandled.push(key);
     await route.fulfill({ json: { success: true, data } });

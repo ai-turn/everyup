@@ -6,9 +6,7 @@ import { useAuth } from './contexts/AuthContext';
 import { env } from './config/env';
 import { lazyWithRetry as lazy } from './utils/lazyWithRetry';
 
-const ServiceGridPage       = lazy(() => import('./pages/services/ServiceGridPage').then(m => ({ default: m.ServiceGridPage })));
 const OverviewPage          = lazy(() => import('./pages/overview/OverviewPage').then(m => ({ default: m.OverviewPage })));
-const ProjectDetailPage     = lazy(() => import('./pages/services/ProjectDetailPage').then(m => ({ default: m.ProjectDetailPage })));
 const HealthCheckDetailPage = lazy(() => import('./pages/healthcheck/HealthCheckDetailPage').then(m => ({ default: m.HealthCheckDetailPage })));
 const AlertsPage            = lazy(() => import('./pages/alerts/AlertsPage').then(m => ({ default: m.AlertsPage })));
 const SettingsPage          = lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
@@ -28,6 +26,8 @@ const ServerAppPage = lazy(() => import('./pages/servers/ServerAppPage').then(m 
 const ServerMonitorPage = lazy(() => import('./pages/servers/ServerMonitorPage').then(m => ({ default: m.ServerMonitorPage })));
 const LegacyServerTabRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyServerTabRedirect })));
 const LegacyServerMonitorRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyServerMonitorRedirect })));
+const LegacyEnvironmentRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyEnvironmentRedirect })));
+const LegacyEnvironmentsRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyEnvironmentsRedirect })));
 
 function PageLoader() {
   return (
@@ -64,7 +64,8 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
                 <Route index element={<OverviewPage />} />
-                <Route path="/environments" element={<ServiceGridPage />} />
+                {/* Docker 환경은 서버다(ADR 0012). 옛 주소는 서버로 간다. */}
+                <Route path="/environments" element={<LegacyEnvironmentsRedirect />} />
                 <Route path="/servers" element={<ServersPage />} />
                 <Route path="/servers/new" element={<ServerFormPage />} />
                 <Route path="/servers/:serverId" element={<ServerDetailPage />} />
@@ -76,7 +77,7 @@ function App() {
                 <Route path="/servers/:serverId/monitors/:monitorId" element={<ServerMonitorPage />} />
                 <Route path="/servers/:serverId/uptime/:monitorId" element={<LegacyServerMonitorRedirect />} />
                 {(['logs', 'api', 'metrics'] as const).map((kind) => <Route key={kind} path={`/servers/:serverId/${kind}/:appId`} element={<LegacyServerAppRedirect kind={kind} />} />)}
-                <Route path="/agents" element={<Navigate to="/environments" replace />} />
+                <Route path="/agents" element={<LegacyEnvironmentsRedirect />} />
                 {/* 옛 기능별 메뉴의 주소(설계 6.2). 목록은 서버 목록으로, 대상은 그 대상의 서버 화면으로 보낸다. */}
                 {['/services', '/uptime', '/infrastructure', '/api', '/metrics'].map((path) => <Route key={path} path={path} element={<Navigate to="/servers" replace />} />)}
                 <Route path="/uptime/:id" element={<LegacyTargetRedirect kind="uptime" />} />
@@ -88,8 +89,8 @@ function App() {
                 <Route path="/more" element={<MorePage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:projectId" element={<ProjectOverviewPage />} />
-                <Route path="/agents/:agentId" element={<ProjectDetailPage />} />
-                <Route path="/agents/:agentId/:tab" element={<ProjectDetailPage />} />
+                <Route path="/agents/:agentId" element={<LegacyEnvironmentRedirect />} />
+                <Route path="/agents/:agentId/:tab" element={<LegacyEnvironmentRedirect />} />
                 <Route path="/services/:agentId/:key" element={<HealthCheckDetailPage />} />
                 <Route path="/alerts" element={<AlertsPage />} />
                 <Route path="/alerts/channels/new" element={<ChannelFormPage />} />
