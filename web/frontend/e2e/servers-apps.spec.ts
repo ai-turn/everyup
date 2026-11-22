@@ -69,11 +69,13 @@ test('a data type the app does not send is a muted tab that offers to add it to 
   // checkout-api는 로그만 보낸다. 첫 탭은 받는 데이터(로그)다.
   await expect(appTabs(page).getByRole('tab', { selected: true })).toHaveText('로그');
   await expect(appTabs(page).getByRole('tab', { name: /^메트릭/ })).toContainText('연결 전');
-  await page.locator('[data-connection="otel"]:visible').getByRole('button', { name: '데이터 추가' }).click();
+  // 받지 않는 유형이 둘(API 요청, 메트릭)이라 연결 줄의 `연결 추가`는 고르는 메뉴다. 고르면 그 탭으로 옮기면서 대화 상자를 연다.
+  await page.locator('[data-connection="otel"]:visible').getByRole('button', { name: '연결 추가' }).click();
+  await expect(page.getByRole('menuitem')).toHaveText(['API 요청 연결', '메트릭 연결']);
+  await page.getByRole('menuitem', { name: 'API 요청 연결' }).click();
   await expect(page).toHaveURL(/[?&]tab=requests/);
-  await expect(panel(page).getByRole('heading', { level: 2, name: '이 앱의 API 요청을 연결하세요' })).toBeVisible();
-  await panel(page).getByRole('button', { name: 'API 요청 연결' }).click();
   const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });
+  await expect(dialog.getByText(/^적용 범위 이 앱 하나에 적용됩니다\. API Key는 그대로이고/)).toBeVisible();
   // 이 앱에 더한다. 새 앱과 기존 앱 중에서 고르지 않는다.
   await expect(dialog.getByRole('group', { name: '앱 선택 방식' })).toHaveCount(0);
   await expect(dialog.getByRole('combobox', { name: '앱' })).toHaveText('checkout-api');

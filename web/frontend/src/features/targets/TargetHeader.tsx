@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
-  DetailMeta, MaterialIcon, PageHeader, RefreshStatus, TimeRangePicker, type DetailMetaField, type GlobalTimeRange,
+  DetailMeta, MaterialIcon, OverflowMenu, PageHeader, RefreshStatus, TimeRangePicker, type DetailMetaField, type GlobalTimeRange, type OverflowMenuItem,
 } from '../../components/common';
 import { useBreadcrumb, useHeaderActionSlot } from '../../contexts/BreadcrumbContext';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -20,7 +20,7 @@ export interface TargetConnection {
   /** 방식 뒤에 붙는 짧은 설명: Docker 환경 이름, 받는 신호, 체크 방식과 간격. */
   detail?: ReactNode;
   /** 방식마다 하나: 데이터를 더하거나 연결을 고치는 곳으로 간다. */
-  action?: { label: string; to?: string; onClick?: () => void; disabled?: boolean };
+  action?: { label: string; to?: string; onClick?: () => void; disabled?: boolean; menu?: OverflowMenuItem[] };
 }
 
 interface RefreshProps {
@@ -108,7 +108,9 @@ function ConnectionLine({ connection, compact = false }: { connection: TargetCon
         <span className={compact ? 'sr-only' : ''}>연결 </span><span className="truncate text-text-secondary">{kind.label}</span>
       </span>
       {!compact && connection.detail && <span>{connection.detail}</span>}
-      {action && (action.to
+      {action && (action.menu
+        ? <OverflowMenu items={action.menu} label={action.label} textTrigger={actionClass} />
+        : action.to
         ? <Link to={action.to} className={actionClass}>{action.label}</Link>
         : <button type="button" onClick={action.onClick} disabled={action.disabled} className={`${actionClass} cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`}>{action.label}</button>)}
     </p>

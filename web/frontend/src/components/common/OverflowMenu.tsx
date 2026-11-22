@@ -26,7 +26,12 @@ export interface OverflowMenuItem {
  * 하나와 이 메뉴만 보인다. 버튼은 `IconButton`과 같은 40px(터치 44px) 정사각이다. 메뉴는 `role="menu"`이고 화살표로 옮기며
  * Esc나 바깥을 누르면 닫히고 포커스가 버튼으로 돌아온다.
  */
-export function OverflowMenu({ items, label = '더보기' }: { items: OverflowMenuItem[]; label?: string }) {
+export function OverflowMenu({ items, label = '더보기', textTrigger }: {
+  items: OverflowMenuItem[];
+  label?: string;
+  /** 아이콘 대신 `label`을 글자로 보이는 버튼. 연결 줄의 `연결 추가`처럼 문장 안의 조작에 쓴다. 값은 그 버튼의 클래스다. */
+  textTrigger?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<number | null>(null);
   const listRef = useRef<(HTMLElement | null)[]>([]);
@@ -44,13 +49,15 @@ export function OverflowMenu({ items, label = '더보기' }: { items: OverflowMe
   const itemClass = (item: OverflowMenuItem) => `flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-left type-control transition-colors sm:min-h-9 focus-visible:bg-ui-hover not-aria-disabled:hover:bg-ui-hover aria-disabled:cursor-not-allowed aria-disabled:opacity-50 ${item.danger ? 'text-status-error' : 'text-text-base'}`;
   return (
     <>
-      <Tooltip content={label}>
-        <button ref={setReference} type="button" aria-label={label}
-          className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base aria-expanded:bg-ui-hover sm:h-10 sm:w-10"
-          {...getReferenceProps()}>
-          <MaterialIcon name="more_vert" />
-        </button>
-      </Tooltip>
+      {textTrigger !== undefined
+        ? <button ref={setReference} type="button" className={`${textTrigger} cursor-pointer`} {...getReferenceProps()}>{label}</button>
+        : <Tooltip content={label}>
+          <button ref={setReference} type="button" aria-label={label}
+            className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base aria-expanded:bg-ui-hover sm:h-10 sm:w-10"
+            {...getReferenceProps()}>
+            <MaterialIcon name="more_vert" />
+          </button>
+        </Tooltip>}
       {open && (
         <FloatingPortal root={elements.domReference?.closest('dialog') ?? undefined}>
           <FloatingFocusManager context={context} modal={false} initialFocus={0}>

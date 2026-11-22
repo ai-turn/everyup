@@ -61,7 +61,7 @@ test('connecting infrastructure to an empty server shows the setup once and then
   await expect(panel(page).getByRole('heading', { name: 'OpenTelemetry Collector 수신 대기' })).toBeVisible();
   // 서버 이름으로 만들었으므로 상태 줄에 리소스 이름을 따로 적지 않는다.
   await expect(panel(page).getByText('staging-empty', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('인프라 리소스를 추가했습니다')).toBeVisible();
+  await expect(page.getByText('인프라를 연결했습니다')).toBeVisible();
   await expect(panel(page)).toBeFocused();
 });
 

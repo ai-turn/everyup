@@ -5,7 +5,8 @@ import type { UptimeMonitor } from '../../../services/api';
 import { formatDuration } from '../../../utils/incidentFormat';
 import { WARNING_PCT } from '../../infra/usage';
 import { RecentUptimeChecks } from '../../uptime/components/RecentUptimeChecks';
-import { ADD_MONITOR_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability, monitorPath } from '../serverPaths';
+import { connectAction } from '../../connections/connectCopy';
+import { CONNECT_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability, monitorPath } from '../serverPaths';
 import { capabilityLabel, capabilityTargets, capabilityUnverified, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
 
 const percent = (value: number | undefined, digits: number) => value === undefined ? '-' : `${value.toFixed(digits)}%`;
@@ -72,11 +73,10 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
   );
 }
 
-export function ServerOverviewTab({ row, onOpen }: {
-  row: ServerRow;
-  onOpen: (capability: ServerCapability) => void;
-}) {
+export function ServerOverviewTab({ row }: { row: ServerRow }) {
   const navigate = useNavigate();
+  // 연결은 데이터가 보일 자리(기능 탭)에서 시작한다. 개요는 그 탭으로 옮기면서 대화 상자를 열어 달라고만 한다(연결 진입점 정리 D2).
+  const startConnect = (key: ServerCapability) => navigate(serverPath(row.server.id, key), { state: { [CONNECT_STATE]: true } });
   // 대상 목록을 불러오지 못했거나 이전 목록인 기능은 지금 상태를 모른다. 경고가 아니므로 대기 톤으로, 연결된 기능들 다음에 둔다.
   const unknown = (key: ServerCapability) => capabilityUnverified(row, key);
   const connected = SERVER_CAPABILITIES
@@ -87,11 +87,14 @@ export function ServerOverviewTab({ row, onOpen }: {
 
   if (connected.length === 0) {
     return (
-      <EmptyState icon="dns" headingLevel="h2" title="아직 연결한 기능이 없습니다" description="업타임 모니터는 설치 없이 바로 추가할 수 있습니다.">
-        {/* 업타임 탭으로 옮기면서 추가 대화 상자를 연다. 같은 뜻의 버튼을 탭에서 한 번 더 누르지 않게. */}
-        <Button onClick={() => navigate(serverPath(row.server.id, 'uptime'), { state: { [ADD_MONITOR_STATE]: true } })}>업타임 모니터 추가</Button>
-        {/* 다른 기능의 선택지는 탭 줄의 "연결 전" 표시가 이미 보여 준다. */}
-        <p className="mt-3 type-body text-text-muted">다른 기능은 각 탭에서 연결합니다.</p>
+      <EmptyState icon="dns" headingLevel="h2" title="아직 연결한 기능이 없습니다" description="업타임 모니터는 설치 없이 바로 추가할 수 있습니다. 다른 기능은 연결하면 API Key와 설정 예시를 받습니다.">
+        {/* 버튼마다 그 기능의 탭으로 옮기면서 대화 상자를 연다. 같은 뜻의 버튼을 탭에서 한 번 더 누르지 않게. */}
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button onClick={() => startConnect('uptime')}>{connectAction('uptime')}</Button>
+          {SERVER_CAPABILITIES.filter(({ key }) => key !== 'uptime').map(({ key }) => (
+            <Button key={key} variant="secondary" onClick={() => startConnect(key)}>{connectAction(key)}</Button>
+          ))}
+        </div>
       </EmptyState>
     );
   }
@@ -129,7 +132,7 @@ export function ServerOverviewTab({ row, onOpen }: {
           <section aria-labelledby="server-connectable" className="space-y-label">
             <h2 id="server-connectable" className="type-section-title text-text-base">연결할 수 있는 기능</h2>
             <div className="-mx-2 flex flex-wrap gap-x-2">
-              {connectable.map(({ key, label }) => <Button key={key} variant="text" className="px-2" onClick={() => onOpen(key)}>{label}</Button>)}
+              {connectable.map(({ key }) => <Button key={key} variant="text" className="px-2" onClick={() => startConnect(key)}>{connectAction(key)}</Button>)}
             </div>
           </section>
         )}

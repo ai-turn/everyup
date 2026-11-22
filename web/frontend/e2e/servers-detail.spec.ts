@@ -41,9 +41,16 @@ test('capabilities without targets read as not connected yet', async ({ page }) 
   await expect(tablist(page).getByRole('tab', { name: '인프라 연결 전', exact: true })).toBeVisible();
   await expect(tablist(page).getByRole('tab', { name: /^로그\W*앱 1개$/ })).toBeVisible();
   const connectable = page.getByRole('region', { name: '연결할 수 있는 기능' });
-  await expect(connectable.getByRole('button')).toHaveText(['인프라', '메트릭']);
-  await connectable.getByRole('button', { name: '메트릭' }).click();
+  await expect(connectable.getByRole('button')).toHaveText(['인프라 연결', '메트릭 연결']);
+  // 연결은 데이터가 보일 탭에서 시작한다: 그 탭으로 옮기면서 대화 상자를 연다. 새로고침하면 다시 열리지 않는다.
+  await connectable.getByRole('button', { name: '메트릭 연결' }).click();
   await expect(page).toHaveURL(/\/servers\/server_mock_payments_api\/metrics$/);
+  const dialog = page.getByRole('dialog', { name: '메트릭 연결' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: '취소', exact: true }).click();
+  await page.reload();
+  await expect(page.getByRole('tabpanel').getByRole('heading', { level: 2, name: '이 서버의 메트릭을 연결하세요' })).toBeVisible();
+  await expect(dialog).toHaveCount(0);
 });
 
 test('switching tabs changes the address and back returns to the overview', async ({ page }) => {

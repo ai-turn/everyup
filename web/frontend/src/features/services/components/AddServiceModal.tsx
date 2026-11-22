@@ -27,7 +27,8 @@ import { env } from '../../../config/env';
 import { QUICKSTART_URL } from '../../../components/layout/DemoHelpLinks';
 import { formatClock } from '../../../utils/incidentFormat';
 import { Field } from '../../alerts/components/FormLayout';
-import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
+import { ApplyScope } from '../../connections/ApplyScope';
+import { APPLY_SCOPE, DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 
 interface Props {
   onClose: () => void;
@@ -143,6 +144,7 @@ function AgentForm({
     // 본문(p-6)과 바닥 줄(구분선 + px-6 py-4)을 나눈다 — 다른 대화 상자와 같은 골격(DESIGN.md §3.7 패딩, §6).
     <form onSubmit={onSubmit}>
       <div className="space-y-item p-6">
+        <ApplyScope>{APPLY_SCOPE.docker}</ApplyScope>
         <Field label="Docker 환경 이름" htmlFor="new-project-name" hint="대시보드에서 Docker 호스트를 구분할 이름입니다">
           <Input
             id="new-project-name"

@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button, LoadErrorBanner, MaterialIcon } from '../../../components/common';
 import { UptimeMonitorDialog } from '../../uptime/components/UptimeMonitorDialog';
 import { UptimeMonitorList } from '../../uptime/components/UptimeMonitorList';
 import { api, type UptimeMonitorInput } from '../../../services/api';
 import { connectAction } from '../../connections/connectCopy';
-import { ADD_MONITOR_STATE, monitorPath } from '../serverPaths';
+import { monitorPath } from '../serverPaths';
+import { useConnectRequested } from '../useConnectRequested';
 import type { ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 
@@ -16,13 +17,8 @@ import { ConnectPrompt, TabAction } from './ConnectPrompt';
  */
 export function ServerUptimeTab({ row, onChanged, unknown, stale, onRetry, actionSlot, forgetTarget }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const addRequested = (location.state as Record<string, unknown> | null)?.[ADD_MONITOR_STATE] === true;
-  const [adding, setAdding] = useState(addRequested);
-  // 개요의 첫 버튼이 넘긴 표시는 한 번만 쓴다. 기록에서 지워서 새로고침이나 뒤로 가기로 대화 상자가 다시 열리지 않게 한다.
-  useEffect(() => {
-    if (addRequested) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
-  }, [addRequested, location.pathname, location.search, navigate]);
+  // 개요의 `업타임 모니터 추가`로 왔으면 추가 대화 상자를 연 채로 시작한다.
+  const [adding, setAdding] = useState(useConnectRequested());
   const serverId = row.server.id;
   const monitors = row.targets.monitors;
 

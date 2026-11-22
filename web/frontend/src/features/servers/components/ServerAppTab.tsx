@@ -6,6 +6,7 @@ import { formatDateTime } from '../../../utils/incidentFormat';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
 import { connectAction, connectDone, connectName } from '../../connections/connectCopy';
 import { appPath } from '../serverPaths';
+import { useConnectRequested } from '../useConnectRequested';
 import { appPanelStatus, capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 
@@ -30,7 +31,8 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
   // 앱 페이지의 복귀 링크가 이 목록으로 돌아온다.
   const returnTo = `${location.pathname}${location.search}`;
   const copy = COPY[capability];
-  const [adding, setAdding] = useState(false);
+  // 개요의 `{기능} 연결`로 왔으면 연결 대화 상자를 연 채로 시작한다.
+  const [adding, setAdding] = useState(useConnectRequested());
   // 설정 안내의 "보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
   const serverId = row.server.id;
@@ -92,7 +94,7 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
       {!unknown && apps.length > 0 && (
         <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
       )}
-      {adding && <DirectTelemetrySetupDialog signal={copy.signal} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
+      {adding && <DirectTelemetrySetupDialog signal={copy.signal} serverName={row.server.name} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
         serverId={serverId} onClose={closeSetup} onIssued={() => { issued.current = true; }} onCreated={(service) => void finishCreate(service.id)} />}
     </>
   );

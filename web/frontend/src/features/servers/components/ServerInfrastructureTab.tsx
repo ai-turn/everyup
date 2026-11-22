@@ -5,8 +5,9 @@ import { Button, LoadErrorBanner, MaterialIcon } from '../../../components/commo
 import { api } from '../../../services/api';
 import { InfrastructurePanel } from '../../infra/components/InfrastructurePanel';
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
-import { connectAction } from '../../connections/connectCopy';
+import { connectAction, connectDone } from '../../connections/connectCopy';
 import { serverPath } from '../serverPaths';
+import { useConnectRequested } from '../useConnectRequested';
 import { infrastructurePanelStatus, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, PanelPlaceholder } from './ConnectPrompt';
 import { MOVE_TARGET_UNCERTAIN, useLeavingTarget, useMoveTarget } from '../useMoveTarget';
@@ -16,7 +17,9 @@ import { MoveTargetDialog } from './MoveTargetDialog';
 /** 인프라 탭: 서버마다 리소스가 하나뿐이라 없으면 연결 안내, 있으면 그 상세다. 추가할 것이 없어 탭 줄의 조작 자리는 비어 있다. */
 export function ServerInfrastructureTab({ row, onChanged, unknown, stale, onRetry, refreshToken, forgetTarget }: ServerCapabilityTabProps) {
   const navigate = useNavigate();
-  const [adding, setAdding] = useState(false);
+  // 개요의 `인프라 연결`로 왔으면 연결 대화 상자를 연 채로 시작한다. 이미 연결했으면 열지 않는다.
+  const connectRequested = useConnectRequested();
+  const [adding, setAdding] = useState(connectRequested && !row.targets.infrastructure);
   // 설정 안내의 "인프라 보기"를 눌렀다. 닫기(X)와 구분해 한 번만 처리한다.
   const created = useRef(false);
   // 대화 상자가 리소스를 만들었다(키를 발급했다). 만들지 않고 닫으면 다시 불러올 것이 없다.
@@ -37,7 +40,7 @@ export function ServerInfrastructureTab({ row, onChanged, unknown, stale, onRetr
     created.current = true;
     await onChanged();
     setAdding(false);
-    toast.success('인프라 리소스를 추가했습니다');
+    toast.success(connectDone('infrastructure'));
     if (mounted.current) show(firstScreen);
   };
   const closeSetup = () => {
