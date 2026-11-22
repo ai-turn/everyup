@@ -18,7 +18,7 @@ export function DockerHostGauges({ hostId, refreshKey }: { hostId: string; refre
 }
 
 /** 컨테이너 로그의 24시간 요약과 반복 패턴. */
-export function DockerLogsSection({ agentId, containers, refreshKey }: { agentId: string; containers: AgentServiceFlat[]; refreshKey: number }) {
+export function DockerLogsSection({ serverId, agentId, containers, refreshKey }: { serverId: string; agentId: string; containers: AgentServiceFlat[]; refreshKey: number }) {
   const { view, setView, returnTo } = useListView();
   const [data, setData] = useState<{ summaries: LogServiceSummary[]; patterns: LogPattern[] } | null>(null);
   useEffect(() => {
@@ -32,11 +32,11 @@ export function DockerLogsSection({ agentId, containers, refreshKey }: { agentId
       key: logScopeKey({ agentId, serviceName: service.name }),
       name: service.name,
       subtitle: service.runtime ?? service.checkType,
-      to: `${containerPath(service)}?tab=logs&range=24h`,
+      to: `${containerPath(serverId, service.key)}?tab=logs&range=24h`,
     })),
     data.summaries,
     data.patterns,
-  ), [data, containers, agentId]);
+  ), [data, containers, agentId, serverId]);
   if (!overview) return <EmptyState icon="sync" title="로그 요약을 불러오는 중입니다" headingLevel="h2" />;
   return <LogServiceOverview rows={overview.rows} patterns={overview.patterns} span={overview.span} view={view} returnTo={returnTo}
     title="컨테이너 로그" noun="컨테이너" viewToggle={<ListViewToggle view={view} onChange={setView} />} />;

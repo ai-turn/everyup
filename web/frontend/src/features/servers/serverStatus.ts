@@ -300,7 +300,7 @@ export function buildServerRows(input: {
         const state = containerTone(service);
         const detail = state === 'error' ? (service.lastError || '응답 없음') : '정상';
         return { kind: 'container' as const, id: service.key, name: service.name, state, detail, text: `${service.name} ${detail}`,
-          to: containerPath(service), observedAt: service.observedAt };
+          to: containerPath(server.id, service.key), observedAt: service.observedAt };
       }),
       ...current.apps.map((app) => {
         const breached = breachedOf(app);

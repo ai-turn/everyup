@@ -1,4 +1,5 @@
-import type { AgentServiceFlat } from '../../services/api';
-
-/** 컨테이너(Docker 서비스) 하나의 페이지. 서버·Docker 통합 2-2에서 서버 아래 주소로 옮긴다. */
-export const containerPath = (service: Pick<AgentServiceFlat, 'agentId' | 'key'>) => `/services/${service.agentId}/${encodeURIComponent(service.key)}`;
+/**
+ * 컨테이너(Docker Collector가 발견한 Docker 서비스) 하나의 페이지(ADR 0012). 서버를 모르고 Docker Collector만 아는 곳(컨테이너
+ * 목록 응답, 트레이스)은 Collector ID를 서버 ID로 넘긴다: Docker 서버는 그 Collector와 ID가 같다(migrateV59).
+ */
+export const containerPath = (serverId: string, key: string) => `/servers/${serverId}/containers/${encodeURIComponent(key)}`;

@@ -4,7 +4,7 @@ import { deferred, dockerService, uptimeFixture } from './fixtures/uptime';
 
 test.use({ baseURL: API_URL });
 const source = '/agents/docker-host/services/shop%3Aapi';
-const url = './services/docker-host/shop%3Aapi';
+const url = './servers/docker-host/containers/shop%3Aapi';
 
 async function seed(page: import('@playwright/test').Page) {
   const state = await uptimeFixture(page);
@@ -24,7 +24,7 @@ test('[12] Docker snapshot loading, errors, stale refresh and missing keys are d
     await page.goto(url);
     await expect(page.getByText('로딩 중…', { exact: true })).toBeVisible();
     gate.resolve(); state.holds.clear();
-    await expect(page.getByText('서비스를 불러오지 못했습니다', { exact: true })).toBeVisible();
+    await expect(page.getByText('컨테이너를 불러오지 못했습니다', { exact: true })).toBeVisible();
     state.failures.clear();
     await page.getByRole('button', { name: '다시 시도', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Docker API', exact: true })).toBeVisible();
@@ -33,8 +33,8 @@ test('[12] Docker snapshot loading, errors, stale refresh and missing keys are d
     await expect(page.getByRole('alert')).toContainText('이전에 불러온');
     await expect(page.getByRole('heading', { name: 'Docker API', exact: true })).toBeVisible();
     state.failures.clear();
-    await page.goto('./services/docker-host/missing');
-    await expect(page.getByText('서비스를 찾을 수 없습니다', { exact: true })).toBeVisible();
+    await page.goto('./servers/docker-host/containers/missing');
+    await expect(page.getByText('컨테이너를 찾을 수 없습니다', { exact: true })).toBeVisible();
   } finally { gate.resolve(); }
 });
 

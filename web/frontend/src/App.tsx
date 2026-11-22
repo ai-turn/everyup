@@ -7,7 +7,7 @@ import { env } from './config/env';
 import { lazyWithRetry as lazy } from './utils/lazyWithRetry';
 
 const OverviewPage          = lazy(() => import('./pages/overview/OverviewPage').then(m => ({ default: m.OverviewPage })));
-const HealthCheckDetailPage = lazy(() => import('./pages/healthcheck/HealthCheckDetailPage').then(m => ({ default: m.HealthCheckDetailPage })));
+const ServerContainerPage = lazy(() => import('./pages/servers/ServerContainerPage').then(m => ({ default: m.ServerContainerPage })));
 const AlertsPage            = lazy(() => import('./pages/alerts/AlertsPage').then(m => ({ default: m.AlertsPage })));
 const SettingsPage          = lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const NotFoundPage          = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
@@ -27,6 +27,7 @@ const ServerMonitorPage = lazy(() => import('./pages/servers/ServerMonitorPage')
 const LegacyServerTabRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyServerTabRedirect })));
 const LegacyServerMonitorRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyServerMonitorRedirect })));
 const LegacyEnvironmentRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyEnvironmentRedirect })));
+const LegacyContainerRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyContainerRedirect })));
 const LegacyEnvironmentsRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyEnvironmentsRedirect })));
 
 function PageLoader() {
@@ -75,6 +76,7 @@ function App() {
                 {/* 앱과 업타임 모니터 하나의 페이지(대상 상세, 2026-11-21). 서버 탭 안의 옛 대상 주소는 쿼리를 옮겨 이리로 보낸다. */}
                 <Route path="/servers/:serverId/apps/:appId" element={<ServerAppPage />} />
                 <Route path="/servers/:serverId/monitors/:monitorId" element={<ServerMonitorPage />} />
+                <Route path="/servers/:serverId/containers/:key" element={<ServerContainerPage />} />
                 <Route path="/servers/:serverId/uptime/:monitorId" element={<LegacyServerMonitorRedirect />} />
                 {(['logs', 'api', 'metrics'] as const).map((kind) => <Route key={kind} path={`/servers/:serverId/${kind}/:appId`} element={<LegacyServerAppRedirect kind={kind} />} />)}
                 <Route path="/agents" element={<LegacyEnvironmentsRedirect />} />
@@ -91,7 +93,7 @@ function App() {
                 <Route path="/projects/:projectId" element={<ProjectOverviewPage />} />
                 <Route path="/agents/:agentId" element={<LegacyEnvironmentRedirect />} />
                 <Route path="/agents/:agentId/:tab" element={<LegacyEnvironmentRedirect />} />
-                <Route path="/services/:agentId/:key" element={<HealthCheckDetailPage />} />
+                <Route path="/services/:agentId/:key" element={<LegacyContainerRedirect />} />
                 <Route path="/alerts" element={<AlertsPage />} />
                 <Route path="/alerts/channels/new" element={<ChannelFormPage />} />
                 <Route path="/alerts/channels/:id/edit" element={<ChannelFormPage />} />

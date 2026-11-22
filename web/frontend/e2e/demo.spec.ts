@@ -33,7 +33,7 @@ test.describe('live demo', () => {
   });
 
   test('trace jump keeps the Docker target and filters requests by trace ID', async ({ page }) => {
-    await page.goto('./services/agent_demo_01/shop%3Aapi?tab=logs');
+    await page.goto('./servers/agent_demo_01/containers/shop%3Aapi?tab=logs');
     // The row's summary line holds the message and its trace button (the row itself is not a button).
     const timeoutLog = page.getByText('Connection timeout to upstream: auth.internal:8080 after 5000ms', { exact: true }).first().locator('xpath=..');
     await expect(timeoutLog).toBeVisible();
@@ -42,7 +42,7 @@ test.describe('live demo', () => {
     await expect(page.getByRole('dialog', { name: '트레이스 상세' })).toBeVisible();
     await page.getByRole('dialog', { name: '트레이스 상세' }).getByRole('button', { name: /^API 요청 \(/ }).click();
 
-    await expect(page).toHaveURL(/\/services\/agent_demo_01\/shop%3Aapi\?tab=requests&traceId=/);
+    await expect(page).toHaveURL(/\/servers\/agent_demo_01\/containers\/shop%3Aapi\?tab=requests&traceId=/);
     // The endpoint table lists the same paths, so match the request rows (their buttons open the trace).
     await expect(page.getByRole('button', { name: /^POST 200 \/api\/v1\/auth\/login/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /^[A-Z]+ \d{3} \/api\/v1\/payments/ })).toHaveCount(0);

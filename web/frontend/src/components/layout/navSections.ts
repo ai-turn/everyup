@@ -24,8 +24,8 @@ export interface NavSection extends NavTarget {
 
 export const NAV_SECTIONS: NavSection[] = [
   { to: '/', label: '개요', icon: 'dashboard', mobile: 'bottom' },
-  // 전체 로그(/logs)는 사이드바에 없는 서버 섹션의 화면이다(설계 6.6). Docker 환경은 서버다(ADR 0012): 컨테이너 페이지(/services)도 서버 섹션이다.
-  { to: '/servers', label: '서버', icon: 'dns', group: '모니터링 대상', mobile: 'bottom', aliases: ['/logs', '/services'] },
+  // 전체 로그(/logs)는 사이드바에 없는 서버 섹션의 화면이다(설계 6.6). Docker 환경은 서버다(ADR 0012).
+  { to: '/servers', label: '서버', icon: 'dns', group: '모니터링 대상', mobile: 'bottom', aliases: ['/logs'] },
   { to: '/projects', label: '그룹', icon: 'folder_open', group: '모니터링 대상', mobile: 'more', description: '서버와 Docker 환경을 묶어서 봅니다.' },
   { to: '/alerts', label: '알림', icon: 'notifications', group: '관리', mobile: 'bottom' },
   { to: '/settings', label: '환경 설정', icon: 'settings', group: '관리', mobile: 'more', description: 'EveryUp 환경을 설정합니다.' },
