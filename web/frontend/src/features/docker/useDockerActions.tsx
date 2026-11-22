@@ -86,6 +86,8 @@ export function useDockerActions(agent: ConnectedAgent | undefined, { onChanged,
   return {
     primary, menuItems, dialogs,
     openInstall: () => setShowInstall('install'),
+    /** 프로필을 바꾼 뒤(같은 호스트 합치기에서 인프라를 뺀 경우 등) 서버에서 실행할 적용 명령. */
+    openApply: () => setShowInstall('apply'),
     openInstrumentation: () => setShowInstrumentation(true),
     addCapability: setAddingCapability,
   };

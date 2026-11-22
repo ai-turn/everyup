@@ -11,6 +11,7 @@ import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
 import { ALL_LOGS_PATH, NEW_SERVER_PATH, SERVERS_PATH } from '../../features/servers/serverPaths';
 import { useServers } from '../../features/servers/useServers';
+import { SameHostSuggestions } from '../../features/servers/components/SameHostSuggestions';
 
 interface AttentionItem {
   id: string;
@@ -294,6 +295,9 @@ export function OverviewPage() {
                 </div>
               )}
             </Section>
+
+            {/* 같은 호스트 제안(ADR 0012). 지금의 이상보다 덜 급한 정리 일이라 확인 필요 다음이다. */}
+            <SameHostSuggestions rows={servers.rows} />
 
             {/* 최근 장애 이력 — 위가 지금을 말한다면 이쪽은 시간축이다.
                 "지금 문제 없음"과 "닷새째 조용함"은 다른 정보고, 신뢰를 주는 건 후자다.

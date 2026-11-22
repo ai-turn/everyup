@@ -185,6 +185,22 @@ export const hasTargets = (targets: ServerTargets) =>
 export const dockerCollects = (targets: ServerTargets, capability: 'logs' | 'api' | 'infrastructure') =>
   Boolean(targets.docker && (!targets.docker.profile?.capabilities.length || targets.docker.profile.capabilities.includes(capability)));
 
+// 이름으로 본 호스트: 대소문자와 앞뒤 공백, 이름 충돌로 붙은 ` (2)` 같은 접미사(migrateV59)를 무시한다.
+const hostKey = (name: string) => name.trim().toLowerCase().replace(/\s*\(\d+\)$/, '');
+/** 두 이름이 같은 호스트의 이름으로 보이는가(` (2)` 같은 접미사를 무시한다). */
+export const sameHostName = (a: string, b: string) => hostKey(a) === hostKey(b);
+
+/**
+ * 같은 호스트로 보이는 서버 쌍: Docker Collector가 있는 서버와, 이름이 같은 직접 연결 서버(ADR 0012의 같은 호스트 합치기).
+ * 이름은 같은 호스트일 수 있다는 단서일 뿐이라 합치지 않고 제안만 한다. 대상(직접 연결 서버)이 남고 Docker 서버가 합쳐진다.
+ */
+export function sameHostPairs(rows: ServerRow[]): { docker: ServerRow; direct: ServerRow }[] {
+  const direct = rows.filter((row) => !row.targets.docker);
+  return rows.filter((row) => row.targets.docker).flatMap((docker) => direct
+    .filter((other) => hostKey(other.server.name) === hostKey(docker.server.name))
+    .map((other) => ({ docker, direct: other })));
+}
+
 export interface TargetCounts { monitors: number; apps: number; infrastructure: number }
 
 export const countTargets = (targets: ServerTargets): TargetCounts =>

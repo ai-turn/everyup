@@ -25,6 +25,9 @@ export interface ServerUpdate {
   projectId: string | undefined;
 }
 
+/** 같은 호스트를 합칠 때 남길 호스트 지표 출처: Docker Collector 또는 OpenTelemetry Collector. */
+export type MergeInfrastructure = 'docker' | 'otel';
+
 export const serversApi = {
   /** includeDocker adds the servers that are Docker environments (ADR 0012). Their Docker Collector comes from `getAgents` by `serverId`. */
   getServers: (options?: { includeDocker?: boolean }) => request<Server[]>(options?.includeDocker ? '/servers?include=docker' : '/servers'),
@@ -32,5 +35,10 @@ export const serversApi = {
   createServer: (data: ServerInput) => request<Server>('/servers', { method: 'POST', body: JSON.stringify(data) }),
   updateServer: (id: string, data: ServerUpdate) => request<Server>(`/servers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteServer: (id: string) => request<void>(`/servers/${id}`, { method: 'DELETE' }),
-  mergeServer: (id: string, targetServerId: string) => request<Server>(`/servers/${id}/merge`, { method: 'POST', body: JSON.stringify({ targetServerId }) }),
+  /**
+   * 서버 `id`의 대상을 모두 `targetServerId`로 옮기고 `id`를 지운다. Docker 서버도 합친다(같은 호스트, ADR 0012).
+   * 합친 서버의 Docker Collector와 OpenTelemetry Collector가 둘 다 호스트 지표를 모으면 `infrastructure`로 하나를 고른다.
+   */
+  mergeServer: (id: string, targetServerId: string, infrastructure?: MergeInfrastructure) =>
+    request<Server>(`/servers/${id}/merge`, { method: 'POST', body: JSON.stringify({ targetServerId, ...(infrastructure ? { infrastructure } : {}) }) }),
 };

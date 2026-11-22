@@ -99,7 +99,7 @@ export function DirectTelemetrySetupForm({ signal, serverId, serverName, attachT
       {candidates.loading && <p role="status" className="type-body text-text-muted">연결 정보를 확인하고 있습니다…</p>}
       {candidates.error && <LoadErrorBanner inline title="연결 정보를 불러오지 못했습니다" message={candidates.error} onRetry={candidates.retry} />}
       <ApplyScope>{mode === 'existing' ? APPLY_SCOPE.directAttach : APPLY_SCOPE.directNew}</ApplyScope>
-      <DockerNotes signal={signal} serverName={serverName} attaching={Boolean(attachToId)} />
+      <DockerNotes signal={signal} serverId={serverId} serverName={serverName} attaching={Boolean(attachToId)} />
       {/* 기존 앱은 이 서버의 앱만 고를 수 있다(연결 진입점 정리 D4). 고를 앱이 없어도 선택지는 보이고, 고르면 이유를 말한다. */}
       {!attachToId && !candidates.loading && !candidates.error && (
         <SegmentedControl options={MODE_OPTIONS} value={mode} onChange={(next) => { setMode(next); clearError(); }} size="md" ariaLabel="앱 선택 방식" />
@@ -138,14 +138,14 @@ async function connect(signal: TelemetrySignal, serverId: string, app: { name: s
 }
 
 /** 컨테이너 stdout 로그는 Docker 환경의 일이라는 안내(로그만)와, 같은 호스트의 Docker 환경 안내(새 앱일 때만). */
-function DockerNotes({ signal, serverName, attaching }: { signal: TelemetrySignal; serverName: string; attaching: boolean }) {
+function DockerNotes({ signal, serverId, serverName, attaching }: { signal: TelemetrySignal; serverId: string; serverName: string; attaching: boolean }) {
   return <>
     {signal === 'logs' && (
       <p className="type-body text-text-muted">
         컨테이너가 stdout으로 내보내는 로그는 <Link to={DOCKER_SERVERS_PATH} className="text-action underline underline-offset-2">Docker 환경</Link>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
       </p>
     )}
-    {!attaching && <DockerHostNote serverName={serverName} sameNameOnly={signal === 'logs'} />}
+    {!attaching && <DockerHostNote serverId={serverId} serverName={serverName} sameNameOnly={signal === 'logs'} />}
   </>;
 }
 

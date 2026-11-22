@@ -16,6 +16,11 @@ var (
 	ErrServerNameTaken         = errors.New("server name already exists in this group")
 	ErrServerHasInfrastructure = errors.New("server already has an infrastructure resource")
 	ErrServerHasDocker         = errors.New("server has a Docker Collector")
+	// ErrServerHasTwoDocker: a server has at most one Docker Collector, so two Docker servers cannot merge.
+	ErrServerHasTwoDocker = errors.New("both servers have a Docker Collector")
+	// ErrInfrastructureSourceRequired: the merged server would get host metrics from both its Docker
+	// Collector and an OpenTelemetry Collector; the caller must choose one (MergeInfrastructure*).
+	ErrInfrastructureSourceRequired = errors.New("choose the infrastructure source: docker or otel")
 )
 
 // dockerServerIDs selects the servers that own a Docker Collector (a Docker environment is a
@@ -182,9 +187,17 @@ func (r *ServerRepository) SetProjectForTarget(kind ServerTargetKind, targetID, 
 			return err
 		}
 		if err == nil {
-			// mergeServersTx checks for two infrastructure resources before writing anything.
-			if err := mergeServersTx(tx, serverID, sameNameID); !errors.Is(err, ErrServerHasInfrastructure) {
+			// A Docker server is never merged without the user's confirmation (same-host merge,
+			// ADR 0012): it takes a suffixed name like any other collision.
+			moving, err := dockerCollectorOfTx(tx, serverID)
+			if err != nil {
 				return err
+			}
+			// mergeServersTx checks for two infrastructure resources before writing anything.
+			if moving == nil {
+				if err := mergeServersTx(tx, serverID, sameNameID, ""); !errors.Is(err, ErrServerHasInfrastructure) {
+					return err
+				}
 			}
 		}
 		if name, err = nextFreeServerNameTx(tx, name, projectID); err != nil {
@@ -239,14 +252,26 @@ func (r *ServerRepository) Targets(serverID string) (ServerTargets, error) {
 
 // Merge moves every target of sourceID to targetID and deletes sourceID, in one transaction.
 // Errors: ErrServerMissing (either id), ErrServerHasInfrastructure (both own one).
-func (r *ServerRepository) Merge(sourceID, targetID string) error {
+// The infrastructure source kept when a same-host merge would collect host metrics twice.
+const (
+	// MergeInfrastructureDocker keeps the Docker Collector's host metrics and stops the
+	// OpenTelemetry Collector resource (is_active = 0; its history stays).
+	MergeInfrastructureDocker = "docker"
+	// MergeInfrastructureOTel keeps the OpenTelemetry Collector resource and removes
+	// infrastructure from the Docker Collector's profile (the host applies it with the apply command).
+	MergeInfrastructureOTel = "otel"
+)
+
+// Merge moves every target of sourceID, its Docker Collector included, into targetID and
+// deletes sourceID. infrastructure is MergeInfrastructure* or "" when there is nothing to choose.
+func (r *ServerRepository) Merge(sourceID, targetID, infrastructure string) error {
 	return Transaction(func(tx *sql.Tx) error {
-		return mergeServersTx(tx, sourceID, targetID)
+		return mergeServersTx(tx, sourceID, targetID, infrastructure)
 	})
 }
 
 // mergeServersTx is Merge inside tx. Its errors are returned before any write.
-func mergeServersTx(tx *sql.Tx, sourceID, targetID string) error {
+func mergeServersTx(tx *sql.Tx, sourceID, targetID, infrastructure string) error {
 	var sourceExists, targetExists, sourceHasInfra, targetHasInfra bool
 	if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers WHERE id = ?), EXISTS(SELECT 1 FROM servers WHERE id = ?),
 		EXISTS(SELECT 1 FROM hosts WHERE server_id = ? AND collector_type = 'otel-collector'),
@@ -257,16 +282,59 @@ func mergeServersTx(tx *sql.Tx, sourceID, targetID string) error {
 	if !sourceExists || !targetExists {
 		return ErrServerMissing
 	}
-	// Merging with a Docker server is the same-host merge, which asks for confirmation (stage 3).
-	var hasDocker bool
-	if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM agents WHERE server_id IN (?, ?))`, sourceID, targetID).Scan(&hasDocker); err != nil {
+	// Same-host merge (ADR 0012): a Docker server merges like any other, but a server keeps at most
+	// one Docker Collector.
+	sourceAgent, err := dockerCollectorOfTx(tx, sourceID)
+	if err != nil {
 		return err
 	}
-	if hasDocker {
-		return ErrServerHasDocker
+	targetAgent, err := dockerCollectorOfTx(tx, targetID)
+	if err != nil {
+		return err
+	}
+	if sourceAgent != nil && targetAgent != nil {
+		return ErrServerHasTwoDocker
 	}
 	if sourceHasInfra && targetHasInfra {
 		return ErrServerHasInfrastructure
+	}
+	agent := sourceAgent
+	if agent == nil {
+		agent = targetAgent
+	}
+	if agent != nil && agent.Profile.Has(models.AgentCapabilityInfrastructure) && (sourceHasInfra || targetHasInfra) {
+		switch infrastructure {
+		case MergeInfrastructureDocker:
+			if _, err := tx.Exec(`UPDATE hosts SET is_active = 0, updated_at = ? WHERE server_id IN (?, ?) AND collector_type = 'otel-collector'`,
+				time.Now(), sourceID, targetID); err != nil {
+				return err
+			}
+		case MergeInfrastructureOTel:
+			kept := make([]string, 0, len(agent.Profile.Capabilities))
+			for _, capability := range agent.Profile.Capabilities {
+				if capability != models.AgentCapabilityInfrastructure {
+					kept = append(kept, capability)
+				}
+			}
+			encoded, err := encodeAgentProfile(models.AgentProfile{Kind: models.AgentProfileCustom, Capabilities: kept})
+			if err != nil {
+				return err
+			}
+			if _, err := tx.Exec(`UPDATE agents SET profile_kind = ?, profile_capabilities = ?, updated_at = ? WHERE id = ?`,
+				encoded.Kind, encoded.Capabilities, time.Now(), agent.ID); err != nil {
+				return err
+			}
+		default:
+			return ErrInfrastructureSourceRequired
+		}
+	}
+	// The Docker Collector moves with its server; its data follows the target's group (ADR 0003).
+	// Its id stays, so collection and alert rules keyed by it are untouched.
+	if sourceAgent != nil {
+		if _, err := tx.Exec(`UPDATE agents SET server_id = ?, project_id = (SELECT project_id FROM servers WHERE id = ?), updated_at = ? WHERE id = ?`,
+			targetID, targetID, time.Now(), sourceAgent.ID); err != nil {
+			return err
+		}
 	}
 	for _, kind := range []ServerTargetKind{ServerTargetMonitor, ServerTargetApp, ServerTargetInfra} {
 		table, filter := kind.table()
@@ -277,8 +345,26 @@ func mergeServersTx(tx *sql.Tx, sourceID, targetID string) error {
 	if _, err := tx.Exec(`UPDATE servers SET updated_at = ? WHERE id = ?`, time.Now(), targetID); err != nil {
 		return err
 	}
-	_, err := tx.Exec(`DELETE FROM servers WHERE id = ?`, sourceID)
+	_, err = tx.Exec(`DELETE FROM servers WHERE id = ?`, sourceID)
 	return err
+}
+
+// dockerCollectorOfTx returns the active Docker Collector of the server with its profile, or nil.
+func dockerCollectorOfTx(tx *sql.Tx, serverID string) (*models.Agent, error) {
+	var agent models.Agent
+	var kind, capabilities string
+	err := tx.QueryRow(`SELECT id, COALESCE(profile_kind, 'all-in-one'), COALESCE(profile_capabilities, '[]') FROM agents
+		WHERE server_id = ? AND COALESCE(status, 'active') = 'active'`, serverID).Scan(&agent.ID, &kind, &capabilities)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if agent.Profile, err = decodeAgentProfile(kind, capabilities); err != nil {
+		return nil, err
+	}
+	return &agent, nil
 }
 
 // HasDocker reports whether a Docker Collector belongs to the server.

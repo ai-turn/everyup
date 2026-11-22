@@ -45,7 +45,7 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
     let alive = true;
     // 그룹 이름은 보조 정보다. 실패하면 괄호만 뺀다.
     Promise.all([
-      api.getServers(),
+      api.getServers({ includeDocker: true }),
       api.getProjects().catch(() => null),
       kind === 'infrastructure' ? api.getInfrastructureResources() : Promise.resolve([]),
     ]).then(([servers, projects, resources]) => {

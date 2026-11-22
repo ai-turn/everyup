@@ -7,6 +7,7 @@ import { useDockerActions } from '../../features/docker/useDockerActions';
 import { MonitoringSetupPanel } from '../../features/services/components/MonitoringSetupPanel';
 import { ServerAppTab } from '../../features/servers/components/ServerAppTab';
 import { MergeServerDialog } from '../../features/servers/components/MergeServerDialog';
+import { useMergedServerRedirect } from '../../features/servers/useMergedServerRedirect';
 import { ServerHeader } from '../../features/servers/components/ServerHeader';
 import { ServerInfrastructureTab } from '../../features/servers/components/ServerInfrastructureTab';
 import { ServerLogsTab } from '../../features/servers/components/ServerLogsTab';
@@ -82,8 +83,25 @@ export function ServerDetailPage() {
     void joinRefresh(); setProjectsKey((key) => key + 1); setRefreshToken((token) => token + 1);
   });
 
+  // 개요의 같은 호스트 제안(`합치기`)은 이 서버로 와서 그 서버를 고른 합치기 창을 연다(state.mergeFrom).
+  // 창이 닫힐 때 state를 지운다(새로고침 때 다시 열리지 않게). 창은 서버 행을 불러온 뒤에 열리므로 그 전에 지우면 첫 선택이 사라진다.
+  const mergeFrom = (location.state as { mergeFrom?: string } | null)?.mergeFrom;
+  const closeMerge = () => {
+    setDialog(null);
+    if (mergeFrom) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  };
+  const [dialog, setDialog] = useState<'settings' | 'merge' | 'delete' | null>(mergeFrom ? 'merge' : null);
+  // OpenTelemetry Collector를 호스트 지표 출처로 남기고 합쳤으면, Docker Collector의 수집에서 인프라를 뺀 것을 서버에 적용하는
+  // 명령을 연다. 합친 Docker Collector는 다시 불러온 뒤에야 이 행에 붙으므로 그때 연다.
+  // 그리기와 무관한 표시라 ref다. dockerActions는 그릴 때마다 새로 만들어지므로 다시 불러온 뒤의 그리기에서 이 효과가 돈다.
+  const pendingApply = useRef(false);
+  const mergedDocker = Boolean(row?.targets.docker);
+  useEffect(() => {
+    if (pendingApply.current && mergedDocker) { pendingApply.current = false; dockerActions.openApply(); }
+  }, [mergedDocker, dockerActions]);
+  // 합쳐서 사라진 Docker 서버의 주소는 합친 서버로 간다.
+  useMergedServerRedirect(serverId, loaded && !row && !error);
   // 서버를 만든 뒤에 이 화면으로 오면 포커스를 탭 패널로 옮긴다.
-  const [dialog, setDialog] = useState<'settings' | 'merge' | 'delete' | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const found = Boolean(row);
   const focusPanel = (location.state as { focusPanel?: boolean } | null)?.focusPanel === true;
@@ -209,8 +227,8 @@ export function ServerDetailPage() {
           onMerge={() => setDialog('merge')} onDelete={() => setDialog('delete')} />
       )}
       {dialog === 'merge' && (
-        <MergeServerDialog row={row} rows={rows} projects={projects} onClose={() => setDialog(null)} onReload={() => void reload()}
-          onMerged={() => { setDialog(null); setFocusRequest((n) => n + 1); void reload(); }} />
+        <MergeServerDialog row={row} rows={rows} projects={projects} initialSelected={mergeFrom ? [mergeFrom] : []} onClose={closeMerge} onReload={() => void reload()}
+          onMerged={(infrastructure) => { closeMerge(); setFocusRequest((n) => n + 1); if (infrastructure === 'otel') pendingApply.current = true; void reload(); }} />
       )}
       {dialog === 'delete' && (
         <DeleteServerDialog row={row} onClose={() => setDialog(null)} onFailed={reload}
