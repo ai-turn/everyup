@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, Input, LoadErrorBanner, MaterialIcon, SegmentedControl, Select, IconButton } from '../../../components/common';
+import { Button, Input, LoadErrorBanner, SegmentedControl, Select, IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import {
   api,
@@ -9,14 +9,13 @@ import {
   type TelemetrySignal,
 } from '../../../services/api';
 import { getErrorMessage } from '../../../utils/errors';
+import { SIGNAL_TARGET, connectAction, connectAttached, connectName, connectReady, connectView } from '../../connections/connectCopy';
 import { readLatest } from '../../../utils/readLatest';
 import { Field } from '../../alerts/components/FormLayout';
 import { DirectTelemetrySetupResult, type TelemetryConnectionResult } from './DirectTelemetrySetupResult';
 
 interface DirectTelemetrySetupDialogProps {
   signal: TelemetrySignal;
-  capabilityLabel: string;
-  title: string;
   description: string;
   onClose: () => void;
   onCreated: (service: ObservedService) => void;
@@ -32,8 +31,6 @@ type SetupMode = 'new' | 'existing';
 
 export function DirectTelemetrySetupDialog({
   signal,
-  capabilityLabel,
-  title,
   description,
   onClose,
   onCreated,
@@ -42,6 +39,8 @@ export function DirectTelemetrySetupDialog({
   attachToId,
 }: DirectTelemetrySetupDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  // 제목·결과·완료 버튼은 시작 버튼과 같은 말이다(DESIGN.md §9.17).
+  const target = SIGNAL_TARGET[signal];
   const [mode, setMode] = useState<SetupMode>(attachToId ? 'existing' : 'new');
   const [name, setName] = useState('');
   const [existingId, setExistingId] = useState(attachToId ?? '');
@@ -135,7 +134,7 @@ export function DirectTelemetrySetupDialog({
     >
       <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-ui-border bg-bg-surface px-6 py-4">
         <div>
-          <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{title}</h2>
+          <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{connectAction(target)}</h2>
           <p className="mt-intra type-body text-text-muted">{description}</p>
         </div>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
@@ -144,9 +143,8 @@ export function DirectTelemetrySetupDialog({
       {result ? (
         <DirectTelemetrySetupResult
           connection={result}
-          // 조사가 이름의 받침에 따라 갈리지 않는 문장으로 쓴다("메트릭를"이 됐었다).
-          title={result.kind === 'issued' ? `${capabilityLabel} 연결이 준비되었습니다` : `기존 앱에 ${capabilityLabel} 연결을 추가했습니다`}
-          doneLabel={`${capabilityLabel} 보기`}
+          title={result.kind === 'issued' ? connectReady(target) : connectAttached(target, result.service.name)}
+          doneLabel={connectView(target)}
           onDone={done}
         />
       ) : (
@@ -168,7 +166,7 @@ export function DirectTelemetrySetupDialog({
               <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" maxLength={200} invalid={Boolean(fieldError)} value={name} onChange={event => { setName(event.target.value); setFieldError(null); }} placeholder="예: orders-api" />
             </Field>
           ) : (
-            <Field label="앱" htmlFor={`direct-${signal}-existing-service`} required error={fieldError ?? undefined} hint={`기존 연결 키에 ${capabilityLabel} 권한을 추가합니다.`}>
+            <Field label="앱" htmlFor={`direct-${signal}-existing-service`} required error={fieldError ?? undefined} hint={`이 앱의 API Key에 ${connectName(target)} 권한을 더합니다.`}>
               <Select id={`direct-${signal}-existing-service`} value={existingId} onChange={event => { setExistingId(event.target.value); setFieldError(null); }}>
                 <option value="">앱 선택</option>
                 {existingServices.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}
@@ -179,8 +177,7 @@ export function DirectTelemetrySetupDialog({
           <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
             <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
             <Button type="submit" disabled={optionsLoading || Boolean(optionsError)} loading={submitting}>
-              <MaterialIcon name="add" />
-              추가
+              연결
             </Button>
           </div>
         </form>

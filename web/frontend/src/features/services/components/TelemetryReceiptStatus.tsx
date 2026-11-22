@@ -4,10 +4,11 @@ import { ko } from 'date-fns/locale';
 import { CollectionStatusBadge, LoadErrorBanner } from '../../../components/common';
 import type { SignalReceipt } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
+import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 import { appReceiptNote, lastReceipt, receiptState } from '../../telemetry/signals';
 import { formatFullDateTime } from '../../../utils/incidentFormat';
 
-const labels: Record<string, string> = { logs: '로그', metrics: '메트릭', traces: 'API 트레이스', infrastructure: '인프라', uptime: '컨테이너 상태' };
+const labels: Record<string, string> = { ...DOCKER_CAPABILITY_NAME, traces: DOCKER_CAPABILITY_NAME.api };
 
 export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; expected: string[] }) {
   return <ul className="space-y-label" aria-live="polite">

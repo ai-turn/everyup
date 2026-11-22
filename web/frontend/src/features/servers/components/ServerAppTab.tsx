@@ -4,17 +4,18 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button, LoadErrorBanner, MaterialIcon, ResourceTable, StatusLight, Tooltip, type StatusTone } from '../../../components/common';
 import { formatDateTime } from '../../../utils/incidentFormat';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
-import { CONNECT_LABEL, appPath } from '../serverPaths';
+import { connectAction, connectDone, connectName } from '../../connections/connectCopy';
+import { appPath } from '../serverPaths';
 import { appPanelStatus, capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 
 const COPY = {
   api: {
-    signal: 'traces', label: 'API 요청', dialogLabel: 'API', tab: 'requests',
+    signal: 'traces', tab: 'requests',
     connectTitle: '이 서버의 API 요청을 연결하세요', connectDescription: '앱이 OpenTelemetry로 트레이스를 보내면 요청 상태와 오류를 확인할 수 있습니다. 연결을 누르면 앱 이름을 정하고 키와 설정 예시를 받습니다.',
   },
   metrics: {
-    signal: 'metrics', label: '메트릭', dialogLabel: '메트릭', tab: 'metrics',
+    signal: 'metrics', tab: 'metrics',
     connectTitle: '이 서버의 메트릭을 연결하세요', connectDescription: '앱이 OpenTelemetry로 보내는 메트릭을 차트로 확인합니다. 연결을 누르면 앱 이름을 정하고 키와 설정 예시를 받습니다.',
   },
 } as const;
@@ -49,7 +50,7 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
     created.current = true;
     await onChanged();
     setAdding(false);
-    toast.success(`${copy.label}을 연결했습니다`);
+    toast.success(connectDone(capability));
     navigate(appPath(serverId, id, copy.tab), { state: { focusPanel: true } });
   };
   const closeSetup = () => {
@@ -59,10 +60,11 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
     if (issued.current) void onChanged();
   };
 
-  const label = CONNECT_LABEL[capability];
+  const label = connectAction(capability);
+  const name = connectName(capability);
   const content = () => {
     // 이전 목록에 앱이 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
-    if (unknown || (stale && apps.length === 0)) return <LoadErrorBanner inline title={`${copy.label} 앱 정보를 불러오지 못했습니다`} onRetry={onRetry} />;
+    if (unknown || (stale && apps.length === 0)) return <LoadErrorBanner inline title={`${name} 앱 정보를 불러오지 못했습니다`} onRetry={onRetry} />;
     if (apps.length === 0) {
       return (
         <ConnectPrompt title={copy.connectTitle} description={copy.connectDescription}>
@@ -71,7 +73,7 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
       );
     }
     return (
-      <ResourceTable rows={apps} rowKey={({ app }) => app.id} ariaLabel={`${copy.label} 앱`} columns={[
+      <ResourceTable rows={apps} rowKey={({ app }) => app.id} ariaLabel={`${name} 앱`} columns={[
         { key: 'app', label: '앱', render: ({ app }) => (
           <Tooltip content={app.name}><Link data-row-link to={appPath(serverId, app.id, copy.tab)} state={{ returnTo }} className="block truncate font-medium text-action">{app.name}</Link></Tooltip>
         ) },
@@ -90,7 +92,7 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
       {!unknown && apps.length > 0 && (
         <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
       )}
-      {adding && <DirectTelemetrySetupDialog signal={copy.signal} capabilityLabel={copy.dialogLabel} title={`${copy.label} 연결`} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
+      {adding && <DirectTelemetrySetupDialog signal={copy.signal} description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
         serverId={serverId} onClose={closeSetup} onIssued={() => { issued.current = true; }} onCreated={(service) => void finishCreate(service.id)} />}
     </>
   );

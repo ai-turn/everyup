@@ -23,6 +23,7 @@ import { partialFailureMessage, useServers } from '../../features/servers/useSer
 import { TargetHeader } from '../../features/targets/TargetHeader';
 import { TargetMissing } from '../../features/targets/TargetMissing';
 import { listBack } from '../../features/targets/listBack';
+import { SIGNAL_TARGET, connectAction, connectDone, connectObject } from '../../features/connections/connectCopy';
 import { DirectTelemetrySetupDialog } from '../../features/telemetry/components/DirectTelemetrySetupDialog';
 import { receiptCollection, signalList } from '../../features/telemetry/signals';
 import { useDirectServicePanel } from '../../features/telemetry/useDirectServicePanel';
@@ -39,7 +40,7 @@ const ID_PREFIX = 'app';
 const TABS: readonly { key: AppTab; label: string; signal: TelemetrySignal; capability: 'logs' | 'api' | 'metrics'; connect: string }[] = [
   { key: 'logs', label: '로그', signal: 'logs', capability: 'logs', connect: '앱의 OpenTelemetry 로그를 연결하면 이 탭에서 검색하고 추이를 봅니다.' },
   { key: 'requests', label: 'API 요청', signal: 'traces', capability: 'api', connect: '앱이 OpenTelemetry로 트레이스를 보내면 요청 상태와 오류를 확인할 수 있습니다.' },
-  { key: 'traces', label: '트레이스', signal: 'traces', capability: 'api', connect: '앱이 OpenTelemetry로 트레이스를 보내면 요청이 거친 구간을 볼 수 있습니다.' },
+  { key: 'traces', label: '트레이스', signal: 'traces', capability: 'api', connect: 'API 요청을 연결하면 요청이 거친 구간을 이 탭에서 볼 수 있습니다. 트레이스는 따로 연결하지 않습니다.' },
   { key: 'metrics', label: '메트릭', signal: 'metrics', capability: 'metrics', connect: '앱이 OpenTelemetry로 보내는 메트릭을 차트로 확인합니다.' },
 ];
 const DEFAULT_TAB: Record<'logs' | 'api' | 'metrics', AppTab> = { logs: 'logs', api: 'requests', metrics: 'metrics' };
@@ -189,10 +190,10 @@ function AppDetail({ row, app, stale, refresh, refreshToken, onChanged, forgetTa
   const finishSetup = async () => {
     if (created.current) return;
     created.current = true;
-    const label = adding?.label;
+    const signal = adding?.signal;
     await onChanged();
     setAdding(null);
-    toast.success(`${label}을 연결했습니다`);
+    if (signal) toast.success(connectDone(SIGNAL_TARGET[signal]));
   };
   const closeSetup = () => {
     if (created.current) return;
@@ -244,8 +245,8 @@ function AppDetail({ row, app, stale, refresh, refreshToken, onChanged, forgetTa
         <div className="min-w-0"><Tabs items={tabs} active={tab} onChange={openTab} ariaLabel="앱 데이터" idPrefix={ID_PREFIX} /></div>
         <div ref={panelRef} tabIndex={-1} role="tabpanel" id={tabPanelId(ID_PREFIX, tab)} aria-labelledby={tabId(ID_PREFIX, tab)}>
           {!connected(current.signal) ? (
-              <ConnectPrompt title={`이 앱의 ${current.label}을 연결하세요`} description={`${current.connect} 연결을 누르면 이 앱의 키에 권한을 더하고 설정 예시를 받습니다.`}>
-                <Button onClick={() => openSetup(current)}><MaterialIcon name="add" />{current.label} 연결</Button>
+              <ConnectPrompt title={`이 앱의 ${connectObject(SIGNAL_TARGET[current.signal])} 연결하세요`} description={`${current.connect} 연결을 누르면 이 앱의 API Key에 권한을 더하고 설정 예시를 받습니다.`}>
+                <Button onClick={() => openSetup(current)}><MaterialIcon name="add" />{connectAction(SIGNAL_TARGET[current.signal])}</Button>
               </ConnectPrompt>
             )
             : <AppTabPanel tab={tab} app={app} range={range} token={token} traceId={searchParams.get('traceId') ?? undefined}
@@ -253,8 +254,8 @@ function AppDetail({ row, app, stale, refresh, refreshToken, onChanged, forgetTa
         </div>
       </div>
       {dialogs}
-      {adding && <DirectTelemetrySetupDialog signal={adding.signal} capabilityLabel={adding.label} title={`${adding.label} 연결`}
-        description={`${app.name} 앱에 ${adding.label}을 더합니다.`} serverId={serverId} attachToId={app.id}
+      {adding && <DirectTelemetrySetupDialog signal={adding.signal}
+        description={`${app.name} 앱에 ${connectObject(SIGNAL_TARGET[adding.signal])} 더합니다.`} serverId={serverId} attachToId={app.id}
         onClose={closeSetup} onIssued={() => { issued.current = true; }} onCreated={() => void finishSetup()} />}
       {moving && <MoveTargetDialog kind="app" targetName={moving.name} signals={moving.signals} currentServerId={serverId}
         onClose={closeMove} onMove={move} />}

@@ -7,8 +7,9 @@ import { api, type LogPattern, type LogServiceSummary, type ObservedService } fr
 import { getErrorMessage } from '../../../utils/errors';
 import { LogServiceOverview } from '../../logs/components/LogServiceOverview';
 import { logScopeKey, withLogSummaries } from '../../logs/logServiceRows';
+import { connectAction, connectDone } from '../../connections/connectCopy';
 import { DirectTelemetrySetupDialog } from '../../telemetry/components/DirectTelemetrySetupDialog';
-import { ALL_LOGS_PATH, CONNECT_LABEL, appPath } from '../serverPaths';
+import { ALL_LOGS_PATH, appPath } from '../serverPaths';
 import { capabilityTargets, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, TabAction } from './ConnectPrompt';
 
@@ -32,7 +33,7 @@ export function ServerLogsTab({ row, onChanged, unknown, stale, onRetry, refresh
     created.current = true;
     await onChanged();
     setAdding(false);
-    toast.success('로그를 연결했습니다');
+    toast.success(connectDone('logs'));
     navigate(appPath(serverId, id, 'logs'), { state: { focusPanel: true } });
   };
   const closeSetup = () => {
@@ -42,7 +43,7 @@ export function ServerLogsTab({ row, onChanged, unknown, stale, onRetry, refresh
     if (issued.current) void onChanged();
   };
 
-  const label = CONNECT_LABEL.logs;
+  const label = connectAction('logs');
   const content = () => {
     // 이전 목록에 로그 앱이 없어도 다시 불러오지 못했으면 연결되지 않았다고 단정하지 않는다.
     if (unknown || (stale && apps.length === 0)) return <LoadErrorBanner inline title="로그 앱 정보를 불러오지 못했습니다" onRetry={onRetry} />;
@@ -63,7 +64,7 @@ export function ServerLogsTab({ row, onChanged, unknown, stale, onRetry, refresh
       {!unknown && apps.length > 0 && (
         <TabAction slot={actionSlot}><Button variant="secondary" onClick={openSetup}><MaterialIcon name="add" />{label}</Button></TabAction>
       )}
-      {adding && <DirectTelemetrySetupDialog signal="logs" capabilityLabel="로그" title="로그 연결" description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
+      {adding && <DirectTelemetrySetupDialog signal="logs" description="앱의 OpenTelemetry 데이터를 EveryUp에 연결합니다."
         serverId={serverId} onClose={closeSetup} onIssued={() => { issued.current = true; }} onCreated={(service) => void finishCreate(service.id)} />}
     </>
   );

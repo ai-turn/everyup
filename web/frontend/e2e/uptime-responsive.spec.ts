@@ -26,8 +26,8 @@ for (const theme of ['light', 'dark']) for (const [width, height] of [[375, 812]
       await expect(page.locator('html')).toHaveClass(theme === 'dark' ? /dark/ : /^(?!.*dark).*$/);
       await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}-${height}-${route.split('/')[0]}${route.includes('monitor') ? '-detail' : ''}.png`) });
     }
-    await page.goto('./servers/server-1/uptime'); await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
-    const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+    await page.goto('./servers/server-1/uptime'); await page.getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
     await dialog.getByRole('combobox').press('ArrowDown');
     const footer = dialog.getByRole('button', { name: '추가', exact: true });
     expect(await dialog.evaluate((element) => element.scrollHeight <= element.clientHeight + 1 || ['auto', 'scroll'].includes(getComputedStyle(element).overflowY))).toBe(true);
@@ -51,8 +51,8 @@ test('[17] 200 percent root text, long errors and a short viewport keep forms an
   await page.setViewportSize({ width: 375, height: 667 });
   await uptimeFixture(page); await page.goto('./servers/server-1/uptime');
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
-  await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  await page.getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   const submit = dialog.getByRole('button', { name: '추가', exact: true });
   expect(await dialog.evaluate((element) => element.scrollHeight <= element.clientHeight + 1 || ['auto', 'scroll'].includes(getComputedStyle(element).overflowY))).toBe(true);
   await submit.scrollIntoViewIfNeeded();

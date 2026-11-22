@@ -53,7 +53,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
     content = <div role="alert"><EmptyState icon="error_outline" title="API 요청을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: onRetry }} /></div>;
   } else if (requests.length === 0) {
     content = <EmptyState icon="http"
-          title={filtered ? '조건에 맞는 요청이 없습니다' : waiting ? '아직 수신한 API 트레이스가 없습니다' : '이 기간에 수집된 HTTP 요청이 없습니다'}
+          title={filtered ? '조건에 맞는 요청이 없습니다' : waiting ? '아직 수신한 API 요청이 없습니다' : '이 기간에 수집된 HTTP 요청이 없습니다'}
           description={filtered ? '적용한 필터를 해제하거나 기간을 바꿔 주세요.' : waiting ? '아래 수집 설정 안내에 따라 앱의 OpenTelemetry 전송을 설정해 주세요.' : '기간을 바꾸거나 트레이스 탭에서 다른 span이 수신됐는지 확인해 주세요.'}
           action={filtered ? { label: '필터 해제', onClick: onClear } : undefined}
         />;

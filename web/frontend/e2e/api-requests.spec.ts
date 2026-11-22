@@ -238,14 +238,14 @@ test('API connection recovers options and distinguishes registration from data r
   await expect(page.getByRole('table', { name: 'API 요청 앱' }).getByRole('link', { name: 'orders-api', exact: true })).toBeVisible();
   // 서버 탭의 대화 상자는 그룹을 고르지 않는다(그룹은 서버가 정한다). 대화 상자가 불러오는 선택지는 이 서버의 기존 앱 목록이다.
   state.failList = true;
-  await page.getByRole('button', { name: 'API 연결', exact: true }).click();
+  await page.getByRole('button', { name: 'API 요청 연결', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });
   await expect(dialog.getByText('연결 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
   state.failList = false;
   await dialog.getByRole('button', { name: '다시 시도', exact: true }).click();
   await dialog.getByRole('textbox', { name: '앱 이름', exact: true }).fill('new-api');
-  await dialog.getByRole('button', { name: '추가', exact: true }).click();
-  await expect(dialog.getByRole('heading', { name: 'API 연결이 준비되었습니다', exact: true })).toBeVisible();
+  await dialog.getByRole('button', { name: '연결', exact: true }).click();
+  await expect(dialog.getByRole('heading', { name: 'API 요청을 연결할 준비가 되었습니다', exact: true })).toBeVisible();
   const receipt = dialog.getByRole('region', { name: '데이터 수신 확인' });
   await expect(receipt).toContainText('수신 대기');
   await dialog.getByRole('button', { name: '처음 설정', exact: true }).click();
@@ -300,7 +300,7 @@ test('long service names and request paths remain accessible on narrow screens',
 test('an app that never received traces says so in its panel and opens setup guidance', async ({ page }) => {
   await mockApi(page, { logsReceived: true, queries: [] });
   await page.goto('./servers/server-1/api/api-test');
-  await expect(page.getByText('아직 수신한 API 트레이스가 없습니다', { exact: true })).toBeVisible();
+  await expect(page.getByText('아직 수신한 API 요청이 없습니다', { exact: true })).toBeVisible();
   await expect(page.locator('details').filter({ hasText: '수집 설정 안내' })).toHaveAttribute('open', '');
 });
 

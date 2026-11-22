@@ -256,7 +256,7 @@ test.describe('against the API', () => {
     state.responses.set('GET /agents/docker-host/setup-status', { connected: true, configApplied: true, signals: [] });
     state.responses.set('GET /infrastructure-resources', [{ id: 'docker-host', name: 'Production Docker', adapter: 'everyup-agent', isActive: true, lastSeenAt: new Date(Date.now() - 3_600_000).toISOString(), createdAt: at, updatedAt: at }]);
     await page.goto('./');
-    const item = attention(page).getByRole('link', { name: /인프라 Collector 데이터가 지연/ });
+    const item = attention(page).getByRole('link', { name: /인프라 데이터가 지연/ });
     await expect(item).toHaveCount(1);
     await item.click();
     await expect(page).toHaveURL(/\/agents\/docker-host$/);

@@ -5,7 +5,8 @@ import { Button, LoadErrorBanner, MaterialIcon } from '../../../components/commo
 import { api } from '../../../services/api';
 import { InfrastructurePanel } from '../../infra/components/InfrastructurePanel';
 import { InfrastructureCollectorSetupDialog } from '../../infrastructure/components/InfrastructureCollectorSetupDialog';
-import { CONNECT_LABEL, serverPath } from '../serverPaths';
+import { connectAction } from '../../connections/connectCopy';
+import { serverPath } from '../serverPaths';
 import { infrastructurePanelStatus, type ServerCapabilityTabProps } from '../serverStatus';
 import { ConnectPrompt, PanelPlaceholder } from './ConnectPrompt';
 import { MOVE_TARGET_UNCERTAIN, useLeavingTarget, useMoveTarget } from '../useMoveTarget';
@@ -80,8 +81,8 @@ export function ServerInfrastructureTab({ row, onChanged, unknown, stale, onRetr
     if (!resource) {
       return (
         <ConnectPrompt title="이 서버의 인프라를 연결하세요"
-          description="CPU, 메모리, 디스크를 수집합니다. 서버에 OpenTelemetry Collector를 설치해야 합니다. 연결을 누르면 API Key와 Collector 설정 파일을 받습니다. 키는 한 번만 표시됩니다.">
-          <Button onClick={openSetup}><MaterialIcon name="add" />{CONNECT_LABEL.infrastructure}</Button>
+          description="CPU, 메모리, 디스크를 수집합니다. 서버에 OpenTelemetry Collector를 설치해야 합니다. 연결을 누르면 API Key와 그 Collector의 설정 파일을 받습니다. 키는 한 번만 표시됩니다.">
+          <Button onClick={openSetup}><MaterialIcon name="add" />{connectAction('infrastructure')}</Button>
         </ConnectPrompt>
       );
     }

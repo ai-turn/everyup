@@ -65,7 +65,7 @@ test('certificate expiry and expected status show in the header, and the status 
   await expect(cert).toHaveText('D-5');
   await expect(cert).toHaveClass(/text-status-warn/);
   await page.getByRole('button', { name: '수정', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '업타임 수정' });
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 수정' });
   const expected = dialog.getByRole('spinbutton', { name: '기대 상태 코드' });
   await expect(expected).toHaveValue('200');
   await expected.fill('204');
@@ -82,7 +82,7 @@ test('TCP monitors have no expected status field or header entry', async ({ page
   await expect(page.getByText('Protocol', { exact: true })).toBeVisible();
   await expect(page.getByText('기대 상태 코드', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '수정', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: '업타임 수정' }).getByRole('spinbutton', { name: '기대 상태 코드' })).toHaveCount(0);
+  await expect(page.getByRole('dialog', { name: '업타임 모니터 수정' }).getByRole('spinbutton', { name: '기대 상태 코드' })).toHaveCount(0);
 });
 
 test('outage history merges outages with failures that never became one, and filters by kind and day', async ({ page }) => {

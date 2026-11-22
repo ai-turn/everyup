@@ -4,7 +4,7 @@ import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type Project, type Server } from '../../../services/api';
 import { ApiError, getErrorMessage } from '../../../utils/errors';
-import { signalTabList } from '../../telemetry/signals';
+import { signalList } from '../../telemetry/signals';
 import { NEW_SERVER_PATH } from '../serverPaths';
 
 const KIND_NOUN = { monitor: '업타임 모니터', app: '앱', infrastructure: '인프라 리소스' } as const;
@@ -139,7 +139,7 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
         </div>
         <div className="space-y-heading p-6">
           {kind === 'app' && signals.length > 1 && (
-            <p className="type-body text-text-muted">이 앱의 {signalTabList(signals)} 데이터가 함께 옮겨집니다.</p>
+            <p className="type-body text-text-muted">이 앱의 {signalList(signals)} 데이터가 함께 옮겨집니다.</p>
           )}
           {body}
           {error && <p role="alert" className="type-body text-status-error">{error}</p>}

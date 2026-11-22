@@ -80,7 +80,7 @@ test.describe('at 1440x1000', () => {
 
   test('Tab moves from the tab row to the tab actions and then into the panel', async ({ page }) => {
     await page.goto(`./servers/${EDGE}/uptime`);
-    await expect(actionSlot(page).getByRole('button', { name: '모니터 추가' })).toBeVisible();
+    await expect(actionSlot(page).getByRole('button', { name: '업타임 모니터 추가' })).toBeVisible();
     await tablist(page).getByRole('tab', { selected: true }).focus();
     const slotStops = await actionSlot(page).locator('button').count();
     for (let index = 0; index < slotStops; index += 1) {
@@ -108,8 +108,8 @@ test.describe('at 1440x1000', () => {
   });
 
   test('the tab row holds the add action of the open tab', async ({ page }) => {
-    for (const [path, label] of [['uptime', '모니터 추가'], ['logs', '로그 연결'],
-      ['api', 'API 연결'], ['metrics', '메트릭 연결']] as const) {
+    for (const [path, label] of [['uptime', '업타임 모니터 추가'], ['logs', '로그 연결'],
+      ['api', 'API 요청 연결'], ['metrics', '메트릭 연결']] as const) {
       await page.goto(`./servers/${EDGE}/${path}`);
       await expect(actionSlot(page).getByRole('button', { name: label, exact: true })).toBeVisible();
       // 패널 안에 같은 버튼을 한 번 더 두지 않는다.
@@ -127,7 +127,7 @@ test.describe('at 1440x1000', () => {
   });
 
   test('a capability without targets has no tab action and its prompt uses the same words', async ({ page }) => {
-    for (const [path, label] of [['uptime', '모니터 추가'], ['infrastructure', '인프라 연결'], ['logs', '로그 연결'], ['api', 'API 연결'], ['metrics', '메트릭 연결']] as const) {
+    for (const [path, label] of [['uptime', '업타임 모니터 추가'], ['infrastructure', '인프라 연결'], ['logs', '로그 연결'], ['api', 'API 요청 연결'], ['metrics', '메트릭 연결']] as const) {
       await page.goto(`./servers/${EMPTY}/${path}`);
       await expect(panel(page).getByRole('button', { name: label, exact: true })).toBeVisible();
       await expect(page.getByRole('button', { name: label, exact: true })).toHaveCount(1);

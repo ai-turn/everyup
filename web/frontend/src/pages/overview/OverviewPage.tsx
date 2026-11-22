@@ -168,7 +168,7 @@ export function OverviewPage() {
       ...staleDockerInfrastructure.map((resource) => ({
         id: `infrastructure-${resource.id}`,
         title: resource.name,
-        detail: '인프라 Collector 데이터가 지연되었거나 끊겼습니다',
+        detail: '인프라 데이터가 지연되었거나 끊겼습니다',
         // Docker 환경의 인프라 리소스는 서버가 없고 ID가 그 환경과 같다.
         to: `/agents/${resource.id}`,
         tone: 'warn' as const,

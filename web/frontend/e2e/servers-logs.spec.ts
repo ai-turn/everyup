@@ -81,14 +81,14 @@ test('connecting logs to an empty server keeps the key guidance open and the app
   await expect(dialog.getByRole('combobox', { name: '그룹' })).toHaveCount(0);
   await expect(dialog.getByRole('button', { name: '기존 앱', exact: true })).toHaveCount(0);
   await dialog.getByLabel('앱 이름').fill('staging-logs');
-  await dialog.getByRole('button', { name: '추가' }).click();
+  await dialog.getByRole('button', { name: '연결', exact: true }).click();
 
-  await expect(dialog.getByText('로그 연결이 준비되었습니다')).toBeVisible();
+  await expect(dialog.getByText('로그를 연결할 준비가 되었습니다')).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'API Key 복사' })).toBeVisible();
   // 서버 데이터를 다시 불러와 본문이 바뀌어도 한 번만 볼 수 있는 안내는 닫히지 않는다.
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await expect(appLinks(page).filter({ hasText: 'staging-logs' })).toBeAttached();
-  await expect(dialog.getByText('로그 연결이 준비되었습니다')).toBeVisible();
+  await expect(dialog.getByText('로그를 연결할 준비가 되었습니다')).toBeVisible();
 
   await dialog.getByRole('button', { name: '로그 보기' }).click();
   await expect(dialog).toBeHidden();
@@ -115,7 +115,7 @@ test('adding logs to an existing app offers only this server\'s apps and keeps t
   await dialog.getByRole('combobox', { name: '앱' }).click();
   await expect(page.getByRole('option')).toHaveText(['앱 선택', 'catalog-worker']);
   await page.getByRole('option', { name: 'catalog-worker' }).click();
-  await dialog.getByRole('button', { name: '추가' }).click();
+  await dialog.getByRole('button', { name: '연결', exact: true }).click();
   await dialog.getByRole('button', { name: '로그 보기' }).click();
 
   await expect(page).toHaveURL(new RegExp(`/servers/${DB}/apps/observed_mock_catalog\\?tab=logs$`));

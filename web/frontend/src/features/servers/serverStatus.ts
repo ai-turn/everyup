@@ -58,7 +58,7 @@ const USAGE = [['cpuUsage', 'CPU'], ['memoryUsage', '메모리'], ['diskUsage', 
 
 // 사용률만으로는 장애가 되지 않는다. 인프라 화면이 주의로 칠하는 선(WARNING_PCT)부터 확인 필요다.
 export function infrastructureState(resource: InfrastructureResource): TargetState {
-  if (!resource.isActive) return { state: 'idle', detail: 'Collector 비활성화됨' };
+  if (!resource.isActive) return { state: 'idle', detail: '연결 중지됨' };
   if (!isCollectorFresh(resource.lastSeenAt)) return { state: 'warn', detail: '데이터 확인 필요' };
   const peak = peakUsage(resource);
   if (peak >= WARNING_PCT) {

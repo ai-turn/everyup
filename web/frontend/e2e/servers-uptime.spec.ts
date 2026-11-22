@@ -35,7 +35,7 @@ test('a server with one monitor still lists it', async ({ page }) => {
   await page.goto('./servers/server_mock_payments_api/uptime');
   await expect(rowNames(page)).toHaveText(['Payment endpoint']);
   // 추가 버튼은 탭 줄 오른쪽의 조작 자리에 있다.
-  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('button', { name: '모니터 추가' })).toBeVisible();
+  await expect(page.getByRole('group', { name: '탭 조작' }).getByRole('button', { name: '업타임 모니터 추가' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
 });
 
@@ -48,8 +48,8 @@ test('adding the first monitor to an empty server opens it and the server is no 
   await expect(page).toHaveURL(new RegExp(`/servers/${EMPTY}/uptime$`));
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 업타임 모니터를 추가하세요' })).toBeVisible();
 
-  await panel(page).getByRole('button', { name: '모니터 추가' }).click();
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  await panel(page).getByRole('button', { name: '업타임 모니터 추가' }).click();
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('Staging probe');
   await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill('https://staging.example.com/health');
   await dialog.getByRole('button', { name: '추가', exact: true }).click();
@@ -304,8 +304,8 @@ test.describe('with an intercepted API', () => {
     state.monitors = [];
     state.responses.set('GET /servers', [s1]);
     await page.goto('./servers/s1/uptime');
-    await panel(page).getByRole('button', { name: '모니터 추가' }).click();
-    const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+    await panel(page).getByRole('button', { name: '업타임 모니터 추가' }).click();
+    const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
     await dialog.getByRole('textbox', { name: '이름', exact: true }).fill('Probe');
     await dialog.getByRole('textbox', { name: 'URL', exact: true }).fill('https://probe.example.com');
     state.responses.delete('GET /servers');

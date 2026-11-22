@@ -14,9 +14,9 @@ async function tabTo(page: Page, target: Locator) {
 
 test('[16] add/edit/delete dialogs trap focus and return it to their keyboard trigger', async ({ page }) => {
   await uptimeFixture(page); await page.goto('./servers/server-1/uptime');
-  const add = page.getByRole('button', { name: '모니터 추가', exact: true });
+  const add = page.getByRole('button', { name: '업타임 모니터 추가', exact: true });
   await tabTo(page, add); await page.keyboard.press('Enter');
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   await expect(dialog).toBeVisible();
   for (const key of ['Tab', 'Shift+Tab', ...Array(12).fill('Tab'), ...Array(12).fill('Shift+Tab')]) {
     await page.keyboard.press(key);
@@ -42,7 +42,7 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const edit = page.getByRole('button', { name: '수정', exact: true });
   await tabTo(page, edit); await page.keyboard.press('Enter');
-  const editDialog = page.getByRole('dialog', { name: '업타임 수정' });
+  const editDialog = page.getByRole('dialog', { name: '업타임 모니터 수정' });
   await expect(editDialog.getByRole('button', { name: '닫기', exact: true })).toBeFocused();
   await expect(editDialog.getByRole('tooltip')).toHaveText('닫기');
   await page.keyboard.press('Escape');
@@ -70,9 +70,9 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
 test('[16] Escape closes the add dialog directly when no child overlay is open', async ({ page }) => {
   await uptimeFixture(page); await page.goto('./servers/server-1/uptime');
   await page.mouse.move(0, 0);
-  const add = page.getByRole('button', { name: '모니터 추가', exact: true });
+  const add = page.getByRole('button', { name: '업타임 모니터 추가', exact: true });
   await tabTo(page, add); await page.keyboard.press('Enter');
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   const type = dialog.getByRole('combobox', { name: /체크 방식/ });
   await tabTo(page, type); await page.keyboard.press('ArrowDown');
   await expect(dialog.getByRole('textbox', { name: '호스트', exact: true })).toBeVisible();

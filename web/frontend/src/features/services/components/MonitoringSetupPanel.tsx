@@ -4,6 +4,7 @@ import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
 import { useState } from 'react';
 import { ReceiptPanel } from './TelemetryReceiptStatus';
+import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 import { lastReceipt, receiptState } from '../../telemetry/signals';
 import type {
 	AgentCollectionCapability,
@@ -14,13 +15,9 @@ import type {
 } from '../../../services/api';
 import { formatDateTime } from '../../../utils/incidentFormat';
 
-const PROFILE_CAPABILITIES: { capability: AgentCollectionCapability; label: string }[] = [
-  { capability: 'uptime', label: '업타임' },
-  { capability: 'logs', label: '로그' },
-  { capability: 'infrastructure', label: '인프라' },
-  { capability: 'api', label: 'API' },
-  { capability: 'metrics', label: '메트릭' },
-];
+const PROFILE_CAPABILITIES: { capability: AgentCollectionCapability; label: string }[] = (
+  ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] as const
+).map((capability) => ({ capability, label: DOCKER_CAPABILITY_NAME[capability] }));
 
 const profileLabels = {
   'all-in-one': '전체 수집',
@@ -233,7 +230,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
     ? '컨테이너 상태, stdout 로그와 호스트 메트릭을 수집합니다.'
     : containerCollectionEnabled ? '컨테이너 상태와 stdout 로그를 수집합니다.'
     : infrastructureEnabled ? '호스트 CPU·메모리·디스크를 수집합니다.'
-    : '이 프로필에서는 별도 기본 Collector를 시작하지 않습니다.';
+    : '이 프로필에서는 별도 기본 Docker Collector를 시작하지 않습니다.';
 
   return (
     <section className={className}>
@@ -259,7 +256,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
             <div className="mt-2 flex flex-wrap gap-2">
               {unavailableCapabilities.map((item) => (
                 <Button key={item.capability} variant="secondary" size="sm" onClick={() => onAddCapability(item.capability)}>
-                  <MaterialIcon name="add" />{item.label} 추가
+                  <MaterialIcon name="add" />{item.label} 연결
                 </Button>
               ))}
             </div>
@@ -287,7 +284,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
       <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${compact ? '' : 'xl:grid-cols-4'}`}>
         <SetupStep
           number={1}
-          title="Docker Collector 연결"
+          title="Docker Collector 설치"
           description="대상 Docker 서버와 EveryUp을 안전하게 연결합니다."
           state={connected ? 'ready' : 'waiting'}
           stateLabel={connected ? '완료' : '설치 필요'}
@@ -328,7 +325,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           signals={status?.signals ?? []}
           expected={enabledCapabilities.map(capability => capability === 'api' ? 'traces' : capability)}
           error={statusRequest.error}
-          note={!connected ? '최근 Collector 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
+          note={!connected ? '최근 Docker Collector 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
         />
       </div>}
     </section>
