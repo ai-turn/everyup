@@ -7,7 +7,8 @@ to add them again as uptime monitors.
 
 ## Add a monitor
 
-Open a server from **서버** (Servers), click **모니터 추가** (Add monitor) on its **업타임** (Uptime) tab, fill in the fields below, and click **추가** (Add).
+Open a server from **서버** (Servers), click **업타임 모니터 추가** (Add uptime monitor) on its **업타임** (Uptime) tab, fill in the fields below, and click **추가** (Add).
+On a server with nothing connected yet, the same button is on its **개요** (Overview) tab. Nothing is installed on the server.
 
 | Field | Description |
 | --- | --- |

@@ -9,6 +9,7 @@
 // - everyup-main-ko.png — README 히어로이자 docs og:image. 라이트, 내용 높이에 맞춤
 // - home/slide-<name>-<light|dark>.webp (+ -720) — docs 홈 캐러셀, 1440×900
 // - quickstart-docker-env-<light|dark>.webp — Quick Start, Docker 환경 목록 표 @2x
+// - monitoring-setup-connect-<light|dark>.webp — 모니터링 설정, 직접 연결 대화 상자(적용 범위) @2x
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -158,6 +159,21 @@ async function captureQuickstart(browser, converter, scheme) {
   await page.close();
 }
 
+// 모니터링 설정 문서의 직접 연결 대화 상자. 첫 줄의 적용 범위와 Docker 안내를 보여 주므로 연결 문구가 바뀌면 다시 찍는다.
+async function captureConnectDialog(browser, converter, scheme) {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 900 }, deviceScaleFactor: 2, colorScheme: scheme });
+  await open(page, '/servers/server_mock_staging_empty/api');
+  await page.getByRole('tabpanel').getByRole('button', { name: 'API 요청 연결', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });
+  await dialog.getByText('적용 범위').waitFor();
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(800);
+  const box = await dialog.boundingBox();
+  const png = await page.screenshot({ clip: { x: box.x, y: box.y, width: Math.round(box.width), height: Math.round(box.height) } });
+  await writeWebp(converter, png, `monitoring-setup-connect-${scheme}.webp`, Math.round(box.width) * 2, 0.88);
+  await page.close();
+}
+
 let browser;
 try {
   browser = await chromium.launch();
@@ -180,6 +196,7 @@ try {
   for (const scheme of ['light', 'dark']) {
     await captureSlides(browser, probe, scheme);
     await captureQuickstart(browser, probe, scheme);
+    await captureConnectDialog(browser, probe, scheme);
   }
 } finally {
   await browser?.close();
