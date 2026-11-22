@@ -1,9 +1,8 @@
-import { useBreadcrumb } from '../../../contexts/BreadcrumbContext';
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Link } from 'react-router-dom';
-import { Button, ButtonLink, DetailMeta, MaterialIcon, PageHeader, RefreshIconButton, TimeRangePicker, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
+import { Button, ButtonLink, MaterialIcon, type DetailMetaField, type GlobalTimeRange } from '../../../components/common';
+import { TargetHeader } from '../../targets/TargetHeader';
 import { LogIngestLevels } from '../../logs/components/LogIngestLevels';
 import { DockerUptimeStatus } from '../../uptime/components/DockerUptimeStatus';
 import type { AgentServiceFlat } from '../../../services/api';
@@ -18,6 +17,9 @@ export interface AgentHealthCheckDetailViewProps {
   refreshKey: number;
   onRefresh: () => void;
   refreshing?: boolean;
+  updatedAt: Date | null;
+  autoRefresh: boolean;
+  onAutoRefreshChange: (enabled: boolean) => void;
   tab: DetailTab;
   traceId?: string;
   /** Opening range when a link names one (`?range=`); the picker owns it after that. */
@@ -71,53 +73,34 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
   const lastChecked = service.observedAt
     ? formatDistanceToNow(new Date(service.observedAt), { addSuffix: true, locale: ko })
     : '없음';
-  // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 trail에 넣지 않는다 —
-  // 실제 담김 관계는 Docker 환경 › 에이전트 › 서비스다.
-  useBreadcrumb([
-    { label: service.agentName, to: `/agents/${agentId}` },
-    { label: service.name },
-  ]);
+  // 탭(health/logs/metrics/…)은 위치가 아니라 하위 뷰이므로 크럼에 넣지 않는다. 실제 담김 관계는 Docker 환경 › 에이전트 › 서비스다.
+  const environment = `/agents/${agentId}`;
+  const refresh = { updatedAt: props.updatedAt, onRefresh: props.onRefresh, refreshing: props.refreshing, autoRefresh: props.autoRefresh, onAutoRefreshChange: props.onAutoRefreshChange };
 
   return (
     <>
-      {/* 데스크톱은 AppHeader breadcrumb가 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to={`/agents/${agentId}`} className="mb-3 inline-flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
-        <MaterialIcon size={20} name="arrow_back" />{service.agentName}
-      </Link>
-      <PageHeader
+      <TargetHeader
         title={service.name}
-        meta={
-          <DetailMeta
-            collapseOnMobile
-            status={
-              <>
-                <DockerUptimeStatus service={service} />
-                {service.lastLatency && (
-                  <>
-                    <span>지연 시간 {service.lastLatency}</span>
-                  </>
-                )}
-                <span>마지막 체크 {lastChecked}</span>
-                {(service.restartCount ?? 0) >= 3 && <span className="text-status-warn sm:hidden">재시작 {service.restartCount}회</span>}
-              </>
-            }
-            fields={[...checkFields(service), ...containerFields(service), { label: '수집 레벨', value: <LogIngestLevels agentId={agentId} serviceKey={serviceKey} /> }]}
-          />
-        }
-        aside={
-          <div role="group" aria-label="서비스 조회 및 알림" className="flex flex-wrap items-center gap-2 xl:justify-end">
-            <TimeRangePicker value={range} onChange={setRange} />
-            <div className="flex flex-wrap items-center gap-2">
-              <RefreshIconButton onClick={props.onRefresh} refreshing={props.refreshing} />
-              <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'agent', agentId, serviceKey })}>
-                <MaterialIcon name="notifications" />알림 규칙
-              </ButtonLink>
-              <Button variant="secondary" disabled={service.healthy} onClick={() => props.onTabChange('logs')}>
-                에러 확인
-              </Button>
-            </div>
-          </div>
-        }
+        crumbs={[{ label: service.agentName, to: environment }]}
+        status={<>
+          <DockerUptimeStatus service={service} />
+          {service.lastLatency && <span>지연 시간 {service.lastLatency}</span>}
+          <span>마지막 체크 {lastChecked}</span>
+          {(service.restartCount ?? 0) >= 3 && <span className="text-status-warn sm:hidden">재시작 {service.restartCount}회</span>}
+        </>}
+        // 수집 방식은 환경 단위다: 기능을 더하거나 연결을 고치는 곳은 그 Docker 환경의 설정 가이드다.
+        connection={{ kind: 'docker', detail: <>{service.agentName} 환경</>, action: { label: '설정 가이드', to: environment } }}
+        fields={[...checkFields(service), ...containerFields(service), { label: '수집 레벨', value: <LogIngestLevels agentId={agentId} serviceKey={serviceKey} /> }]}
+        // 주 조작은 제목 줄의 알림 규칙이다. 장애일 때만 에러 로그로 가는 조작을 더한다(이전에는 정상일 때 이유 없이 비활성이었다).
+        actions={<>
+          <ButtonLink collapseLabel variant="secondary" to={alertRulesPath({ kind: 'agent', agentId, serviceKey })}>
+            <MaterialIcon name="notifications" />알림 규칙
+          </ButtonLink>
+          {!service.healthy && <Button variant="secondary" onClick={() => props.onTabChange('logs')}>에러 확인</Button>}
+        </>}
+        range={range}
+        onRangeChange={setRange}
+        refresh={refresh}
       />
       <AgentServiceTabs
         key={`${agentId}/${serviceKey}`}

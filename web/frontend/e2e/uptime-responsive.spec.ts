@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 import { dockerService, monitor, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/', reducedMotion: 'reduce' });
+test.use({ baseURL: API_URL, reducedMotion: 'reduce' });
 
 for (const theme of ['light', 'dark']) for (const [width, height] of [[375, 812], [1440, 1000], [812, 375]]) {
   test(`[17] ${theme} ${width}x${height} list/detail/Docker and dialogs contain long content`, async ({ page }, testInfo) => {
@@ -24,8 +26,8 @@ for (const theme of ['light', 'dark']) for (const [width, height] of [[375, 812]
       await expect(page.locator('html')).toHaveClass(theme === 'dark' ? /dark/ : /^(?!.*dark).*$/);
       await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}-${height}-${route.split('/')[0]}${route.includes('monitor') ? '-detail' : ''}.png`) });
     }
-    await page.goto('./servers/server-1/uptime'); await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
-    const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+    await page.goto('./servers/server-1/uptime'); await page.getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
     await dialog.getByRole('combobox').press('ArrowDown');
     const footer = dialog.getByRole('button', { name: '추가', exact: true });
     expect(await dialog.evaluate((element) => element.scrollHeight <= element.clientHeight + 1 || ['auto', 'scroll'].includes(getComputedStyle(element).overflowY))).toBe(true);
@@ -35,7 +37,7 @@ for (const theme of ['light', 'dark']) for (const [width, height] of [[375, 812]
     expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}-${height}-create.png`) });
     await dialog.getByRole('button', { name: '취소', exact: true }).click();
-    await page.goto('./servers/server-1/uptime/http-monitor'); await page.getByRole('button', { name: '삭제', exact: true }).click();
+    await page.goto('./servers/server-1/monitors/http-monitor'); await (await menuItem(page, '삭제')).click();
     const confirm = page.getByRole('dialog', { name: '업타임을 삭제할까요?' });
     await confirm.getByRole('button', { name: '취소', exact: true }).scrollIntoViewIfNeeded();
     const cancelBox = await confirm.getByRole('button', { name: '취소', exact: true }).boundingBox();
@@ -49,8 +51,8 @@ test('[17] 200 percent root text, long errors and a short viewport keep forms an
   await page.setViewportSize({ width: 375, height: 667 });
   await uptimeFixture(page); await page.goto('./servers/server-1/uptime');
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
-  await page.getByRole('button', { name: '모니터 추가', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  await page.getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   const submit = dialog.getByRole('button', { name: '추가', exact: true });
   expect(await dialog.evaluate((element) => element.scrollHeight <= element.clientHeight + 1 || ['auto', 'scroll'].includes(getComputedStyle(element).overflowY))).toBe(true);
   await submit.scrollIntoViewIfNeeded();
@@ -64,7 +66,7 @@ test('[17] 200 percent root text, long errors and a short viewport keep forms an
   expect(overflow).toBeLessThanOrEqual(1);
   await page.screenshot({ path: testInfo.outputPath('text-200-create.png') });
   await dialog.getByRole('button', { name: '취소', exact: true }).click();
-  for (const route of ['./servers/server-1/uptime/http-monitor', './services/docker-host/shop%3Aapi']) {
+  for (const route of ['./servers/server-1/monitors/http-monitor', './services/docker-host/shop%3Aapi']) {
     await page.goto(route);
     await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
     await expect(page.getByRole('heading', { name: route.includes('http-monitor') ? 'Public API' : 'Docker API', exact: true })).toBeVisible();

@@ -1,24 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
-import { DetailMeta, IconButton, MaterialIcon, PageHeader, StatusLight, Tooltip } from '../../../components/common';
-import { SERVERS_PATH, serverPath, type ServerCapability } from '../serverPaths';
-import { UptimeRefreshControls } from '../../uptime/components/UptimeRefreshControls';
-import { capabilityTargets, STATE_LABEL, type ServerRow } from '../serverStatus';
-
-// 대상이 하나면 탭의 첫 화면이 곧 그 대상의 상세인 탭. 로그 탭의 첫 화면은 앱이 하나여도 서버 범위의 요약이라 빠진다.
-// 인프라는 원인 주소가 탭 주소와 같아서 주소 비교로 처리된다.
-const SINGLE_TARGET_TABS: readonly ServerCapability[] = ['uptime', 'api', 'metrics'];
-
-/**
- * 원인 대상을 이미 보고 있는가. 대상이 하나뿐인 탭은 주소에 대상 ID가 없으므로,
- * 지금 탭이 원인의 탭이고 그 탭의 대상이 하나뿐이면 같은 화면이다.
- */
-function showingCause(row: ServerRow, to: string, pathname: string) {
-  if (to === pathname) return true;
-  return SINGLE_TARGET_TABS.some((key) => {
-    const tab = serverPath(row.server.id, key);
-    return pathname === tab && to.startsWith(`${tab}/`) && capabilityTargets(row.targets, key).length === 1;
-  });
-}
+import { DetailMeta, IconButton, MaterialIcon, PageHeader, RefreshStatus, StatusLight, Tooltip } from '../../../components/common';
+import { SERVERS_PATH } from '../serverPaths';
+import { STATE_LABEL, type ServerRow } from '../serverStatus';
 
 export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange }: {
   row: ServerRow;
@@ -36,13 +19,19 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
   const { pathname } = useLocation();
   const cause = row.cause;
   // 원인 대상을 이미 보고 있으면 같은 화면으로 가는 링크를 두지 않는다.
-  const causeLink = cause?.to && !showingCause(row, cause.to, pathname) ? cause.to : undefined;
+  // 대상(모니터, 앱)은 자기 페이지가 있어 서버 화면에서 원인 대상을 보는 경우는 인프라 탭뿐이다. 그 탭에서는 링크를 두지 않는다.
+  const causeLink = cause?.to && cause.to !== pathname ? cause.to : undefined;
   return (
     <header>
-      {/* 데스크톱은 AppHeader 크럼이 이 역할을 한다 (DESIGN.md §3.4) */}
-      <Link to={SERVERS_PATH} className="mb-3 inline-flex min-h-11 items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-action lg:hidden">
-        <MaterialIcon size={20} name="arrow_back" />서버 목록
-      </Link>
+      {/* 데스크톱은 AppHeader 크럼이 이 역할을 한다 (DESIGN.md §3.4). 좁은 화면에서는 복귀 링크와 같은 줄의 오른쪽 끝에 갱신 상태를
+          둔다 — 상태 줄 아래로 흘러 한 줄을 더 쓰던 것을 줄였다(2026-11-20 점검 B1). 넓은 화면은 상태 줄의 오른쪽 끝이다. */}
+      <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
+        <Link to={SERVERS_PATH} className="inline-flex min-h-11 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-action">
+          <MaterialIcon size={20} name="arrow_back" />서버 목록
+        </Link>
+        <RefreshStatus updatedAt={updatedAt} onRefresh={onRefresh} refreshing={refreshing}
+          autoRefresh={autoRefresh} onAutoRefreshChange={onAutoRefreshChange} />
+      </div>
       {/* 조작은 모든 폭에서 서버 이름과 같은 줄의 오른쪽이다. 이름이 길면 이름이 말줄임되고 버튼은 줄지 않는다.
           버튼만 있는 줄이 탭과 본문을 밀어냈다(모바일에서는 상태 줄 아래 한 줄을 따로 썼다). */}
       <PageHeader
@@ -63,8 +52,8 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
               {groupName !== undefined && <span>그룹 <span className="text-text-secondary">{groupName}</span></span>}
               {/* 상태 줄의 오른쪽 끝. 좁은 화면에서는 상태 줄 아래로 흐른다. 모든 탭에서 같은 자리라 머리말의 높이가 같다.
                   갱신 중 표시는 새로고침 버튼의 회전이 맡는다(글자가 바뀌면 줄바꿈 위치가 흔들린다). */}
-              <div className="ml-auto">
-                <UptimeRefreshControls updatedAt={updatedAt} onRefresh={onRefresh} refreshing={refreshing}
+              <div className="ml-auto max-lg:hidden">
+                <RefreshStatus updatedAt={updatedAt} onRefresh={onRefresh} refreshing={refreshing}
                   autoRefresh={autoRefresh} onAutoRefreshChange={onAutoRefreshChange} />
               </div>
             </>}

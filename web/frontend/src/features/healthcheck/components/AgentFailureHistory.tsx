@@ -61,14 +61,14 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
 
       {error && <UptimeFetchNotice source="알림 기록" onRetry={() => setAttempt((value) => value + 1)} />}
       {events?.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 gap-3">
+        <div className="flex flex-col items-center justify-center py-10 gap-label">
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-ui-hover">
             <MaterialIcon size={24} name="history" className="text-text-muted" />
           </div>
           <p className="text-text-muted type-body">알림 기록이 없습니다</p>
         </div>
       ) : (
-        <div className="space-y-1">
+        <div className="space-y-intra">
           {(events ?? []).map((event) => {
             const isAlert = event.type === 'alert_sent';
             return (
@@ -78,13 +78,13 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
               >
                 <MaterialIcon size={20}
                   name={isAlert ? 'error' : 'check_circle'}
-                  className={`shrink-0 mt-0.5 ${isAlert ? 'text-status-error' : 'text-status-healthy'}`}
+                  className={`shrink-0 icon-lead ${isAlert ? 'text-status-error' : 'text-status-healthy'}`}
                 />
                 <div className="min-w-0 flex-1">
                   <p className="type-label text-text-base truncate">
                     {event.message || (isAlert ? '장애 감지' : '복구 감지')}
                   </p>
-                  <p className="text-xs text-text-muted mt-0.5">
+                  <p className="type-caption text-text-muted mt-intra">
                     {formatDistanceToNow(new Date(event.time), { addSuffix: true, locale: ko })}
                   </p>
                 </div>

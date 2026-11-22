@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import type { ObservedService, Server, UptimeMonitor } from '../src/services/api';
 import { monitor } from './fixtures/uptime';
 
 // 서버 상태의 합산과 문구. 데모 데이터에 없는 조합이라 API를 가로챈다.
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 
 const at = '2026-11-01T00:00:00Z';
 const server = (id: string, name: string): Server => ({ id, name, createdAt: at, updatedAt: at });
@@ -51,7 +52,7 @@ test('a healthy target outweighs a paused one, and idle servers say why', async 
   await expect(statusCell(page, 'apps-01')).toHaveText(/^확인 필요billing-api 데이터 대기 중$/);
 
   await page.getByRole('link', { name: 'paused-01', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Nightly job 일시정지' })).toHaveAttribute('href', /\/servers\/paused\/uptime\/m-only-paused$/);
+  await expect(page.getByRole('link', { name: 'Nightly job 일시정지' })).toHaveAttribute('href', /\/servers\/paused\/monitors\/m-only-paused$/);
   await page.goBack();
   await page.getByRole('link', { name: 'empty-01', exact: true }).click();
   const header = page.locator('header', { has: page.getByRole('heading', { level: 1 }) });
@@ -76,7 +77,7 @@ test('the overview lists outages only when there is more than one', async ({ pag
   await page.goto('./servers/two-down');
   const banner = page.getByRole('region', { name: '진행 중 장애 2건' });
   await expect(banner.getByRole('link')).toHaveText([/^Checkout API/, /^Payments API/]);
-  await expect(banner.getByRole('link').first()).toHaveAttribute('href', /\/servers\/two-down\/uptime\/d1$/);
+  await expect(banner.getByRole('link').first()).toHaveAttribute('href', /\/servers\/two-down\/monitors\/d1$/);
   await expect(page.locator('.animate-pulse')).toHaveCount(1);
 
   await page.goto('./servers/one-down');
@@ -91,7 +92,7 @@ test('status filters stay on one line each at 320px', async ({ page }) => {
   const filters = page.getByRole('group', { name: '상태로 거르기' }).getByRole('button');
   await expect(filters).toHaveCount(4);
   for (const button of await filters.all()) {
-    const label = button.locator('span').first();
+    const label = button.locator('span').nth(1);
     const { height } = (await label.boundingBox())!;
     expect(height).toBeLessThan(24);
   }
@@ -150,7 +151,7 @@ test('an app with a metric over its threshold makes its server need attention an
   await expect(tabs.getByRole('tab', { name: /^메트릭/ }).getByRole('img', { name: '임계값 초과' })).toBeVisible();
   await expect(tabs.getByRole('tab', { name: /^로그/ }).getByRole('img')).toHaveCount(0);
   await expect(page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByRole('link', { name: 'billing-api 임계값 초과 응답 시간' }))
-    .toHaveAttribute('href', /\/servers\/metrics\/metrics\/m-app$/);
+    .toHaveAttribute('href', /\/servers\/metrics\/apps\/m-app\?tab=metrics$/);
 });
 
 test('the server list search also finds metric names and shows the matching metric', async ({ page }) => {

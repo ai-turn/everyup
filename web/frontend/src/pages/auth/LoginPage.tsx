@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { env } from '../../config/env'
 import { Button, MaterialIcon, Input } from '../../components/common'
 import { IconHealthCheck } from '../../components/icons/SidebarIcons'
+import { Field } from '../../features/alerts/components/FormLayout'
+import { ApiError, getErrorMessage } from '../../utils/errors'
 
 export function LoginPage() {
   const { login, isAuthenticated } = useAuth()
@@ -19,6 +21,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showForgot, setShowForgot] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({})
 
   // Check if first-run setup is needed
   useEffect(() => {
@@ -38,6 +41,16 @@ export function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    // 브라우저 기본 검증(말풍선) 대신 입력 아래에 오류를 둔다(폼은 noValidate, UI/UX 점검 A5).
+    const errors = {
+      username: username.trim() ? undefined : '사용자 이름을 입력하세요',
+      password: !password ? '비밀번호를 입력하세요' : needsSetup && password.length < 8 ? '비밀번호는 8자 이상이어야 합니다' : undefined,
+    }
+    setFieldErrors(errors)
+    if (errors.username || errors.password) {
+      document.getElementById(errors.username ? 'login-username' : 'login-password')?.focus()
+      return
+    }
     setLoading(true)
     setError('')
 
@@ -55,7 +68,8 @@ export function LoginPage() {
         login(json.data)
         navigate(from, { replace: true })
       } else {
-        setError(json.error?.message || '오류가 발생했습니다')
+        // 서버 원문이 아니라 코드에 맞는 사용자 문구를 보인다(utils/errors.ts).
+        setError(getErrorMessage(new ApiError(json.error?.message ?? '', json.error?.code ?? 'UNKNOWN_ERROR', res.status)))
         setLoading(false)
       }
     } catch {
@@ -87,7 +101,7 @@ export function LoginPage() {
           <h1 className="type-section-title text-text-base">
             {isSetup ? '초기 설정' : '로그인'}
           </h1>
-          <p className="type-body text-text-muted mt-0.5">
+          <p className="type-body text-text-muted mt-intra">
             {isSetup ? '관리자 계정을 생성하세요' : '관리자 계정으로 로그인하세요'}
           </p>
         </div>
@@ -96,11 +110,11 @@ export function LoginPage() {
         <div className="w-[26rem] max-w-full">
           {/* relative wrapper — height equals card only, anchor for recovery panel */}
           <div className="relative">
-            <div className="bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-4">
+            <div className="bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-heading">
               {error && (
                 <div role="alert" className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={20} name="error_outline" className="leading-none text-status-error" />
+                    <MaterialIcon size={20} name="error_outline" className="text-status-error" />
                   </span>
                   <span>{error}</span>
                 </div>
@@ -109,40 +123,34 @@ export function LoginPage() {
               {isSetup && (
                 <div className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={20} name="info" className="leading-none text-action" />
+                    <MaterialIcon size={20} name="info" className="text-action" />
                   </span>
                   <span>처음 실행되었습니다. 관리자 계정을 설정하세요.</span>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div>
-                  <label htmlFor="login-username" className="block type-label text-text-muted mb-1.5">사용자 이름</label>
+              <form onSubmit={handleSubmit} noValidate className="space-y-heading">
+                <Field label="사용자 이름" htmlFor="login-username" required error={fieldErrors.username}>
                   <Input
                     id="login-username"
                     type="text"
                     value={username}
-                    onChange={e => { setUsername(e.target.value); setError(''); }}
-                    required
+                    onChange={e => { setUsername(e.target.value); setError(''); setFieldErrors(current => ({ ...current, username: undefined })); }}
                     autoFocus
-                    invalid={!!error}
+                    invalid={!!error || !!fieldErrors.username}
                     placeholder="admin"
                   />
-                </div>
-                <div>
-                  <label htmlFor="login-password" className="block type-label text-text-muted mb-1.5">
-                    비밀번호{isSetup && ' (최소 8자 이상)'}
-                  </label>
+                </Field>
+                <Field label={isSetup ? '비밀번호 (최소 8자 이상)' : '비밀번호'} htmlFor="login-password" required error={fieldErrors.password}>
                   <Input
                     id="login-password"
                     type="password"
                     value={password}
-                    onChange={e => { setPassword(e.target.value); setError(''); }}
-                    required
-                    invalid={!!error}
+                    onChange={e => { setPassword(e.target.value); setError(''); setFieldErrors(current => ({ ...current, password: undefined })); }}
+                    invalid={!!error || !!fieldErrors.password}
                     placeholder={isSetup ? '최소 8자 이상' : '비밀번호'}
                   />
-                </div>
+                </Field>
                 {!isSetup && (
                   <div className="flex justify-end -mt-1">
                     <button
@@ -162,7 +170,7 @@ export function LoginPage() {
 
             {/* Recovery panel — outside card div, bottom-aligned with card border */}
             {!isSetup && showForgot && (
-              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-4">
+              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-heading">
                 <p className="type-label text-text-secondary">
                   계정 정보를 잊으셨나요?
                 </p>
@@ -171,16 +179,16 @@ export function LoginPage() {
                 </p>
 
                 {/* Method 1: Env var */}
-                <div className="space-y-1.5">
+                <div className="space-y-label">
                   <p className="type-label text-text-secondary">
                     방법 1: 환경 변수로 임시 접근 후 초기화 (권장)
                   </p>
                   <p className="type-body text-text-muted">
                     환경 변수로 임시 계정을 만들어 로그인한 뒤, 설정 → 계정 초기화에서 계정을 새로 생성하세요.
                   </p>
-                  <div className="space-y-1">
+                  <div className="space-y-intra">
                     <p className="type-body text-text-muted">① 환경 변수 설정 후 재시작</p>
-                    <pre className="text-xs bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
+                    <pre className="font-mono type-caption-stack bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary">
 {`# docker-compose.yml
 environment:
   EVERYUP_ADMIN_USERNAME: admin
@@ -194,14 +202,14 @@ docker compose restart`}
                 </div>
 
                 {/* Method 2: Remove data volume */}
-                <div className="space-y-1.5">
+                <div className="space-y-label">
                   <p className="type-label text-text-secondary">
                     방법 2: 계정 데이터 삭제 후 초기화
                   </p>
                   <p className="type-body text-text-muted">
                     데이터 볼륨을 제거하고 재시작하면 초기 설정 화면으로 돌아갑니다. 모니터링 데이터는 유지됩니다.
                   </p>
-                  <pre className="text-xs bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary leading-relaxed">
+                  <pre className="font-mono type-caption-stack bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary">
 {`# 컨테이너 중지 후 데이터 볼륨 삭제
 docker compose down
 docker volume rm everyup-data

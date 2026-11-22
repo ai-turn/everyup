@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import type { AlertRule } from '../src/services/api';
 import { dockerService, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 const rule = (id: string, threshold: number, fields: Partial<AlertRule> = {}): AlertRule => ({ id, name: id, threshold, type: 'service', metric: 'response_time', operator: 'gt', duration: 0, severity: 'warning', isEnabled: true, isSystem: false, cooldown: 300, channelIds: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ...fields });
 
 for (const kind of ['direct', 'agent'] as const) {
@@ -16,10 +17,11 @@ for (const kind of ['direct', 'agent'] as const) {
       rule('Other metric', 666, { ...fields, metric: 'cpu' }),
     ]);
     state.responses.set(`GET /agents/docker-host/services/${encodeURIComponent(serviceKey)}/history`, [{ time: new Date().toISOString(), latencyMs: 100, total: 1, uptimePct: 100 }]);
-    await page.goto(kind === 'direct' ? './servers/server-1/uptime/http-monitor' : `./services/docker-host/${encodeURIComponent(serviceKey)}`);
+    await page.goto(kind === 'direct' ? './servers/server-1/monitors/http-monitor' : `./services/docker-host/${encodeURIComponent(serviceKey)}`);
     await expect(page.getByText('알림 > 111ms', { exact: true })).toBeVisible();
     for (const threshold of [333, 444, 555, 666]) await expect(page.getByText(`알림 > ${threshold}ms`, { exact: true })).toHaveCount(0);
     // Both details hand off to the rules tab filtered to this target.
+    // 대상 상세는 모두 알림 규칙이 머리말의 주 조작이다(DESIGN.md §4.7 대상 상세의 틀).
     const entry = page.getByRole('link', { name: '알림 규칙', exact: true });
     await entry.click();
     const query = new URL(page.url()).searchParams;

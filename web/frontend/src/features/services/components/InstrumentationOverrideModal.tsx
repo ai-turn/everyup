@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { CopyButton, COPY_ACTION_PRIMARY } from '../../../components/common/CopyButton';
 import { ICON_ACTION_SM, IconButton } from '../../../components/common/IconButton';
 import { MaterialIcon } from '../../../components/common/MaterialIcon';
+import { OptionText } from '../../../components/common/OptionText';
+import { Field } from '../../alerts/components/FormLayout';
 import { Input } from '../../../components/common/Input';
 import { Select } from '../../../components/common/Select';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
@@ -161,18 +163,18 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="type-card-title text-text-base">상세 수집 설정</h3>
-            <p className="mt-0.5 type-body text-text-muted">
+            <p className="mt-intra type-body text-text-muted">
               감지된 Java·Node.js 서비스에 OpenTelemetry를 안전하게 적용합니다.
             </p>
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
-        <div className="flex-1 space-y-5 overflow-y-auto p-6">
+        <div className="flex-1 space-y-item overflow-y-auto p-6">
           {loading ? (
             <div className="h-40 animate-pulse rounded-xl bg-ui-hover" />
           ) : candidates.length === 0 ? (
-            <div className="space-y-2 py-10 text-center">
+            <div className="space-y-label py-10 text-center">
               <MaterialIcon size={32} name="info" className="text-text-dim" />
               <p className="type-body text-text-muted">자동 적용할 수 있는 서비스가 없습니다.</p>
               <p className="mx-auto max-w-sm type-body text-text-muted">
@@ -183,10 +185,10 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
             <>
               <div className="rounded-md bg-ui-hover-soft p-4">
                 <div className="flex items-start gap-3">
-                  <MaterialIcon size={20} name="verified_user" className="mt-0.5 shrink-0 text-status-healthy" />
+                  <MaterialIcon size={20} name="verified_user" className="icon-lead shrink-0 text-status-healthy" />
                   <div>
                     <p className="type-label text-text-base">원본 Compose는 수정하지 않습니다</p>
-                    <p className="mt-0.5 type-body text-text-muted">
+                    <p className="mt-intra type-body text-text-muted">
                       CLI가 별도 override를 만들고 선택한 서비스만 재시작합니다. 주입 옵션, 공유 볼륨, 네트워크와 컨테이너 상태를 확인하며 실패하면 직전 설정으로 자동 복구합니다.
                     </p>
                   </div>
@@ -194,7 +196,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               </div>
 
               <div>
-                <p className="mb-1.5 type-label text-text-secondary">적용 대상</p>
+                <p className="mb-label type-label text-text-secondary">적용 대상</p>
                 <div className="flex flex-wrap gap-1.5">
                   {candidates.map((target) => {
                     const key = `${selectedProject}:${target.composeService}`;
@@ -217,10 +219,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
 
               <div className={`grid gap-3 ${composeProjects.length > 1 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
                 {composeProjects.length > 1 && (
-                  <div className="space-y-1.5">
-                    <label htmlFor="otel-compose-project" className="type-label text-text-secondary">
-                      Compose 프로젝트
-                    </label>
+                  <Field label="Compose 프로젝트" htmlFor="otel-compose-project" hint="한 번에 한 Compose 프로젝트씩 적용합니다.">
                     <Select
                       id="otel-compose-project"
                       value={selectedProject}
@@ -230,14 +229,10 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                         <option key={project} value={project}>{project}</option>
                       ))}
                     </Select>
-                    <p className="type-body text-text-muted">한 번에 한 Compose 프로젝트씩 적용합니다.</p>
-                  </div>
+                  </Field>
                 )}
                 <ConnectionAddressField address={address} />
-                <div className="space-y-1.5">
-                  <label htmlFor="otel-compose-path" className="type-label text-text-secondary">
-                    애플리케이션 Compose 경로
-                  </label>
+                <Field label="애플리케이션 Compose 경로" htmlFor="otel-compose-path" hint="이 명령을 실행할 서버의 파일 경로입니다.">
                   <Input
                     id="otel-compose-path"
                     type="text"
@@ -246,8 +241,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                     placeholder="./docker-compose.yml"
                     mono warn={composePathMissing}
                   />
-                  <p className="type-body text-text-muted">이 명령을 실행할 서버의 파일 경로입니다.</p>
-                </div>
+                </Field>
               </div>
 
               <label className="-mx-3 flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors hover:bg-ui-hover-soft">
@@ -255,32 +249,29 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                   type="checkbox"
                   checked={captureBodies}
                   onChange={(event) => setCaptureBodies(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                  className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary"
                 />
-                <span className="min-w-0">
-                  <span className="block type-label text-text-base">요청·응답 바디도 수집</span>
-                  <span className="mt-0.5 block type-body text-text-muted">
-                    Node.js만 지원하며 민감 필드를 마스킹하고 크기를 제한합니다.
-                    {hasJava && captureBodies && ' Java 서비스에는 헤더 수집만 적용됩니다.'}
-                  </span>
-                </span>
+                <OptionText title="요청·응답 바디도 수집" descriptionSize="body" description={<>
+                  Node.js만 지원하며 민감 필드를 마스킹하고 크기를 제한합니다.
+                  {hasJava && captureBodies && ' Java 서비스에는 헤더 수집만 적용됩니다.'}
+                </>} />
               </label>
 
-              <div className="space-y-1.5">
+              <div className="space-y-label">
                 <Button onClick={() => void prepare()} disabled={targets.length === 0 || webAddressMissing || composePathMissing} loading={preparing}>변경 사항 확인</Button>
                 {targets.length === 0 && <p className="type-body text-text-muted">적용할 서비스를 하나 이상 선택하세요.</p>}
               </div>
-              {plan && <div className="space-y-3" aria-label="상세 수집 변경 미리보기">
+              {plan && <div className="space-y-label" aria-label="상세 수집 변경 미리보기">
                 <p className="type-label text-text-base">재시작 대상: {targets.map(target => target.name).join(', ')}</p>
                 <p className="type-body text-text-muted">선택한 서비스에 Java agent 또는 Node preload, OTLP 전송 설정, 주입 파일 볼륨과 모니터링 네트워크를 추가합니다. 다른 서비스의 기존 설정은 유지합니다.</p>
                 <p className="type-body text-text-muted">먼저 서버 미리보기 명령으로 실제 Compose를 검증한 뒤 적용하세요. 실행 기록은 1시간 내 시작할 수 있으며, 적용·실패·복구 결과가 아래에 표시됩니다.</p>
                 <CommandRow label="서버 변경 미리보기" command={planCommand} onCopy={copy} />
               </div>}
-              {plan && <div className="space-y-2">
+              {plan && <div className="space-y-label">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="type-label text-text-base">안전 적용 명령</p>
-                    <p className="mt-0.5 type-body text-text-muted">애플리케이션 Compose가 있는 Linux 서버에서 실행하세요.</p>
+                    <p className="mt-intra type-body text-text-muted">애플리케이션 Compose가 있는 Linux 서버에서 실행하세요.</p>
                   </div>
                   <CopyButton
                     onCopy={() => copy(applyCommand)}
@@ -303,14 +294,14 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                   적용 후 관리 명령
                   <MaterialIcon size={20} name="expand_more" className="ml-auto text-text-dim" />
                 </summary>
-                <div className="space-y-2 pt-2">
+                <div className="space-y-label pt-2">
                   <CommandRow label="상태 확인" command={statusCommand} onCopy={copy} />
                   <CommandRow label="다시 검증" command={verifyCommand} onCopy={copy} />
                   <CommandRow label="직전 설정으로 되돌리기" command={rollbackCommand} onCopy={copy} />
                 </div>
               </details>
 
-              <div className="space-y-1">
+              <div className="space-y-intra">
                 {skipped.length > 0 && (
                   <p className="type-body text-text-muted">
                     제외됨(Compose 관리 대상 아님): {skipped.map((service) => service.name).join(', ')}

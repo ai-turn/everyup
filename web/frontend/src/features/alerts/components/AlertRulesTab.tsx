@@ -2,9 +2,10 @@ import { Tooltip } from '../../../components/common/Tooltip';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getErrorMessage } from '../../../utils/errors';
-import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, SegmentedControl, SearchInput, ListToolbar, Select } from '../../../components/common';
+import { Button, IconButton, MaterialIcon, EmptyState, ConfirmDialog, Toggle, FilterChips, SearchInput, ListToolbar, Select } from '../../../components/common';
 import { api, type AlertRule, type NotificationChannel } from '../../../services/api';
-import { alertTargetName, categoryLabel, compactTrigger, evaluationSummary, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames, type CategoryKey } from '../ruleDisplay';
+import { alertTargetName, categoryChipOptions, categoryLabel, compactTrigger, evaluationSummary, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames, type CategoryKey } from '../ruleDisplay';
+import { RuleTargetName } from './RuleTargetName';
 import { ChannelAvatars } from './ChannelAvatars';
 import { LoadErrorBanner } from '../../../components/common';
 import { AlertRuleForm, type AlertRuleFormInitial } from './AlertRuleForm';
@@ -51,7 +52,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filters
-  const [categoryFilter, setCategoryFilter] = useState<CategoryKey>('all');
+  const [categoryFilter, setCategoryFilter] = useState<Exclude<CategoryKey, 'all'> | null>(null);
   const [severityFilter, setSeverityFilter] = useState<'all' | 'critical' | 'warning' | 'info'>('all');
   const [enabledFilter, setEnabledFilter] = useState<'all' | 'on' | 'off'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,10 +110,9 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
     }
   };
 
-  const filteredRules = useMemo(() => {
-    const filtered = rules.filter(r => {
+  // 유형 칩의 개수는 다른 필터(대상, 심각도, 활성, 검색)를 따르고 유형 선택은 따르지 않는다(서버 목록의 상태 칩과 같다).
+  const scopedRules = useMemo(() => rules.filter(r => {
       if (target && !matchesAlertTarget(r, target)) return false;
-      if (categoryFilter !== 'all' && ruleCategory(r) !== categoryFilter) return false;
       if (severityFilter !== 'all' && r.severity !== severityFilter) return false;
       if (enabledFilter !== 'all' && (enabledFilter === 'on' ? !r.isEnabled : r.isEnabled)) return false;
       if (searchQuery) {
@@ -121,8 +121,10 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
         if (!r.name.toLowerCase().includes(q) && !target.includes(q)) return false;
       }
       return true;
-    });
+    }), [rules, severityFilter, enabledFilter, searchQuery, names, target]);
 
+  const filteredRules = useMemo(() => {
+    const filtered = categoryFilter ? scopedRules.filter(r => ruleCategory(r) === categoryFilter) : [...scopedRules];
     return filtered.sort((a, b) => {
       let v = 0;
       if (sortKey === 'severity') v = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
@@ -131,11 +133,11 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       else if (sortKey === 'category') v = ruleCategory(a).localeCompare(ruleCategory(b));
       return sortDir === 'asc' ? v : -v;
     });
-  }, [rules, categoryFilter, severityFilter, enabledFilter, searchQuery, sortKey, sortDir, names, target]);
+  }, [scopedRules, categoryFilter, sortKey, sortDir, names]);
 
   const selectedTargetLabel = target ? alertTargetName(target, names) : null;
   const targetNotice = selectedTargetLabel && (
-    <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status">
+    <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 type-control text-text-secondary" role="status">
       <MaterialIcon size={20} name="filter_alt" className="text-action" />
       <span className="min-w-0 flex-1 truncate">대상: {selectedTargetLabel}</span>
       {onClearTarget && <Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button>}
@@ -148,7 +150,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
   };
 
   const clearFilters = () => {
-    setCategoryFilter('all');
+    setCategoryFilter(null);
     setSeverityFilter('all');
     setEnabledFilter('all');
     setSearchQuery('');
@@ -219,7 +221,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       {formPanel}
       {targetNotice}
       {errorBanner}
-      {/* Filter bar — category pills + severity/enabled + search */}
+      {/* 검색 → 심각도·활성 선택 → 유형 칩. 칩이 가장 넓어 줄이 넘치면 칩 묶음이 통째로 다음 줄로 간다(선택 하나만 떨어지지 않게). */}
       <ListToolbar search={
         <SearchInput
           value={searchQuery}
@@ -231,22 +233,6 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
           placeholder="규칙 이름 · 대상 검색"
         />
       }>
-        <SegmentedControl
-          size="md"
-          ariaLabel="카테고리"
-          value={categoryFilter}
-          onChange={setCategoryFilter}
-          options={[
-            { value: 'all', label: '전체' },
-            { value: 'endpoint', label: '헬스체크' },
-            { value: 'request', label: 'API 요청' },
-            { value: 'log', label: '로그' },
-            { value: 'metric', label: '메트릭' },
-            { value: 'resource', label: '인프라' },
-            { value: 'system', label: '시스템 규칙' },
-          ]}
-        />
-
         <Select
           aria-label="전체 심각도"
           value={severityFilter}
@@ -269,21 +255,23 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
           <option value="on">활성</option>
           <option value="off">비활성</option>
         </Select>
+
+        <FilterChips ariaLabel="유형으로 거르기" value={categoryFilter} onChange={setCategoryFilter} options={categoryChipOptions(scopedRules)} />
       </ListToolbar>
 
       {/* Table */}
-      {view === 'card' ? <div className="space-y-3">
+      {view === 'card' ? <div className="space-y-label">
         <div className="flex flex-wrap gap-2" role="group" aria-label="규칙 정렬">{([{ key: 'name', label: '이름' }, { key: 'severity', label: '심각도' }, { key: 'target', label: '대상' }] as const).map(({ key, label }) => <Button key={key} variant={sortKey === key ? 'secondary' : 'ghost'} size="sm" aria-pressed={sortKey === key} onClick={() => onSort(key)}>{label}{sortKey === key ? sortDir === 'asc' ? ' ↑' : ' ↓' : ''}</Button>)}</div>
         {filteredRules.length === 0 ? <p className="p-5 type-body text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
-            <p className="mt-4 break-words type-body text-text-secondary">{targetLabel(rule, names)}</p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
-            <div className="mt-3"><ChannelAvatars rule={rule} channels={channels} /></div><p className="mt-3 type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p>
-            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
+            <p className="mt-4 break-words type-body text-text-secondary"><RuleTargetName rule={rule} names={names} /></p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
+            <div className="mt-3 space-y-label"><ChannelAvatars rule={rule} channels={channels} /><p className="type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p></div>
+            <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" tone="quiet" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
       </div> : (
-        <div className="overflow-x-auto">
-          <table aria-label="알림 규칙 그리드" className="w-full min-w-[1180px] table-fixed text-sm">
+        <div className="table-bleed overflow-x-auto">
+          <table aria-label="알림 규칙 그리드" className="w-full min-w-[1180px] table-fixed type-control">
             <thead>
               <tr className="border-b border-ui-border-soft">
                 <SortableTH className="w-[260px]" label="규칙" active={sortKey === 'name'} dir={sortDir} onClick={() => onSort('name')} />
@@ -307,7 +295,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
             <tbody>
               {filteredRules.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-10 text-center text-sm text-text-muted">
+                  <td colSpan={7} className="p-10 text-center type-control text-text-muted">
                     조건에 맞는 규칙이 없습니다{' · '}
                     <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button>
                   </td>
@@ -320,7 +308,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                       key={rule.id}
                       className={`group transition-colors hover:bg-ui-hover-soft ${!rule.isEnabled ? 'bg-ui-hover-soft' : ''}`}
                     >
-                      <td className="px-4 py-2.5 align-middle">
+                      <td className="px-4 cell align-middle">
                         <div className="flex min-w-0 items-center gap-2">
                           <span className={`truncate font-medium ${rule.isEnabled ? 'text-text-base' : 'text-text-muted'}`}>
                             {rule.name}
@@ -329,33 +317,33 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                             <MaterialIcon size={20} name="lock" className="shrink-0 text-text-dim" />
                           )}
                         </div>
-                        <p className="truncate text-xs text-text-dim">
+                        <p className="truncate type-caption text-text-dim">
                           {rule.isSystem
                             ? '시스템 기본 규칙 · 삭제 불가, 채널만 변경 가능'
                             : categoryLabel(cat)}
                         </p>
                       </td>
-                      <td className="px-4 py-2.5 align-middle">
+                      <td className="px-4 cell align-middle">
                         <SeverityBadge severity={rule.severity} />
                       </td>
-                      <td className="px-4 py-2.5 align-middle">
+                      <td className="px-4 cell align-middle">
                         {/* 잘린 이름을 마우스로 볼 수 있게만 한다. 글자는 DOM에 있어 낭독되므로 Tab 정지점을 만들지 않는다(A-15). */}
                         {/* 대상은 분류라 칩이 아니라 맨 텍스트다(§5.3 칩은 상태 전용). */}
                         <Tooltip content={targetLabel(rule, names)}><span
-                          className="block max-w-full truncate text-sm text-text-secondary"
+                          className="block max-w-full truncate type-control text-text-secondary"
                         >
-                          {targetLabel(rule, names)}
+                          <RuleTargetName rule={rule} names={names} stacked />
                         </span></Tooltip>
                       </td>
-                      <td className="px-4 py-2.5 align-middle text-sm">
+                      <td className="px-4 cell align-middle type-control">
                         <Tooltip content={evaluationSummary(rule)} focusable><p className="truncate text-text-secondary">
                           {compactTrigger(rule)}
                         </p></Tooltip>
                       </td>
-                      <td className="px-4 py-2.5 align-middle">
+                      <td className="px-4 cell align-middle">
                         <ChannelAvatars rule={rule} channels={channels} />
                       </td>
-                      <td className="px-4 py-2.5 align-middle text-sm text-text-muted whitespace-nowrap">
+                      <td className="px-4 cell align-middle type-control text-text-muted whitespace-nowrap">
                         {rule.lastTriggeredAt
                           ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko })
                           : <span className="text-text-dim">-</span>}
@@ -369,7 +357,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                             title={rule.isEnabled ? '비활성화' : '활성화'}
                             ariaLabel={rule.name}
                           />
-                          <IconButton icon="edit" label="수정" size="sm" onClick={() => handleEdit(rule)} />
+                          <IconButton icon="edit" label="수정" tone="quiet" size="sm" onClick={() => handleEdit(rule)} />
                           <IconButton
                             icon="delete_outline"
                             label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'}

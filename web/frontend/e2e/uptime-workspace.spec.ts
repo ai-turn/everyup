@@ -1,9 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
-const panel = (page: Page) => page.getByRole('tabpanel');
+test.use({ baseURL: API_URL, viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+// 모니터는 자기 페이지가 있다(대상 상세). 탭 패널이 없으므로 본문 전체를 범위로 쓴다.
+const panel = (page: Page) => page.locator('#main-content');
 // 사이드바는 Docker 스냅샷과 모니터를 함께 조회한다. 그 요청 쌍을 빼고 목록 조회만 센다.
+// 쌍의 두 요청은 따로 도착하므로 한쪽만 온 순간에는 1이 어긋난다. 그래서 값은 expect.poll로만 읽는다.
 const listReads = (state: Awaited<ReturnType<typeof uptimeFixture>>) => () =>
   state.requests.filter((request) => request.method === 'GET' && request.path === '/services').length
   - state.requests.filter((request) => request.method === 'GET' && request.path === '/agents/services/all').length;
@@ -34,7 +37,7 @@ test('a failed refresh keeps its last successful timestamp and the previous list
   const state = await uptimeFixture(page);
   await page.clock.install();
   await page.goto('./servers/server-1/uptime?q=Public&view=card');
-  const stamp = page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p');
+  const stamp = page.getByRole('group', { name: '데이터 갱신' }).locator('> p');
   await expect(stamp).toContainText('갱신');
   await expect(page.getByRole('article')).toHaveCount(1);
   const previous = await stamp.textContent();
@@ -55,14 +58,16 @@ test('30 second polling skips hidden tabs and refreshes when the tab is shown ag
   await page.goto('./servers/server-1/uptime');
   await expect(page.getByRole('table', { name: '업타임 그리드' })).toBeVisible();
   const reads = listReads(state);
-  const initial = reads();
+  // 목록은 처음에 한 번 읽는다.
+  const initial = 1;
+  await expect.poll(reads).toBe(initial);
   state.monitors[0].status = 'unhealthy';
   await page.clock.fastForward(30_000);
   await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name: 'Public API', exact: true }) })).toContainText('장애');
-  expect(reads()).toBe(initial + 1);
+  await expect.poll(reads).toBe(initial + 1);
   await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
   await page.clock.fastForward(30_000);
-  expect(reads()).toBe(initial + 1);
+  await expect.poll(reads).toBe(initial + 1);
   await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: false }); document.dispatchEvent(new Event('visibilitychange')); });
   await expect.poll(reads).toBe(initial + 2);
 });
@@ -75,11 +80,13 @@ test('30 second polling can be paused and coalesces pending refreshes', async ({
   await page.goto('./servers/server-1/uptime');
   await expect(page.getByRole('table', { name: '업타임 그리드' })).toBeVisible();
   const reads = listReads(state);
-  const initial = reads();
+  // 목록은 처음에 한 번 읽는다.
+  const initial = 1;
+  await expect.poll(reads).toBe(initial);
   const auto = page.getByRole('switch', { name: '30초마다 자동 갱신' });
   await auto.click();
   await page.clock.fastForward(60_000);
-  expect(reads()).toBe(initial);
+  await expect.poll(reads).toBe(initial);
   await auto.click();
   await expect.poll(reads).toBe(initial + 1);
   // 켜면서 보낸 요청이 끝나야 다음 주기가 겹친 갱신으로 건너뛰어지지 않는다.
@@ -91,7 +98,7 @@ test('30 second polling can be paused and coalesces pending refreshes', async ({
     await expect.poll(reads).toBe(initial + 2);
     // 한 주기(30초) 안에는 끝나지 않은 요청을 기다린다. 넘기면 버려진 것으로 본다(servers-refresh.spec.ts).
     await page.clock.fastForward(29_000);
-    expect(reads()).toBe(initial + 2);
+    await expect.poll(reads).toBe(initial + 2);
     await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeDisabled();
   } finally { state.holds.clear(); gate.resolve(); }
   await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeEnabled();
@@ -100,7 +107,7 @@ test('30 second polling can be paused and coalesces pending refreshes', async ({
 test('list shows recent checks and outage context inline without per-monitor requests', async ({ page }) => {
   const state = await uptimeFixture(page);
   state.monitors[0].status = 'unhealthy';
-  state.monitors[0].activeIncident = { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/uptime/http-monitor', startedAt: new Date(Date.now() - 600_000).toISOString(), durationSec: 600, active: true, message: 'Connection timed out' };
+  state.monitors[0].activeIncident = { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/monitors/http-monitor', startedAt: new Date(Date.now() - 600_000).toISOString(), durationSec: 600, active: true, message: 'Connection timed out' };
   await page.goto('./servers/server-1/uptime?q=Public&inspect=http-monitor');
   const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'Public API', exact: true }) });
   await expect(row.getByText('10분 지속', { exact: true })).toBeVisible();
@@ -119,7 +126,7 @@ test('list shows recent checks and outage context inline without per-monitor req
   await row.getByText('10분 지속', { exact: true }).focus();
   await expect(page.getByRole('tooltip')).toContainText('장애 시작');
   await page.getByRole('link', { name: 'Public API', exact: true }).click();
-  await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor$/);
+  await expect(page).toHaveURL(/\/servers\/server-1\/monitors\/http-monitor$/);
 });
 
 // 목록에서 연 상세의 `모니터 목록` 링크는 목록의 주소(검색어 포함)로 돌아간다.
@@ -127,12 +134,12 @@ test('returning from a detail opened from the list keeps the search', async ({ p
   const state = await uptimeFixture(page);
   await page.goto('./servers/server-1/uptime?q=Public');
   await page.getByRole('link', { name: 'Public API', exact: true }).click();
-  await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor$/);
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  await expect(page).toHaveURL(/\/servers\/server-1\/monitors\/http-monitor$/);
+  await expect(panel(page).getByRole('heading', { level: 1, name: 'Public API' })).toBeVisible();
   // 목록 → 상세 → 새로고침의 흐름에서 fixture가 처리하지 않은 요청이 없다.
   await page.getByRole('button', { name: '새로고침', exact: true }).click();
   await expect(page.getByRole('button', { name: '새로고침', exact: true })).toBeEnabled();
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('Public');
   expect(state.unhandled).toEqual([]);
 });
@@ -164,7 +171,7 @@ for (const mode of ['waiting', 'unavailable', 'paused'] as const) {
     // 모니터가 하나면 서버 탭은 목록 없이 상세를 보인다. 목록의 행을 확인하도록 다른 모니터를 하나 더 둔다.
     state.monitors = [monitor('http-monitor', { status: mode === 'paused' ? 'unhealthy' : 'unknown', isActive: mode !== 'paused' }), monitor('tcp-monitor', { name: 'Database', type: 'tcp', url: 'db.example.com', port: 5432 })];
     state.metrics = [];
-    state.monitors[0].activeIncident = { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/uptime/http-monitor', startedAt: new Date().toISOString(), durationSec: 60, active: true };
+    state.monitors[0].activeIncident = { source: 'uptime', targetName: 'Public API', targetPath: '/servers/server-1/monitors/http-monitor', startedAt: new Date().toISOString(), durationSec: 60, active: true };
     if (mode === 'unavailable') state.responses.set('GET /services', state.monitors);
     await page.goto('./servers/server-1/uptime');
     const row = page.getByRole('row').filter({ has: page.getByRole('link', { name: 'Public API', exact: true }) });
@@ -200,7 +207,7 @@ for (const width of [1024, 1280, 1440]) for (const theme of ['light', 'dark']) {
   });
 }
 
-test('mobile opens full detail with current check context and range controls beside the response chart', async ({ page }) => {
+test('mobile opens full detail with current check context and the range in the page header', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await uptimeFixture(page);
   await page.goto('./servers/server-1/uptime');
@@ -210,16 +217,16 @@ test('mobile opens full detail with current check context and range controls bes
   const current = page.getByRole('group', { name: '최근 체크' });
   await expect(current).toContainText('Connection timed out');
   await expect(current).not.toContainText('5000ms');
-  const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
-  await expect(chart.getByRole('group', { name: '응답 시간 범위' })).toBeVisible();
+  // 기간 선택은 응답 시간 카드가 아니라 머리말에 있다(Docker 서비스와 같은 자리).
+  await expect(page.locator('#main-content header').first().getByRole('group', { name: '시간 범위' })).toBeVisible();
   expect(await page.locator('main > div').first().evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
 });
 
 test('failed bucket requests keep range controls available and another range can recover', async ({ page }) => {
   const state = await uptimeFixture(page);
   state.failures.set('GET /services/http-monitor/metrics/history', 500);
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  const ranges = page.getByRole('group', { name: '응답 시간 범위' });
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  const ranges = page.getByRole('group', { name: '시간 범위' });
   await ranges.getByRole('button', { name: '6h', exact: true }).click();
   await expect(page.getByText('체크 이력 조회에 실패했습니다. 이전 데이터가 있으면 유지합니다.', { exact: true })).toBeVisible();
   await expect(ranges.getByRole('button', { name: '6h', exact: true })).toHaveAttribute('aria-pressed', 'true');

@@ -33,6 +33,8 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const pending = useRef<Promise<void> | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const selectedTab = searchParams.get('tab');
@@ -50,6 +52,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
       const found = all.find((s) => s.agentId === agentId && s.key === serviceKey);
       setService(found ?? null);
       setLoadError(null);
+      setUpdatedAt(new Date());
     } catch (error) {
       setLoadError(getErrorMessage(error));
     } finally {
@@ -68,7 +71,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
     setRefreshKey((prev) => prev + 1);
   }, [fetchService]);
 
-  const { refresh } = useAutoRefresh(handleRefresh, 30_000, true);
+  const { refresh } = useAutoRefresh(handleRefresh, 30_000, autoRefresh);
 
   if (loading) {
     return (
@@ -81,7 +84,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
 
   if (loadError && !service) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center gap-4">
+      <div className="flex h-64 flex-col items-center justify-center gap-heading">
         <MaterialIcon size={32} name="sync_problem" className="text-status-warn" />
         <div className="text-center"><p className="type-label text-text-base">서비스를 불러오지 못했습니다</p><p className="mt-1 type-body text-text-muted">{loadError}</p></div>
         <div className="flex gap-2"><ButtonLink variant="secondary" to="/environments">Docker 환경</ButtonLink><Button loading={refreshing} onClick={() => void fetchService()}>다시 시도</Button></div>
@@ -91,7 +94,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
 
   if (!service) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
+      <div className="flex flex-col items-center justify-center h-64 gap-heading">
         <MaterialIcon size={32} name="error_outline" className="text-red-500" />
         <p className="text-text-muted">
           서비스를 찾을 수 없습니다
@@ -105,7 +108,7 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
 
   return (
     <>
-    {loadError && <div role="alert" className="mb-4 rounded-xl border border-ui-border-soft px-4 py-3 text-sm text-text-secondary">서비스 조회에 실패했습니다. 이전에 불러온 상태입니다. <Button size="sm" variant="secondary" loading={refreshing} onClick={handleRefresh}>다시 시도</Button></div>}
+    {loadError && <div role="alert" className="mb-4 rounded-xl border border-ui-border-soft px-4 py-3 type-control text-text-secondary">서비스 조회에 실패했습니다. 이전에 불러온 상태입니다. <Button size="sm" variant="secondary" loading={refreshing} onClick={handleRefresh}>다시 시도</Button></div>}
     <AgentHealthCheckDetailView
       service={service}
       agentId={agentId!}
@@ -113,6 +116,9 @@ function HealthCheckDetail({ agentId, serviceKey }: { agentId: string; serviceKe
       refreshKey={refreshKey}
       onRefresh={refresh}
       refreshing={refreshing}
+      updatedAt={updatedAt}
+      autoRefresh={autoRefresh}
+      onAutoRefreshChange={setAutoRefresh}
       tab={tab}
       traceId={searchParams.get('traceId') ?? undefined}
       initialRange={parseTimeRange(searchParams.get('range'))}

@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
+test.use({ baseURL: API_URL });
 for (const timezoneId of ['Asia/Seoul', 'America/New_York']) {
   test.describe(timezoneId, () => {
     test.use({ timezoneId, viewport: { width: 375, height: 812 } });
@@ -13,7 +14,7 @@ for (const timezoneId of ['Asia/Seoul', 'America/New_York']) {
         { date: '2026-03-01', uptime: 99.4 }, { date: '2026-03-08', uptime: 99.5 },
         { date: '2026-04-30', uptime: 50 }, { date: '2026-05-01', uptime: 100 }, { date: '2026-05-02', uptime: 0 },
       ] });
-      await page.goto('./servers/server-1/uptime/http-monitor');
+      await page.goto('./servers/server-1/monitors/http-monitor');
       const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
       const strip = overview.getByRole('group', { name: /최근 90일/ });
       const bars = strip.locator(':scope > div');
@@ -41,7 +42,7 @@ for (const timezoneId of ['Asia/Seoul', 'America/New_York']) {
 test('[13] zero history is explicitly unknown rather than zero uptime', async ({ page }) => {
   const state = await uptimeFixture(page); state.history = { percentage: 0, days: [] };
   state.summary = { ...state.summary!, totalChecks: 0, failedChecks: 0, successfulChecks: 0, uptime: 0 };
-  await page.goto('./servers/server-1/uptime/http-monitor');
+  await page.goto('./servers/server-1/monitors/http-monitor');
   const overview = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
   await expect(page.locator('dl > div').filter({ hasText: '30일 업타임' }).locator('dd')).toHaveText('-');
   await expect(page.locator('dl > div').filter({ hasText: '24시간 업타임' }).locator('dd')).toHaveText('-');

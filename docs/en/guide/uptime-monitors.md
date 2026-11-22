@@ -7,7 +7,8 @@ to add them again as uptime monitors.
 
 ## Add a monitor
 
-On the **업타임** (Uptime) screen, click **추가** (Add), fill in the fields below, and click **추가** (Add).
+Open a server from **서버** (Servers), click **업타임 모니터 추가** (Add uptime monitor) on its **업타임** (Uptime) tab, fill in the fields below, and click **추가** (Add).
+On a server with nothing connected yet, the same button is on its **개요** (Overview) tab. Nothing is installed on the server.
 
 | Field | Description |
 | --- | --- |
@@ -29,7 +30,7 @@ services with the [Docker Collector](./quickstart#docker) instead.
 
 ## Status and management
 
-The **업타임** (Uptime) screen shows only the uptime monitors you add there. Each target shows its
+A server's **업타임** (Uptime) tab lists the uptime monitors added to that server, even when there is one. Each target shows its
 HTTP or TCP method and check address. View Docker Collector response checks and container state in
 **Docker 환경** (Docker environments).
 
@@ -37,7 +38,7 @@ Counts for **장애** (down), **정상** (healthy), **확인 대기** (pending),
 at the top. Click a count to filter by that state. Compare monitor names, check addresses, 24-hour
 uptime, and average response times in the list.
 
-The list and detail screens refresh automatically every **30 seconds** by default. Check the last
+The list and the monitor page refresh automatically every **30 seconds** by default. Check the last
 successful refresh time, turn automatic refresh off, or click **새로고침** (Refresh) to refresh manually.
 Automatic requests pause in hidden browser tabs and resume with a refresh when the tab becomes visible.
 If a refresh fails, the screen keeps previously loaded data and labels it as prior information.
@@ -47,11 +48,12 @@ Hover over the check strip, or focus it and use the arrow keys, to inspect an ex
 the full message. An ongoing outage shows its duration below the status; hover over or focus the
 duration to inspect its start time. Click the target name for response trends and 90-day history.
 
-Use **일시정지** (Pause) to stop checks and **재개** (Resume) to restart them. Use **수정** (Edit) or
-**삭제** (Delete) on the detail screen to manage the monitor.
+Use **일시정지** (Pause) to stop checks and **재개** (Resume) to restart them. On the monitor's page, use
+**수정** (Edit) on the connection line, and the more (⋮) menu for **다른 서버로 옮기기** (Move to another server)
+or **삭제** (Delete).
 
-The detail screen's **응답 시간** (Response time) chart defaults to the last **6 hours**. Select
-**1H**, **6H**, or **24H** for averages in 2-, 5-, or 20-minute buckets. Response times average
+The monitor page's **응답 시간** (Response time) chart defaults to the last **6 hours**. Select
+**1h**, **6h**, or **24h** at the right of the page header for averages in 2-, 5-, or 20-minute buckets. Response times average
 successful checks only. The summary shows the selected period's average, total checks, and failed checks.
 
 Hover over the chart, or focus it and use the left and right arrow keys, to inspect a bucket's
@@ -62,5 +64,5 @@ is not represented as an outage or a 0ms response.
 ## Getting outage alerts
 
 An uptime monitor that goes down sends nothing unless an [alert rule](./notifications#rules)
-matches it. A rule with the **헬스체크** (Health check) category and an empty **대상** (Target)
+matches it. A rule with the **업타임** (Uptime) category and an empty **대상** (Target)
 applies to every uptime monitor and Docker service.

@@ -53,13 +53,13 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
     content = <div role="alert"><EmptyState icon="error_outline" title="API 요청을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: onRetry }} /></div>;
   } else if (requests.length === 0) {
     content = <EmptyState icon="http"
-          title={filtered ? '조건에 맞는 요청이 없습니다' : waiting ? '아직 수신한 API 트레이스가 없습니다' : '이 기간에 수집된 HTTP 요청이 없습니다'}
+          title={filtered ? '조건에 맞는 요청이 없습니다' : waiting ? '아직 수신한 API 요청이 없습니다' : '이 기간에 수집된 HTTP 요청이 없습니다'}
           description={filtered ? '적용한 필터를 해제하거나 기간을 바꿔 주세요.' : waiting ? '아래 수집 설정 안내에 따라 앱의 OpenTelemetry 전송을 설정해 주세요.' : '기간을 바꾸거나 트레이스 탭에서 다른 span이 수신됐는지 확인해 주세요.'}
           action={filtered ? { label: '필터 해제', onClick: onClear } : undefined}
         />;
   } else {
-    content = <div>
-          <table aria-label="API 요청 목록" className="w-full table-fixed text-xs">
+    content = <div className="table-bleed">
+          <table aria-label="API 요청 목록" className="w-full table-fixed type-caption">
             <thead className="border-b border-ui-border-soft text-text-muted"><tr>
               <th scope="col" className="px-4 py-3 text-left font-medium">요청</th>
               <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium sm:table-cell">상태</th>
@@ -74,7 +74,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
           </div>}
         </div>;
   }
-  return <section aria-label="요청 결과" className="space-y-3">
+  return <section aria-label="요청 결과" className="space-y-heading">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <h2 className="type-card-title text-text-base">요청 결과</h2>
       {!loading && !error && <p className="type-caption tabular-nums text-text-muted">{filtered ? '검색 결과' : '전체'} {total.toLocaleString()}건</p>}

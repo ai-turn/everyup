@@ -34,7 +34,7 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
   const visible = data?.series.filter(item => metricSeriesLabel(item.attributes, item.streamKey, item.streamLabel).toLowerCase().includes(search.toLowerCase())) ?? [];
 
   // 차트 제목 아래 한 줄: 값 표시 · 필터 · 시리즈 버튼과 적용한 필터 칩. 필터·시리즈 목록은 그 아래로 펼친다.
-  return <div className="mb-3 space-y-3">
+  return <div className="space-y-label">
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="탐색 조건">
       {sum && <>
         <SegmentedControl size="md" ariaLabel="메트릭 값 표시" value={mode} options={[{ value: 'raw', label: '원값' }, { value: 'rate', label: '초당 증가량' }]} onChange={next => query.update({ metricMode: next })} />
@@ -47,7 +47,7 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
       {Object.entries(filters).map(([name, val]) => <Button key={name} variant="secondary" size="md" className="max-w-full" aria-label={`${name} 필터 제거`} onClick={() => { const next = { ...filters }; delete next[name]; setFilters(next); }}><span className="min-w-0 truncate font-mono">{name}={JSON.stringify(val)}</span><MaterialIcon name="close" className="shrink-0" /></Button>)}
       {(query.attributes || query.series || query.mode !== null) && <Button variant="ghost" size="md" onClick={() => query.update({ metricAttributes: null, metricSeries: null, metricMode: null })}>메트릭 조회 초기화</Button>}
     </div>
-    {open === 'filter' && <div id={panelId} className="space-y-3 rounded-md bg-ui-hover-soft p-4">
+    {open === 'filter' && <div id={panelId} className="space-y-label rounded-md bg-ui-hover-soft p-4">
         <p className="type-body text-text-muted">모든 조건에 정확히 일치하는 시리즈를 조회합니다. 문자열과 숫자를 구분합니다.</p>
         <form onSubmit={event => {
           event.preventDefault();
@@ -67,17 +67,17 @@ export function MetricExplorerControls({ data, pending, sum, mode }: { data: Met
           if (new TextEncoder().encode(JSON.stringify(next)).length > 4096) { setError('필터가 너무 깁니다. key나 값을 줄여 주세요.'); return; }
           setFilters(next); setKey(''); setValue(''); setError('');
         }} className="flex flex-wrap items-end gap-3">
-          <label className="min-w-0 flex-1 basis-48 space-y-1.5 type-label">Attribute key<Input mono value={key} onChange={event => setKey(event.target.value)} placeholder="http.request.method" /></label>
-          <label className="min-w-0 flex-1 basis-48 space-y-1.5 type-label">값<Input mono value={value} disabled={valueType === 'null'} onChange={event => setValue(event.target.value)} placeholder={valueType === 'boolean' ? 'true 또는 false' : 'GET'} /></label>
-          <label className="w-32 space-y-1.5 type-label">값 타입<Select aria-label="Attribute 값 타입" value={valueType} onChange={event => setValueType(event.target.value)}><option value="string">문자열</option><option value="number">숫자</option><option value="boolean">참·거짓</option><option value="null">null</option></Select></label>
+          <label className="min-w-0 flex-1 basis-48 space-y-label type-label">Attribute key<Input mono value={key} onChange={event => setKey(event.target.value)} placeholder="http.request.method" /></label>
+          <label className="min-w-0 flex-1 basis-48 space-y-label type-label">값<Input mono value={value} disabled={valueType === 'null'} onChange={event => setValue(event.target.value)} placeholder={valueType === 'boolean' ? 'true 또는 false' : 'GET'} /></label>
+          <label className="w-32 space-y-label type-label">값 타입<Select aria-label="Attribute 값 타입" value={valueType} onChange={event => setValueType(event.target.value)}><option value="string">문자열</option><option value="number">숫자</option><option value="boolean">참·거짓</option><option value="null">null</option></Select></label>
           <Button type="submit" variant="secondary">필터 적용</Button>
         </form>
         {error && <p role="alert" className="type-body text-status-error">{error}</p>}
     </div>}
-    {open === 'series' && <div id={panelId} className="space-y-3 rounded-md bg-ui-hover-soft p-4">
+    {open === 'series' && <div id={panelId} className="space-y-label rounded-md bg-ui-hover-soft p-4">
         <div className="flex flex-wrap items-center gap-3"><p className="type-body text-text-muted">차트와 분포에 최대 6개를 함께 표시합니다.</p><Button variant="ghost" size="sm" onClick={() => query.update({ metricSeries: null })}>기본 선택</Button></div>
         <SearchInput aria-label="Attribute 조합으로 시리즈 찾기" placeholder="Attribute 조합으로 찾기" value={search} onChange={event => setSearch(event.target.value)} onClear={() => setSearch('')} />
-        <div className="max-h-64 space-y-2 overflow-y-auto" aria-label="시리즈 목록" aria-busy={pending}>
+        <div className="max-h-64 space-y-label overflow-y-auto" aria-label="시리즈 목록" aria-busy={pending}>
           {visible.map(item => <Button key={item.id} variant={selected.includes(item.id) ? 'secondary' : 'quiet'} size="md" className="w-full justify-start" title={metricSeriesLabel(item.attributes, item.streamKey, item.streamLabel)} aria-pressed={selected.includes(item.id)} disabled={pending || (!selected.includes(item.id) && selected.length >= 6)} onClick={() => {
             const next = selected.includes(item.id) ? selected.filter(id => id !== item.id) : [...selected, item.id];
             query.update({ metricSeries: JSON.stringify(next) });

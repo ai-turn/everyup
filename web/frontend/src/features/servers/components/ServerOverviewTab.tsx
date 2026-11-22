@@ -5,7 +5,8 @@ import type { UptimeMonitor } from '../../../services/api';
 import { formatDuration } from '../../../utils/incidentFormat';
 import { WARNING_PCT } from '../../infra/usage';
 import { RecentUptimeChecks } from '../../uptime/components/RecentUptimeChecks';
-import { ADD_MONITOR_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability } from '../serverPaths';
+import { connectAction } from '../../connections/connectCopy';
+import { CONNECT_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability, monitorPath } from '../serverPaths';
 import { capabilityLabel, capabilityTargets, capabilityUnverified, monitorState, STATE_ORDER, type ServerRow } from '../serverStatus';
 
 const percent = (value: number | undefined, digits: number) => value === undefined ? '-' : `${value.toFixed(digits)}%`;
@@ -43,12 +44,17 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
     ? [...row.targets.monitors].sort((a, b) => STATE_ORDER[monitorState(a).state] - STATE_ORDER[monitorState(b).state]).slice(0, 3)
     : [];
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
-      <div className="sm:w-40 sm:shrink-0">
-        <h2 id={headingId} className="type-card-title text-text-base">{label}</h2>
-        <div className="mt-1"><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
+    <section aria-labelledby={headingId} className="flex flex-col gap-label sm:flex-row sm:items-start sm:gap-group">
+      {/* 이동 링크는 제목·상태 바로 아래다. 행 오른쪽 끝(제목에서 약 1,070px)에 다섯 번 반복되면 무엇을 여는지 제목과 짝지어
+          읽기 어려웠다(2026-11-20 시각 점검 2.4). */}
+      <div className="space-y-label sm:w-40 sm:shrink-0">
+        <div className="space-y-intra">
+          <h2 id={headingId} className="type-section-title text-text-base">{label}</h2>
+          <div><StatusLight tone={tone} label={known ? capabilityLabel(row, capability, tone) : '확인 불가'} /></div>
+        </div>
+        <Link to={serverPath(row.server.id, capability)} className="inline-flex min-h-11 items-center type-label text-action link-underline sm:min-h-6">{label} 보기</Link>
       </div>
-      <div className="min-w-0 flex-1 space-y-4">
+      <div className="min-w-0 flex-1 space-y-heading">
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {stats(row, capability, known).map((stat) => (
             <div key={stat.label} className="min-w-0">
@@ -63,16 +69,14 @@ function CapabilityRow({ row, capability, label, tone, known }: { row: ServerRow
           </div>
         )}
       </div>
-      <Link to={serverPath(row.server.id, capability)} className="inline-flex min-h-11 shrink-0 items-center type-label text-action link-underline sm:min-h-6">{label} 보기</Link>
     </section>
   );
 }
 
-export function ServerOverviewTab({ row, onOpen }: {
-  row: ServerRow;
-  onOpen: (capability: ServerCapability) => void;
-}) {
+export function ServerOverviewTab({ row }: { row: ServerRow }) {
   const navigate = useNavigate();
+  // 연결은 데이터가 보일 자리(기능 탭)에서 시작한다. 개요는 그 탭으로 옮기면서 대화 상자를 열어 달라고만 한다(연결 진입점 정리 D2).
+  const startConnect = (key: ServerCapability) => navigate(serverPath(row.server.id, key), { state: { [CONNECT_STATE]: true } });
   // 대상 목록을 불러오지 못했거나 이전 목록인 기능은 지금 상태를 모른다. 경고가 아니므로 대기 톤으로, 연결된 기능들 다음에 둔다.
   const unknown = (key: ServerCapability) => capabilityUnverified(row, key);
   const connected = SERVER_CAPABILITIES
@@ -83,11 +87,14 @@ export function ServerOverviewTab({ row, onOpen }: {
 
   if (connected.length === 0) {
     return (
-      <EmptyState icon="dns" headingLevel="h2" title="아직 연결한 기능이 없습니다" description="업타임 모니터는 설치 없이 바로 추가할 수 있습니다.">
-        {/* 업타임 탭으로 옮기면서 추가 대화 상자를 연다. 같은 뜻의 버튼을 탭에서 한 번 더 누르지 않게. */}
-        <Button onClick={() => navigate(serverPath(row.server.id, 'uptime'), { state: { [ADD_MONITOR_STATE]: true } })}>업타임 모니터 추가</Button>
-        {/* 다른 기능의 선택지는 탭 줄의 "연결 전" 표시가 이미 보여 준다. */}
-        <p className="mt-3 type-body text-text-muted">다른 기능은 각 탭에서 연결합니다.</p>
+      <EmptyState icon="dns" headingLevel="h2" title="아직 연결한 기능이 없습니다" description="업타임 모니터는 설치 없이 바로 추가할 수 있습니다. 다른 기능은 연결하면 API Key와 설정 예시를 받습니다.">
+        {/* 버튼마다 그 기능의 탭으로 옮기면서 대화 상자를 연다. 같은 뜻의 버튼을 탭에서 한 번 더 누르지 않게. */}
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button onClick={() => startConnect('uptime')}>{connectAction('uptime')}</Button>
+          {SERVER_CAPABILITIES.filter(({ key }) => key !== 'uptime').map(({ key }) => (
+            <Button key={key} variant="secondary" onClick={() => startConnect(key)}>{connectAction(key)}</Button>
+          ))}
+        </div>
       </EmptyState>
     );
   }
@@ -99,16 +106,16 @@ export function ServerOverviewTab({ row, onOpen }: {
     .sort((a, b) => (b.activeIncident?.durationSec ?? 0) - (a.activeIncident?.durationSec ?? 0));
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       {incidents.length > 1 && (
         <section aria-labelledby="server-incidents" className="flex items-start gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
-          <span aria-hidden="true" className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-status-error-fill" />
+          <span aria-hidden="true" className="flex h-5 shrink-0 items-center"><span className="h-2.5 w-2.5 rounded-full bg-status-error-fill" /></span>
           <div className="min-w-0">
             <h2 id="server-incidents" className="type-label text-text-base">진행 중 장애 {incidents.length}건</h2>
             <ul className="mt-1 flex flex-wrap gap-x-4">
               {incidents.map((monitor) => (
                 <li key={monitor.id} className="min-w-0">
-                  <Link to={serverPath(row.server.id, 'uptime', monitor.id)} className="inline-flex min-h-11 items-center gap-1.5 type-body text-action link-underline sm:min-h-6">
+                  <Link to={monitorPath(row.server.id, monitor.id)} className="inline-flex min-h-11 items-center gap-1.5 type-body text-action link-underline sm:min-h-6">
                     {monitor.name}<span className="type-caption text-text-muted">{formatDuration(monitor.activeIncident!.durationSec)} 경과</span>
                   </Link>
                 </li>
@@ -122,10 +129,10 @@ export function ServerOverviewTab({ row, onOpen }: {
           {connected.map(({ key, label, tone, known }) => <CapabilityRow key={key} row={row} capability={key} label={label} tone={tone} known={known} />)}
         </section>
         {connectable.length > 0 && (
-          <section aria-labelledby="server-connectable" className="space-y-2">
-            <h2 id="server-connectable" className="type-card-title text-text-base">연결할 수 있는 기능</h2>
+          <section aria-labelledby="server-connectable" className="space-y-label">
+            <h2 id="server-connectable" className="type-section-title text-text-base">연결할 수 있는 기능</h2>
             <div className="-mx-2 flex flex-wrap gap-x-2">
-              {connectable.map(({ key, label }) => <Button key={key} variant="text" className="px-2" onClick={() => onOpen(key)}>{label}</Button>)}
+              {connectable.map(({ key }) => <Button key={key} variant="text" className="px-2" onClick={() => startConnect(key)}>{connectAction(key)}</Button>)}
             </div>
           </section>
         )}

@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "preview": "vite preview",
     "screenshot": "pnpm build:demo && node scripts/capture-screenshots.mjs",
+    "measure": "pnpm build:demo && node scripts/measure-layout.mjs",
     "doctor": "npx react-doctor@latest"
   },
   "dependencies": {

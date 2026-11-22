@@ -1,21 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import { Button, Input, LoadErrorBanner, MaterialIcon, SegmentedControl, Select, IconButton } from '../../../components/common';
+import { useEffect, useRef, useState } from 'react';
+import { IconButton } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
-import {
-  api,
-  type ObservedService,
-  type TelemetrySignal,
-} from '../../../services/api';
-import { getErrorMessage } from '../../../utils/errors';
-import { readLatest } from '../../../utils/readLatest';
+import type { ObservedService, TelemetrySignal } from '../../../services/api';
+import { SIGNAL_TARGET, connectAction, connectAttached, connectReady, connectView } from '../../connections/connectCopy';
+import { DirectTelemetrySetupForm } from './DirectTelemetrySetupForm';
 import { DirectTelemetrySetupResult, type TelemetryConnectionResult } from './DirectTelemetrySetupResult';
 
 interface DirectTelemetrySetupDialogProps {
   signal: TelemetrySignal;
-  capabilityLabel: string;
-  title: string;
   description: string;
   onClose: () => void;
   onCreated: (service: ObservedService) => void;
@@ -23,30 +15,28 @@ interface DirectTelemetrySetupDialogProps {
   onIssued?: () => void;
   /** 새 앱을 이 서버에 만들고, 기존 앱 후보를 이 서버의 앱으로 좁힌다. 그룹은 서버의 것이다. */
   serverId: string;
+  /** 같은 이름의 Docker 환경을 찾아 안내한다(`DockerHostNote`). */
+  serverName: string;
+  /** 앱 페이지의 `연결 전` 탭에서 열었다. 새 앱을 만들지 않고 이 앱에 데이터 유형을 더한다(고를 것이 없다). */
+  attachToId?: string;
 }
 
-type SetupMode = 'new' | 'existing';
-
+/** 직접 연결 대화 상자. 입력(`DirectTelemetrySetupForm`)을 마치면 같은 자리에서 결과(`DirectTelemetrySetupResult`)로 바뀐다. */
 export function DirectTelemetrySetupDialog({
   signal,
-  capabilityLabel,
-  title,
   description,
   onClose,
   onCreated,
   onIssued,
   serverId,
+  serverName,
+  attachToId,
 }: DirectTelemetrySetupDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [mode, setMode] = useState<SetupMode>('new');
-  const [name, setName] = useState('');
-  const [existingId, setExistingId] = useState('');
-  const [existingServices, setExistingServices] = useState<ObservedService[]>([]);
+  // 제목·결과·완료 버튼은 시작 버튼과 같은 말이다(DESIGN.md §9.17).
+  const target = SIGNAL_TARGET[signal];
   const [result, setResult] = useState<TelemetryConnectionResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [optionsLoading, setOptionsLoading] = useState(true);
-  const [optionsError, setOptionsError] = useState<string | null>(null);
-  const [optionsRetryKey, setOptionsRetryKey] = useState(0);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -54,62 +44,12 @@ export function DirectTelemetrySetupDialog({
     dialog?.showModal();
     return () => { dialog?.close(); if (trigger?.isConnected) trigger.focus(); };
   }, []);
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      setOptionsLoading(true);
-      setOptionsError(null);
-      try {
-        const serviceRows = await api.getObservedServices();
-        if (active) setExistingServices((serviceRows ?? []).filter(service => service.isActive && !service.signals.includes(signal) && service.serverId === serverId));
-      } catch (error) {
-        if (active) setOptionsError(getErrorMessage(error));
-      } finally {
-        if (active) setOptionsLoading(false);
-      }
-    };
-    void load();
-    return () => { active = false; };
-  }, [signal, serverId, optionsRetryKey]);
-
-  const selected = useMemo(
-    () => existingServices.find(service => service.id === existingId),
-    [existingId, existingServices],
-  );
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setSubmitting(true);
-    try {
-      if (mode === 'new') {
-        const service = await api.createObservedService({ name: name.trim(), serverId, signals: [signal] });
-        setResult({ kind: 'issued', service });
-        onIssued?.();
-      } else if (selected) {
-        // 목록을 받은 뒤에 앱의 신호가 바뀌었을 수 있다. 지금의 앱에 신호를 더한다(그 사이의 연결 해제를 되돌리지 않게).
-        const latest = await readLatest(() => api.getObservedService(selected.id), '연결');
-        const signals = latest.signals.includes(signal) ? latest.signals : [...latest.signals, signal];
-        const service = await api.updateObservedService(latest.id, { name: latest.name, serverId, signals });
-        setResult({ kind: 'attached', service, signal });
-        onIssued?.();
-      }
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const done = () => {
     const service = result?.service;
     if (service) onCreated(service);
     onClose();
   };
-
-  const modeOptions: { value: SetupMode; label: string }[] = [
-    { value: 'new', label: '새 앱' },
-    { value: 'existing', label: '기존 앱' },
-  ];
 
   return (
     <dialog
@@ -122,8 +62,8 @@ export function DirectTelemetrySetupDialog({
     >
       <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-ui-border bg-bg-surface px-6 py-4">
         <div>
-          <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{title}</h2>
-          <p className="mt-0.5 type-body text-text-muted">{description}</p>
+          <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{connectAction(target)}</h2>
+          <p className="mt-intra type-body text-text-muted">{description}</p>
         </div>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
       </div>
@@ -131,50 +71,14 @@ export function DirectTelemetrySetupDialog({
       {result ? (
         <DirectTelemetrySetupResult
           connection={result}
-          // 조사가 이름의 받침에 따라 갈리지 않는 문장으로 쓴다("메트릭를"이 됐었다).
-          title={result.kind === 'issued' ? `${capabilityLabel} 연결이 준비되었습니다` : `기존 앱에 ${capabilityLabel} 연결을 추가했습니다`}
-          doneLabel={`${capabilityLabel} 보기`}
+          title={result.kind === 'issued' ? connectReady(target) : connectAttached(target, result.service.name)}
+          doneLabel={connectView(target)}
           onDone={done}
         />
       ) : (
-        <form onSubmit={submit} className="space-y-5 p-6">
-          {optionsLoading && <p role="status" className="type-body text-text-muted">연결 정보를 확인하고 있습니다…</p>}
-          {optionsError && <LoadErrorBanner inline title="연결 정보를 불러오지 못했습니다" message={optionsError} onRetry={() => setOptionsRetryKey(key => key + 1)} />}
-          {signal === 'logs' && (
-            <p className="type-body text-text-muted">
-              컨테이너가 stdout으로 내보내는 로그는 <Link to="/environments" className="text-action underline underline-offset-2">Docker 환경</Link>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
-            </p>
-          )}
-          {/* Offered only when some service can take this signal on. */}
-          {existingServices.length > 0 && (
-            <SegmentedControl options={modeOptions} value={mode} onChange={setMode} size="md" ariaLabel="앱 선택 방식" />
-          )}
-
-          {mode === 'new' ? (
-            <div className="space-y-1.5">
-              <label className="block type-label text-text-secondary" htmlFor={`direct-${signal}-service-name`}>앱 이름</label>
-              <Input id={`direct-${signal}-service-name`} name="name" autoComplete="off" aria-describedby={`direct-${signal}-name-hint`} required maxLength={200} value={name} onChange={event => setName(event.target.value)} placeholder="예: orders-api" />
-              <p id={`direct-${signal}-name-hint`} className="type-body text-text-muted">앱이 보내는 service.name과 관계없이 이 이름으로 표시하며, 연결 설정의 OTEL_SERVICE_NAME에도 들어갑니다.</p>
-            </div>
-          ) : (
-            <label className="block space-y-1.5" htmlFor={`direct-${signal}-existing-service`}>
-              <span className="type-label text-text-secondary">앱</span>
-              <Select id={`direct-${signal}-existing-service`} required value={existingId} onChange={event => setExistingId(event.target.value)}>
-                <option value="">앱 선택</option>
-                {existingServices.map(service => <option key={service.id} value={service.id}>{service.name}</option>)}
-              </Select>
-              <span className="block type-body text-text-muted">{`기존 연결 키에 ${capabilityLabel} 권한을 추가합니다.`}</span>
-            </label>
-          )}
-
-          <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
-            <Button type="submit" disabled={optionsLoading || Boolean(optionsError) || (mode === 'new' ? !name.trim() : !selected)} loading={submitting}>
-              <MaterialIcon name="add" />
-              추가
-            </Button>
-          </div>
-        </form>
+        <DirectTelemetrySetupForm signal={signal} serverId={serverId} serverName={serverName} attachToId={attachToId}
+          submitting={submitting} onSubmittingChange={setSubmitting} onCancel={onClose}
+          onResult={(next) => { setResult(next); onIssued?.(); }} />
       )}
     </dialog>
   );

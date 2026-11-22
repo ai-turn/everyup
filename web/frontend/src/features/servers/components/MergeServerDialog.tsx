@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Button, IconButton } from '../../../components/common';
+import { Button, IconButton, OptionText } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
 import { api, type Project } from '../../../services/api';
@@ -106,16 +106,16 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMe
         <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
           <div>
             <h2 id="merge-server-title" className="type-card-title text-text-base">다른 서버 합치기</h2>
-            <p className="mt-0.5 type-body text-text-muted">선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.</p>
+            <p className="mt-intra type-body text-text-muted">선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.</p>
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={merging} />
         </div>
-        <fieldset disabled={merging} className="space-y-4 p-6">
+        <fieldset disabled={merging} className="space-y-heading p-6">
           {candidates.length === 0 ? (
             <p className="type-body text-text-muted">합칠 다른 서버가 없습니다.</p>
           ) : (
             <div>
-              <h3 id="merge-server-choices" className="mb-1.5 type-label text-text-muted">합칠 서버 ({candidates.length}개)</h3>
+              <h3 id="merge-server-choices" className="mb-label type-label text-text-muted">합칠 서버 ({candidates.length}개)</h3>
               {/* 행 높이(약 52px)의 4.5배쯤에서 자른다. 마지막 행이 반쯤 걸쳐야 목록이 더 있다는 것이 보인다. */}
               <ul aria-labelledby="merge-server-choices" className="-mx-2 max-h-60 overflow-y-auto">
                 {candidates.map((candidate) => {
@@ -125,11 +125,8 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMe
                     <li key={candidate.server.id}>
                       <label className={`flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-ui-hover-soft'}`}>
                         <input type="checkbox" checked={checked.has(candidate.server.id)} disabled={disabled} onChange={() => toggle(candidate.server.id)}
-                          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed" />
-                        <span className="min-w-0">
-                          <span className="block break-words type-label text-text-base">{candidate.server.name}{group && ` (${group})`}</span>
-                          <span className="block type-caption text-text-muted">{disabled ? INFRA_TAKEN : summaryOf(candidate)}</span>
-                        </span>
+                          className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed" />
+                        <OptionText title={<>{candidate.server.name}{group && ` (${group})`}</>} description={disabled ? INFRA_TAKEN : summaryOf(candidate)} />
                       </label>
                     </li>
                   );
@@ -139,7 +136,7 @@ export function MergeServerDialog({ row, rows, projects, onClose, onReload, onMe
           )}
           {infraUnknown && <p className="type-body text-text-muted">인프라 리소스 목록을 불러오지 못해 충돌 여부를 미리 확인하지 못했습니다.</p>}
           {selected.length > 0 && (
-            <div className="space-y-3" aria-live="polite">
+            <div className="space-y-label" aria-live="polite">
               <p className="type-body text-text-base">
                 {knownTargets ? '다음 대상이 이 서버로 옮겨집니다.'
                   : unknownTargets ? '대상 목록을 불러오지 못해 옮겨질 대상을 확인하지 못했습니다.'

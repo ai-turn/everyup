@@ -145,6 +145,21 @@
 
   /* 실제 로드한 굵기와 Tailwind 이름을 그대로 맞춘다: normal 400 / medium 500 / bold 700.
      Spoqa에 없는 600(semibold)은 사용하지 않는다. */
+
+  /* 9. 간격 관계 토큰(DESIGN.md §3.7). 숫자 스케일(gap-4 등)은 그대로 두고 관계 이름을 덧붙인다 — 숫자 스케일은
+     w-*·h-*·inset-*도 쓰므로 지우면 크기 클래스가 깨진다. gap-heading, space-y-label, mt-intra처럼 쓴다.
+     세로(쌓기): 한 항목의 줄 사이 → 라벨 → 내용 → 제목 → 내용 → 두 줄 항목 사이 → 하위 그룹·페이지 블록 → 섹션. */
+  --spacing-intra: 0.25rem;   /* 4  V1 제목 → 설명, 컨트롤 → 도움말, 라벨 → 값 */
+  --spacing-label: 0.5rem;    /* 8  V2 라벨 → 그 내용 */
+  --spacing-heading: 1rem;    /* 16 V3 제목 → 첫 내용, 폼 필드 사이 */
+  --spacing-item: 1.25rem;    /* 20 V4 두 줄 항목 사이, 모달 본문의 섹션 */
+  --spacing-group: 1.5rem;    /* 24 V5 하위 그룹 사이, 페이지 블록(page-stack) */
+  --spacing-section: 2rem;    /* 32 V6 카드 없는 섹션 사이(section-stack, 선 포함) */
+  /* 가로(한 줄에 놓기) */
+  --spacing-pair: 0.375rem;   /* 6  점 + 라벨, 아이콘 + 글자 — 한 문장처럼 읽히는 짝 */
+  --spacing-inline: 0.5rem;   /* 8  같은 무리의 독립 요소(버튼 사이, 제목 + 단위) */
+  --spacing-lead: 0.75rem;    /* 12 선행 아이콘·타일 → 텍스트 블록, 툴바 컨트롤 사이 */
+  --spacing-tile: 1rem;       /* 16 카드·타일 사이 */
 }
 
 /* 크기·행간·굵기를 역할별로 묶는다. 색·여백·정렬은 컨테이너에서 정한다. */
@@ -183,10 +198,49 @@
 
 @utility section-stack {
   & > * + * {
-    margin-top: 2rem;
-    padding-top: 2rem;
+    margin-top: var(--spacing-section);
+    padding-top: var(--spacing-section);
     border-top: 1px solid var(--color-ui-border-soft);
   }
+}
+
+/* 페이지 블록 사이 24px(DESIGN.md §3.7): 머리말 → 탭 → 패널, 패널 안의 블록. 20px(space-y-5)과 24px이 같은 관계에
+   섞여 있었다. 모달·패널 본문은 이 규칙이 아니다(space-y-5). Tailwind v4 space-y와 같은 방식(마지막이 아닌 자식의
+   아래 여백, :where로 명시도 0)이라 자식이 직접 준 여백(모바일 뒤로 링크의 mb-3 등)이 그대로 이긴다. */
+@utility page-stack {
+  :where(& > :not(:last-child)) {
+    margin-block-end: var(--spacing-group);
+  }
+}
+
+/* 테두리 없는 표(§3.1)의 글자를 본문 정렬선에 맞춘다. 셀 패딩(px-4)만큼 표를 바깥으로 펼쳐 첫 글자가 제목·툴바와
+   같은 x에서 시작하고, hover 채움은 그만큼 정렬선 밖으로 나간다. 셀 가로 패딩은 px-4로 고정한다. */
+@utility table-bleed {
+  margin-inline: -1rem;
+}
+
+/* 두 줄 목록(ListRow)의 행은 hover 채움 때문에 px-3 py-2.5 패딩을 가진다. 목록을 그만큼 사방으로 펼쳐
+   글자가 본문 정렬선에 서고, 앞뒤의 간격 토큰(제목 → 내용 16, 라벨 → 항목 8)이 보이는 간격 그대로가 되게 한다
+   (DESIGN.md §3.7 세로 위계). 패딩이 간격에 더해지면 같은 mb-3이 목록 앞에서는 14px, 표 앞에서는 29px로 보였다. */
+@utility list-bleed {
+  margin: -0.625rem -0.75rem;
+}
+
+/* 목록 끝 조작(ListMore)의 자리: list-bleed의 아래 -10px을 되돌려 마지막 항목과 20px(item), 행처럼 좌우로 펼치고 그룹 끝에서
+   버튼의 아래 패딩을 거둔다. ListGroup의 footer가 쓴다. */
+@utility list-more {
+  margin: 0.625rem -0.75rem -0.625rem;
+}
+
+/* 조밀한 표 칸·코드 블록의 세로 안쪽 10px(DESIGN.md §4.5). 손으로 만든 표(알림 이력·규칙, Endpoint, 트레이스)와 코드 블록이
+   같은 밀도를 쓴다. 간격 관계(§3.7)가 아니라 칸의 밀도라 이 유틸리티가 값을 갖는다. 가로 안쪽은 호출부가 정한다(px-4 등). */
+@utility cell {
+  padding-block: 0.625rem;
+}
+
+/* 20px 아이콘을 옆 글의 첫 줄에 맞추는 2px(items-start 행의 배너·안내 문구). 간격이 아니라 정렬이다(DESIGN.md §3.7). */
+@utility icon-lead {
+  margin-top: 0.125rem;
 }
 
 @utility type-section-title {
@@ -213,6 +267,14 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* 14px / 20px: 컨트롤과 조밀한 행 안의 글(입력·선택 상자의 값, 표 칸, 메뉴·목록 항목). 여러 줄로 흐르는 글은
+   type-body(14/21)다. 고정 높이 컨트롤 안의 한 줄은 줄 상자 20px을 유지한다(DESIGN.md §2.2). 굵기는 정하지 않는다 —
+   컨트롤이 다른 클래스로 500을 주는 경우가 있어, 여기서 400을 주면 CSS 순서에 따라 굵기가 바뀐다. */
+@utility type-control {
+  font-size: var(--text-sm);
+  line-height: 1.25rem;
+}
+
 /* 12px 500: 표 헤더·배지·작은 버튼·키 표시처럼 조밀한 자리의 라벨. type-label의 12px판이다. */
 @utility type-label-sm {
   font-size: var(--text-xs);
@@ -223,6 +285,14 @@
 @utility type-caption {
   font-size: var(--text-xs);
   line-height: 1rem;
+  font-weight: var(--font-weight-normal);
+}
+
+/* 쌓이는 12px 줄(두 줄 목록의 둘째 줄, 표 칸의 보조 줄). 한국어는 행간 1.5에서 읽힌다 — type-caption(12/16)은
+   다른 글자 옆에 한 줄로 놓이는 메타(시각, 개수, 배지)에만 쓴다(DESIGN.md §2.2). */
+@utility type-caption-stack {
+  font-size: var(--text-xs);
+  line-height: 1.125rem;
   font-weight: var(--font-weight-normal);
 }
 

@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { dockerService, uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
-const panel = (page: Page) => page.getByRole('tabpanel');
+test.use({ baseURL: API_URL });
+// 모니터는 자기 페이지가 있다(대상 상세). 탭 패널이 없으므로 본문 전체를 범위로 쓴다.
+const panel = (page: Page) => page.locator('#main-content');
 
 test('[04] direct detail and browser back preserve the searched list', async ({ page }) => {
   await uptimeFixture(page);
@@ -10,8 +12,8 @@ test('[04] direct detail and browser back preserve the searched list', async ({ 
   const search = page.getByRole('textbox', { name: '모니터 검색' });
   await search.fill('Public');
   await page.getByRole('link', { name: 'Public API', exact: true }).click();
-  await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor$/);
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  await expect(page).toHaveURL(/\/servers\/server-1\/monitors\/http-monitor$/);
+  await expect(panel(page).getByRole('heading', { level: 1, name: 'Public API' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: '현재 위치' })).toContainText('web-01');
   await page.goBack();
   await expect(search).toHaveValue('Public');
@@ -25,8 +27,8 @@ test('[04] returning from a detail to the list keeps the search', async ({ page 
   const search = page.getByRole('textbox', { name: '모니터 검색' });
   await search.fill('Public');
   await page.getByRole('link', { name: 'Public API', exact: true }).click();
-  await expect(page).toHaveURL(/\/servers\/server-1\/uptime\/http-monitor$/);
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await expect(page).toHaveURL(/\/servers\/server-1\/monitors\/http-monitor$/);
+  await page.getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(search).toHaveValue('Public');
 });
 
@@ -51,9 +53,9 @@ for (const key of ['shop:api', 'worker%ready', 'svc%2Fraw', '주문 서비스'])
 test('[04] mobile direct detail provides a return to the uptime list', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await uptimeFixture(page);
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  await expect(panel(page).getByRole('heading', { level: 1, name: 'Public API' })).toBeVisible();
+  await page.getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page).toHaveURL(/\/servers\/server-1\/uptime$/);
   await expect(page.getByRole('table', { name: '업타임 그리드' })).toBeVisible();
 });
@@ -65,7 +67,7 @@ test('[04] mobile return retains the searched list context', async ({ page }) =>
   await page.goto('./servers/server-1/uptime');
   await page.getByRole('textbox', { name: '모니터 검색' }).fill('Database');
   await page.getByRole('link', { name: 'Database', exact: true }).click();
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Database', exact: true })).toBeVisible();
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await expect(panel(page).getByRole('heading', { level: 1, name: 'Database', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('Database');
 });

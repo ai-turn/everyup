@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ButtonLink, MaterialIcon, Pagination, SegmentedControl, SearchInput, ListToolbar, Select, StatusLight } from '../../../components/common';
+import { ButtonLink, FilterChips, MaterialIcon, Pagination, SearchInput, ListToolbar, Select, StatusLight } from '../../../components/common';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
-import { api, type AlertRule, type NotificationChannel, type NotificationHistory, type NotificationStats } from '../../../services/api';
+import { api, type AlertRule, type NotificationChannel, type NotificationHistory } from '../../../services/api';
 import { getChannelStyle } from '../utils/channelMeta';
 import { SeverityBadge } from './SeverityBadge';
 import { historyStatus } from '../ruleDisplay';
@@ -11,10 +11,10 @@ import { useListView } from '../../../hooks/useListView';
 import { getErrorMessage } from '../../../utils/errors';
 import { LoadErrorBanner } from '../../../components/common';
 
-// 유형 이름은 규칙 탭의 카테고리와 같은 말을 쓴다(A-11). 헬스체크는 저장값 두 개(endpoint·healthcheck)를 묶는다.
+// 유형 이름은 규칙 탭의 카테고리와 같은 말을 쓴다(A-11). 업타임은 저장값 두 개(endpoint·healthcheck)를 묶는다.
 const HISTORY_TYPE_LABELS: Record<string, string> = {
-  endpoint: '헬스체크',
-  healthcheck: '헬스체크',
+  endpoint: '업타임',
+  healthcheck: '업타임',
   api_request: 'API 요청',
   log: '로그',
   otel_metric: '메트릭',
@@ -23,7 +23,7 @@ const HISTORY_TYPE_LABELS: Record<string, string> = {
 };
 
 const HISTORY_TYPE_FILTERS = [
-  { value: 'endpoint,healthcheck', label: '헬스체크' },
+  { value: 'endpoint,healthcheck', label: '업타임' },
   { value: 'api_request', label: 'API 요청' },
   { value: 'log', label: '로그' },
   { value: 'otel_metric', label: '메트릭' },
@@ -43,7 +43,8 @@ const dateGroupLabel = (d: Date) => {
 };
 
 
-type StatusFilter = 'all' | 'sent' | 'failed';
+/** 없으면(null) 모든 상태다. */
+type StatusFilter = 'sent' | 'failed';
 type PeriodDays = 1 | 7 | 30;
 
 
@@ -59,7 +60,7 @@ interface NotificationHistoryTabProps {
 function FailureReason({ item }: { item: NotificationHistory }) {
   if (!item.errorMessage) return null;
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <p className="min-w-0 break-words type-caption text-status-error">
         {item.errorMessage}
         {item.retryCount > 0 && ` · ${item.retryCount}회 재시도`}
@@ -88,8 +89,8 @@ function HistoryCard({ item, rules }: { item: NotificationHistory; rules: AlertR
   const rule = ruleName(item, rules);
   return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><StatusLight {...historyStatus(item.status)} />{item.severity && <SeverityBadge severity={item.severity} />}</div>
-    <p className="mt-3 break-words type-body text-text-base">{item.message}</p><p className="mt-2 flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
-    <div className="mt-2"><FailureReason item={item} /></div>
+    <p className="mt-3 break-words type-body text-text-base">{item.message}</p><div className="mt-2 space-y-label"><p className="flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
+    <FailureReason item={item} /></div>
     <p className="mt-3 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })} · {format(new Date(item.createdAt), 'M월 d일 HH:mm')}</p>
   </article>;
 }
@@ -98,13 +99,13 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
   const { view } = useListView();
 
   const [history, setHistory] = useState<NotificationHistory[]>([]);
-  const [stats, setStats] = useState<NotificationStats | null>(null);
+  const [counts, setCounts] = useState<Record<StatusFilter, number> | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus ?? 'all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter | null>(initialStatus ?? null);
   const [typeFilter, setTypeFilter] = useState('all');
   const [channelFilter, setChannelFilter] = useState('all');
   const [periodDays, setPeriodDays] = useState<PeriodDays>(7);
@@ -130,7 +131,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 위와 동일. 페치 시작 시 로딩 플래그를 세우는 기존 동작 유지.
     setLoading(true);
     api.getNotificationHistory({
-      status: statusFilter === 'all' ? undefined : statusFilter,
+      status: statusFilter ?? undefined,
       alert_type: typeFilter === 'all' ? undefined : typeFilter,
       channel_id: channelFilter === 'all' ? undefined : channelFilter,
       q: debouncedSearch || undefined,
@@ -150,14 +151,25 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
     return () => { cancelled = true; };
   }, [statusFilter, typeFilter, channelFilter, periodDays, debouncedSearch, page, reloadKey]);
 
+  // 상태 칩의 개수는 다른 필터(유형, 채널, 기간, 검색)를 따르고 상태 선택은 따르지 않는다(서버 목록의 상태 칩과 같다).
+  // 이력은 서버가 쪽을 나누므로 같은 조건의 건수(total)를 상태마다 한 건짜리 요청으로 받는다.
   useEffect(() => {
-    api.getNotificationHistoryStats(periodDays)
-      .then(setStats)
-      .catch(error => console.error('Failed to load stats:', error));
-  }, [periodDays]);
-
-  const totalSent = stats?.totalSent ?? 0;
-  const totalFailed = stats?.totalFailed ?? 0;
+    let cancelled = false;
+    const countOf = (status: 'sent' | 'failed') => api.getNotificationHistory({
+      status,
+      alert_type: typeFilter === 'all' ? undefined : typeFilter,
+      channel_id: channelFilter === 'all' ? undefined : channelFilter,
+      q: debouncedSearch || undefined,
+      from: new Date(Date.now() - periodDays * 86400_000).toISOString(),
+      limit: 1,
+      offset: 0,
+    }).then(response => response.total || 0);
+    Promise.all([countOf('sent'), countOf('failed')])
+      .then(([sent, failed]) => { if (!cancelled) setCounts({ sent, failed }); })
+      // 건수를 모르면 0이라고 말하지 않는다. 목록 쪽 오류 배너가 실패를 알린다.
+      .catch(() => { if (!cancelled) setCounts(null); });
+    return () => { cancelled = true; };
+  }, [typeFilter, channelFilter, periodDays, debouncedSearch, reloadKey]);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   // Rows interleaved with date-group headers
@@ -179,7 +191,8 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
   const thClass = 'px-4 py-3 text-left type-label-sm text-text-muted';
 
   return (
-    <div className="space-y-3">
+    // 툴바 → 이력(또는 오류) 24px(group). 이력과 오류는 하나만 보인다.
+    <div className="page-stack">
       {/* Filter bar — status segments + type/channel/period + search */}
       <ListToolbar search={
         <SearchInput
@@ -190,17 +203,12 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
           placeholder="메시지 검색" aria-label="알림 메시지 검색"
         />
       }>
-        <SegmentedControl
-          size="md"
-          ariaLabel="상태"
-          value={statusFilter}
-          onChange={setStatusFilter}
+        {counts && <FilterChips ariaLabel="상태로 거르기" value={statusFilter} onChange={setStatusFilter}
           options={[
-            { value: 'all', label: `전체 ${totalSent + totalFailed}` },
-            { value: 'sent', label: `성공 ${totalSent}` },
-            { value: 'failed', label: `실패 ${totalFailed}` },
-          ]}
-        />
+            // 라벨과 점은 행의 상태(historyStatus)와 같다. 0건인 실패는 점을 중립색으로 둔다(§5.4).
+            { value: 'sent', label: historyStatus('sent').label, count: counts.sent, tone: historyStatus('sent').tone },
+            { value: 'failed', label: historyStatus('failed').label, count: counts.failed, tone: counts.failed === 0 ? 'idle' : historyStatus('failed').tone },
+          ]} />}
 
         <Select
           aria-label="알림 유형"
@@ -238,9 +246,9 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
 
       {error && <LoadErrorBanner title="발송 이력을 불러오지 못했습니다" message={error} onRetry={() => setReloadKey(key => key + 1)} />}
       {/* History Table */}
-      {!error && <div className={view === 'card' ? 'space-y-3' : undefined}>
+      {!error && <div>
         {view === 'card' ? <HistoryCards rows={groupedRows} loading={loading} rules={rules} /> : (
-        <div className="overflow-x-auto">
+        <div className="table-bleed overflow-x-auto">
           <table aria-label="발송 이력 그리드" className="w-full min-w-[960px] table-fixed">
             <thead>
               <tr className="border-b border-ui-border-soft">
@@ -272,7 +280,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                   if (row.kind === 'group') {
                     return (
                       <tr key={`g-${row.key}`}>
-                        <td colSpan={6} className="px-4 pt-4 pb-1.5 text-xs text-text-muted">
+                        <td colSpan={6} className="px-4 pt-4 pb-1.5 type-caption text-text-muted">
                           {row.label}
                         </td>
                       </tr>
@@ -288,31 +296,31 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                       // 실패는 상태 칸의 점·문구가 말한다 — 행 전체를 붉게 칠하지 않는다(DESIGN §9.3).
                       className="transition-colors hover:bg-ui-hover-soft"
                     >
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 cell">
                         <StatusLight {...historyStatus(item.status)} />
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 cell">
                         <p className="truncate type-body text-text-secondary">{rule ?? typeLabel(item.alertType)}</p>
                         {rule && <p className="truncate type-caption text-text-muted">{typeLabel(item.alertType)}</p>}
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 cell">
                         <div className="flex min-w-0 items-center gap-2">
                           <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${channelStyle.bg}`}>
                             <ChannelIcon type={item.channelType} size={13} className={channelStyle.text} />
                           </div>
-                          <span className="truncate text-sm text-text-secondary">{item.channelName}</span>
+                          <span className="truncate type-control text-text-secondary">{item.channelName}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="space-y-intra px-4 cell">
                         <p className="truncate type-body text-text-base">{item.message}</p>
                         <FailureReason item={item} />
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 cell">
                         {item.severity && (
                           <SeverityBadge severity={item.severity} />
                         )}
                       </td>
-                      <td className="px-4 py-2.5 text-right text-sm text-text-muted whitespace-nowrap">
+                      <td className="px-4 cell text-right type-control text-text-muted whitespace-nowrap">
                         {formatDistanceToNow(created, { addSuffix: true, locale: ko })}
                         <span className="text-text-dim"> · {format(created, 'HH:mm')}</span>
                       </td>
@@ -328,7 +336,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
         {/* Pagination */}
         {!loading && total > 0 && (
           <div className="flex items-center justify-between px-4 py-2.5">
-            <p className="text-xs text-text-muted">
+            <p className="type-caption text-text-muted">
               {`총 ${total}건 중 ${(page - 1) * PAGE_SIZE + 1}~${Math.min(page * PAGE_SIZE, total)}`}
             </p>
             <Pagination

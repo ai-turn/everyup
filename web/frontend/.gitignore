@@ -29,3 +29,6 @@ test-results
 *.njsproj
 *.sln
 *.sw?
+
+# pnpm measure 출력(간격 전후 비교용)
+/layout*.json

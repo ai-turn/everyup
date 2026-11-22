@@ -4,7 +4,7 @@ import { buildServerRows, capabilityLabel } from '../src/features/servers/server
 import type { MockScenario } from '../src/mocks/demoScenario';
 import type {
   InfrastructureResource, LogPattern, LogServiceSummary, ObservedService, ObservedServiceMetricName, Project, Server, TimelineIncident, UptimeMonitor,
-  UptimeMonitorMetric, UptimeMonitorSummary,
+  UptimeMonitorMetric, UptimeMonitorSummary, UptimeMonitorHistory, AgentServiceFlat, ServiceHistoryPoint,
 } from '../src/services/api';
 
 // mockRouter는 window가 없으면 attention 시나리오이다. 다른 시나리오는 sessionStorage를 흉내 내서 고른다.
@@ -71,7 +71,7 @@ test('demo servers cover every layout the server screens need', () => {
   // 장애 이력의 업타임 경로는 서버 화면이다.
   const timeline = mockRouter<TimelineIncident[]>('/incidents/timeline').filter(row => row.source === 'uptime');
   expect(timeline.length).toBeGreaterThan(0);
-  for (const incident of timeline) expect(incident.targetPath).toMatch(/^\/servers\/server_mock_[^/]+\/uptime\/uptime_mock_[^/]+$/);
+  for (const incident of timeline) expect(incident.targetPath).toMatch(/^\/servers\/server_mock_[^/]+\/monitors\/uptime_mock_[^/]+$/);
 });
 
 test('log summary and patterns narrow to one server', () => {
@@ -101,6 +101,35 @@ test('the demo outage stays one consistent episode', () => {
   expect(normal.activeIncident).toBeUndefined();
   expect(normal.recentChecks!.every(row => row.status === 'success')).toBe(true);
   expect(inScenario('normal', () => mockRouter<UptimeMonitorMetric[]>('/services/uptime_mock_checkout/metrics')).every(row => row.status === 'success')).toBe(true);
+});
+
+// 점검 A6: 같은 모니터의 24시간·30일·90일 수치가 목록, 상세 KPI, 막대 이력에서 서로 맞아야 한다.
+test('uptime figures agree across the list, the detail KPIs and the daily bars', () => {
+  for (const scenario of ['attention', 'normal'] as const) inScenario(scenario, () => {
+    for (const monitor of mockRouter<UptimeMonitor[]>('/services?type=http,tcp').filter(row => row.isActive)) {
+      const checks = mockRouter<UptimeMonitorMetric[]>(`/services/${monitor.id}/metrics?limit=100000`);
+      const day = checks.filter(row => Date.parse(row.checkedAt) >= Date.now() - 86_400_000);
+      const failed = day.filter(row => row.status === 'failure').length;
+      expect(monitor.uptime, `${scenario} ${monitor.name} 24h`).toBeCloseTo((day.length - failed) / day.length * 100, 2);
+      const history = mockRouter<UptimeMonitorHistory>(`/services/${monitor.id}/uptime`);
+      expect(history.days[0].uptime, `${scenario} ${monitor.name} today bar`).toBeCloseTo(monitor.uptime!, 2);
+      expect(history.percentage, `${scenario} ${monitor.name} 90d`).toBeCloseTo(history.days.reduce((sum, row) => sum + row.uptime, 0) / history.days.length, 4);
+      const month = history.days.slice(0, 30).reduce((sum, row) => sum + row.uptime, 0) / 30;
+      expect(mockRouter<UptimeMonitorSummary>(`/services/${monitor.id}/metrics/summary`).uptime, `${scenario} ${monitor.name} 30d`).toBeCloseTo(month, 1);
+    }
+  });
+});
+
+// 실제 API처럼 2·5·20분 버킷이 빈틈없이 이어져야 응답 시간 차트가 떨어진 점이 아니라 선으로 그려진다.
+test('Docker service response buckets match the chart bucket size', () => {
+  const service = mockRouter<AgentServiceFlat[]>('/agents/services/all')[0];
+  for (const [range, bucketMs] of [['1h', 120_000], ['6h', 300_000], ['24h', 1_200_000]] as const) {
+    const points = mockRouter<ServiceHistoryPoint[]>(`/agents/${service.agentId}/services/${encodeURIComponent(service.key)}/history?range=${range}`);
+    const times = points.map(row => Date.parse(row.time));
+    expect(times.every(t => t % bucketMs === 0), range).toBe(true);
+    expect(times.slice(1).every((t, i) => t - times[i] === bucketMs), range).toBe(true);
+    expect(points.length, range).toBeGreaterThanOrEqual({ '1h': 30, '6h': 72, '24h': 72 }[range]);
+  }
 });
 
 test('server responses are copies and groups must exist', () => {

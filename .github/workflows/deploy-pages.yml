@@ -36,7 +36,27 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    # Verify runs on main no longer queue, so deploys are serialized here instead.
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false
     steps:
+      # Checked inside the serialized job: a run that finishes after a newer main must not
+      # overwrite the newer site.
+      - name: Deploy only the current main commit
+        id: head
+        env:
+          REPOSITORY: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          head=$(git ls-remote --exit-code "https://github.com/$REPOSITORY" refs/heads/main | cut -f1)
+          if [ "$head" = "$COMMIT" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            printf '### Pages\n\nSkipped: main has moved to `%s`; that run deploys instead.\n' "$head" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Deploy to GitHub Pages
+        if: steps.head.outputs.current == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

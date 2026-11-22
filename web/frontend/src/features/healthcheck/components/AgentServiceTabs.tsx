@@ -32,11 +32,12 @@ const TABS: TabItem<DetailTab>[] = [
 ];
 
 function UptimeContent({ agentId, serviceKey, refreshKey, range }: ServiceTabsProps) {
-  // 섹션 간격은 여기서 준다 — 카드 없이 간격으로 나누므로 §3.1의 space-y-8.
+  // 모니터 상세와 같은 순서(수치 → 응답 추이 → 90일 띠 → 알림 기록), 구역 간격은 section(§3.1).
   return (
-    <div className="space-y-8">
-      <AgentUptimeOverview agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
-      <AgentResponseTimeChart key={range} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
+    <div className="space-y-section">
+      <AgentUptimeOverview agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey}>
+        <AgentResponseTimeChart key={range} agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} range={range} />
+      </AgentUptimeOverview>
       <AgentFailureHistory agentId={agentId} serviceKey={serviceKey} refreshKey={refreshKey} />
     </div>
   );
@@ -67,13 +68,13 @@ export function AgentServiceTabs({ initialTab = 'uptime', tab, onTabChange, ...p
   };
   const idPrefix = `service-${props.serviceKey}`;
   return (
-    <>
-      <div className="mb-6">
-        <Tabs items={TABS} active={activeTab} onChange={changeTab} ariaLabel="서비스 데이터" idPrefix={idPrefix} />
-      </div>
+    // 탭 → 패널 24px(group).
+    <div className="page-stack">
+      {/* Tabs는 포커스 링 자리로 -m-1을 가져 부모의 간격이 닿지 않는다. 한 겹 감싸 page-stack이 간격을 준다. */}
+      <div className="min-w-0"><Tabs items={TABS} active={activeTab} onChange={changeTab} ariaLabel="서비스 데이터" idPrefix={idPrefix} /></div>
       <div role="tabpanel" id={tabPanelId(idPrefix, activeTab)} aria-labelledby={tabId(idPrefix, activeTab)}>
         <TabContent tab={activeTab} {...props} />
       </div>
-    </>
+    </div>
   );
 }

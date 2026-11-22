@@ -6,7 +6,7 @@ import { isCollectorFresh } from '../../utils/operationalStatus';
 import { infraCollection, peakUsage, WARNING_PCT } from '../infra/usage';
 import { metricTitle } from '../metrics/metricPresentation';
 import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
-import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from './serverPaths';
+import { SERVER_CAPABILITIES, appPath, monitorPath, serverPath, type ServerCapability } from './serverPaths';
 import type { ForgetTarget } from './useServers';
 
 // 서버 목록, 서버 개요, 그룹 화면이 같은 판정을 쓴다. 따로 계산하면 목록은 "정상"인데 그룹은 "장애"인 대상이 생긴다.
@@ -14,6 +14,15 @@ import type { ForgetTarget } from './useServers';
 /** 문제가 먼저: 장애, 확인 필요, 대기, 정상. */
 export const STATE_ORDER: Record<StatusTone, number> = { error: 0, warn: 1, idle: 2, healthy: 3 };
 export const STATE_LABEL: Record<StatusTone, string> = { error: '장애', warn: '확인 필요', idle: '대기', healthy: '정상' };
+
+/** 상태 칩의 순서(볼 것이 먼저). 서버 목록과 그룹 목록이 같은 칩을 쓴다(DESIGN.md §4.1 FilterChips). */
+export const STATE_FILTERS: StatusTone[] = ['error', 'warn', 'idle', 'healthy'];
+export const parseStateFilter = (value: string | null) => STATE_FILTERS.find((state) => state === value) ?? null;
+/** 보이는 항목들의 상태로 칩을 만든다. 0건인 장애·확인 필요는 점을 중립색으로 둔다(§5.4). */
+export const stateChipOptions = (states: StatusTone[]) => STATE_FILTERS.map((state) => {
+  const count = states.filter((candidate) => candidate === state).length;
+  return { value: state, label: STATE_LABEL[state], count, tone: (state === 'error' || state === 'warn') && count === 0 ? 'idle' as const : state };
+});
 
 /** 상태를 합칠 때의 심각도. 정렬 순서와 달리 정상이 대기보다 앞선다: 정상 9개와 일시정지 1개는 정상이다. */
 const SEVERITY: Record<StatusTone, number> = { error: 0, warn: 1, healthy: 2, idle: 3 };
@@ -49,7 +58,7 @@ const USAGE = [['cpuUsage', 'CPU'], ['memoryUsage', '메모리'], ['diskUsage', 
 
 // 사용률만으로는 장애가 되지 않는다. 인프라 화면이 주의로 칠하는 선(WARNING_PCT)부터 확인 필요다.
 export function infrastructureState(resource: InfrastructureResource): TargetState {
-  if (!resource.isActive) return { state: 'idle', detail: 'Collector 비활성화됨' };
+  if (!resource.isActive) return { state: 'idle', detail: '연결 중지됨' };
   if (!isCollectorFresh(resource.lastSeenAt)) return { state: 'warn', detail: '데이터 확인 필요' };
   const peak = peakUsage(resource);
   if (peak >= WARNING_PCT) {
@@ -173,8 +182,8 @@ export const targetCountLabels = (counts: TargetCounts): string[] =>
     .filter(([, count]) => count > 0).map(([label, count]) => `${label} ${count}개`);
 
 
-// 앱을 여는 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API)로 고른다. 명령 팔레트도 같은 탭으로 연다.
-export const appCapability = (app: ObservedService): ServerCapability =>
+// 앱 페이지의 첫 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API 요청)로 고른다.
+export const appCapability = (app: ObservedService): 'logs' | 'api' | 'metrics' =>
   app.signals.includes('logs') ? 'logs' : app.signals.includes('metrics') ? 'metrics' : 'api';
 
 const SIGNAL_OF: Record<'logs' | 'api' | 'metrics', ObservedService['signals'][number]> = { logs: 'logs', api: 'traces', metrics: 'metrics' };
@@ -189,8 +198,6 @@ export function capabilityTargets(targets: ServerTargets, capability: ServerCapa
 /** 서버 상세의 기능 탭이 받는 props. */
 export interface ServerCapabilityTabProps {
   row: ServerRow;
-  /** 경로의 :targetId. 없으면 탭의 첫 화면 */
-  targetId?: string;
   /** 대상이 추가·삭제·이동된 뒤 서버 데이터를 다시 불러온다. 다시 불러온 결과가 반영되면 끝난다. */
   onChanged: () => Promise<void>;
   /** 이 기능의 대상 목록을 불러오지 못했고 이전 목록도 없다. 연결 안내 대신 불러오지 못했다는 안내를 보여 준다. */
@@ -250,7 +257,7 @@ export function buildServerRows(input: {
         const result = monitorState(monitor);
         const incident = monitor.activeIncident?.active ? monitor.activeIncident : undefined;
         const detail = result.state === 'error' ? `응답 없음${incident ? `, ${formatDuration(incident.durationSec)}째` : ''}` : result.detail;
-        return { kind: 'monitor' as const, id: monitor.id, name: monitor.name, state: result.state, detail, text: `${monitor.name} ${detail}`, to: serverPath(server.id, 'uptime', monitor.id), observedAt: monitor.lastCheckAt };
+        return { kind: 'monitor' as const, id: monitor.id, name: monitor.name, state: result.state, detail, text: `${monitor.name} ${detail}`, to: monitorPath(server.id, monitor.id), observedAt: monitor.lastCheckAt };
       }),
       ...(current.infrastructure ? [current.infrastructure].map((resource) => {
         const result = infrastructureState(resource);
@@ -262,10 +269,10 @@ export function buildServerRows(input: {
         if (breached.length > 0) {
           // 옛 메트릭 목록의 표현: 까닭(임계값 초과)과 첫 지표 이름, 나머지 개수.
           const detail = `${BREACHED_LABEL} ${metricTitle(breached[0])}${breached.length > 1 ? ` 외 ${breached.length - 1}개` : ''}`;
-          return { ...base, state: 'warn' as const, detail, text: `${app.name} ${detail}`, to: serverPath(server.id, 'metrics', app.id) };
+          return { ...base, state: 'warn' as const, detail, text: `${app.name} ${detail}`, to: appPath(server.id, app.id, 'metrics') };
         }
         const result = appState(app);
-        return { ...base, state: result.state, detail: result.detail, text: `${app.name} ${result.detail}`, to: serverPath(server.id, appCapability(app), app.id) };
+        return { ...base, state: result.state, detail: result.detail, text: `${app.name} ${result.detail}`, to: appPath(server.id, app.id) };
       }),
     ];
     // 확인할 수 없는 기능: 목록을 불러오지 못했거나(대상이 있는지 모른다, 앱은 기능을 모르므로 "앱") 이전 목록에 대상이 있다.

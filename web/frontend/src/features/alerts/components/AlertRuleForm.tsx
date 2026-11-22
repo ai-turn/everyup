@@ -116,7 +116,8 @@ function buildDefaultMessage(metric: RuleFormValues['metric'], operator: RuleFor
 // ─── Layout primitives ────────────────────────────────────────────────────────
 
 // 텍스트영역 전용 셸 — Input과 같은 규격을 공유한다 (포커스 링은 전역 :focus-visible).
-const textareaCls = `${FIELD_SHELL} py-2.5 max-sm:text-base border-ui-control-border placeholder:text-text-dim`;
+// block: inline-block이면 글자 기준선 아래 여백이 붙어 입력 → 도움말이 4px이 아니라 10px이었다(DESIGN.md §6 폼 리듬).
+const textareaCls = `${FIELD_SHELL} block py-2.5 max-sm:text-base border-ui-control-border placeholder:text-text-dim`;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -191,14 +192,14 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                     </FormStep>
 
                     <FormStep n={3} title="알림 채널" subtitle="발송할 채널 선택">
-                        <div role="group" aria-label="알림 채널" className="space-y-2">
+                        <div role="group" aria-label="알림 채널" className="space-y-label">
                             {channels.length === 0 ? (
                                 <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                             ) : channels.map(ch => (
                                 <button key={ch.id} type="button" onClick={() => handleToggleChannel(ch.id)} aria-pressed={selectedChannels.includes(ch.id)}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-colors ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-action' : 'border-ui-border-soft text-text-muted'}`}>
                                     <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
-                                    <span className="text-sm flex-1 text-left">{ch.name}</span>
+                                    <span className="type-control flex-1 text-left">{ch.name}</span>
                                 </button>
                             ))}
                             {selectedChannels.length === 0 && channels.length > 0 && (
@@ -210,7 +211,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
 
                 <div className="hidden lg:block">
                     {/* top-0: 패널 스크롤 영역 기준이라 0이어야 좌측 카드 시작선과 정렬 (실측 검증) */}
-                    <div className="sticky top-0 space-y-4">
+                    <div className="sticky top-0 space-y-heading">
                         <div>
                             <div className="flex items-center gap-3 mb-4">
                                 <MaterialIcon size={20} name="lock" className="text-text-dim" />
@@ -218,12 +219,12 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                     <p className="type-label text-text-base">
                                         시스템 규칙
                                     </p>
-                                    <p className="type-body text-text-muted mt-0.5">
+                                    <p className="mt-1 type-body text-text-muted">
                                         발동: {systemTrigger}
                                     </p>
                                 </div>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-heading">
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
                                     <p className="type-label-sm text-text-muted">규칙 이름</p>
                                     <p className="mt-1 truncate type-body text-text-base">{rule.name}</p>
@@ -238,7 +239,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                 </div>
                                 <div className="rounded-xl bg-ui-hover-soft/50 p-3">
                                     <p className="type-label-sm text-text-muted">알림 메시지</p>
-                                    <p className="mt-2 type-body leading-relaxed text-text-secondary">
+                                    <p className="mt-2 type-body text-text-secondary">
                                         {message || 'Server has been started'}
                                     </p>
                                 </div>
@@ -287,7 +288,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
         api.getAgents().then(agts => setAgents(agts ?? [])).catch(() => { });
         api.getObservedServices().then(rows => {
             setDirectServices(rows ?? []);
-            // 대상만 넘어온 새 규칙은 그 서비스가 받는 신호로 카테고리를 고른다. 직접 연결 서비스가 아니면(업타임 모니터) 헬스체크 그대로다.
+            // 대상만 넘어온 새 규칙은 그 서비스가 받는 신호로 카테고리를 고른다. 직접 연결 서비스가 아니면(업타임 모니터) 업타임 그대로다.
             const signals = (rows ?? []).find(service => service.id === initial?.serviceId)?.signals;
             if (isEdit || initial?.ruleCategory || !signals) return;
             const category: RuleCategory = signals.includes('metrics') ? 'metric' : signals.includes('traces') ? 'request' : 'log';
@@ -300,7 +301,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
             if (preset.duration != null) setValue('duration', preset.duration);
         }).catch(() => { });
         api.getInfrastructureResources().then(rows => setInfrastructureResources(rows ?? [])).catch(() => { });
-        // 헬스체크 규칙은 업타임 모니터 하나를 대상으로 할 수 있다(서버는 service_id로 평가한다).
+        // 업타임 규칙은 업타임 모니터 하나를 대상으로 할 수 있다(서버는 service_id로 평가한다).
         api.getUptimeMonitors().then(rows => setUptimeMonitors(rows ?? [])).catch(() => { });
         // 직접 대상의 이름 앞에 서버 이름을 붙인다. 못 불러오면 대상 이름만 보인다.
         api.getServers().then(rows => setServers(rows ?? [])).catch(() => { });
@@ -472,7 +473,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
             ? directTargetLabel(selectedDirectService, servers)
             : watchedAgentId && watchedServiceKey
             ? (selectedAgentService ? `${selectedAgentService.agentName} / ${selectedAgentService.name}` : watchedServiceKey)
-            : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'))
+            : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 업타임 대상'))
         : watchedCategory === 'resource' && watchedAgentId
             ? (selectedInfrastructureResource ? directTargetLabel(selectedInfrastructureResource, servers) : selectedAgent?.name ?? watchedAgentId)
             : (watchedAgentId ? (selectedAgent?.name ?? watchedAgentId) : '전체 인프라');
@@ -517,7 +518,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                         <Field label="카테고리">
                             <div role="group" aria-label="카테고리" className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
                                 {([
-                                    { value: 'endpoint' as const, label: '헬스체크', icon: 'monitor_heart' },
+                                    { value: 'endpoint' as const, label: '업타임', icon: 'monitor_heart' },
                                     { value: 'request'  as const, label: 'API 요청', icon: 'speed' },
                                     { value: 'log'      as const, label: '로그',        icon: 'article' },
                                     { value: 'metric'   as const, label: '메트릭', icon: 'monitoring' },
@@ -535,7 +536,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         }`}
                                     >
                                         <MaterialIcon size={20} name={cat.icon} />
-                                        <span className="text-sm whitespace-nowrap">{cat.label}</span>
+                                        <span className="type-control whitespace-nowrap">{cat.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -564,7 +565,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         }}
 
                                     >
-                                        <option value="">{isRequest ? '서비스 선택' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 헬스체크'}</option>
+                                        <option value="">{isRequest ? '서비스 선택' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 업타임 대상'}</option>
                                         {targetGroups(dockerTargets, serverTargets)}
                                     </Select>
                                 ) : (
@@ -768,7 +769,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                             label="알림 채널"
                             hint={watchedChannelIds.length === 0 && channels.length > 0 ? '미선택 시 모든 활성 채널로 발송됩니다' : null}
                         >
-                            <div role="group" aria-label="알림 채널" className="space-y-2">
+                            <div role="group" aria-label="알림 채널" className="space-y-label">
                                 {channels.length === 0 ? (
                                     <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                                 ) : channels.map(ch => (
@@ -784,8 +785,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         }`}
                                     >
                                         <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
-                                        <span className="text-sm flex-1 text-left">{ch.name}</span>
-                                        <span className="text-sm text-text-dim">{getChannelName(ch.type)}</span>
+                                        <span className="type-control flex-1 text-left">{ch.name}</span>
+                                        <span className="type-control text-text-dim">{getChannelName(ch.type)}</span>
                                     </button>
                                 ))}
                             </div>
@@ -820,32 +821,32 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                 {/* ── Right: 미리보기. lg에서는 옆에 고정, 좁으면 폼 아래(모든 폭) ── */}
                 <div>
                     {/* top-0: 패널 스크롤 영역 기준이라 0이어야 좌측 카드 시작선과 정렬 (실측 검증) */}
-                    <div className="lg:sticky lg:top-0 space-y-4">
+                    <div className="lg:sticky lg:top-0 space-y-heading">
 
                         {/* Preview card */}
                         <div>
                             <div className="flex items-center gap-3 mb-4">
                                 <div>
                                     <p className="type-label text-text-base">미리보기</p>
-                                    <p className="type-body text-text-muted mt-0.5">저장하면 이렇게 동작합니다</p>
+                                    <p className="mt-1 type-body text-text-muted">저장하면 이렇게 동작합니다</p>
                                 </div>
                             </div>
-                            <div className="space-y-5">
+                            <div className="space-y-item">
 
                                 <div>
                                     <p className="type-label-sm text-text-muted mb-2">조건</p>
-                                    <p className="type-body leading-relaxed text-text-base">{previewSentence}</p>
+                                    <p className="type-body text-text-base">{previewSentence}</p>
                                 </div>
 
                                 {/* THEN block */}
                                 <div>
                                     <p className="type-label-sm text-text-muted mb-2">메시지</p>
                                     <div className="rounded-xl bg-ui-hover-soft/50 px-3 py-3">
-                                        <div className="flex items-center gap-2 mb-1.5">
+                                        <div className="flex items-center gap-2 mb-label">
                                             <SeverityBadge severity={watchedSeverity} />
-                                            <span className="text-sm text-text-muted truncate">{watchedName || '<규칙 이름>'}</span>
+                                            <span className="type-control text-text-muted truncate">{watchedName || '<규칙 이름>'}</span>
                                         </div>
-                                        <p className="type-body text-text-secondary leading-relaxed">
+                                        <p className="type-body text-text-secondary">
                                             {customMessage || buildDefaultMessage(watchedMetric, watchedOperator, watchedThreshold, watchedDuration)}
                                         </p>
                                     </div>
@@ -858,14 +859,14 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                             ? `받는 채널 · 켜진 채널 전체 ${previewChannels.length}개`
                                             : `받는 채널 · ${previewChannels.length}개`}
                                     </p>
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-label">
                                         {channels.length === 0 ? (
                                             <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                                         ) : previewChannels.slice(0, 5).map(ch => (
                                             <div key={ch.id} className="flex items-center gap-2 px-3 py-1.5 bg-ui-hover-soft/50 rounded-lg">
                                                 <ChannelIcon type={ch.type} size={14} className={getChannelStyle(ch.type).text} />
                                                 <span className="type-label text-text-secondary flex-1 truncate">{ch.name}</span>
-                                                <span className="text-xs text-text-dim">{getChannelName(ch.type)}</span>
+                                                <span className="type-caption text-text-dim">{getChannelName(ch.type)}</span>
                                             </div>
                                         ))}
                                         {previewChannels.length > 5 && (

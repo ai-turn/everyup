@@ -1,5 +1,5 @@
 import { Tooltip } from '../../../components/common/Tooltip';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, CopyButton, ICON_ACTION_SM, IconButton, MaterialIcon } from '../../../components/common';
 import { useClipboardCopy } from '../../../hooks/useClipboardCopy';
@@ -9,7 +9,7 @@ import { api, TraceDetail, TraceSpan, LogEntry, ApiRequest } from '../../../serv
 import { LEVEL_BASE, LEVEL_TEXT } from '../../healthcheck/logLevelStyle';
 import { statusClass } from '../../api-requests/useRequestQuery';
 import { spanKindBadge } from '../spanKind';
-import { serverPath } from '../../servers/serverPaths';
+import { appPath } from '../../servers/serverPaths';
 import { formatClock } from '../../../utils/incidentFormat';
 
 interface TracePanelProps {
@@ -22,7 +22,7 @@ export type TraceTarget =
   | { kind: 'agent'; agentId: string; serviceKey: string }
   | { kind: 'direct'; observedServiceId: string };
 
-// 직접 연결한 앱은 서버 탭 안에서만 보이므로 지금 주소의 서버(serverId)에서 같은 앱의 다른 탭으로 간다.
+// 직접 연결한 앱은 그 앱의 페이지(지금 주소의 서버)에서 다른 탭으로 간다.
 // 서버를 모르면 옛 주소로 보낸다. LegacyTargetRedirect가 앱을 조회해 그 서버로 바꾼다.
 function traceTargetPath(target: TraceTarget, tab: 'logs' | 'requests', traceId: string, serverId?: string): string {
   const query = `traceId=${encodeURIComponent(traceId)}`;
@@ -30,7 +30,7 @@ function traceTargetPath(target: TraceTarget, tab: 'logs' | 'requests', traceId:
     return `/services/${target.agentId}/${encodeURIComponent(target.serviceKey)}?tab=${tab}&${query}`;
   }
   if (!serverId) return `/${tab === 'logs' ? 'logs' : 'api'}/${encodeURIComponent(target.observedServiceId)}?${query}`;
-  return `${serverPath(serverId, tab === 'logs' ? 'logs' : 'api', target.observedServiceId)}?${query}`;
+  return `${appPath(serverId, target.observedServiceId, tab)}&${query}`;
 }
 
 function formatDuration(ms: number): string {
@@ -300,9 +300,9 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-item">
           {loading && (
-            <div className="flex items-center justify-center py-10 text-sm text-text-muted">
+            <div className="flex items-center justify-center py-10 type-control text-text-muted">
               <MaterialIcon size={20} name="sync" className="mr-2 animate-spin" />
               트레이스 불러오는 중…
             </div>
@@ -310,13 +310,13 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
 
           {error && (
             <div className="flex items-start gap-3 px-3 py-2 bg-ui-hover-soft rounded-md">
-              <MaterialIcon size={20} name="error" className="text-status-error shrink-0 mt-0.5" />
+              <MaterialIcon size={20} name="error" className="text-status-error shrink-0 icon-lead" />
               <p className="type-body text-text-secondary">{error}</p>
             </div>
           )}
 
           {isEmpty && (
-            <div className="text-center py-10 text-sm text-text-muted">
+            <div className="text-center py-10 type-control text-text-muted">
               이 트레이스에 연결된 span·로그·API 요청이 없습니다.
             </div>
           )}
@@ -365,9 +365,19 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
   );
 }
 
+// 패널 안의 절. 머리 → 내용 8px(label)은 절이 갖는다(DESIGN.md §3.7 부모가 간격을 정한다).
+function PanelSection({ icon, title, count, children }: { icon: string; title: string; count: number; children: ReactNode }) {
+  return (
+    <section className="space-y-label">
+      <PanelSectionHeader icon={icon} title={title} count={count} />
+      {children}
+    </section>
+  );
+}
+
 function PanelSectionHeader({ icon, title, count }: { icon: string; title: string; count: number }) {
   return (
-    <div className="flex items-center gap-2 mb-2">
+    <div className="flex items-center gap-2">
       <MaterialIcon size={20} name={icon} className="text-action" />
       <h4 className="type-label text-text-base">{title}</h4>
       <span className="type-label-sm text-text-secondary bg-ui-active px-2 py-0.5 rounded-md">
@@ -415,7 +425,7 @@ function spanTree(spans: TraceSpan[]): { span: TraceSpan; depth: number }[] {
 
 function AttributeRows({ attrs }: { attrs: Record<string, unknown> }) {
   return (
-    <dl className="space-y-0.5">
+    <dl className="space-y-intra">
       {Object.entries(attrs).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => (
         <div key={key} className="flex gap-2 font-mono text-xs">
           <dt className="shrink-0 text-text-muted">{key}:</dt>
@@ -430,7 +440,7 @@ function SpanDetail({ span }: { span: TraceSpan }) {
   const attrs = span.attributes ?? {};
   const events = span.events ?? [];
   return (
-    <div className="mt-3 space-y-3">
+    <div className="space-y-label">
       {span.statusMessage && (
         <div>
           <p className="mb-1 type-label-sm text-text-dim">실패 원인</p>
@@ -446,14 +456,14 @@ function SpanDetail({ span }: { span: TraceSpan }) {
       {events.length > 0 && (
         <div>
           <p className="mb-1 type-label-sm text-text-dim">Event</p>
-          <ul className="space-y-1.5">
+          <ul className="space-y-label">
             {events.map((event, index) => (
-              <li key={`${event.name}-${event.timeUnixNano ?? index}`}>
+              <li key={`${event.name}-${event.timeUnixNano ?? index}`} className="space-y-intra">
                 <p className="font-mono text-xs text-text-secondary">
                   {event.name}
                   {event.timeUnixNano ? <span className="ml-2 text-text-muted">+{formatDuration(Math.max(0, Math.round((event.timeUnixNano - span.startUnixNano) / 1_000_000)))}</span> : null}
                 </p>
-                {event.attributes && Object.keys(event.attributes).length > 0 && <div className="ml-3 mt-0.5"><AttributeRows attrs={event.attributes} /></div>}
+                {event.attributes && Object.keys(event.attributes).length > 0 && <div className="pl-3"><AttributeRows attrs={event.attributes} /></div>}
               </li>
             ))}
           </ul>
@@ -480,9 +490,8 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
   const total = Math.max(traceEnd - traceStart, 1);
 
   return (
-    <section>
-      <PanelSectionHeader icon="account_tree" title="Span" count={spans.length} />
-      <ul className="space-y-1.5">
+    <PanelSection icon="account_tree" title="Span" count={spans.length}>
+      <ul className="space-y-label">
         {spanTree(spans).map(({ span, depth }) => {
           const leftPct = Math.min(Math.max(((span.startUnixNano - traceStart) / total) * 100, 0), 100);
           const widthPct = Math.min(Math.max(((span.endUnixNano - span.startUnixNano) / total) * 100, 0.75), 100 - leftPct);
@@ -490,14 +499,17 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
           return (
             <li
               key={`${span.traceId}-${span.spanId}`}
-              className="px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
+              className="px-3 py-2 rounded-md bg-ui-hover-soft type-control"
             >
+              {/* 이름 줄 → 막대 4px(intra), 막대 → 상세 8px(label). */}
+              <div className="space-y-label">
+              <div className="space-y-intra">
               {/* 들여쓰기는 깊이 8까지만(더 깊으면 이름 자리가 남지 않는다). 막대는 들여쓰지 않아 시간축이 맞는다. */}
               <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap" style={{ paddingLeft: `${Math.min(depth, 8) * 12}px` }}>
                 {hasDetail(span)
                   ? <IconButton icon={expanded ? 'expand_more' : 'chevron_right'} label={expanded ? 'Span 상세 접기' : 'Span 상세 펼치기'} tone="quiet" size="sm" aria-expanded={expanded} onClick={() => toggle(span.spanId)} className="-ml-2" />
                   : <span className="-ml-2 w-8 shrink-0" aria-hidden="true" />}
-                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs shrink-0 ${spanKindBadge(span.kind)}`}>
+                <span className={`inline-flex items-center px-1.5 py-0.5 rounded type-caption shrink-0 ${spanKindBadge(span.kind)}`}>
                   {span.kind}
                 </span>
                 <Tooltip content={span.name} focusable><span className="font-mono text-text-secondary truncate flex-1 min-w-0">
@@ -519,18 +531,20 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                 {copyButton(() => onCopy(formatSpanCopy(span)), 'Span 행 복사')}
               </div>
               {/* Waterfall track: bar positioned/sized by the span's time window */}
-              <div className="relative mt-1.5 h-1.5 w-full rounded bg-ui-active">
+              <div className="relative h-1.5 w-full rounded bg-ui-active">
                 <div
                   className={`absolute top-0 h-full rounded ${spanBarColor(span)}`}
                   style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
                 />
               </div>
+              </div>
               {expanded && <SpanDetail span={span} />}
+              </div>
             </li>
           );
         })}
       </ul>
-    </section>
+    </PanelSection>
   );
 }
 
@@ -539,7 +553,7 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
   return (
     <div>
       <p className="mb-1 type-label-sm text-text-dim">{label}</p>
-      <dl className="space-y-0.5">
+      <dl className="space-y-intra">
         {headers.map((h) => (
           <div key={h.name} className="flex gap-2 font-mono text-xs">
             <dt className="shrink-0 text-text-muted">{h.name}:</dt>
@@ -556,13 +570,12 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
 function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCopy: CopyFn }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="list_alt" title="헤더" count={items.length} />
-      <ul className="space-y-2">
+    <PanelSection icon="list_alt" title="헤더" count={items.length}>
+      <ul className="space-y-label">
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-md bg-ui-hover-soft px-3 py-2 text-sm"
+            className="rounded-md bg-ui-hover-soft px-3 py-2 type-control"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
               {item.serviceName && (
@@ -580,7 +593,7 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
           </li>
         ))}
       </ul>
-    </section>
+    </PanelSection>
   );
 }
 
@@ -589,9 +602,8 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
 function RestrictedBodyNotice({ count }: { count: number }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="data_object" title="캡처된 바디" count={count} />
-      <div className="flex items-center gap-3 rounded-md bg-ui-hover-soft px-4 py-3 text-sm">
+    <PanelSection icon="data_object" title="캡처된 바디" count={count}>
+      <div className="flex items-center gap-3 rounded-md bg-ui-hover-soft px-4 py-3 type-control">
         <MaterialIcon size={20} name="lock" className="text-amber-500 shrink-0" />
         <div>
           <p className="font-medium text-text-secondary">관리자 전용</p>
@@ -600,27 +612,26 @@ function RestrictedBodyNotice({ count }: { count: number }) {
           </p>
         </div>
       </div>
-    </section>
+    </PanelSection>
   );
 }
 
 function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: CopyFn }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="data_object" title="캡처된 바디" count={items.length} />
-      <p className="mb-2 flex items-center gap-1.5 text-xs text-text-dim">
+    <PanelSection icon="data_object" title="캡처된 바디" count={items.length}>
+      <p className="mb-2 flex items-center gap-1.5 type-caption text-text-dim">
         <MaterialIcon size={20} name="policy" />
         관리자 전용 · 모든 열람은 감사 로그에 기록됩니다
       </p>
-      <ul className="space-y-2">
+      <ul className="space-y-label">
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-md bg-ui-hover-soft px-3 py-2 text-sm"
+            className="rounded-md bg-ui-hover-soft px-3 py-2 type-control"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-xs text-action">
+              <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 type-caption text-action">
                 {item.label}
               </span>
               {item.serviceName && (
@@ -632,12 +643,12 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
                 {item.spanName}
               </span></Tooltip>
               {typeof item.size === 'number' && (
-                <span className="text-xs text-text-dim">
+                <span className="type-caption text-text-dim">
                   {item.size}B
                 </span>
               )}
               {item.truncated && (
-                <span className="rounded bg-status-warn/10 px-1.5 py-0.5 text-xs text-status-warn">
+                <span className="rounded bg-status-warn/10 px-1.5 py-0.5 type-caption text-status-warn">
                   잘림
                 </span>
               )}
@@ -647,23 +658,22 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
           </li>
         ))}
       </ul>
-    </section>
+    </PanelSection>
   );
 }
 
 function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="api" title="API 요청" count={items.length} />
-      <ul className="space-y-1.5">
+    <PanelSection icon="api" title="API 요청" count={items.length}>
+      <ul className="space-y-label">
         {items.map((req) => (
           <li
             key={req.id}
-            className="px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
+            className="px-3 py-2 rounded-md bg-ui-hover-soft type-control"
           >
             <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-ui-active text-text-secondary shrink-0">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded type-caption bg-ui-active text-text-secondary shrink-0">
                 {req.method}
               </span>
               <Tooltip content={req.path} focusable><span className="font-mono text-text-secondary truncate flex-1 min-w-0">
@@ -682,25 +692,24 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
           </li>
         ))}
       </ul>
-    </section>
+    </PanelSection>
   );
 }
 
 function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
 
   return (
-    <section>
-      <PanelSectionHeader icon="article" title="로그" count={logs.length} />
-      <ul className="space-y-1.5">
+    <PanelSection icon="article" title="로그" count={logs.length}>
+      <ul className="space-y-label">
         {logs.map((log) => (
           <li
             key={log.id}
-            className="flex items-start gap-2 px-3 py-2 rounded-md bg-ui-hover-soft text-sm"
+            className="flex items-start gap-2 px-3 py-2 rounded-md bg-ui-hover-soft type-control"
           >
-            <span className={`${LEVEL_BASE} mt-0.5 ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
+            <span className={`${LEVEL_BASE} icon-lead ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
               {log.level}
             </span>
-            <span className="text-text-muted shrink-0 mt-0.5">
+            <span className="text-text-muted shrink-0 icon-lead">
               {formatClock(log.createdAt, true)}
             </span>
             <span className="text-text-secondary break-all flex-1 min-w-0">
@@ -710,6 +719,6 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
           </li>
         ))}
       </ul>
-    </section>
+    </PanelSection>
   );
 }

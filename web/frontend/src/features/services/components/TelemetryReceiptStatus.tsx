@@ -4,13 +4,14 @@ import { ko } from 'date-fns/locale';
 import { CollectionStatusBadge, LoadErrorBanner } from '../../../components/common';
 import type { SignalReceipt } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
+import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
 import { appReceiptNote, lastReceipt, receiptState } from '../../telemetry/signals';
 import { formatFullDateTime } from '../../../utils/incidentFormat';
 
-const labels: Record<string, string> = { logs: '로그', metrics: '메트릭', traces: 'API 트레이스', infrastructure: '인프라', uptime: '컨테이너 상태' };
+const labels: Record<string, string> = { ...DOCKER_CAPABILITY_NAME, traces: DOCKER_CAPABILITY_NAME.api };
 
 export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; expected: string[] }) {
-  return <ul className="space-y-1.5" aria-live="polite">
+  return <ul className="space-y-label" aria-live="polite">
     {expected.map(signal => {
       const last = lastReceipt(signals, signal);
       return <li key={signal} className="flex flex-wrap items-center gap-2 type-body text-text-secondary">
@@ -26,7 +27,7 @@ export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; e
 
 /** One shape for every "did the data arrive?" block, wherever it is shown. */
 export function ReceiptPanel({ signals, expected, error, note }: { signals: SignalReceipt[]; expected: string[]; error?: string; note?: string }) {
-  return <section aria-label="데이터 수신 확인" className="space-y-2 rounded-md bg-ui-hover-soft p-4">
+  return <section aria-label="데이터 수신 확인" className="space-y-label rounded-md bg-ui-hover-soft p-4">
     <h4 className="type-label text-text-base">데이터 수신 확인</h4>
     {error ? <LoadErrorBanner inline title="수신 상태를 확인하지 못했습니다" message={error} /> : <ReceiptList signals={signals} expected={expected} />}
     {note && <p className="type-body text-text-muted">{note}</p>}

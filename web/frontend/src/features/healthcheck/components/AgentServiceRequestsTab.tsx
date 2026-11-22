@@ -62,7 +62,7 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
   const clear = () => update({ q: null, errorsOnly: null, traceId: null, status: null, method: null, pathTemplate: null, page: null });
   const target: TraceTarget = source.kind === 'direct' ? { kind: 'direct', observedServiceId: source.observedServiceId } : { kind: 'agent', agentId: source.agentId, serviceKey: source.serviceKey };
   const statusFilter = { status, onStatusChange: (value?: StatusClass) => update({ status: value ?? null, page: null }) };
-  return <div className="space-y-4">
+  return <div className="space-y-heading">
     {source.kind === 'direct'
       ? <DirectServiceRequestTrends observedServiceId={source.observedServiceId} refreshKey={refreshKey} range={range} window={window} noun={noun} {...statusFilter} />
       : <AgentServiceRequestTrends agentId={source.agentId} serviceKey={source.serviceKey} refreshKey={refreshKey} range={range} window={window} {...statusFilter} />}
@@ -99,7 +99,7 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
       onPageChange={value => update({ page: value === 1 ? null : String(value) })} onSelect={setActiveTraceId} />
     {!result.loading && !result.error && !filtered && result.rows.length === 0 && <details open={awaitingData} className="rounded-xl border border-ui-border-soft bg-bg-surface p-4">
       <summary className="cursor-pointer type-label text-action">수집 설정 안내</summary>
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 space-y-heading">
         <p className="type-body text-text-muted">HTTP 요청은 method와 HTTP 상태코드가 있는 SERVER span에서 표시합니다. 다른 span이 수신돼도 이 목록은 비어 있을 수 있습니다.</p>
         {source.kind === 'direct' ? <><TelemetrySetupGuidance signals={['traces']} /><TelemetryReceiptStatus path={`/observed-services/${source.observedServiceId}/setup-status`} expected={['traces']} /></>
           : <p className="type-body text-text-muted">{source.runtime ? `${runtimeLabel(source.runtime)} 서비스의 ` : ''}Docker 환경에서 API 수집 설정을 확인해 주세요. 앱에 OpenTelemetry를 연결하거나 Docker Collector의 everyup-ebpf 수집을 설정할 수 있습니다.</p>}

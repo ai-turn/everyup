@@ -1,9 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
+import { menuItem } from './fixtures/menu';
 import type { ObservedService, ObservedServiceMetricName, Server, UptimeMonitor } from '../src/services/api';
 import { deferred, monitor, uptimeFixture } from './fixtures/uptime';
 
 // 서버 데이터의 갱신: 갱신 시각, 자동 갱신 스위치, 겹치는 요청, 다시 불러오기에 실패한 종류의 이전 목록 유지(Task 11b).
-test.use({ baseURL: 'http://127.0.0.1:4174/', viewport: { width: 1440, height: 1000 } });
+test.use({ baseURL: API_URL, viewport: { width: 1440, height: 1000 } });
 
 const at = '2026-11-01T00:00:00Z';
 const server: Server = { id: 's1', name: 'web-01', createdAt: at, updatedAt: at };
@@ -12,8 +14,11 @@ const app: ObservedService = { id: 'a1', name: 'orders-api', serverId: 's1', sig
 const panel = (page: Page) => page.getByRole('tabpanel');
 const tablist = (page: Page) => page.getByRole('tablist', { name: '서버 기능' });
 const serverHeader = (page: Page) => page.locator('header', { has: page.getByRole('heading', { level: 1 }) });
-const stamp = (page: Page) => page.getByRole('group', { name: '서버 데이터 갱신' }).locator('> p');
+const stamp = (page: Page) => page.getByRole('group', { name: '데이터 갱신' }).locator('> p');
 const refresh = (page: Page) => page.getByRole('button', { name: '새로고침', exact: true });
+// 앱은 자기 페이지가 있다(DESIGN.md §4.7 대상 상세). 앱의 상태·조작은 그 페이지의 머리말에 있다.
+const appHeader = (page: Page) => page.locator('#main-content header').first();
+const appRows = (page: Page, name: string) => page.getByRole('table', { name }).locator('tbody tr');
 
 async function mockServer(page: Page, options: {
   infrastructure?: boolean; monitors?: UptimeMonitor[]; project?: boolean;
@@ -74,7 +79,7 @@ async function mockServer(page: Page, options: {
   return { ...state, get app() { return state.app; }, writes: state.writes, serverReads: count('/servers'), count };
 }
 
-test('a failed app refresh keeps the log app list and the API panel but marks them unverified', async ({ page }) => {
+test('a failed app refresh keeps the log and API app lists but marks them unverified', async ({ page }) => {
   const state = await mockServer(page);
   await page.goto('./servers/s1/logs');
   const appLink = page.getByRole('table', { name: '앱 그리드' }).getByRole('link', { name: 'orders-api' });
@@ -92,8 +97,9 @@ test('a failed app refresh keeps the log app list and the API panel but marks th
   // 이전 앱의 상태로 서버를 "정상"이라고 하지 않는다. 확인할 수 있는 대상이 없으면 원인도 단정하지 않는다.
   await expect(serverHeader(page).getByText('정상', { exact: true })).toHaveCount(0);
 
+  // API 요청 탭의 앱 목록도 이전 목록이 남고, 앱의 상태는 확인 불가다.
   await tablist(page).getByRole('tab', { name: /^API 요청/ }).click();
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
+  await expect(appRows(page, 'API 요청 앱').filter({ hasText: 'orders-api' })).toContainText('확인 불가');
 
   state.failures.clear();
   await page.getByRole('status').filter({ hasText: '일부 정보를 불러오지 못했습니다' }).getByRole('button', { name: '다시 시도', exact: true }).click();
@@ -223,35 +229,38 @@ test('a server list whose first load hangs past 30 seconds keeps the placeholder
   await expect(page.getByRole('table', { name: '서버 그리드' })).toBeVisible();
 });
 
-test('a deleted monitor stays out of the list when the reload of the server list fails', async ({ page }) => {
+test('a deleted monitor is gone from the list even when the server list fails right after', async ({ page }) => {
   const state = await uptimeFixture(page);
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  await expect(page.getByRole('heading', { level: 1, name: 'Public API' })).toBeVisible();
   state.failures.set('GET /servers', 500);
-  await panel(page).getByRole('button', { name: '삭제', exact: true }).click();
+  await (await menuItem(page.locator('#main-content header').first(), '삭제')).click();
   await page.getByRole('dialog', { name: '업타임을 삭제할까요?' }).getByRole('button', { name: '삭제', exact: true }).click();
-  await expect(page.getByText('서버 정보를 새로 불러오지 못했습니다')).toBeVisible();
+  // 업타임 목록으로 간다. 서버 화면은 서버 데이터를 새로 불러오므로, 서버 목록을 불러오지 못하면 서버가 없다고 하지 않고 다시 시도를 둔다.
+  await expect(page).toHaveURL(/\/servers\/server-1\/uptime$/);
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  // 남은 모니터가 하나라 탭의 첫 화면이 그 상세다. 지운 모니터는 목록에도 상세에도 없다.
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Database' })).toBeVisible();
-  await expect(panel(page).getByText('Public API')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: '서버를 불러오지 못했습니다' })).toBeVisible();
+  state.failures.clear();
+  await page.getByRole('button', { name: '다시 시도', exact: true }).click();
+  await expect(page.getByRole('table', { name: '업타임 그리드' }).locator('tbody a[data-row-link]')).toHaveText(['Database']);
   await expect(tablist(page).getByRole('tab', { name: /^업타임/ })).toHaveAccessibleName(/모니터 1개/);
 });
 
-test('detaching the only API app while the server list fails closes the dialog and leaves no busy panel', async ({ page }) => {
+test('detaching API requests while the server list fails closes the dialog and leaves the app without them', async ({ page }) => {
   const state = await mockServer(page);
-  await page.goto('./servers/s1/api');
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
+  await page.goto('./servers/s1/apps/a1?tab=requests');
+  await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();
   state.failures.add('/servers');
-  await panel(page).getByRole('button', { name: /연결 해제$/ }).click();
+  await (await menuItem(appHeader(page), /연결 해제$/)).click();
   await page.getByRole('dialog').getByRole('button', { name: /연결 해제$/ }).click();
   await expect.poll(() => state.app?.signals).toEqual(['logs']);
-  await expect(page.getByText('서버 정보를 새로 불러오지 못했습니다')).toBeVisible();
+  await expect(page.getByText('앱 정보를 새로 불러오지 못했습니다')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toHaveCount(0);
-  // 서버 목록을 다시 불러오지 못했으므로 연결 안내가 아니라 불러오지 못했다는 안내다(B2).
-  await expect(panel(page).getByText('API 요청 앱 정보를 불러오지 못했습니다')).toBeVisible();
-  await expect(panel(page).getByRole('button', { name: '다시 시도', exact: true })).toBeEnabled();
+  // 해제한 데이터는 이전 정보에도 반영되어, 남은 로그 탭이 열리고 API 요청 탭은 연결 전이다.
+  const tabs = page.getByRole('tablist', { name: '앱 데이터' });
+  await expect(tabs.getByRole('tab', { selected: true })).toHaveText('로그');
+  await expect(tabs.getByRole('tab', { name: /^API 요청/ })).toContainText('연결 전');
+  await expect(page.getByRole('button', { name: '다시 시도', exact: true }).first()).toBeEnabled();
 });
 
 test('the server list shows when its data was last refreshed', async ({ page }) => {
@@ -286,7 +295,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     const tops: number[] = [];
     for (const tab of ['개요', '업타임', '인프라', '로그', 'API 요청', '메트릭']) {
       await tablist(page).getByRole('tab', { name: new RegExp(`^${tab}`) }).click();
-      await expect(panel(page).getByRole('heading').first()).toBeVisible();
+      // 앱 목록 탭(API 요청, 메트릭)은 제목 없는 표다. 본문이 그려진 것만 기다린다.
+      await expect(panel(page).locator('*').first()).toBeVisible();
       tops.push((await tablist(page).boundingBox())!.y);
     }
     expect(new Set(tops.map(Math.round)).size).toBe(1);
@@ -305,11 +315,11 @@ test('no horizontal scroll at 320px with the refresh controls in the header', as
   expect(await page.locator('#main-content').evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
 });
 
-test('turning automatic refresh back on reloads the open uptime panel too and off stops its history polling', async ({ page }) => {
+test('turning automatic refresh back on reloads the monitor page too and off stops its history polling', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.clock.install();
-  await page.goto('./servers/server-1/uptime/http-monitor');
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'Public API' })).toBeVisible();
+  await page.goto('./servers/server-1/monitors/http-monitor');
+  await expect(page.getByRole('heading', { level: 1, name: 'Public API' })).toBeVisible();
   const history = () => state.requests.filter((request) => request.method === 'GET' && request.path === '/services/http-monitor/metrics').length;
   const before = history();
   const auto = serverHeader(page).getByRole('switch', { name: '30초마다 자동 갱신' });
@@ -352,24 +362,20 @@ test('a server whose only monitors could not be refreshed says uptime is unverif
 
 test('detaching logs after a traces detach whose reload failed deletes the app instead of turning traces back on', async ({ page }) => {
   const state = await mockServer(page);
-  await page.goto('./servers/s1/api');
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
+  await page.goto('./servers/s1/apps/a1?tab=requests');
+  await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();
   // traces 연결을 해제한다. 그 뒤의 앱 목록 조회가 실패한다.
   state.failures.add('/observed-services');
-  await panel(page).getByRole('button', { name: /연결 해제$/ }).click();
+  await (await menuItem(appHeader(page), /연결 해제$/)).click();
   await page.getByRole('dialog').getByRole('button', { name: /연결 해제$/ }).click();
   await expect.poll(() => state.app?.signals).toEqual(['logs']);
   await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
-  // 해제한 신호는 이전 목록에도 반영되어 패널이 처리 중으로 남지 않는다.
+  // 해제한 신호는 이전 목록에도 반영되어 확인 창이 처리 중으로 남지 않고, 남은 로그 탭이 열린다.
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toHaveCount(0);
+  await expect(page.getByRole('tablist', { name: '앱 데이터' }).getByRole('tab', { selected: true })).toHaveText('로그');
 
-  // 앱 안에서 로그 탭으로 옮긴다(새로 띄우면 이전 목록이 없다).
-  await tablist(page).getByRole('tab', { name: /^로그/ }).click();
-  await page.getByRole('table', { name: '앱 그리드' }).getByRole('link', { name: 'orders-api' }).click();
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
   const writes = state.writes.length;
-  await panel(page).getByRole('button', { name: /^(삭제|로그 연결 해제)$/ }).click();
+  await (await menuItem(appHeader(page), /^(삭제|로그 연결 해제)$/)).click();
   const dialog = page.getByRole('dialog', { name: '이 앱을 삭제할까요?' });
   await expect(dialog).toBeVisible();
   await dialog.getByRole('button', { name: '삭제', exact: true }).click();
@@ -380,15 +386,14 @@ test('detaching logs after a traces detach whose reload failed deletes the app i
 
 test('the removal dialog judges from the app as it is now, not as the screen last loaded it', async ({ page }) => {
   const state = await mockServer(page);
-  await page.goto('./servers/s1/logs/a1');
-  const detach = panel(page).getByRole('button', { name: '로그 연결 해제' });
-  await expect(detach).toBeVisible();
+  await page.goto('./servers/s1/apps/a1?tab=logs');
+  await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();
   // 다른 곳에서 traces 연결이 해제되었고, 이 화면의 다시 불러오기는 실패한다. 화면의 앱은 [logs, traces]로 남는다.
   state.failures.add('/observed-services');
   state.app!.signals = ['logs'];
   await refresh(page).click();
   await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
-  await detach.click();
+  await (await menuItem(appHeader(page), '로그 연결 해제')).click();
   const dialog = page.getByRole('dialog', { name: '이 앱을 삭제할까요?' });
   await expect(dialog).toBeVisible();
   // 확인 창을 연 뒤에 다시 바뀌면 실행하지 않고 바뀐 판정으로 다시 확인받는다.
@@ -405,15 +410,17 @@ test('a header refresh during a connection stop does not reload the infrastructu
   const state = await mockServer(page, { infrastructure: true });
   for (const [path, revoke, panelRequest] of [
     ['./servers/s1/infrastructure', 'POST /infrastructure-resources/r1/revoke-key', '/hosts/r1/system/metrics'],
-    ['./servers/s1/logs/a1', 'POST /observed-services/a1/revoke-key', '/observed-services/a1/logs'],
+    ['./servers/s1/apps/a1?tab=logs', 'POST /observed-services/a1/revoke-key', '/observed-services/a1/logs'],
   ] as const) {
+    // 인프라는 패널의 상태 줄, 앱은 앱 페이지 머리말의 상태 줄에 연결 중지가 있다.
+    const stop = page.locator('#main-content').getByRole('button', { name: '연결 중지' });
     await page.goto(path);
-    await expect(panel(page).getByRole('button', { name: '연결 중지' })).toBeVisible();
+    await expect(stop).toBeVisible();
     await expect.poll(state.count(panelRequest)).toBeGreaterThan(0);
     const gate = deferred();
     state.holds.set(revoke, gate.promise);
     try {
-      await panel(page).getByRole('button', { name: '연결 중지' }).click();
+      await stop.click();
       await page.getByRole('dialog').getByRole('button', { name: '연결 중지', exact: true }).click();
       await expect.poll(() => state.requests.filter((item) => item === revoke).length).toBe(1);
       const before = { panel: state.count(panelRequest)(), servers: state.serverReads() };
@@ -487,31 +494,36 @@ test('a failed infrastructure refresh leaves the panel unverified, neither healt
   await expect(panel(page).getByText(/^마지막 수집/)).toBeVisible();
 });
 
-test('a failed app refresh leaves the app panels and the app selector unverified', async ({ page }) => {
+test('a failed app refresh leaves the app lists and the app page unverified', async ({ page }) => {
   const second: ObservedService = { ...app, id: 'a2', name: 'billing-api', signals: ['logs', 'traces', 'metrics'] };
   const state = await mockServer(page, { apps: [second] });
   await page.goto('./servers/s1/api');
-  const selector = panel(page).getByRole('group', { name: 'API 요청 앱' });
-  await expect(selector.getByRole('button', { name: /orders-api/ })).toBeVisible();
-  await expect(selector).not.toContainText('확인 불가');
+  await expect(appRows(page, 'API 요청 앱')).toHaveCount(2);
+  await expect(appRows(page, 'API 요청 앱').first()).not.toContainText('확인 불가');
   state.failures.add('/observed-services');
   await refresh(page).click();
   await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
   for (const name of ['orders-api', 'billing-api']) {
-    await expect(selector.getByRole('button', { name: new RegExp(name) }).getByRole('img', { name: '확인 불가' })).toBeAttached();
+    await expect(appRows(page, 'API 요청 앱').filter({ hasText: name })).toContainText('확인 불가');
   }
-  const unverified = (scope: ReturnType<typeof panel>) => scope.getByText('연결 중지', { exact: true }).locator('xpath=ancestor::div[1]').getByText('확인 불가', { exact: true });
-  await expect(unverified(panel(page))).toBeVisible();
-  await expect(panel(page).getByText('수집 중', { exact: true })).toHaveCount(0);
-
   await tablist(page).getByRole('tab', { name: /^메트릭/ }).click();
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'billing-api' })).toBeVisible();
-  await expect(unverified(panel(page))).toBeVisible();
+  await expect(appRows(page, '메트릭 앱').filter({ hasText: 'billing-api' })).toContainText('확인 불가');
+
+  // 앱 페이지는 서버 데이터를 새로 불러온다. 처음부터 실패하면 앱이 없다고 하지 않고 불러오지 못했다고 한다.
   await tablist(page).getByRole('tab', { name: /^로그/ }).click();
   await page.getByRole('table', { name: '앱 그리드' }).getByRole('link', { name: 'orders-api' }).click();
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
-  await expect(unverified(panel(page))).toBeVisible();
-  await expect(panel(page).getByText(/^마지막 수집/)).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1, name: '앱 정보를 불러오지 못했습니다' })).toBeVisible();
+  state.failures.clear();
+  await page.getByRole('button', { name: '다시 시도', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();
+  // 앱 페이지에서 다시 불러오다 실패하면 이전 앱을 두고, 머리말의 상태는 확인 불가이며 마지막 수집 시각을 숨긴다.
+  state.failures.add('/observed-services');
+  await refresh(page).click();
+  await expect(page.getByText('일부 정보를 불러오지 못했습니다', { exact: true })).toBeVisible();
+  const statusLine = appHeader(page).getByText('연결 중지', { exact: true }).locator('xpath=ancestor::div[1]');
+  await expect(statusLine.getByText('확인 불가', { exact: true })).toBeVisible();
+  await expect(appHeader(page).getByText('수집 중', { exact: true })).toHaveCount(0);
+  await expect(appHeader(page).getByText(/^마지막 수집/)).toHaveCount(0);
 });
 
 test('the metrics panel of an app over a threshold says so, like its tab', async ({ page }) => {
@@ -522,10 +534,13 @@ test('the metrics panel of an app over a threshold says so, like its tab', async
   });
   await page.goto('./servers/s1/metrics');
   await expect(tablist(page).getByRole('tab', { name: /^메트릭/ }).getByRole('img', { name: '임계값 초과' })).toBeVisible();
-  await expect(panel(page).getByRole('heading', { level: 2, name: 'orders-api' })).toBeVisible();
-  const statusLine = panel(page).getByText('연결 중지', { exact: true }).locator('xpath=ancestor::div[1]');
+  await expect(appRows(page, '메트릭 앱').filter({ hasText: 'orders-api' })).toContainText('임계값 초과');
+  await page.getByRole('table', { name: '메트릭 앱' }).getByRole('link', { name: 'orders-api' }).click();
+  // 앱 페이지의 상태 줄과 메트릭 탭도 같은 판정이다.
+  const statusLine = appHeader(page).getByText('연결 중지', { exact: true }).locator('xpath=ancestor::div[1]');
   await expect(statusLine.getByText('임계값 초과', { exact: true })).toBeVisible();
   await expect(statusLine.getByText('수집 중', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('tablist', { name: '앱 데이터' }).getByRole('tab', { name: /^메트릭/ }).getByRole('img', { name: '임계값 초과' })).toBeVisible();
 });
 
 test('only the screens that show error log counts ask for the log summary', async ({ page }) => {
@@ -561,12 +576,12 @@ test.describe('with an English browser', () => {
       data: [{ id: 1, serviceId: 'a1', level: 'error', message: 'order failed', createdAt: startTime }], total: 1,
     } } }));
     const twelveHour = /AM|PM|오전|오후/;
-    await page.goto('./servers/s1/api?tab=traces');
+    await page.goto('./servers/s1/apps/a1?tab=traces');
     const trace = panel(page).getByRole('button', { name: /GET \/orders/ }).or(panel(page).getByRole('row', { name: /GET \/orders/ })).first();
     await expect(trace).toBeVisible();
     await expect(trace).toContainText('15:21:53');
     await expect(trace).not.toContainText(twelveHour);
-    await page.goto('./servers/s1/logs/a1');
+    await page.goto('./servers/s1/apps/a1?tab=logs');
     const log = panel(page).locator('div', { has: page.getByText('order failed', { exact: true }) }).last().locator('time');
     await expect(log).toContainText('15:21:53');
     await expect(log).not.toContainText(twelveHour);
@@ -575,10 +590,11 @@ test.describe('with an English browser', () => {
 
 test('a rotated key stays on screen through a reload of the server data until closed', async ({ page }) => {
   const state = await mockServer(page, { infrastructure: true });
-  for (const [path, key] of [['./servers/s1/logs/a1', 'evup_rotated_app_key'], ['./servers/s1/infrastructure', 'evup_rotated_infra_key']] as const) {
+  // 앱 페이지는 넓은 화면에서 연결 정보를 펼쳐 둔다(대상 상세의 머리말). 서버의 인프라 탭은 접어 둔다.
+  for (const [path, key, folded] of [['./servers/s1/apps/a1?tab=logs', 'evup_rotated_app_key', false], ['./servers/s1/infrastructure', 'evup_rotated_infra_key', true]] as const) {
     await page.goto(path);
-    await panel(page).locator('summary', { hasText: '연결 정보' }).click();
-    await panel(page).getByRole('button', { name: '키 재발급' }).click();
+    if (folded) await panel(page).locator('summary', { hasText: '연결 정보' }).click();
+    await page.locator('#main-content').getByRole('button', { name: '키 재발급' }).click();
     await page.getByRole('dialog', { name: 'API Key를 재발급할까요?' }).getByRole('button', { name: '재발급', exact: true }).click();
     const shown = page.getByRole('dialog', { name: 'API Key 재발급' });
     await expect(shown.getByText(key, { exact: true })).toBeVisible();

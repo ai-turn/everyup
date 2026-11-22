@@ -1,13 +1,15 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button, IconButton, ListViewToggle, MaterialIcon, PageHeader, ResourceTable, StatusLight, Toggle } from '../../../components/common';
+import { useState } from 'react';
+import { Button, FilterChips, IconButton, ListViewToggle, MaterialIcon, PageHeader, ResourceTable, Stat, StatusLight, Toggle } from '../../../components/common';
 import { useListView } from '../../../hooks/useListView';
 import { ChannelIcon } from '../../../components/icons/ChannelIcons';
 import { getChannelStyle } from '../utils/channelMeta';
 import { ChannelHealthMeta, ChannelTestResult, type ChannelTestOutcome } from './ChannelHealthMeta';
 import type { NotificationChannel, NotificationChannelHealth, AlertRule, NotificationHistory, NotificationStats } from '../../../services/api';
 import { matchesAlertTarget, type AlertTarget } from '../alertTarget';
-import { alertTargetName, categoryLabel, compactTrigger, historyStatus, ruleCategory, SEVERITY_ORDER, targetLabel, useTargetNames } from '../ruleDisplay';
+import { alertTargetName, categoryChipOptions, categoryLabel, compactTrigger, historyStatus, ruleCategory, SEVERITY_ORDER, useTargetNames, type CategoryKey } from '../ruleDisplay';
+import { RuleTargetName } from './RuleTargetName';
 import { ChannelAvatars } from './ChannelAvatars';
 import { LoadErrorBanner } from '../../../components/common';
 import { SeverityBadge } from './SeverityBadge';
@@ -81,23 +83,26 @@ export function AlertsMobileView({
 
   const names = useTargetNames();
   // 데스크톱 표의 기본 정렬과 같게 심각도 순으로 둔다.
-  const visibleRules = (alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules)
+  const targetRules = (alertTarget ? rules.filter((rule) => matchesAlertTarget(rule, alertTarget)) : rules)
     .slice().sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 3) - (SEVERITY_ORDER[b.severity] ?? 3));
+  // 유형 칩은 데스크톱 규칙 탭과 같다. 개수는 대상 필터를 따르고 유형 선택은 따르지 않는다.
+  const [category, setCategory] = useState<Exclude<CategoryKey, 'all'> | null>(null);
+  const visibleRules = category ? targetRules.filter((rule) => ruleCategory(rule) === category) : targetRules;
   const targetDescription = alertTarget ? alertTargetName(alertTarget, names) : undefined;
-  const ruleMeta = (rule: AlertRule) => `${rule.isSystem ? '시스템 규칙' : categoryLabel(ruleCategory(rule))} · ${targetLabel(rule, names)}`;
+  const ruleMeta = (rule: AlertRule) => <>{rule.isSystem ? '시스템 규칙' : categoryLabel(ruleCategory(rule))} · <RuleTargetName rule={rule} names={names} /></>;
   const ruleActions = (rule: AlertRule) => <>
-    <IconButton icon="edit" label="규칙 수정" onClick={() => onEditRule(rule)} />
+    <IconButton icon="edit" tone="quiet" label="규칙 수정" onClick={() => onEditRule(rule)} />
     <IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '규칙 삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} onClick={() => { if (!rule.isSystem) onDeleteRule(rule.id); }} />
   </>;
 
   const tabs: { key: MobileTab; label: string; icon: string; count?: number }[] = [
-    { key: 'rules', label: '알림 규칙', icon: 'rule', count: visibleRules.length },
+    { key: 'rules', label: '알림 규칙', icon: 'rule', count: targetRules.length },
     { key: 'history', label: '발송 이력', icon: 'history' },
     { key: 'channels', label: '알림 채널', icon: 'notifications', count: channels.length },
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="page-stack">
       {/* Header */}
       <PageHeader menu title="알림">
         {activeTab !== 'history' && (
@@ -128,7 +133,7 @@ export function AlertsMobileView({
               <MaterialIcon size={20} name={tab.icon} className="max-sm:hidden" />
               {tab.label}
               {tab.count !== undefined && (
-                <span className="text-xs tabular-nums text-text-secondary">{tab.count}</span>
+                <span className="type-caption tabular-nums text-text-secondary">{tab.count}</span>
               )}
             </button>
           ))}
@@ -139,30 +144,22 @@ export function AlertsMobileView({
       {/* 7일 발송 요약 — 발송 이력 탭의 머리다(데스크톱과 같음). */}
       {stats && activeTab === 'history' && (
         <div className="grid grid-cols-3 gap-2">
+          {/* 수치 타일은 데스크톱과 같은 Stat(라벨 → 값 4px, DESIGN.md §3.7 카드 안쪽)이다. */}
           <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
-            <p className="type-body text-text-muted truncate">
-              발송
-            </p>
-            <p className="type-kpi text-text-base">{stats.totalSent}</p>
+            <Stat label="발송" value={stats.totalSent} />
           </div>
           <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
-            <p className="type-body text-text-muted truncate">
-              실패
-            </p>
-            <p className={`type-kpi ${stats.totalFailed > 0 ? 'text-status-error' : 'text-text-base'}`}>{stats.totalFailed}</p>
+            <Stat label="실패" value={<span className={stats.totalFailed > 0 ? 'text-status-error' : undefined}>{stats.totalFailed}</span>} />
           </div>
           <div className="bg-bg-surface border border-ui-border-soft rounded-xl p-4">
-            <p className="type-body text-text-muted truncate">
-              성공률
-            </p>
-            <p className="type-kpi text-text-base">{stats.successRate.toFixed(0)}%</p>
+            <Stat label="성공률" value={`${stats.successRate.toFixed(0)}%`} />
           </div>
         </div>
       )}
 
       {/* Channels Tab */}
       {activeTab === 'channels' && (
-        <div id="alerts-mobile-panel-channels" role="tabpanel" className="space-y-3">
+        <div id="alerts-mobile-panel-channels" role="tabpanel" className="space-y-tile">
           {errors.channels && <LoadErrorBanner title="알림 채널을 불러오지 못했습니다" message={errors.channels} onRetry={onRetry.channels} />}
           {isLoading ? (
             [1, 2].map(i => (
@@ -171,14 +168,16 @@ export function AlertsMobileView({
           ) : channels.length === 0 ? errors.channels ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="notifications_off" className="text-text-dim" />
-              <p className="type-body text-text-muted mt-2">
-                구성된 알림 채널이 없습니다
-              </p>
-              <Button variant="ghost" className="mt-3" onClick={onAddChannel}>추가</Button>
+              <div className="mt-2 space-y-label">
+                <p className="type-body text-text-muted">
+                  구성된 알림 채널이 없습니다
+                </p>
+                <Button variant="ghost" onClick={onAddChannel}>추가</Button>
+              </div>
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={channels} rowKey={row => row.id} ariaLabel="알림 채널 그리드" columns={[
-              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3"><ChannelHealthMeta health={channelHealth[channel.id]} compact /></div>{testResults[channel.id] && <div className="mt-2"><ChannelTestResult result={testResults[channel.id]} /></div>}<div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
+              { key: 'name', label: '채널', render: channel => <><p className="truncate font-medium">{channel.name}</p><p className="mt-1 type-caption text-text-muted">{channel.type}</p><div className="mt-3 space-y-label"><ChannelHealthMeta health={channelHealth[channel.id]} compact />{testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)}><MaterialIcon name="send" size={20} />{testingIds.has(channel.id) ? '전송 중' : '테스트'}</Button><IconButton icon="edit" tone="quiet" label="채널 편집" onClick={() => onEditChannel(channel)} /><IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} /></div></> },
               { key: 'enabled', label: '상태', className: 'w-16', render: channel => <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /> },
             ]} /> : channels.map(channel => {
               const meta = getChannelStyle(channel.type);
@@ -195,7 +194,7 @@ export function AlertsMobileView({
                       <div className="flex items-center gap-2">
                         <p className="type-body text-text-base truncate">{channel.name}</p>
                         {!channel.isEnabled && (
-                          <span className="px-1.5 py-0.5 text-xs bg-ui-active text-text-secondary rounded-full shrink-0">
+                          <span className="px-1.5 py-0.5 type-caption bg-ui-active text-text-secondary rounded-full shrink-0">
                             비활성
                           </span>
                         )}
@@ -204,16 +203,16 @@ export function AlertsMobileView({
                     </div>
                     <Toggle checked={channel.isEnabled} onChange={() => onToggleChannel(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} />
                   </div>
-                  <div className="mb-3">
+                  <div className="mb-3 space-y-label">
                     <ChannelHealthMeta health={channelHealth[channel.id]} compact />
-                    {testResults[channel.id] && <div className="mt-2"><ChannelTestResult result={testResults[channel.id]} /></div>}
+                    {testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}
                   </div>
                   <div className="flex gap-2">
                     <Button variant="secondary" size="sm" onClick={() => onTestChannel(channel.id)} disabled={!channel.isEnabled || testingIds.has(channel.id)} className="flex-1">
                       <MaterialIcon size={20} name="send" />
                       {testingIds.has(channel.id) ? '전송 중' : '테스트'}
                     </Button>
-                    <IconButton icon="edit" label="채널 편집" onClick={() => onEditChannel(channel)} />
+                    <IconButton icon="edit" tone="quiet" label="채널 편집" onClick={() => onEditChannel(channel)} />
                     <IconButton icon="delete_outline" label="채널 삭제" tone="danger" onClick={() => onDeleteChannel(channel.id)} />
                   </div>
                 </div>
@@ -225,20 +224,30 @@ export function AlertsMobileView({
 
       {/* Rules Tab */}
       {activeTab === 'rules' && (
-        <div id="alerts-mobile-panel-rules" role="tabpanel" className="space-y-2">
-          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 text-sm text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
+        <div id="alerts-mobile-panel-rules" role="tabpanel" className="page-stack">
+          {targetDescription && <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 type-control text-text-secondary" role="status"><MaterialIcon size={20} name="filter_alt" className="text-action" /><span className="min-w-0 flex-1 truncate">대상: {targetDescription}</span><Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button></div>}
           {errors.rules && <LoadErrorBanner title="알림 규칙을 불러오지 못했습니다" message={errors.rules} onRetry={onRetry.rules} />}
+          {!rulesLoading && targetRules.length > 0 && <FilterChips ariaLabel="유형으로 거르기" value={category} onChange={setCategory} options={categoryChipOptions(targetRules)} />}
           {rulesLoading ? (
             [1, 2].map(i => (
               <div key={i} className="h-16 rounded-xl bg-ui-hover animate-pulse" />
             ))
+          ) : targetRules.length > 0 && visibleRules.length === 0 ? (
+            <div className="py-8 text-center">
+              <div className="space-y-label">
+                <p className="type-body text-text-muted">조건에 맞는 규칙이 없습니다</p>
+                <Button variant="ghost" onClick={() => setCategory(null)}>필터 해제</Button>
+              </div>
+            </div>
           ) : visibleRules.length === 0 ? errors.rules ? null : (
             <div className="py-8 text-center">
               <MaterialIcon size={36} name="rule" className="text-text-dim" />
-              <p className="type-body text-text-muted mt-2">
-                등록된 알림 규칙이 없습니다
-              </p>
-              <Button variant="ghost" className="mt-3" onClick={onAddRule}>추가</Button>
+              <div className="mt-2 space-y-label">
+                <p className="type-body text-text-muted">
+                  등록된 알림 규칙이 없습니다
+                </p>
+                <Button variant="ghost" onClick={onAddRule}>추가</Button>
+              </div>
             </div>
           ) : (
             view === 'grid' ? <ResourceTable rows={visibleRules} rowKey={row => row.id} ariaLabel="알림 규칙 그리드" columns={[
@@ -253,7 +262,7 @@ export function AlertsMobileView({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className={`type-body truncate ${rule.isEnabled ? 'text-text-base' : 'text-text-muted'}`}>{rule.name}</p>
-                    <p className="mt-0.5 break-words type-caption text-text-muted">{ruleMeta(rule)}</p>
+                    <p className="mt-intra break-words type-caption text-text-muted">{ruleMeta(rule)}</p>
                   </div>
                   <SeverityBadge severity={rule.severity} />
                 </div>
@@ -274,7 +283,7 @@ export function AlertsMobileView({
 
       {/* History Tab */}
       {activeTab === 'history' && (
-        <div id="alerts-mobile-panel-history" role="tabpanel" className="space-y-2">
+        <div id="alerts-mobile-panel-history" role="tabpanel" className="space-y-label">
           {errors.history && <LoadErrorBanner title="발송 이력을 불러오지 못했습니다" message={errors.history} onRetry={onRetry.history} />}
           {historyLoading ? (
             [1, 2, 3].map(i => (
@@ -299,22 +308,22 @@ export function AlertsMobileView({
                   className="bg-bg-surface border border-ui-border-soft rounded-xl p-4"
                 >
                   <div className="flex items-start gap-3">
-                    <MaterialIcon size={20} name={statusConf.icon} className={`mt-0.5 shrink-0 ${statusConf.color}`} />
+                    <MaterialIcon size={20} name={statusConf.icon} className={`icon-lead shrink-0 ${statusConf.color}`} />
                     <span className="sr-only">{historyStatus(item.status).label}</span>
                     <div className="flex-1 min-w-0">
                       <p className="type-label text-text-base truncate">
                         {item.hostName || item.serviceName || item.channelName}
                       </p>
-                      <p className="type-body text-text-muted truncate mt-0.5">
+                      <p className="type-body text-text-muted truncate mt-intra">
                         {item.message}
                       </p>
                       {/* 실패 사유는 모바일에서도 보인다(A-10). */}
                       {item.errorMessage && <p className="mt-1 break-words type-caption text-status-error">{item.errorMessage}</p>}
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-text-dim">
+                        <span className="type-control text-text-dim">
                           {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })}
                         </span>
-                        <span className="text-sm capitalize text-text-dim">
+                        <span className="type-control capitalize text-text-dim">
                           {item.channelType}
                         </span>
                       </div>

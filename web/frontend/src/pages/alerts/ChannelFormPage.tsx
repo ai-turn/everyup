@@ -55,11 +55,11 @@ export function ChannelFormPage() {
     // 음수 마진은 본문 래퍼(`p-4 sm:px-6 sm:py-5`)의 패딩을 **정확히** 되돌리는 값이어야
     // 한다. 이전 `md:-m-8`은 존재하지 않는 32px 패딩을 가정해 8px 더 당겼고, 그만큼
     // AppHeader breadcrumb보다 왼쪽으로 튀어나가 있었다.
-    <div className="-m-4 sm:-mx-6 sm:-my-5 flex flex-col bg-bg-main lg:h-[calc(100dvh-8rem)]">
+    <div className="-m-4 sm:-mx-6 sm:-my-6 flex flex-col bg-bg-main lg:h-[calc(100dvh-8rem)]">
       {/* Page header */}
       <header className="flex-none px-6 py-3 bg-bg-surface">
         <h1 className="type-page-title text-text-base">{title}</h1>
-        <p className="type-body text-text-muted mt-0.5">
+        <p className="type-body text-text-muted mt-intra">
           {isEdit
             ? `${channel?.name ?? ''} · 채널 설정을 수정합니다`
             : 'Telegram, Discord, Slack 중 채널을 선택하고 연결 정보를 입력하세요'}

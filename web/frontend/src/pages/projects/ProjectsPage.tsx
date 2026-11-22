@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Button, ConfirmDialog, EmptyState, IconButton, Input, ListViewToggle, LoadErrorBanner, MaterialIcon, PageHeader, ResourceCardHeader, ResourceTable, StatusLight } from '../../components/common';
+import { Button, ConfirmDialog, EmptyState, FilterChips, IconButton, Input, ListToolbar, ListViewToggle, LoadErrorBanner, MaterialIcon, PageHeader, ResourceCardHeader, ResourceTable, SearchInput, StatusLight } from '../../components/common';
+import { parseStateFilter, stateChipOptions } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
+import { useListSearch } from '../../hooks/useListSearch';
 import { useListView } from '../../hooks/useListView';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import { api, type Project, type ProjectInput } from '../../services/api';
 import { getErrorMessage } from '../../utils/errors';
+import { Field } from '../../features/alerts/components/FormLayout';
 import { assignableTargets, projectMembers, sourcesForProject, summarizeMembers, type ProjectSources } from './projectMembers';
 
 export function ProjectDialog({ project, onClose, onSave }: {
@@ -17,11 +20,15 @@ export function ProjectDialog({ project, onClose, onSave }: {
   const [name, setName] = useState(project?.name ?? '');
   const [description, setDescription] = useState(project?.description ?? '');
   const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialogRef.current?.showModal(); }, []);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    // 브라우저 기본 검증(말풍선) 대신 입력 아래에 오류를 둔다(폼은 noValidate, UI/UX 점검 A5).
+    if (!name.trim()) { setNameError('그룹 이름을 입력하세요'); nameRef.current?.focus(); return; }
     setSaving(true);
     try { await onSave({ name, description }); onClose(); }
     catch (error) { toast.error(getErrorMessage(error)); }
@@ -38,11 +45,11 @@ export function ProjectDialog({ project, onClose, onSave }: {
       onClick={event => { if (event.target === event.currentTarget && !saving) onClose(); }}
       className={`m-auto w-full max-w-md overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
-      <form onSubmit={submit}>
+      <form onSubmit={submit} noValidate>
         <div className="border-b border-ui-border px-6 py-4"><h2 id="project-dialog-title" className="type-card-title text-text-base">{project ? '그룹 수정' : '그룹 추가'}</h2></div>
-        <div className="space-y-4 p-6">
-          <label className="block space-y-1.5" htmlFor="project-name"><span className="type-label text-text-secondary">이름</span><Input id="project-name" required value={name} onChange={event => setName(event.target.value)} placeholder="예: Production" /></label>
-          <label className="block space-y-1.5" htmlFor="project-description"><span className="type-label text-text-secondary">설명</span><Input id="project-description" value={description} onChange={event => setDescription(event.target.value)} placeholder="선택 사항" /></label>
+        <div className="space-y-heading p-6">
+          <Field label="이름" htmlFor="project-name" required error={nameError ?? undefined}><Input id="project-name" ref={nameRef} invalid={Boolean(nameError)} value={name} onChange={event => { setName(event.target.value); setNameError(null); }} placeholder="예: Production" /></Field>
+          <Field label="설명" htmlFor="project-description"><Input id="project-description" value={description} onChange={event => setDescription(event.target.value)} placeholder="선택 사항" /></Field>
         </div>
         <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4"><Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button><Button type="submit" loading={saving}>{project ? '저장' : '추가'}</Button></div>
       </form>
@@ -68,7 +75,7 @@ function ProjectCard({ project, returnTo, status, counts, onEdit, onDelete }: {
       />
       <p className="mt-3 type-body text-text-muted">{project.description || '설명이 없습니다'}</p>
       <div className="mt-5 grid grid-cols-2 gap-3">
-        {counts.map(([label, count]) => <div key={label} className="rounded-md bg-ui-hover-soft p-3"><p className="text-xs text-text-dim">{label}</p><p className="mt-1 type-stat text-text-base">{count}</p></div>)}
+        {counts.map(([label, count]) => <div key={label} className="rounded-md bg-ui-hover-soft p-3"><p className="type-caption text-text-dim">{label}</p><p className="mt-1 type-stat text-text-base">{count}</p></div>)}
       </div>
     </article>
   );
@@ -79,6 +86,8 @@ const COUNTS = [['agent', 'Docker 환경'], ['server', '서버']] as const;
 
 export function ProjectsPage() {
   const { view, setView, returnTo } = useListView();
+  const { params, query, search, setQuery, setParam, clearFilters } = useListSearch();
+  const status = parseStateFilter(params.get('status'));
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   // 상태 요약은 그룹 상세와 같은 입력으로 계산한다. Docker 서비스를 불러오지 못하면 services가 null이다.
@@ -123,26 +132,44 @@ export function ProjectsPage() {
     const own = assignableTargets(sourcesForProject(project.id, { ...docker, services: [], servers: servers.rows }));
     return COUNTS.map(([kind, label]) => [label, kind === 'server' && serversUnknown ? '-' : own.filter(target => target.kind === kind).length]);
   };
+  // 상태를 모르면(Docker 서비스나 서버를 불러오지 못함) null이다. 그때는 상태 칩을 두지 않는다(모르는 것을 세지 않는다).
+  const summaryOf = (project: Project) => !docker.services || serversUnknown ? null
+    : summarizeMembers(projectMembers(sourcesForProject(project.id, { ...docker, services: docker.services, servers: servers.rows })));
   const renderStatus = (project: Project) => {
-    if (!docker.services || serversUnknown) return <StatusLight tone="idle" label="상태 확인 불가" />;
-    const { tone, label } = summarizeMembers(projectMembers(sourcesForProject(project.id, { ...docker, services: docker.services, servers: servers.rows })));
-    return <StatusLight tone={tone} label={label} />;
+    const summary = summaryOf(project);
+    return summary ? <StatusLight tone={summary.tone} label={summary.label} /> : <StatusLight tone="idle" label="상태 확인 불가" />;
   };
   const serverFailures = [...(servers.error ? [{ label: '서버', stale: servers.loaded }] : []), ...servers.failed];
 
-  return <div>
-    <PageHeader menu title="그룹">
+  // 검색은 그룹 이름과 설명을 찾는다. 상태 칩의 개수는 검색어를 따르고 상태 선택은 따르지 않는다(서버 목록과 같다).
+  const searched = projects.filter(project => !search || project.name.toLowerCase().includes(search) || (project.description ?? '').toLowerCase().includes(search));
+  const statesKnown = Boolean(docker.services) && !serversUnknown;
+  const visible = status && statesKnown ? searched.filter(project => summaryOf(project)?.tone === status) : searched;
+  const ready = !loading && !error && (servers.loaded || Boolean(servers.error));
+
+  // 머리말 → 툴바 → 목록은 페이지 블록 24px(page-stack), 알림 배너 → 목록은 16px이다.
+  return <div className="page-stack">
+    <PageHeader menu title="그룹" count={loading || error ? null : projects.length}>
       {projects.length > 0 && <ListViewToggle view={view} onChange={setView} />}
       <Button onClick={() => setEditing(null)}><MaterialIcon name="add" />추가</Button>
     </PageHeader>
+    {ready && projects.length > 0 && (
+      <ListToolbar search={
+        <SearchInput value={query} onChange={event => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={visible.length} shortcut placeholder="그룹 이름 또는 설명 검색" aria-label="그룹 이름 또는 설명 검색" />
+      }>
+        {statesKnown && <FilterChips ariaLabel="상태로 거르기" value={status} onChange={next => setParam('status', next)} options={stateChipOptions(searched.map(project => summaryOf(project)!.tone))} />}
+      </ListToolbar>
+    )}
+    <div className="space-y-heading">
     {projects.length > 0 && <h2 className="sr-only">그룹 목록</h2>}
-    {!loading && !error && projects.length > 0 && serverFailures.length > 0 && <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(serverFailures)} onRetry={() => void servers.reload()} retrying={servers.loading} /></div>}
-    {loading || (!servers.loaded && !servers.error) ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1].map(item => <div key={item} className="h-72 animate-pulse rounded-xl bg-ui-hover-soft" />)}</div> : error ? <EmptyState icon="error_outline" title="그룹을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} /> : projects.length === 0 ? <EmptyState icon="folder_open" title="아직 그룹이 없습니다" description="필요할 때 모니터링 대상을 묶어 보세요." action={{ label: '추가', onClick: () => setEditing(null) }} /> : view === 'grid' ? <ResourceTable rows={projects} rowKey={project => project.id} ariaLabel="그룹 그리드"
+    {!loading && !error && projects.length > 0 && serverFailures.length > 0 && <LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(serverFailures)} onRetry={() => void servers.reload()} retrying={servers.loading} />}
+    {!ready && !error ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1].map(item => <div key={item} className="h-72 animate-pulse rounded-xl bg-ui-hover-soft" />)}</div> : error ? <EmptyState icon="error_outline" title="그룹을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: () => void load() }} /> : projects.length === 0 ? <EmptyState icon="folder_open" title="아직 그룹이 없습니다" description="필요할 때 모니터링 대상을 묶어 보세요." action={{ label: '추가', onClick: () => setEditing(null) }} /> : visible.length === 0 ? <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: () => clearFilters(['status']) }} /> : view === 'grid' ? <ResourceTable rows={visible} rowKey={project => project.id} ariaLabel="그룹 그리드"
       columns={[
         { key: 'name', label: '그룹', render: project => <><Link to={`/projects/${project.id}`} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{project.name}</Link><p className="mt-1 line-clamp-2 break-words type-caption text-text-muted">{project.description || '설명 없음'}</p><div className="mt-2 md:hidden">{renderStatus(project)}</div><p className="mt-2 type-caption text-text-muted md:hidden">{countsOf(project).map(([label, count]) => `${label} ${count}`).join(', ')}</p></> },
         { key: 'status', label: '상태', className: 'hidden md:table-cell', render: renderStatus },
         ...COUNTS.map(([kind, label], index) => ({ key: kind, label, className: 'hidden w-28 md:table-cell', align: 'right' as const, render: (project: Project) => countsOf(project)[index][1] })),
-      ]} /> : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{projects.map(project => <ProjectCard key={project.id} project={project} returnTo={returnTo} status={renderStatus(project)} counts={countsOf(project)} onEdit={() => setEditing(project)} onDelete={() => setDeleting(project)} />)}</div>}
+      ]} /> : <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{visible.map(project => <ProjectCard key={project.id} project={project} returnTo={returnTo} status={renderStatus(project)} counts={countsOf(project)} onEdit={() => setEditing(project)} onDelete={() => setDeleting(project)} />)}</div>}
+    </div>
     {editing !== undefined && <ProjectDialog project={editing} onClose={() => setEditing(undefined)} onSave={saveProject} />}
     <ConfirmDialog isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} onConfirm={() => void deleteProject()} title="그룹을 삭제할까요?" message="배정된 서버와 Docker 환경은 삭제되지 않고 미분류로 남습니다." confirmLabel="삭제" isProcessing={deletingProject} />
   </div>;

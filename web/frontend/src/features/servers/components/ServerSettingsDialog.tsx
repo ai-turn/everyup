@@ -42,17 +42,17 @@ export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete 
       onClick={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}
       className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
-      <form onSubmit={submit}>
+      <form onSubmit={submit} noValidate>
         <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
           <h2 id="server-settings-title" className="type-card-title text-text-base">서버 설정</h2>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
         </div>
-        <fieldset disabled={saving} className="space-y-4 p-6">
+        <fieldset disabled={saving} className="space-y-heading p-6">
           <ServerFields form={form} idPrefix="server-settings" />
         </fieldset>
         {/* 서버 자체를 바꾸는 조작은 입력란 아래에 떼어 두고, 저장 줄은 맨 아래에 둔다.
             오른쪽 아래 끝(주 액션 자리)에 삭제가 오지 않게 한다. 중립 표면에 붉은 글자의 조작이다(DESIGN.md §9.2). */}
-        <section aria-label="서버 관리" className="space-y-4 border-t border-ui-border px-6 py-5">
+        <section aria-label="서버 관리" className="space-y-heading border-t border-ui-border px-6 py-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.</p>
             <Button type="button" variant="secondary" onClick={onMerge} disabled={saving}>다른 서버 합치기</Button>
@@ -98,7 +98,7 @@ export function DeleteServerDialog({ row, onClose, onDeleted, onFailed }: {
   return (
     <ConfirmDialog isOpen onClose={onClose} onConfirm={() => void remove()} title={`${row.server.name} 서버를 삭제할까요?`} confirmLabel="삭제" variant="danger" isProcessing={deleting}
       message={hasTargets(row.targets) ? (
-        <div className="space-y-3">
+        <div className="space-y-label">
           <p>다음 대상이 함께 삭제됩니다.</p>
           <TargetCountList rows={[row]} />
           <p>수집된 데이터도 함께 삭제됩니다.</p>

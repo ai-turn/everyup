@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/' });
-const panel = (page: Page) => page.getByRole('tabpanel');
+test.use({ baseURL: API_URL });
 
 test('grid is the default and switching views preserves search and reload', async ({ page }) => {
   await uptimeFixture(page);
@@ -45,7 +45,7 @@ test('returning from a detail keeps the search and the card view', async ({ page
   const toggle = page.getByRole('group', { name: '대상 보기 방식' });
   const targets = page.getByRole('region', { name: '업타임 대상', exact: true });
   await targets.getByRole('link', { name: 'Public API', exact: true }).click();
-  await panel(page).getByRole('link', { name: '모니터 목록', exact: true }).click();
+  await page.getByRole('link', { name: '모니터 목록', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '모니터 검색' })).toHaveValue('api');
   await expect(toggle.getByRole('button', { name: '카드', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });
@@ -61,7 +61,9 @@ test('both views share state priority and mobile grid retains actions without ho
   const row = targets.getByRole('row').filter({ has: page.getByRole('link', { name: 'Public API', exact: true }) });
   await expect(row.getByRole('button', { name: 'Public API 일시정지', exact: true })).toBeVisible();
   await expect(row.getByText('https://api.example.com/health', { exact: true }).filter({ visible: true })).toBeVisible();
-  expect(await targets.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+  // 표는 table-bleed로 셀 패딩만큼 영역 밖으로 펼쳐진다(DESIGN.md §4.5). 넘침은 영역이 아니라 실제로 가로 스크롤이 생기는
+  // 본문 스크롤 컨테이너에서 잰다.
+  expect(await page.evaluate(() => { const scroller = document.querySelector('#main-content > div')!; return scroller.scrollWidth - scroller.clientWidth; })).toBeLessThanOrEqual(1);
   const names = await targets.getByRole('link').allTextContents();
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();
   await expect(targets.getByRole('article')).toHaveCount(2);

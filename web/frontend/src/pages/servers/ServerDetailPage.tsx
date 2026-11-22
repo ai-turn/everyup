@@ -11,7 +11,7 @@ import { ServerOverviewTab } from '../../features/servers/components/ServerOverv
 import { ServerUptimeTab } from '../../features/servers/components/ServerUptimeTab';
 import { DeleteServerDialog, ServerSettingsDialog } from '../../features/servers/components/ServerSettingsDialog';
 import { SERVER_CAPABILITIES, SERVERS_PATH, serverPath, serversListPath, type ServerCapability } from '../../features/servers/serverPaths';
-import { capabilityLabel, capabilityTargets, capabilityUnverified, type ServerCapabilityTabProps, type ServerRow } from '../../features/servers/serverStatus';
+import { capabilityLabel, capabilityTargets, capabilityUnverified, type ServerCapabilityTabProps } from '../../features/servers/serverStatus';
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
@@ -22,12 +22,8 @@ const ID_PREFIX = 'server';
 
 const TARGET_NOUN: Record<ServerCapability, string> = { uptime: '모니터', infrastructure: '리소스', logs: '앱', api: '앱', metrics: '앱' };
 
-const targetName = (row: ServerRow, targetId: string) =>
-  [...row.targets.monitors, ...row.targets.apps, ...(row.targets.infrastructure ? [row.targets.infrastructure] : [])]
-    .find((target) => target.id === targetId)?.name;
-
 export function ServerDetailPage() {
-  const { serverId = '', capability: rawCapability, targetId } = useParams<{ serverId: string; capability?: string; targetId?: string }>();
+  const { serverId = '', capability: rawCapability } = useParams<{ serverId: string; capability?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const capability = SERVER_CAPABILITIES.find(({ key }) => key === rawCapability)?.key;
@@ -89,18 +85,18 @@ export function ServerDetailPage() {
     if (focusRequest > 0) panelRef.current?.focus();
   }, [focusRequest]);
 
-  const target = row && targetId ? targetName(row, targetId) : undefined;
-  useBreadcrumb(row ? [{ label: row.server.name, to: serverPath(row.server.id) }, ...(target ? [{ label: target }] : [])] : []);
+  // 대상(앱, 모니터)은 자기 페이지가 있다(DESIGN.md §4.7 대상 상세). 서버 화면의 크럼은 서버까지다.
+  useBreadcrumb(row ? [{ label: row.server.name, to: serverPath(row.server.id) }] : []);
 
   if (!row) {
     if (!loaded && !error) {
       return (
         // 서버 목록의 자리 표시(ServerListSkeleton)와 같은 방식: 머리말, 탭 줄, 행 몇 개.
-        <div role="status" className="space-y-6">
+        <div role="status" className="space-y-group">
           <span className="sr-only">로딩 중…</span>
           <div className="h-8 w-48 animate-pulse rounded-lg bg-ui-hover-soft" />
           <div className="h-10 animate-pulse rounded-lg bg-ui-hover-soft" />
-          <div className="space-y-2">
+          <div className="space-y-label">
             {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
           </div>
         </div>
@@ -138,7 +134,7 @@ export function ServerDetailPage() {
 
   // 이전 목록으로 그린 기능은 stale이다. unknown은 이전 목록도 없을 때뿐이다.
   const tabProps = (key: ServerCapability): ServerCapabilityTabProps => ({
-    row, targetId, onChanged: reload, onRetry: () => void reload(), refreshToken, actionSlot, autoRefresh, forgetTarget,
+    row, onChanged: reload, onRetry: () => void reload(), refreshToken, actionSlot, autoRefresh, forgetTarget,
     unknown: row.unknownCapabilities.includes(key), stale: Boolean(error) || row.staleCapabilities.includes(key),
   });
 
@@ -155,23 +151,27 @@ export function ServerDetailPage() {
   };
 
   return (
-    <div>
+    // 머리말 → 탭 → 패널은 페이지 블록 24px(page-stack), 알림 배너 → 탭은 16px이다.
+    <div className="page-stack">
       <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')}
         updatedAt={updatedAt} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh} />
-      {error && <div className="mb-4"><LoadErrorBanner title="서버 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} /></div>}
+      <div className="space-y-heading">
+      {error && <LoadErrorBanner title="서버 정보를 새로 불러오지 못했습니다" message={`이전에 불러온 정보입니다. ${error}`} onRetry={reload} retrying={loading} />}
       {!error && failed.length > 0 && (
-        <div className="mb-4"><LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={reload} retrying={loading} /></div>
+        <LoadErrorBanner role="status" title="일부 정보를 불러오지 못했습니다" message={partialFailureMessage(failed)} onRetry={reload} retrying={loading} />
       )}
-      {/* 탭 줄이 넘쳐 가로로 스크롤하는 좁은 화면에서는 조작 자리가 탭 줄 아래 오른쪽으로 내려간다. 비어 있으면 높이가 없다. */}
-      <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+      {/* 탭 줄이 넘쳐 가로로 스크롤하는 좁은 화면에서는 조작 자리가 탭 줄 아래 한 줄로 내려간다(모바일은 폭 전체, 목록 복귀
+          링크가 왼쪽 끝, 조작이 오른쪽 끝). 비어 있으면 높이가 없다. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="min-w-0 max-w-full">
           <Tabs items={tabs} active={active} onChange={open} ariaLabel="서버 기능" idPrefix={ID_PREFIX} />
         </div>
-        <div ref={setActionSlot} role="group" aria-label="탭 조작" className="ml-auto flex flex-wrap items-center justify-end gap-2 empty:hidden" />
+        <div ref={setActionSlot} role="group" aria-label="탭 조작" className="ml-auto flex flex-wrap items-center justify-end gap-2 empty:hidden max-sm:w-full" />
+      </div>
       </div>
       <div ref={panelRef} tabIndex={-1} role="tabpanel" id={tabPanelId(ID_PREFIX, active)} aria-labelledby={tabId(ID_PREFIX, active)}>
         {active === 'overview'
-          ? <ServerOverviewTab row={row} onOpen={(capability) => open(capability)} />
+          ? <ServerOverviewTab row={row} />
           : active === 'uptime' ? <ServerUptimeTab {...tabProps(active)} />
             : active === 'infrastructure' ? <ServerInfrastructureTab {...tabProps(active)} />
               : active === 'logs' ? <ServerLogsTab {...tabProps(active)} />

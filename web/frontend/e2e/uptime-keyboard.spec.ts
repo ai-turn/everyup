@@ -1,7 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { API_URL } from './fixtures/ports';
 import { uptimeFixture } from './fixtures/uptime';
 
-test.use({ baseURL: 'http://127.0.0.1:4174/', reducedMotion: 'reduce' });
+test.use({ baseURL: API_URL, reducedMotion: 'reduce' });
 
 async function tabTo(page: Page, target: Locator) {
   for (let i = 0; i < 60; i++) {
@@ -13,9 +14,9 @@ async function tabTo(page: Page, target: Locator) {
 
 test('[16] add/edit/delete dialogs trap focus and return it to their keyboard trigger', async ({ page }) => {
   await uptimeFixture(page); await page.goto('./servers/server-1/uptime');
-  const add = page.getByRole('button', { name: '모니터 추가', exact: true });
+  const add = page.getByRole('button', { name: '업타임 모니터 추가', exact: true });
   await tabTo(page, add); await page.keyboard.press('Enter');
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   await expect(dialog).toBeVisible();
   for (const key of ['Tab', 'Shift+Tab', ...Array(12).fill('Tab'), ...Array(12).fill('Shift+Tab')]) {
     await page.keyboard.press(key);
@@ -41,7 +42,7 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const edit = page.getByRole('button', { name: '수정', exact: true });
   await tabTo(page, edit); await page.keyboard.press('Enter');
-  const editDialog = page.getByRole('dialog', { name: '업타임 수정' });
+  const editDialog = page.getByRole('dialog', { name: '업타임 모니터 수정' });
   await expect(editDialog.getByRole('button', { name: '닫기', exact: true })).toBeFocused();
   await expect(editDialog.getByRole('tooltip')).toHaveText('닫기');
   await page.keyboard.press('Escape');
@@ -50,22 +51,28 @@ test('[16] add/edit/delete dialogs trap focus and return it to their keyboard tr
   await page.keyboard.press('Escape');
   await expect(editDialog).toHaveCount(0);
   await expect(edit).toBeFocused();
-  const remove = page.getByRole('button', { name: '삭제', exact: true });
-  await tabTo(page, remove); await page.keyboard.press('Enter');
+  // 삭제는 더보기 메뉴의 마지막 항목이다(DESIGN.md §4.1 상세 헤더). 메뉴는 첫 항목에 포커스를 두고, 위 화살표는 끝으로 돈다.
+  const more = page.getByRole('button', { name: '더보기', exact: true });
+  await tabTo(page, more); await page.keyboard.press('Enter');
+  await expect(page.getByRole('menuitem').first()).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(page.getByRole('menuitem', { name: '삭제', exact: true })).toBeFocused();
+  await page.keyboard.press('Enter');
   const confirm = page.getByRole('dialog', { name: '업타임을 삭제할까요?' });
   await expect(confirm.getByRole('button', { name: '취소', exact: true })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
   await expect(confirm.getByRole('button', { name: '삭제', exact: true })).toBeFocused();
   await page.keyboard.press('Tab'); await page.keyboard.press('Enter');
-  await expect(confirm).toHaveCount(0); await expect(remove).toBeFocused();
+  // 대화 상자가 닫히면 포커스는 사라진 메뉴 항목이 아니라 더보기 버튼으로 돌아온다.
+  await expect(confirm).toHaveCount(0); await expect(more).toBeFocused();
 });
 
 test('[16] Escape closes the add dialog directly when no child overlay is open', async ({ page }) => {
   await uptimeFixture(page); await page.goto('./servers/server-1/uptime');
   await page.mouse.move(0, 0);
-  const add = page.getByRole('button', { name: '모니터 추가', exact: true });
+  const add = page.getByRole('button', { name: '업타임 모니터 추가', exact: true });
   await tabTo(page, add); await page.keyboard.press('Enter');
-  const dialog = page.getByRole('dialog', { name: '업타임 추가' });
+  const dialog = page.getByRole('dialog', { name: '업타임 모니터 추가' });
   const type = dialog.getByRole('combobox', { name: /체크 방식/ });
   await tabTo(page, type); await page.keyboard.press('ArrowDown');
   await expect(dialog.getByRole('textbox', { name: '호스트', exact: true })).toBeVisible();
@@ -79,7 +86,7 @@ test('[16] Escape closes the add dialog directly when no child overlay is open',
 
 test('[16] mobile keyboard focus remains above bottom navigation and charts are single stops', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await uptimeFixture(page); await page.goto('./servers/server-1/uptime/http-monitor');
+  await uptimeFixture(page); await page.goto('./servers/server-1/monitors/http-monitor');
   await expect(page.getByRole('heading', { name: 'Public API', exact: true })).toBeVisible();
   const history = page.getByRole('group', { name: /최근 90일/ });
   const response = page.getByRole('application', { name: /응답 시간 추이/ });
@@ -91,14 +98,19 @@ test('[16] mobile keyboard focus remains above bottom navigation and charts are 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('group', { name: '장애 이력 구분' }).getByRole('button', { name, exact: true })).toBeFocused();
   }
+  // Measure the real bottom navigation; a guessed height would hide a focus ring it covers.
+  const bottomNav = page.getByRole('navigation', { name: '하단 메뉴' });
+  await expect(bottomNav).toBeVisible();
   for (const key of ['Tab', 'Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab']) {
     await page.keyboard.press(key);
-    await expect.poll(async () => page.evaluate(() => {
-      const element = document.activeElement as HTMLElement;
-      if (!element.closest('main')) return true;
-      const bottom = document.querySelector('nav[aria-label="모바일 내비게이션"]')?.getBoundingClientRect().top ?? innerHeight - 64;
-      const rect = element.getBoundingClientRect();
-      return rect.bottom <= bottom + 1 && rect.top >= 0;
-    })).toBe(true);
+    await expect.poll(async () => {
+      const navTop = (await bottomNav.boundingBox())!.y;
+      return page.evaluate((bottom) => {
+        const element = document.activeElement as HTMLElement;
+        if (!element.closest('main')) return true;
+        const rect = element.getBoundingClientRect();
+        return rect.bottom <= bottom + 1 && rect.top >= 0;
+      }, navTop);
+    }).toBe(true);
   }
 });

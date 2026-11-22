@@ -4,6 +4,8 @@ import type { CollectorSetupStatus } from '../../../services/api/agents';
 import { useSetupStatus } from '../useSetupStatus';
 import { useState } from 'react';
 import { ReceiptPanel } from './TelemetryReceiptStatus';
+import { DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
+import { environmentState } from '../environmentState';
 import { lastReceipt, receiptState } from '../../telemetry/signals';
 import type {
 	AgentCollectionCapability,
@@ -14,13 +16,9 @@ import type {
 } from '../../../services/api';
 import { formatDateTime } from '../../../utils/incidentFormat';
 
-const PROFILE_CAPABILITIES: { capability: AgentCollectionCapability; label: string }[] = [
-  { capability: 'uptime', label: '업타임' },
-  { capability: 'logs', label: '로그' },
-  { capability: 'infrastructure', label: '인프라' },
-  { capability: 'api', label: 'API' },
-  { capability: 'metrics', label: '메트릭' },
-];
+const PROFILE_CAPABILITIES: { capability: AgentCollectionCapability; label: string }[] = (
+  ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] as const
+).map((capability) => ({ capability, label: DOCKER_CAPABILITY_NAME[capability] }));
 
 const profileLabels = {
   'all-in-one': '전체 수집',
@@ -131,7 +129,7 @@ function SetupStep({
   return (
     <div className="flex min-w-0 flex-col rounded-md bg-ui-hover-soft p-3">
       <div className="flex items-start gap-3">
-        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs ${appearance.circle}`}>
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full type-caption ${appearance.circle}`}>
           {state === 'ready' || state === 'issue' ? (
             <MaterialIcon size={20} name={appearance.icon} />
           ) : appearance.icon}
@@ -139,22 +137,27 @@ function SetupStep({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1.5">
             <h3 className="type-label text-text-base">{title}</h3>
-            <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs ${appearance.badge}`}>
+            <span className={`shrink-0 rounded px-1.5 py-0.5 type-caption ${appearance.badge}`}>
               {stateLabel}
             </span>
           </div>
           <p className="mt-1 type-body text-text-muted">{description}</p>
         </div>
       </div>
+      {(detail || (actionLabel && onAction)) && (
+        // 단계 머리 → 상세·조작 8px, 상세 → 조작 8px. flex-col이라 버튼이 이전처럼 폭을 채운다.
+        <div className="mt-2 flex flex-col gap-label">
       {detail && (
-        <p className={`mt-2 rounded-md px-2 py-1.5 type-body ${state === 'issue' ? 'bg-status-warn/5 text-status-warn' : 'bg-ui-hover-soft text-text-muted'}`}>
+        <p className={`rounded-md px-2 py-1.5 type-body ${state === 'issue' ? 'bg-status-warn/5 text-status-warn' : 'bg-ui-hover-soft text-text-muted'}`}>
           {detail}
         </p>
       )}
       {actionLabel && onAction && (
-        <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
+        <Button variant="secondary" size="sm" onClick={onAction}>
           {actionLabel}
         </Button>
+      )}
+        </div>
       )}
     </div>
   );
@@ -175,6 +178,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
     .filter((item) => !enabledCapabilities.includes(item.capability));
   const unavailableCapabilityLabels = unavailableCapabilities.map((item) => item.label);
   const connected = Boolean(status?.connected) && !statusRequest.error;
+  const installed = environmentState(agent) !== 'install';
   const received = (signal: string) => Boolean(status?.signals.some(item => item.signal === signal));
   const containerCollectionEnabled = enabledCapabilities.includes('uptime') || enabledCapabilities.includes('logs');
   const infrastructureEnabled = enabledCapabilities.includes('infrastructure');
@@ -228,19 +232,20 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
     ? '컨테이너 상태, stdout 로그와 호스트 메트릭을 수집합니다.'
     : containerCollectionEnabled ? '컨테이너 상태와 stdout 로그를 수집합니다.'
     : infrastructureEnabled ? '호스트 CPU·메모리·디스크를 수집합니다.'
-    : '이 프로필에서는 별도 기본 Collector를 시작하지 않습니다.';
+    : '이 프로필에서는 별도 기본 Docker Collector를 시작하지 않습니다.';
 
   return (
     <section className={className}>
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
+          {/* 진행 배지는 제목의 메타다 — 가운데가 아니라 기준선에 맞춘다(DESIGN.md §2.2). */}
+          <div className="flex items-baseline gap-2">
             <h2 className={`${compact ? 'type-label' : 'type-section-title'} text-text-base`}>모니터링 설정 가이드</h2>
-            <span className={`rounded-full px-2 py-0.5 text-xs ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
+            <span className={`rounded-full px-2 py-0.5 type-caption ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
               필수 {requiredReady}/{requiredTotal}
             </span>
           </div>
-          <p className="mt-0.5 type-body text-text-muted">
+          <p className="mt-intra type-body text-text-muted">
             {requiredComplete
               ? '기본 모니터링 설정이 완료됐습니다. 필요할 때 상세 수집을 추가하세요.'
               : '위에서 아래 순서로 확인하면 별도 앱 수정 없이 기본 모니터링을 시작할 수 있습니다.'}
@@ -253,16 +258,16 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
             <div className="mt-2 flex flex-wrap gap-2">
               {unavailableCapabilities.map((item) => (
                 <Button key={item.capability} variant="secondary" size="sm" onClick={() => onAddCapability(item.capability)}>
-                  <MaterialIcon name="add" />{item.label} 추가
+                  <MaterialIcon name="add" />{item.label} 연결
                 </Button>
               ))}
             </div>
           )}
         </div>
         {report && (
-          <div className="text-right text-xs text-text-dim">
+          <div className="space-y-intra text-right type-caption text-text-dim">
             <p>{host || '호스트 정보 확인 중'} · {report.host.btf ? 'BTF 있음' : 'BTF 없음'}</p>
-            <p className="mt-0.5">
+            <p>
               {formatDateTime(report.checkedAt)} 확인
             </p>
           </div>
@@ -277,16 +282,17 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           </Button>
         </div>
       )}
-      {expanded && <>
+      {expanded && <div className="space-y-label">
       <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${compact ? '' : 'xl:grid-cols-4'}`}>
         <SetupStep
           number={1}
-          title="Docker Collector 연결"
+          title="Docker Collector 설치"
           description="대상 Docker 서버와 EveryUp을 안전하게 연결합니다."
           state={connected ? 'ready' : 'waiting'}
-          stateLabel={connected ? '완료' : '설치 필요'}
-          detail={connected ? `Docker Collector ${agent.version ? `v${agent.version}` : ''} 연결됨` : '일회용 명령을 서버에서 실행하세요.'}
-          actionLabel={onInstall ? (connected ? '재설치 명령' : '설치 명령') : undefined}
+          // 설치 전인지는 목록·머리말과 같은 판정이다(environmentState). 설치했는데 보고가 끊겼으면 설치하라고 하지 않는다.
+          stateLabel={connected ? '완료' : installed ? '통신 지연' : '설치 대기'}
+          detail={connected ? `Docker Collector ${agent.version ? `v${agent.version}` : ''} 연결됨` : installed ? '최근 2분 동안 Docker Collector 보고가 없습니다. 서버에서 Collector가 실행 중인지 확인하세요.' : '일회용 명령을 서버에서 실행하세요.'}
+          actionLabel={onInstall ? (connected || installed ? '다시 설치' : '설치 명령') : undefined}
           onAction={onInstall}
         />
         <SetupStep
@@ -318,15 +324,13 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           onAction={onInstrument}
         />
       </div>
-      <div className="mt-3">
         <ReceiptPanel
           signals={status?.signals ?? []}
           expected={enabledCapabilities.map(capability => capability === 'api' ? 'traces' : capability)}
           error={statusRequest.error}
-          note={!connected ? '최근 Collector 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
+          note={!connected ? '최근 Docker Collector 통신을 확인하는 중입니다.' : status?.configApplied ? '요청한 수집 설정의 적용을 확인했습니다.' : '설정 적용 확인이 필요합니다. 최신 설치 명령을 실행하세요.'}
         />
-      </div>
-      </>}
+      </div>}
     </section>
   );
 }

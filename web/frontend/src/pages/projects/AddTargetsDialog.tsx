@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, IconButton, MaterialIcon, SearchInput } from '../../components/common';
+import { Button, IconButton, MaterialIcon, OptionText, SearchInput } from '../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../hooks/useOverlay';
 import type { Project } from '../../services/api';
 import { TARGET_KINDS, groupChangeFailure, setTargetGroup, targetKey, type AssignableTarget } from './projectMembers';
@@ -111,10 +111,7 @@ export function AddTargetsDialog({ project, projects, targets, loadFailed = fals
                     return (
                       <label key={key} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-ui-hover-soft">
                         <input type="checkbox" checked={selected.has(key)} disabled={saving} onChange={event => toggle(key, event.target.checked)} className="h-4 w-4 shrink-0 cursor-pointer accent-primary" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate type-label text-text-base">{target.item.name}</span>
-                          <span className="block truncate type-caption text-text-muted">{current ? `현재 그룹: ${current}` : '미분류'}</span>
-                        </span>
+                        <OptionText truncate title={target.item.name} description={current ? `현재 그룹: ${current}` : '미분류'} />
                       </label>
                     );
                   })}
@@ -125,7 +122,7 @@ export function AddTargetsDialog({ project, projects, targets, loadFailed = fals
           {failures.length > 0 && (
             <div role="alert" className="px-6 pb-4">
               <p className="flex items-start gap-1.5 type-label text-text-base"><MaterialIcon size={20} name="error_outline" className="shrink-0 text-status-error" />{failures.length}개를 추가하지 못했습니다</p>
-              <ul className="mt-1 space-y-1 break-words type-body text-text-muted">
+              <ul className="mt-1 space-y-intra break-words type-body text-text-muted">
                 {failures.map(({ name, reason }, index) => <li key={`${index}-${name}`}><span className="text-text-base">{name}</span>: {reason}</li>)}
               </ul>
             </div>
