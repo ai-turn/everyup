@@ -243,6 +243,10 @@ func TestDirectInfrastructureNetworkRateRoundingAndUsageHistory(t *testing.T) {
 	if latest.NetIn != 2 || latest.NetOut != 1 {
 		t.Fatalf("network rate in=%v out=%v MB/s, want 2 and 1", latest.NetIn, latest.NetOut)
 	}
+	// The row keeps the data point's time, not the time the request arrived.
+	if want := start.Add(30 * time.Second); latest.CreatedAt.Sub(want).Abs() > time.Millisecond {
+		t.Fatalf("created_at=%v, want the data time %v", latest.CreatedAt, want)
+	}
 	if latest.MemUsed != 6.12 || latest.MemTotal != 8.12 {
 		t.Fatalf("memory GiB used=%v total=%v, want 6.12 and 8.12", latest.MemUsed, latest.MemTotal)
 	}
@@ -276,4 +280,31 @@ func hostGauge(name, unit string, value float64, stamp uint64, attributes ...str
 	return &metricspb.Metric{Name: name, Unit: unit, Data: &metricspb.Metric_Gauge{Gauge: &metricspb.Gauge{DataPoints: []*metricspb.NumberDataPoint{{
 		Attributes: attrs, TimeUnixNano: stamp, Value: &metricspb.NumberDataPoint_AsDouble{AsDouble: value},
 	}}}}}
+}
+
+// Two rows can share a created_at (a fast host, or a batch replayed with the same time).
+// The latest row is then the one stored last, for one host and for several.
+func TestSystemMetricLatestPrefersLastStoredOnEqualTimes(t *testing.T) {
+	setupTestServer(t)
+	repo := database.NewSystemMetricRepository()
+	at := time.Now().Add(-time.Minute)
+	for _, netIn := range []float64{1, 2} {
+		if err := repo.Create(&models.SystemMetric{HostID: "tie-host", NetIn: netIn, CreatedAt: at}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	latest, err := repo.GetLatestByHost("tie-host")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if latest.NetIn != 2 {
+		t.Fatalf("GetLatestByHost net_in=%v, want the last stored row (2)", latest.NetIn)
+	}
+	byHost, err := repo.GetLatestByHosts([]string{"tie-host"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if byHost["tie-host"].NetIn != 2 {
+		t.Fatalf("GetLatestByHosts net_in=%v, want the last stored row (2)", byHost["tie-host"].NetIn)
+	}
 }

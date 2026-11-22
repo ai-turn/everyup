@@ -14,8 +14,9 @@ export default defineConfig({
   use: {
     baseURL: demoUrl,
     screenshot: 'only-on-failure',
-    // Retries still record evidence; passing tests no longer pay for tracing.
-    trace: 'on-first-retry',
+    // Keep the trace of every failure, including local runs without retries, so a one-off
+    // failure under load can be explained instead of rerun away. Passing tests keep nothing.
+    trace: 'retain-on-failure',
   },
   webServer: [{
     command: `pnpm exec vite preview --mode demo --host 127.0.0.1 --port ${DEMO_PORT}`,

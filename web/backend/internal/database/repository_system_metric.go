@@ -141,6 +141,7 @@ func (r *SystemMetricRepository) GetLatestByHosts(hostIDs []string) (map[string]
 			GROUP BY host_id
 		) latest
 			ON latest.host_id = sm.host_id AND latest.created_at = sm.created_at
+		ORDER BY sm.id -- rows sharing the newest time: the last one inserted wins below
 	`, args...)
 	if err != nil {
 		return nil, err
@@ -216,7 +217,7 @@ func (r *SystemMetricRepository) GetLatestByHost(hostID string) (*models.SystemM
 		       net_in, net_out, created_at
 		FROM system_metrics
 		WHERE host_id = ?
-		ORDER BY created_at DESC
+		ORDER BY created_at DESC, id DESC
 		LIMIT 1
 	`, hostID).Scan(&m.ID, &m.HostID, &m.CPUUsage, &m.MemTotal, &m.MemUsed, &m.MemUsage,
 		&m.DiskTotal, &m.DiskUsed, &m.DiskUsage, &m.DiskRead, &m.DiskWrite,

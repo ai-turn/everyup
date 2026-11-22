@@ -30,7 +30,9 @@ var (
 )
 
 func projectInfrastructureMetric(req *collectormetricspb.ExportMetricsServiceRequest, resourceID string) (*models.SystemMetric, int) {
-	metric := &models.SystemMetric{HostID: resourceID, CreatedAt: time.Now()}
+	// CreatedAt is the newest data point's time, so a delayed or retried batch lands where it
+	// was measured. Receipt time is only the fallback for points sent without a timestamp.
+	metric := &models.SystemMetric{HostID: resourceID}
 	cpuIdle := make([]float64, 0)
 	cpuBusyByCore := make(map[string]float64)
 	memStates := make(map[string]float64)
@@ -116,13 +118,20 @@ func projectInfrastructureMetric(req *collectormetricspb.ExportMetricsServiceReq
 							network.at = row.CreatedAt
 						}
 					}
-					if row.CreatedAt.After(metric.CreatedAt) {
+					if row.CreatedAt.Unix() > 0 && row.CreatedAt.After(metric.CreatedAt) {
 						metric.CreatedAt = row.CreatedAt
 					}
 				}
 			}
 		}
 	}
+
+	if metric.CreatedAt.IsZero() {
+		metric.CreatedAt = time.Now()
+	}
+	// system_metrics compares created_at as text and its range queries bind local time,
+	// so every row must be written in the same (local) zone.
+	metric.CreatedAt = metric.CreatedAt.Local()
 
 	switch {
 	case len(cpuIdle) > 0:
