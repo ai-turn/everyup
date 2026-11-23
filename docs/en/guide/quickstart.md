@@ -2,7 +2,7 @@
 
 Start Web on a dashboard server, add one uptime monitor, and see its first check result. The basic
 setup is done when the monitor shows **정상** (Healthy) in step 2. After that you can connect the
-capabilities you need directly and, on a Linux Docker server, connect a Docker environment. Both are
+capabilities you need directly and, on a Linux Docker host, install the Docker Collector. Both are
 optional.
 
 ## Before you start
@@ -103,13 +103,13 @@ do. Connecting shows the export address and API Key to apply in your app or Open
 [Connecting OpenTelemetry directly](./monitoring-setup#direct-otel) for language-specific setup and
 how to confirm receipt.
 
-## 4. Connect a Docker environment (optional) {#docker}
+## 4. Install the Docker Collector (optional) {#docker}
 
 Installing the monitoring bundle (the Docker Collector plus the components it needs) on a Linux
-Docker server collects container state, logs, host resources, and API requests in one install,
-without changing your apps. This data appears in that **Docker 환경** (Docker environment), not in
-a server's tabs such as Uptime, Logs, or Infrastructure. With a single server you can install it
-next to Web.
+Docker host collects container state, logs, host resources, and API requests in one install,
+without changing your apps. The Docker Collector is installed on a server, one per server. Its data
+appears in that server's **컨테이너** (Containers) tab and in its Infrastructure, Logs, and API requests
+tabs. With a single server you can install it next to Web.
 
 The monitored server needs:
 
@@ -118,10 +118,16 @@ The monitored server needs:
 - Network access to port `3001` on the dashboard server (or the address set in
   [`EVERYUP_PUBLIC_URL`](#public-url))
 
-### Create a Docker connection command (browser)
+### Create the installation command (browser)
 
-**In the browser**, open **Docker 환경** (Docker environments) in the dashboard. Click **Docker 연결**
-(Connect Docker) at the top right, then name the environment and choose its collection scope:
+**In the browser**, open the installation dialog:
+
+- **New server**: on the **서버** (Servers) screen, click **추가** (Add), enter a name, pick
+  **Docker Collector 설치** (Install Docker Collector) as the **연결 방식** (Connection method), and click
+  **서버 추가** (Add server). Once the server is created, its page opens the installation dialog.
+- **Existing server**: on the server's **개요** (Overview) tab, click **Docker Collector 설치**.
+
+Then choose the collection scope:
 
 | Scope | Collection and reception | Installs |
 |---|---|---|
@@ -131,6 +137,10 @@ The monitored server needs:
 
 To see app metrics, enable reception and configure the app or an OpenTelemetry Collector to export
 them. Selecting logs or API tracing also enables the container state capability required for Docker discovery.
+
+If the server already sends infrastructure through an OpenTelemetry Collector, the dialog asks you to
+pick a **호스트 지표 출처** (Host metrics source) so the same host's CPU, memory, and disk are not
+collected twice. See [Host metrics source](./monitoring-setup#host-metrics-source).
 
 The [eBPF Observer](./ebpf-observer) records API latency and traces without changing your
 application. It runs with permissions separate from the Docker Collector and discovers container
@@ -182,19 +192,22 @@ and the [Docker Collector configuration](../reference/collector).
 
 ### Check the connection (browser)
 
-After installation, open **Docker 환경** in the browser. Within about 30 seconds, the environment
-changes from **설치 대기** (awaiting install) to **수집 중** (collecting). When uptime collection is enabled, the containers
-on that server also appear as services.
+After installation, open **서버** (Servers) in the browser. Set the connection filter to
+**Docker Collector** to list only servers with a Docker Collector. Within about 30 seconds, the server
+leaves **대기** (Waiting, shown as Docker Collector 설치 대기, awaiting install) and a container count
+appears under its name. When container state collection is enabled, the containers appear in the
+server's **컨테이너** (Containers) tab.
 
-![The Docker environments list. prod-server, worker-cluster and edge-node show 수집 중 (collecting) and staging-api shows 설치 대기 (awaiting install).](/images/quickstart-docker-env-light.webp){.only-light width=776 height=365}
-![The Docker environments list. prod-server, worker-cluster and edge-node show 수집 중 (collecting) and staging-api shows 설치 대기 (awaiting install).](/images/quickstart-docker-env-dark.webp){.only-dark width=776 height=365}
+![The server list filtered to Docker Collector. prod-server is failing, worker-cluster needs attention, edge-node is healthy, and staging-api shows 대기 (Waiting) because its Docker Collector has not connected yet.](/images/quickstart-docker-servers-light.webp){.only-light width=776 height=361}
+![The server list filtered to Docker Collector. prod-server is failing, worker-cluster needs attention, edge-node is healthy, and staging-api shows 대기 (Waiting) because its Docker Collector has not connected yet.](/images/quickstart-docker-servers-dark.webp){.only-dark width=776 height=361}
 
-<p class="screenshot-caption"><strong>수집 중</strong> means connected; <strong>설치 대기</strong> means the Collector has not connected yet. The dashboard UI is Korean only.</p>
+<p class="screenshot-caption">A container count means connected; <strong>대기</strong> (Waiting) means the Docker Collector has not connected yet. The dashboard UI is Korean only.</p>
 
-If the environment stays at **설치 대기**, see [Troubleshooting](./troubleshooting#not-collecting).
+If the server stays at **설치 대기**, see [Troubleshooting](./troubleshooting#not-collecting).
 
-**수집 중** describes Docker Collector contact. Open the environment's **모니터링 설정 가이드** (monitoring setup
-guide) and check configuration application and **데이터 수신 확인** (data receipt) too. Generate app
+Connected means the Docker Collector is reporting. Open **Docker Collector 설정 가이드** (Docker Collector
+setup guide) on the server's **개요** (Overview) tab and check configuration application and
+**데이터 수신 확인** (data receipt) too. Generate app
 requests to produce logs and traces. For app metrics, apply export settings and wait for a collection
 interval before checking receipt.
 
@@ -206,7 +219,7 @@ or Slack channel and enable alert rules to receive notifications when their cond
 Other guides:
 
 - [Uptime monitors](./uptime-monitors): check URLs and TCP ports, pause monitors, read check history
-- [Monitoring setup](./monitoring-setup): connect OpenTelemetry directly, diagnose collection, add capabilities to a Docker environment
+- [Monitoring setup](./monitoring-setup): connect OpenTelemetry directly, diagnose collection, add capabilities to a Docker Collector
 - [Header & body capture](./otel-instrumentation): see why a request failed
-- [Automatic eBPF Observer](./ebpf-observer): API latency and traces in a Docker environment
+- [Automatic eBPF Observer](./ebpf-observer): API latency and traces on a Docker host
 - [Upgrade and uninstall](./upgrade-uninstall): apply new versions, undo an installation

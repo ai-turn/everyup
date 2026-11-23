@@ -8,7 +8,7 @@
 // 만드는 파일 (docs/public/images/):
 // - everyup-main-ko.png — README 히어로이자 docs og:image. 라이트, 내용 높이에 맞춤
 // - home/slide-<name>-<light|dark>.webp (+ -720) — docs 홈 캐러셀, 1440×900
-// - quickstart-docker-env-<light|dark>.webp — Quick Start, Docker 환경 목록 표 @2x
+// - quickstart-docker-servers-<light|dark>.webp — Quick Start, Docker Collector로 거른 서버 목록 표 @2x
 // - monitoring-setup-connect-<light|dark>.webp — 모니터링 설정, 직접 연결 대화 상자(적용 범위) @2x
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -30,9 +30,10 @@ const SLIDES = [
   { name: 'logs', url: '/logs' },
   // 상세 화면은 헤더를 넘기고 본문(게이지·탭 내용)부터 보여준다.
   { name: 'infra', url: '/servers/server_mock_edge_host_01/infrastructure', scrollTo: '[role="tabpanel"]' },
-  { name: 'api', url: '/services/agent_demo_01/shop%3Aapi?tab=requests', scrollTo: '[role="tabpanel"]' },
-  // 결제 트레이스는 payment-worker 서비스에 있다(docs/index.md 대체 텍스트가 이 화면을 설명한다).
-  { name: 'trace', url: '/services/agent_demo_01/shop%3Apayment-worker?tab=traces', click: 'POST /api/v1/payments' },
+  // 컨테이너는 서버 아래 자기 페이지가 있다(ADR 0012). 옛 `/services/:agentId/:key`는 넘어가므로 쓰지 않는다.
+  { name: 'api', url: '/servers/agent_demo_01/containers/shop%3Aapi?tab=requests', scrollTo: '[role="tabpanel"]' },
+  // 결제 트레이스는 payment-worker 컨테이너에 있다(docs/index.md 대체 텍스트가 이 화면을 설명한다).
+  { name: 'trace', url: '/servers/agent_demo_01/containers/shop%3Apayment-worker?tab=traces', click: 'POST /api/v1/payments' },
   { name: 'alerts', url: '/alerts' },
 ];
 
@@ -138,11 +139,9 @@ async function captureSlides(browser, converter, scheme) {
 async function captureQuickstart(browser, converter, scheme) {
   // 1024px에서는 목록 표가 문서 본문 폭(약 690px)과 비슷해져, 줄이지 않아도 상태 배지가 읽힌다.
   const page = await browser.newPage({ viewport: { width: 1024, height: 768 }, deviceScaleFactor: 2, colorScheme: scheme });
-  await open(page, '/environments');
-  // 목록은 환경마다 서비스를 펼쳐 보여 준다. Quick Start는 `수집 중`과 `설치 대기`를 비교하므로 환경 행만 남긴다.
-  const expanded = page.locator('#main-content table button[aria-expanded="true"]');
-  while (await expanded.count()) await expanded.first().click();
-  await page.mouse.move(0, 0); // 마지막으로 누른 행의 hover 배경을 남기지 않는다
+  // Docker Collector가 있는 서버만 거른 서버 목록(ADR 0012). Quick Start는 연결된 서버와 `Docker Collector 설치 대기`를 비교한다.
+  await open(page, '/servers?connection=docker');
+  await page.mouse.move(0, 0);
   await page.waitForTimeout(800);
   const r = await page.locator('#main-content table').first().evaluate((el) => {
     const { x, y, width, height } = el.getBoundingClientRect();
@@ -155,7 +154,7 @@ async function captureQuickstart(browser, converter, scheme) {
   const right = Math.min(r.x + r.width + pad, r.right);
   const box = { x: left, y: r.y - pad, width: Math.round(right - left), height: Math.round(r.height) + pad * 2 };
   const png = await page.screenshot({ clip: box });
-  await writeWebp(converter, png, `quickstart-docker-env-${scheme}.webp`, box.width * 2, 0.88);
+  await writeWebp(converter, png, `quickstart-docker-servers-${scheme}.webp`, box.width * 2, 0.88);
   await page.close();
 }
 

@@ -140,7 +140,7 @@ Chat ID는 EveryUp이 메시지를 어디로 보낼지 지정하는 값입니다
 
 | 카테고리 | 지표 | 쓰는 예 |
 | --- | --- | --- |
-| **업타임** | HTTP STATUS, RESPONSE TIME | Docker 서비스나 [업타임 모니터](./uptime-monitors)가 응답하지 않을 때 |
+| **업타임** | HTTP STATUS, RESPONSE TIME | 컨테이너나 [업타임 모니터](./uptime-monitors)가 응답하지 않을 때 |
 | **API 요청** | 에러율, p95 지연, p99 지연 | 특정 서비스의 에러율이 기준을 넘을 때 |
 | **로그** | 로그 레벨, API 요청 | ERROR 로그가 들어올 때 |
 | **메트릭** | 앱이 보낸 OpenTelemetry 메트릭 이름 | `jvm.memory.used`가 기준을 넘을 때 |

@@ -19,6 +19,12 @@ docker compose up -d
 데이터는 `everyup-data` 볼륨에 있으므로 컨테이너를 다시 만들어도 남아 있습니다. 중요한 운영
 환경이라면 업그레이드 전에 [백업](./backup-restore)을 만들어 두세요.
 
+::: tip Docker 환경이 서버가 되는 업그레이드
+이전 버전에서 **Docker 환경**으로 연결한 호스트는 업그레이드 뒤 같은 이름의 서버가 되고, 그 컨테이너는 서버의
+**컨테이너** 탭으로 옮겨집니다. 옛 화면 주소는 새 주소로 이동하며, Docker Collector는 다시 설치하지 않아도 됩니다.
+같은 호스트를 서버로도 따로 등록해 두었다면 [같은 호스트의 서버 합치기](./monitoring-setup#same-host-merge)를 참고하세요.
+:::
+
 ## 모니터링 번들 업그레이드 {#upgrade-bundle}
 
 **모니터링할 서버에서** 실행합니다. 설치기가 만든 설정 파일은 root만 읽을 수 있으므로 `sudo`가
@@ -59,7 +65,7 @@ sudo docker compose --env-file .env -f compose.yaml up -d
 
 앱의 Compose 파일, 이미지, 컨테이너는 설치할 때 바꾸지 않았으므로 따로 되돌릴 것이 없습니다.
 
-대시보드에서도 정리하려면 **Docker 환경** 화면에서 해당 환경을 열고 **비활성화**를 누르세요. Collector
+대시보드에서도 정리하려면 그 서버를 열고 머리말의 더보기(⋮) 메뉴에서 **Docker Collector 비활성화**를 누르세요. Collector
 연결이 차단되고, 이미 수집한 데이터는 보존됩니다.
 
 ## Web 제거 {#uninstall-web}

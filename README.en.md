@@ -30,7 +30,7 @@
 > **Note:** the dashboard interface is Korean only.
 
 Start with failing targets and delayed collection, then investigate recurring errors and API request
-trends. Run **Web** on a dashboard server and install a Docker Collector in each **Docker environment**.
+trends. Run **Web** on a dashboard server and install a Docker Collector on the **server** of each Docker host you monitor.
 Choose which container state, logs, and host resources to collect, and use the eBPF Observer for API
 response times and traces. Application metrics require a separate export configuration.
 
@@ -51,9 +51,9 @@ curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compos
 docker compose up -d
 ```
 
-Open `http://<dashboard server IP>:3001`, create the first admin account, then install the
-Collector with **Docker 연결** (Connect Docker) on the **Docker 환경** (Docker environments)
-screen. For setting the public address and installing the Docker Collector, see the
+Open `http://<dashboard server IP>:3001`, create the first admin account, then choose **추가** (Add) on the
+**서버** (Servers) screen and pick **Docker Collector 설치** (Install Docker Collector) as the connection
+method. For setting the public address and installing the Docker Collector, see the
 [Quick Start docs](https://ai-turn.github.io/everyup/en/guide/quickstart).
 
 ## Documentation
@@ -61,8 +61,8 @@ screen. For setting the public address and installing the Docker Collector, see 
 | Page | What's inside |
 | --- | --- |
 | [Introduction](https://ai-turn.github.io/everyup/en/guide/introduction) | Features and what gets collected |
-| [Quick Start](https://ai-turn.github.io/everyup/en/guide/quickstart) | Start Web, connect Docker, install the monitoring bundle |
-| [Monitoring setup](https://ai-turn.github.io/everyup/en/guide/monitoring-setup) | Diagnose collection, add capabilities, connect OpenTelemetry directly, groups |
+| [Quick Start](https://ai-turn.github.io/everyup/en/guide/quickstart) | Start Web, add an uptime monitor, install the Docker Collector |
+| [Monitoring setup](https://ai-turn.github.io/everyup/en/guide/monitoring-setup) | Diagnose collection, add capabilities, host metrics source, same-host merge, connect OpenTelemetry directly, groups |
 | [Uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors) | Check responses from public URLs and TCP ports |
 | [Automatic eBPF Observer](https://ai-turn.github.io/everyup/en/guide/ebpf-observer) | API response times and traces without app changes, with host requirements |
 | [Header & body capture](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation) | Request/response headers and bodies via OpenTelemetry |

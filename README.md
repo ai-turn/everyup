@@ -28,7 +28,7 @@
 </p>
 
 장애가 난 대상과 수집이 지연된 대상을 먼저 확인하고, 반복 오류와 API 요청 추이를 따라 문제를 조사하세요.
-대시보드 서버에서 **Web**을 실행하고, 모니터링할 **Docker 환경**마다 Docker Collector를 설치합니다.
+대시보드 서버에서 **Web**을 실행하고, 모니터링할 Docker 호스트마다 그 **서버**에 Docker Collector를 설치합니다.
 선택한 범위의 컨테이너 상태·로그·호스트 자원을 수집하고, eBPF Observer로 API 응답 시간과 트레이스를
 수집할 수 있습니다. 앱 메트릭은 별도로 전송하도록 설정해야 합니다.
 
@@ -49,8 +49,8 @@ curl -O https://raw.githubusercontent.com/ai-turn/everyup/main/web/docker-compos
 docker compose up -d
 ```
 
-`http://<대시보드 서버 IP>:3001`에서 첫 관리자 계정을 만든 뒤, **Docker 환경** 화면의
-**Docker 연결**로 Docker Collector를 설치합니다. 외부 접속 주소 지정과 Docker Collector 설치는
+`http://<대시보드 서버 IP>:3001`에서 첫 관리자 계정을 만든 뒤, **서버** 화면의 **추가**에서
+연결 방식으로 **Docker Collector 설치**를 골라 Docker Collector를 설치합니다. 외부 접속 주소 지정과 Docker Collector 설치는
 [Quick Start 문서](https://ai-turn.github.io/everyup/guide/quickstart)를 참고하세요.
 
 ## 문서
@@ -58,8 +58,8 @@ docker compose up -d
 | 문서 | 내용 |
 | --- | --- |
 | [소개](https://ai-turn.github.io/everyup/guide/introduction) | 핵심 기능과 수집되는 데이터 |
-| [Quick Start](https://ai-turn.github.io/everyup/guide/quickstart) | Web 실행, Docker 연결, 모니터링 번들 설치 |
-| [모니터링 설정](https://ai-turn.github.io/everyup/guide/monitoring-setup) | 수집 상태 진단, 기능 추가, OpenTelemetry 직접 연결, 그룹 |
+| [Quick Start](https://ai-turn.github.io/everyup/guide/quickstart) | Web 실행, 업타임 모니터 추가, Docker Collector 설치 |
+| [모니터링 설정](https://ai-turn.github.io/everyup/guide/monitoring-setup) | 수집 상태 진단, 기능 추가, 호스트 지표 출처, 같은 호스트 합치기, OpenTelemetry 직접 연결, 그룹 |
 | [업타임 모니터](https://ai-turn.github.io/everyup/guide/uptime-monitors) | 공개 URL·TCP 포트 응답 확인 |
 | [자동 eBPF Observer](https://ai-turn.github.io/everyup/guide/ebpf-observer) | 앱 수정 없이 API 응답 시간·트레이스 수집, 지원 조건 확인 |
 | [헤더·바디 상세 수집](https://ai-turn.github.io/everyup/guide/otel-instrumentation) | OpenTelemetry로 요청/응답 헤더·바디 수집 |

@@ -1,21 +1,21 @@
 # Monitoring setup
 
-Check collection status or expand collection in a Docker environment.
+Check a Docker Collector's collection status or expand what it collects.
 Apps and servers outside Docker can [connect directly through OpenTelemetry](#direct-otel)
-without a Docker Collector. For your first Docker connection, follow the [Quick Start](./quickstart#docker).
+without a Docker Collector. To install your first Docker Collector, follow the [Quick Start](./quickstart#docker).
 
-## Monitoring setup guide
+## Docker Collector setup guide
 
-Open an environment from the **Docker 환경** (Docker environments) screen to find its
-**모니터링 설정 가이드** (monitoring setup guide). It checks Docker Collector installation, baseline
-collection, and automatic API tracing in order. When Java or Node.js services are discovered, the
-same guide leads straight into the optional header and body capture setup.
+A server with a Docker Collector shows **Docker Collector 설정 가이드** (Docker Collector setup guide) at the
+top of its **개요** (Overview) tab. It checks Docker Collector installation, baseline collection, and
+automatic API tracing in order. When Java or Node.js containers are discovered, the same guide leads
+straight into the optional header and body capture setup.
 
 ## Reading collection status
 
-The setup guide checks Docker Collector contact and collection scope separately. An environment
-whose Docker Collector has never reported reads **설치 대기** (awaiting install) in the list, the header,
-and the guide alike. After installation, a connection is current when the Docker Collector contacted
+The setup guide checks Docker Collector contact and collection scope separately. A server whose
+Docker Collector has never reported reads **설치 대기** (awaiting install) in the server list and the
+guide alike. After installation, a connection is current when the Docker Collector contacted
 Web within the last two minutes. Configuration is applied when the Docker Collector reports settings
 that match the requested collection scope.
 
@@ -37,21 +37,60 @@ Older Collectors may stay in the waiting state even while communicating. Update 
 latest installation command.
 :::
 
-## Connecting capabilities to an existing environment
+## Connecting capabilities to a Docker Collector
 
-Open the environment on the **Docker 환경** (Docker environments) screen and use the buttons in its
-monitoring setup guide, such as **인프라 연결** (Connect infrastructure) or **메트릭 연결** (Connect metrics),
-to connect a capability that is not selected yet. In the dialog, click **적용 명령 받기** (Get apply
-command) for a new apply command. The environment keeps its ID, key, group assignment, and collection
-history. Run the command on the target server to enable the capability across that Docker
-environment; apps do not need a restart.
+On the **개요** (Overview) tab of a server with a Docker Collector, use the buttons in its setup guide,
+such as **인프라 연결** (Connect infrastructure) or **메트릭 연결** (Connect metrics), to connect a capability
+that is not selected yet. In the dialog, click **적용 명령 받기** (Get apply command) for a new apply
+command. The Docker Collector keeps its ID, key, group assignment, and collection history. Run the
+command on the host to enable the capability across that server's Docker Collector; apps do not need
+a restart.
 
-The **설치 명령** (Install command) button in the environment's header shows only before installation.
-To reinstall later, use **다시 설치** (Reinstall) in the more (⋮) menu.
+The **설치 명령** (Install command) button in the server's header shows only before the Docker Collector
+is installed. To reinstall later, use **다시 설치** (Reinstall) in the header's more (⋮) menu.
 
 The connect buttons on a server's **로그** (Logs), **API 요청** (API requests), **메트릭** (Metrics), and
 **인프라** (Infrastructure) tabs, such as **로그 연결** (Connect logs), handle direct connections only. Connect a
 new app or add data to an app already connected to that server. When you finish, EveryUp opens the app's page.
+
+## Host metrics source {#host-metrics-source}
+
+A server's host metrics (CPU, memory, disk) come from one place only. Whenever the Docker Collector's
+infrastructure capability and an OpenTelemetry Collector (**인프라 연결**, Connect infrastructure) would
+collect the same host, EveryUp asks you to keep one. Nothing is connected until you choose.
+
+| Situation | Where you choose |
+| --- | --- |
+| Installing a Docker Collector on a server that already sends infrastructure through an OpenTelemetry Collector | **호스트 지표 출처** (Host metrics source) in the installation dialog (not asked for the **기본**, Basic, scope) |
+| **인프라 연결** on a server whose Docker Collector already collects host metrics | The infrastructure connection dialog |
+| Adding infrastructure to the Docker Collector of a server with an OpenTelemetry Collector | The capability dialog in the setup guide |
+| Merging two servers | The **다른 서버 합치기** (Merge another server) dialog |
+
+- Keeping the **Docker Collector** stops the OpenTelemetry Collector infrastructure resource. Data it
+  already collected stays.
+- Keeping the **OpenTelemetry Collector** removes infrastructure from the Docker Collector's
+  collection. If the Docker Collector is already installed, run the apply command the dialog shows on
+  that host.
+
+## Merging servers on the same host {#same-host-merge}
+
+If a host with a Docker Collector was also registered as a separate server, the same host appears as
+two servers. Hosts connected as Docker environments in earlier versions become servers with the same
+name after the upgrade; if the group already has a server with that name, the new server gets a
+` (2)` suffix. EveryUp never merges servers automatically.
+
+When two servers share a name, the overview shows **같은 호스트인가요?** (Same host?), ignoring
+suffixes such as ` (2)`. **합치기** (Merge) opens the directly registered server with the
+**다른 서버 합치기** (Merge another server) dialog and the other server already selected. If they are
+different hosts, click **아님** (No); the answer applies to every user, so it is not asked again.
+Servers with different names can be merged too: click **서버 설정** (Server settings, ⚙) in the server
+header, then **다른 서버 합치기**.
+
+- Every target of the selected server, including its containers and Docker Collector, moves to the
+  current server, and the selected server is deleted. Its old addresses redirect to the remaining server.
+- The Docker Collector keeps its ID and API key, so the host does not need a reinstall.
+- A server can have one Docker Collector, so two servers that both have one cannot be merged.
+- If both servers collect host metrics, choose one [host metrics source](#host-metrics-source).
 
 ## Connecting OpenTelemetry directly {#direct-otel}
 
@@ -76,14 +115,14 @@ this server's apps; for an app on another server, move it here first with **다�
 another server) on its page.
 
 Every connection dialog starts with **적용 범위** (Scope): what it applies to and what the app or server
-has to do. If the same host is also a Docker environment, connect containerized apps through that
-environment's Docker Collector, as the dialog suggests. The data then stays in one place instead of
-splitting the host between a server and a Docker environment.
+has to do. If this server has a Docker Collector, connect containerized apps through it, as the
+dialog suggests. If the same host's Docker Collector is installed on another server,
+[merge the two servers](#same-host-merge) first.
 
-![The API 요청 연결 (Connect API requests) dialog. Its first line, the scope, says the connection applies to this one app and that the app needs the address and API Key in its settings and a restart. Below are the Docker environment note, the new or existing app choice, the app name field, and the 연결 (Connect) button.](/images/monitoring-setup-connect-light.webp){.only-light width=672 height=507}
-![The API 요청 연결 (Connect API requests) dialog. Its first line, the scope, says the connection applies to this one app and that the app needs the address and API Key in its settings and a restart. Below are the Docker environment note, the new or existing app choice, the app name field, and the 연결 (Connect) button.](/images/monitoring-setup-connect-dark.webp){.only-dark width=672 height=507}
+![The API 요청 연결 (Connect API requests) dialog. Its first line, the scope, says the connection applies to this one app and that the app needs the address and API Key in its settings and a restart. Below are the Docker Collector note, the new or existing app choice, the app name field, and the 연결 (Connect) button.](/images/monitoring-setup-connect-light.webp){.only-light width=672 height=507}
+![The API 요청 연결 (Connect API requests) dialog. Its first line, the scope, says the connection applies to this one app and that the app needs the address and API Key in its settings and a restart. Below are the Docker Collector note, the new or existing app choice, the app name field, and the 연결 (Connect) button.](/images/monitoring-setup-connect-dark.webp){.only-dark width=672 height=507}
 
-<p class="screenshot-caption">Connection dialogs start with <strong>적용 범위</strong> (Scope) and point to the Docker Collector when a Docker environment exists. The dashboard UI is Korean only.</p>
+<p class="screenshot-caption">Connection dialogs start with <strong>적용 범위</strong> (Scope) and point to the Docker Collector when the same host has one. The dashboard UI is Korean only.</p>
 
 Connecting an app shows its export address and API Key. If you are new to OpenTelemetry, follow the
 Java, Node.js, or Go guidance to connect the SDK and exporters. Environment variables alone do not
@@ -92,7 +131,7 @@ send data. Direct OTLP logs also need the logging library's OTel bridge or appen
 If you already use OpenTelemetry and want to keep the existing destination, add an EveryUp exporter
 to your OpenTelemetry Collector. Changing the app's shared OTLP address can replace the existing destination.
 
-Adding a capability to a service connected directly through OpenTelemetry keeps the existing ID and
+Adding a capability to an app connected directly through OpenTelemetry keeps the existing ID and
 API Key and adds only the required data permission. Configure export for that signal in the app
 or Collector, then restart or redeploy. Generate requests or logs, or wait for the metric collection
 interval, and check **데이터 수신 확인** for receipt.
@@ -101,7 +140,7 @@ interval, and check **데이터 수신 확인** for receipt.
 
 Open an app from a server's **메트릭** (Metrics) tab to view its metrics on the app page's **메트릭** tab, alphabetically, 12 panels at a time. Click
 **메트릭 12개 더 보기** (Show 12 more metrics) for more. Metrics collected by a Docker Collector
-stay in the service details of that **Docker environment**.
+are on a container's **메트릭** tab: open the container from the server's **컨테이너** (Containers) tab.
 
 Click a metric title to open its individual view and adjust these controls:
 
@@ -129,17 +168,17 @@ limit message instead of statistics when more than 50,000 points match.
 
 To view separately registered targets together, open **그룹** (Groups) under **모아 보기** (Collected
 views) in the sidebar and click **추가** (Add) to create a group. The new group opens right away. Click
-**대상 추가** (Add targets), select any number of Docker environments and servers, then click
-**추가** (Add). A server's uptime monitors, apps, and infrastructure join the group with it. Selecting a target that
+**대상 추가** (Add targets), select any number of servers, then click
+**추가** (Add). A server's uptime monitors, apps, infrastructure, and containers join the group with it. Selecting a target that
 belongs to another group moves it here. To take a target out, click **빼기** (Remove) on its row; the
 target is not deleted and becomes ungrouped again.
-Services and data discovered within a Docker environment inherit its group assignment. The group
+Data collected by a server's Docker Collector follows the server's group as well. The group
 list summarizes how many targets in each group are failing, need attention, or are healthy, and the
 group screen lists failing targets first. Deleting a group does not delete its assigned targets.
 
 ## Detailed header and body capture
 
-Select the Java or Node.js services you want to change and choose **변경 사항 확인** (Review changes) to confirm the
+Select the Java or Node.js containers you want to change and choose **변경 사항 확인** (Review changes) to confirm the
 restart scope. Run `everyup-otel plan` on the server to validate the actual Compose project before
 applying it. Web tracks the apply, verification, and recovery result for each run. See
 [Header & body capture](./otel-instrumentation) for details.

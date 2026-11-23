@@ -79,10 +79,10 @@ curl -fsS https://<Web address>/api/v1/health
 - If the address in the command is `localhost` or internal-only, restart Web with
   [`EVERYUP_PUBLIC_URL`](./quickstart#public-url) and generate a new install command.
 
-## The Docker environment never reaches 수집 중 (collecting) {#not-collecting}
+## The Docker Collector stays at 설치 대기 (awaiting install) {#not-collecting}
 
-**Symptom**: installation finished, but the environment stays at **설치 대기** (waiting for
-install) on the **Docker 환경** screen.
+**Symptom**: installation finished, but the server stays at **Docker Collector 설치 대기** (awaiting
+install) on the **서버** (Servers) screen.
 
 **Check** (on the monitored server):
 

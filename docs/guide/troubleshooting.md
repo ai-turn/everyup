@@ -78,9 +78,9 @@ curl -fsS https://<Web 주소>/api/v1/health
 - 명령에 들어 있는 주소가 `localhost`나 내부 전용 주소라면 Web을
   [`EVERYUP_PUBLIC_URL`](./quickstart#public-url)로 다시 시작한 뒤 설치 명령을 새로 만드세요.
 
-## Docker 환경이 수집 중으로 바뀌지 않습니다 {#not-collecting}
+## Docker Collector가 설치 대기에서 바뀌지 않습니다 {#not-collecting}
 
-**증상**: 설치는 끝났지만 **Docker 환경** 화면에서 **설치 대기**에 머뭅니다.
+**증상**: 설치는 끝났지만 **서버** 화면에서 그 서버가 **Docker Collector 설치 대기**에 머뭅니다.
 
 **확인** (모니터링할 서버에서):
 

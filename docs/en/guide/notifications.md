@@ -143,7 +143,7 @@ three steps:
 
 | Category | Metrics | Example |
 | --- | --- | --- |
-| **업타임** (Uptime) | HTTP STATUS, RESPONSE TIME | A Docker service or [uptime monitor](./uptime-monitors) stops responding |
+| **업타임** (Uptime) | HTTP STATUS, RESPONSE TIME | A container or [uptime monitor](./uptime-monitors) stops responding |
 | **API 요청** (API requests) | 에러율 (error rate), p95 지연, p99 지연 (p95/p99 latency) | A service's error rate crosses a threshold |
 | **로그** (Logs) | 로그 레벨 (log level), API 요청 (API status) | An ERROR log arrives |
 | **메트릭** (Metrics) | The name of an OpenTelemetry metric your app sends | `jvm.memory.used` crosses a threshold |
