@@ -54,7 +54,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
             최근 알림 기록
           </h2>
           <p className="text-text-muted type-body">
-            Docker 서비스 알림 이벤트
+            컨테이너 알림 이벤트
           </p>
         </div>
       </div>

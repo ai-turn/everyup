@@ -109,6 +109,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
         // 수집 방식은 서버 단위다: 기능을 더하거나 연결을 고치는 곳은 서버 개요의 설정 가이드다. 서버 이름은 크럼에 있으므로
         // 세부는 Docker Collector가 모으는 데이터 유형이다.
         connection={{ kind: 'docker', detail: collected(agent), action: { label: '설정 가이드', to: server } }}
+        fieldsLabel="컨테이너 정보"
         fields={[...checkFields(service), ...containerFields(service), { label: '수집 레벨', value: <LogIngestLevels agentId={agentId} serviceKey={serviceKey} /> }]}
         // 주 조작은 제목 줄의 알림 규칙이다. 장애일 때만 에러 로그로 가는 조작을 더한다(이전에는 정상일 때 이유 없이 비활성이었다).
         actions={<>

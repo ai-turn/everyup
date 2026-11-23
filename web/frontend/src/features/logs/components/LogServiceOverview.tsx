@@ -142,16 +142,16 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
 
 const PATTERN_PREVIEW = 5;
 
-export function LogServiceOverview({ rows, patterns, span, view, returnTo, title = '로그 서비스', noun = '서비스', viewToggle, onRetryPatterns }: {
+export function LogServiceOverview({ rows, patterns, span, view, returnTo, title, noun, viewToggle, onRetryPatterns }: {
   rows: LogServiceRow[];
   /** null이면 패턴만 불러오지 못한 상태 — 서비스 목록은 그대로 그린다. */
   patterns: LogPatternRow[] | null;
   span: [number, number];
   view: 'card' | 'grid';
   returnTo: string;
-  title?: string;
-  /** 행이 가리키는 대상의 이름(개수 문구, 이름 열). 서버 화면은 앱이라고 부른다. */
-  noun?: string;
+  title: string;
+  /** 행이 가리키는 대상의 이름(개수 문구, 이름 열). 서버 화면은 앱, 컨테이너 탭은 컨테이너라고 부른다. */
+  noun: string;
   /** 보기 전환 — 제목 줄 오른쪽에 둔다. */
   viewToggle?: ReactNode;
   /** 패턴만 불러오지 못했을 때 다시 시도 */

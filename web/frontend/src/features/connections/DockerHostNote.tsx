@@ -47,7 +47,7 @@ export function DockerHostNote({ serverId, serverName, infrastructure = false, s
       {same
         // 조사가 이름의 받침에 따라 갈리지 않게 이름은 괄호 안에 둔다.
         ? <>이름이 같은 서버에 Docker Collector가 있습니다(<Link to={serverPath(same.serverId!)} className={link}>{same.name}</Link>). 같은 호스트라면 서버 설정의 다른 서버 합치기로 두 서버를 합치세요. {what}</>
-        : <>이 호스트에 <Link to={DOCKER_SERVERS_PATH} className={link}>Docker Collector</Link>가 있다면, {what}</>}
+        : <>이 호스트에 <Link to={DOCKER_SERVERS_PATH} className={link}>Docker Collector</Link>를 설치한 서버가 따로 있다면 서버 설정의 다른 서버 합치기로 두 서버를 합치세요. {what}</>}
     </p>
   );
 }

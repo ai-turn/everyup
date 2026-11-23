@@ -109,8 +109,8 @@ test.describe('demo', () => {
     await panel(page).getByRole('link', { name: '모든 서버의 로그', exact: true }).click();
     await expect(page).toHaveURL(/\/logs$/);
     // 직접 연결한 앱만 나온다. Docker 서버가 있으면 끝에 그 로그의 자리(Docker 서버만 걸러 본 서버 목록)를 알린다.
-    await expect(page.getByText('Docker 서비스의 로그는 Docker 환경에 있습니다.')).toBeVisible();
-    await expect(page.getByRole('main').getByRole('link', { name: 'Docker 환경', exact: true })).toHaveAttribute('href', /\/servers\?connection=docker$/);
+    await expect(page.getByText('컨테이너의 로그는 그 서버의 로그 탭에 있습니다.')).toBeVisible();
+    await expect(page.getByRole('main').getByRole('link', { name: 'Docker Collector가 있는 서버', exact: true })).toHaveAttribute('href', /\/servers\?connection=docker$/);
 
     // 앱은 자기 페이지가 있다. 좁은 화면의 복귀 링크는 앱을 연 목록이다(넓은 화면은 크럼과 뒤로 가기, Docker 서비스 상세와 같다).
     await page.setViewportSize({ width: 390, height: 844 });

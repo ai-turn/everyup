@@ -26,7 +26,7 @@ interface DirectProps extends CommonProps {
 
 const GROUPS = ['고정한 지표', '요청과 응답', '작업과 메시지', '런타임과 리소스', '사용자 정의 지표'];
 
-function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, empty, showCollection, noun = '서비스' }: CommonProps & { source: MetricSource; state: MetricHealthState; empty?: ReactNode; showCollection: boolean }) {
+function ServiceMetricsPanel({ source, state, refreshKey, range, active = true, empty, showCollection, noun = '컨테이너' }: CommonProps & { source: MetricSource; state: MetricHealthState; empty?: ReactNode; showCollection: boolean }) {
   const { health, loading, error, retry } = state;
   const query = useMetricQuery();
   const window = useMetricWindow(range, refreshKey);
@@ -123,5 +123,5 @@ export function AgentServiceMetricsTab({ agentId, serviceKey, ...common }: Agent
   return <ServiceMetricsPanel key={`${agentId}:${serviceKey}`} {...common} source={source} state={state} showCollection />;
 }
 export function DirectServiceMetricsTab({ observedServiceId, ...common }: DirectProps) {
-  return <ServiceMetricsPanel key={observedServiceId} {...common} source={{ kind: 'direct', observedServiceId }} showCollection={false} />;
+  return <ServiceMetricsPanel key={observedServiceId} {...common} source={{ kind: 'direct', observedServiceId }} showCollection={false} noun="앱" />;
 }

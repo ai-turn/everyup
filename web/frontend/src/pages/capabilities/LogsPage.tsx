@@ -78,7 +78,7 @@ export function LogsPage() {
           {/* 이 화면은 직접 연결한 앱만 모은다. Docker Collector의 로그를 여기서 찾는 사용자에게 자리를 알린다. */}
           {hasDockerEnvironments && (
             <p className="mt-8 type-body text-text-muted">
-              Docker 서비스의 로그는 Docker 환경에 있습니다. <Link to={DOCKER_SERVERS_PATH} className="text-action link-underline">Docker 환경</Link>
+              컨테이너의 로그는 그 서버의 로그 탭에 있습니다. <Link to={DOCKER_SERVERS_PATH} className="text-action link-underline">Docker Collector가 있는 서버</Link>
             </p>
           )}
         </>

@@ -5,7 +5,7 @@ import type { UptimeMonitor } from '../../../services/api';
 import { formatDuration } from '../../../utils/incidentFormat';
 import { WARNING_PCT } from '../../infra/usage';
 import { RecentUptimeChecks } from '../../uptime/components/RecentUptimeChecks';
-import { connectAction } from '../../connections/connectCopy';
+import { connectAction, DOCKER_INSTALL } from '../../connections/connectCopy';
 import { CONNECT_STATE, SERVER_CAPABILITIES, serverPath, type ServerCapability, monitorPath } from '../serverPaths';
 import { ENVIRONMENT_INSTALL_LABEL, environmentState } from '../../services/environmentState';
 import { capabilityLabel, capabilityTargets, capabilityUnverified, dockerCollects, monitorState, STATE_LABEL, STATE_ORDER, type ServerRow } from '../serverStatus';
@@ -126,7 +126,7 @@ export function ServerOverviewTab({ row, onInstallDocker }: { row: ServerRow; on
           {SERVER_CAPABILITIES.filter(({ key }) => key !== 'uptime').map(({ key }) => (
             <Button key={key} variant="secondary" onClick={() => startConnect(key)}>{connectAction(key)}</Button>
           ))}
-          {onInstallDocker && <Button variant="secondary" onClick={onInstallDocker}>Docker Collector 설치</Button>}
+          {onInstallDocker && <Button variant="secondary" onClick={onInstallDocker}>{DOCKER_INSTALL}</Button>}
         </div>
       </EmptyState>
     );
@@ -167,7 +167,7 @@ export function ServerOverviewTab({ row, onInstallDocker }: { row: ServerRow; on
             <h2 id="server-connectable" className="type-section-title text-text-base">연결할 수 있는 기능</h2>
             <div className="-mx-2 flex flex-wrap gap-x-2">
               {connectable.map(({ key }) => <Button key={key} variant="text" className="px-2" onClick={() => startConnect(key)}>{connectAction(key)}</Button>)}
-              {onInstallDocker && <Button variant="text" className="px-2" onClick={onInstallDocker}>Docker Collector 설치</Button>}
+              {onInstallDocker && <Button variant="text" className="px-2" onClick={onInstallDocker}>{DOCKER_INSTALL}</Button>}
             </div>
           </section>
         )}

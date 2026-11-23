@@ -6,7 +6,7 @@ import { useSetupStatus } from '../useSetupStatus';
 import { formatFullDateTime } from '../../../utils/incidentFormat';
 
 const statuses: Record<InstrumentationRun['status'], string> = { planned: '서버에서 명령 실행 대기', applying: '설정 적용 및 검증 중', verified: '설정 적용 검증 완료', failed: '적용 전 검사 실패', rolled_back: '이전 설정으로 복구됨', rollback_failed: '복구 실패, 서버 확인 필요' };
-const reasons: Record<string, string> = { preflight_failed: 'Compose 경로·프로젝트·실행 상태를 확인하세요.', restart_failed: '서비스 재시작에 실패했습니다.', verification_failed: '컨테이너 상태·상세 수집 옵션·볼륨·네트워크 검사에 실패했습니다.', manual_rollback: '수동 복구 명령이 실행됐습니다.' };
+const reasons: Record<string, string> = { preflight_failed: 'Compose 경로·프로젝트·실행 상태를 확인하세요.', restart_failed: '컨테이너 재시작에 실패했습니다.', verification_failed: '컨테이너 상태·상세 수집 옵션·볼륨·네트워크 검사에 실패했습니다.', manual_rollback: '수동 복구 명령이 실행됐습니다.' };
 
 // A run this dialog did not start is history, not the current result — and an
 // old one must never read as the outcome of what the user is about to run.

@@ -240,7 +240,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
         <div>
           {/* 진행 배지는 제목의 메타다 — 가운데가 아니라 기준선에 맞춘다(DESIGN.md §2.2). */}
           <div className="flex items-baseline gap-2">
-            <h2 className={`${compact ? 'type-label' : 'type-section-title'} text-text-base`}>모니터링 설정 가이드</h2>
+            <h2 className={`${compact ? 'type-label' : 'type-section-title'} text-text-base`}>Docker Collector 설정 가이드</h2>
             <span className={`rounded-full px-2 py-0.5 type-caption ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
               필수 {requiredReady}/{requiredTotal}
             </span>
@@ -318,8 +318,8 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           state="optional"
           stateLabel="선택 기능"
           detail={injectable.length > 0
-            ? `${injectable.length}개 서비스에 안전 적용 가능`
-            : services.length > 0 ? '현재 자동 적용 가능한 Java·Node.js 서비스가 없습니다.' : '서비스가 발견되면 적용 대상을 확인합니다.'}
+            ? `${injectable.length}개 컨테이너에 안전 적용 가능`
+            : services.length > 0 ? '현재 자동 적용 가능한 Java·Node.js 컨테이너가 없습니다.' : '컨테이너가 발견되면 적용 대상을 확인합니다.'}
           actionLabel={injectable.length > 0 && onInstrument ? '상세 수집 설정' : undefined}
           onAction={onInstrument}
         />
