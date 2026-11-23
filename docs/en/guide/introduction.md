@@ -7,9 +7,9 @@ and request trends.
 Run **Web** on a dashboard server, then connect monitoring targets directly for each capability you
 need. Check public URLs and TCP ports with [uptime monitors](./uptime-monitors), and
 [connect apps directly through OpenTelemetry](./monitoring-setup#direct-otel) for logs, API requests,
-and metrics. Server resources come from a standard OpenTelemetry Collector. On a Linux Docker server
-you can also connect a **Docker environment**, an optional integration that collects container state,
-logs, and host resources in one install without changing your apps.
+and metrics. Server resources come from a standard OpenTelemetry Collector. On a Linux Docker host
+you can also install the **Docker Collector** on its server, an optional integration that collects
+container state, logs, and host resources in one install without changing your apps.
 
 | Part | What it does | Where it runs |
 | --- | --- | --- |
@@ -18,8 +18,8 @@ logs, and host resources in one install without changing your apps.
 | **Standard OpenTelemetry Collector** | Sends server CPU, memory, disk, and network to Web | Each server you monitor |
 | **Docker Collector** (optional) | Docker discovery, container state, logs, host metrics | Each Docker host you monitor |
 
-![The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 4 items over a threshold, and 7 recent incidents.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
-![The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 4 items over a threshold, and 7 recent incidents.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
+![The EveryUp overview. 13 servers, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 6 items needing attention, and 7 recent incidents.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
+![The EveryUp overview. 13 servers, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 6 items needing attention, and 7 recent incidents.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
 
 ::: info
 The dashboard interface is Korean only. These docs cover setup and
@@ -28,24 +28,26 @@ configuration in English; the running UI looks like the screenshot above.
 
 ## Features
 
-A server's Uptime, Infrastructure, Logs, API requests, and Metrics tabs show only the targets you
-configure directly on that server. Response checks, container state, logs, host resources, and API requests collected by a Docker
-Collector appear in that Docker environment. Overview, groups, and alerts cover both paths.
+Every monitored host is a **server**. A server's Infrastructure, Logs, and API requests tabs show the
+targets you configure directly on that server together with the data its Docker Collector collects. The
+Uptime tab shows only the uptime monitors you add, and a server with a Docker Collector also has a
+**컨테이너** (Containers) tab. Container response checks and metrics are on that tab and on each container's
+own page. Overview, groups, and alerts cover both paths per server.
 
 | Feature | What you can inspect | Required setup |
 | --- | --- | --- |
 | Overview | Failures, delayed collection, monitoring scope, recent incidents | Connect monitoring targets |
 | Uptime | HTTP and TCP response checks from the uptime monitors you add | [Add uptime monitors](./uptime-monitors) |
-| Infrastructure | Host CPU, memory, disk, and network trends | [Connect infrastructure through an OpenTelemetry Collector](./monitoring-setup#direct-otel) or enable infrastructure collection in a Docker environment |
-| Logs | Error and warning trends, recurring messages, search | Export OTLP logs directly or collect stdout/stderr in a Docker environment |
-| API response times and traces | Request count, error rate, response time trends, spans | [Connect the app directly through OpenTelemetry](./monitoring-setup#direct-otel) or the [eBPF Observer](./ebpf-observer) in a Docker environment |
+| Infrastructure | Host CPU, memory, disk, and network trends | [Connect infrastructure through an OpenTelemetry Collector](./monitoring-setup#direct-otel) or enable the Docker Collector's infrastructure collection |
+| Logs | Error and warning trends, recurring messages, search | Export OTLP logs directly or collect stdout/stderr with the Docker Collector |
+| API response times and traces | Request count, error rate, response time trends, spans | [Connect the app directly through OpenTelemetry](./monitoring-setup#direct-otel) or the [eBPF Observer](./ebpf-observer) installed with the Docker Collector |
 | Application metrics | Values and trends for metrics your app exports | Configure OTLP metric export in the app or an OpenTelemetry Collector |
-| Container state | Discovered containers, their running state and check results | Enable container state collection in a Docker environment |
-| API status | Request method, path, and status code parsed from access logs | App or proxy access-log output in a Docker environment |
+| Container state | Discovered containers, their running state and check results | Enable the Docker Collector's container state collection |
+| API status | Request method, path, and status code parsed from access logs | App or proxy access-log output on a server with a Docker Collector |
 | Header and body capture | Request details and captured bodies | [Language-specific instrumentation](./otel-instrumentation). Automatic body capture is opt-in for Node.js |
 | Notifications | Rules, channels, delivery results | [Configure channels and enabled rules](./notifications) |
 
-Compare API request trends with last week when historical data exists. Docker environments also
+Compare API request trends with last week when historical data exists. Containers also
 show deployment and restart events. **p95 latency** means 95% of measured requests finished within
 that time. A **span** records one operation in a request's trace.
 
@@ -62,10 +64,12 @@ that time. A **span** records one operation in a request's trace.
 Direct connections install no EveryUp component on the target server. Web connects to uptime monitor
 targets itself, so the dashboard server must be able to reach the target address.
 
-### Optional: Docker environment
+### Optional: Docker Collector
 
-A Docker environment is an optional integration: install the monitoring bundle on a Linux Docker
-server to collect per container without changing your apps. The Docker Collector follows your
+The Docker Collector is an optional integration: install the monitoring bundle on a server's Linux
+Docker host to collect per container without changing your apps. A server can have one, and a host's
+metrics come from either the Docker Collector or an OpenTelemetry Collector, never both
+([host metrics source](./monitoring-setup#host-metrics-source)). The Docker Collector follows your
 selected collection scope. The **기본** (Basic) profile collects container state and logs. **전체**
 (All) also enables host resources, API tracing, and OTLP metric reception.
 
@@ -115,4 +119,4 @@ opt-in for Node.js. Java body capture requires application code.
 ## Next steps
 
 Start Web and add your first uptime monitor with the [Quick Start](./quickstart). The same page
-continues with connecting a Docker environment.
+continues with installing the Docker Collector.

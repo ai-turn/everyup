@@ -130,13 +130,14 @@ Default prefix: `/api/v1`.
 | Logs and traces | `GET /logs`, `POST /otlp/v1/logs`, `POST /otlp/v1/traces` |
 | Alerting | `GET /notifications`, `GET /alert-rules` |
 | Docker Collector sync (`/agents` compatibility API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
-| Docker service detail | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
+| Servers | `GET /servers` (`?include=docker` adds servers with a Docker Collector), `POST /servers/:id/merge`, `GET /same-host-dismissals` |
+| Container detail | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 
-Docker Collector sync and OTLP export use a per-environment API key. It is issued when you
-create the environment with **Docker 연결** (Connect Docker), and the installer delivers it to the
-target server directly. For a manual install, open the environment and click **API Key** to view
-it. Keep this key in the Collector rather than configuring it in monitored apps.
+Docker Collector sync and OTLP export use a per-Docker-Collector API key. It is issued when you
+create the installation command with **Docker Collector 설치** (Install Docker Collector), and the installer
+delivers it to the target host directly. For a manual install, open the server and click **API Key** in
+the header's more (⋮) menu to view it. Merging servers does not change the key. Keep this key in the Collector rather than configuring it in monitored apps.
 
-[Directly connected apps](../guide/monitoring-setup#direct-otel) use their service's API Key.
+[Directly connected apps](../guide/monitoring-setup#direct-otel) use their own API Key.
 Apps sending through a Collector gateway without Docker discovery use a
 [service-scoped bearer token](./collector#networking).

@@ -1,8 +1,8 @@
 # Quick Start
 
 대시보드 서버에 Web을 띄우고 업타임 모니터를 하나 추가해 첫 검사 결과를 확인합니다. 2단계에서 모니터가
-**정상**으로 표시되면 기본 구성은 끝입니다. 그다음 필요한 기능을 직접 연결하고, Linux Docker 서버라면
-Docker 환경도 연결할 수 있습니다. 두 단계 모두 선택입니다.
+**정상**으로 표시되면 기본 구성은 끝입니다. 그다음 필요한 기능을 직접 연결하고, Linux Docker 호스트라면
+Docker Collector도 설치할 수 있습니다. 두 단계 모두 선택입니다.
 
 ## 준비물
 
@@ -98,12 +98,12 @@ Collector로 보냅니다. Docker를 쓰지 않아도 연결할 수 있고, 필�
 API Key가 나옵니다. 이 값을 앱이나 OpenTelemetry Collector에 적용하세요. 언어별 설정과
 수신 확인 방법은 [OpenTelemetry로 직접 연결](./monitoring-setup#direct-otel)에 있습니다.
 
-## 4. Docker 환경 연결 (선택) {#docker}
+## 4. Docker Collector 설치 (선택) {#docker}
 
-Linux Docker 서버에 모니터링 번들(Docker Collector와 필요한 구성 요소)을 설치하면, 앱을 고치지 않고
-컨테이너 상태·로그·호스트 자원·API 요청을 한 번에 수집합니다. 이 데이터는 서버의 업타임·로그·인프라 같은
-기능 탭이 아니라 해당 **Docker 환경** 화면에 표시됩니다. 서버가 한 대라면 Web과 같은 서버에 설치해도
-됩니다.
+Linux Docker 호스트에 모니터링 번들(Docker Collector와 필요한 구성 요소)을 설치하면, 앱을 고치지 않고
+컨테이너 상태·로그·호스트 자원·API 요청을 한 번에 수집합니다. Docker Collector는 서버에 설치하며, 서버 하나에
+하나만 둘 수 있습니다. 수집한 데이터는 그 서버의 **컨테이너** 탭과 인프라·로그·API 요청 탭에
+표시됩니다. 서버가 한 대라면 Web과 같은 서버에 설치해도 됩니다.
 
 모니터링할 서버에는 다음이 필요합니다.
 
@@ -112,10 +112,15 @@ Linux Docker 서버에 모니터링 번들(Docker Collector와 필요한 구성 
 - 대시보드 서버의 `3001` 포트(또는 [`EVERYUP_PUBLIC_URL`](#public-url)로 지정한 주소)에 접속할 수 있는
   네트워크
 
-### Docker 연결 명령 만들기 (브라우저)
+### 설치 명령 만들기 (브라우저)
 
-**브라우저에서** 대시보드의 **Docker 환경** 화면을 여세요. 오른쪽 위의 **Docker 연결**을 누른 뒤
-환경 이름과 수집 범위를 정하세요.
+**브라우저에서** 설치 창을 엽니다.
+
+- **새 서버**: **서버** 화면에서 **추가**를 누르고 이름을 정한 뒤, **연결 방식**에서 **Docker Collector 설치**를
+  고르고 **서버 추가**를 누릅니다. 서버가 만들어지면 그 서버 화면에서 설치 창이 이어서 열립니다.
+- **이미 있는 서버**: 그 서버의 **개요** 탭에서 **Docker Collector 설치**를 누릅니다.
+
+설치 창에서 수집 범위를 정하세요.
 
 | 수집 범위 | 수집·수신 기능 | 설치되는 구성 요소 |
 |---|---|---|
@@ -125,6 +130,10 @@ Linux Docker 서버에 모니터링 번들(Docker Collector와 필요한 구성 
 
 앱 메트릭은 수신 기능을 켠 뒤 앱이나 OpenTelemetry Collector에서 전송하도록 설정해야 합니다.
 로그나 API 요청을 선택하면 Docker 탐색에 필요한 컨테이너 상태 수집도 함께 켜집니다.
+
+서버에 이미 OpenTelemetry Collector로 인프라를 연결했다면, 설치 창이 **호스트 지표 출처**를 하나 고르게 합니다.
+같은 호스트의 CPU·메모리·디스크를 두 번 수집하지 않기 위해서입니다. 자세한 내용은
+[호스트 지표 출처](./monitoring-setup#host-metrics-source)에 있습니다.
 
 [eBPF Observer](./ebpf-observer)는 앱을 고치지 않고 API 요청의 latency와 트레이스를 수집하는
 구성 요소입니다. Docker Collector와 권한이 분리되어 실행되고, 컨테이너 프로세스를 자동으로
@@ -174,19 +183,20 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 
 ### 연결 확인 (브라우저)
 
-설치가 끝나면 **브라우저에서 Docker 환경** 화면을 확인하세요. 약 30초 안에 해당 환경이
-**설치 대기**에서 **수집 중**으로 바뀝니다.
-업타임 수집을 선택했다면 그 서버의 컨테이너도 서비스로 나타납니다.
+설치가 끝나면 **브라우저에서** **서버** 화면을 확인하세요. 연결 방식 필터를 **Docker Collector**로 두면
+Docker Collector가 있는 서버만 보입니다. 약 30초 안에 그 서버의 상태가 **대기**(Docker Collector 설치 대기)에서
+바뀌고, 서버 이름 아래에 컨테이너 개수가 나타납니다. 컨테이너 상태 수집을 선택했다면 서버의 **컨테이너** 탭에
+컨테이너가 나타납니다.
 
-![Docker 환경 목록. prod-server·worker-cluster·edge-node는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-light.webp){.only-light width=776 height=365}
-![Docker 환경 목록. prod-server·worker-cluster·edge-node는 수집 중, staging-api는 설치 대기 상태다.](/images/quickstart-docker-env-dark.webp){.only-dark width=776 height=365}
+![Docker Collector로 거른 서버 목록. prod-server는 장애, worker-cluster는 확인 필요, edge-node는 정상이고, staging-api는 아직 Docker Collector가 연결되지 않아 대기다.](/images/quickstart-docker-servers-light.webp){.only-light width=776 height=361}
+![Docker Collector로 거른 서버 목록. prod-server는 장애, worker-cluster는 확인 필요, edge-node는 정상이고, staging-api는 아직 Docker Collector가 연결되지 않아 대기다.](/images/quickstart-docker-servers-dark.webp){.only-dark width=776 height=361}
 
-<p class="screenshot-caption"><strong>수집 중</strong>이면 연결된 것이고, <strong>설치 대기</strong>면 아직 Collector가 연결되지 않은 것입니다.</p>
+<p class="screenshot-caption">컨테이너 개수가 보이면 연결된 것이고, <strong>대기</strong>면 아직 Docker Collector가 연결되지 않은 것입니다.</p>
 
 시간이 지나도 **설치 대기**에 머문다면 [트러블슈팅](./troubleshooting#not-collecting)을 확인하세요.
 
-**수집 중**은 Docker Collector의 연결 상태입니다. 해당 환경을 열고 **모니터링 설정 가이드**에서 설정 적용
-여부와 **데이터 수신 확인**도 보세요. 앱에 요청을 보내 로그·트레이스를 발생시키고, 앱 메트릭은
+연결은 Docker Collector가 보고하고 있다는 뜻입니다. 서버의 **개요** 탭에 있는 **Docker Collector 설정 가이드**에서
+설정 적용 여부와 **데이터 수신 확인**도 보세요. 앱에 요청을 보내 로그·트레이스를 발생시키고, 앱 메트릭은
 전송 설정을 적용한 뒤 수집 주기가 지났을 때 수신 기록을 확인하세요.
 
 ## 다음 단계
@@ -197,7 +207,7 @@ Check status: docker compose --env-file /opt/everyup-agent/.env -f /opt/everyup-
 그 밖의 가이드:
 
 - [업타임 모니터](./uptime-monitors): URL·TCP 포트 확인, 일시정지와 체크 기록
-- [모니터링 설정](./monitoring-setup): OpenTelemetry 직접 연결, 수집 상태 진단, Docker 환경에 기능 추가
+- [모니터링 설정](./monitoring-setup): OpenTelemetry 직접 연결, 수집 상태 진단, Docker Collector에 기능 추가
 - [헤더·바디 상세 수집](./otel-instrumentation): 요청이 실패한 이유까지 진단
-- [자동 eBPF Observer](./ebpf-observer): Docker 환경에서 API latency와 트레이스 수집
+- [자동 eBPF Observer](./ebpf-observer): Docker 호스트에서 API latency와 트레이스 수집
 - [업그레이드·제거](./upgrade-uninstall): 새 버전 적용, 설치 되돌리기

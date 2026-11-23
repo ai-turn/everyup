@@ -16,7 +16,7 @@ hero:
 carousel:
   - title: 개요
     image: overview
-    alt: EveryUp 개요 화면. 서버 9개·Docker 환경 4개, 현재 확인 필요 목록(edge-host-01의 Checkout API와 prod-server의 payment-worker 장애 2건, 임계값을 넘은 확인 필요 4건), 최근 장애 이력 7건.
+    alt: EveryUp 개요 화면. 서버 13개, 현재 확인 필요 목록(edge-host-01의 Checkout API와 prod-server의 payment-worker 장애 2건, 확인 필요 6건), 최근 장애 이력 7건.
   - title: 업타임
     image: uptime
     alt: edge-host-01 서버의 Storefront 업타임 모니터. 24시간 업타임 99.41%, 30일 업타임 99.86%, 평균 응답 130ms, 인증서 만료 D-83과 지연 증가·스파이크·장애 구간이 보이는 6시간 응답 시간 차트.
@@ -28,7 +28,7 @@ carousel:
     alt: edge-host-01 서버의 인프라 탭. CPU 67.4%, 메모리 72.8%(확인 필요, 기준 70%), 디스크 41.2% 사용률과 네트워크 In·Out 추이 차트. CPU 차트에 알림 임계선 80%.
   - title: API 요청
     image: api
-    alt: prod-server Docker 환경에 있는 api 서비스의 API 요청 탭. 상태 코드 비율, 요청 수·에러율·p95 지표, 10분 단위 요청·에러 막대와 배포 표시가 있는 추이 차트, Endpoint별 요청·에러율·p95 표.
+    alt: prod-server 서버에 있는 api 컨테이너의 API 요청 탭. 상태 코드 비율, 요청 수·에러율·p95 지표, 10분 단위 요청·에러 막대와 배포 표시가 있는 추이 차트, Endpoint별 요청·에러율·p95 표.
   - title: 트레이스
     image: trace
     alt: 결제 요청 트레이스 패널. SERVER·CLIENT span 오류(payment gateway timeout, certificate validation failed), 마스킹된 요청 JSON과 upstream_timeout 응답, 로그·API 요청 탭으로 이동하는 링크.

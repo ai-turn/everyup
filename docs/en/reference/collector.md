@@ -97,8 +97,8 @@ Only the three variables marked **required** must be set; everything else has a 
 - **`EVERYUP_WEB_BASE_URL`** · **required**\
   EveryUp Web base URL reachable from the Docker host
 - **`EVERYUP_AGENT_API_KEY`** · **required**\
-  The Docker environment's API key. In Web, open the environment and click **API Key** to view or
-  reissue it (deprecated alias: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
+  The Docker Collector's API key. In Web, open its server and click **API Key** in the header's more (⋮)
+  menu to view or reissue it (deprecated alias: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
 - **`EVERYUP_WEB_AGENT_ID`**\
   Web-side agent id; set automatically on enrollment
 - **`EVERYUP_WEB_SYNC_INTERVAL_SECONDS`** · default `30`\
@@ -111,7 +111,7 @@ Only the three variables marked **required** must be set; everything else has a 
 - **`TZ`** · default `UTC`\
   Timezone for the Collector's own log lines (e.g. `Asia/Seoul`); synced data always carries zone info regardless
 - **`EVERYUP_AGENT_NAME`** · default `everyup-agent`\
-  Docker environment name
+  Docker Collector name. The installer sets the name registered in Web
 - **`EVERYUP_SERVICE_NAME`** · default `local-service`\
   Default service name for the Collector's own checks
 - **`EVERYUP_DATA_DIR`** · default `/data`\

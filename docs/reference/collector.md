@@ -91,7 +91,7 @@ OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20<generated-token>
 - **`EVERYUP_WEB_BASE_URL`** · **필수**\
   Docker 호스트에서 접근 가능한 EveryUp Web 주소
 - **`EVERYUP_AGENT_API_KEY`** · **필수**\
-  Docker 환경의 API Key. Web에서 해당 Docker 환경을 열고 **API Key**를 누르면 확인하거나 재발급할 수 있습니다 (이전 이름: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
+  Docker Collector의 API Key. Web에서 그 서버를 열고 머리말의 더보기(⋮) 메뉴에서 **API Key**를 누르면 확인하거나 재발급할 수 있습니다 (이전 이름: `EVERYUP_WEB_ENROLLMENT_TOKEN`)
 - **`EVERYUP_WEB_AGENT_ID`**\
   Web 쪽 agent id. 등록할 때 자동으로 설정됩니다
 - **`EVERYUP_WEB_SYNC_INTERVAL_SECONDS`** · 기본값 `30`\
@@ -104,7 +104,7 @@ OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20<generated-token>
 - **`TZ`** · 기본값 `UTC`\
   Collector 자체 로그의 시간대(예: `Asia/Seoul`). 동기화되는 데이터에는 항상 시간대 정보가 포함됩니다
 - **`EVERYUP_AGENT_NAME`** · 기본값 `everyup-agent`\
-  Docker 환경 이름
+  Docker Collector 이름. 설치기는 Web에 등록된 이름을 넣습니다
 - **`EVERYUP_SERVICE_NAME`** · 기본값 `local-service`\
   Collector 자체 점검에 쓰는 기본 서비스 이름
 - **`EVERYUP_DATA_DIR`** · 기본값 `/data`\

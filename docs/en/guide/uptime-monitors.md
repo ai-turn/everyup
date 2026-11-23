@@ -1,8 +1,8 @@
 # Uptime monitors
 
 Use uptime monitors to check responses from public URLs and TCP ports on a schedule. Web performs
-the checks, so the target does not need a Collector. Docker service response checks come from the
-[Docker Collector](./quickstart#docker) and appear in that **Docker 환경** (Docker environment); you do not need
+the checks, so the target does not need a Collector. Container response checks come from the
+[Docker Collector](./quickstart#docker) and appear in the server's **컨테이너** (Containers) tab; you do not need
 to add them again as uptime monitors.
 
 ## Add a monitor
@@ -32,7 +32,7 @@ services with the [Docker Collector](./quickstart#docker) instead.
 
 A server's **업타임** (Uptime) tab lists the uptime monitors added to that server, even when there is one. Each target shows its
 HTTP or TCP method and check address. View Docker Collector response checks and container state in
-**Docker 환경** (Docker environments).
+the server's **컨테이너** (Containers) tab.
 
 Counts for **장애** (down), **정상** (healthy), **확인 대기** (pending), and **일시정지** (paused) appear
 at the top. Click a count to filter by that state. Compare monitor names, check addresses, 24-hour
@@ -65,4 +65,4 @@ is not represented as an outage or a 0ms response.
 
 An uptime monitor that goes down sends nothing unless an [alert rule](./notifications#rules)
 matches it. A rule with the **업타임** (Uptime) category and an empty **대상** (Target)
-applies to every uptime monitor and Docker service.
+applies to every uptime monitor and container.

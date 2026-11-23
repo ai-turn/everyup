@@ -20,6 +20,13 @@ docker compose up -d
 Data lives in the `everyup-data` volume, so it survives the container being recreated. For an
 important production deployment, take a [backup](./backup-restore) first.
 
+::: tip Upgrading turns Docker environments into servers
+Hosts connected as **Docker 환경** (Docker environments) in earlier versions become servers with the same
+name after the upgrade, and their containers move to the server's **컨테이너** (Containers) tab. Old
+screen addresses redirect to the new ones, and the Docker Collector does not need a reinstall. If the
+same host was also registered as a separate server, see [Merging servers on the same host](./monitoring-setup#same-host-merge).
+:::
+
 ## Upgrade the monitoring bundle {#upgrade-bundle}
 
 **On the monitored server.** The installer's configuration files are readable by root only, so
@@ -62,8 +69,8 @@ command in Web and run it. The installer backs up the existing `compose.yaml` as
 The installer never changed your app's Compose files, images, or containers, so there is nothing
 else to revert.
 
-To tidy up the dashboard too, open the environment from the **Docker 환경** (Docker environments)
-screen and click **비활성화** (Deactivate). The Collector connection is blocked and already collected data is kept.
+To tidy up the dashboard too, open the server and click **Docker Collector 비활성화** (Deactivate Docker
+Collector) in the header's more (⋮) menu. The Collector connection is blocked and already collected data is kept.
 
 ## Uninstall Web {#uninstall-web}
 

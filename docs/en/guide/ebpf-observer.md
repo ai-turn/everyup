@@ -8,7 +8,7 @@ It discovers processes running in Docker/OCI containers, so there is no
 
 This does not change your app code, Dockerfile, or app containers. On a native
 Linux host, eBPF observes host processes to build traces and the Docker Collector
-attributes each span to the matching Docker service. Docker Desktop has the
+attributes each span to the matching container. Docker Desktop has the
 PID-translation limitation, so use [app-side OpenTelemetry](./otel-instrumentation)
 when automatic service attribution is unavailable. The kernel and permission requirements are
 under [Notes](#notes).
@@ -31,8 +31,8 @@ receiving synthetic access-log spans automatically (no double counting).
 
 Collecting API spans and connecting calls across services into one distributed trace are separate
 capabilities. The installer-generated bundle disables the advanced cross-service option by default.
-Open an environment from **Docker 환경** (Docker environments), then check **모니터링 설정 가이드**
-(monitoring setup guide) for automatic API tracing and cross-service correlation status separately.
+Open the server with the Docker Collector, then check **Docker Collector 설정 가이드** (Docker Collector setup
+guide) on its **개요** (Overview) tab for automatic API tracing and cross-service correlation status separately.
 
 The Collector's correlation diagnostic additionally checks whether the option is enabled, whether
 Linux is 5.17 or newer, and the kernel Lockdown state. Passing these checks does not guarantee

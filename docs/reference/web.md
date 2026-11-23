@@ -126,12 +126,13 @@ Web이 실행 중인 호스트 자체의 메트릭 수집 설정입니다. 다�
 | 로그·트레이스 | `GET /logs`, `POST /otlp/v1/logs`, `POST /otlp/v1/traces` |
 | 알림 | `GET /notifications`, `GET /alert-rules` |
 | Docker Collector 동기화 (`/agents` 호환 API) | `POST /agents/enroll`, `POST /agents/:agentId/services`, `POST /agents/:agentId/events`, `POST /agents/:agentId/metrics` |
-| Docker 서비스 상세 | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
+| 서버 | `GET /servers` (`?include=docker`면 Docker Collector가 있는 서버도), `POST /servers/:id/merge`, `GET /same-host-dismissals` |
+| 컨테이너 상세 | `GET /agents/services/all`, `GET /agents/:agentId/services/:key/history`, `GET /agents/:agentId/services/:key/uptime`, `GET /agents/:agentId/services/:key/logs`, `GET /agents/:agentId/services/:key/requests` |
 
-Docker Collector의 동기화와 OTLP 전송에는 Docker 환경마다 발급되는 API Key를 사용합니다. 키는
-**Docker 연결**로 환경을 만들 때 발급되고, 설치기가 대상 서버에 직접 전달합니다. 수동으로 설치할 때는
-해당 Docker 환경을 열고 **API Key**를 눌러 확인하세요. 이 키는 Collector가 보관하며, 모니터링 대상
+Docker Collector의 동기화와 OTLP 전송에는 Docker Collector마다 발급되는 API Key를 사용합니다. 키는
+**Docker Collector 설치**로 설치 명령을 만들 때 발급되고, 설치기가 대상 호스트에 직접 전달합니다. 수동으로 설치할 때는
+그 서버를 열고 머리말의 더보기(⋮) 메뉴에서 **API Key**를 눌러 확인하세요. 서버를 합쳐도 키는 바뀌지 않습니다. 이 키는 Collector가 보관하며, 모니터링 대상
 앱에 이 Collector 키를 설정하지 마세요.
 
-[직접 연결한 앱](../guide/monitoring-setup#direct-otel)은 해당 서비스의 API Key를 사용합니다.
+[직접 연결한 앱](../guide/monitoring-setup#direct-otel)은 그 앱의 API Key를 사용합니다.
 Docker 탐색 없이 Collector 게이트웨이로 보내는 앱은 [서비스별 bearer 토큰](./collector#networking)을 사용합니다.

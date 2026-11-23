@@ -16,7 +16,7 @@ hero:
 carousel:
   - title: Overview
     image: overview
-    alt: The EveryUp overview. 9 servers and 4 Docker environments, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 4 items over a threshold, and 7 recent incidents.
+    alt: The EveryUp overview. 13 servers, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 6 items needing attention, and 7 recent incidents.
   - title: Uptime
     image: uptime
     alt: The Storefront uptime monitor on the edge-host-01 server. 24h uptime 99.41%, 30-day uptime 99.86%, 130 ms average response, certificate expiry in 83 days, and a 6-hour response-time chart showing a slowdown, a spike and an outage.
@@ -28,7 +28,7 @@ carousel:
     alt: The infrastructure tab of the edge-host-01 server. Usage trend charts for CPU 67.4%, memory 72.8% (needs attention, threshold 70%) and disk 41.2%, plus network In and Out, with an 80% alert threshold line on the CPU chart.
   - title: API requests
     image: api
-    alt: The API requests tab of the api service in the prod-server Docker environment. Status code mix, request count, error rate and p95 tiles, a trend chart with request and error bars per 10 minutes and a deploy marker, and a per-endpoint table of requests, error rate and p95.
+    alt: The API requests tab of the api container on the prod-server server. Status code mix, request count, error rate and p95 tiles, a trend chart with request and error bars per 10 minutes and a deploy marker, and a per-endpoint table of requests, error rate and p95.
   - title: Traces
     image: trace
     alt: The trace panel for a payment request. SERVER and CLIENT spans in error (payment gateway timeout, certificate validation failed), a masked request JSON and an upstream_timeout response, and links to the related logs and API request.
