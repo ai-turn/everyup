@@ -79,7 +79,7 @@ for (const key of ['Enter', 'Space']) {
 test('mobile service details expose data and retain a 44px time-range target', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${payment}?tab=uptime`);
-  const disclosure = page.locator('details').filter({ has: page.locator('summary', { hasText: '서비스 정보' }) });
+  const disclosure = page.locator('details').filter({ has: page.locator('summary', { hasText: '컨테이너 정보' }) });
   await expect(disclosure).not.toHaveAttribute('open', '');
   const overview = page.getByText('24시간 업타임', { exact: true });
   await expect(overview).toBeVisible();

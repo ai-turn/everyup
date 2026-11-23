@@ -40,18 +40,35 @@ Containers, targets of the Server, beside its apps and monitors.
   taken in its Group gets a suffix such as ` (2)`, and the screens suggest the
   same-host merge, which the user confirms. When both Servers collect
   infrastructure, the user picks one source.
+- One source of host metrics per Server. Every path that would make a Docker
+  Collector and an OpenTelemetry Collector collect the same host asks the user
+  to keep one: the same-host merge, installing a Docker Collector on a Server,
+  connecting an OpenTelemetry Collector, and adding infrastructure to a Docker
+  Collection Profile. The API refuses the ambiguous request (409
+  `INFRASTRUCTURE_SOURCE_REQUIRED`); there is no switch between two sources.
+- A Docker Collector is installed from a Server: Add Server asks for the
+  connection method, and an existing Server offers the install. There is no
+  separate "connect Docker" entry.
 - Server views show Docker data. Docker Environment screens become Server tabs
   and Container pages, and their addresses redirect.
 
 ## Rollout
 
-1. Model: Servers for Docker Environments, hidden from the Server list until
-   the screens show them. Same-name lookups never attach direct targets to them,
-   and merges with them wait for the confirmed same-host merge.
-2. Screens: one Server menu and list, a Containers tab, Container pages,
-   redirects.
-3. Same-host merge and the install choice in "add server".
-4. Vocabulary and documentation.
+Done in nine pull requests (#166 to #174).
+
+1. Model (#166, #167): Servers for Docker Environments (migrateV59), hidden
+   from the default Server list (`GET /servers?include=docker` shows them).
+   Same-name lookups never attach direct targets to them.
+2. Screens (#168 to #170): one Server menu and list (with a connection
+   filter), a Containers tab, Container pages, redirects from
+   `/environments`, `/agents/:id` and `/services/:agentId/:key`, and Groups,
+   the overview, the command palette and alert rules counting and naming
+   Docker hosts as Servers.
+3. Same-host merge and install (#171, #172): merging Docker Servers, the
+   one-source rule, the same-host suggestion (answers stored in
+   `same_host_dismissals`, migrateV60), and the install from a Server.
+4. Vocabulary and documentation (#173, #174): Containers and Docker Collector
+   in product copy; Docker Environment is retired.
 
 ## Consequences
 

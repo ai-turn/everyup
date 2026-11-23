@@ -1,7 +1,8 @@
 // 연결 문구는 여기서만 만든다(DESIGN.md §9 연결 문구, CONTEXT.md). 화면마다 이어 붙이면 같은 동작의 이름이 갈린다.
 //
-// - 연결: 밖에서 데이터가 들어오게 만드는 일(로그, API 요청, 메트릭, 인프라, Docker).
+// - 연결: 밖에서 데이터가 들어오게 만드는 일(로그, API 요청, 메트릭, 인프라).
 // - 추가: EveryUp 안에서 설정만으로 만드는 대상(업타임 모니터, 서버).
+// - 설치: 서버에 Docker Collector를 두는 일(`Docker Collector 설치`). 서버의 기능 탭이 아니라 서버 단위라 ConnectTarget에 넣지 않는다.
 // - 버튼 글자 = 대화 상자 제목. 결과는 "{대상}을/를 연결할 준비가 되었습니다", 완료는 "{대상} 보기".
 
 /** 서버가 갖는 기능(서버 탭의 키). */
@@ -31,11 +32,17 @@ export const connectView = (target: ConnectTarget) => `${NAME[target]} 보기`;
 /** 연결을 마친 뒤의 알림. */
 export const connectDone = (target: ConnectTarget) => `${OBJECT[target]} 연결했습니다`;
 
+/**
+ * Docker Collector를 서버에 두는 시작 버튼과 대화 상자 제목(ADR 0012). 서버 추가의 연결 방식, 서버 개요의 `연결할 수 있는 기능`,
+ * 설치 창이 같은 말을 쓴다(옛 `Docker 연결`).
+ */
+export const DOCKER_INSTALL = 'Docker Collector 설치';
+
 /** OTel 신호의 연결 단위. traces는 API 요청이다. */
 export const SIGNAL_TARGET = { logs: 'logs', traces: 'api', metrics: 'metrics' } as const satisfies Record<string, ConnectTarget>;
 
 /**
- * Docker 환경의 수집 기능 이름. Docker의 uptime 기능은 컨테이너가 떠 있는지 보는 것이라 `컨테이너 상태`다
+ * Docker Collector의 수집 기능 이름. Docker의 uptime 기능은 컨테이너가 떠 있는지 보는 것이라 `컨테이너 상태`다
  * (ADR 0006: 업타임은 응답 확인만 뜻한다).
  */
 export const DOCKER_CAPABILITY_NAME = {
@@ -51,6 +58,6 @@ export const APPLY_SCOPE = {
   directAttach: '이 앱 하나에 적용됩니다. API Key는 그대로이고, 앱 설정에서 이 데이터의 전송을 켠 뒤 앱을 다시 시작해야 합니다.',
   infrastructure: '이 서버 하나에 적용됩니다. 서버에서 OpenTelemetry Collector를 실행해야 하고, 앱은 다시 시작하지 않아도 됩니다.',
   docker: '이 Docker 호스트 전체에 적용됩니다. 서버에서 설치 명령을 한 번 실행하면 되고, 앱은 수정하지 않습니다.',
-  dockerCapability: '이 Docker 환경 전체에 적용됩니다. 서버에서 적용 명령을 한 번 실행하면 되고, 앱은 다시 시작하지 않아도 됩니다.',
+  dockerCapability: '이 서버의 Docker Collector 전체에 적용됩니다. 서버에서 적용 명령을 한 번 실행하면 되고, 앱은 다시 시작하지 않아도 됩니다.',
   uptime: '이 모니터 하나에 적용됩니다. 서버에 설치할 것이 없습니다. EveryUp이 주소를 직접 확인합니다.',
 } as const;

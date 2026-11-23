@@ -44,7 +44,7 @@ const ruleSchema = z.object({
     // 교차 필드 검사는 다른 칸이 틀려도 함께 돌린다(when). 그래야 첫 제출에서 모든 인라인 오류가 한 번에 보인다.
     .refine(data => data.ruleCategory !== 'metric' || !!data.metricName?.trim(), { path: ['metricName'], message: '메트릭 이름을 입력하세요', when: () => true })
     // A window over every service at once would let one noisy service hide another.
-    .refine(data => data.ruleCategory !== 'request' || !!data.serviceKey || !!data.serviceId, { path: ['serviceKey'], message: '서비스를 선택하세요', when: () => true });
+    .refine(data => data.ruleCategory !== 'request' || !!data.serviceKey || !!data.serviceId, { path: ['serviceKey'], message: '대상을 선택하세요', when: () => true });
 
 type RuleFormValues = z.infer<typeof ruleSchema>;
 type RuleCategory = RuleFormValues['ruleCategory'];
@@ -474,7 +474,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
             ? directTargetLabel(selectedDirectService, servers)
             : watchedAgentId && watchedServiceKey
             ? (selectedAgentService ? containerLabel(selectedAgentService, agents, servers) : watchedServiceKey)
-            : (isRequest ? '서비스 선택 필요' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 업타임 대상'))
+            : (isRequest ? '대상 선택 필요' : isLog ? '로그를 보내는 모든 대상' : isMetric ? '모든 대상' : '전체 업타임 대상'))
         : watchedCategory === 'resource' && watchedAgentId
             ? (selectedInfrastructureResource ? directTargetLabel(selectedInfrastructureResource, servers) : selectedAgent?.name ?? watchedAgentId)
             : (watchedAgentId ? (selectedAgent?.name ?? watchedAgentId) : '전체 인프라');
@@ -566,7 +566,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         }}
 
                                     >
-                                        <option value="">{isRequest ? '서비스 선택' : isLog ? '전체 로그 서비스' : isMetric ? '모든 서비스' : '전체 업타임 대상'}</option>
+                                        <option value="">{isRequest ? '대상 선택' : isLog ? '로그를 보내는 모든 대상' : isMetric ? '모든 대상' : '전체 업타임 대상'}</option>
                                         {targetGroups(dockerTargets, serverTargets)}
                                     </Select>
                                 ) : (
@@ -582,7 +582,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                 )}
                             </Field>
 
-                            <Field htmlFor={isMetric ? 'rule-metric' : undefined} label="지표" required={isMetric} error={isMetric ? errors.metricName?.message : undefined} hint={isMetric && !watchedServiceKey && !watchedServiceId ? '서비스를 선택하면 수집된 메트릭이 제안됩니다' : null}>
+                            <Field htmlFor={isMetric ? 'rule-metric' : undefined} label="지표" required={isMetric} error={isMetric ? errors.metricName?.message : undefined} hint={isMetric && !watchedServiceKey && !watchedServiceId ? '대상을 선택하면 수집된 메트릭이 제안됩니다' : null}>
                                 {isMetric ? (
                                     <>
                                         <Input

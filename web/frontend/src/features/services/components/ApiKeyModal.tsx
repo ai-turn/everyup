@@ -95,7 +95,7 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
             <div className="flex items-start gap-3 p-4 rounded-md bg-ui-hover-soft">
               <MaterialIcon size={20} name="info" className="text-amber-500 shrink-0 icon-lead" />
               <p className="type-body text-text-muted">
-                이 Docker 환경은 키 저장 기능 이전에 생성되어 기존 키를 조회할 수 없습니다. 재발급하면 새 키가 발급됩니다.
+                이 Docker Collector는 키 저장 기능 이전에 생성되어 기존 키를 조회할 수 없습니다. 재발급하면 새 키가 발급됩니다.
               </p>
             </div>
           )}

@@ -1373,7 +1373,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   const collectorSetup = endpoint.match(/^\/agents\/([^/]+)\/setup-status$/);
   if (method === 'GET' && collectorSetup) {
     const agent = scenarioAgents(scenario).find(row => row.id === collectorSetup[1]);
-    if (!agent) throw new Error('Docker 환경을 찾을 수 없습니다');
+    if (!agent) throw new Error('Docker Collector를 찾을 수 없습니다');
     const profile = normalizeMockAgentProfile(agent.profile);
     const connected = Boolean(agent.version && Date.now() - new Date(agent.lastSeenAt).getTime() < 120_000);
     const desiredHash = [...profile.capabilities].sort().join(',');
@@ -1394,7 +1394,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   const collectorProfile = endpoint.match(/^\/agents\/([^/]+)\/profile(\?.*)?$/);
   if (method === 'PUT' && collectorProfile) {
     const agent = mockAgents.find(row => row.id === collectorProfile[1]);
-    if (!agent) throw new Error('Docker 환경을 찾을 수 없습니다');
+    if (!agent) throw new Error('Docker Collector를 찾을 수 없습니다');
     const profile = normalizeMockAgentProfile(JSON.parse(typeof body === 'string' ? body : '{}'));
     // 호스트 지표를 더하는데 서버에 OpenTelemetry Collector 인프라가 있으면 ?infrastructure=docker로 그 연결을 중지한다.
     const otel = activeOtelOn(serverOfAgent(agent.id));

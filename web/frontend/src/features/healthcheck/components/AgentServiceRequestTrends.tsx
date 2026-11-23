@@ -79,7 +79,7 @@ function ServiceRequestTrends({
   window: controlledWindow,
   status: statusFilter,
   onStatusChange,
-  noun = '서비스',
+  noun = '컨테이너',
   empty = null,
 }: SharedProps & { source: RequestTrendSource }) {
   const title = `${noun} 전체 추이`;
@@ -427,5 +427,5 @@ export function AgentServiceRequestTrends({ agentId, serviceKey, ...props }: Age
 }
 
 export function DirectServiceRequestTrends({ observedServiceId, ...props }: DirectProps) {
-  return <ServiceRequestTrends {...props} source={{ kind: 'direct', observedServiceId }} />;
+  return <ServiceRequestTrends noun="앱" {...props} source={{ kind: 'direct', observedServiceId }} />;
 }

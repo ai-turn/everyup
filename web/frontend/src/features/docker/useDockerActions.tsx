@@ -68,7 +68,6 @@ export function useDockerActions(agent: ConnectedAgent | undefined, { onChanged,
         purpose={showInstall}
         onClose={() => setShowInstall(false)}
         onCreated={onChanged}
-        onOpenProject={() => setShowInstall(false)}
         onConfigureInstrumentation={() => { setShowInstall(false); setShowInstrumentation(true); }}
       />
     )}

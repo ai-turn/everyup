@@ -123,7 +123,7 @@ test.describe('live demo', () => {
     await expect(timeline).toBeVisible();
     // Scope is part of the claim: direct-connection services keep no history,
     // so the card must not imply it covers every monitored target.
-    await expect(timeline.getByText('업타임 모니터·Docker 서비스, 최근 7일')).toBeVisible();
+    await expect(timeline.getByText('업타임 모니터·컨테이너, 최근 7일')).toBeVisible();
 
     // An ongoing Docker outage and a resolved uptime episode, newest first.
     await expect(timeline.getByRole('link', { name: /payment-worker/ })).toBeVisible();

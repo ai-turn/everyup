@@ -27,7 +27,7 @@ interface DetailMetaProps {
 const TOUCH_CONTROLS = {};
 const COMPACT_CONTROLS = { size: 'sm' } as const;
 
-export function DetailMeta({ status, connection, fields = [], collapseOnMobile = false, collapseLabel = '서비스 정보', collapsed = false }: DetailMetaProps) {
+export function DetailMeta({ status, connection, fields = [], collapseOnMobile = false, collapseLabel = '정보', collapsed = false }: DetailMetaProps) {
   const narrow = useMediaQuery('(max-width: 639px)');
   const fieldList = fields.length > 0 ? (
     // 행 높이는 하나다: sm 이상 40px(값 안의 조작은 sm 32px), 터치 화면 44px(조작 md 44px). 이전에는 조작이 든 행만

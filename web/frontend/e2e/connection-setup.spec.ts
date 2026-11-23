@@ -14,7 +14,7 @@ test('connection URLs resolve relative API paths and respect the configured exte
 test('existing collector gains metrics from its Docker server', async ({ page }) => {
   // 수집 프로필은 Docker Collector가 있는 서버의 설정 가이드에서 바꾼다(ADR 0007, 0012).
   await page.goto('./servers/agent_demo_02');
-  const guide = page.locator('section', { has: page.getByRole('heading', { name: '모니터링 설정 가이드' }) });
+  const guide = page.locator('section', { has: page.getByRole('heading', { name: 'Docker Collector 설정 가이드' }) });
   // 같은 이름으로 직접 연결을 여는 버튼은 개요에 두지 않는다.
   await expect(page.getByRole('button', { name: '메트릭 연결', exact: true })).toHaveCount(1);
   await guide.getByRole('button', { name: '메트릭 연결', exact: true }).click();
@@ -77,8 +77,8 @@ test('server connection offers direct targets only', async ({ page }) => {
   await page.goto(LOGS_TAB);
   await page.getByRole('tabpanel').getByRole('button', { name: '로그 연결', exact: true }).click();
   const dialog = page.getByRole('dialog');
-  // Container stdout logs are a Docker environment's job, not this dialog's.
-  await expect(dialog.getByRole('link', { name: 'Docker 환경' })).toHaveAttribute('href', /\/servers\?connection=docker$/);
+  // Container stdout logs are the Docker Collector's job, not this dialog's.
+  await expect(dialog.getByRole('link', { name: 'Docker Collector' }).first()).toHaveAttribute('href', /\/servers\?connection=docker$/);
   await dialog.getByRole('button', { name: '기존 앱', exact: true }).click();
   await dialog.getByRole('combobox', { name: '앱' }).click();
   await expect(page.getByRole('option', { name: /Docker|prod-server/ })).toHaveCount(0);
@@ -148,8 +148,8 @@ test('every connection dialog states its scope before it issues anything', async
   await page.getByRole('tabpanel').getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '업타임 모니터 추가' }).getByText(/서버에 설치할 것이 없습니다/)).toBeVisible();
   await page.keyboard.press('Escape');
-  // Docker 기능: 환경 전체, 적용 명령 한 번.
-  await page.goto('./agents/agent_demo_02');
+  // Docker 기능: 서버의 Docker Collector 전체, 적용 명령 한 번.
+  await page.goto('./servers/agent_demo_02');
   await page.getByRole('button', { name: '메트릭 연결', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: '메트릭 연결' }).getByText(/^적용 범위 이 Docker 환경 전체에 적용됩니다\./)).toBeVisible();
+  await expect(page.getByRole('dialog', { name: '메트릭 연결' }).getByText(/^적용 범위 이 서버의 Docker Collector 전체에 적용됩니다\./)).toBeVisible();
 });

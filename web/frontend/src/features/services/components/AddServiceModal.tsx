@@ -29,7 +29,7 @@ import { env } from '../../../config/env';
 import { QUICKSTART_URL } from '../../../components/layout/DemoHelpLinks';
 import { formatClock } from '../../../utils/incidentFormat';
 import { ApplyScope } from '../../connections/ApplyScope';
-import { APPLY_SCOPE, DOCKER_CAPABILITY_NAME } from '../../connections/connectCopy';
+import { APPLY_SCOPE, DOCKER_CAPABILITY_NAME, DOCKER_INSTALL } from '../../connections/connectCopy';
 
 interface Props {
   onClose: () => void;
@@ -42,7 +42,6 @@ interface Props {
   server?: { id: string; name: string };
   /** 설치한 Docker Collector에 바뀐 수집 설정을 적용하는 명령이다(기능 연결 뒤). 다시 설치하는 것이 아니다. */
   purpose?: 'install' | 'apply';
-  onOpenProject?: (agentId: string) => void;
   onConfigureInstrumentation?: (agentId: string) => void;
 }
 
@@ -106,7 +105,7 @@ const PROFILE_OPTIONS: { label: string; value: AgentProfileKind }[] = [
 ];
 
 const CAPABILITY_OPTIONS: { capability: AgentCollectionCapability; label: string; description: string }[] = [
-  { capability: 'uptime', label: DOCKER_CAPABILITY_NAME.uptime, description: '컨테이너 실행 상태와 Docker 서비스의 응답 확인 결과를 수집합니다.' },
+  { capability: 'uptime', label: DOCKER_CAPABILITY_NAME.uptime, description: '컨테이너 실행 상태와 응답 확인 결과를 수집합니다.' },
   { capability: 'logs', label: DOCKER_CAPABILITY_NAME.logs, description: 'Docker stdout·stderr 로그를 읽습니다.' },
   { capability: 'infrastructure', label: DOCKER_CAPABILITY_NAME.infrastructure, description: '호스트 CPU·메모리·디스크를 수집합니다.' },
   { capability: 'api', label: DOCKER_CAPABILITY_NAME.api, description: 'privileged eBPF Observer로 API 요청을 수집합니다.' },
@@ -303,10 +302,9 @@ export function AddServiceModal({
   existingAgent,
   server,
   purpose = 'install',
-  onOpenProject,
   onConfigureInstrumentation,
 }: Props) {
-  const title = purpose === 'apply' ? '적용 명령' : 'Docker Collector 설치';
+  const title = purpose === 'apply' ? '적용 명령' : DOCKER_INSTALL;
   const [step, setStep] = useState<Step>(existingAgent ? 'install' : 'form');
   const name = existingAgent?.name ?? server?.name ?? '';
   const [profileKind, setProfileKind] = useState<AgentProfileKind>('all-in-one');
@@ -510,7 +508,7 @@ export function AddServiceModal({
                 <div>
                   <p className="type-body text-text-base">Docker Collector 연결을 확인했습니다</p>
                   <p className="mt-1 type-body text-text-muted">
-                    기능 호환성과 발견된 서비스를 자동으로 확인했습니다. 이 화면에서 상세 수집까지 이어서 설정할 수 있습니다.
+                    기능 호환성과 발견된 컨테이너를 자동으로 확인했습니다. 이 화면에서 상세 수집까지 이어서 설정할 수 있습니다.
                   </p>
                 </div>
               </div>
@@ -565,11 +563,7 @@ export function AddServiceModal({
                       상세 수집 설정
                     </Button>
                   )}
-                  <Button
-                    onClick={() => onOpenProject ? onOpenProject(agentId) : onClose()}
-                  >
-                    {onOpenProject ? 'Docker 환경 열기' : '완료'}
-                  </Button>
+                  <Button onClick={onClose}>완료</Button>
                 </>
               ) : (
                 <>

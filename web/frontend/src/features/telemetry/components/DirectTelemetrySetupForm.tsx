@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DOCKER_SERVERS_PATH } from '../../servers/serverPaths';
+import { useServerDockerCollector } from '../../servers/useInfrastructureSources';
 import { toast } from 'react-hot-toast';
 import { Button, Input, LoadErrorBanner, SegmentedControl, Select } from '../../../components/common';
 import { api, type ObservedService, type TelemetrySignal } from '../../../services/api';
@@ -137,12 +138,17 @@ async function connect(signal: TelemetrySignal, serverId: string, app: { name: s
   return { kind: 'attached', service, signal };
 }
 
-/** 컨테이너 stdout 로그는 Docker 환경의 일이라는 안내(로그만)와, 같은 호스트의 Docker 환경 안내(새 앱일 때만). */
+/** 컨테이너 stdout 로그는 Docker Collector의 일이라는 안내(로그만)와, 같은 호스트의 Docker Collector 안내(새 앱일 때만). */
 function DockerNotes({ signal, serverId, serverName, attaching }: { signal: TelemetrySignal; serverId: string; serverName: string; attaching: boolean }) {
+  // 이 서버에 Docker Collector가 있으면 그것이 수집한다고 말한다(ADR 0012). 없으면 설치하는 곳을 알린다.
+  const docker = useServerDockerCollector(serverId);
   return <>
     {signal === 'logs' && (
       <p className="type-body text-text-muted">
-        컨테이너가 stdout으로 내보내는 로그는 <Link to={DOCKER_SERVERS_PATH} className="text-action underline underline-offset-2">Docker 환경</Link>에서 연결합니다. 여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
+        {docker
+          ? '컨테이너가 stdout으로 내보내는 로그는 이 서버의 Docker Collector가 수집합니다.'
+          : <>컨테이너가 stdout으로 내보내는 로그는 <Link to={DOCKER_SERVERS_PATH} className="text-action underline underline-offset-2">Docker Collector</Link>가 수집합니다(서버 개요의 Docker Collector 설치).</>}
+        {' '}여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
       </p>
     )}
     {!attaching && <DockerHostNote serverId={serverId} serverName={serverName} sameNameOnly={signal === 'logs'} />}

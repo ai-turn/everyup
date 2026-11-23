@@ -102,7 +102,7 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
       <div className="mt-4 space-y-heading">
         <p className="type-body text-text-muted">HTTP 요청은 method와 HTTP 상태코드가 있는 SERVER span에서 표시합니다. 다른 span이 수신돼도 이 목록은 비어 있을 수 있습니다.</p>
         {source.kind === 'direct' ? <><TelemetrySetupGuidance signals={['traces']} /><TelemetryReceiptStatus path={`/observed-services/${source.observedServiceId}/setup-status`} expected={['traces']} /></>
-          : <p className="type-body text-text-muted">{source.runtime ? `${runtimeLabel(source.runtime)} 서비스의 ` : ''}Docker 환경에서 API 수집 설정을 확인해 주세요. 앱에 OpenTelemetry를 연결하거나 Docker Collector의 everyup-ebpf 수집을 설정할 수 있습니다.</p>}
+          : <p className="type-body text-text-muted">{source.runtime ? `${runtimeLabel(source.runtime)} 컨테이너의 ` : ''}API 수집 설정은 서버 개요의 Docker Collector 설정 가이드에서 확인해 주세요. 앱에 OpenTelemetry를 연결하거나 Docker Collector의 everyup-ebpf 수집을 설정할 수 있습니다.</p>}
       </div>
     </details>}
     {activeTraceId && <TracePanel traceId={activeTraceId} target={target} onClose={() => setActiveTraceId(null)} />}

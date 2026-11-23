@@ -7,6 +7,7 @@ import { ServerFields } from '../../features/servers/components/ServerFields';
 import { INSTALL_DOCKER_STATE, SERVERS_PATH, serverPath } from '../../features/servers/serverPaths';
 import { useServerForm } from '../../features/servers/useServerForm';
 import { api } from '../../services/api';
+import { DOCKER_INSTALL } from '../../features/connections/connectCopy';
 
 type Connection = 'later' | 'docker';
 
@@ -14,7 +15,7 @@ type Connection = 'later' | 'docker';
 // 그 밖의 기능(업타임 모니터, 직접 OpenTelemetry, OpenTelemetry Collector 인프라)은 서버 화면의 각 탭에서 연결한다.
 const CONNECTIONS: { value: Connection; title: string; description: string }[] = [
   { value: 'later', title: '나중에 연결', description: '업타임 모니터, 앱의 OpenTelemetry, 인프라는 서버 화면의 각 탭에서 연결합니다.' },
-  { value: 'docker', title: 'Docker Collector 설치', description: 'Docker를 쓰는 호스트입니다. 컨테이너 상태·로그·인프라·API 요청을 한 번에 수집합니다.' },
+  { value: 'docker', title: DOCKER_INSTALL, description: 'Docker를 쓰는 호스트입니다. 컨테이너 상태·로그·인프라·API 요청을 한 번에 수집합니다.' },
 ];
 
 export function ServerFormPage() {

@@ -137,7 +137,7 @@ export function OverviewPage() {
     items.push(...unlistedActive.map((episode) => ({
       id: `episode-${episode.source}-${episode.targetPath}`,
       title: withParent(episode.targetName, episode.targetPath),
-      detail: episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상'),
+      detail: episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : '컨테이너 상태 이상'),
       to: episode.targetPath,
       tone: 'error' as const,
       icon: 'error_outline',
@@ -300,7 +300,7 @@ export function OverviewPage() {
                 "지금 문제 없음"과 "닷새째 조용함"은 다른 정보고, 신뢰를 주는 건 후자다.
                 직접 연결 서비스는 이력 테이블이 없어 범위를 헤더에 밝힌다(안 밝히면 "전부 조용하다"로 오독된다). */}
             {/* 건수는 제목과 같은 기준선의 메타, 범위는 제목 아래 설명 줄이다 — 메타는 개수처럼 짧은 값만 둔다(DESIGN.md §2.2). */}
-            <Section label="최근 장애 이력" title="최근 장애 이력" description="업타임 모니터·Docker 서비스, 최근 7일"
+            <Section label="최근 장애 이력" title="최근 장애 이력" description="업타임 모니터·컨테이너, 최근 7일"
               meta={<><span aria-hidden="true">{timelineFailed ? '-' : timeline.length}</span><span className="sr-only">{timelineFailed ? '최근 장애 확인 불가' : `최근 장애 ${timeline.length}건`}</span></>}>
               {timelineFailed && (
                 <div role="status" className="flex flex-col gap-label cell sm:flex-row sm:items-center sm:justify-between">
@@ -324,7 +324,7 @@ export function OverviewPage() {
                       to={episode.targetPath}
                       marker={<span className={`h-2 w-2 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`} aria-hidden="true" />}
                       title={withParent(episode.targetName, episode.targetPath)}
-                      detail={episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : 'Docker 서비스 상태 이상')}
+                      detail={episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : '컨테이너 상태 이상')}
                       trailing={formatIncidentTime(episode.startedAt)}
                       trailingDetail={episode.active
                         ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>

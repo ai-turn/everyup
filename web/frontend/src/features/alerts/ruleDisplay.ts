@@ -113,7 +113,7 @@ export function targetParts(rule: AlertRule, names: TargetNames): TargetParts {
     }
     // Request rules can also watch a whole Docker environment (API-created).
     if (rule.type === 'request' && rule.agentId) return found(agents.find(a => a.id === rule.agentId)?.name) ?? missingTarget(rule.agentId, names);
-    return { label: rule.type === 'log' ? '전체 로그 서비스' : rule.metric === 'otel_metric' ? '모든 서비스' : '전체 업타임 대상' };
+    return { label: rule.type === 'log' ? '로그를 보내는 모든 대상' : rule.metric === 'otel_metric' ? '모든 대상' : '전체 업타임 대상' };
   }
   if (rule.agentId) return found(infrastructureName(rule.agentId, names) ?? agents.find(a => a.id === rule.agentId)?.name) ?? missingTarget(rule.agentId, names);
   return { label: '전체 인프라' };
