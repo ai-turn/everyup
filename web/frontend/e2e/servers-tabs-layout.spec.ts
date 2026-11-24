@@ -179,12 +179,6 @@ test.describe('at 1440x1000', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Checkout API' })).toBeVisible();
   });
 
-  test('the group is a status line item', async ({ page }) => {
-    await page.goto(`./servers/${EDGE}`);
-    await expect(serverHeader(page).getByText('그룹 Production', { exact: true })).toBeVisible();
-    await expect(serverHeader(page).locator('dd')).toHaveCount(0);
-  });
-
   test('server tab panels fold their connection details, an app page shows them like a Docker service', async ({ page }) => {
     await page.goto(`./servers/${EDGE}/infrastructure`);
     const details = panel(page).locator('details');

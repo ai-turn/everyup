@@ -11,7 +11,7 @@ type ConfirmAction = 'rotate' | 'revoke' | 'delete' | null;
 
 /**
  * 서버 탭의 로그·API·메트릭 앱 패널의 공통 로직: 키 재발급, 연결 중지, 삭제 또는 신호 연결 해제, 확인 대화 상자.
- * 앱은 서버 상세가 불러온 것을 받는다(갱신의 주체는 서버 상세 하나다). 그룹은 서버가 정한다.
+ * 앱은 서버 상세가 불러온 것을 받는다(갱신의 주체는 서버 상세 하나다).
  */
 export function useDirectServicePanel(service: ObservedService, signal: TelemetrySignal, onRemoved: (remaining: ObservedService | null) => void,
   /** 연결 중지나 키 재발급으로 앱이 바뀐 뒤. 서버 상세가 서버 데이터를 다시 불러온다. */
@@ -77,7 +77,7 @@ export function useDirectServicePanel(service: ObservedService, signal: Telemetr
         const removal = serviceRemoval(latest, signal);
         let remaining: ObservedService | null = null;
         if (removal.kind === 'detach') {
-          // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
+          // 소속 서버(serverId)를 함께 보낸다. 빼면 백엔드가 이름으로 서버를 다시 찾는다.
           remaining = await api.updateObservedService(latest.id, { name: latest.name, serverId: latest.serverId, signals: removal.signals });
         } else {
           await api.deleteObservedService(service.id);

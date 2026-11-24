@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button, ButtonLink, EmptyState, FilterChips, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, RefreshStatus, SearchInput, Select,
@@ -11,10 +11,8 @@ import { partialFailureMessage, useServers } from '../../features/servers/useSer
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useListSearch } from '../../hooks/useListSearch';
 import { useSpinAction } from '../../hooks/useSpinAction';
-import { api, type ObservedServiceMetricName, type Project } from '../../services/api';
+import type { ObservedServiceMetricName } from '../../services/api';
 import { metricTitle } from '../../features/metrics/metricPresentation';
-
-const NO_GROUP = 'none';
 
 // 서버 이름이 아니라 소속 대상이 일치하면 그 대상의 이름을 돌려준다. 서버 이름이 일치하면 빈 배열.
 // 옛 메트릭 목록처럼 지표 이름으로도 찾는다. 일치한 지표는 "앱 이름 지표 이름"으로 보인다.
@@ -52,7 +50,6 @@ export function ServersPage() {
   const location = useLocation();
   useEffect(() => { rememberServersSearch(location.search); }, [location.search]);
   const status = parseStateFilter(params.get('status'));
-  const requestedGroup = params.get('group');
   // Docker Collector로 연결한 호스트도 서버다(ADR 0012). 목록 하나에 모두 보인다.
   const { rows, loading, loaded, error, failed, metricCatalog, updatedAt, reload, poll, refresh: joinRefresh } = useServers({ includeDocker: true });
   const navigate = useNavigate();
@@ -61,34 +58,18 @@ export function ServersPage() {
   useEffect(() => {
     if (connectDocker) navigate(`${NEW_SERVER_PATH}?connection=docker`, { replace: true });
   }, [connectDocker, navigate]);
-  // 그룹 이름은 보조 정보다. 실패해도 목록은 그린다.
-  const [projects, setProjects] = useState<Project[] | null>(null);
-  const [extrasKey, setExtrasKey] = useState(0);
-
-  useEffect(() => {
-    let alive = true;
-    api.getProjects().then((result) => { if (alive) setProjects(result ?? []); }, () => { if (alive) setProjects(null); });
-    return () => { alive = false; };
-  }, [extrasKey]);
-
-  const refresh = () => { void joinRefresh(); setExtrasKey((key) => key + 1); };
   useAutoRefresh(poll, 30_000);
-  const { spinning, trigger: handleRefresh } = useSpinAction(refresh);
+  const { spinning, trigger: handleRefresh } = useSpinAction(() => void joinRefresh());
 
-  // 그룹 목록을 모르거나 없는 그룹이면 걸러지는 까닭이 화면에 보이지 않으므로 적용하지 않는다.
-  const group = projects && (requestedGroup === NO_GROUP || projects.some((project) => project.id === requestedGroup)) ? requestedGroup : null;
-  // 그룹 목록을 모르면 그룹 줄을 비운다(모르는 것을 `-`로 채우지 않는다).
   // 연결 방식(ADR 0012): Docker Collector가 있는 서버, 직접 연결한 대상(모니터, 앱, OpenTelemetry 인프라)이 있는 서버.
   // 옛 Docker 환경 목록(`/environments`)은 `?connection=docker`로 온다. Docker 서버가 없으면 거르는 까닭이 보이지 않으므로 적용하지 않는다.
   const hasDocker = rows.some((row) => row.targets.docker);
   const requestedConnection = params.get('connection');
   const connection = hasDocker && (requestedConnection === 'docker' || requestedConnection === 'direct') ? requestedConnection : null;
-  const groupName = (projectId?: string) => projects === null ? '' : projectId ? projects.find((project) => project.id === projectId)?.name ?? '' : '미분류';
-  // 상태 칩의 개수는 검색어와 그룹을 따르고 상태 선택은 따르지 않는다. 고른 칩 옆의 다른 칩이 0이 되지 않는다.
+  // 상태 칩의 개수는 검색어와 연결 방식을 따르고 상태 선택은 따르지 않는다. 고른 칩 옆의 다른 칩이 0이 되지 않는다.
   const { scoped, matches } = useMemo(() => {
     const found = new Map<string, string[]>();
     const list = rows.filter((row) => {
-      if (group && (group === NO_GROUP ? Boolean(row.server.projectId) : row.server.projectId !== group)) return false;
       if (connection && (connection === 'docker' ? !row.targets.docker : !hasDirectTargets(row))) return false;
       const matched = matchTargets(row, search, metricCatalog);
       if (matched === null) return false;
@@ -96,7 +77,7 @@ export function ServersPage() {
       return true;
     });
     return { scoped: list, matches: found };
-  }, [rows, group, connection, search, metricCatalog]);
+  }, [rows, connection, search, metricCatalog]);
   const visible = status ? scoped.filter((row) => row.state === status) : scoped;
   const hasRows = rows.length > 0;
 
@@ -122,13 +103,6 @@ export function ServersPage() {
           <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={visible.length} shortcut placeholder="서버 또는 대상 검색" aria-label="서버 또는 대상 검색" />
         }>
           <FilterChips ariaLabel="상태로 거르기" value={status} onChange={(next) => setParam('status', next)} options={stateChipOptions(scoped.map((row) => row.state))} />
-          {projects !== null && (
-            <Select aria-label="그룹으로 거르기" wrapperClassName="w-40" value={group ?? ''} onChange={(event) => setParam('group', event.target.value || null)}>
-              <option value="">전체 그룹</option>
-              {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
-              <option value={NO_GROUP}>미분류</option>
-            </Select>
-          )}
           {hasDocker && (
             <Select aria-label="연결 방식으로 거르기" wrapperClassName="w-44" value={connection ?? ''} onChange={(event) => setParam('connection', event.target.value || null)}>
               <option value="">모든 연결 방식</option>
@@ -162,8 +136,8 @@ export function ServersPage() {
           ) : (
             <section aria-label="서버" aria-busy={loading || undefined}>
               <h2 className="sr-only">서버 목록</h2>
-              {visible.length > 0 ? <ServerTable rows={visible} matches={matches} groupName={groupName} />
-                : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: () => clearFilters(['status', 'group', 'connection']) }} />}
+              {visible.length > 0 ? <ServerTable rows={visible} matches={matches} />
+                : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: () => clearFilters(['status', 'connection']) }} />}
             </section>
           )}
       </div>

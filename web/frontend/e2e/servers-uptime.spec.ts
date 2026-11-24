@@ -78,7 +78,7 @@ test('moving a monitor goes to its page under the new server and it leaves the o
   const choices = dialog.getByRole('radio');
   const names = await choices.evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).labels?.[0]?.textContent ?? ''));
   expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
-  await dialog.getByRole('radio', { name: 'Public status (Production)' }).check();
+  await dialog.getByRole('radio', { name: 'Public status' }).check();
   await dialog.getByRole('button', { name: '옮기기' }).click();
 
   await expect(dialog).toBeHidden();

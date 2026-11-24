@@ -10,7 +10,7 @@ import { mockSystemInfo, mockSystemMetrics } from '../mocks/infra/resources.mock
 import { ApiError } from '../utils/errors';
 import { mockChannels } from '../mocks/alerts/channels.mock';
 import { getDemoScenario, type MockScenario } from '../mocks/demoScenario';
-import { additionalProjects, additionalAgents, additionalDockerServices, additionalObservedServices, additionalInfrastructure, additionalMonitors } from '../mocks/demoTargets';
+import { additionalAgents, additionalDockerServices, additionalObservedServices, additionalInfrastructure, additionalMonitors } from '../mocks/demoTargets';
 import { createServiceTelemetry, telemetryTraces, telemetryQuantiles, type DemoTelemetry } from '../mocks/serviceTelemetry';
 
 import type {
@@ -37,7 +37,6 @@ import type {
   UptimeMonitorMetric,
   UptimeMonitorSummary,
   UptimeMonitorHistory,
-  Project,
   Server,
   ServerInput,
   ObservedService,
@@ -398,7 +397,6 @@ const mockTraceDetails: Record<string, TraceDetail> = {
 const mockAgents: ConnectedAgent[] = [
   {
     id: 'agent_demo_01', name: 'prod-server', version: '0.3.0',
-    projectId: 'project_mock_production',
     lastSeenAt: new Date(Date.now() - 15_000).toISOString(),
     createdAt: new Date(Date.now() - 30 * 86_400_000).toISOString(),
     updatedAt: new Date(Date.now() - 15_000).toISOString(),
@@ -415,7 +413,6 @@ const mockAgents: ConnectedAgent[] = [
   {
     // Created but never connected — renders as a pending card in the main grid.
     id: 'agent_demo_02', name: 'staging-api',
-    projectId: 'project_mock_staging',
     lastSeenAt: new Date(Date.now() - 90_000).toISOString(),
     createdAt: new Date(Date.now() - 90_000).toISOString(),
     updatedAt: new Date(Date.now() - 90_000).toISOString(),
@@ -809,29 +806,19 @@ function monthSummary(today: UptimeMonitorSummary, history: UptimeMonitorHistory
 
 const mockUptimeSummary = monthSummary(mockStoreToday, mockUptimeHistory);
 
-const mockProjects: Project[] = [
-  {
-    id: 'project_mock_production', name: 'Production', description: '고객 서비스',
-    agentCount: 0, monitorCount: 0, observedServiceCount: 0,
-    infrastructureResourceCount: 0, serverCount: 0,
-    createdAt: new Date(nowAgent - 7 * 86_400_000).toISOString(), updatedAt: new Date(nowAgent).toISOString(),
-  },
-  ...additionalProjects,
-];
-
-// 구성 표는 mocks/SCENARIOS.md에 있다. 서버의 그룹은 묶인 대상들이 원래 가지던 그룹과 같다.
+// 구성 표는 mocks/SCENARIOS.md에 있다.
 const mockServers: Server[] = ([
-  ['edge_host_01', 'edge-host-01', 'project_mock_production', '주문 처리 호스트'],
-  ['db_primary_01', 'db-primary-01', 'project_mock_production'],
-  ['payments_api', 'payments-api', 'project_mock_production'],
-  ['inventory_api', 'inventory-api', 'project_mock_production'],
-  ['public_status', 'Public status', 'project_mock_production', '외부 상태 페이지'],
-  ['batch_host_01', 'batch-host-01', 'project_mock_backoffice'],
-  ['mail_relay', 'Mail relay', 'project_mock_backoffice'],
-  ['staging_host_01', 'staging-host-01', 'project_mock_staging'],
-  ['staging_empty', 'staging-empty', undefined],
-] as const).map(([id, name, projectId, description]) => ({
-  id: `server_mock_${id}`, name, projectId, description,
+  ['edge_host_01', 'edge-host-01', '주문 처리 호스트'],
+  ['db_primary_01', 'db-primary-01'],
+  ['payments_api', 'payments-api'],
+  ['inventory_api', 'inventory-api'],
+  ['public_status', 'Public status', '외부 상태 페이지'],
+  ['batch_host_01', 'batch-host-01'],
+  ['mail_relay', 'Mail relay'],
+  ['staging_host_01', 'staging-host-01'],
+  ['staging_empty', 'staging-empty'],
+] as const).map(([id, name, description]) => ({
+  id: `server_mock_${id}`, name, description,
   createdAt: new Date(nowAgent - 7 * 86_400_000).toISOString(), updatedAt: new Date(nowAgent - 86_400_000).toISOString(),
 }));
 
@@ -853,13 +840,11 @@ function summarizeChecks(serviceId: string, metrics: UptimeMonitorMetric[]): Upt
 const serverNameKey = (name: string) => name.trim().toLowerCase();
 const findServer = (id?: string) => mockServers.find(server => server.id === id);
 const serverHasInfrastructure = (serverId: string) => mockInfrastructureResources.some(resource => resource.serverId === serverId);
-const sameServerName = (server: Server, name: string, projectId?: string) =>
-  serverNameKey(server.name) === serverNameKey(name) && (server.projectId ?? '') === (projectId ?? '');
+// 서버 이름은 전체에서 하나다(대소문자, 앞뒤 공백 무시). 백엔드와 같다.
+const sameServerName = (server: { name: string }, name: string) => serverNameKey(server.name) === serverNameKey(name);
 
-// 대상의 그룹은 저장값이 아니라 소속 서버의 그룹이다(설계 5.3).
-function withGroup<T extends { serverId?: string; projectId?: string }>(target: T): T {
-  return { ...target, projectId: findServer(target.serverId)?.projectId };
-}
+// 화면이 받은 객체를 고쳐도 목록이 바뀌지 않게 사본을 돌려준다.
+const snapshot = <T,>(target: T): T => ({ ...target });
 
 function serverNotFound(): never {
   throw new ApiError('server not found', 'NOT_FOUND', 404);
@@ -884,13 +869,13 @@ const mockSameHostDismissals: { dockerServerId: string; serverId: string }[] = [
 function writeServer(input: Partial<ServerInput>, id?: string): Server {
   const name = String(input.name ?? '').trim();
   if (!name || name.length > 200) throw new ApiError('name is required and must be at most 200 characters', 'VALIDATION_ERROR', 400);
-  const projectId = input.projectId || undefined;
-  if (projectId && !mockProjects.some(project => project.id === projectId)) throw new ApiError('group not found', 'VALIDATION_ERROR', 400);
-  if (mockServers.some(server => server.id !== id && sameServerName(server, name, projectId))) {
-    throw new ApiError('server name already exists in this group', 'SERVER_NAME_TAKEN', 409);
+  // Docker 서버(같은 ID의 Docker Collector)의 이름도 겹칠 수 없다.
+  const dockerNames = mockAgents.filter(agent => serverOfAgent(agent.id) === agent.id && agent.id !== id);
+  if ([...mockServers.filter(server => server.id !== id), ...dockerNames].some(server => sameServerName(server, name))) {
+    throw new ApiError('server name already exists', 'SERVER_NAME_TAKEN', 409);
   }
   const now = new Date().toISOString();
-  const fields = { name, description: input.description?.trim() || undefined, projectId, updatedAt: now };
+  const fields = { name, description: input.description?.trim() || undefined, updatedAt: now };
   const existing = findServer(id);
   if (existing) return Object.assign(existing, fields);
   if (id) serverNotFound();
@@ -906,32 +891,28 @@ function checkTargetServer(serverId: string, infrastructure: boolean) {
   if (infrastructure && serverHasInfrastructure(serverId)) serverHasInfrastructureError();
 }
 
-// 설계 5.4: serverId가 없으면 (이름, 그룹)이 같은 서버에 넣고, 없으면 대상의 이름으로 서버를 만든다.
+// 설계 5.4: serverId가 없으면 이름이 같은 서버에 넣고, 없으면 대상의 이름으로 서버를 만든다.
 // 인프라 리소스가 이미 있는 서버는 고르지 않고 ` (2)`, ` (3)`을 붙인 새 서버를 만든다.
-function resolveTargetServer(serverId: string | undefined, name: string, projectId: string | undefined, infrastructure: boolean): string {
+function resolveTargetServer(serverId: string | undefined, name: string, infrastructure: boolean): string {
   if (serverId) {
     checkTargetServer(serverId, infrastructure);
     return serverId;
   }
-  const match = mockServers.find(server => sameServerName(server, name, projectId || undefined));
+  const match = mockServers.find(server => sameServerName(server, name));
   if (match && !(infrastructure && serverHasInfrastructure(match.id))) return match.id;
   let candidate = name.trim();
-  for (let n = 2; mockServers.some(server => sameServerName(server, candidate, projectId || undefined)); n += 1) candidate = `${name.trim()} (${n})`;
-  return writeServer({ name: candidate, projectId }).id;
+  for (let n = 2; mockServers.some(server => sameServerName(server, candidate)); n += 1) candidate = `${name.trim()} (${n})`;
+  return writeServer({ name: candidate }).id;
 }
 
-// 백엔드가 받는 본문. 화면의 타입은 serverId를 강제하지만, 백엔드는 옛 화면의 요청(serverId 없이 projectId)도 받는다.
-type WireInput<T extends { serverId: string }> = Omit<T, 'serverId'> & { serverId?: string; projectId?: string };
+// 백엔드가 받는 본문. 화면의 타입은 serverId를 강제하지만, 백엔드는 serverId 없이 이름으로 서버를 찾는 요청도 받는다.
+type WireInput<T extends { serverId: string }> = Omit<T, 'serverId'> & { serverId?: string };
 
-// 대상 수정: serverId가 있으면 이동이고, 없으면 기존 화면의 요청이라 projectId를 소속 서버의 그룹으로 기록한다(설계 5.5).
-function updateTargetServer(target: { serverId?: string }, input: { serverId?: string; projectId?: string }, infrastructure: boolean) {
-  if (input.serverId) {
-    if (input.serverId !== target.serverId) checkTargetServer(input.serverId, infrastructure);
-    target.serverId = input.serverId;
-    return;
-  }
-  const server = findServer(target.serverId);
-  if (server) Object.assign(server, { projectId: input.projectId || undefined, updatedAt: new Date().toISOString() });
+// 대상 수정: serverId가 있으면 그 서버로 옮긴다. 없으면 소속 서버를 그대로 둔다.
+function updateTargetServer(target: { serverId?: string }, input: { serverId?: string }, infrastructure: boolean) {
+  if (!input.serverId) return;
+  if (input.serverId !== target.serverId) checkTargetServer(input.serverId, infrastructure);
+  target.serverId = input.serverId;
 }
 
 const mockObservedServices: ObservedService[] = [
@@ -1252,8 +1233,8 @@ function scenarioServices(scenario: MockScenario): AgentServiceFlat[] {
 }
 
 function scenarioMonitors(scenario: MockScenario): UptimeMonitor[] {
-  if (scenario === 'empty') return mockUptimeMonitors.filter(monitor => !initialMonitorIds.has(monitor.id)).map(withGroup);
-  return mockUptimeMonitors.map(monitor => withGroup(outageApplies(monitor.id, scenario)
+  if (scenario === 'empty') return mockUptimeMonitors.filter(monitor => !initialMonitorIds.has(monitor.id)).map(snapshot);
+  return mockUptimeMonitors.map(monitor => snapshot(outageApplies(monitor.id, scenario)
     ? { ...monitor, status: 'unhealthy', ...monitorStats(monitorChecks(monitor.id, scenario)) } : monitor));
 }
 
@@ -1284,7 +1265,7 @@ function scenarioServers(scenario: MockScenario): Server[] {
 // 백엔드와 같다(migrateV59): Docker 환경마다 서버가 있고 ID가 같다. 데모 이름은 서버와 겹치지 않아 suffix가 없다.
 // 직접 연결 서버에 합친 Docker 환경은 그 서버가 대신한다.
 function scenarioDockerServers(scenario: MockScenario): Server[] {
-  return scenarioAgents(scenario).filter(agent => agent.serverId === agent.id).map(agent => ({ id: agent.id, name: agent.name, description: '', projectId: agent.projectId, createdAt: agent.createdAt, updatedAt: agent.updatedAt }));
+  return scenarioAgents(scenario).filter(agent => agent.serverId === agent.id).map(agent => ({ id: agent.id, name: agent.name, description: '', createdAt: agent.createdAt, updatedAt: agent.updatedAt }));
 }
 
 // Outage history for the overview timeline. `normal` keeps the resolved
@@ -1307,7 +1288,7 @@ function scenarioTimeline(scenario: MockScenario): TimelineIncident[] {
 function scenarioObservedServices(scenario: MockScenario): ObservedService[] {
   const services = scenario === 'empty' ? mockObservedServices.filter(service => !initialObservedIds.has(service.id)) : mockObservedServices;
   const fresh = new Date(Date.now() - 20_000).toISOString();
-  return services.map(service => withGroup(initialObservedIds.has(service.id) ? { ...service,
+  return services.map(service => snapshot(initialObservedIds.has(service.id) ? { ...service,
     lastSeenAt: scenario === 'normal' ? fresh : service.lastSeenAt ? fixtureTime(service.lastSeenAt) : undefined,
     updatedAt: fixtureTime(service.updatedAt) } : service));
 }
@@ -1325,7 +1306,7 @@ function scenarioMetricHealth(scenario: MockScenario, serviceId: string, metrics
 function scenarioInfrastructureResources(scenario: MockScenario): InfrastructureResource[] {
   const resources = scenario === 'empty' ? mockInfrastructureResources.filter(resource => !initialInfrastructureIds.has(resource.id)) : mockInfrastructureResources;
   const fresh = new Date(Date.now() - 20_000).toISOString();
-  return resources.map(resource => withGroup(initialInfrastructureIds.has(resource.id) ? { ...withScenarioUsage(resource, scenario),
+  return resources.map(resource => snapshot(initialInfrastructureIds.has(resource.id) ? { ...withScenarioUsage(resource, scenario),
     lastSeenAt: scenario === 'normal' ? fresh : resource.lastSeenAt ? fixtureTime(resource.lastSeenAt) : undefined,
     updatedAt: fixtureTime(resource.updatedAt) } : resource));
 }
@@ -1427,7 +1408,6 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
 
   // Mutations in mock mode: mutate the in-memory fixtures so flows feel real.
   if (method !== 'GET') {
-    const projectMatch = endpoint.match(/^\/projects\/([^/]+)$/);
     const observedMatch = endpoint.match(/^\/observed-services\/([^/]+)$/);
     const observedLogFilterMatch = endpoint.match(/^\/observed-services\/([^/]+)\/log-filter$/);
     const observedApiExclusionsMatch = endpoint.match(/^\/observed-services\/([^/]+)\/api-exclusions$/);
@@ -1448,7 +1428,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       const resource: InfrastructureResourceSetup = {
         id: mockId('infra_mock'),
         name: parsed.name,
-        serverId: resolveTargetServer(parsed.serverId, parsed.name, parsed.projectId, true),
+        serverId: resolveTargetServer(parsed.serverId, parsed.name, true),
         adapter: 'otel-collector',
         isActive: true,
         apiKeyMasked: 'everyup_ab.....demo',
@@ -1457,19 +1437,19 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         updatedAt: now,
       };
       mockInfrastructureResources.push(resource);
-      return withGroup(resource) as T;
+      return snapshot(resource) as T;
     }
     if (method === 'POST' && infrastructureRotateMatch) {
       const resource = mockInfrastructureResources.find(row => row.id === infrastructureRotateMatch[1]);
       if (!resource) return null as T;
       resource.isActive = true;
       resource.apiKeyMasked = 'everyup_ab.....new1';
-      return { ...withGroup(resource), apiKey: `everyup_${randomHex(32)}` } as T;
+      return { ...snapshot(resource), apiKey: `everyup_${randomHex(32)}` } as T;
     }
     if (method === 'POST' && infrastructureRevokeMatch) {
       const resource = mockInfrastructureResources.find(row => row.id === infrastructureRevokeMatch[1]);
       if (resource) resource.isActive = false;
-      return (resource && withGroup(resource)) as T;
+      return (resource && snapshot(resource)) as T;
     }
     if (method === 'PUT' && infrastructureMatch) {
       const resource = mockInfrastructureResources.find(row => row.id === infrastructureMatch[1]);
@@ -1477,7 +1457,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       if (!resource) return null as T;
       updateTargetServer(resource, parsed, true);
       Object.assign(resource, { name: parsed.name, updatedAt: new Date().toISOString() });
-      return withGroup(resource) as T;
+      return snapshot(resource) as T;
     }
     if (method === 'DELETE' && infrastructureMatch) {
       const index = mockInfrastructureResources.findIndex(row => row.id === infrastructureMatch[1]);
@@ -1490,7 +1470,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       const service: ObservedServiceSetup = {
         id: mockId('observed_mock'),
         name: parsed.name,
-        serverId: resolveTargetServer(parsed.serverId, parsed.name, parsed.projectId, false),
+        serverId: resolveTargetServer(parsed.serverId, parsed.name, false),
         signals: parsed.signals,
         logLevelFilter: ['error', 'warn', 'info'],
         isActive: true,
@@ -1502,19 +1482,19 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       mockObservedServices.push(service);
       mockDirectLogFilters.set(service.id, ['error', 'warn', 'info']);
       mockDirectApiExclusions.set(service.id, []);
-      return withGroup(service) as T;
+      return snapshot(service) as T;
     }
     if (method === 'POST' && observedRotateMatch) {
       const service = mockObservedServices.find(row => row.id === observedRotateMatch[1]);
       if (!service) return null as T;
       service.isActive = true;
       service.apiKeyMasked = 'evup_****new1';
-      return { ...withGroup(service), apiKey: `evup_direct_${randomHex(24)}` } as T;
+      return { ...snapshot(service), apiKey: `evup_direct_${randomHex(24)}` } as T;
     }
     if (method === 'POST' && observedRevokeMatch) {
       const service = mockObservedServices.find(row => row.id === observedRevokeMatch[1]);
       if (service) service.isActive = false;
-      return (service && withGroup(service)) as T;
+      return (service && snapshot(service)) as T;
     }
     if (method === 'PUT' && observedLogFilterMatch) {
       const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as { levels?: string[] };
@@ -1536,32 +1516,13 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       if (!service) return null as T;
       updateTargetServer(service, parsed, false);
       Object.assign(service, { name: parsed.name, signals: parsed.signals, updatedAt: new Date().toISOString() });
-      return withGroup(service) as T;
+      return snapshot(service) as T;
     }
     if (method === 'DELETE' && observedMatch) {
       const index = mockObservedServices.findIndex(row => row.id === observedMatch[1]);
       if (index !== -1) mockObservedServices.splice(index, 1);
       mockDirectLogFilters.delete(observedMatch[1]);
       mockDirectApiExclusions.delete(observedMatch[1]);
-      return undefined as T;
-    }
-    if (method === 'POST' && endpoint === '/projects') {
-      const parsed = JSON.parse(typeof body === 'string' ? body : '{}') as Partial<Project>;
-      const now = new Date().toISOString();
-      const project: Project = { id: `project_mock_${Date.now()}`, name: String(parsed.name ?? '새 Project'), description: parsed.description, agentCount: 0, monitorCount: 0, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 0, createdAt: now, updatedAt: now };
-      mockProjects.push(project);
-      return project as T;
-    }
-    if (method === 'PUT' && projectMatch) {
-      const project = mockProjects.find(({ id }) => id === projectMatch[1]);
-      if (project) Object.assign(project, JSON.parse(typeof body === 'string' ? body : '{}'), { updatedAt: new Date().toISOString() });
-      return project as T;
-    }
-    if (method === 'DELETE' && projectMatch) {
-      const index = mockProjects.findIndex(({ id }) => id === projectMatch[1]);
-      if (index !== -1) mockProjects.splice(index, 1);
-      mockAgents.forEach((agent) => { if (agent.projectId === projectMatch[1]) delete agent.projectId; });
-      mockServers.forEach((server) => { if (server.projectId === projectMatch[1]) delete server.projectId; });
       return undefined as T;
     }
     const uptimeMatch = endpoint.match(/^\/services\/([^/]+)$/);
@@ -1571,7 +1532,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       const monitor: UptimeMonitor = {
         id: mockId('uptime_mock'),
         name,
-        serverId: resolveTargetServer(parsed.serverId, name, undefined, false),
+        serverId: resolveTargetServer(parsed.serverId, name, false),
         type: parsed.type === 'tcp' ? 'tcp' : 'http',
         isActive: parsed.isActive ?? true,
         url: String(parsed.url ?? parsed.host ?? ''),
@@ -1588,7 +1549,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         const now = new Date().toISOString();
         mockAlertRules.push({ id: `rule_${monitor.id}`, name: `${monitor.name} 다운`, type: 'service', serviceId: monitor.id, metric: 'http_status', operator: 'gte', threshold: 400, duration: mockAppSettings.alerts.consecutiveFailures, severity: 'critical', isEnabled: true, isSystem: false, cooldown: 0, channelIds: [], createdAt: now, updatedAt: now });
       }
-      return withGroup(monitor) as T;
+      return snapshot(monitor) as T;
     }
     if (method === 'PUT' && uptimeMatch) {
       const monitor = mockUptimeMonitors.find(({ id }) => id === uptimeMatch[1]);
@@ -1596,31 +1557,26 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       if (!monitor) return null as T;
       if (parsed.serverId) updateTargetServer(monitor, parsed, false);
       Object.assign(monitor, { ...parsed, serverId: monitor.serverId });
-      return withGroup(monitor) as T;
+      return snapshot(monitor) as T;
     }
     const serverMatch = endpoint.match(/^\/servers\/([^/]+)$/);
     const serverMergeMatch = endpoint.match(/^\/servers\/([^/]+)\/merge$/);
     if (method === 'POST' && endpoint === '/servers') {
       return { ...writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput) } as T;
     }
-    // Docker 서버(ADR 0012): 데모의 Docker 서버는 Docker 환경에서 나오므로 그 환경의 이름과 그룹을 고친다(백엔드도 그룹을 함께 옮긴다).
+    // Docker 서버(ADR 0012): 데모의 Docker 서버는 Docker 환경에서 나오므로 그 환경의 이름을 고친다.
     const dockerAgent = method === 'PUT' && serverMatch ? mockAgents.find(agent => agent.id === serverMatch[1]) : undefined;
     if (dockerAgent) {
       const input = JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput;
       const name = String(input.name ?? '').trim();
       if (!name) throw new ApiError('name is required and must be at most 200 characters', 'VALIDATION_ERROR', 400);
-      const projectId = input.projectId || undefined;
-      if (mockServers.some(server => sameServerName(server, name, projectId))) throw new ApiError('server name already exists in this group', 'SERVER_NAME_TAKEN', 409);
-      Object.assign(dockerAgent, { name, projectId, updatedAt: new Date().toISOString() });
+      if ([...mockServers, ...mockAgents.filter(agent => agent.id !== dockerAgent.id)].some(server => sameServerName(server, name))) throw new ApiError('server name already exists', 'SERVER_NAME_TAKEN', 409);
+      Object.assign(dockerAgent, { name, updatedAt: new Date().toISOString() });
       return scenarioDockerServers(scenario).find(server => server.id === dockerAgent.id) as T;
     }
     if (method === 'PUT' && serverMatch) {
       if (!findServer(serverMatch[1])) serverNotFound();
-      const written = writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput, serverMatch[1]);
-      // 백엔드처럼 이 서버의 Docker Collector도 그룹을 따른다.
-      const collector = dockerAgentOfServer(written.id);
-      if (collector) collector.projectId = written.projectId;
-      return { ...written } as T;
+      return { ...writeServer(JSON.parse(typeof body === 'string' ? body : '{}') as ServerInput, serverMatch[1]) } as T;
     }
     if (method === 'DELETE' && serverMatch) {
       const serverId = serverMatch[1];
@@ -1655,10 +1611,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         else if (infrastructure === 'otel') agent.profile = { kind: 'custom', capabilities: (agent.profile?.capabilities.length ? agent.profile.capabilities : ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] as AgentCollectionCapability[]).filter(item => item !== 'infrastructure') };
         else throw new ApiError('choose the infrastructure source: docker or otel', 'INFRASTRUCTURE_SOURCE_REQUIRED', 409);
       }
-      if (sourceAgent) {
-        mockAgentServer.set(sourceAgent.id, targetServerId);
-        sourceAgent.projectId = target.projectId;
-      }
+      if (sourceAgent) mockAgentServer.set(sourceAgent.id, targetServerId);
       for (const row of [...mockUptimeMonitors, ...mockObservedServices, ...mockInfrastructureResources]) {
         if (row.serverId === sourceId) row.serverId = targetServerId;
       }
@@ -1698,7 +1651,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
         else if (infrastructure === 'otel') profile = withoutHostMetrics({ id, name, profile, lastSeenAt: now, createdAt: now, updatedAt: now });
         else infrastructureSourceRequired();
       }
-      mockAgents.push({ id, name, profile, projectId: server?.projectId, lastSeenAt: now, createdAt: now, updatedAt: now });
+      mockAgents.push({ id, name, profile, lastSeenAt: now, createdAt: now, updatedAt: now });
       if (serverId) mockAgentServer.set(id, serverId);
       return {
         id,
@@ -1747,22 +1700,6 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   }
 
   // /traces/:traceId
-  if (endpoint === '/projects') {
-    if (scenario === 'empty') return [] as T;
-    const agents = scenarioAgents(scenario);
-    const monitors = scenarioMonitors(scenario);
-    const observedServices = scenarioObservedServices(scenario);
-    const infrastructureResources = scenarioInfrastructureResources(scenario);
-    const servers = scenarioServers(scenario);
-    return mockProjects.map((project) => ({
-    ...project,
-      serverCount: servers.filter((server) => server.projectId === project.id).length,
-      agentCount: agents.filter((agent) => agent.projectId === project.id).length,
-      monitorCount: monitors.filter((monitor) => monitor.projectId === project.id).length,
-      observedServiceCount: observedServices.filter((service) => service.projectId === project.id).length,
-      infrastructureResourceCount: infrastructureResources.filter((resource) => resource.projectId === project.id).length,
-    })) as T;
-  }
   if (endpoint === '/servers') return scenarioServers(scenario).map(server => ({ ...server })) as T;
   if (endpoint === '/servers?include=docker') {
     return [...scenarioServers(scenario), ...scenarioDockerServers(scenario)].sort((a, b) => a.name.localeCompare(b.name)).map(server => ({ ...server })) as T;
@@ -1775,7 +1712,6 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
       .map(agent => ({
         id: agent.id,
         name: agent.name,
-        projectId: agent.projectId,
         serverId: agent.serverId,
         adapter: 'everyup-agent',
         isActive: true,
@@ -1871,7 +1807,7 @@ export function mockRouter<T>(endpoint: string, method = 'GET', body?: BodyInit 
   const uptimeDetailMatch = endpoint.match(/^\/services\/([^/?]+)$/);
   if (uptimeDetailMatch) {
     const monitor = mockUptimeMonitors.find(({ id }) => id === uptimeDetailMatch[1]);
-    return (scenarioMonitors(scenario).find(({ id }) => id === uptimeDetailMatch[1]) ?? (monitor ? withGroup(monitor) : null)) as T;
+    return (scenarioMonitors(scenario).find(({ id }) => id === uptimeDetailMatch[1]) ?? (monitor ? snapshot(monitor) : null)) as T;
   }
   const traceMatch = endpoint.match(/^\/traces\/([^/?]+)/);
   if (traceMatch) {

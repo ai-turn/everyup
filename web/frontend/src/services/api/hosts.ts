@@ -34,7 +34,6 @@ export type InfrastructureAdapter = 'everyup-agent' | 'otel-collector';
 export interface InfrastructureResource {
   id: string;
   name: string;
-  projectId?: string;
   /** Docker 환경에서 온 리소스(everyup-agent)에는 없다. */
   serverId?: string;
   adapter: InfrastructureAdapter;

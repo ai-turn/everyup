@@ -221,7 +221,7 @@ export function OverviewPage() {
       ) : (
         <>
           {/* 모니터링 범위 — 카드 대신 한 줄. 숫자보다 "무엇을 보고 있나"를 한눈에 주는 자리라 크게 키우지 않는다.
-              글자만 늘어서면 문장처럼 읽혀서 사이드바·그룹 목록과 같은 아이콘을 앞에 붙였다. */}
+              글자만 늘어서면 문장처럼 읽혀서 사이드바와 같은 아이콘을 앞에 붙였다. */}
           {/* 범위 줄은 아래 목록과 성격이 달라서(전체 규모 vs 지금 볼 것) 그룹 사이 선과 같은 옅은 선으로 끊는다.
               선을 nav가 아니라 감싼 div에 긋는 것은 nav의 -mx-2 때문에 선이 본문보다 양쪽으로 8px 삐져나오기 때문이다. */}
           <div className="border-b border-ui-border-soft pb-4">
@@ -247,9 +247,6 @@ export function OverviewPage() {
             {/* 전체 로그는 범위 줄의 보조 링크다. 확인 필요의 제목 줄에 있으면 그 목록의 "전체 보기"로 읽혔다. */}
             <span className="ml-auto flex flex-wrap items-center">
               <Link to={ALL_LOGS_PATH} className="inline-flex h-8 min-h-11 items-center px-2 type-body text-action link-underline sm:min-h-0">전체 로그</Link>
-              <Link to="/projects" className="inline-flex h-8 min-h-11 items-center px-2 type-body text-action link-underline sm:min-h-0">
-                그룹으로 정리
-              </Link>
             </span>
           </nav>
           </div>

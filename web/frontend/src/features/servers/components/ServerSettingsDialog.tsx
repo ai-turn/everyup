@@ -20,7 +20,7 @@ export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete 
   const dialogRef = useRef<HTMLDialogElement>(null);
   useModalDialog(true, dialogRef);
   const { server } = row;
-  const form = useServerForm({ name: server.name, description: server.description ?? '', projectId: server.projectId ?? '' });
+  const form = useServerForm({ name: server.name, description: server.description ?? '' });
   const { saving } = form;
 
   const submit = (event: React.FormEvent) => {

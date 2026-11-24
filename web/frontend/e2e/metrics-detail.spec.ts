@@ -5,14 +5,13 @@ import { metricsFixture } from './fixtures/metrics';
 // 앱 페이지의 메트릭 탭(옛 서버 탭 주소는 앱 페이지로 넘어간다). 이 서버에는 메트릭 앱이 둘이다.
 const detail = `${API_URL}servers/server-1/metrics/metrics-service`;
 
-// 앱 페이지는 Docker 서비스 상세와 같은 머리말이다: 넓은 화면에서 연결 정보를 펼쳐 둔다. 그룹은 서버가 정하므로 그룹 배정이 없다.
+// 앱 페이지는 Docker 서비스 상세와 같은 머리말이다: 넓은 화면에서 연결 정보를 펼쳐 둔다.
 test('connection fields sit in the app page header, like a Docker service', async ({ page }) => {
   const state = await metricsFixture(page);
   await page.goto(detail);
   await expect(page).toHaveURL(/\/servers\/server-1\/apps\/metrics-service\?tab=metrics$/);
   await expect(page.locator('summary').filter({ hasText: '연결 관리' })).toHaveCount(0);
   await expect(page.locator('#main-content header').getByRole('button', { name: '키 재발급', exact: true })).toBeVisible();
-  await expect(page.getByRole('combobox', { name: '그룹 배정' })).toHaveCount(0);
   await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
   // 서버 화면이 부르는 API를 이 fixture가 모두 처리한다(개발 서버나 백엔드로 새지 않는다).
   expect(state.unhandled).toEqual([]);

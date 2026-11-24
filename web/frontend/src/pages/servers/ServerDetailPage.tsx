@@ -20,7 +20,6 @@ import { capabilityLabel, capabilityTargets, capabilityUnverified, type ServerCa
 import { partialFailureMessage, useServers } from '../../features/servers/useServers';
 import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import { useSpinAction } from '../../hooks/useSpinAction';
-import { api, type Project } from '../../services/api';
 
 // 컨테이너 탭은 Docker Collector가 있는 서버에만 있다(ADR 0012).
 type ServerTab = 'overview' | 'containers' | ServerCapability;
@@ -58,16 +57,6 @@ export function ServerDetailPage() {
     onDeactivated: () => { void reload(); if (row && !row.targets.monitors.length && !row.targets.apps.length) navigate(serversListPath(), { replace: true }); },
   });
 
-  // 그룹 이름은 보조 정보다. 실패하면 그룹 칸만 숨긴다.
-  const [projects, setProjects] = useState<Project[] | null>(null);
-  const [projectsKey, setProjectsKey] = useState(0);
-  useEffect(() => {
-    let alive = true;
-    api.getProjects().then((result) => { if (alive) setProjects(result ?? []); }, () => { if (alive) setProjects(null); });
-    return () => { alive = false; };
-  }, [projectsKey]);
-
-  const refresh = () => { reload(); setProjectsKey((key) => key + 1); };
   // 자동 갱신은 서버 수준에 하나다. 끄면 열린 패널의 주기적 갱신도 멈춘다(autoRefresh를 탭에 넘긴다).
   // 옛 업타임 목록처럼 화면 상태라 새로고침하면 다시 켜진다.
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -81,7 +70,7 @@ export function ServerDetailPage() {
   const [refreshToken, setRefreshToken] = useState(0);
   // 진행 중인 다시 불러오기가 있으면 새로 보내지 않고 합류한다. 직접 누른 것이라 회전은 바로 보인다.
   const { spinning, trigger: handleRefresh } = useSpinAction(() => {
-    void joinRefresh(); setProjectsKey((key) => key + 1); setRefreshToken((token) => token + 1);
+    void joinRefresh(); setRefreshToken((token) => token + 1);
   });
 
   // 개요의 같은 호스트 제안(`합치기`)은 이 서버로 와서 그 서버를 고른 합치기 창을 연다(state.mergeFrom).
@@ -155,9 +144,6 @@ export function ServerDetailPage() {
     );
   }
 
-  const groupName = projects === null ? undefined
-    : row.server.projectId ? projects.find((project) => project.id === row.server.projectId)?.name ?? '-' : '미분류';
-
   const containersTone = row.containers;
   const tabs: TabItem<ServerTab>[] = [
     { key: 'overview', label: '개요' },
@@ -199,7 +185,7 @@ export function ServerDetailPage() {
   return (
     // 머리말 → 탭 → 패널은 페이지 블록 24px(page-stack), 알림 배너 → 탭은 16px이다.
     <div className="page-stack">
-      <ServerHeader row={row} groupName={groupName} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')}
+      <ServerHeader row={row} onRefresh={handleRefresh} refreshing={spinning || busy} onSettings={() => setDialog('settings')}
         updatedAt={updatedAt} autoRefresh={autoRefresh} onAutoRefreshChange={changeAutoRefresh}
         docker={row.targets.docker ? { primary: dockerActions.primary, menuItems: dockerActions.menuItems } : undefined} />
       <div className="space-y-heading">
@@ -233,11 +219,11 @@ export function ServerDetailPage() {
       {/* 설치 중에 Docker Collector가 생겨도 창은 설치 확인까지 남는다. */}
       {installingDocker && <AddServiceModal server={{ id: row.server.id, name: row.server.name }} onClose={closeInstall} onCreated={() => void reload()} />}
       {dialog === 'settings' && (
-        <ServerSettingsDialog row={row} onClose={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }}
+        <ServerSettingsDialog row={row} onClose={() => setDialog(null)} onSaved={() => { setDialog(null); reload(); }}
           onMerge={() => setDialog('merge')} onDelete={() => setDialog('delete')} />
       )}
       {dialog === 'merge' && (
-        <MergeServerDialog row={row} rows={rows} projects={projects} initialSelected={mergeFrom ? [mergeFrom] : []} onClose={closeMerge} onReload={() => void reload()}
+        <MergeServerDialog row={row} rows={rows} initialSelected={mergeFrom ? [mergeFrom] : []} onClose={closeMerge} onReload={() => void reload()}
           onMerged={(infrastructure) => { closeMerge(); setFocusRequest((n) => n + 1); if (infrastructure === 'otel') pendingApply.current = true; void reload(); }} />
       )}
       {dialog === 'delete' && (

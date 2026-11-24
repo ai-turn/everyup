@@ -54,7 +54,7 @@ export function ServerInfrastructureTab({ row, onChanged, unknown, stale, onRetr
   const move = async (id: string, to: string) => {
     const latest = row.targets.infrastructure;
     if (latest?.id !== id) throw new Error(unknown || stale ? MOVE_TARGET_UNCERTAIN : '이 인프라 리소스가 이 서버에 없습니다. 화면을 새로고침한 뒤 다시 시도하세요.');
-    // serverId를 빼면 백엔드가 옛 화면의 요청으로 보고 서버의 그룹을 바꾼다.
+    // 소속 서버(serverId)를 함께 보낸다. 빼면 백엔드가 이름으로 서버를 다시 찾는다.
     const current = await readLatest(() => api.getInfrastructureResource(latest.id), '이동').catch(async (cause: unknown) => {
       // 이미 지워졌으면 화면에서도 뺀다(대화 상자는 대상이 사라진 것을 보고 닫힌다).
       if (cause instanceof TargetGoneError) { forgetTarget?.('infrastructure', latest.id); void onChanged(); }

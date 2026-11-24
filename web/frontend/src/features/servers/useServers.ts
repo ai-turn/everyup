@@ -36,7 +36,7 @@ interface LastLists { monitors: UptimeMonitor[] | null; apps: ObservedService[] 
 // 서버 목록은 새 집계 API 없이 기존 목록 응답을 serverId로 묶어서 만든다.
 export function useServers({ logSummary = true, includeDocker = false }: {
   /**
-   * 24시간 오류 로그 수(/logs/summary)를 불러온다. 무거운 조회라 그 수를 보여 주지 않는 화면(개요, 그룹)은 끈다.
+   * 24시간 오류 로그 수(/logs/summary)를 불러온다. 무거운 조회라 그 수를 보여 주지 않는 화면(개요)은 끈다.
    * 끄면 errorLogs는 "조회 실패"가 아니라 쓰지 않는 값이다(unavailable과 failed에 들어가지 않는다).
    */
   logSummary?: boolean;

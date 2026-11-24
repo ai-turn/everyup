@@ -1,7 +1,6 @@
 import { expect, test, type Locator } from '@playwright/test';
 
 const menus = [
-  ['projects', '그룹 그리드'],
   // 옛 업타임 목록은 서버 업타임 탭의 모니터 목록이 대신한다(모니터가 둘인 서버).
   ['servers/server_mock_edge_host_01/uptime', '업타임 그리드'],
   ['logs', '앱 그리드'],
@@ -9,7 +8,6 @@ const menus = [
   ['servers', '서버 그리드'],
   // 옛 Docker 환경 목록과 상세의 서비스 표는 서버 목록과 Docker 서버의 컨테이너 탭이 대신한다(ADR 0012).
   ['servers/agent_demo_01/containers', '컨테이너 그리드'],
-  ['projects/project_mock_production', '그룹 구성 그리드'],
 ] as const;
 
 async function blankCorner(row: Locator) {
@@ -43,9 +41,11 @@ for (const width of [1440, 375]) for (const [route, label] of menus) {
 
 for (const mode of ['modifier', 'middle'] as const) {
   test(`${mode} click on row whitespace opens the actual detail in a new tab`, async ({ page }) => {
-    await page.goto('./projects');
+    // 본문이 스크롤되면 Chromium은 가운데 클릭을 자동 스크롤로 쓰고 auxclick을 보내지 않는다. 서버 목록 전체가 들어가는 높이로 연다.
+    await page.setViewportSize({ width: 1440, height: 2000 });
+    await page.goto('./servers');
     const listUrl = page.url();
-    const table = page.getByRole('table', { name: '그룹 그리드', exact: true });
+    const table = page.getByRole('table', { name: '서버 그리드', exact: true });
     const row = table.getByRole('row').filter({ has: page.getByRole('link') }).first();
     const link = row.getByRole('link').first();
     const destination = new URL((await link.getAttribute('href'))!, listUrl).href;

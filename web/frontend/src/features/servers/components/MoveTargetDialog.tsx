@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, ButtonLink, IconButton, MaterialIcon, OptionText } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
-import { api, type Project, type Server } from '../../../services/api';
+import { api, type Server } from '../../../services/api';
 import { ApiError, getErrorMessage } from '../../../utils/errors';
 import { signalList } from '../../telemetry/signals';
 import { NEW_SERVER_PATH } from '../serverPaths';
@@ -15,8 +15,6 @@ const errorMessage = (error: unknown) => error instanceof ApiError && error.code
 
 interface Choices {
   servers: Server[];
-  /** 그룹 목록을 불러오지 못했으면 null. 항목에서 그룹 이름을 뺀다. */
-  projects: Project[] | null;
   /** 인프라 리소스가 이미 있는 서버. 인프라 리소스를 옮길 때만 채운다. */
   taken: ReadonlySet<string>;
 }
@@ -43,16 +41,13 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
 
   useEffect(() => {
     let alive = true;
-    // 그룹 이름은 보조 정보다. 실패하면 괄호만 뺀다.
     Promise.all([
       api.getServers({ includeDocker: true }),
-      api.getProjects().catch(() => null),
       kind === 'infrastructure' ? api.getInfrastructureResources() : Promise.resolve([]),
-    ]).then(([servers, projects, resources]) => {
+    ]).then(([servers, resources]) => {
       if (!alive) return;
       setChoices({
         servers: (servers ?? []).filter((server) => server.id !== currentServerId).sort((a, b) => a.name.localeCompare(b.name)),
-        projects: projects ?? null,
         taken: new Set((resources ?? []).flatMap((resource) => resource.serverId ? [resource.serverId] : [])),
       });
       setLoadError(null);
@@ -63,10 +58,6 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
   }, [kind, currentServerId, loadKey]);
 
   const retry = () => { setLoadError(null); setChoices(null); setLoadKey((key) => key + 1); };
-
-  // 그룹이 없으면 미분류, 그룹 목록을 모르거나 그룹을 찾지 못하면 괄호를 뺀다(MergeServerDialog와 같다).
-  const groupOf = (server: Server) => !server.projectId ? '미분류'
-    : choices?.projects?.find((project) => project.id === server.projectId)?.name;
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -102,14 +93,13 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
       <ul className="-mx-2 max-h-72 overflow-y-auto">
         {choices.servers.map((server) => {
           const disabled = choices.taken.has(server.id);
-          const group = groupOf(server);
           return (
             <li key={server.id}>
               <label className={`flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-ui-hover-soft'}`}>
                 <input type="radio" name="move-target-server" value={server.id} checked={selected === server.id} disabled={disabled}
                   onChange={() => setSelected(server.id)} aria-describedby={disabled ? `move-target-taken-${server.id}` : undefined}
                   className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed" />
-                <OptionText title={<>{server.name}{group && ` (${group})`}</>} description={disabled && '인프라 리소스가 이미 있습니다'} descriptionId={`move-target-taken-${server.id}`} />
+                <OptionText title={server.name} description={disabled && '인프라 리소스가 이미 있습니다'} descriptionId={`move-target-taken-${server.id}`} />
               </label>
             </li>
           );

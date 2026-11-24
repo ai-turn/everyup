@@ -11,7 +11,7 @@ const panel = (page: Page) => page.getByRole('tabpanel');
 // 리소스 이름이 서버 이름과 같으면 패널 제목(h2)은 스크린리더에만 있는 "인프라"다.
 const infraHeading = (page: Page) => panel(page).getByRole('heading', { level: 2, name: '인프라', exact: true });
 
-test('a server with infrastructure shows usage trends and connection info without a group picker', async ({ page }) => {
+test('a server with infrastructure shows usage trends and connection info', async ({ page }) => {
   await page.goto(`./servers/${EDGE}/infrastructure`);
   await expect(infraHeading(page)).toBeAttached();
   const memory = panel(page).locator('section', { has: page.getByRole('heading', { name: '메모리', exact: true }) });
@@ -21,9 +21,6 @@ test('a server with infrastructure shows usage trends and connection info withou
   await expect(panel(page).getByText('API Key', { exact: true })).toBeVisible();
   await expect(panel(page).getByText('OpenTelemetry Collector', { exact: true })).toBeVisible();
   await expect(panel(page).getByRole('button', { name: '연결 중지' })).toBeVisible();
-  // 그룹은 서버가 정한다.
-  await expect(panel(page).getByRole('combobox', { name: '그룹 배정' })).toHaveCount(0);
-  await expect(panel(page).getByText('그룹', { exact: true })).toHaveCount(0);
   // 서버 이름이 유일한 h1이고, 새로고침은 머리말에만 있다.
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
   await expect(panel(page).getByRole('button', { name: '새로고침' })).toHaveCount(0);
@@ -40,8 +37,6 @@ test('connecting infrastructure to an empty server shows the setup once and then
   await expect(panel(page).getByRole('heading', { level: 2, name: '이 서버의 인프라를 연결하세요' })).toBeVisible();
   await panel(page).getByRole('button', { name: '인프라 연결' }).click();
   const dialog = page.getByRole('dialog', { name: '인프라 연결' });
-  // 그룹은 서버의 것을 쓴다.
-  await expect(dialog.getByRole('combobox', { name: '그룹' })).toHaveCount(0);
   // 리소스는 서버마다 하나라 이름을 묻지 않고 서버 이름을 쓴다.
   await expect(dialog.getByLabel('인프라 이름')).toHaveCount(0);
   await dialog.getByRole('button', { name: '연결', exact: true }).click();
@@ -72,7 +67,7 @@ test('moving infrastructure skips servers that have one and opens it on the new 
   await expect(dialog.getByRole('radio', { name: /^db-primary-01/ })).toBeDisabled();
   await expect(dialog.getByRole('radio', { name: /^batch-host-01/ })).toBeDisabled();
   await expect(dialog.getByRole('radio', { name: /^edge-host-01/ })).toHaveCount(0);
-  await dialog.getByRole('radio', { name: 'payments-api (Production)' }).check();
+  await dialog.getByRole('radio', { name: 'payments-api' }).check();
   await dialog.getByRole('button', { name: '옮기기' }).click();
 
   await expect(dialog).toBeHidden();

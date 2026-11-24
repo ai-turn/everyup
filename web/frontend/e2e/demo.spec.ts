@@ -60,19 +60,6 @@ test.describe('live demo', () => {
     await expect(page.getByText('조건에 맞는 규칙이 없습니다', { exact: false })).toBeVisible();
   });
 
-  test('project overview includes Docker service outages and resolves legacy environment URLs', async ({ page }) => {
-    await page.goto('./projects/project_mock_production');
-    await expect(page.getByRole('heading', { level: 1, name: 'Production' })).toBeVisible();
-    // 장애 컨테이너는 그 Docker 서버 행의 원인이다(ADR 0012).
-    const outage = page.getByRole('row').filter({ hasText: 'payment-worker' });
-    await expect(outage).toContainText('서버 · Docker Collector');
-    await expect(outage).toContainText('장애');
-
-    await page.goto('./projects/agent_demo_01');
-    await expect(page).toHaveURL(/\/servers\/agent_demo_01$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
-  });
-
   test('mobile keeps the primary destinations in the bottom navigation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('./');
@@ -85,7 +72,7 @@ test.describe('live demo', () => {
     await expect(page.getByRole('heading', { level: 1, name: '더보기' })).toBeVisible();
     await expect(page.getByRole('link', { name: '더보기', exact: true })).toHaveAttribute('aria-current', 'page');
     // 사이드바가 없는 폭에서는 더보기가 하단 내비 밖의 섹션에 닿는 유일한 경로다.
-    for (const section of ['그룹', '환경 설정']) {
+    for (const section of ['환경 설정']) {
       await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
     }
   });

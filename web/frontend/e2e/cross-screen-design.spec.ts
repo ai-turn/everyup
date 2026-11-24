@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { API_URL } from './fixtures/ports';
 import { mockRouter } from '../src/services/mockRouter';
-import type { AgentServiceFlat, ConnectedAgent, InfrastructureResource, Project, Server } from '../src/services/api';
+import type { AgentServiceFlat, ConnectedAgent, InfrastructureResource, Server } from '../src/services/api';
 import { uptimeFixture } from './fixtures/uptime';
 
 // 전환 후 화면의 디자인 수정(Task 14b). 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표(attention 시나리오)를 따른다.
@@ -146,7 +146,7 @@ test.describe('demo', () => {
     await expect(dialog).toHaveCount(0);
   });
 
-  test('the palette finds monitors, apps and groups', async ({ page }) => {
+  test('the palette finds monitors and apps', async ({ page }) => {
     await page.goto('./');
     const open = page.locator('aside').getByRole('button', { name: /^검색/ });
     await open.click();
@@ -156,23 +156,10 @@ test.describe('demo', () => {
     await expect(monitor).toContainText('edge-host-01의 모니터');
     await monitor.click();
     await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/monitors/uptime_mock_checkout$`));
-
-    const group = mockRouter<Project[]>('/projects')[0];
+    // 그룹은 없다(ADR 0013). 옛 그룹 이름은 찾아지지 않는다.
     await open.click();
-    await palette.getByRole('textbox', { name: '검색' }).fill(group.name);
-    await palette.getByRole('option', { name: new RegExp(`^${group.name}`) }).filter({ hasText: '그룹' }).click();
-    await expect(page).toHaveURL(new RegExp(`/projects/${group.id}$`));
-  });
-
-  test('a group shows a failing container on the row of its Docker server', async ({ page }) => {
-    const agents = mockRouter<ConnectedAgent[]>('/agents');
-    const down = mockRouter<AgentServiceFlat[]>('/agents/services/all').find((service) => !service.healthy && agents.find((agent) => agent.id === service.agentId)?.projectId)!;
-    const agent = agents.find((candidate) => candidate.id === down.agentId)!;
-    await page.goto(`./projects/${agent.projectId}`);
-    const row = page.getByRole('table', { name: '그룹 구성 그리드' }).locator('tbody tr').filter({ hasText: down.name });
-    await expect(row).toHaveCount(1);
-    await expect(row.getByRole('link', { name: agent.name, exact: true })).toBeVisible();
-    await expect(row).toContainText('서버 · Docker Collector');
+    await palette.getByRole('textbox', { name: '검색' }).fill('Backoffice');
+    await expect(palette.getByRole('option')).toHaveCount(0);
   });
 
   test('screens that are a single notice or a form keep one h1 and do not skip levels', async ({ page }) => {
@@ -223,7 +210,7 @@ test.describe('demo', () => {
     test('the overview scope links and the palette results are tall enough to tap', async ({ page }) => {
       await page.goto('./');
       const scope = page.getByRole('navigation', { name: '모니터링 범위' }).getByRole('link');
-      await expect(scope).toHaveCount(3);
+      await expect(scope).toHaveCount(2);
       for (const box of await scope.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
       // 모바일의 새로고침은 테두리 버튼이다(검은 채움이 아니다).
       await expect(page.getByRole('button', { name: '새로고침' })).not.toHaveClass(/bg-primary\b/);

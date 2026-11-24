@@ -24,7 +24,8 @@ for (const { width, height, reducedMotion } of [
     await page.emulateMedia({ reducedMotion });
     await page.goto('./');
     const refresh = page.getByRole('button', { name: '새로고침', exact: true });
-    const project = page.getByRole('link', { name: /그룹으로 정리/ });
+    // 범위 줄의 마지막 링크. 본문 안의 링크를 앞뒤로 모두 지나는지 본다.
+    const scopeLink = page.getByRole('navigation', { name: '모니터링 범위' }).getByRole('link', { name: '전체 로그', exact: true });
     const lastIncident = page.getByRole('region', { name: '최근 장애 이력' }).getByRole('link').last();
     await expect(lastIncident).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
@@ -38,24 +39,24 @@ for (const { width, height, reducedMotion } of [
     // 모바일은 AppHeader가 없어 갱신 상태(RefreshStatus: 갱신 시각 툴팁 → 새로고침 → 자동 갱신)가 본문 첫 요소로 남는다.
     await expect(width >= 1024 ? page.locator('main').getByRole('link', { name: /^서버/ }) : page.getByRole('group', { name: '데이터 갱신' }).getByText(/^[0-9:]+ 갱신$/)).toBeFocused();
 
-    let visitedProject = false;
+    let visitedScope = false;
     for (let step = 0; step < 20; step++) {
       await expectUnobscuredFocus(page);
-      visitedProject ||= await project.evaluate((element) => element === document.activeElement);
+      visitedScope ||= await scopeLink.evaluate((element) => element === document.activeElement);
       if (await lastIncident.evaluate((element) => element === document.activeElement)) break;
       await page.keyboard.press('Tab');
     }
     await expect(lastIncident).toBeFocused();
-    expect(visitedProject).toBe(true);
+    expect(visitedScope).toBe(true);
 
-    visitedProject = false;
+    visitedScope = false;
     for (let step = 0; step < 20; step++) {
       await page.keyboard.press('Shift+Tab');
       await expectUnobscuredFocus(page);
-      visitedProject ||= await project.evaluate((element) => element === document.activeElement);
+      visitedScope ||= await scopeLink.evaluate((element) => element === document.activeElement);
       if (await refresh.evaluate((element) => element === document.activeElement)) break;
     }
     await expect(refresh).toBeFocused();
-    expect(visitedProject).toBe(true);
+    expect(visitedScope).toBe(true);
   });
 }

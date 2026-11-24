@@ -3,7 +3,7 @@ import { mockRouter } from '../src/services/mockRouter';
 import { buildServerRows, capabilityLabel } from '../src/features/servers/serverStatus';
 import type { MockScenario } from '../src/mocks/demoScenario';
 import type {
-  InfrastructureResource, LogPattern, LogServiceSummary, ObservedService, ObservedServiceMetricName, Project, Server, TimelineIncident, UptimeMonitor,
+  InfrastructureResource, LogPattern, LogServiceSummary, ObservedService, ObservedServiceMetricName, Server, TimelineIncident, UptimeMonitor,
   UptimeMonitorMetric, UptimeMonitorSummary, UptimeMonitorHistory, AgentServiceFlat, ServiceHistoryPoint,
 } from '../src/services/api';
 
@@ -36,10 +36,9 @@ test('demo servers cover every layout the server screens need', () => {
   const apps = mockRouter<ObservedService[]>('/observed-services');
   const infrastructure = mockRouter<InfrastructureResource[]>('/infrastructure-resources');
   const ids = new Set(rows.map(row => row.server.id));
-  // 모든 직접 대상은 서버 하나에 속하고, 그룹은 그 서버의 그룹이다. Docker 환경의 리소스는 같은 ID의 서버에 속한다(ADR 0012).
+  // 모든 직접 대상은 서버 하나에 속한다. Docker 환경의 리소스는 같은 ID의 서버에 속한다(ADR 0012).
   for (const target of [...monitors, ...apps, ...infrastructure.filter(row => row.adapter === 'otel-collector')]) {
     expect(ids.has(target.serverId!)).toBe(true);
-    expect(target.projectId).toBe(rows.find(row => row.server.id === target.serverId)!.server.projectId);
   }
   expect(infrastructure.filter(row => row.adapter === 'everyup-agent').every(row => row.serverId === row.id)).toBe(true);
 
@@ -52,21 +51,16 @@ test('demo servers cover every layout the server screens need', () => {
   expect(rows.some(row => signals(row).size > 0 && !full.includes(row) && !(row.monitors.length && signals(row).size === 1))).toBe(true);
   expect(rows.some(row => row.monitors.length > 0 && row.apps.length === 0 && row.infrastructure.length === 0)).toBe(true);
   const empty = rows.filter(row => row.monitors.length + row.apps.length + row.infrastructure.length === 0);
-  expect(empty.map(row => [row.server.name, row.server.projectId])).toEqual([['staging-empty', undefined]]);
+  expect(empty.map(row => row.server.name)).toEqual(['staging-empty']);
   expect(rows.some(row => row.monitors.length >= 2)).toBe(true);
   expect(rows.some(row => row.monitors.length === 1)).toBe(true);
   expect(rows.some(row => row.monitors.some(monitor => monitor.status === 'unhealthy'))).toBe(true);
   expect(inScenario('normal', snapshot).some(row => row.monitors.some(monitor => monitor.status === 'unhealthy'))).toBe(false);
-  expect(new Set(rows.map(row => row.server.projectId ?? 'none')).size).toBeGreaterThanOrEqual(3);
+  // 서버 이름은 전체에서 하나다(대소문자, 앞뒤 공백 무시).
+  expect(new Set(rows.map(row => row.server.name.trim().toLowerCase())).size).toBe(rows.length);
 
   // empty 시나리오는 처음부터 있던 서버를 숨긴다.
   expect(inScenario('empty', () => mockRouter<Server[]>('/servers'))).toEqual([]);
-
-  // 그룹의 개수는 서버를 거쳐 센다.
-  for (const project of mockRouter<Project[]>('/projects')) {
-    expect(project.serverCount).toBe(rows.filter(row => row.server.projectId === project.id).length);
-    expect(project.monitorCount).toBe(rows.filter(row => row.server.projectId === project.id).reduce((sum, row) => sum + row.monitors.length, 0));
-  }
 
   // 장애 이력의 업타임 경로는 서버 화면이다.
   const timeline = mockRouter<TimelineIncident[]>('/incidents/timeline').filter(row => row.source === 'uptime');
@@ -132,7 +126,7 @@ test('Docker service response buckets match the chart bucket size', () => {
   }
 });
 
-test('server responses are copies and groups must exist', () => {
+test('server responses are copies', () => {
   const before = mockRouter<Server[]>('/servers');
   const created = mockRouter<Server>('/servers', 'POST', json({ name: 'e2e-copy' }));
   expect(mockRouter<Server>(`/servers/${created.id}`)).not.toBe(mockRouter<Server>(`/servers/${created.id}`));
@@ -141,8 +135,6 @@ test('server responses are copies and groups must exist', () => {
   expect(after).not.toBe(before);
   expect(after.find(row => row.id === created.id)!.name).toBe('e2e-copy-renamed');
   expect(created.name).toBe('e2e-copy');
-  expect(() => mockRouter('/servers', 'POST', json({ name: 'e2e-orphan', projectId: 'project_missing' }))).toThrow(expect.objectContaining({ code: 'VALIDATION_ERROR', message: 'group not found' }));
-  expect(() => mockRouter(`/servers/${created.id}`, 'PUT', json({ name: 'e2e-copy', projectId: 'project_missing' }))).toThrow(expect.objectContaining({ code: 'VALIDATION_ERROR' }));
   mockRouter(`/servers/${created.id}`, 'DELETE');
 });
 
@@ -151,10 +143,12 @@ test('server writes follow the backend rules', () => {
   const created = mockRouter<Server>('/servers', 'POST', json({ name: 'e2e-host' }));
   expect(created.id).toBeTruthy();
   expect(() => mockRouter('/servers', 'POST', json({ name: '  E2E-HOST ' }))).toThrow(expect.objectContaining({ code: 'SERVER_NAME_TAKEN', status: 409 }));
-  const grouped = mockRouter<Server>('/servers', 'POST', json({ name: 'e2e-host', projectId: 'project_mock_staging' }));
-  expect(() => mockRouter(`/servers/${grouped.id}`, 'PUT', json({ name: 'E2E-host' }))).toThrow(expect.objectContaining({ code: 'SERVER_NAME_TAKEN' }));
+  const other = mockRouter<Server>('/servers', 'POST', json({ name: 'e2e-other' }));
+  expect(() => mockRouter(`/servers/${other.id}`, 'PUT', json({ name: 'E2E-host' }))).toThrow(expect.objectContaining({ code: 'SERVER_NAME_TAKEN' }));
+  // Docker 서버의 이름도 겹칠 수 없다.
+  expect(() => mockRouter('/servers', 'POST', json({ name: 'Prod-Server' }))).toThrow(expect.objectContaining({ code: 'SERVER_NAME_TAKEN' }));
 
-  // serverId 없는 생성은 이름과 그룹으로 서버를 찾는다. 인프라 리소스가 이미 있으면 (2)를 붙인 서버를 만든다.
+  // serverId 없는 생성은 이름으로 서버를 찾는다. 인프라 리소스가 이미 있으면 (2)를 붙인 서버를 만든다.
   const monitor = mockRouter<UptimeMonitor>('/services', 'POST', json({ name: 'e2e-host', type: 'http', url: 'https://e2e.example.com' }));
   expect(monitor.serverId).toBe(created.id);
   const infra = mockRouter<InfrastructureResource>('/infrastructure-resources', 'POST', json({ name: 'E2E-host' }));
@@ -165,21 +159,16 @@ test('server writes follow the backend rules', () => {
   expect(() => mockRouter(`/servers/${second.serverId}/merge`, 'POST', json({ targetServerId: created.id }))).toThrow(expect.objectContaining({ code: 'SERVER_HAS_INFRASTRUCTURE' }));
   expect(() => mockRouter(`/infrastructure-resources/${second.id}`, 'PUT', json({ name: 'e2e-host', serverId: created.id }))).toThrow(expect.objectContaining({ code: 'SERVER_HAS_INFRASTRUCTURE' }));
 
-  // 수정의 serverId는 이동이고, serverId 없는 수정의 projectId는 서버의 그룹이 된다.
-  const app = mockRouter<ObservedService>('/observed-services', 'POST', json({ name: 'e2e-app', signals: ['logs'], serverId: grouped.id }));
-  expect(app.projectId).toBe('project_mock_staging');
+  // 수정의 serverId는 이동이고, serverId 없는 수정은 소속 서버를 그대로 둔다.
+  const app = mockRouter<ObservedService>('/observed-services', 'POST', json({ name: 'e2e-app', signals: ['logs'], serverId: other.id }));
+  expect(app.serverId).toBe(other.id);
   expect(mockRouter<ObservedService>(`/observed-services/${app.id}`, 'PUT', json({ name: 'e2e-app', signals: ['logs'], serverId: created.id })).serverId).toBe(created.id);
-  mockRouter(`/observed-services/${app.id}`, 'PUT', json({ name: 'e2e-app', signals: ['logs'], projectId: 'project_mock_backoffice' }));
-  expect(mockRouter<Server>(`/servers/${created.id}`).projectId).toBe('project_mock_backoffice');
-  expect(mockRouter<UptimeMonitor>(`/services/${monitor.id}`).projectId).toBe('project_mock_backoffice');
-  // 옛 화면의 요청(serverId도 projectId도 없음)은 서버의 그룹을 해제한다. 화면의 타입은 serverId를 강제한다.
-  mockRouter(`/observed-services/${app.id}`, 'PUT', json({ name: 'e2e-app', signals: ['logs'] }));
-  expect(mockRouter<Server>(`/servers/${created.id}`).projectId).toBeUndefined();
+  expect(mockRouter<ObservedService>(`/observed-services/${app.id}`, 'PUT', json({ name: 'e2e-app', signals: ['logs'] })).serverId).toBe(created.id);
 
   // 합치기는 대상을 옮기고 원래 서버를 지운다. 삭제는 소속 대상을 함께 지운다.
-  const merged = mockRouter<Server>(`/servers/${grouped.id}/merge`, 'POST', json({ targetServerId: created.id }));
+  const merged = mockRouter<Server>(`/servers/${other.id}/merge`, 'POST', json({ targetServerId: created.id }));
   expect(merged.id).toBe(created.id);
-  expect(() => mockRouter(`/servers/${grouped.id}`)).toThrow('server not found');
+  expect(() => mockRouter(`/servers/${other.id}`)).toThrow('server not found');
   mockRouter(`/servers/${created.id}`, 'DELETE');
   mockRouter(`/servers/${second.serverId}`, 'DELETE');
   expect(mockRouter<UptimeMonitor[]>('/services?type=http,tcp').some(row => row.id === monitor.id)).toBe(false);

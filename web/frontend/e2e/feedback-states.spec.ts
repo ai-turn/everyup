@@ -64,20 +64,6 @@ test.describe('A3 tab title', () => {
 });
 
 test.describe('A5 inline form validation', () => {
-  test('the group form shows the missing name under the field instead of a browser bubble', async ({ page }) => {
-    await page.goto('./projects');
-    await page.getByRole('button', { name: '추가', exact: true }).first().click();
-    const dialog = page.getByRole('dialog', { name: '그룹 추가' });
-    await expect(dialog.locator('form')).toHaveAttribute('novalidate', '');
-    await dialog.getByRole('button', { name: '추가', exact: true }).click();
-    const name = dialog.getByRole('textbox', { name: '이름', exact: true });
-    await expect(name).toBeFocused();
-    await expect(name).toHaveAttribute('aria-invalid', 'true');
-    await expect(name).toHaveAccessibleDescription('그룹 이름을 입력하세요');
-    await name.fill('Payments');
-    await expect(name).not.toHaveAttribute('aria-invalid', 'true');
-  });
-
   test('the server settings form validates the name inline and has no title tooltip', async ({ page }) => {
     await page.goto('./servers/server_mock_edge_host_01');
     await page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByRole('button', { name: '서버 설정' }).click();
