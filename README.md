@@ -59,7 +59,7 @@ docker compose up -d
 | --- | --- |
 | [소개](https://ai-turn.github.io/everyup/guide/introduction) | 핵심 기능과 수집되는 데이터 |
 | [Quick Start](https://ai-turn.github.io/everyup/guide/quickstart) | Web 실행, 업타임 모니터 추가, Docker Collector 설치 |
-| [모니터링 설정](https://ai-turn.github.io/everyup/guide/monitoring-setup) | 수집 상태 진단, 기능 추가, 호스트 지표 출처, 같은 호스트 합치기, OpenTelemetry 직접 연결, 그룹 |
+| [모니터링 설정](https://ai-turn.github.io/everyup/guide/monitoring-setup) | 수집 상태 진단, 기능 추가, 호스트 지표 출처, 같은 호스트 합치기, OpenTelemetry 직접 연결 |
 | [업타임 모니터](https://ai-turn.github.io/everyup/guide/uptime-monitors) | 공개 URL·TCP 포트 응답 확인 |
 | [자동 eBPF Observer](https://ai-turn.github.io/everyup/guide/ebpf-observer) | 앱 수정 없이 API 응답 시간·트레이스 수집, 지원 조건 확인 |
 | [헤더·바디 상세 수집](https://ai-turn.github.io/everyup/guide/otel-instrumentation) | OpenTelemetry로 요청/응답 헤더·바디 수집 |

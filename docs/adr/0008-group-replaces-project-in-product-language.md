@@ -1,6 +1,6 @@
 # Group replaces Project in product language
 
-Status: accepted
+Status: superseded by ADR 0013 (2026-11-24): there are no Groups.
 
 Date: 2026-10-25
 

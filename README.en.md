@@ -62,7 +62,7 @@ method. For setting the public address and installing the Docker Collector, see 
 | --- | --- |
 | [Introduction](https://ai-turn.github.io/everyup/en/guide/introduction) | Features and what gets collected |
 | [Quick Start](https://ai-turn.github.io/everyup/en/guide/quickstart) | Start Web, add an uptime monitor, install the Docker Collector |
-| [Monitoring setup](https://ai-turn.github.io/everyup/en/guide/monitoring-setup) | Diagnose collection, add capabilities, host metrics source, same-host merge, connect OpenTelemetry directly, groups |
+| [Monitoring setup](https://ai-turn.github.io/everyup/en/guide/monitoring-setup) | Diagnose collection, add capabilities, host metrics source, same-host merge, connect OpenTelemetry directly |
 | [Uptime monitors](https://ai-turn.github.io/everyup/en/guide/uptime-monitors) | Check responses from public URLs and TCP ports |
 | [Automatic eBPF Observer](https://ai-turn.github.io/everyup/en/guide/ebpf-observer) | API response times and traces without app changes, with host requirements |
 | [Header & body capture](https://ai-turn.github.io/everyup/en/guide/otel-instrumentation) | Request/response headers and bodies via OpenTelemetry |
