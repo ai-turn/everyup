@@ -4,7 +4,7 @@ Status: accepted
 
 Date: 2026-11-22
 
-Supersedes: ADR 0011. Retires what was left of ADR 0007. Keeps ADR 0003 and ADR 0005.
+Supersedes: ADR 0011. Retires what was left of ADR 0007. Keeps ADR 0003 and ADR 0005. Amended by: ADR 0013 (no Groups; server names are unique overall).
 
 ## Context
 

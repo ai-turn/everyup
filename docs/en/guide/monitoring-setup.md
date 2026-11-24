@@ -42,7 +42,7 @@ latest installation command.
 On the **개요** (Overview) tab of a server with a Docker Collector, use the buttons in its setup guide,
 such as **인프라 연결** (Connect infrastructure) or **메트릭 연결** (Connect metrics), to connect a capability
 that is not selected yet. In the dialog, click **적용 명령 받기** (Get apply command) for a new apply
-command. The Docker Collector keeps its ID, key, group assignment, and collection history. Run the
+command. The Docker Collector keeps its ID, key, and collection history. Run the
 command on the host to enable the capability across that server's Docker Collector; apps do not need
 a restart.
 
@@ -76,8 +76,13 @@ collect the same host, EveryUp asks you to keep one. Nothing is connected until 
 
 If a host with a Docker Collector was also registered as a separate server, the same host appears as
 two servers. Hosts connected as Docker environments in earlier versions become servers with the same
-name after the upgrade; if the group already has a server with that name, the new server gets a
+name after the upgrade; if a server with that name already exists, the new server gets a
 ` (2)` suffix. EveryUp never merges servers automatically.
+
+Server names are unique across all servers, ignoring case and surrounding spaces. Groups from earlier
+versions are gone. Servers that shared a name across groups are renamed during the upgrade instead of
+merged: the oldest keeps its name, and the others get their old group's name appended, such as
+`api-server (Staging)`. If that name is taken too, ` (2)` is added.
 
 When two servers share a name, the overview shows **같은 호스트인가요?** (Same host?), ignoring
 suffixes such as ` (2)`. **합치기** (Merge) opens the directly registered server with the
@@ -163,18 +168,6 @@ See the [OpenTelemetry metrics data model](https://opentelemetry.io/docs/specs/o
 Charts show the latest 5,000 points of the selected series. Narrow the period or attribute filters when
 this limit is exceeded. Distributions cover the selected series over the full query period, but show a
 limit message instead of statistics when more than 50,000 points match.
-
-## Grouping targets
-
-To view separately registered targets together, open **그룹** (Groups) under **모아 보기** (Collected
-views) in the sidebar and click **추가** (Add) to create a group. The new group opens right away. Click
-**대상 추가** (Add targets), select any number of servers, then click
-**추가** (Add). A server's uptime monitors, apps, infrastructure, and containers join the group with it. Selecting a target that
-belongs to another group moves it here. To take a target out, click **빼기** (Remove) on its row; the
-target is not deleted and becomes ungrouped again.
-Data collected by a server's Docker Collector follows the server's group as well. The group
-list summarizes how many targets in each group are failing, need attention, or are healthy, and the
-group screen lists failing targets first. Deleting a group does not delete its assigned targets.
 
 ## Detailed header and body capture
 

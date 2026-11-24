@@ -32,7 +32,7 @@ Every monitored host is a **server**. A server's Infrastructure, Logs, and API r
 targets you configure directly on that server together with the data its Docker Collector collects. The
 Uptime tab shows only the uptime monitors you add, and a server with a Docker Collector also has a
 **컨테이너** (Containers) tab. Container response checks and metrics are on that tab and on each container's
-own page. Overview, groups, and alerts cover both paths per server.
+own page. Overview and alerts cover both paths per server.
 
 | Feature | What you can inspect | Required setup |
 | --- | --- | --- |

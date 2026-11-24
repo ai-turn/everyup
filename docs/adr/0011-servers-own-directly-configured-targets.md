@@ -4,7 +4,7 @@ Status: accepted
 
 Date: 2026-11-17
 
-Supersedes: ADR 0007. Amends: ADR 0003, ADR 0004.
+Supersedes: ADR 0007. Amends: ADR 0003, ADR 0004. Amended by: ADR 0013 (no Groups; server names are unique overall).
 
 ## Context
 
