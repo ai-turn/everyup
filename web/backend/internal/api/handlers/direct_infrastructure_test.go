@@ -20,17 +20,8 @@ func TestDirectInfrastructureCollectorSetupProjectionAlertsAndDelete(t *testing.
 	token := ts.setupAdmin(t, "admin", "testpass123")
 	auth := authHeader(token)
 
-	_, projectResult := ts.doRequest(t, "POST", "/api/v1/projects", map[string]interface{}{"name": "Production"}, auth...)
-	if !projectResult.Success {
-		t.Fatalf("create project: %+v", projectResult.Error)
-	}
-	var project models.Project
-	if err := json.Unmarshal(projectResult.Data, &project); err != nil {
-		t.Fatal(err)
-	}
-
 	_, createResult := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources", map[string]interface{}{
-		"name": "edge-host-01", "projectId": project.ID,
+		"name": "edge-host-01",
 	}, auth...)
 	if !createResult.Success {
 		t.Fatalf("create infrastructure resource: %+v", createResult.Error)
@@ -112,15 +103,6 @@ func TestDirectInfrastructureCollectorSetupProjectionAlertsAndDelete(t *testing.
 	rules, err := database.NewAlertRuleRepository().GetEnabledByAgentID(created.ID)
 	if err != nil || len(rules) != 1 {
 		t.Fatalf("direct infrastructure alert selection: rules=%+v err=%v", rules, err)
-	}
-
-	_, projectsResult := ts.doRequest(t, "GET", "/api/v1/projects", nil, auth...)
-	var projects []models.Project
-	if err := json.Unmarshal(projectsResult.Data, &projects); err != nil {
-		t.Fatal(err)
-	}
-	if len(projects) != 1 || projects[0].InfrastructureResourceCount != 1 {
-		t.Fatalf("project infrastructure count: %+v", projects)
 	}
 
 	_, rotateResult := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources/"+created.ID+"/rotate-key", nil, auth...)

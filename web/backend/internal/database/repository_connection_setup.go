@@ -38,7 +38,7 @@ func (r *ConnectionSetupRepository) AgentProfile(id string) (models.AgentProfile
 	return decodeAgentProfile(kind, capabilities)
 }
 
-// Existing identity, project membership, credentials and history remain intact.
+// Existing identity, server, credentials and history remain intact.
 // Adding host metrics to a server that has an active OpenTelemetry Collector resource needs
 // infrastructure = MergeInfrastructureDocker, which stops that resource (one source per server, ADR 0012).
 func (r *ConnectionSetupRepository) UpdateProfile(id string, profile models.AgentProfile, infrastructure string) error {

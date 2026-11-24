@@ -37,7 +37,6 @@ const (
 type Service struct {
 	ID             string            `json:"id"`
 	Name           string            `json:"name"`
-	ProjectID      string            `json:"projectId,omitempty"`
 	ServerID       string            `json:"serverId,omitempty"`
 	Type           ServiceType       `json:"type"`
 	IsActive       bool              `json:"isActive"`

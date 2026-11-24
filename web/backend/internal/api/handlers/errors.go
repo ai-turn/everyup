@@ -19,7 +19,6 @@ const (
 	ErrCodeValidation              = "VALIDATION_ERROR"
 	ErrCodeNotFound                = "NOT_FOUND"
 	ErrCodeForbidden               = "FORBIDDEN"
-	ErrCodeProjectNotFound         = "PROJECT_NOT_FOUND"
 	ErrCodeObservedServiceNotFound = "OBSERVED_SERVICE_NOT_FOUND"
 
 	// Settings errors

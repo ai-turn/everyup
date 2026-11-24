@@ -17,14 +17,12 @@ import (
 
 type ServerHandler struct {
 	repo      *database.ServerRepository
-	projects  *database.ProjectRepository
 	scheduler *checker.Scheduler
 }
 
 func NewServerHandler(scheduler *checker.Scheduler) *ServerHandler {
 	return &ServerHandler{
 		repo:      database.NewServerRepository(),
-		projects:  database.NewProjectRepository(),
 		scheduler: scheduler,
 	}
 }
@@ -70,7 +68,7 @@ func (h *ServerHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"success": true, "data": server})
 }
 
-// Update replaces the whole server: an omitted projectId clears the group.
+// Update replaces the whole server: an omitted description clears it.
 func (h *ServerHandler) Update(c *fiber.Ctx) error {
 	server, invalid, err := h.serverFromRequest(c, c.Params("id"))
 	if invalid != "" {
@@ -162,7 +160,6 @@ func (h *ServerHandler) serverFromRequest(c *fiber.Ctx, id string) (*models.Serv
 	var request struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
-		ProjectID   string `json:"projectId"`
 	}
 	if err := c.BodyParser(&request); err != nil {
 		return nil, err.Error(), nil
@@ -171,22 +168,13 @@ func (h *ServerHandler) serverFromRequest(c *fiber.Ctx, id string) (*models.Serv
 	if name == "" || utf8.RuneCountInString(name) > 200 {
 		return nil, "name is required and must be at most 200 characters", nil
 	}
-	if request.ProjectID != "" {
-		ok, err := h.projects.Exists(request.ProjectID)
-		if err != nil {
-			return nil, "", err
-		}
-		if !ok {
-			return nil, "group not found", nil
-		}
-	}
-	return &models.Server{ID: id, Name: name, Description: strings.TrimSpace(request.Description), ProjectID: request.ProjectID}, "", nil
+	return &models.Server{ID: id, Name: name, Description: strings.TrimSpace(request.Description)}, "", nil
 }
 
 func serverWriteError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return projectNotFound(c)
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": fiber.Map{"code": ErrCodeNotFound}})
 	case errors.Is(err, database.ErrServerMissing):
 		return agentBadRequest(c, "VALIDATION_ERROR", "server not found")
 	case errors.Is(err, database.ErrServerNameTaken):
@@ -233,4 +221,3 @@ func (h *ServerHandler) DismissSameHost(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"success": true, "data": pair})
 }
-

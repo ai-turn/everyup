@@ -105,9 +105,8 @@ type ServiceOverview struct {
 }
 
 type Agent struct {
-	ID           string            `json:"id"`
-	Name         string            `json:"name"`
-	ProjectID    string            `json:"projectId,omitempty"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 	// ServerID is the server this Docker environment is (one Docker Collector per server).
 	ServerID     string            `json:"serverId,omitempty"`
 	Version      string            `json:"version,omitempty"`

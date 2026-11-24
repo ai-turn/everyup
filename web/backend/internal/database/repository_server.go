@@ -13,7 +13,7 @@ import (
 
 var (
 	ErrServerMissing           = errors.New("server not found")
-	ErrServerNameTaken         = errors.New("server name already exists in this group")
+	ErrServerNameTaken         = errors.New("server name already exists")
 	ErrServerHasInfrastructure = errors.New("server already has an infrastructure resource")
 	ErrServerHasDocker         = errors.New("server has a Docker Collector")
 	// ErrServerHasTwoDocker: a server has at most one Docker Collector, so two Docker servers cannot merge.
@@ -33,11 +33,11 @@ type ServerRepository struct{}
 
 func NewServerRepository() *ServerRepository { return &ServerRepository{} }
 
-const serverColumns = `id, name, description, COALESCE(project_id, ''), created_at, updated_at`
+const serverColumns = `id, name, description, created_at, updated_at`
 
 func scanServer(row interface{ Scan(...any) error }) (models.Server, error) {
 	var server models.Server
-	err := row.Scan(&server.ID, &server.Name, &server.Description, &server.ProjectID, &server.CreatedAt, &server.UpdatedAt)
+	err := row.Scan(&server.ID, &server.Name, &server.Description, &server.CreatedAt, &server.UpdatedAt)
 	return server, err
 }
 
@@ -78,25 +78,18 @@ func (r *ServerRepository) GetByID(id string) (*models.Server, error) {
 func (r *ServerRepository) Create(server *models.Server) error {
 	now := time.Now()
 	server.CreatedAt, server.UpdatedAt = now, now
-	_, err := DB.Exec(`INSERT INTO servers (id, name, description, project_id, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?)`, server.ID, server.Name, server.Description, nullableProjectID(server.ProjectID), now, now)
+	_, err := DB.Exec(`INSERT INTO servers (id, name, description, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?)`, server.ID, server.Name, server.Description, now, now)
 	return serverNameError(err)
 }
 
-// Update replaces name, description and project; CreatedAt is reloaded so the
+// Update replaces name and description; CreatedAt is reloaded so the
 // caller can return the stored row.
 func (r *ServerRepository) Update(server *models.Server) error {
 	server.UpdatedAt = time.Now()
-	err := Transaction(func(tx *sql.Tx) error {
-		if err := tx.QueryRow(`UPDATE servers SET name = ?, description = ?, project_id = ?, updated_at = ?
-			WHERE id = ? RETURNING created_at`,
-			server.Name, server.Description, nullableProjectID(server.ProjectID), server.UpdatedAt, server.ID).Scan(&server.CreatedAt); err != nil {
-			return err
-		}
-		// The Docker Collector's data follows its group (ADR 0003), so it moves with the server.
-		_, err := tx.Exec(`UPDATE agents SET project_id = ? WHERE server_id = ?`, nullableProjectID(server.ProjectID), server.ID)
-		return err
-	})
+	err := DB.QueryRow(`UPDATE servers SET name = ?, description = ?, updated_at = ?
+		WHERE id = ? RETURNING created_at`,
+		server.Name, server.Description, server.UpdatedAt, server.ID).Scan(&server.CreatedAt)
 	return serverNameError(err)
 }
 
@@ -124,14 +117,14 @@ func (kind ServerTargetKind) table() (string, string) {
 // ResolveForTarget returns the server a new target should join. With serverID it
 // verifies the server exists (ErrServerMissing) and, for infra, that it has no
 // infrastructure resource yet (ErrServerHasInfrastructure). Without serverID it
-// applies the find-or-create rule with name and projectID.
-func (r *ServerRepository) ResolveForTarget(kind ServerTargetKind, serverID, name, projectID string) (string, error) {
+// applies the find-or-create rule with name.
+func (r *ServerRepository) ResolveForTarget(kind ServerTargetKind, serverID, name string) (string, error) {
 	err := Transaction(func(tx *sql.Tx) error {
 		if serverID != "" {
 			return checkTargetServerTx(tx, kind, serverID)
 		}
 		var err error
-		serverID, err = resolveServerTx(tx, strings.TrimSpace(name), projectID, kind == ServerTargetInfra, true, time.Now())
+		serverID, err = resolveServerTx(tx, strings.TrimSpace(name), nil, kind == ServerTargetInfra, true, time.Now())
 		return err
 	})
 	if err != nil {
@@ -156,55 +149,6 @@ func (r *ServerRepository) MoveTarget(kind ServerTargetKind, targetID, serverID 
 			return err
 		}
 		_, err := tx.Exec(`UPDATE `+table+` SET server_id = ? WHERE id = ?`, serverID, targetID)
-		return err
-	})
-}
-
-// SetProjectForTarget writes projectID ("" clears) to the server that owns the target.
-// This is the legacy group-assignment path, whose screens know nothing of servers, so
-// a same-name server in projectID never fails it (spec 5.5): the owning server merges
-// into that one, or, when both own an infrastructure resource, takes a suffixed name.
-// Errors: sql.ErrNoRows (target missing).
-func (r *ServerRepository) SetProjectForTarget(kind ServerTargetKind, targetID, projectID string) error {
-	table, filter := kind.table()
-	return Transaction(func(tx *sql.Tx) error {
-		var serverID, name, current string
-		if err := tx.QueryRow(`SELECT s.id, s.name, COALESCE(s.project_id, '')
-			FROM `+table+` t JOIN servers s ON s.id = t.server_id
-			WHERE t.id = ? AND `+filter, targetID).Scan(&serverID, &name, &current); err != nil {
-			return err
-		}
-		if current == projectID {
-			return nil
-		}
-		// A same-name server that owns a Docker Collector is never merged into: a name only
-		// suggests the same host. The moving server takes a suffixed name instead.
-		var sameNameID string
-		err := tx.QueryRow(`SELECT id FROM servers
-			WHERE lower(trim(name)) = lower(trim(?)) AND COALESCE(project_id, '') = ?
-			AND id NOT IN (`+dockerServerIDs+`)`, name, projectID).Scan(&sameNameID)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return err
-		}
-		if err == nil {
-			// A Docker server is never merged without the user's confirmation (same-host merge,
-			// ADR 0012): it takes a suffixed name like any other collision.
-			moving, err := dockerCollectorOfTx(tx, serverID)
-			if err != nil {
-				return err
-			}
-			// mergeServersTx checks for two infrastructure resources before writing anything.
-			if moving == nil {
-				if err := mergeServersTx(tx, serverID, sameNameID, ""); !errors.Is(err, ErrServerHasInfrastructure) {
-					return err
-				}
-			}
-		}
-		if name, err = nextFreeServerNameTx(tx, name, projectID); err != nil {
-			return err
-		}
-		_, err = tx.Exec(`UPDATE servers SET name = ?, project_id = ?, updated_at = ? WHERE id = ?`,
-			name, nullableProjectID(projectID), time.Now(), serverID)
 		return err
 	})
 }
@@ -322,11 +266,11 @@ func mergeServersTx(tx *sql.Tx, sourceID, targetID, infrastructure string) error
 			}
 		}
 	}
-	// The Docker Collector moves with its server; its data follows the target's group (ADR 0003).
-	// Its id stays, so collection and alert rules keyed by it are untouched.
+	// The Docker Collector moves with its server. Its id stays, so collection and alert rules
+	// keyed by it are untouched.
 	if sourceAgent != nil {
-		if _, err := tx.Exec(`UPDATE agents SET server_id = ?, project_id = (SELECT project_id FROM servers WHERE id = ?), updated_at = ? WHERE id = ?`,
-			targetID, targetID, time.Now(), sourceAgent.ID); err != nil {
+		if _, err := tx.Exec(`UPDATE agents SET server_id = ?, updated_at = ? WHERE id = ?`,
+			targetID, time.Now(), sourceAgent.ID); err != nil {
 			return err
 		}
 	}
@@ -470,8 +414,9 @@ func checkTargetServerTx(tx *sql.Tx, kind ServerTargetKind, serverID string) err
 	return nil
 }
 
+// serverNameError maps the unique name index (idx_servers_name since migrateV61) to ErrServerNameTaken.
 func serverNameError(err error) error {
-	if err != nil && strings.Contains(err.Error(), "idx_servers_name_group") {
+	if err != nil && strings.Contains(err.Error(), "idx_servers_name") {
 		return ErrServerNameTaken
 	}
 	return err
@@ -489,14 +434,24 @@ func migrateV58() error {
 			created_at  DATETIME NOT NULL,
 			updated_at  DATETIME NOT NULL
 		)`,
-		`CREATE UNIQUE INDEX IF NOT EXISTS idx_servers_name_group
-			ON servers(lower(trim(name)), COALESCE(project_id, ''))`,
 		`ALTER TABLE services          ADD COLUMN server_id TEXT REFERENCES servers(id)`,
 		`ALTER TABLE observed_services ADD COLUMN server_id TEXT REFERENCES servers(id)`,
 		`ALTER TABLE hosts             ADD COLUMN server_id TEXT REFERENCES servers(id)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS idx_hosts_server_id ON hosts(server_id) WHERE server_id IS NOT NULL`,
 	} {
 		if _, err := DB.Exec(statement); err != nil && !strings.Contains(err.Error(), "duplicate column name") {
+			return err
+		}
+	}
+	// Before migrateV61 names were unique within a group. A database that already has the global
+	// index (migrateV61 ran) does not get the group index back.
+	var global bool
+	if err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = 'idx_servers_name')`).Scan(&global); err != nil {
+		return err
+	}
+	if !global {
+		if _, err := DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_servers_name_group
+			ON servers(lower(trim(name)), COALESCE(project_id, ''))`); err != nil {
 			return err
 		}
 	}
@@ -537,7 +492,8 @@ func migrateV58() error {
 			}
 			for _, target := range targets {
 				// No Docker server exists before migrateV59, and agents.server_id does not either.
-				serverID, err := resolveServerTx(tx, strings.TrimSpace(target[1]), target[2], kind.forInfra, false, now)
+				group := target[2]
+				serverID, err := resolveServerTx(tx, strings.TrimSpace(target[1]), &group, kind.forInfra, false, now)
 				if err != nil {
 					return fmt.Errorf("%s %s: %w", kind.table, target[0], err)
 				}
@@ -550,17 +506,36 @@ func migrateV58() error {
 	})
 }
 
+// legacyGroup is the group a name lookup is limited to. Server names are unique overall since
+// migrateV61 (ADR 0013), so every caller passes nil, except migrateV58 and migrateV59: on an
+// older database they run before migrateV61 and must not join same-name targets of two groups.
+func legacyGroup(group *string) (string, []any) {
+	if group == nil {
+		return "", nil
+	}
+	return ` AND COALESCE(project_id, '') = ?`, []any{*group}
+}
+
+// legacyGroupValue is the project_id a new server gets: NULL, or the group in migrateV58/V59.
+func legacyGroupValue(group *string) any {
+	if group == nil || *group == "" {
+		return nil
+	}
+	return *group
+}
+
 // resolveServerTx applies the find-or-create rule (spec 5.4) and returns the server id.
-// projectID "" means no group. forInfra makes a matching server that already owns an
-// otel-collector host ineligible, so a suffixed server is created instead. excludeDocker
-// skips servers that own a Docker Collector: a name only suggests the same host.
-func resolveServerTx(tx *sql.Tx, name, projectID string, forInfra, excludeDocker bool, now time.Time) (string, error) {
-	query := `SELECT id FROM servers WHERE lower(trim(name)) = lower(trim(?)) AND COALESCE(project_id, '') = ?`
+// forInfra makes a matching server that already owns an otel-collector host ineligible,
+// so a suffixed server is created instead. excludeDocker skips servers that own a Docker
+// Collector: a name only suggests the same host.
+func resolveServerTx(tx *sql.Tx, name string, group *string, forInfra, excludeDocker bool, now time.Time) (string, error) {
+	scope, args := legacyGroup(group)
+	query := `SELECT id FROM servers WHERE lower(trim(name)) = lower(trim(?))` + scope
 	if excludeDocker {
 		query += ` AND id NOT IN (` + dockerServerIDs + `)`
 	}
 	var id string
-	err := tx.QueryRow(query, name, projectID).Scan(&id)
+	err := tx.QueryRow(query, append([]any{name}, args...)...).Scan(&id)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
@@ -578,26 +553,27 @@ func resolveServerTx(tx *sql.Tx, name, projectID string, forInfra, excludeDocker
 		}
 	}
 
-	freeName, err := nextFreeServerNameTx(tx, name, projectID)
+	freeName, err := nextFreeServerNameTx(tx, name, group)
 	if err != nil {
 		return "", err
 	}
 	id = uuid.NewString()
 	if _, err := tx.Exec(`INSERT INTO servers (id, name, project_id, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)`, id, freeName, nullableProjectID(projectID), now, now); err != nil {
+		VALUES (?, ?, ?, ?, ?)`, id, freeName, legacyGroupValue(group), now, now); err != nil {
 		return "", err
 	}
 	return id, nil
 }
 
 // nextFreeServerNameTx returns name, or name + " (2)", " (3)", ... — the first
-// candidate not taken (case-insensitively, trimmed) within projectID.
-func nextFreeServerNameTx(tx *sql.Tx, name, projectID string) (string, error) {
+// candidate not taken (case-insensitively, trimmed).
+func nextFreeServerNameTx(tx *sql.Tx, name string, group *string) (string, error) {
+	scope, args := legacyGroup(group)
 	candidate := name
 	for n := 2; ; n++ {
 		var taken bool
 		if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers
-			WHERE lower(trim(name)) = lower(trim(?)) AND COALESCE(project_id, '') = ?)`, candidate, projectID).Scan(&taken); err != nil {
+			WHERE lower(trim(name)) = lower(trim(?))`+scope+`)`, append([]any{candidate}, args...)...).Scan(&taken); err != nil {
 			return "", err
 		}
 		if !taken {
@@ -646,7 +622,8 @@ func migrateV59() error {
 		}
 		now := time.Now()
 		for _, agent := range agents {
-			if err := attachAgentServerTx(tx, agent[0], agent[1], agent[2], now); err != nil {
+			group := agent[2]
+			if err := attachAgentServerTx(tx, agent[0], agent[1], &group, now); err != nil {
 				return fmt.Errorf("agent %s: %w", agent[0], err)
 			}
 		}
@@ -655,24 +632,24 @@ func migrateV59() error {
 }
 
 // attachAgentServerTx creates the server of a Docker environment (id = agent id) unless it
-// exists, and records the ownership. The name is the environment's, suffixed when the group
-// already has a server with that name.
-func attachAgentServerTx(tx *sql.Tx, agentID, name, projectID string, now time.Time) error {
+// exists, and records the ownership. The name is the environment's, suffixed when a server
+// already has that name. group is nil except in migrateV59 (legacyGroup).
+func attachAgentServerTx(tx *sql.Tx, agentID, name string, group *string, now time.Time) error {
 	var exists bool
 	if err := tx.QueryRow(`SELECT EXISTS(SELECT 1 FROM servers WHERE id = ?)`, agentID).Scan(&exists); err != nil {
 		return err
 	}
 	if !exists {
-		freeName, err := nextFreeServerNameTx(tx, strings.TrimSpace(name), projectID)
+		freeName, err := nextFreeServerNameTx(tx, strings.TrimSpace(name), group)
 		if err != nil {
 			return err
 		}
 		if _, err := tx.Exec(`INSERT INTO servers (id, name, project_id, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?)`, agentID, freeName, nullableProjectID(projectID), now, now); err != nil {
+			VALUES (?, ?, ?, ?, ?)`, agentID, freeName, legacyGroupValue(group), now, now); err != nil {
 			return err
 		}
 	}
-	_, err := tx.Exec(`UPDATE agents SET server_id = ?, project_id = ? WHERE id = ?`, agentID, nullableProjectID(projectID), agentID)
+	_, err := tx.Exec(`UPDATE agents SET server_id = ?, project_id = ? WHERE id = ?`, agentID, legacyGroupValue(group), agentID)
 	return err
 }
 
@@ -731,3 +708,80 @@ func (r *ServerRepository) DismissSameHost(pair SameHostDismissal) error {
 	return nil
 }
 
+// migrateV61 removes groups (ADR 0013). Server names become unique overall, case-insensitive and
+// trimmed (idx_servers_name). Same-name servers from different groups are never merged: the oldest
+// keeps its name and the others get their old group's name appended, "api (Staging)", then " (2)",
+// " (3)" when that is taken too (an ungrouped duplicate gets " (2)" directly). Group membership is
+// cleared on servers, Docker Collectors and targets.
+//
+// The projects table and the project_id columns stay, unread: dropping a column that a foreign key
+// uses means rebuilding the table, and an older binary still starts on this database after a
+// rollback (with empty groups). Safe to rerun: with unique names and no membership nothing changes.
+func migrateV61() error {
+	return Transaction(func(tx *sql.Tx) error {
+		// A group may have been deleted while rows still pointed at it (no foreign key on most tables).
+		rows, err := tx.Query(`SELECT s.id, s.name, COALESCE(p.name, '')
+			FROM servers s LEFT JOIN projects p ON p.id = s.project_id
+			ORDER BY s.created_at, s.id`)
+		if err != nil {
+			return err
+		}
+		type row struct{ id, name, group string }
+		var servers []row
+		for rows.Next() {
+			var server row
+			if err := rows.Scan(&server.id, &server.name, &server.group); err != nil {
+				rows.Close()
+				return err
+			}
+			servers = append(servers, server)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return err
+		}
+
+		key := func(name string) string { return strings.ToLower(strings.TrimSpace(name)) }
+		// A new name never equals any current name, so no rename takes a name that a later
+		// (newer) server keeps, and no intermediate state breaks the old per-group index.
+		taken := make(map[string]bool, len(servers))
+		for _, server := range servers {
+			taken[key(server.name)] = true
+		}
+		kept := make(map[string]bool, len(servers))
+		now := time.Now()
+		for _, server := range servers {
+			if !kept[key(server.name)] {
+				kept[key(server.name)] = true
+				continue
+			}
+			base := strings.TrimSpace(server.name)
+			if server.group != "" {
+				base = fmt.Sprintf("%s (%s)", base, strings.TrimSpace(server.group))
+			}
+			name := base
+			for n := 2; taken[key(name)]; n++ {
+				name = fmt.Sprintf("%s (%d)", base, n)
+			}
+			taken[key(name)] = true
+			if _, err := tx.Exec(`UPDATE servers SET name = ?, updated_at = ? WHERE id = ?`, name, now, server.id); err != nil {
+				return err
+			}
+		}
+
+		for _, statement := range []string{
+			`UPDATE servers SET project_id = NULL WHERE project_id IS NOT NULL`,
+			`UPDATE agents SET project_id = NULL WHERE project_id IS NOT NULL`,
+			`UPDATE services SET project_id = NULL WHERE project_id IS NOT NULL`,
+			`UPDATE observed_services SET project_id = NULL WHERE project_id IS NOT NULL`,
+			`UPDATE hosts SET project_id = NULL WHERE project_id IS NOT NULL`,
+			`DROP INDEX IF EXISTS idx_servers_name_group`,
+			`CREATE UNIQUE INDEX IF NOT EXISTS idx_servers_name ON servers(lower(trim(name)))`,
+		} {
+			if _, err := tx.Exec(statement); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}

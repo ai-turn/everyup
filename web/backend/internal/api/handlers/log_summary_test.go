@@ -171,8 +171,8 @@ func TestLogSummaryAndPatternsScopeToServer(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
 
-	serverA := mustCreateServer(t, ts, auth, "a", "")
-	serverB := mustCreateServer(t, ts, auth, "b", "")
+	serverA := mustCreateServer(t, ts, auth, "a")
+	serverB := mustCreateServer(t, ts, auth, "b")
 	appA := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "app-a", "signals": []string{"logs"}, "serverId": serverA.ID})
 	appB := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "app-b", "signals": []string{"logs"}, "serverId": serverB.ID})
 

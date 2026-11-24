@@ -11,6 +11,7 @@ func setupV58(t *testing.T, statements ...string) {
 		t.Fatalf("connect: %v", err)
 	}
 	t.Cleanup(func() { Close() })
+	beforeV61(t)
 	for _, statement := range statements {
 		if _, err := DB.Exec(statement); err != nil {
 			t.Fatalf("seed: %v\n%s", err, statement)
@@ -352,10 +353,29 @@ func TestNextFreeServerNameSkipsTakenSuffix(t *testing.T) {
 		t.Fatalf("begin: %v", err)
 	}
 	defer tx.Rollback()
-	if got, err := nextFreeServerNameTx(tx, "db", ""); err != nil || got != "db (3)" {
+	ungrouped, group := "", "P"
+	if got, err := nextFreeServerNameTx(tx, "db", &ungrouped); err != nil || got != "db (3)" {
 		t.Fatalf("ungrouped = (%q, %v), want db (3)", got, err)
 	}
-	if got, err := nextFreeServerNameTx(tx, "db", "P"); err != nil || got != "db" {
+	if got, err := nextFreeServerNameTx(tx, "db", &group); err != nil || got != "db" {
 		t.Fatalf("group P = (%q, %v), want db", got, err)
+	}
+	// Since migrateV61 names are unique overall.
+	if got, err := nextFreeServerNameTx(tx, "DB", nil); err != nil || got != "DB (3)" {
+		t.Fatalf("overall = (%q, %v), want DB (3)", got, err)
+	}
+}
+
+// beforeV61 turns a freshly migrated database back into one that has not reached migrateV61, where
+// server names were unique within a group: migrateV58 and migrateV59 run on such databases first.
+func beforeV61(t *testing.T) {
+	t.Helper()
+	for _, statement := range []string{
+		`DROP INDEX IF EXISTS idx_servers_name`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_servers_name_group ON servers(lower(trim(name)), COALESCE(project_id, ''))`,
+	} {
+		if _, err := DB.Exec(statement); err != nil {
+			t.Fatalf("before v61: %v", err)
+		}
 	}
 }

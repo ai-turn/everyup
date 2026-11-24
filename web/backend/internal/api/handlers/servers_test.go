@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -14,19 +15,6 @@ type serverResponse struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	ProjectID   string `json:"projectId"`
-}
-
-func createTestProject(t *testing.T, ts *testServer, auth []string, name string) string {
-	t.Helper()
-	_, result := ts.doRequest(t, "POST", "/api/v1/projects", map[string]string{"name": name}, auth...)
-	var project struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(result.Data, &project); err != nil || project.ID == "" {
-		t.Fatalf("create project: %v, %s", err, result.Data)
-	}
-	return project.ID
 }
 
 func decodeServer(t *testing.T, result apiResponse) serverResponse {
@@ -69,22 +57,17 @@ func TestServerCRUD(t *testing.T) {
 		t.Fatalf("get: %d %s", resp.StatusCode, result.Data)
 	}
 
-	projectID := createTestProject(t, ts, auth, "Production")
-	resp, result = ts.doRequest(t, "PUT", "/api/v1/servers/"+created.ID, map[string]string{"name": "web-01", "projectId": projectID}, auth...)
-	if resp.StatusCode != http.StatusOK || decodeServer(t, result).ProjectID != projectID {
-		t.Fatalf("assign group: %d %s", resp.StatusCode, result.Data)
-	}
-
-	resp, result = ts.doRequest(t, "PUT", "/api/v1/servers/"+created.ID, map[string]string{"name": "web-01"}, auth...)
+	// Groups are gone (ADR 0013): a projectId in the body is ignored and never returned.
+	resp, result = ts.doRequest(t, "PUT", "/api/v1/servers/"+created.ID, map[string]string{"name": "web-01", "projectId": "anything"}, auth...)
 	var raw map[string]interface{}
 	if err := json.Unmarshal(result.Data, &raw); err != nil || resp.StatusCode != http.StatusOK {
-		t.Fatalf("clear group: %d %v %s", resp.StatusCode, err, result.Data)
+		t.Fatalf("update: %d %v %s", resp.StatusCode, err, result.Data)
 	}
 	if _, ok := raw["projectId"]; ok {
-		t.Fatalf("projectId should be cleared: %s", result.Data)
+		t.Fatalf("projectId must not be returned: %s", result.Data)
 	}
 	_, result = ts.doRequest(t, "GET", "/api/v1/servers/"+created.ID, nil, auth...)
-	if got := decodeServer(t, result); got.ProjectID != "" || got.Description != "" {
+	if got := decodeServer(t, result); got.Description != "" {
 		t.Fatalf("PUT should replace the whole server: %+v", got)
 	}
 
@@ -104,19 +87,14 @@ func TestServerValidation(t *testing.T) {
 	resp, result = ts.doRequest(t, "POST", "/api/v1/servers", map[string]string{"name": strings.Repeat("a", 201)}, auth...)
 	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
 
-	resp, result = ts.doRequest(t, "POST", "/api/v1/servers", map[string]string{"name": "x", "projectId": "nope"}, auth...)
-	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
-	if result.Error.Message != "group not found" {
-		t.Fatalf("unexpected message: %q", result.Error.Message)
-	}
-
 	resp, _ = ts.doRequest(t, "GET", "/api/v1/servers", nil)
 	if resp.StatusCode != http.StatusUnauthorized {
 		t.Fatalf("expected 401, got %d", resp.StatusCode)
 	}
 }
 
-func TestServerNameIsUniqueWithinGroup(t *testing.T) {
+// Server names are unique overall, ignoring case and surrounding spaces (ADR 0013).
+func TestServerNameIsUnique(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
 
@@ -127,15 +105,21 @@ func TestServerNameIsUniqueWithinGroup(t *testing.T) {
 	resp, result := ts.doRequest(t, "POST", "/api/v1/servers", map[string]string{"name": "WEB "}, auth...)
 	expectError(t, resp, result, http.StatusConflict, "SERVER_NAME_TAKEN")
 
-	projectID := createTestProject(t, ts, auth, "Production")
-	resp, result = ts.doRequest(t, "POST", "/api/v1/servers", map[string]string{"name": "web", "projectId": projectID}, auth...)
-	if resp.StatusCode != http.StatusCreated {
-		t.Fatalf("same name in another group: %d %+v", resp.StatusCode, result.Error)
-	}
-	grouped := decodeServer(t, result)
-
-	resp, result = ts.doRequest(t, "PUT", "/api/v1/servers/"+grouped.ID, map[string]string{"name": "web"}, auth...)
+	// A former group in the body does not make room for the same name.
+	resp, result = ts.doRequest(t, "POST", "/api/v1/servers", map[string]string{"name": "web", "projectId": "P"}, auth...)
 	expectError(t, resp, result, http.StatusConflict, "SERVER_NAME_TAKEN")
+
+	other := mustCreateServer(t, ts, auth, "api")
+	resp, result = ts.doRequest(t, "PUT", "/api/v1/servers/"+other.ID, map[string]string{"name": " Web"}, auth...)
+	expectError(t, resp, result, http.StatusConflict, "SERVER_NAME_TAKEN")
+
+	// The removed group API is gone.
+	request := httptest.NewRequest("GET", "/api/v1/projects", nil)
+	request.Header.Set(auth[0], auth[1])
+	resp, err := ts.App.Test(request, -1)
+	if err != nil || resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("GET /projects: got %d %v, want 404", resp.StatusCode, err)
+	}
 }
 
 func expectStatus(t *testing.T, ts *testServer, auth []string, method, path string, status int) {
@@ -149,7 +133,7 @@ func TestServerDeleteRemovesTargetsAndTheirData(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
 
-	web := mustCreateServer(t, ts, auth, "web", "")
+	web := mustCreateServer(t, ts, auth, "web")
 	resp, result := ts.doRequest(t, "POST", "/api/v1/services", map[string]interface{}{
 		"name": "probe", "type": "tcp", "host": "1.1.1.1", "port": 53, "interval": 5,
 		"serverId": web.ID, "alertOnDown": true,
@@ -184,8 +168,8 @@ func TestServerDeleteLeavesOtherServersTargets(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
 
-	a := mustCreateServer(t, ts, auth, "a", "")
-	b := mustCreateServer(t, ts, auth, "b", "")
+	a := mustCreateServer(t, ts, auth, "a")
+	b := mustCreateServer(t, ts, auth, "b")
 	mustCreateMonitor(t, ts, auth, "probe-a", a.ID)
 	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "app-a", "signals": []string{"logs"}, "serverId": a.ID})
 	monitor := mustCreateMonitor(t, ts, auth, "probe-b", b.ID)
@@ -219,8 +203,8 @@ func TestServerMerge(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
 
-	a := mustCreateServer(t, ts, auth, "a", "")
-	b := mustCreateServer(t, ts, auth, "b", "")
+	a := mustCreateServer(t, ts, auth, "a")
+	b := mustCreateServer(t, ts, auth, "b")
 	monitor := mustCreateMonitor(t, ts, auth, "probe", a.ID)
 	appA := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": a.ID})
 	appB := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "worker", "signals": []string{"logs"}, "serverId": b.ID})
@@ -285,7 +269,7 @@ func TestIncidentTimelineUptimeTargetPathPointsAtServer(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
 
-	web := mustCreateServer(t, ts, auth, "web", "")
+	web := mustCreateServer(t, ts, auth, "web")
 	resp, result := ts.doRequest(t, "POST", "/api/v1/services", map[string]interface{}{
 		"name": "probe", "type": "tcp", "host": "1.1.1.1", "port": 53, "interval": 5, "serverId": web.ID,
 	}, auth...)
@@ -323,7 +307,7 @@ func TestServerNotFoundHasMessage(t *testing.T) {
 		t.Fatalf("unexpected message: %q", result.Error.Message)
 	}
 
-	web := mustCreateServer(t, ts, auth, "web", "")
+	web := mustCreateServer(t, ts, auth, "web")
 	resp, result = ts.doRequest(t, "POST", "/api/v1/servers/"+web.ID+"/merge", map[string]string{"targetServerId": "missing"}, auth...)
 	expectError(t, resp, result, http.StatusNotFound, "NOT_FOUND")
 	if result.Error.Message != "server not found" {

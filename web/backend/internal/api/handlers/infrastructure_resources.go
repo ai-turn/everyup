@@ -11,7 +11,6 @@ import (
 
 const (
 	ErrCodeInfrastructureNotFound = "INFRASTRUCTURE_RESOURCE_NOT_FOUND"
-	ErrCodeInfrastructureProject  = "INFRASTRUCTURE_PROJECT_NOT_FOUND"
 )
 
 type InfrastructureResourceHandler struct {
@@ -26,8 +25,6 @@ func infrastructureError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, infrastructure.ErrNotFound):
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": fiber.Map{"code": ErrCodeInfrastructureNotFound, "message": "infrastructure resource not found"}})
-	case errors.Is(err, infrastructure.ErrProjectMissing):
-		return agentBadRequest(c, ErrCodeInfrastructureProject, "project not found")
 	case errors.Is(err, infrastructure.ErrInvalidInput):
 		return agentBadRequest(c, ErrCodeValidation, err.Error())
 	case errors.Is(err, database.ErrServerMissing), errors.Is(err, database.ErrServerNameTaken),

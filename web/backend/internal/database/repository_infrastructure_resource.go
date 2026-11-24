@@ -13,7 +13,7 @@ func NewInfrastructureResourceRepository() *InfrastructureResourceRepository {
 	return &InfrastructureResourceRepository{}
 }
 
-const infrastructureResourceSelect = `id, name, COALESCE((SELECT project_id FROM servers WHERE servers.id = hosts.server_id), ''),
+const infrastructureResourceSelect = `id, name,
 	COALESCE(server_id, ''), collector_type,
 	is_active, COALESCE(api_key_masked, ''), last_seen_at, created_at, updated_at`
 
@@ -26,7 +26,7 @@ func scanInfrastructureResource(scanner infrastructureResourceScanner) (*models.
 	var isActive int
 	var lastSeen sql.NullTime
 	if err := scanner.Scan(
-		&resource.ID, &resource.Name, &resource.ProjectID, &resource.ServerID, &resource.Adapter,
+		&resource.ID, &resource.Name, &resource.ServerID, &resource.Adapter,
 		&isActive, &resource.ApiKeyMasked, &lastSeen, &resource.CreatedAt, &resource.UpdatedAt,
 	); err != nil {
 		return nil, err

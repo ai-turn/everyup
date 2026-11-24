@@ -14,11 +14,10 @@ import (
 )
 
 var (
-	ErrNotFound       = errors.New("observed service not found")
-	ErrInvalidInput   = errors.New("invalid observed service input")
-	ErrProjectMissing = errors.New("project not found")
-	ErrInactive       = errors.New("direct telemetry connection is inactive")
-	ErrSignalDenied   = errors.New("telemetry signal is not allowed")
+	ErrNotFound     = errors.New("observed service not found")
+	ErrInvalidInput = errors.New("invalid observed service input")
+	ErrInactive     = errors.New("direct telemetry connection is inactive")
+	ErrSignalDenied = errors.New("telemetry signal is not allowed")
 )
 
 var defaultLogLevelFilter = []models.LogLevel{
@@ -30,16 +29,14 @@ var defaultLogLevelFilter = []models.LogLevel{
 // Manager is the interface used by management handlers and OTLP auth. It hides
 // target creation, credential lifecycle, signal normalization, and persistence.
 type Manager struct {
-	repo        *database.ObservedServiceRepository
-	projectRepo *database.ProjectRepository
-	servers     *database.ServerRepository
+	repo    *database.ObservedServiceRepository
+	servers *database.ServerRepository
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		repo:        database.NewObservedServiceRepository(),
-		projectRepo: database.NewProjectRepository(),
-		servers:     database.NewServerRepository(),
+		repo:    database.NewObservedServiceRepository(),
+		servers: database.NewServerRepository(),
 	}
 }
 
@@ -122,10 +119,6 @@ func NormalizeApiExcludePaths(paths []string) ([]string, error) {
 func (m *Manager) validateInput(input models.ObservedServiceInput) (models.ObservedServiceInput, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	input.ServerID = strings.TrimSpace(input.ServerID)
-	input.ProjectID = strings.TrimSpace(input.ProjectID)
-	if input.ServerID != "" {
-		input.ProjectID = "" // the server's group wins
-	}
 	if input.Name == "" {
 		return input, fmt.Errorf("%w: name is required", ErrInvalidInput)
 	}
@@ -137,15 +130,6 @@ func (m *Manager) validateInput(input models.ObservedServiceInput) (models.Obser
 		return input, err
 	}
 	input.Signals = signals
-	if input.ProjectID != "" {
-		exists, err := m.projectRepo.Exists(input.ProjectID)
-		if err != nil {
-			return input, err
-		}
-		if !exists {
-			return input, ErrProjectMissing
-		}
-	}
 	return input, nil
 }
 
@@ -154,7 +138,7 @@ func (m *Manager) Create(input models.ObservedServiceInput) (*models.ObservedSer
 	if err != nil {
 		return nil, err
 	}
-	serverID, err := m.servers.ResolveForTarget(database.ServerTargetApp, input.ServerID, input.Name, input.ProjectID)
+	serverID, err := m.servers.ResolveForTarget(database.ServerTargetApp, input.ServerID, input.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +154,6 @@ func (m *Manager) Create(input models.ObservedServiceInput) (*models.ObservedSer
 	service := models.ObservedService{
 		ID:             uuid.NewString(),
 		Name:           input.Name,
-		ProjectID:      server.ProjectID,
 		ServerID:       serverID,
 		Signals:        input.Signals,
 		LogLevelFilter: append([]models.LogLevel(nil), defaultLogLevelFilter...),
@@ -270,10 +253,9 @@ func (m *Manager) Update(id string, input models.ObservedServiceInput) (*models.
 	if err != nil {
 		return nil, err
 	}
+	// Without serverId the target stays on its server.
 	if input.ServerID != "" {
 		err = m.servers.MoveTarget(database.ServerTargetApp, id, input.ServerID)
-	} else {
-		err = m.servers.SetProjectForTarget(database.ServerTargetApp, id, input.ProjectID)
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
