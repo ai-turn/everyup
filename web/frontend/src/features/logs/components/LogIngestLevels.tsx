@@ -11,7 +11,7 @@ const LEVELS: LogLevel[] = ['error', 'warn', 'info', 'debug', 'trace'];
 
 /**
  * 어떤 레벨을 저장할지 정하는 서비스 설정. 로그 목록의 보기 필터 옆에 있으면 같은 레벨 선택이
- * 두 번 보여 헷갈렸다 — 그룹 배정처럼 상세 헤더 메타의 한 칸으로 둔다. [] = 전체 저장.
+ * 두 번 보여 헷갈렸다 — 상세 헤더 메타의 한 칸으로 둔다. [] = 전체 저장.
  */
 export function LogIngestLevels(source: Source) {
   const directId = 'observedServiceId' in source ? source.observedServiceId : undefined;

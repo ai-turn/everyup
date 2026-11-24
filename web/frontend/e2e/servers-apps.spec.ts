@@ -28,10 +28,9 @@ test('the API requests tab lists the trace apps and opens one on its own page', 
   await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();
   await expect(appTabs(page).getByRole('tab', { selected: true })).toHaveText('API 요청');
   await expect(page.getByRole('table', { name: 'API 요청 목록' })).toBeVisible();
-  // 옮기기는 머리말의 더보기 메뉴 안이다(DESIGN.md §4.1 상세 헤더). 그룹은 서버가 정한다.
+  // 옮기기는 머리말의 더보기 메뉴 안이다(DESIGN.md §4.1 상세 헤더).
   await expect(await menuItem(page.locator('#main-content header').first(), '다른 서버로 옮기기')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('combobox', { name: '그룹 배정' })).toHaveCount(0);
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
 });
 
@@ -95,7 +94,6 @@ test('connecting API requests to an empty server keeps the key guidance and land
   await panel(page).getByRole('button', { name: 'API 요청 연결' }).click();
   const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });
   await expect(dialog.getByText('연결 정보를 확인하고 있습니다…')).toHaveCount(0);
-  await expect(dialog.getByRole('combobox', { name: '그룹' })).toHaveCount(0);
   await dialog.getByLabel('앱 이름').fill('staging-api');
   await dialog.getByRole('button', { name: '연결', exact: true }).click();
   await expect(dialog.getByRole('button', { name: 'API Key 복사' })).toBeVisible();
@@ -116,7 +114,7 @@ test('moving a metrics app goes to its page under the new server', async ({ page
   await page.goto(`./servers/${BATCH}/apps/observed_mock_notifications?tab=metrics`);
   await (await menuItem(page.locator('#main-content header').first(), '다른 서버로 옮기기')).click();
   const dialog = page.getByRole('dialog', { name: '다른 서버로 옮기기' });
-  await dialog.getByRole('radio', { name: 'payments-api (Production)' }).check();
+  await dialog.getByRole('radio', { name: 'payments-api' }).check();
   await dialog.getByRole('button', { name: '옮기기' }).click();
   await expect(dialog).toBeHidden();
   await expect(page).toHaveURL(/\/servers\/server_mock_payments_api\/apps\/observed_mock_notifications\?tab=metrics$/);
@@ -126,11 +124,8 @@ test('moving a metrics app goes to its page under the new server', async ({ page
   await expect(panel(page)).toBeFocused();
 });
 
-test('detaching metrics from an app with logs stays on the app and keeps the server group', async ({ page }) => {
+test('detaching metrics from an app with logs stays on the app and on its server', async ({ page }) => {
   await page.goto(`./servers/${BATCH}`);
-  // 서버 머리말 상태 줄의 그룹. 수정 요청에서 serverId가 빠지면 백엔드(와 mock)가 서버의 그룹을 해제한다.
-  const serverGroup = page.locator('header', { has: page.getByRole('heading', { level: 1 }) }).getByText(/^그룹 /);
-  await expect(serverGroup).toHaveText('그룹 Backoffice');
   await page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^메트릭/ }).click();
   await rowNames(page, '메트릭 앱').filter({ hasText: 'notification-worker' }).click();
   await (await menuItem(page.locator('#main-content header').first(), '메트릭 연결 해제')).click();
@@ -141,7 +136,7 @@ test('detaching metrics from an app with logs stays on the app and keeps the ser
   await expect(appTabs(page).getByRole('tab', { name: /^메트릭/ })).toContainText('연결 전');
   await expect(panel(page)).toBeFocused();
   await page.locator('#main-content header').first().getByRole('link', { name: 'batch-host-01' }).or(page.getByRole('link', { name: 'batch-host-01' })).first().click();
-  await expect(serverGroup).toHaveText('그룹 Backoffice');
+  await expect(page.getByRole('heading', { level: 1, name: 'batch-host-01' })).toBeVisible();
 });
 
 test('the app list and the app page fit 320px without horizontal scroll', async ({ page }) => {

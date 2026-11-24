@@ -13,7 +13,6 @@ test('failing server shows its name, state and a cause link to the monitor', asy
   const cause = header.getByRole('link', { name: /응답 없음/ });
   await expect(cause).toBeVisible();
   await expect(cause).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/monitors/uptime_mock_checkout$`));
-  await expect(header).toContainText('Production');
 });
 
 test('tabs come in order and name the failing capability', async ({ page }) => {
@@ -94,7 +93,6 @@ test('a server without targets offers to connect the first capability', async ({
   const panel = page.getByRole('tabpanel');
   await expect(panel.getByText('아직 연결한 기능이 없습니다')).toBeVisible();
   await expect(panel.getByRole('button', { name: '업타임 모니터 추가' })).toBeVisible();
-  await expect(serverHeader(page)).toContainText('미분류');
   await expect(panel.getByRole('region', { name: '연결된 기능' })).toHaveCount(0);
   await expect(panel.getByRole('region', { name: '연결할 수 있는 기능' })).toHaveCount(0);
   await panel.getByRole('button', { name: '업타임 모니터 추가' }).click();

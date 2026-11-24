@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 import { Button, IconButton, OptionText } from '../../../components/common';
 import { SCRIM_MODAL_DIALOG } from '../../../hooks/useOverlay';
 import { useModalDialog } from '../../../hooks/useModalDialog';
-import { api, type MergeInfrastructure, type Project } from '../../../services/api';
+import { api, type MergeInfrastructure } from '../../../services/api';
 import { ApiError, getErrorMessage } from '../../../utils/errors';
 import { capabilityUnverified, countTargets, dockerCollects, hasTargets, targetCountLabels, type ServerRow } from '../serverStatus';
 import { InfraSourceChoice } from './InfraSourceChoice';
@@ -53,11 +53,9 @@ function mergeRules(row: ServerRow, selected: ServerRow[], checked: ReadonlySet<
  * Docker 서버도 합친다(같은 호스트, ADR 0012): Docker Collector는 결과 서버에 하나만 남고, Docker Collector와 OpenTelemetry
  * Collector가 둘 다 호스트 지표를 모으게 되면 하나를 고른다.
  */
-export function MergeServerDialog({ row, rows, projects, initialSelected = [], onClose, onReload, onMerged }: {
+export function MergeServerDialog({ row, rows, initialSelected = [], onClose, onReload, onMerged }: {
   row: ServerRow;
   rows: ServerRow[];
-  /** 그룹 목록을 불러오지 못했으면 null. 항목에서 그룹 이름을 뺀다. */
-  projects: Project[] | null;
   /** 처음부터 고른 서버(개요의 같은 호스트 제안). */
   initialSelected?: string[];
   onClose: () => void;
@@ -87,9 +85,6 @@ export function MergeServerDialog({ row, rows, projects, initialSelected = [], o
   const { blockedBy, needsInfraSource } = mergeRules(row, selected, checked, infraUnknown);
   const infrastructure = needsInfraSource ? infraSource ?? undefined : undefined;
 
-  // 그룹이 없으면 미분류, 그룹 목록을 모르거나 그룹을 찾지 못하면 괄호를 뺀다.
-  const groupOf = (candidate: ServerRow) => !candidate.server.projectId ? '미분류'
-    : projects?.find((project) => project.id === candidate.server.projectId)?.name;
   const summaryOf = (candidate: ServerRow) => {
     const labels = targetCountLabels(countTargets(candidate.targets));
     if (labels.length > 0) return labels.join(', ');
@@ -164,13 +159,12 @@ export function MergeServerDialog({ row, rows, projects, initialSelected = [], o
                 {candidates.map((candidate) => {
                   const reason = blockedBy(candidate);
                   const disabled = Boolean(reason);
-                  const group = groupOf(candidate);
                   return (
                     <li key={candidate.server.id}>
                       <label className={`flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-ui-hover-soft'}`}>
                         <input type="checkbox" checked={checked.has(candidate.server.id)} disabled={disabled} onChange={() => toggle(candidate.server.id)}
                           className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed" />
-                        <OptionText title={<>{candidate.server.name}{group && ` (${group})`}</>}
+                        <OptionText title={candidate.server.name}
                           description={reason ?? `${candidate.targets.docker ? 'Docker Collector, ' : ''}${summaryOf(candidate)}`} />
                       </label>
                     </li>

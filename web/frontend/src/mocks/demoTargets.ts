@@ -1,16 +1,11 @@
-import type { ConnectedAgent, AgentServiceFlat, Project, ObservedService, InfrastructureResource, UptimeMonitor } from '../services/api';
+import type { ConnectedAgent, AgentServiceFlat, ObservedService, InfrastructureResource, UptimeMonitor } from '../services/api';
 
 const now = Date.now();
 const ago = (minutes: number) => new Date(now - minutes * 60_000).toISOString();
 
-export const additionalProjects: Project[] = [
-  { id: 'project_mock_staging', name: 'Staging', description: '배포 전 검증 환경', agentCount: 0, monitorCount: 0, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 0, createdAt: ago(14_400), updatedAt: ago(30) },
-  { id: 'project_mock_backoffice', name: 'Backoffice', description: '주문·알림·정산 작업', agentCount: 0, monitorCount: 0, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 0, createdAt: ago(10_080), updatedAt: ago(45) },
-];
-
 export const additionalAgents: ConnectedAgent[] = [
-  { id: 'agent_demo_03', name: 'worker-cluster', projectId: 'project_mock_backoffice', version: '0.3.0', lastSeenAt: ago(0.2), createdAt: ago(20_160), updatedAt: ago(0.2), profile: { kind: 'all-in-one', capabilities: ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] } },
-  { id: 'agent_demo_04', name: 'edge-node', projectId: 'project_mock_staging', version: '0.3.0', lastSeenAt: ago(0.4), createdAt: ago(8640), updatedAt: ago(0.4), profile: { kind: 'all-in-one', capabilities: ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] } },
+  { id: 'agent_demo_03', name: 'worker-cluster', version: '0.3.0', lastSeenAt: ago(0.2), createdAt: ago(20_160), updatedAt: ago(0.2), profile: { kind: 'all-in-one', capabilities: ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] } },
+  { id: 'agent_demo_04', name: 'edge-node', version: '0.3.0', lastSeenAt: ago(0.4), createdAt: ago(8640), updatedAt: ago(0.4), profile: { kind: 'all-in-one', capabilities: ['uptime', 'logs', 'infrastructure', 'api', 'metrics'] } },
 ];
 
 export const additionalDockerServices: AgentServiceFlat[] = [

@@ -13,7 +13,7 @@ interface DirectTelemetrySetupDialogProps {
   onCreated: (service: ObservedService) => void;
   /** 앱을 만들었거나 신호를 더했다(결과 화면이 열렸다). 닫기만 해도 다시 불러올 것이 생겼다. */
   onIssued?: () => void;
-  /** 새 앱을 이 서버에 만들고, 기존 앱 후보를 이 서버의 앱으로 좁힌다. 그룹은 서버의 것이다. */
+  /** 새 앱을 이 서버에 만들고, 기존 앱 후보를 이 서버의 앱으로 좁힌다. */
   serverId: string;
   /** 같은 이름의 Docker 환경을 찾아 안내한다(`DockerHostNote`). */
   serverName: string;

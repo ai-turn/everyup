@@ -44,8 +44,8 @@ export async function metricsFixture(page: Page) {
     let data: unknown = [];
     if (path === '/servers') data = [state.server];
     else if (path === `/servers/${state.server.id}`) data = state.server;
-    // 서버 화면이 서버 데이터와 함께 불러오는 다른 대상들. 이 fixture의 서버에는 모니터, 인프라, 그룹, 로그가 없다.
-    else if (['/services', '/infrastructure-resources', '/projects', '/logs/summary', '/alert-rules', '/agents/services/all', '/agents'].includes(path)) data = [];
+    // 서버 화면이 서버 데이터와 함께 불러오는 다른 대상들. 이 fixture의 서버에는 모니터, 인프라, 로그가 없다.
+    else if (['/services', '/infrastructure-resources', '/logs/summary', '/alert-rules', '/agents/services/all', '/agents'].includes(path)) data = [];
     else if (path === '/observed-services') data = [state.service, state.waiting];
     else if (path === '/observed-services/metric-catalog') data = catalog;
     else if (path === `/observed-services/${service.id}`) data = state.service;

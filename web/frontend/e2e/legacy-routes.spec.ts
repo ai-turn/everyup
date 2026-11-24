@@ -187,3 +187,28 @@ test.describe('against the API', () => {
     await expect(page.getByRole('heading', { level: 1, name: '인프라 리소스를 찾을 수 없습니다' })).toBeVisible();
   });
 });
+
+// 그룹은 없어졌다(ADR 0013). 옛 그룹 목록·상세와 그 아래 주소는 서버 목록으로 가고, 검색어 같은 쿼리와 해시는 남는다.
+test('the old group list goes to the server list with its query and hash', async ({ page }) => {
+  await page.goto('./projects?q=edge#top');
+  await expect(page).toHaveURL(/\/servers\?q=edge#top$/);
+  await expect(page.getByRole('table', { name: '서버 그리드' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: '서버 또는 대상 검색' })).toHaveValue('edge');
+});
+
+test('an old group address goes to the server list without hiding servers', async ({ page }) => {
+  for (const path of ['./projects/project_mock_production?status=error', './projects/project_mock_staging/members']) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/servers(\?status=error)?$/);
+    await expect(page.getByRole('table', { name: '서버 그리드' })).toBeVisible();
+  }
+  await page.goBack();
+  await expect(page).toHaveURL(/\/servers\?status=error$/);
+});
+
+// 그보다 옛날의 `/projects/:agentId`는 Docker 환경 상세였고, Docker 환경은 같은 ID의 서버다(ADR 0012).
+test('an old Docker environment address under projects goes to its server', async ({ page }) => {
+  await page.goto('./projects/agent_demo_01');
+  await expect(page).toHaveURL(/\/servers\/agent_demo_01$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'prod-server' })).toBeVisible();
+});

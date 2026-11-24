@@ -4,7 +4,6 @@ export interface Server {
   id: string;
   name: string;
   description?: string;
-  projectId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -12,17 +11,15 @@ export interface Server {
 export interface ServerInput {
   name: string;
   description?: string;
-  projectId?: string;
 }
 
 /**
- * 서버 수정(PUT)은 전체 교체다. 세 값을 모두 적어야 한다. 빼면 그 값이 지워진다(설명 없음, 그룹 해제).
+ * 서버 수정(PUT)은 전체 교체다. 두 값을 모두 적어야 한다. 설명을 빼면 지워진다.
  * 값이 없음은 undefined로 나타낸다.
  */
 export interface ServerUpdate {
   name: string;
   description: string | undefined;
-  projectId: string | undefined;
 }
 
 /** 같은 호스트를 합칠 때 남길 호스트 지표 출처: Docker Collector 또는 OpenTelemetry Collector. */

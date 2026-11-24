@@ -140,3 +140,29 @@ export function LegacyContainerRedirect() {
   const rawKey = pathname.replace(/\/$/, '').split('/').pop() ?? '';
   return <Navigate to={`/servers/${encodeURIComponent(agentId)}/containers/${rawKey}${search}${hash}`} replace state={state} />;
 }
+
+/**
+ * 옛 그룹 화면(`/projects`, `/projects/:id`, 그 아래 주소). 그룹은 없어졌다(ADR 0013). 모두 서버 목록으로 가고, 쿼리(검색어, 상태)와 해시는 넘긴다.
+ * 더 옛날의 `/projects/:agentId`는 Docker 환경 상세였고 Docker 환경은 같은 ID의 서버다(ADR 0012). 그런 서버가 있으면 그 서버로 간다.
+ */
+export function LegacyGroupRedirect() {
+  const { '*': rest = '' } = useParams();
+  const { search, hash } = useLocation();
+  const navigate = useNavigate();
+  const id = rest.split('/')[0];
+
+  useEffect(() => {
+    let alive = true;
+    const lookup = id ? api.getServer(id).then(() => true, () => false) : Promise.resolve(false);
+    void lookup.then((isServer) => {
+      if (alive) navigate(`${isServer ? serverPath(id) : SERVERS_PATH}${search}${hash}`, { replace: true });
+    });
+    return () => { alive = false; };
+  }, [id, search, hash, navigate]);
+
+  return (
+    <div role="status" className="flex h-64 items-center justify-center gap-3 text-text-muted">
+      <MaterialIcon size={24} name="sync" className="animate-spin" />이동하는 중…
+    </div>
+  );
+}

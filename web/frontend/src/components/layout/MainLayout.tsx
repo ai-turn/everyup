@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { AppHeader } from './AppHeader';
-import { GroupBackLink } from './GroupBackLink';
 import { CommandPalette } from './CommandPalette';
 import { Sidebar } from './Sidebar';
 import { Footer } from './Footer';
@@ -43,7 +42,7 @@ export function MainLayout() {
 
       <DemoBanner />
 
-      {/* ⌘K / Ctrl+K project·service·page jumper */}
+      {/* ⌘K / Ctrl+K server·target·page jumper */}
       <CommandPalette />
 
       {/* Content area: 좌측 Sidebar(lg+) + 우측 본문 */}
@@ -68,7 +67,6 @@ export function MainLayout() {
               <div className="flex-1 overflow-y-auto scroll-pt-1 scroll-pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:scroll-p-1 motion-safe:scroll-smooth [scrollbar-gutter:stable]">
                 <div className="flex flex-col min-h-full pb-safe-bottom lg:pb-0">
                   <div className="p-4 sm:px-6 sm:py-6 page-stack flex-1 w-full max-w-320 mx-auto">
-                    <GroupBackLink />
                     <Outlet />
                   </div>
                   <Footer />

@@ -22,7 +22,7 @@ export function InfrastructureCollectorSetupDialog({
   onCreated: (resource: InfrastructureResource) => void;
   /** 리소스를 만들고 키를 발급한 직후. 안내를 보고 닫기(X)로 닫아도 만든 것이 있다고 알 수 있다. */
   onIssued?: () => void;
-  /** 리소스를 만들 서버. 그룹은 서버의 것이다. */
+  /** 리소스를 만들 서버. */
   serverId: string;
   /** 리소스는 서버마다 하나라 이름을 묻지 않고 서버 이름을 쓴다. */
   serverName: string;

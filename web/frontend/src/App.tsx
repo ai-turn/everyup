@@ -15,8 +15,6 @@ const LoginPage             = lazy(() => import('./pages/auth/LoginPage').then(m
 const ChannelFormPage       = lazy(() => import('./pages/alerts/ChannelFormPage').then(m => ({ default: m.ChannelFormPage })));
 const LogsPage              = lazy(() => import('./pages/capabilities/LogsPage').then(m => ({ default: m.LogsPage })));
 const MorePage              = lazy(() => import('./pages/capabilities/MorePage').then(m => ({ default: m.MorePage })));
-const ProjectsPage          = lazy(() => import('./pages/projects/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
-const ProjectOverviewPage   = lazy(() => import('./pages/projects/ProjectOverviewPage').then(m => ({ default: m.ProjectOverviewPage })));
 const ServersPage           = lazy(() => import('./pages/servers/ServersPage').then(m => ({ default: m.ServersPage })));
 const ServerDetailPage      = lazy(() => import('./pages/servers/ServerDetailPage').then(m => ({ default: m.ServerDetailPage })));
 const ServerFormPage        = lazy(() => import('./pages/servers/ServerFormPage').then(m => ({ default: m.ServerFormPage })));
@@ -29,6 +27,7 @@ const LegacyServerMonitorRedirect = lazy(() => import('./pages/servers/LegacyTar
 const LegacyEnvironmentRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyEnvironmentRedirect })));
 const LegacyContainerRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyContainerRedirect })));
 const LegacyEnvironmentsRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyEnvironmentsRedirect })));
+const LegacyGroupRedirect = lazy(() => import('./pages/servers/LegacyTargetRedirect').then(m => ({ default: m.LegacyGroupRedirect })));
 
 function PageLoader() {
   return (
@@ -89,8 +88,8 @@ function App() {
                 <Route path="/infrastructure/:id" element={<LegacyTargetRedirect kind="infrastructure" />} />
                 <Route path="/logs" element={<LogsPage />} />
                 <Route path="/more" element={<MorePage />} />
-                <Route path="/projects" element={<ProjectsPage />} />
-                <Route path="/projects/:projectId" element={<ProjectOverviewPage />} />
+                {/* 그룹은 없어졌다(ADR 0013). 옛 그룹 주소는 서버 목록으로 간다. */}
+                <Route path="/projects/*" element={<LegacyGroupRedirect />} />
                 <Route path="/agents/:agentId" element={<LegacyEnvironmentRedirect />} />
                 <Route path="/agents/:agentId/:tab" element={<LegacyEnvironmentRedirect />} />
                 <Route path="/services/:agentId/:key" element={<LegacyContainerRedirect />} />

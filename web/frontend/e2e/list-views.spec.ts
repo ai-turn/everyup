@@ -2,7 +2,6 @@ import { expect, test, type Locator } from '@playwright/test';
 import { API_URL } from './fixtures/ports';
 
 const menus = [
-  ['projects', '그룹', '그룹 그리드'],
   ['logs', '전체 로그', '앱 그리드'],
   // 옛 인프라, API 요청, 메트릭 목록은 서버 목록이 대신한다. 서버 목록에는 보기 전환이 없다.
   ['alerts?tab=channels', '알림', '알림 채널 그리드'],
@@ -10,7 +9,6 @@ const menus = [
   ['alerts?tab=history', '알림', '발송 이력 그리드'],
   // 옛 Docker 환경의 서비스 표는 Docker 서버의 컨테이너 탭이다(ADR 0012).
   ['servers/agent_demo_01/containers', 'prod-server', '컨테이너 그리드'],
-  ['projects/project_mock_production', 'Production', '그룹 구성 그리드'],
 ] as const;
 
 const hrefs = (scope: Locator) => scope.getByRole('link').evaluateAll(elements => [...new Set(elements.map(element => element.getAttribute('href') ?? ''))]);
@@ -23,7 +21,7 @@ for (const width of [1440, 375]) for (const [route, title, label] of menus) {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`./${route}${route.includes('?') ? '&' : '?'}view=unexpected`);
-    // 목록 메뉴의 제목은 개수를 단다(`그룹 3`, DESIGN.md §3.4).
+    // 목록 메뉴의 제목은 개수를 단다(`서버 13`, DESIGN.md §3.4).
     await expect(page.getByRole('heading', { level: 1, name: new RegExp(`^${title}( \\d+)?$`) })).toBeVisible();
     const toggle = page.getByRole('group', { name: '대상 보기 방식', exact: true });
     const table = page.getByRole('table', { name: label, exact: true });
@@ -55,65 +53,6 @@ for (const width of [1440, 375]) for (const [route, title, label] of menus) {
     expect(errors).toEqual([]);
   });
 }
-
-test('Group cards expose editing and deletion without changing views', async ({ page }) => {
-  await page.goto('./projects');
-  await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '카드', exact: true }).click();
-  const card = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Production', exact: true }) });
-  await card.getByRole('button', { name: '그룹 수정', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: '그룹 수정', exact: true })).toBeVisible();
-  await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
-  await card.getByRole('button', { name: '그룹 삭제', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: '그룹을 삭제할까요?', exact: true })).toBeVisible();
-  await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
-  await expect(card).toBeVisible();
-});
-
-test('Group detail adds targets from other groups and removes them again', async ({ page }) => {
-  await page.goto('./projects/project_mock_production');
-  const members = page.getByRole('table', { name: '그룹 구성 그리드', exact: true }).locator('tbody tr');
-  await expect(members.first()).toBeVisible();
-  const before = await members.count();
-  await page.getByRole('button', { name: '대상 추가', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '대상 추가', exact: true });
-  const add = dialog.getByRole('button', { name: '추가', exact: true });
-  await expect(add).toBeDisabled();
-  const option = dialog.locator('label').first();
-  const name = await option.locator('.type-label').innerText();
-  await option.click();
-  await expect(dialog.getByText(/^1개 선택/)).toBeVisible();
-  await add.click();
-  await expect(dialog).toHaveCount(0);
-  await expect(members).toHaveCount(before + 1);
-  await page.getByRole('button', { name: `${name} 그룹에서 빼기`, exact: true }).click();
-  await expect(members).toHaveCount(before);
-});
-
-test('a target opened from a group stays inside the group until leaving it', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const crumbs = page.getByRole('navigation', { name: '현재 위치', exact: true });
-  const sidebarCurrent = page.locator('aside a[aria-current="page"]');
-  await page.goto('./projects/project_mock_staging');
-  // 그룹의 구성원은 서버다. 서버 안에서 대상으로 들어가도 그룹 맥락이다.
-  await page.getByRole('link', { name: 'staging-host-01', exact: true }).click();
-  await page.getByRole('tab', { name: /^업타임/ }).click();
-  await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
-  await expect(page).toHaveURL(/\/servers\/server_mock_staging_host_01\/monitors\/uptime_mock_redis$/);
-  await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
-  await expect(sidebarCurrent).toHaveText('그룹');
-  // 새로고침해도 그룹 안이다.
-  await page.reload();
-  await expect(crumbs).toHaveText(/그룹.*Staging.*Redis TCP/);
-  await crumbs.getByRole('link', { name: 'Staging', exact: true }).click();
-  await expect(page).toHaveURL(/\/projects\/project_mock_staging$/);
-  // exact: 아니면 아직 남아 있는 서버 화면의 h1 "staging-host-01"에 맞아서, 그룹 화면이 그려지기 전에 떠난다.
-  await expect(page.getByRole('heading', { level: 1, name: 'Staging', exact: true })).toBeVisible();
-  // 그룹을 떠나 서버 화면에서 같은 대상을 열면 서버 맥락이다.
-  await page.goto('./servers/server_mock_staging_host_01/uptime');
-  await page.getByRole('link', { name: 'Redis TCP', exact: true }).first().click();
-  await expect(crumbs).toHaveText(/^서버.*Redis TCP$/);
-  await expect(sidebarCurrent).toHaveText('서버');
-});
 
 test('alert target and local search stay intact while switching views', async ({ page }) => {
   await page.goto('./alerts?tab=rules&target=agent&agentId=agent_demo_01&serviceKey=shop%3Aapi');
@@ -156,16 +95,6 @@ test('notification cards preserve the current page and filter without fetching a
   expect(historyRequests.length).toBe(requests);
   await page.getByRole('group', { name: '대상 보기 방식' }).getByRole('button', { name: '그리드', exact: true }).click();
   await expect(table.getByText('Record #26', { exact: true })).toBeVisible();
-});
-
-test('Group status summary on the list counts the same members as the group detail', async ({ page }) => {
-  await page.goto('./projects');
-  const row = page.getByRole('table', { name: '그룹 그리드', exact: true }).getByRole('row').filter({ hasText: 'Production' });
-  const summary = await row.getByRole('cell').nth(1).innerText();
-  expect(summary).toMatch(/^(장애|확인 필요|대기|정상) \d+(, (장애|확인 필요|대기|정상) \d+)*$/);
-  const total = [...summary.matchAll(/\d+/g)].reduce((sum, [count]) => sum + Number(count), 0);
-  await page.goto('./projects/project_mock_production');
-  await expect(page.getByRole('table', { name: '그룹 구성 그리드', exact: true }).locator('tbody tr')).toHaveCount(total);
 });
 
 // URL(?q=)에 입력값을 직접 묶으면 react-router transition이 값을 한 박자 늦게 돌려줘 한글 조합이 깨졌다(ㄱ겨결결ㅈ제제).

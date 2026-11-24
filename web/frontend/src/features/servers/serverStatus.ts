@@ -11,13 +11,13 @@ import { uptimeState, UPTIME_STATE_LIGHT } from '../uptime/uptimeState';
 import { SERVER_CAPABILITIES, appPath, monitorPath, serverPath, type ServerCapability } from './serverPaths';
 import type { ForgetTarget } from './useServers';
 
-// 서버 목록, 서버 개요, 그룹 화면이 같은 판정을 쓴다. 따로 계산하면 목록은 "정상"인데 그룹은 "장애"인 대상이 생긴다.
+// 서버 목록, 서버 개요, 개요 화면이 같은 판정을 쓴다. 따로 계산하면 목록은 "정상"인데 개요는 "장애"인 대상이 생긴다.
 
 /** 문제가 먼저: 장애, 확인 필요, 대기, 정상. */
 export const STATE_ORDER: Record<StatusTone, number> = { error: 0, warn: 1, idle: 2, healthy: 3 };
 export const STATE_LABEL: Record<StatusTone, string> = { error: '장애', warn: '확인 필요', idle: '대기', healthy: '정상' };
 
-/** 상태 칩의 순서(볼 것이 먼저). 서버 목록과 그룹 목록이 같은 칩을 쓴다(DESIGN.md §4.1 FilterChips). */
+/** 상태 칩의 순서(볼 것이 먼저). 목록 화면이 같은 칩을 쓴다(DESIGN.md §4.1 FilterChips). */
 export const STATE_FILTERS: StatusTone[] = ['error', 'warn', 'idle', 'healthy'];
 export const parseStateFilter = (value: string | null) => STATE_FILTERS.find((state) => state === value) ?? null;
 /** 보이는 항목들의 상태로 칩을 만든다. 0건인 장애·확인 필요는 점을 중립색으로 둔다(§5.4). */
@@ -174,7 +174,7 @@ export function capabilityLabel(row: ServerRow, capability: ServerCapability, st
 
 export type ServerMetric = 'cpu' | 'memory' | 'disk' | 'uptime' | 'errorLogs';
 
-/** 여러 대상의 상태를 하나로 합친다(장애 > 확인 필요 > 정상 > 대기). 대상이 없으면 null. 그룹 요약도 같은 판정을 쓴다. */
+/** 여러 대상의 상태를 하나로 합친다(장애 > 확인 필요 > 정상 > 대기). 대상이 없으면 null. */
 export const worst = (states: StatusTone[]): StatusTone | null =>
   states.reduce<StatusTone | null>((current, state) => current === null || SEVERITY[state] < SEVERITY[current] ? state : current, null);
 
@@ -212,7 +212,7 @@ export const targetCountLabels = (counts: TargetCounts): string[] =>
     .filter(([, count]) => count > 0).map(([label, count]) => `${label} ${count}개`);
 
 
-// 앱 페이지의 첫 탭은 그룹 화면과 같은 순서(로그 > 메트릭 > API 요청)로 고른다.
+// 앱 페이지의 첫 탭은 로그 > 메트릭 > API 요청 순서로 고른다.
 export const appCapability = (app: ObservedService): 'logs' | 'api' | 'metrics' =>
   app.signals.includes('logs') ? 'logs' : app.signals.includes('metrics') ? 'metrics' : 'api';
 

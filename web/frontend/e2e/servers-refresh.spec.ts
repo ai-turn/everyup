@@ -21,12 +21,10 @@ const appHeader = (page: Page) => page.locator('#main-content header').first();
 const appRows = (page: Page, name: string) => page.getByRole('table', { name }).locator('tbody tr');
 
 async function mockServer(page: Page, options: {
-  infrastructure?: boolean; monitors?: UptimeMonitor[]; project?: boolean;
+  infrastructure?: boolean; monitors?: UptimeMonitor[];
   /** apps는 a1 말고 더 둘 앱, signals는 a1의 신호 */
   apps?: ObservedService[]; signals?: ObservedService['signals']; catalog?: ObservedServiceMetricName[];
 } = {}) {
-  const group = { id: 'p1', name: 'payments', createdAt: at, updatedAt: at };
-  const own = options.project ? { ...server, projectId: group.id } : server;
   const state = {
     // 키는 경로(GET) 또는 `메서드 경로`이다.
     failures: new Set<string>(),
@@ -58,7 +56,7 @@ async function mockServer(page: Page, options: {
       return;
     }
     // 앱 패널(로그, API 요청)이 부르는 객체 응답. 나머지는 빈 목록이다.
-    const data = path === '/servers' ? [own] : path === '/services' ? options.monitors ?? [] : path === '/projects' ? (options.project ? [group] : [])
+    const data = path === '/servers' ? [server] : path === '/services' ? options.monitors ?? []
       : path === '/observed-services' ? [...(state.app ? [state.app] : []), ...(options.apps ?? [])]
       : path === '/observed-services/metric-catalog' ? options.catalog ?? []
       : path.endsWith('/otel-metrics/health') ? { metrics: [], checkedAt: at }
@@ -435,7 +433,7 @@ test('a header refresh during a connection stop does not reload the infrastructu
 
 test('a server whose failing monitor could not be checked is not called healthy by its other targets', async ({ page }) => {
   const down = monitor('m1', { name: 'Checkout', serverId: 's1', status: 'unhealthy' });
-  const state = await mockServer(page, { infrastructure: true, monitors: [down], project: true });
+  const state = await mockServer(page, { infrastructure: true, monitors: [down] });
   const row = page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr').filter({ hasText: 'web-01' });
   const statusCell = row.getByRole('cell').nth(1);
   await page.goto('./servers');
@@ -453,16 +451,6 @@ test('a server whose failing monitor could not be checked is not called healthy 
   await expect(serverHeader(page).getByText('업타임 확인 불가', { exact: true })).toBeVisible();
   await expect(serverHeader(page).getByText('정상', { exact: true })).toHaveCount(0);
   await expect(serverHeader(page).getByText('대기', { exact: true })).toBeVisible();
-
-  // 그룹 목록의 요약과 그룹 상세도 그 서버를 정상으로 세지 않는다.
-  await page.goto('./projects');
-  const groupRow = page.getByRole('table', { name: '그룹 그리드' }).locator('tbody tr').filter({ hasText: 'payments' });
-  await expect(groupRow).toContainText('대기 1');
-  await expect(groupRow).not.toContainText('정상');
-  await page.goto('./projects/p1');
-  const member = page.getByRole('table', { name: '그룹 구성 그리드' }).locator('tbody tr').filter({ hasText: 'web-01' });
-  await expect(member).toContainText('업타임 확인 불가');
-  await expect(member).not.toContainText('정상');
 
   // 조회가 회복되면 원래의 상태로 돌아온다.
   state.failures.clear();
@@ -544,11 +532,11 @@ test('the metrics panel of an app over a threshold says so, like its tab', async
 });
 
 test('only the screens that show error log counts ask for the log summary', async ({ page }) => {
-  const state = await mockServer(page, { project: true });
+  const state = await mockServer(page);
   const summaries = state.count('/logs/summary');
   const catalogReads = state.count('/observed-services/metric-catalog');
   // 서버 데이터의 요청은 한꺼번에 나간다. 지표 목록(마지막 요청)이 나갔으면 로그 요약도 나갔을 때다.
-  for (const path of ['./', './projects', './projects/p1']) {
+  for (const path of ['./']) {
     const before = catalogReads();
     await page.goto(path);
     await expect.poll(catalogReads).toBeGreaterThan(before);

@@ -21,7 +21,7 @@ const CONNECTIONS: { value: Connection; title: string; description: string }[] =
 export function ServerFormPage() {
   const navigate = useNavigate();
   useBreadcrumb([{ label: '서버 추가' }]);
-  const form = useServerForm({ name: '', description: '', projectId: '' });
+  const form = useServerForm({ name: '', description: '' });
   const { saving } = form;
   // 옛 `Docker 연결`은 `?connection=docker`로 와서 Docker Collector 설치를 고른 채로 연다.
   const [params] = useSearchParams();

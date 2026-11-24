@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MaterialIcon } from '../common';
 import { SCRIM_PANEL, useOverlay } from '../../hooks/useOverlay';
-import { api, type AgentServiceFlat, type ConnectedAgent, type ObservedService, type Project, type Server, type UptimeMonitor } from '../../services/api';
+import { api, type AgentServiceFlat, type ConnectedAgent, type ObservedService, type Server, type UptimeMonitor } from '../../services/api';
 import { NAV_SECTIONS } from './navSections';
 import { ALL_LOGS_PATH, appPath, monitorPath, serverPath } from '../../features/servers/serverPaths';
 import { containerPath } from '../../features/docker/dockerPaths';
@@ -30,7 +30,6 @@ export function CommandPalette() {
   const [servers, setServers] = useState<Server[]>([]);
   const [monitors, setMonitors] = useState<UptimeMonitor[]>([]);
   const [apps, setApps] = useState<ObservedService[]>([]);
-  const [groups, setGroups] = useState<Project[]>([]);
   const [dataStatus, setDataStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -73,16 +72,15 @@ export function CommandPalette() {
       setDataStatus('loading');
       // 하나가 실패해도 불러온 대상은 검색할 수 있게 한다.
       // Docker 호스트도 서버다(ADR 0012): 서버 목록은 Docker 서버를 함께 받는다. Docker Collector 목록은 컨테이너의 서버를 찾는 데 쓴다.
-      const lists = [api.getAgents(), api.getAllAgentServicesFlat(), api.getServers({ includeDocker: true }), api.getUptimeMonitors(), api.getObservedServices(), api.getProjects()] as const;
+      const lists = [api.getAgents(), api.getAllAgentServicesFlat(), api.getServers({ includeDocker: true }), api.getUptimeMonitors(), api.getObservedServices()] as const;
       void Promise.allSettled(lists)
         .then((results) => {
-          const [agts, svcs, srvs, mons, obs, prjs] = results;
+          const [agts, svcs, srvs, mons, obs] = results;
           if (agts.status === 'fulfilled') setAgents(agts.value ?? []);
           if (svcs.status === 'fulfilled') setServices(svcs.value ?? []);
           if (srvs.status === 'fulfilled') setServers(srvs.value ?? []);
           if (mons.status === 'fulfilled') setMonitors(mons.value ?? []);
           if (obs.status === 'fulfilled') setApps(obs.value ?? []);
-          if (prjs.status === 'fulfilled') setGroups(prjs.value ?? []);
           setDataStatus(results.every((result) => result.status === 'fulfilled') ? 'idle' : 'error');
         });
     }, 0);
@@ -112,17 +110,13 @@ export function CommandPalette() {
     ...apps.flatMap((app) => app.serverId ? [{
       id: `app-${app.id}`, icon: 'hub', label: app.name, meta: ownerOf(app.serverId, '앱'), to: appPath(app.serverId, app.id),
     }] : []),
-    // 아이콘은 사이드바와 같다: 서버 dns, 그룹 folder_open.
-    ...groups.map((group) => ({
-      id: `group-${group.id}`, icon: 'folder_open', label: group.name, meta: '그룹', to: `/projects/${group.id}`,
-    })),
     ...services.map((s) => {
       // 컨테이너도 서버의 대상이다(모니터, 앱과 같은 `<서버>의 …`).
       const serverId = serverOfCollector(s.agentId);
       return { id: `svc-${s.agentId}-${s.key}`, icon: '', label: s.name, meta: ownerOf(serverId, '컨테이너'), to: containerPath(serverId, s.key), healthy: s.healthy };
     }),
     ];
-  }, [agents, apps, groups, monitors, servers, services]);
+  }, [agents, apps, monitors, servers, services]);
 
   const filtered = useMemo(() => {
     if (!query) return items;
@@ -183,7 +177,7 @@ export function CommandPalette() {
             aria-label="검색"
             aria-controls="command-palette-results"
             aria-activedescendant={filtered[index] ? `command-palette-option-${filtered[index].id}` : undefined}
-            placeholder="서버, 대상, 그룹, 페이지 검색…"
+            placeholder="서버, 대상, 페이지 검색…"
             className="flex-1 bg-transparent py-3.5 type-control max-sm:text-base text-text-base outline-none placeholder:text-text-dim"
           />
           <kbd className="shrink-0 font-sans px-1.5 py-0.5 rounded border border-ui-border type-label-sm text-text-dim">

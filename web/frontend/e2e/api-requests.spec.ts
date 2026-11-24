@@ -18,7 +18,6 @@ interface ApiState {
   failSummary?: boolean;
   failRequests?: boolean;
   failStats?: boolean;
-  failOptions?: boolean;
   truncated?: boolean;
   requests?: ApiRequest[];
   received?: boolean;
@@ -41,8 +40,7 @@ async function mockApi(page: Page, state: ApiState) {
     const failed = (path === '/observed-services' && state.failList)
       || (path.endsWith('/request-status-summary') && state.failSummary)
       || (path.endsWith('/requests') && state.failRequests)
-      || (path.endsWith('/request-stats') && state.failStats)
-      || (path === '/projects' && state.failOptions);
+      || (path.endsWith('/request-stats') && state.failStats);
     if (failed) {
       await route.fulfill({ status: 503, json: { success: false, error: { code: 'DATABASE_ERROR' } } });
       return;
@@ -111,14 +109,6 @@ test('request failures remain distinct from zero results and recover on retry', 
   state.failRequests = false;
   await results.getByRole('button', { name: '다시 시도', exact: true }).click();
   await expect(results.getByText('이 기간에 수집된 HTTP 요청이 없습니다', { exact: true })).toBeVisible();
-});
-
-test('group options failing do not block request investigation', async ({ page }) => {
-  await mockApi(page, { failOptions: true, queries: [] });
-  await page.goto('./servers/server-1/api/api-test');
-  await expect(page.getByRole('heading', { name: 'orders-api', exact: true })).toBeVisible();
-  await expect(page.getByRole('region', { name: '요청 결과' })).toBeVisible();
-  await expect(page.getByRole('textbox', { name: 'API 제외 경로' })).toBeHidden();
 });
 
 function requestRows(): ApiRequest[] {
@@ -236,7 +226,7 @@ test('API connection recovers options and distinguishes registration from data r
   await mockApi(page, state);
   await page.goto('./servers/server-1/api');
   await expect(page.getByRole('table', { name: 'API 요청 앱' }).getByRole('link', { name: 'orders-api', exact: true })).toBeVisible();
-  // 서버 탭의 대화 상자는 그룹을 고르지 않는다(그룹은 서버가 정한다). 대화 상자가 불러오는 선택지는 이 서버의 기존 앱 목록이다.
+  // 대화 상자가 불러오는 선택지는 이 서버의 기존 앱 목록이다.
   state.failList = true;
   await page.getByRole('button', { name: 'API 요청 연결', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'API 요청 연결' });

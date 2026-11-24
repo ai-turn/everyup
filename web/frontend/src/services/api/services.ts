@@ -142,7 +142,6 @@ export type UptimeMonitorStatus = 'healthy' | 'unhealthy' | 'unknown';
 export interface UptimeMonitor {
   id: string;
   name: string;
-  projectId?: string;
   serverId: string;
   type: UptimeMonitorType;
   isActive: boolean;

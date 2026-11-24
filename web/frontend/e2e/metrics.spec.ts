@@ -50,10 +50,8 @@ test('a failed first load of the apps recovers through retry instead of leaving 
   await expect(page.getByRole('tabpanel').locator('.recharts-wrapper')).toHaveCount(2);
 });
 
-test('metric names, chart and optional groups have independent HTTP failure states', async ({ page }) => {
+test('metric names and chart have independent HTTP failure states', async ({ page }) => {
   const state = await metricsFixture(page);
-  // 그룹 목록은 서버 머리말의 보조 정보다. 실패해도 메트릭은 그대로 조사한다.
-  state.failures.add('/projects');
   state.failures.add('/observed-services/metrics-service/otel-metrics/health');
   state.failures.add('points:jvm.memory.used');
   await page.goto(`${API_URL}servers/server-1/metrics/metrics-service`);

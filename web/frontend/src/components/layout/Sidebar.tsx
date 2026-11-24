@@ -1,13 +1,12 @@
 import { Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { IconButton, MaterialIcon } from '../common';
 import { env } from '../../config/env';
 import logo from '../../assets/logo.webp';
 import { DemoScenarioSwitcher } from './DemoScenarioSwitcher';
 import { DemoHelpLinks } from './DemoHelpLinks';
-import { NAV_SECTIONS } from './navSections';
-import { useCurrentSection } from '../../hooks/useGroupTrail';
+import { NAV_SECTIONS, sectionFor } from './navSections';
 
 interface NavItemProps {
   to: string;
@@ -42,9 +41,8 @@ function NavItem({ to, icon, label, active, badge }: NavItemProps) {
 export function Sidebar({ failureCount }: { failureCount: number }) {
   const { theme, toggleTheme } = useTheme();
 
-  // 활성 항목 = 첫 크럼과 같은 섹션(담김 관계, DESIGN.md §3.4) — 서비스 상세는 Docker 환경이다.
-  // 그룹에서 연 대상이면 그룹이다(useGroupTrail).
-  const current = useCurrentSection();
+  // 활성 항목 = 첫 크럼과 같은 섹션(담김 관계, DESIGN.md §3.4) — 컨테이너·앱 상세는 서버다.
+  const current = sectionFor(useLocation().pathname);
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-ui-border bg-bg-surface lg:flex">

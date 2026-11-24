@@ -31,9 +31,8 @@ test('server list puts the failing server first with its cause', async ({ page }
   await expect(empty.getByRole('cell').nth(2)).toHaveText('수집 안 함');
   await expect(empty.getByRole('cell').nth(2).locator('[aria-hidden="true"]')).toHaveCount(0);
 
-  // 그룹은 열이 아니라 이름 아래 줄이고, 원인은 한 줄이다. 장애 행만 옅게 채운다.
-  await expect(page.getByRole('columnheader', { name: '그룹' })).toHaveCount(0);
-  await expect(first.getByRole('cell').first()).toContainText('Production');
+  // 원인은 한 줄이다. 장애 행만 옅게 채운다. 그룹은 없다(ADR 0013).
+  await expect(first.getByRole('cell').first()).not.toContainText('Production');
   const cause = first.getByRole('cell').nth(1).locator('p');
   expect(await cause.evaluate((node) => getComputedStyle(node).whiteSpace)).toBe('nowrap');
   const tint = (row: ReturnType<typeof rowOf>) => row.evaluate((node) => getComputedStyle(node).backgroundColor);
@@ -71,13 +70,14 @@ test('the search box follows the address when it changes from outside', async ({
   await expect(dataRows(page)).toHaveCount(13);
 });
 
-test('an unknown group in the address does not hide servers', async ({ page }) => {
-  await page.goto('./servers?group=no-such-group');
-  await expect(page.getByRole('combobox', { name: '그룹으로 거르기' })).toBeVisible();
+// 그룹은 없어졌다(ADR 0013). 옛 그룹 필터 주소는 서버를 숨기지 않는다.
+test('an old group filter in the address does not hide servers', async ({ page }) => {
+  await page.goto('./servers?group=project_mock_backoffice');
+  await expect(page.getByRole('combobox', { name: /그룹/ })).toHaveCount(0);
   await expect(dataRows(page)).toHaveCount(13);
 });
 
-test('status summary and group filter narrow the list', async ({ page }) => {
+test('status summary and connection filter narrow the list', async ({ page }) => {
   await page.goto('./servers');
   const chips = page.getByRole('group', { name: '상태로 거르기' });
   const down = chips.getByRole('button', { name: /장애/ });
@@ -99,16 +99,13 @@ test('status summary and group filter narrow the list', async ({ page }) => {
   await expect(page).not.toHaveURL(/status=/);
   await expect(dataRows(page)).toHaveCount(13);
 
-  await page.getByRole('combobox', { name: '그룹으로 거르기' }).click();
-  await page.getByRole('option', { name: 'Backoffice', exact: true }).click();
-  await expect(page).toHaveURL(/[?&]group=/);
-  await expect(dataRows(page)).toHaveCount(3);
-  await expect(rowOf(page, 'batch-host-01')).toBeVisible();
-  await expect(rowOf(page, 'Mail relay')).toBeVisible();
-  await expect(rowOf(page, 'worker-cluster')).toBeVisible();
-  // 칩의 개수는 그룹과 검색을 따른다(상태 선택은 따르지 않는다).
-  await expect(chips.getByRole('button', { name: /확인 필요/ })).toHaveText(/확인 필요\s*2$/);
-  await expect(chips.getByRole('button', { name: /장애/ })).toHaveText(/장애\s*0$/);
+  await page.getByRole('combobox', { name: '연결 방식으로 거르기' }).click();
+  await page.getByRole('option', { name: 'Docker Collector', exact: true }).click();
+  await expect(page).toHaveURL(/[?&]connection=docker/);
+  await expect(dataRows(page)).toHaveCount(4);
+  // 칩의 개수는 연결 방식과 검색을 따른다(상태 선택은 따르지 않는다).
+  await expect(chips.getByRole('button', { name: /장애/ })).toHaveText(/장애\s*1$/);
+  await expect(chips.getByRole('button', { name: /확인 필요/ })).toHaveText(/확인 필요\s*1$/);
   await expect(chips.getByRole('button', { name: /정상/ })).toHaveText(/정상\s*1$/);
 });
 

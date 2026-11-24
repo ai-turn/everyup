@@ -4,10 +4,8 @@ import { DetailMeta, IconButton, MaterialIcon, OverflowMenu, PageHeader, Refresh
 import { SERVERS_PATH } from '../serverPaths';
 import { STATE_LABEL, type ServerRow } from '../serverStatus';
 
-export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange, docker }: {
+export function ServerHeader({ row, onRefresh, refreshing, onSettings, updatedAt, autoRefresh, onAutoRefreshChange, docker }: {
   row: ServerRow;
-  /** 그룹 목록을 불러오지 못했으면 undefined. 그룹 항목을 숨긴다. */
-  groupName?: string;
   onRefresh: () => void;
   /** 서버 데이터를 다시 불러오는 중이다. 새로고침이 회전하고 눌리지 않는다. */
   refreshing: boolean;
@@ -52,7 +50,6 @@ export function ServerHeader({ row, groupName, onRefresh, refreshing, onSettings
                 ? <Link to={causeLink} className="inline-flex min-h-11 items-center text-action link-underline sm:min-h-6">{cause.text}</Link>
                 // 링크와 같은 높이: 원인 대상을 보는 중이라 글자로 바뀌어도 탭 줄이 움직이지 않는다.
                 : <span className="inline-flex min-h-11 items-center type-caption text-text-muted sm:min-h-6">{cause.text}</span>)}
-              {groupName !== undefined && <span>그룹 <span className="text-text-secondary">{groupName}</span></span>}
               {/* 상태 줄의 오른쪽 끝. 좁은 화면에서는 상태 줄 아래로 흐른다. 모든 탭에서 같은 자리라 머리말의 높이가 같다.
                   갱신 중 표시는 새로고침 버튼의 회전이 맡는다(글자가 바뀌면 줄바꿈 위치가 흔들린다). */}
               <div className="ml-auto max-lg:hidden">

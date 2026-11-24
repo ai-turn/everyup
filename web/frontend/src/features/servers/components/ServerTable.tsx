@@ -33,12 +33,10 @@ function OverWarning({ value }: { value: number }) {
   return value >= WARNING_PCT ? <span className="sr-only">, 주의 기준 초과</span> : null;
 }
 
-export function ServerTable({ rows, matches, groupName }: {
+export function ServerTable({ rows, matches }: {
   rows: ServerRow[];
   /** 서버 이름이 아니라 소속 대상이 검색어와 일치한 경우, 일치한 대상의 이름 */
   matches: ReadonlyMap<string, string[]>;
-  /** 그룹 목록을 모르면 빈 문자열 */
-  groupName: (projectId?: string) => string;
 }) {
   const usage = (value: number) => <span className={usageClass(value)}>{percent(value, 1)}<OverWarning value={value} /></span>;
   const cpu = (row: ServerRow) => <Value row={row} metric="cpu" render={usage} />;
@@ -47,7 +45,7 @@ export function ServerTable({ rows, matches, groupName }: {
   const errorLogs = (row: ServerRow) => <Value row={row} metric="errorLogs" render={(value) => value.toLocaleString()} />;
 
   // 열은 뷰포트가 아니라 목록 폭에 맞춘다(DESIGN.md §4.5). 이름 열은 폭을 정하고 남는 폭은 상태 열이 받아 원인이 한 줄에 든다.
-  // 행은 두 줄이다: 이름 아래 그룹, 상태 아래 원인. 좁아지면 수치를 그룹 줄로 모은다.
+  // 행은 두 줄이다: 이름 아래 연결 방식, 상태 아래 원인. 좁아지면 수치를 이름 아래 줄로 모은다.
   return <div className="@container">
     <ResourceTable rows={rows} rowKey={(row) => row.server.id} ariaLabel="서버 그리드" alertRow={(row) => row.state === 'error'} columns={[
       { key: 'server', label: '서버', className: '@3xl:w-64 @5xl:w-72', render: (row) => {
@@ -60,7 +58,6 @@ export function ServerTable({ rows, matches, groupName }: {
             {row.memory !== undefined && <span className="whitespace-nowrap @3xl:hidden">메모리 <span className={`tabular-nums ${usageClass(row.memory)}`}>{percent(row.memory, 1)}<OverWarning value={row.memory} /></span></span>}
             {row.uptime !== undefined && <span className="whitespace-nowrap tabular-nums @3xl:hidden">업타임 {percent(row.uptime, 2)}</span>}
             {row.errorLogs !== undefined && <span className="whitespace-nowrap tabular-nums @3xl:hidden">오류 로그 {row.errorLogs.toLocaleString()}</span>}
-            {groupName(row.server.projectId) && <span className="min-w-0 truncate"><span className="sr-only">그룹 </span>{groupName(row.server.projectId)}</span>}
             {/* 연결 방식은 분류 축이라 칩이 아니라 글자다(DESIGN.md §9.13). 직접 연결은 대상으로 드러나므로 Docker만 적는다. */}
             {row.targets.docker && <span className="whitespace-nowrap">Docker Collector{row.targets.containers.length > 0 ? ` · 컨테이너 ${row.targets.containers.length}개` : ''}</span>}
           </p>

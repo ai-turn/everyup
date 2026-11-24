@@ -3,7 +3,7 @@ import { mockRouter } from '../src/services/mockRouter';
 import type {
   ApiRequest, ApiRequestStats, ApiRequestStatusSummary, InfrastructureResource, LogEntry, LogPattern,
   LogServiceSummary, NotificationHistoryResponse, ObservedService, OtelHistogramQuantiles,
-  OtelMetricName, Project, TraceDetail, TraceSummary, UptimeMonitor, UptimeMonitorMetric,
+  OtelMetricName, TraceDetail, TraceSummary, UptimeMonitor, UptimeMonitorMetric,
 } from '../src/services/api';
 
 test('demo telemetry stays inside its service and summaries match the rows', () => {
@@ -62,16 +62,11 @@ test('demo telemetry stays inside its service and summaries match the rows', () 
   expect(mockRouter<{ total: number }>(`${orders}?search=checkout`).total).toBe(0);
 });
 
-test('demo group membership, monitor details and infrastructure values agree', () => {
-  const projects = mockRouter<Project[]>('/projects');
+test('demo monitor details and infrastructure values agree', () => {
   const monitors = mockRouter<UptimeMonitor[]>('/services?type=http,tcp');
   const services = mockRouter<ObservedService[]>('/observed-services');
   const infrastructure = mockRouter<InfrastructureResource[]>('/infrastructure-resources').filter(row => row.adapter === 'otel-collector');
-  for (const project of projects) {
-    expect(project.monitorCount).toBe(monitors.filter(row => row.projectId === project.id).length);
-    expect(project.observedServiceCount).toBe(services.filter(row => row.projectId === project.id).length);
-    expect(project.infrastructureResourceCount).toBe(infrastructure.filter(row => row.projectId === project.id).length);
-  }
+  expect(services.length).toBeGreaterThan(0);
   for (const monitor of monitors.filter(row => row.isActive)) {
     const metrics = mockRouter<UptimeMonitorMetric[]>(`/services/${monitor.id}/metrics`);
     expect(metrics.length).toBeGreaterThan(0);
@@ -92,13 +87,9 @@ test('demo group membership, monitor details and infrastructure values agree', (
   expect(second.items.every(row => !first.items.some(other => other.id === row.id))).toBe(true);
 });
 
-test('visitor can explore the added groups and service-specific telemetry', async ({ page }) => {
+test('visitor can explore service-specific telemetry', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('./projects/project_mock_backoffice');
-  await expect(page.getByRole('heading', { level: 1, name: 'Backoffice' })).toBeVisible();
-  // 그룹의 구성원은 서버다. notification-worker는 batch-host-01에 있다.
-  await expect(page.getByRole('link', { name: 'batch-host-01', exact: true })).toBeVisible();
   // 앱은 자기 페이지가 있고 그 h1이 앱 이름이다(옛 서버 탭 주소는 넘어간다). 서버는 src/mocks/SCENARIOS.md를 따른다.
   await page.goto('./servers/server_mock_edge_host_01/logs/observed_mock_orders');
   await expect(page.getByRole('heading', { level: 1, name: 'orders-api' })).toBeVisible();

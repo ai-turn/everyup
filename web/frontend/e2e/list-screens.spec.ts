@@ -8,7 +8,7 @@ const titleSize = (page: Page) => crumbs(page).locator('[aria-current="page"]').
 test.describe('the title of a menu screen is said once', () => {
   test('desktop: the top bar carries the title and the count, the body h1 is for screen readers', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    for (const [route, name] of [['servers', '서버'], ['projects', '그룹']] as const) {
+    for (const [route, name] of [['servers', '서버']] as const) {
       await page.goto(`./${route}`);
       await expect(crumbs(page)).toHaveText(new RegExp(`^${name} \\d+$`));
       expect(await titleSize(page)).toBe('24px');
@@ -29,40 +29,18 @@ test.describe('the title of a menu screen is said once', () => {
 
   test('mobile: the body h1 carries the count and the actions share its row', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    for (const [route, name, action] of [['servers', '서버', '추가'], ['projects', '그룹', '추가'], ['alerts', '알림', '규칙 추가']] as const) {
+    for (const [route, name, action] of [['servers', '서버', '추가'], ['alerts', '알림', '규칙 추가']] as const) {
       await page.goto(`./${route}`);
       const h1 = page.getByRole('heading', { level: 1, name: new RegExp(`^${name}( \\d+)?$`) });
       await expect(h1).toBeVisible();
       const title = (await h1.boundingBox())!;
-      const button = (await page.getByRole('main').getByRole(route === 'projects' || route === 'alerts' ? 'button' : 'link', { name: action, exact: true }).boundingBox())!;
+      const button = (await page.getByRole('main').getByRole(route === 'alerts' ? 'button' : 'link', { name: action, exact: true }).boundingBox())!;
       expect(Math.abs((title.y + title.height / 2) - (button.y + button.height / 2))).toBeLessThanOrEqual(4);
     }
   });
 });
 
 test.describe('summaries are filter chips whose counts follow the other filters', () => {
-  test('groups: status chips, search and clearing', async ({ page }) => {
-    await page.goto('./projects');
-    const table = page.getByRole('table', { name: '그룹 그리드' });
-    await expect(table.locator('tbody tr')).toHaveCount(3);
-    const down = chips(page).getByRole('button', { name: /^장애/ });
-    await expect(down).toHaveText(/장애\s*1$/);
-    await down.focus();
-    await page.keyboard.press('Enter');
-    await expect(down).toHaveAttribute('aria-pressed', 'true');
-    await expect(page).toHaveURL(/[?&]status=error/);
-    await expect(table.locator('tbody tr')).toHaveCount(1);
-    await expect(table).toContainText('Production');
-    // 검색어가 바뀌면 칩의 개수가 따라간다.
-    await page.getByRole('textbox', { name: '그룹 이름 또는 설명 검색' }).fill('배포');
-    await expect(down).toHaveText(/장애\s*0$/);
-    await expect(chips(page).getByRole('button', { name: /^정상/ })).toHaveText(/정상\s*1$/);
-    await expect(page.getByText('검색 결과가 없습니다')).toBeVisible();
-    await page.getByRole('button', { name: '필터 해제', exact: true }).click();
-    await expect(table.locator('tbody tr')).toHaveCount(3);
-    await expect(page).not.toHaveURL(/status=|q=/);
-  });
-
   test('alert rules: type chips follow the severity filter', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('./alerts?tab=rules');

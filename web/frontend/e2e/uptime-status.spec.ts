@@ -28,7 +28,7 @@ async function mockUptimeApi(page: Page, state: UptimeState) {
       return;
     }
     const monitors = path === '/api/v1/services';
-    // 서버 화면은 서버 목록과 함께 모니터를 불러온다. 나머지 대상(앱, 인프라, 그룹, 로그 요약)은 비어 있다.
+    // 서버 화면은 서버 목록과 함께 모니터를 불러온다. 나머지 대상(앱, 인프라, 로그 요약)은 비어 있다.
     await route.fulfill(monitors && state.failed ? {
       status: 503, json: { success: false, error: { code: 'INTERNAL_ERROR', message: 'Unavailable' } },
     } : {

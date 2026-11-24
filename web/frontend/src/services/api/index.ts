@@ -2,7 +2,6 @@ import { servicesApi } from './services';
 import { hostsApi } from './hosts';
 import { alertsApi } from './alerts';
 import { agentsApi } from './agents';
-import { projectsApi } from './projects';
 import { observedServicesApi } from './observedServices';
 import { serversApi } from './servers';
 
@@ -18,7 +17,6 @@ export const api = {
   ...hostsApi,
   ...alertsApi,
   ...agentsApi,
-  ...projectsApi,
   ...observedServicesApi,
   ...serversApi,
 };
@@ -114,7 +112,6 @@ export type {
   NotificationStats,
   AppSettings,
 } from './alerts';
-export type { Project, ProjectInput } from './projects';
 export type { MergeInfrastructure, SameHostDismissal, Server, ServerInput, ServerUpdate } from './servers';
 export type {
   TelemetrySignal,

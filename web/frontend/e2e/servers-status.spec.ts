@@ -99,29 +99,6 @@ test('status filters stay on one line each at 320px', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test('a group with a healthy server and a waiting server reads healthy', async ({ page }) => {
-  const project = { id: 'p-mixed', name: 'Mixed group', agentCount: 0, monitorCount: 2, observedServiceCount: 0, infrastructureResourceCount: 0, serverCount: 2, createdAt: at, updatedAt: at };
-  // 그룹의 구성원은 서버다. 정상 서버 하나와 일시정지한 모니터만 있는(대기) 서버 하나.
-  const groupServers = [{ ...server('g-up', 'up-01'), projectId: 'p-mixed' }, { ...server('g-paused', 'paused-01'), projectId: 'p-mixed' }];
-  const groupMonitors = [
-    monitor('g-up-m', { name: 'Storefront', serverId: 'g-up', projectId: 'p-mixed' }),
-    monitor('g-paused-m', { name: 'Old cron', serverId: 'g-paused', projectId: 'p-mixed', isActive: false }),
-  ];
-  await page.route('**/api/v1/**', async (route) => {
-    const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
-    const data = path === '/projects' ? [project] : path === '/services' ? groupMonitors : path === '/servers' ? groupServers : [];
-    await route.fulfill({ json: { success: true, data } });
-  });
-  await page.goto('./projects');
-  const row = page.getByRole('table', { name: '그룹 그리드' }).locator('tbody tr').filter({ hasText: 'Mixed group' });
-  // 문구의 나열은 정렬 순서(대기 먼저)지만 점의 색은 심각도 합산으로 정상이다.
-  await expect(row).toContainText('대기 1, 정상 1');
-  // 좁은 폭용 사본까지 같은 상태를 두 번 그린다. 둘 다 정상 톤이어야 한다.
-  const dots = row.getByText('대기 1, 정상 1').locator('span.rounded-full');
-  await expect(dots.first()).toBeAttached();
-  for (const dot of await dots.all()) await expect(dot).toHaveClass(/bg-status-healthy-fill/);
-});
-
 test('an app with a metric over its threshold makes its server need attention and says why', async ({ page }) => {
   const fresh = new Date().toISOString();
   await page.route('**/api/v1/**', async (route) => {
