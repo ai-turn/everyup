@@ -18,34 +18,19 @@ func TestDirectTelemetryCredentialLifecycleAndSignalScope(t *testing.T) {
 	token := ts.setupAdmin(t, "admin", "testpass123")
 	auth := authHeader(token)
 
-	_, projectResult := ts.doRequest(t, "POST", "/api/v1/projects", map[string]interface{}{
-		"name": "payments",
-	}, auth...)
-	if !projectResult.Success {
-		t.Fatalf("create project: %+v", projectResult.Error)
-	}
-	var project struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(projectResult.Data, &project); err != nil {
-		t.Fatal(err)
-	}
-
 	_, createResult := ts.doRequest(t, "POST", "/api/v1/observed-services", map[string]interface{}{
-		"name":      "checkout-api",
-		"projectId": project.ID,
-		"signals":   []string{"logs"},
+		"name":    "checkout-api",
+		"signals": []string{"logs"},
 	}, auth...)
 	if !createResult.Success {
 		t.Fatalf("create direct observed service: %+v", createResult.Error)
 	}
 	var created struct {
-		ID        string   `json:"id"`
-		Name      string   `json:"name"`
-		ProjectID string   `json:"projectId"`
-		Signals   []string `json:"signals"`
-		ApiKey    string   `json:"apiKey"`
-		IsActive  bool     `json:"isActive"`
+		ID       string   `json:"id"`
+		Name     string   `json:"name"`
+		Signals  []string `json:"signals"`
+		ApiKey   string   `json:"apiKey"`
+		IsActive bool     `json:"isActive"`
 	}
 	if err := json.Unmarshal(createResult.Data, &created); err != nil {
 		t.Fatal(err)
@@ -53,7 +38,7 @@ func TestDirectTelemetryCredentialLifecycleAndSignalScope(t *testing.T) {
 	if created.ID == "" || created.ApiKey == "" || !created.IsActive {
 		t.Fatalf("unexpected direct setup: %+v", created)
 	}
-	if created.ProjectID != project.ID || len(created.Signals) != 1 || created.Signals[0] != "logs" {
+	if len(created.Signals) != 1 || created.Signals[0] != "logs" {
 		t.Fatalf("unexpected direct target scope: %+v", created)
 	}
 
@@ -198,45 +183,6 @@ func TestDirectTelemetryCredentialLifecycleAndSignalScope(t *testing.T) {
 	}
 	if storedServiceID != created.ID || storedServiceName != created.Name {
 		t.Fatalf("direct identity = (%q, %q), want (%q, %q)", storedServiceID, storedServiceName, created.ID, created.Name)
-	}
-
-	_, projectsResult := ts.doRequest(t, "GET", "/api/v1/projects", nil, auth...)
-	var projects []struct {
-		ID                   string `json:"id"`
-		ObservedServiceCount int    `json:"observedServiceCount"`
-	}
-	if err := json.Unmarshal(projectsResult.Data, &projects); err != nil {
-		t.Fatal(err)
-	}
-	if len(projects) != 1 || projects[0].ObservedServiceCount != 1 {
-		t.Fatalf("project direct target count: %+v", projects)
-	}
-
-	_, secondProjectResult := ts.doRequest(t, "POST", "/api/v1/projects", map[string]interface{}{
-		"name": "platform",
-	}, auth...)
-	var secondProject struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(secondProjectResult.Data, &secondProject); err != nil {
-		t.Fatal(err)
-	}
-	_, updateResult := ts.doRequest(t, "PUT", "/api/v1/observed-services/"+created.ID, map[string]interface{}{
-		"name":      created.Name,
-		"projectId": secondProject.ID,
-		"signals":   []string{"logs"},
-	}, auth...)
-	if !updateResult.Success {
-		t.Fatalf("reassign direct observed service: %+v", updateResult.Error)
-	}
-	var reassigned struct {
-		ProjectID string `json:"projectId"`
-	}
-	if err := json.Unmarshal(updateResult.Data, &reassigned); err != nil {
-		t.Fatal(err)
-	}
-	if reassigned.ProjectID != secondProject.ID {
-		t.Fatalf("reassigned project = %q, want %q", reassigned.ProjectID, secondProject.ID)
 	}
 
 	_, rotateResult := ts.doRequest(t, "POST", "/api/v1/observed-services/"+created.ID+"/rotate-key", nil, auth...)

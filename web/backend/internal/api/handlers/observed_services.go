@@ -413,8 +413,6 @@ func observedServiceError(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, directtelemetry.ErrInvalidInput):
 		return agentBadRequest(c, ErrCodeValidation, err.Error())
-	case errors.Is(err, directtelemetry.ErrProjectMissing):
-		return agentBadRequest(c, ErrCodeProjectNotFound, "project not found")
 	case errors.Is(err, directtelemetry.ErrNotFound):
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"success": false,

@@ -14,52 +14,36 @@ import (
 )
 
 var (
-	ErrNotFound       = errors.New("infrastructure resource not found")
-	ErrInvalidInput   = errors.New("invalid infrastructure resource input")
-	ErrProjectMissing = errors.New("project not found")
-	ErrInactive       = errors.New("infrastructure collector connection is inactive")
-	ErrSignalDenied   = errors.New("collector credential only accepts metrics")
+	ErrNotFound     = errors.New("infrastructure resource not found")
+	ErrInvalidInput = errors.New("invalid infrastructure resource input")
+	ErrInactive     = errors.New("infrastructure collector connection is inactive")
+	ErrSignalDenied = errors.New("collector credential only accepts metrics")
 )
 
 type Manager struct {
-	repo        *database.InfrastructureResourceRepository
-	agentRepo   *database.AgentRepository
-	metricRepo  *database.SystemMetricRepository
-	projectRepo *database.ProjectRepository
-	servers     *database.ServerRepository
+	repo       *database.InfrastructureResourceRepository
+	agentRepo  *database.AgentRepository
+	metricRepo *database.SystemMetricRepository
+	servers    *database.ServerRepository
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		repo:        database.NewInfrastructureResourceRepository(),
-		agentRepo:   database.NewAgentRepository(),
-		metricRepo:  database.NewSystemMetricRepository(),
-		projectRepo: database.NewProjectRepository(),
-		servers:     database.NewServerRepository(),
+		repo:       database.NewInfrastructureResourceRepository(),
+		agentRepo:  database.NewAgentRepository(),
+		metricRepo: database.NewSystemMetricRepository(),
+		servers:    database.NewServerRepository(),
 	}
 }
 
 func (m *Manager) validateInput(input models.InfrastructureResourceInput) (models.InfrastructureResourceInput, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	input.ServerID = strings.TrimSpace(input.ServerID)
-	input.ProjectID = strings.TrimSpace(input.ProjectID)
-	if input.ServerID != "" {
-		input.ProjectID = "" // the server's group wins
-	}
 	if input.Name == "" {
 		return input, fmt.Errorf("%w: name is required", ErrInvalidInput)
 	}
 	if len(input.Name) > 200 {
 		return input, fmt.Errorf("%w: name must be 200 characters or fewer", ErrInvalidInput)
-	}
-	if input.ProjectID != "" {
-		exists, err := m.projectRepo.Exists(input.ProjectID)
-		if err != nil {
-			return input, err
-		}
-		if !exists {
-			return input, ErrProjectMissing
-		}
 	}
 	return input, nil
 }
@@ -69,7 +53,7 @@ func (m *Manager) Create(input models.InfrastructureResourceInput) (*models.Infr
 	if err != nil {
 		return nil, err
 	}
-	serverID, err := m.servers.ResolveForTarget(database.ServerTargetInfra, input.ServerID, input.Name, input.ProjectID)
+	serverID, err := m.servers.ResolveForTarget(database.ServerTargetInfra, input.ServerID, input.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +77,6 @@ func (m *Manager) Create(input models.InfrastructureResourceInput) (*models.Infr
 	resource := models.InfrastructureResource{
 		ID:           uuid.NewString(),
 		Name:         input.Name,
-		ProjectID:    server.ProjectID,
 		ServerID:     serverID,
 		Adapter:      models.InfrastructureAdapterOTelCollector,
 		IsActive:     true,
@@ -129,9 +112,8 @@ func (m *Manager) GetAll() ([]models.InfrastructureResource, error) {
 		}
 		seen := agent.LastSeenAt
 		resources = append(resources, models.InfrastructureResource{
-			ID:         agent.ID,
-			Name:       agent.Name,
-			ProjectID:  agent.ProjectID,
+			ID:   agent.ID,
+			Name: agent.Name,
 			// The Docker environment is a server (ADR 0012); its host belongs to that server.
 			ServerID:   agent.ServerID,
 			Adapter:    models.InfrastructureAdapterAgent,
@@ -207,10 +189,9 @@ func (m *Manager) Update(id string, input models.InfrastructureResourceInput) (*
 	if err != nil {
 		return nil, err
 	}
+	// Without serverId the target stays on its server.
 	if input.ServerID != "" {
 		err = m.servers.MoveTarget(database.ServerTargetInfra, id, input.ServerID)
-	} else {
-		err = m.servers.SetProjectForTarget(database.ServerTargetInfra, id, input.ProjectID)
 	}
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound

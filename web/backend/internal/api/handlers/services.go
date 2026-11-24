@@ -168,13 +168,8 @@ func (h *ServiceHandler) Create(c *fiber.Ctx) error {
 		AlertOnDown bool `json:"alertOnDown"`
 	}
 	_ = c.BodyParser(&opts) // the body already parsed above; this only reads the extra flag
-	if service.ServerID, err = h.servers.ResolveForTarget(database.ServerTargetMonitor, service.ServerID, service.Name, ""); err != nil {
+	if service.ServerID, err = h.servers.ResolveForTarget(database.ServerTargetMonitor, service.ServerID, service.Name); err != nil {
 		return serverWriteError(c, err)
-	}
-	if server, err := h.servers.GetByID(service.ServerID); err != nil {
-		return internalError(c, "DATABASE_ERROR", err)
-	} else if server != nil {
-		service.ProjectID = server.ProjectID
 	}
 	// A server created just above stays behind, empty, if this insert fails.
 	if err := h.repo.Create(service); err != nil {
@@ -245,7 +240,7 @@ func (h *ServiceHandler) Update(c *fiber.Ctx) error {
 	if err != nil || stored == nil {
 		return internalError(c, "DATABASE_ERROR", fmt.Errorf("reload service %s: %v", id, err))
 	}
-	service.ServerID, service.ProjectID = stored.ServerID, stored.ProjectID
+	service.ServerID = stored.ServerID
 	if h.scheduler != nil {
 		h.scheduler.AddService(service)
 	}

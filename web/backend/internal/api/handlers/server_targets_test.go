@@ -7,10 +7,9 @@ import (
 )
 
 type monitorResponse struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	ServerID  string `json:"serverId"`
-	ProjectID string `json:"projectId"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	ServerID string `json:"serverId"`
 }
 
 func createTestMonitor(t *testing.T, ts *testServer, auth []string, name, serverID string) (*http.Response, apiResponse) {
@@ -40,9 +39,9 @@ func mustCreateMonitor(t *testing.T, ts *testServer, auth []string, name, server
 	return decodeMonitor(t, result)
 }
 
-func mustCreateServer(t *testing.T, ts *testServer, auth []string, name, projectID string) serverResponse {
+func mustCreateServer(t *testing.T, ts *testServer, auth []string, name string) serverResponse {
 	t.Helper()
-	resp, result := ts.doRequest(t, "POST", "/api/v1/servers", map[string]string{"name": name, "projectId": projectID}, auth...)
+	resp, result := ts.doRequest(t, "POST", "/api/v1/servers", map[string]string{"name": name}, auth...)
 	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("create server %s: %d %+v", name, resp.StatusCode, result.Error)
 	}
@@ -85,15 +84,9 @@ func TestMonitorJoinsServer(t *testing.T) {
 		t.Fatalf("expected one server, got %v %s", err, result.Data)
 	}
 
-	edge := mustCreateServer(t, ts, auth, "edge", "")
+	edge := mustCreateServer(t, ts, auth, "edge")
 	if got := mustCreateMonitor(t, ts, auth, "probe", edge.ID); got.ServerID != edge.ID {
 		t.Fatalf("explicit serverId: got %s, want %s", got.ServerID, edge.ID)
-	}
-
-	projectID := createTestProject(t, ts, auth, "Production")
-	grouped := mustCreateServer(t, ts, auth, "grouped", projectID)
-	if got := mustCreateMonitor(t, ts, auth, "grouped-probe", grouped.ID); got.ProjectID != projectID {
-		t.Fatalf("create response projectId: got %q, want %q", got.ProjectID, projectID)
 	}
 
 	before := len(listMonitors(t, ts, auth))
@@ -112,7 +105,7 @@ func TestMonitorMovesBetweenServers(t *testing.T) {
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
 
 	monitor := mustCreateMonitor(t, ts, auth, "public-dns", "")
-	edge := mustCreateServer(t, ts, auth, "edge", "")
+	edge := mustCreateServer(t, ts, auth, "edge")
 	body := map[string]interface{}{"name": "public-dns", "type": "tcp", "host": "1.1.1.1", "port": 53, "interval": 5}
 
 	body["serverId"] = edge.ID
@@ -131,12 +124,11 @@ func TestMonitorMovesBetweenServers(t *testing.T) {
 		t.Fatalf("stored serverId: got %s, want %s", got.ServerID, edge.ID)
 	}
 
-	projectID := createTestProject(t, ts, auth, "Production")
-	grouped := mustCreateServer(t, ts, auth, "grouped", projectID)
+	grouped := mustCreateServer(t, ts, auth, "other")
 	body["serverId"] = grouped.ID
 	resp, result = ts.doRequest(t, "PUT", "/api/v1/services/"+monitor.ID, body, auth...)
-	if got := decodeMonitor(t, result); resp.StatusCode != http.StatusOK || got.ServerID != grouped.ID || got.ProjectID != projectID {
-		t.Fatalf("move to grouped server: %d %s", resp.StatusCode, result.Data)
+	if got := decodeMonitor(t, result); resp.StatusCode != http.StatusOK || got.ServerID != grouped.ID {
+		t.Fatalf("move to other server: %d %s", resp.StatusCode, result.Data)
 	}
 
 	body["serverId"] = "nope"
@@ -146,54 +138,6 @@ func TestMonitorMovesBetweenServers(t *testing.T) {
 	_, result = ts.doRequest(t, "GET", "/api/v1/services/"+monitor.ID, nil, auth...)
 	if got := decodeMonitor(t, result); got.Name != "public-dns" || got.ServerID != grouped.ID {
 		t.Fatalf("failed move must change nothing: %+v", got)
-	}
-}
-
-func TestLegacyMonitorGroupAssignmentMovesTheServer(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-
-	projectID := createTestProject(t, ts, auth, "Production")
-	monitor := mustCreateMonitor(t, ts, auth, "public-dns", "")
-	endpoint := "/api/v1/projects/" + projectID + "/monitors/" + monitor.ID
-
-	groupOf := func() (string, string) {
-		_, result := ts.doRequest(t, "GET", "/api/v1/services/"+monitor.ID, nil, auth...)
-		got := decodeMonitor(t, result)
-		_, result = ts.doRequest(t, "GET", "/api/v1/servers/"+got.ServerID, nil, auth...)
-		return got.ProjectID, decodeServer(t, result).ProjectID
-	}
-
-	resp, result := ts.doRequest(t, "PUT", endpoint, nil, auth...)
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("assign: %d %+v", resp.StatusCode, result.Error)
-	}
-	if monitorGroup, serverGroup := groupOf(); monitorGroup != projectID || serverGroup != projectID {
-		t.Fatalf("after assign: monitor=%q server=%q, want %q", monitorGroup, serverGroup, projectID)
-	}
-
-	resp, _ = ts.doRequest(t, "DELETE", endpoint, nil, auth...)
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("unassign: %d", resp.StatusCode)
-	}
-	if monitorGroup, serverGroup := groupOf(); monitorGroup != "" || serverGroup != "" {
-		t.Fatalf("after unassign: monitor=%q server=%q", monitorGroup, serverGroup)
-	}
-
-	ungrouped := mustCreateServer(t, ts, auth, "dup", "")
-	grouped := mustCreateServer(t, ts, auth, "dup", projectID)
-	loose := mustCreateMonitor(t, ts, auth, "dup-a", ungrouped.ID)
-	mustCreateMonitor(t, ts, auth, "dup-b", grouped.ID)
-	resp, result = ts.doRequest(t, "PUT", "/api/v1/projects/"+projectID+"/monitors/"+loose.ID, nil, auth...)
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("assign into a group with a same-name server: %d %+v", resp.StatusCode, result.Error)
-	}
-	_, result = ts.doRequest(t, "GET", "/api/v1/services/"+loose.ID, nil, auth...)
-	if got := decodeMonitor(t, result); got.ServerID != grouped.ID || got.ProjectID != projectID {
-		t.Fatalf("monitor must join the group's dup server: %+v, want server %s", got, grouped.ID)
-	}
-	if got := serversNamed(t, ts, auth, "dup"); len(got) != 1 || got[0].ID != grouped.ID {
-		t.Fatalf("dup servers after merge: %+v", got)
 	}
 }
 
@@ -207,79 +151,10 @@ func listServers(t *testing.T, ts *testServer, auth []string) []serverResponse {
 	return servers
 }
 
-func serversNamed(t *testing.T, ts *testServer, auth []string, name string) []serverResponse {
-	t.Helper()
-	var named []serverResponse
-	for _, server := range listServers(t, ts, auth) {
-		if server.Name == name {
-			named = append(named, server)
-		}
-	}
-	return named
-}
-
-func TestLegacyGroupAssignmentMergeMovesSiblingTargets(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "P")
-
-	ungrouped := mustCreateServer(t, ts, auth, "dup", "")
-	grouped := mustCreateServer(t, ts, auth, "dup", projectID)
-	m1 := mustCreateMonitor(t, ts, auth, "m1", ungrouped.ID)
-	a1 := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "a1", "signals": []string{"logs"}, "serverId": ungrouped.ID})
-
-	resp, result := ts.doRequest(t, "PUT", "/api/v1/projects/"+projectID+"/monitors/"+m1.ID, nil, auth...)
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("assign: %d %+v", resp.StatusCode, result.Error)
-	}
-	_, result = ts.doRequest(t, "GET", "/api/v1/observed-services/"+a1.ID, nil, auth...)
-	if got := decodeApp(t, result); got.ServerID != grouped.ID || got.ProjectID != projectID {
-		t.Fatalf("sibling app must follow the merge: %+v, want server %s", got, grouped.ID)
-	}
-}
-
-func TestLegacyMonitorUnassignMergesIntoUngroupedServer(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "P")
-
-	grouped := mustCreateServer(t, ts, auth, "dup", projectID)
-	ungrouped := mustCreateServer(t, ts, auth, "dup", "")
-	m2 := mustCreateMonitor(t, ts, auth, "m2", grouped.ID)
-	mustCreateMonitor(t, ts, auth, "m1", ungrouped.ID)
-
-	resp, _ := ts.doRequest(t, "DELETE", "/api/v1/projects/"+projectID+"/monitors/"+m2.ID, nil, auth...)
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("unassign: %d", resp.StatusCode)
-	}
-	_, result := ts.doRequest(t, "GET", "/api/v1/services/"+m2.ID, nil, auth...)
-	if got := decodeMonitor(t, result); got.ServerID != ungrouped.ID || got.ProjectID != "" {
-		t.Fatalf("monitor must join the ungrouped dup server: %+v, want server %s", got, ungrouped.ID)
-	}
-}
-
-func TestLegacyMonitorAssignToCurrentGroupKeepsServer(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "P")
-
-	server := mustCreateServer(t, ts, auth, "web", projectID)
-	monitor := mustCreateMonitor(t, ts, auth, "probe", server.ID)
-	resp, result := ts.doRequest(t, "PUT", "/api/v1/projects/"+projectID+"/monitors/"+monitor.ID, nil, auth...)
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("assign to current group: %d %+v", resp.StatusCode, result.Error)
-	}
-	_, result = ts.doRequest(t, "GET", "/api/v1/services/"+monitor.ID, nil, auth...)
-	if got := decodeMonitor(t, result); got.ServerID != server.ID || got.ProjectID != projectID {
-		t.Fatalf("server must not change: %+v, want %s", got, server.ID)
-	}
-}
-
 type appResponse struct {
-	ID        string `json:"id"`
-	ServerID  string `json:"serverId"`
-	ProjectID string `json:"projectId"`
-	ApiKey    string `json:"apiKey"`
+	ID       string `json:"id"`
+	ServerID string `json:"serverId"`
+	ApiKey   string `json:"apiKey"`
 }
 
 func decodeApp(t *testing.T, result apiResponse) appResponse {
@@ -318,68 +193,59 @@ func getServer(t *testing.T, ts *testServer, auth []string, id string) serverRes
 func TestObservedServiceJoinsServer(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "Production")
 
-	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "projectId": projectID})
-	if app.ServerID == "" || app.ProjectID != projectID || app.ApiKey == "" {
+	// A former projectId in the body is ignored.
+	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "projectId": "P"})
+	if app.ServerID == "" || app.ApiKey == "" {
 		t.Fatalf("unexpected create response: %+v", app)
 	}
-	if server := getServer(t, ts, auth, app.ServerID); server.ProjectID != projectID || server.Name != "checkout" {
+	if server := getServer(t, ts, auth, app.ServerID); server.Name != "checkout" {
 		t.Fatalf("unexpected server: %+v", server)
 	}
+	// The same name joins the same server.
+	if again := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "Checkout", "signals": []string{"metrics"}}); again.ServerID != app.ServerID {
+		t.Fatalf("same name must join the same server: %s vs %s", again.ServerID, app.ServerID)
+	}
 
-	web := mustCreateServer(t, ts, auth, "web", "")
-	worker := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "worker", "signals": []string{"logs"}, "serverId": web.ID, "projectId": projectID})
-	if worker.ServerID != web.ID || worker.ProjectID != "" {
-		t.Fatalf("explicit serverId must win over projectId: %+v", worker)
+	web := mustCreateServer(t, ts, auth, "web")
+	worker := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "worker", "signals": []string{"logs"}, "serverId": web.ID})
+	if worker.ServerID != web.ID {
+		t.Fatalf("explicit serverId: %+v", worker)
 	}
 }
 
-func TestObservedServiceUpdateWithServerIdIgnoresProjectId(t *testing.T) {
+func TestObservedServiceUpdateMovesOnlyWithServerId(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "Production")
-	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "projectId": projectID})
+	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}})
 
 	got := mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": app.ServerID})
-	if got.ServerID != app.ServerID || got.ProjectID != projectID {
-		t.Fatalf("same serverId must keep the group: %+v", got)
+	if got.ServerID != app.ServerID {
+		t.Fatalf("same serverId must keep the server: %+v", got)
 	}
 
-	got = mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": app.ServerID, "projectId": "missing"})
-	if got.ServerID != app.ServerID || got.ProjectID != projectID {
-		t.Fatalf("projectId must be ignored when serverId is set: %+v", got)
-	}
-
-	other := mustCreateServer(t, ts, auth, "other", "")
+	other := mustCreateServer(t, ts, auth, "other")
 	got = mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": other.ID})
 	if got.ServerID != other.ID {
 		t.Fatalf("move: got %s, want %s", got.ServerID, other.ID)
 	}
 
-	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "ignored", "signals": []string{"logs"}, "serverId": other.ID, "projectId": "missing"})
+	// Without serverId the app stays on its server.
+	got = mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "projectId": "P"})
+	if got.ServerID != other.ID {
+		t.Fatalf("omitted serverId moved the app: got %s, want %s", got.ServerID, other.ID)
+	}
 }
 
 func TestObservedServiceServerErrors(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "P")
 
-	ungrouped := mustCreateServer(t, ts, auth, "dup", "")
-	grouped := mustCreateServer(t, ts, auth, "dup", projectID)
-	loose := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "loose", "signals": []string{"logs"}, "serverId": ungrouped.ID})
-	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "grouped", "signals": []string{"logs"}, "serverId": grouped.ID})
+	server := mustCreateServer(t, ts, auth, "dup")
+	loose := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "loose", "signals": []string{"logs"}, "serverId": server.ID})
 
 	resp, result := ts.doRequest(t, "PUT", "/api/v1/observed-services/"+loose.ID, map[string]interface{}{"name": "loose", "signals": []string{"logs"}, "serverId": "nope"}, auth...)
 	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
-
-	got := mustUpdateApp(t, ts, auth, loose.ID, map[string]interface{}{"name": "loose", "signals": []string{"logs"}, "projectId": projectID})
-	if got.ServerID != grouped.ID || got.ProjectID != projectID {
-		t.Fatalf("legacy assignment must merge into the group's dup server: %+v, want server %s", got, grouped.ID)
-	}
-	if named := serversNamed(t, ts, auth, "dup"); len(named) != 1 || named[0].ID != grouped.ID {
-		t.Fatalf("ungrouped dup server must be gone: %+v", named)
-	}
 
 	resp, _ = ts.doRequest(t, "PUT", "/api/v1/observed-services/missing", map[string]interface{}{"name": "x", "signals": []string{"logs"}}, auth...)
 	if resp.StatusCode != http.StatusNotFound {
@@ -387,28 +253,10 @@ func TestObservedServiceServerErrors(t *testing.T) {
 	}
 }
 
-func TestLegacyObservedServiceUpdateSetsServerGroup(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	app := mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}})
-	p2 := createTestProject(t, ts, auth, "Staging")
-
-	got := mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "projectId": p2})
-	if got.ProjectID != p2 || getServer(t, ts, auth, got.ServerID).ProjectID != p2 {
-		t.Fatalf("legacy group assignment: %+v", got)
-	}
-
-	got = mustUpdateApp(t, ts, auth, app.ID, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}})
-	if got.ProjectID != "" || getServer(t, ts, auth, got.ServerID).ProjectID != "" {
-		t.Fatalf("legacy group clear: %+v", got)
-	}
-}
-
 type infraResponse struct {
-	ID        string `json:"id"`
-	Adapter   string `json:"adapter"`
-	ServerID  string `json:"serverId"`
-	ProjectID string `json:"projectId"`
+	ID       string `json:"id"`
+	Adapter  string `json:"adapter"`
+	ServerID string `json:"serverId"`
 }
 
 func decodeInfra(t *testing.T, result apiResponse) infraResponse {
@@ -483,7 +331,7 @@ func TestInfrastructureResourceMoveRules(t *testing.T) {
 		t.Fatalf("same server: %d %s", resp.StatusCode, result.Data)
 	}
 
-	empty := mustCreateServer(t, ts, auth, "empty", "")
+	empty := mustCreateServer(t, ts, auth, "empty")
 	resp, result = ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01", "serverId": empty.ID}, auth...)
 	if resp.StatusCode != http.StatusOK || decodeInfra(t, result).ServerID != empty.ID {
 		t.Fatalf("move to empty server: %d %s", resp.StatusCode, result.Data)
@@ -497,170 +345,26 @@ func TestInfrastructureResourceMoveRules(t *testing.T) {
 	}
 }
 
-func TestInfrastructureResourceGroupAndErrors(t *testing.T) {
+func TestInfrastructureResourceErrorsAndUpdateWithoutServerId(t *testing.T) {
 	ts := setupTestServer(t)
 	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	p := createTestProject(t, ts, auth, "P")
-	p2 := createTestProject(t, ts, auth, "P2")
 
 	resp, result := ts.doRequest(t, "POST", "/api/v1/infrastructure-resources", map[string]interface{}{"name": "db-01", "serverId": "nope"}, auth...)
 	expectError(t, resp, result, http.StatusBadRequest, "VALIDATION_ERROR")
 
-	grouped := mustCreateServer(t, ts, auth, "grouped", p)
-	resource := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01", "serverId": grouped.ID})
-	if resource.ProjectID != p {
-		t.Fatalf("create response projectId: got %q, want %q", resource.ProjectID, p)
-	}
+	server := mustCreateServer(t, ts, auth, "db-host")
+	resource := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db-01", "serverId": server.ID})
 	endpoint := "/api/v1/infrastructure-resources/" + resource.ID
 
-	resp, result = ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01", "projectId": p2}, auth...)
-	if got := decodeInfra(t, result); resp.StatusCode != http.StatusOK || got.ProjectID != p2 || getServer(t, ts, auth, got.ServerID).ProjectID != p2 {
-		t.Fatalf("legacy group assignment: %d %s", resp.StatusCode, result.Data)
+	// Without serverId the resource stays on its server; a former projectId is ignored.
+	resp, result = ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01", "projectId": "P"}, auth...)
+	if got := decodeInfra(t, result); resp.StatusCode != http.StatusOK || got.ServerID != server.ID {
+		t.Fatalf("update without serverId: %d %s", resp.StatusCode, result.Data)
 	}
 
-	resp, result = ts.doRequest(t, "PUT", endpoint, map[string]interface{}{"name": "db-01"}, auth...)
-	if got := decodeInfra(t, result); resp.StatusCode != http.StatusOK || got.ProjectID != "" || getServer(t, ts, auth, got.ServerID).ProjectID != "" {
-		t.Fatalf("legacy group clear: %d %s", resp.StatusCode, result.Data)
-	}
-}
-
-func TestLegacyInfrastructureGroupAssignmentRenamesWhenBothServersHaveInfrastructure(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	p := createTestProject(t, ts, auth, "P")
-
-	loose := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db"})
-	grouped := mustCreateInfra(t, ts, auth, map[string]interface{}{"name": "db", "projectId": p})
-	groupedServer := getServer(t, ts, auth, grouped.ServerID)
-
-	resp, result := ts.doRequest(t, "PUT", "/api/v1/infrastructure-resources/"+loose.ID, map[string]interface{}{"name": "db", "projectId": p}, auth...)
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("legacy assignment: %d %+v", resp.StatusCode, result.Error)
-	}
-	got := decodeInfra(t, result)
-	if got.ServerID != loose.ServerID || got.ProjectID != p {
-		t.Fatalf("resource must keep its server and move to P: %+v, want server %s", got, loose.ServerID)
-	}
-	if server := getServer(t, ts, auth, got.ServerID); server.Name != "db (2)" || server.ProjectID != p {
-		t.Fatalf("renamed server: %+v", server)
-	}
-	if server := getServer(t, ts, auth, grouped.ServerID); server.Name != groupedServer.Name || server.ProjectID != p {
-		t.Fatalf("P's db server changed: %+v", server)
-	}
-	_, result = ts.doRequest(t, "GET", "/api/v1/infrastructure-resources/"+grouped.ID, nil, auth...)
-	if got := decodeInfra(t, result); got.ServerID != grouped.ServerID {
-		t.Fatalf("P's resource moved: %+v", got)
-	}
-}
-
-func TestProjectDeleteRenamesChainedCollisions(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "P")
-
-	mustCreateServer(t, ts, auth, "web", "")
-	mustCreateServer(t, ts, auth, "web (2)", "")
-	groupedWeb := mustCreateServer(t, ts, auth, "web", projectID)
-
-	expectStatus(t, ts, auth, "DELETE", "/api/v1/projects/"+projectID, http.StatusNoContent)
-
-	_, result := ts.doRequest(t, "GET", "/api/v1/servers", nil, auth...)
-	var servers []serverResponse
-	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 3 {
-		t.Fatalf("expected three servers, got %v %s", err, result.Data)
-	}
-	wantNames := []string{"web", "web (2)", "web (3)"}
-	for i, server := range servers {
-		if server.Name != wantNames[i] {
-			t.Fatalf("server %d: got %q, want %q", i, server.Name, wantNames[i])
-		}
-	}
-	if got := getServer(t, ts, auth, groupedWeb.ID); got.Name != "web (3)" {
-		t.Fatalf("grouped server name: got %q, want %q", got.Name, "web (3)")
-	}
-}
-
-type projectCountsResponse struct {
-	ID                          string `json:"id"`
-	ServerCount                 int    `json:"serverCount"`
-	MonitorCount                int    `json:"monitorCount"`
-	ObservedServiceCount        int    `json:"observedServiceCount"`
-	InfrastructureResourceCount int    `json:"infrastructureResourceCount"`
-}
-
-func projectCounts(t *testing.T, ts *testServer, auth []string, projectID string) projectCountsResponse {
-	t.Helper()
-	_, result := ts.doRequest(t, "GET", "/api/v1/projects", nil, auth...)
-	var projects []projectCountsResponse
-	if err := json.Unmarshal(result.Data, &projects); err != nil {
-		t.Fatalf("list projects: %v, %s", err, result.Data)
-	}
-	for _, project := range projects {
-		if project.ID == projectID {
-			return project
-		}
-	}
-	t.Fatalf("project %s not listed: %s", projectID, result.Data)
-	return projectCountsResponse{}
-}
-
-func TestProjectCountsFollowServers(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "P")
-
-	web := mustCreateServer(t, ts, auth, "web", projectID)
-	mustCreateMonitor(t, ts, auth, "web-probe", web.ID)
-	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "checkout", "signals": []string{"logs"}, "serverId": web.ID})
-	mustCreateApp(t, ts, auth, map[string]interface{}{"name": "worker", "signals": []string{"logs"}, "serverId": web.ID})
-
-	got := projectCounts(t, ts, auth, projectID)
-	want := projectCountsResponse{ID: projectID, ServerCount: 1, MonitorCount: 1, ObservedServiceCount: 2}
-	if got != want {
-		t.Fatalf("grouped counts: got %+v, want %+v", got, want)
-	}
-
-	resp, result := ts.doRequest(t, "PUT", "/api/v1/servers/"+web.ID, map[string]string{"name": "web"}, auth...)
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("ungroup server: %d %+v", resp.StatusCode, result.Error)
-	}
-	if got := projectCounts(t, ts, auth, projectID); got != (projectCountsResponse{ID: projectID}) {
-		t.Fatalf("counts after ungrouping: %+v", got)
-	}
-}
-
-func TestProjectDeleteRenamesCollidingServers(t *testing.T) {
-	ts := setupTestServer(t)
-	auth := authHeader(ts.setupAdmin(t, "admin", "testpass123"))
-	projectID := createTestProject(t, ts, auth, "P")
-
-	mustCreateServer(t, ts, auth, "web", "")
-	groupedWeb := mustCreateServer(t, ts, auth, "web", projectID)
-	mustCreateServer(t, ts, auth, "api", projectID)
-	monitor := mustCreateMonitor(t, ts, auth, "web-probe", groupedWeb.ID)
-
-	resp, _ := ts.doRequest(t, "DELETE", "/api/v1/projects/"+projectID, nil, auth...)
-	if resp.StatusCode != http.StatusNoContent {
-		t.Fatalf("delete project: %d", resp.StatusCode)
-	}
-
-	_, result := ts.doRequest(t, "GET", "/api/v1/servers", nil, auth...)
-	var servers []serverResponse
-	if err := json.Unmarshal(result.Data, &servers); err != nil || len(servers) != 3 {
-		t.Fatalf("expected three servers, got %v %s", err, result.Data)
-	}
-	wantNames := []string{"api", "web", "web (2)"}
-	for i, server := range servers {
-		if server.ProjectID != "" || server.Name != wantNames[i] {
-			t.Fatalf("server %d: got %+v, want name %q without group", i, server, wantNames[i])
-		}
-	}
-	if servers[2].ID != groupedWeb.ID {
-		t.Fatalf("renamed server: got %s, want %s", servers[2].ID, groupedWeb.ID)
-	}
-	_, result = ts.doRequest(t, "GET", "/api/v1/services/"+monitor.ID, nil, auth...)
-	if got := decodeMonitor(t, result); got.ServerID != groupedWeb.ID {
-		t.Fatalf("monitor serverId: got %s, want %s", got.ServerID, groupedWeb.ID)
+	resp, _ = ts.doRequest(t, "PUT", "/api/v1/infrastructure-resources/missing", map[string]interface{}{"name": "x"}, auth...)
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("missing resource: got %d, want 404", resp.StatusCode)
 	}
 }
 

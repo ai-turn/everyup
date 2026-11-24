@@ -11,9 +11,9 @@ import (
 
 func mergeFixture(t *testing.T, profile string) *ServerRepository {
 	t.Helper()
-	setupV59(t, v59ProjectP, v59ProjectQ,
-		v59Server("direct", "prod-server", "'P'"),
-		v59Agent("agent_a", "prod-server", "'Q'", "active", "2026-01-01 00:00:00"),
+	setupV59(t,
+		v59Server("direct", "prod-server", "NULL"),
+		v59Agent("agent_a", "prod-server", "NULL", "active", "2026-01-01 00:00:00"),
 		`INSERT INTO services (id, name, type, server_id) VALUES ('m1', 'Storefront', 'http', 'direct')`,
 	)
 	if _, err := DB.Exec(`UPDATE agents SET profile_kind = 'custom', profile_capabilities = ? WHERE id = 'agent_a'`, profile); err != nil {
@@ -39,13 +39,6 @@ func TestMergeMovesTheDockerCollectorIntoTheTargetServer(t *testing.T) {
 	}
 	if got := v59AgentServer(t, "agent_a"); got.String != "direct" {
 		t.Fatalf("agents.server_id = %v, want direct", got)
-	}
-	var project string
-	if err := DB.QueryRow(`SELECT COALESCE(project_id, '') FROM agents WHERE id = 'agent_a'`).Scan(&project); err != nil {
-		t.Fatal(err)
-	}
-	if project != "P" {
-		t.Fatalf("Docker Collector group = %q, want the target's group P", project)
 	}
 	if _, ok := v59ServerRow(t, "agent_a"); ok {
 		t.Fatal("the merged Docker server still exists")
@@ -73,7 +66,7 @@ func TestMergeIntoADockerServerKeepsItsCollector(t *testing.T) {
 
 func TestMergeRefusesTwoDockerCollectors(t *testing.T) {
 	repo := mergeFixture(t, `["uptime"]`)
-	if _, err := DB.Exec(v59Agent("agent_b", "prod-server", "'P'", "active", "2026-01-02 00:00:00")); err != nil {
+	if _, err := DB.Exec(v59Agent("agent_b", "prod-server", "NULL", "active", "2026-01-02 00:00:00")); err != nil {
 		t.Fatal(err)
 	}
 	if err := migrateV59(); err != nil {
@@ -142,25 +135,6 @@ func TestMergeWithoutDockerHostMetricsNeedsNoSource(t *testing.T) {
 	}
 	if err := repo.Merge("agent_a", "direct", ""); err != nil {
 		t.Fatalf("Merge: %v", err)
-	}
-}
-
-// Moving a target to another group merges same-name direct servers, but never a Docker server:
-// that is the confirmed same-host merge.
-func TestGroupMoveNeverMergesADockerServer(t *testing.T) {
-	repo := mergeFixture(t, `["uptime"]`)
-	if _, err := DB.Exec(`INSERT INTO services (id, name, type, server_id) VALUES ('m2', 'Docs', 'http', 'agent_a')`); err != nil {
-		t.Fatal(err)
-	}
-	// The monitor's server is the Docker server; moving it into P meets the direct prod-server.
-	if err := repo.SetProjectForTarget(ServerTargetMonitor, "m2", "P"); err != nil {
-		t.Fatal(err)
-	}
-	if got := v58ServerID(t, "services", "m2"); got.String != "agent_a" {
-		t.Fatalf("monitor moved to %v, want it to stay on the Docker server", got)
-	}
-	if row, ok := v59ServerRow(t, "agent_a"); !ok || row.name != "prod-server (2)" || row.project.String != "P" {
-		t.Fatalf("Docker server = %+v (%v), want prod-server (2) in P", row, ok)
 	}
 }
 

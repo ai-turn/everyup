@@ -81,7 +81,7 @@ VALUES (?, ?, '', ?, ?, 'active', ?, ?, ?, ?, ?)`,
 			return err
 		}
 		// Every Docker environment is a server (migrateV59).
-		return attachAgentServerTx(tx, agent.ID, agent.Name, "", now)
+		return attachAgentServerTx(tx, agent.ID, agent.Name, nil, now)
 	})
 }
 
@@ -140,12 +140,10 @@ VALUES (?, ?, '', ?, ?, 'active', ?, ?, ?, ?, ?)`,
 			return err
 		}
 		if serverID != "" {
-			// The Docker Collector follows the server's group (ADR 0003).
-			if _, err := tx.Exec(`UPDATE agents SET server_id = ?, project_id = (SELECT project_id FROM servers WHERE id = ?) WHERE id = ?`,
-				serverID, serverID, agent.ID); err != nil {
+			if _, err := tx.Exec(`UPDATE agents SET server_id = ? WHERE id = ?`, serverID, agent.ID); err != nil {
 				return err
 			}
-		} else if err := attachAgentServerTx(tx, agent.ID, agent.Name, "", now); err != nil {
+		} else if err := attachAgentServerTx(tx, agent.ID, agent.Name, nil, now); err != nil {
 			// Every Docker environment is a server (migrateV59).
 			return err
 		}
@@ -284,7 +282,7 @@ func (r *AgentRepository) DeactivateAgent(id string) error {
 }
 
 func (r *AgentRepository) GetAllAgents() ([]models.Agent, error) {
-	rows, err := DB.Query(`SELECT id, name, COALESCE(project_id, ''), COALESCE(server_id, ''), version, COALESCE(status,'active'), last_seen_at, created_at, updated_at, COALESCE(profile_kind, 'all-in-one'), COALESCE(profile_capabilities, '[]'), COALESCE(capability_report, '{}') FROM agents WHERE COALESCE(status,'active') = 'active' ORDER BY last_seen_at DESC`)
+	rows, err := DB.Query(`SELECT id, name, COALESCE(server_id, ''), version, COALESCE(status,'active'), last_seen_at, created_at, updated_at, COALESCE(profile_kind, 'all-in-one'), COALESCE(profile_capabilities, '[]'), COALESCE(capability_report, '{}') FROM agents WHERE COALESCE(status,'active') = 'active' ORDER BY last_seen_at DESC`)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +291,7 @@ func (r *AgentRepository) GetAllAgents() ([]models.Agent, error) {
 	for rows.Next() {
 		var agent models.Agent
 		var capabilityReport, profileCapabilities string
-		if err := rows.Scan(&agent.ID, &agent.Name, &agent.ProjectID, &agent.ServerID, &agent.Version, &agent.Status, &agent.LastSeenAt, &agent.CreatedAt, &agent.UpdatedAt, &agent.Profile.Kind, &profileCapabilities, &capabilityReport); err != nil {
+		if err := rows.Scan(&agent.ID, &agent.Name, &agent.ServerID, &agent.Version, &agent.Status, &agent.LastSeenAt, &agent.CreatedAt, &agent.UpdatedAt, &agent.Profile.Kind, &profileCapabilities, &capabilityReport); err != nil {
 			return nil, err
 		}
 		profile, err := decodeAgentProfile(agent.Profile.Kind, profileCapabilities)

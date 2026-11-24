@@ -17,6 +17,7 @@ func setupV59(t *testing.T, statements ...string) {
 		t.Fatalf("connect: %v", err)
 	}
 	t.Cleanup(func() { Close() })
+	beforeV61(t)
 	for _, statement := range statements {
 		if _, err := DB.Exec(statement); err != nil {
 			t.Fatalf("seed: %v\n%s", err, statement)
@@ -177,7 +178,7 @@ func TestDockerServersStayOutOfDirectServerRules(t *testing.T) {
 	}
 
 	// A direct target named like the environment never joins its server.
-	serverID, err := repo.ResolveForTarget(ServerTargetApp, "", "web-01", "P")
+	serverID, err := repo.ResolveForTarget(ServerTargetApp, "", "web-01")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,52 +190,10 @@ func TestDockerServersStayOutOfDirectServerRules(t *testing.T) {
 	}
 
 	// Merging with a Docker server is the confirmed same-host merge (server_merge_docker_test.go).
-
-	// The legacy group move never merges into a Docker server of the same name.
-	if _, err := DB.Exec(v59Server("other", "web-01", "NULL")); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := DB.Exec(`INSERT INTO services (id, name, type, server_id) VALUES ('m1', 'web-01', 'http', 'other')`); err != nil {
-		t.Fatal(err)
-	}
-	if err := repo.SetProjectForTarget(ServerTargetMonitor, "m1", "P"); err != nil {
-		t.Fatal(err)
-	}
-	if got := v58ServerID(t, "services", "m1"); got.String != "other" {
-		t.Fatalf("monitor moved to server %v, want it to stay on its own server", got)
-	}
-	if row, _ := v59ServerRow(t, "other"); row.name != "web-01 (3)" || row.project.String != "P" {
-		t.Fatalf("moved server = %+v, want web-01 (3) in P", row)
-	}
 }
 
-func TestDockerServerFollowsItsEnvironment(t *testing.T) {
-	setupV59(t, v59ProjectP, v59ProjectQ,
-		v59Server("direct", "prod-server", "'Q'"),
-		v59Agent("agent_a", "prod-server", "'P'", "active", "2026-01-01 00:00:00"))
-	projects := NewProjectRepository()
-
-	// Moving the environment moves its server; a same-name server there gets no merge.
-	if err := projects.AssignAgent("Q", "agent_a"); err != nil {
-		t.Fatal(err)
-	}
-	if row, _ := v59ServerRow(t, "agent_a"); row.name != "prod-server (2)" || row.project.String != "Q" {
-		t.Fatalf("server after AssignAgent = %+v, want prod-server (2) in Q", row)
-	}
-
-	// Moving the server moves the environment.
-	server, err := NewServerRepository().GetByID("agent_a")
-	if err != nil || server == nil {
-		t.Fatalf("GetByID: %v %v", server, err)
-	}
-	server.ProjectID = "P"
-	if err := NewServerRepository().Update(server); err != nil {
-		t.Fatal(err)
-	}
-	var agentProject sql.NullString
-	if err := DB.QueryRow(`SELECT project_id FROM agents WHERE id = 'agent_a'`).Scan(&agentProject); err != nil || agentProject.String != "P" {
-		t.Fatalf("agent project = %v (%v), want P", agentProject, err)
-	}
+func TestDeactivatingADockerEnvironmentRemovesItsServer(t *testing.T) {
+	setupV59(t, v59Agent("agent_a", "prod-server", "NULL", "active", "2026-01-01 00:00:00"))
 
 	// Deactivating removes the server when nothing else is on it.
 	agents := &AgentRepository{}

@@ -21,7 +21,7 @@ type observedServiceScanner interface {
 }
 
 const observedServiceSelect = `
-	o.id, o.name, COALESCE((SELECT project_id FROM servers WHERE servers.id = o.server_id), ''), COALESCE(o.server_id, ''), c.signals, c.log_level_filter, c.api_exclude_paths, c.is_active,
+	o.id, o.name, COALESCE(o.server_id, ''), c.signals, c.log_level_filter, c.api_exclude_paths, c.is_active,
 	c.api_key_masked, c.last_seen_at, o.created_at, o.updated_at`
 
 func scanObservedService(scanner observedServiceScanner) (*models.ObservedService, error) {
@@ -32,7 +32,7 @@ func scanObservedService(scanner observedServiceScanner) (*models.ObservedServic
 	var isActive int
 	var lastSeen sql.NullTime
 	if err := scanner.Scan(
-		&service.ID, &service.Name, &service.ProjectID, &service.ServerID, &signalsJSON, &logLevelFilter, &apiExcludePaths, &isActive,
+		&service.ID, &service.Name, &service.ServerID, &signalsJSON, &logLevelFilter, &apiExcludePaths, &isActive,
 		&service.ApiKeyMasked, &lastSeen, &service.CreatedAt, &service.UpdatedAt,
 	); err != nil {
 		return nil, err

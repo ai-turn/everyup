@@ -12,7 +12,6 @@ const (
 type InfrastructureResource struct {
 	ID           string     `json:"id"`
 	Name         string     `json:"name"`
-	ProjectID    string     `json:"projectId,omitempty"`
 	ServerID     string     `json:"serverId,omitempty"`
 	Adapter      string     `json:"adapter"`
 	IsActive     bool       `json:"isActive"`
@@ -26,9 +25,8 @@ type InfrastructureResource struct {
 }
 
 type InfrastructureResourceInput struct {
-	Name      string `json:"name"`
-	ProjectID string `json:"projectId,omitempty"`
-	ServerID  string `json:"serverId,omitempty"`
+	Name     string `json:"name"`
+	ServerID string `json:"serverId,omitempty"`
 	// Infrastructure "otel" removes host metrics from the server's Docker Collector so that this
 	// resource is the server's one source (ADR 0012). Required when that Docker Collector collects them.
 	Infrastructure string `json:"infrastructure,omitempty"`

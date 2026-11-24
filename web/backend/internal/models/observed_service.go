@@ -17,7 +17,6 @@ const (
 type ObservedService struct {
 	ID              string            `json:"id"`
 	Name            string            `json:"name"`
-	ProjectID       string            `json:"projectId,omitempty"`
 	ServerID        string            `json:"serverId,omitempty"`
 	Signals         []TelemetrySignal `json:"signals"`
 	LogLevelFilter  []LogLevel        `json:"logLevelFilter,omitempty"`
@@ -31,10 +30,9 @@ type ObservedService struct {
 
 // ObservedServiceInput is the management input for a direct Observed Service.
 type ObservedServiceInput struct {
-	Name      string            `json:"name"`
-	ProjectID string            `json:"projectId,omitempty"`
-	ServerID  string            `json:"serverId,omitempty"`
-	Signals   []TelemetrySignal `json:"signals"`
+	Name     string            `json:"name"`
+	ServerID string            `json:"serverId,omitempty"`
+	Signals  []TelemetrySignal `json:"signals"`
 }
 
 // ObservedServiceSetup includes the one-time plaintext credential returned by
