@@ -67,11 +67,18 @@ test('sum rate mode survives reload, shows gaps for resets and explains legacy m
 test('large metric grids request only the first twelve panels until expanded', async ({ page }) => {
   const state = await metricsFixture(page);
   for (let index = 0; index < 18; index++) state.names.push({ metricName: `custom.${index}`, metricType: 'gauge', lastAt: state.service.createdAt });
+  // 패널 수와 조회한 지표 수를 본다. 이 테스트는 조회 범위를 보는 것이라 차트 SVG가 다 그려지기를 기다리지 않는다:
+  // dev 서버 번들로 차트 12개를 그리는 데 CI 부하에서 5초를 넘긴 적이 있다(조회는 그 전에 끝났다, 2026-11-24).
+  const panels = page.getByRole('button', { name: / 고정$/ });
+  const queried = () => new Set(state.reads.filter(read => read.path.endsWith('/query')).map(read => read.name)).size;
   await page.goto(detail);
-  await expect(page.locator('.recharts-wrapper')).toHaveCount(12);
-  expect(new Set(state.reads.filter(read => read.path.endsWith('/query')).map(read => read.name)).size).toBe(12);
+  await expect(panels).toHaveCount(12);
+  await expect.poll(queried).toBe(12);
+  // 이름순으로 뒤에 오는 custom.2~custom.9는 펼치기 전에 조회하지 않는다.
+  expect(state.reads.filter(read => read.path.endsWith('/query') && /^custom\.[2-9]$/.test(read.name ?? ''))).toEqual([]);
   await page.getByRole('button', { name: '메트릭 12개 더 보기', exact: true }).click();
-  await expect(page.locator('.recharts-wrapper')).toHaveCount(20);
+  await expect(panels).toHaveCount(20);
+  await expect.poll(queried).toBe(20);
 });
 
 test('filters and series controls fit a small viewport in both themes and support keyboard', async ({ page }) => {
