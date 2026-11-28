@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
-import { STATUS_DOT, type StatusTone } from './statusTone';
+import { StatusShape } from './StatusShape';
+import type { StatusTone } from './statusTone';
 import { tabId, tabPanelId } from './tabIds';
 import { Tooltip } from './Tooltip';
 
@@ -91,8 +92,8 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
             {item.tone && (
               <span
                 {...(item.toneLabel ? { role: 'img', 'aria-label': item.toneLabel } : { 'aria-hidden': true })}
-                className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[item.tone]}`}
-              />
+                className="inline-flex shrink-0"
+              ><StatusShape tone={item.tone} size={8} /></span>
             )}
           </button></Tooltip>
         );

@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
+import { useHeaderActionSlot } from '../../../contexts/BreadcrumbContext';
+import { useMediaQuery } from '../../../hooks/useMediaQuery';
+import { collectedText, connectionText } from '../serverText';
 import { DetailMeta, IconButton, MaterialIcon, OverflowMenu, PageHeader, RefreshStatus, StatusLight, Tooltip, type OverflowMenuItem } from '../../../components/common';
 import { SERVERS_PATH } from '../serverPaths';
 import { STATE_LABEL, type ServerRow } from '../serverStatus';
@@ -18,20 +22,25 @@ export function ServerHeader({ row, onRefresh, refreshing, onSettings, updatedAt
   docker?: { primary: ReactNode; menuItems: OverflowMenuItem[] };
 }) {
   const { pathname } = useLocation();
+  const slot = useHeaderActionSlot();
+  const desktop = useMediaQuery('(min-width: 1024px)');
+  const refreshStatus = <RefreshStatus updatedAt={updatedAt} onRefresh={onRefresh} refreshing={refreshing} autoRefresh={autoRefresh} onAutoRefreshChange={onAutoRefreshChange} />;
+  const collected = collectedText(row);
   const cause = row.cause;
   // 원인 대상을 이미 보고 있으면 같은 화면으로 가는 링크를 두지 않는다.
   // 대상(모니터, 앱)은 자기 페이지가 있어 서버 화면에서 원인 대상을 보는 경우는 인프라 탭뿐이다. 그 탭에서는 링크를 두지 않는다.
   const causeLink = cause?.to && cause.to !== pathname ? cause.to : undefined;
   return (
     <header>
+      {/* 넓은 화면의 갱신 상태는 상단 줄 오른쪽이다(G안, 메뉴 첫 화면과 같은 자리). */}
+      {desktop && slot && createPortal(refreshStatus, slot)}
       {/* 데스크톱은 AppHeader 크럼이 이 역할을 한다 (DESIGN.md §3.4). 좁은 화면에서는 복귀 링크와 같은 줄의 오른쪽 끝에 갱신 상태를
           둔다 — 상태 줄 아래로 흘러 한 줄을 더 쓰던 것을 줄였다(2026-11-20 점검 B1). 넓은 화면은 상태 줄의 오른쪽 끝이다. */}
       <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
         <Link to={SERVERS_PATH} className="inline-flex min-h-11 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-text">
           <MaterialIcon size={20} name="arrow_back" />서버 목록
         </Link>
-        <RefreshStatus updatedAt={updatedAt} onRefresh={onRefresh} refreshing={refreshing}
-          autoRefresh={autoRefresh} onAutoRefreshChange={onAutoRefreshChange} />
+        {refreshStatus}
       </div>
       {/* 조작은 모든 폭에서 서버 이름과 같은 줄의 오른쪽이다. 이름이 길면 이름이 말줄임되고 버튼은 줄지 않는다.
           버튼만 있는 줄이 탭과 본문을 밀어냈다(모바일에서는 상태 줄 아래 한 줄을 따로 썼다). */}
@@ -50,12 +59,9 @@ export function ServerHeader({ row, onRefresh, refreshing, onSettings, updatedAt
                 ? <Link to={causeLink} className="inline-flex min-h-11 items-center text-text link-underline sm:min-h-6">{cause.text}</Link>
                 // 링크와 같은 높이: 원인 대상을 보는 중이라 글자로 바뀌어도 탭 줄이 움직이지 않는다.
                 : <span className="inline-flex min-h-11 items-center type-caption text-text-muted sm:min-h-6">{cause.text}</span>)}
-              {/* 상태 줄의 오른쪽 끝. 좁은 화면에서는 상태 줄 아래로 흐른다. 모든 탭에서 같은 자리라 머리말의 높이가 같다.
-                  갱신 중 표시는 새로고침 버튼의 회전이 맡는다(글자가 바뀌면 줄바꿈 위치가 흔들린다). */}
-              <div className="ml-auto max-lg:hidden">
-                <RefreshStatus updatedAt={updatedAt} onRefresh={onRefresh} refreshing={refreshing}
-                  autoRefresh={autoRefresh} onAutoRefreshChange={onAutoRefreshChange} />
-              </div>
+              {/* G안 한 줄 메타: 연결 방식과 대상 수, 수집 중인 기능. 세로선으로 나눈다. */}
+              <span className="border-l border-border-strong pl-3 type-caption text-text-muted">{connectionText(row)}</span>
+              {collected && <span className="border-l border-border-strong pl-3 type-caption text-text-muted">{collected} 수집</span>}
             </>}
           />
         </>}

@@ -62,27 +62,26 @@ test('a healthy target outweighs a paused one, and idle servers say why', async 
 
 test('app-based capabilities say whether data arrives, not that they are healthy', async ({ page }) => {
   await mockServers(page);
+  // 머리말의 한 줄 메타가 수집 중인 기능을 말한다(G안). 로그는 수신 여부만 판정하므로 "정상"이라고 쓰지 않는다.
   await page.goto('./servers/logs-ok');
-  const logs = page.getByRole('region', { name: '로그', exact: true });
-  await expect(logs).toContainText('수집 중');
-  await expect(logs).not.toContainText('정상');
+  await expect(page.locator('header', { has: page.getByRole('heading', { level: 1 }) })).toContainText('로그 수집');
+  await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^로그/ })).not.toContainText('정상');
 
   await page.goto('./servers/apps');
   await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('img', { name: '데이터 대기 중' })).toBeVisible();
-  await expect(page.getByRole('region', { name: '로그', exact: true })).toContainText('데이터 대기 중');
 });
 
-test('the overview lists outages only when there is more than one', async ({ page }) => {
+test('the overview gives every outage its own banner', async ({ page }) => {
   await mockServers(page);
   await page.goto('./servers/two-down');
-  const banner = page.getByRole('region', { name: '진행 중 장애 2건' });
-  await expect(banner.getByRole('link')).toHaveText([/^Checkout API/, /^Payments API/]);
-  await expect(banner.getByRole('link').first()).toHaveAttribute('href', /\/servers\/two-down\/monitors\/d1$/);
-  await expect(page.locator('.animate-pulse')).toHaveCount(1);
+  const banner = page.getByRole('region', { name: '진행 중 장애' });
+  await expect(banner.getByRole('link')).toHaveCount(2);
+  await expect(banner.getByRole('link').filter({ hasText: 'Checkout API' })).toHaveAttribute('href', /\/servers\/two-down\/monitors\/d1$/);
+  await expect(banner.getByRole('link').filter({ hasText: 'Payments API' })).toBeVisible();
 
   await page.goto('./servers/one-down');
-  await expect(page.getByRole('link', { name: 'Search API 응답 없음, 5분째' })).toBeVisible();
-  await expect(page.getByRole('region', { name: /진행 중 장애/ })).toHaveCount(0);
+  await expect(page.locator('header').getByRole('link', { name: 'Search API 응답 없음, 5분째' })).toBeVisible();
+  await expect(page.getByRole('region', { name: '진행 중 장애' }).getByRole('link')).toHaveCount(1);
 });
 
 test('status filters stay on one line each at 320px', async ({ page }) => {

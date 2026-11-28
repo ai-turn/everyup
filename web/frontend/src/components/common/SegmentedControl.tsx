@@ -1,7 +1,8 @@
 import { useContext } from 'react';
 import { ControlDefaultsContext } from './controlSize';
 import { MaterialIcon } from './MaterialIcon';
-import { STATUS_DOT, type StatusTone } from './statusTone';
+import { StatusShape } from './StatusShape';
+import type { StatusTone } from './statusTone';
 import { Tooltip } from './Tooltip';
 
 // Single-track segmented control for mutually-exclusive pick-one selectors
@@ -82,7 +83,7 @@ export function SegmentedControl<T extends string>({
             }`}
           >
             {o.icon ? <MaterialIcon name={o.icon} /> : <span className={`truncate ${scroll ? 'max-w-36' : ''}`}>{o.label}</span>}
-            {o.tone && <span role="img" aria-label={o.toneLabel} className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[o.tone]}`} />}
+            {o.tone && <span role="img" aria-label={o.toneLabel} className="inline-flex shrink-0"><StatusShape tone={o.tone} size={8} /></span>}
             {o.tone && o.tone !== 'healthy' && <span aria-hidden="true" className="shrink-0 type-caption text-text-muted">{o.toneLabel}</span>}
           </button></Tooltip>
         );

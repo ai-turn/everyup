@@ -139,7 +139,8 @@ test('the automatic refresh switch stops and resumes 30 second polling of server
   await page.goto('./servers/s1');
   await expect(stamp(page)).toContainText('갱신');
   const initial = state.serverReads();
-  const auto = serverHeader(page).getByRole('switch', { name: '30초마다 자동 갱신' });
+  // 넓은 화면의 갱신 상태는 상단 줄에 있다(G안).
+  const auto = page.getByRole('switch', { name: '30초마다 자동 갱신' });
   await expect(auto).toHaveAttribute('aria-checked', 'true');
   await auto.click();
   await page.clock.fastForward(60_000);
@@ -355,8 +356,9 @@ test('a server whose only monitors could not be refreshed says uptime is unverif
   await row.getByRole('link', { name: 'web-01' }).click();
   await expect(serverHeader(page).getByText('업타임 확인 불가', { exact: true })).toBeVisible();
   await expect(serverHeader(page).getByRole('link', { name: '업타임 확인 불가' })).toHaveCount(0);
-  const uptimeRow = panel(page).locator('section', { has: page.getByRole('heading', { level: 2, name: '업타임' }) });
-  await expect(uptimeRow.getByText('확인 불가', { exact: true })).toBeVisible();
+  // 개요에서는 업타임 탭이 확인 불가라고 말하고, 주요 지표에 이전 가용률을 지금 값처럼 두지 않는다.
+  await expect(page.getByRole('tablist', { name: '서버 기능' }).getByRole('tab', { name: /^업타임/ })).toContainText('확인 불가');
+  await expect(panel(page).getByRole('region', { name: '주요 지표' }).filter({ hasText: '99.50' })).toHaveCount(0);
 });
 
 test('detaching logs after a traces detach whose reload failed deletes the app instead of turning traces back on', async ({ page }) => {

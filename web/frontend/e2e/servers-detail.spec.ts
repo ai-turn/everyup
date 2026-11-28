@@ -76,16 +76,16 @@ test('reselecting a tab returns to its first screen', async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`/servers/${EDGE}/uptime$`));
 });
 
-test('a single outage is told by the header alone and the failing capability is on top', async ({ page }) => {
+test('an outage gets a banner on the overview that opens its target, above the key figures', async ({ page }) => {
   await page.goto(`./servers/${EDGE}`);
   const panel = page.getByRole('tabpanel');
-  // 장애가 하나면 머리말의 원인 링크가 같은 말을 하므로 배너를 두지 않는다(둘 이상은 servers-status.spec.ts).
   await expect(serverHeader(page).getByRole('link', { name: /Checkout API 응답 없음/ })).toBeVisible();
-  await expect(panel.getByRole('region', { name: /진행 중 장애/ })).toHaveCount(0);
-
-  const sections = panel.getByRole('region', { name: '연결된 기능' }).getByRole('heading', { level: 2 });
-  await expect(sections.first()).toHaveText('업타임');
-  await expect(sections).toHaveText(['업타임', '인프라', '로그', 'API 요청', '메트릭']);
+  // G안: 장애가 하나여도 개요 맨 위에 배너가 있고 그 대상으로 간다.
+  const banner = panel.getByRole('region', { name: '진행 중 장애' }).getByRole('link');
+  await expect(banner).toHaveCount(1);
+  await expect(banner).toContainText('Checkout API 응답 없음');
+  await expect(banner).toHaveAttribute('href', new RegExp(`/servers/${EDGE}/monitors/uptime_mock_checkout$`));
+  await expect(panel.getByRole('region', { name: '주요 지표' })).toContainText('CPU');
 });
 
 test('a server without targets offers to connect the first capability', async ({ page }) => {
@@ -133,22 +133,18 @@ test('a failed app list reads as unknown, not as not connected', async ({ page }
   await expect(logs).not.toContainText('연결 전');
   // 모르는 기능을 연결 전이라고 하지 않는다. Docker Collector 설치만 남는다.
   await expect(page.getByRole('region', { name: '연결할 수 있는 기능' }).getByRole('button')).toHaveText(['Docker Collector 설치']);
-  // 모르는 기능은 경고가 아니라 대기 톤이고, 연결된 기능들 다음에 온다.
-  const sections = page.getByRole('region', { name: '연결된 기능' }).getByRole('heading', { level: 2 });
-  await expect(sections).toHaveText(['업타임', '인프라', '로그', 'API 요청', '메트릭']);
-  await expect(page.getByRole('region', { name: '로그', exact: true })).toContainText('확인 불가');
-  await expect(page.getByRole('region', { name: '로그', exact: true })).not.toContainText('확인 필요');
 
   await logs.click();
   await expect(page.getByRole('tabpanel')).toContainText('로그 앱 정보를 불러오지 못했습니다');
   await expect(page.getByRole('tabpanel').getByRole('button', { name: '다시 시도' })).toBeVisible();
 });
 
-test('a capability that is only a warning still sorts above healthy ones', async ({ page }) => {
-  // batch-host-01: 업타임 정상, 인프라 확인 필요(CPU 76.1%), 로그와 메트릭 정상.
+test('a usage over the warning line is marked in the key figures, not only by color', async ({ page }) => {
+  // batch-host-01: 인프라 확인 필요(CPU 76.1%).
   await page.goto('./servers/server_mock_batch_host_01');
-  const sections = page.getByRole('region', { name: '연결된 기능' }).getByRole('heading', { level: 2 });
-  await expect(sections.first()).toHaveText('인프라');
+  const figures = page.getByRole('tabpanel').getByRole('region', { name: '주요 지표' });
+  await expect(figures).toContainText('CPU76%');
+  await expect(figures.getByText('주의 기준 초과', { exact: false }).first()).toBeAttached();
 });
 
 test('arrow keys move through tabs without piling up history', async ({ page }) => {
