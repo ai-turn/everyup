@@ -132,7 +132,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 ### 1.1 토큰 규약 — 테마는 토큰이 바꾼다
 
-색 값은 [`src/tokens.css`](src/tokens.css) 한 파일에만 있다(2026-11-28, G안). 테마는 네 개이고 `<html data-theme="dark|light|latte|mocha">`가 고른다. 토큰 이름 34개는 테마와 무관하고, 테마는 그 이름에 값을 연결하는 표의 열 하나다. 새 테마는 `tokens.css`에 `[data-theme]` 블록 하나, `ThemeContext`의 `THEMES`와 `public/theme-init.js`의 목록에 한 줄씩 더한다.
+색 값은 [`src/tokens.css`](src/tokens.css) 한 파일에만 있다(2026-11-28, G안). 테마는 네 개이고 `<html data-theme="dark|light|latte|mocha">`가 고른다. 토큰 이름 34개는 테마와 무관하고, 테마는 그 이름에 값을 연결하는 표의 열 하나다. 새 테마는 `tokens.css`에 `[data-theme]` 블록 하나, `contexts/themes.ts`의 `THEMES`와 `public/theme-init.js`의 목록에 한 줄씩 더한다.
 
 `index.css`는 Tailwind 기본 팔레트를 지우고(`--color-*: initial`) 색 유틸리티를 토큰에만 연결한다(`@theme inline`). 그래서 `bg-sky-500`·`text-white` 같은 클래스는 아무것도 만들지 않고, `pnpm lint`가 막는다. `dark:` 변형도 쓰지 않는다(외부 서비스를 흉내 내는 채널 미리보기만 예외).
 

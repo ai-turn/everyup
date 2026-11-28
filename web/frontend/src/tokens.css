@@ -1,6 +1,6 @@
 /* 테마 토큰 — 색 값이 있는 유일한 파일(DESIGN.md §1). 컴포넌트는 의미 토큰만 쓰고, 테마는 이 표의 열 하나다.
    index.css의 @theme inline이 Tailwind 색(bg-surface, text-text-muted 등)을 이 변수에 연결한다.
-   새 테마는 [data-theme="이름"] 블록 하나와 ThemeContext의 THEMES 한 줄로 더한다.
+   새 테마는 [data-theme="이름"] 블록 하나와 contexts/themes.ts의 THEMES, theme-init.js의 목록 한 줄씩으로 더한다.
    값의 출처: 승인된 G안 시안의 PAL. Latte는 Catppuccin 공식 값이고, 글자로 쓸 때 4.5:1이 안 되는
    노랑·초록·흐린 글자만 attn-text·ok-text·text-faint에서 어둡게 보정했다. */
 
