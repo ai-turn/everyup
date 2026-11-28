@@ -91,12 +91,35 @@ pnpm docs:dev                                                 # run the docs sit
 ```
 
 `pnpm build` does not type-check, so run `typecheck` separately. If you changed the UI, run
-`pnpm test:e2e` in `web/frontend` before merging. The demo e2e runs in PR CI, before Docker image
-publication, and in the Pages deploy. A push to main reuses the result when a PR run already passed
-e2e on the identical git tree, and runs e2e otherwise; to force it on main, use **Run workflow** on
-the Verify workflow in Actions. Docker images are published only after every check passes
-for the same commit. If screens look different, regenerate the docs and README screenshots with
-`pnpm screenshot`.
+`pnpm test:e2e` in `web/frontend` before merging. If screens look different, regenerate the docs
+and README screenshots with `pnpm screenshot`.
+
+### CI, releases, and the demo
+
+There are three GitHub Actions workflows, and none waits on another.
+
+| Workflow | Runs on | Does |
+| --- | --- | --- |
+| **Verify** (`ci.yml`) | PRs, pushes to main | Checks only. Never publishes images or deploys Pages. |
+| **Release** (`release.yml`) | `v*` tag pushes, manual runs (name an existing tag) | Reruns every Verify check on the tagged commit, then publishes both Docker images. |
+| **Deploy demo** (`deploy-pages.yml`) | Manual runs (pick a ref, default main), `v*` tag pushes | Builds the docs and demo from that ref, runs the demo e2e, and deploys to GitHub Pages. |
+
+A push to main reuses the e2e result when a PR run already passed e2e on the identical git tree, and
+runs e2e otherwise; to force it on main, use **Run workflow** on Verify. Merging to main changes no
+image tag and does not touch the public demo.
+
+**Cutting a release**: tag the commit on main and push the tag
+(`git tag v1.2.0 && git push origin v1.2.0`), or create a GitHub release with a new tag of that name.
+Release publishes the images, and when the tag is the newest stable version, Deploy demo also moves
+the demo to it. To retry a failed release, run Actions → Release → **Run workflow** with the tag name.
+
+**Image tags**: every published commit gets `sha-<commit>`. Every release tag gets `X.Y.Z`; `X.Y`
+and `latest` move only for a stable version (no suffix such as `-rc.1`) newer than every existing
+stable version. So `latest` is the newest stable release, and re-publishing an old version or cutting
+a prerelease (`v1.3.0-rc.1`) leaves it alone.
+
+**Deploying the demo by hand**: Actions → Deploy demo → **Run workflow**, and enter a branch, tag, or
+commit (empty means main). A manual run always deploys the ref you chose.
 
 Running each part locally is covered in [web/README.md](web/README.md) and
 [agent/README.md](agent/README.md); the instrumentation E2E fixture is in

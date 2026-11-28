@@ -4,15 +4,23 @@ on:
   pull_request:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
+  # Release (release.yml) runs these same checks on the tagged commit before publishing images.
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit to check out instead of the triggering one
+        type: string
+        required: false
+
+# Checks only: this workflow never publishes images or deploys Pages. Release (release.yml) and
+# Deploy demo (deploy-pages.yml) are separate workflows, so none of the three waits on the others.
 
 permissions:
   contents: read
 
 concurrency:
-  # Superseded PR checks are cancelled. Pushes never queue behind each other: only promote and
-  # the Pages deploy are serialized, and both skip when main has moved past their commit.
+  # Superseded PR checks are cancelled; other runs never queue behind each other.
   group: ${{ github.event_name == 'pull_request' && format('verify-{0}', github.ref) || format('verify-run-{0}', github.run_id) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -22,10 +30,10 @@ jobs:
     timeout-minutes: 5
     outputs:
       images: ${{ steps.changes.outputs.images }}
-      pages: ${{ steps.changes.outputs.pages }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
       - id: changes
         run: node .github/scripts/changes.mjs
@@ -37,6 +45,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: '1.27.x'
@@ -52,6 +62,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: '1.27.x'
@@ -72,9 +84,11 @@ jobs:
       actions: read # find the pull_request run that already passed e2e on this tree
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
       # A main push skips e2e only when a successful pull_request run of this workflow passed it
       # on the identical git tree (same code, workflow, and specs); see reuse-e2e.mjs. Anything
-      # else runs e2e: new trees from stale branches, failed lookups, tag pushes, and manual runs
+      # else runs e2e: new trees from stale branches, failed lookups, release runs, and manual runs
       # (Actions > Verify > Run workflow on main forces it). Setting the FORCE_E2E repository
       # variable to true turns reuse off everywhere. PR runs only report what main would do.
       - name: Decide whether to reuse a pull request's e2e result
@@ -138,22 +152,14 @@ jobs:
           path: web/frontend/test-results/
           retention-days: 14
           if-no-files-found: ignore
-      - name: Save the tested demo for Pages
-        if: github.ref == 'refs/heads/main' && needs.changes.outputs.pages == 'true'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: pages-demo
-          path: web/frontend/dist/
-          retention-days: 1
-          if-no-files-found: error
 
   docs:
-    needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref }}
           # VitePress lastUpdated needs the history of the deployed files.
           fetch-depth: 0
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
@@ -168,14 +174,6 @@ jobs:
         run: |
           pnpm --dir docs install --frozen-lockfile
           pnpm --dir docs build
-      - name: Save the built docs for Pages
-        if: github.ref == 'refs/heads/main' && needs.changes.outputs.pages == 'true'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: pages-docs
-          path: docs/.vitepress/dist/
-          retention-days: 1
-          if-no-files-found: error
 
   docker-smoke:
     needs: changes
@@ -194,6 +192,8 @@ jobs:
             dockerfile: agent/Dockerfile
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Build the runtime image without publishing
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -203,7 +203,7 @@ jobs:
           platforms: linux/amd64
           load: true
           tags: everyup-smoke:${{ matrix.kind }}
-          build-args: EVERYUP_AGENT_IMAGE=aiturn/everyup-agent:sha-${{ github.sha }}
+          build-args: EVERYUP_AGENT_IMAGE=aiturn/everyup-agent:smoke
           cache-from: type=gha,scope=${{ matrix.kind }}
           cache-to: type=gha,mode=max,scope=${{ matrix.kind }}
       - name: Check startup, HTTP responses, and packaged files
@@ -224,6 +224,8 @@ jobs:
           test "$CHANGES_RESULT" = success
           if [ "$IMAGES_CHANGED" = true ]; then test "$IMAGE_RESULT" = success; fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: '1.27.x'
@@ -231,54 +233,3 @@ jobs:
       - name: Validate generated all-in-one, basic, and custom compose profiles
         working-directory: web/backend
         run: go test ./internal/api/handlers -run 'TestBuildAgentComposePassesDockerComposeValidation|TestBuildAgentComposeOmitsUnselectedPrivileges|TestAgentCustomProfileControlsJoinBundle' -v
-
-  # Builds and pushes only commit-addressable sha- tags, so it runs alongside the tests and
-  # docker-smoke. Nothing points users at these images until promote has seen every check pass
-  # (compose-profile-smoke fails unless docker-smoke succeeded).
-  publish:
-    needs: changes
-    if: github.event_name != 'pull_request' && needs.changes.outputs.images == 'true' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-    uses: ./.github/workflows/docker-publish.yml
-    secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  promote:
-    # No if: every need must succeed, so a failed, cancelled, or skipped check (or a PR, where
-    # publish is skipped) never moves a shared tag.
-    needs: [changes, backend, agent, frontend, docs, compose-profile-smoke, publish]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    concurrency:
-      # Runs are not queued per ref; promote-images.mjs skips latest once main has moved on.
-      group: docker-image-promotion
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: image-digest-*
-          merge-multiple: true
-      - name: Promote the verified pair and record rollback references
-        run: node .github/scripts/promote-images.mjs
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: release-manifest
-          path: release-manifest.json
-          retention-days: 90
-
-  pages:
-    needs: [changes, backend, agent, frontend, docs, compose-profile-smoke]
-    # docs-only pushes skip docker-smoke; without a status check here that skip propagates through
-    # compose-profile-smoke and silently skips Pages too. !failure() still blocks on any failed need.
-    if: ${{ !cancelled() && !failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.changes.outputs.pages == 'true' }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    uses: ./.github/workflows/deploy-pages.yml

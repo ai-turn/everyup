@@ -1,27 +1,93 @@
-name: Deploy Docs and Demo to GitHub Pages
+name: Deploy demo
 
+# Builds the docs site and the demo from one ref, runs the demo e2e on that exact build, and
+# deploys both to GitHub Pages. Pushes to main never deploy.
+#   - Manual: Actions > Deploy demo > Run workflow, with any branch, tag, or commit (default main).
+#     The chosen ref always deploys.
+#   - Automatic: a pushed release tag deploys only while it is the newest stable release, the same
+#     rule that moves the latest image tag.
 on:
-  workflow_call:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag, or commit to deploy
+        required: false
+        default: main
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  decide:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      deploy: ${{ steps.release.outputs.deploy }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - name: Deploy a release tag only while it is the newest stable release
+        id: release
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != push ] || node .github/scripts/release-tags.mjs "$GITHUB_REF_NAME" | grep -qx latest; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            printf '### Pages\n\nSkipped: `%s` is not the newest stable release. Deploy it with Run workflow if intended.\n' "$GITHUB_REF_NAME" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  build:
+    needs: decide
+    if: needs.decide.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # The workflow's own checkout supplies the scripts; the site is built from src/.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          name: pages-docs
-          path: _site
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+          ref: ${{ inputs.ref || github.sha }}
+          path: src
+          # VitePress lastUpdated needs the history of the deployed files.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
-          name: pages-demo
-          path: _site/demo
-      - name: Assemble and validate the tested site
-        run: node .github/scripts/assemble-pages.mjs
+          version: 10.27.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: |
+            src/web/frontend/pnpm-lock.yaml
+            src/docs/pnpm-lock.yaml
+      - name: Install dependencies and Playwright Chromium
+        run: |
+          pnpm --dir src/web/frontend install --frozen-lockfile
+          pnpm --dir src/docs install --frozen-lockfile
+          pnpm --dir src/web/frontend exec playwright install chromium
+      # pretest:e2e builds the demo with the Pages base path; the deployed files are that build.
+      - name: Build and test the demo
+        run: pnpm --dir src/web/frontend test:e2e
+      - name: Preserve Playwright failure evidence
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-results
+          path: src/web/frontend/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Build docs and assemble the site
+        run: |
+          pnpm --dir src/docs build
+          mkdir -p _site
+          cp -R src/docs/.vitepress/dist/. _site/
+          cp -R src/web/frontend/dist _site/demo
+          node .github/scripts/assemble-pages.mjs _site
+          printf '### Pages\n\nBuilt `%s` at `%s`.\n' "${REF:-$GITHUB_REF_NAME}" "$(git -C src rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          REF: ${{ inputs.ref }}
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site
@@ -36,27 +102,24 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    # Verify runs on main no longer queue, so deploys are serialized here instead.
     concurrency:
       group: pages-deploy
       cancel-in-progress: false
     steps:
-      # Checked inside the serialized job: a run that finishes after a newer main must not
-      # overwrite the newer site.
-      - name: Deploy only the current main commit
-        id: head
-        env:
-          REPOSITORY: ${{ github.repository }}
-          COMMIT: ${{ github.sha }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'push'
+      # Checked again inside the serialized job: a release run that finishes after a newer release
+      # must not overwrite the newer site. Manual runs skip this; the chosen ref wins.
+      - name: Recheck that the release is still the newest
+        id: current
         run: |
-          head=$(git ls-remote --exit-code "https://github.com/$REPOSITORY" refs/heads/main | cut -f1)
-          if [ "$head" = "$COMMIT" ]; then
+          if [ "$GITHUB_EVENT_NAME" != push ] || node .github/scripts/release-tags.mjs "$GITHUB_REF_NAME" | grep -qx latest; then
             echo "current=true" >> "$GITHUB_OUTPUT"
           else
             echo "current=false" >> "$GITHUB_OUTPUT"
-            printf '### Pages\n\nSkipped: main has moved to `%s`; that run deploys instead.\n' "$head" >> "$GITHUB_STEP_SUMMARY"
+            printf '### Pages\n\nSkipped: a newer stable release than `%s` exists; its run deploys instead.\n' "$GITHUB_REF_NAME" >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Deploy to GitHub Pages
-        if: steps.head.outputs.current == 'true'
+        if: steps.current.outputs.current == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
