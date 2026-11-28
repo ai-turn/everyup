@@ -1,6 +1,7 @@
 # 업그레이드·제거
 
-Web과 Docker Collector는 `latest` 태그 이미지를 사용합니다. 업그레이드는 새 이미지를 받아
+Web과 Docker Collector는 `latest` 태그 이미지를 사용합니다. `latest`는 가장 최근 정식 릴리스를
+가리키며, 특정 버전에 고정하려면 `aiturn/everyup:1.2.0`처럼 버전 태그를 씁니다. 업그레이드는 새 이미지를 받아
 컨테이너를 다시 만드는 것이고, 수집한 데이터와 설정은 그대로 유지됩니다.
 
 번들의 eBPF Observer(`everyup-ebpf`)는 검증된 버전에 고정되어 있어 `pull`로는 바뀌지 않습니다.

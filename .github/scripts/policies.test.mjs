@@ -5,27 +5,29 @@ import { releaseTags } from './release-tags.mjs';
 import { artifactName, findReusableRun } from './reuse-e2e.mjs';
 
 test('docs-only changes do not rebuild Docker images', () => {
-  assert.deepEqual(deploymentChanges(['docs/guide/introduction.md']), { images: false, pages: true });
+  assert.deepEqual(deploymentChanges(['docs/guide/introduction.md', 'README.md']), { images: false });
 });
-test('backend and Collector changes do not redeploy Pages', () => {
-  assert.deepEqual(deploymentChanges(['web/backend/cmd/server/main.go', 'agent/Dockerfile']), { images: true, pages: false });
-});
-test('frontend and deployment changes update both products', () => {
-  for (const path of ['web/frontend/src/App.tsx', '.github/workflows/ci.yml', '.github/scripts/assemble-pages.mjs']) {
-    assert.deepEqual(deploymentChanges([path]), { images: true, pages: true });
+test('product and deployment changes smoke-test the images', () => {
+  for (const path of ['web/frontend/src/App.tsx', 'agent/Dockerfile', '.github/workflows/ci.yml', '.dockerignore']) {
+    assert.deepEqual(deploymentChanges([path]), { images: true });
   }
 });
-test('only the current main commit can update latest', () => {
-  assert.deepEqual(releaseTags('refs/heads/main'), ['latest']);
-  assert.deepEqual(releaseTags('refs/heads/main', false), []);
-  assert.deepEqual(releaseTags('refs/tags/v1.2.3'), ['1.2.3', '1.2']);
+test('the newest stable release moves its minor alias and latest', () => {
+  assert.deepEqual(releaseTags('refs/tags/v1.2.3'), ['1.2.3', '1.2', 'latest']);
+  // Prereleases and non-release tags never outrank a stable version.
+  assert.deepEqual(releaseTags('refs/tags/v1.2.3', ['v1.2.3', 'v1.2.2', 'v2.0.0-rc.1', 'v0.9.0-legacy-ui', 'nightly']), ['1.2.3', '1.2', 'latest']);
 });
-test('prereleases cannot move stable aliases', () => {
+test('re-releasing an older stable version cannot roll back latest or its minor alias', () => {
+  assert.deepEqual(releaseTags('refs/tags/v1.2.3', ['v1.3.0']), ['1.2.3', '1.2']);
+  assert.deepEqual(releaseTags('refs/tags/v1.2.3', ['v1.2.4']), ['1.2.3']);
+});
+test('prereleases publish only their own version tag', () => {
   assert.deepEqual(releaseTags('refs/tags/v1.2.3-rc.1'), ['1.2.3-rc.1']);
+  assert.deepEqual(releaseTags('refs/tags/v0.9.0-legacy-ui'), ['0.9.0-legacy-ui']);
 });
-test('invalid or unsupported refs cannot publish release aliases', () => {
-  for (const ref of ['refs/heads/feature', 'refs/tags/vfoo', 'refs/tags/v01.2.3', 'refs/tags/v1.2.3-rc.01', 'refs/tags/v1.2']) {
-    assert.throws(() => releaseTags(ref));
+test('main and invalid refs cannot publish any image tag', () => {
+  for (const ref of ['refs/heads/main', 'refs/heads/feature', 'refs/tags/vfoo', 'refs/tags/v01.2.3', 'refs/tags/v1.2.3-rc.01', 'refs/tags/v1.2']) {
+    assert.throws(() => releaseTags(ref), undefined, ref);
   }
 });
 

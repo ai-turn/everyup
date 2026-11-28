@@ -60,9 +60,9 @@ pnpm typecheck   # `pnpm build` does not type-check
 pnpm build
 ```
 
-If you changed the UI, also run `pnpm test:e2e` before merging. The demo e2e runs in PR CI, before
-Docker image publication, and in the Pages deploy. A push to main reuses the result when a PR run
-already passed e2e on the identical git tree, and runs e2e otherwise; to force it on main, use
+If you changed the UI, also run `pnpm test:e2e` before merging. The demo e2e runs in PR CI, in the
+Release workflow, and in Deploy demo (see the root README). A push to main reuses the result when a
+PR run already passed e2e on the identical git tree, and runs e2e otherwise; to force it on main, use
 **Run workflow** on the Verify workflow in Actions. If screens look different, regenerate the
 docs and README screenshots with
 `pnpm screenshot`.

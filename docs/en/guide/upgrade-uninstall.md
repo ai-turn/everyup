@@ -1,6 +1,7 @@
 # Upgrade and uninstall
 
-Web and the Docker Collector use `latest` images. Upgrading means pulling the new images and
+Web and the Docker Collector use `latest` images. `latest` is the newest stable release; to pin a
+version, use its tag, such as `aiturn/everyup:1.2.0`. Upgrading means pulling the new images and
 recreating the containers; collected data and settings are kept.
 
 The bundle's eBPF Observer (`everyup-ebpf`) is pinned to a tested version, so `pull` does not change

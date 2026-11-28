@@ -1,15 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
-import { releaseTags } from './release-tags.mjs';
+import { releaseTags, remoteTags } from './release-tags.mjs';
 
-const { GITHUB_REF: ref, GITHUB_SHA: commit } = process.env;
+const { RELEASE_TAG: tag, RELEASE_COMMIT: commit } = process.env;
 if (!/^[a-f0-9]{40}$/.test(commit)) throw new Error('Invalid source commit.');
-let currentMain = true;
-if (ref === 'refs/heads/main') {
-  const head = execFileSync('git', ['ls-remote', '--exit-code', 'origin', 'refs/heads/main'], { encoding: 'utf8' }).split(/\s+/)[0];
-  currentMain = head === commit;
-}
-const tags = releaseTags(ref, currentMain);
+const ref = `refs/tags/${tag}`;
+// Read the tags inside the serialized promote job so a newer release that finished first wins latest.
+const tags = releaseTags(ref, remoteTags());
 // Validate both digests before modifying either shared tag.
 const images = ['web', 'agent'].map(kind => {
   const image = kind === 'web' ? 'aiturn/everyup' : 'aiturn/everyup-agent';
@@ -24,6 +21,6 @@ for (const tag of tags) {
 }
 writeFileSync('release-manifest.json', JSON.stringify({ commit, ref, tags, images }, null, 2) + '\n');
 appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-  `### Docker images\n\nCommit: \`${commit}\`\n\n` +
+  `### Docker images\n\nRelease: \`${tag}\` at \`${commit}\`\n\n` +
   images.map(image => `- \`${image.reference}\`\n`).join('') +
-  `\nUpdated tags: ${tags.length ? tags.map(tag => `\`${tag}\``).join(', ') : 'none (main has advanced; commit images remain available)'}\n`);
+  `\nUpdated tags: ${tags.map(tag => `\`${tag}\``).join(', ')}\n`);
