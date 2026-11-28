@@ -6,22 +6,10 @@ import { uptimeFixture } from './fixtures/uptime';
 
 // 전환 후 화면의 디자인 수정(Task 14b). 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표(attention 시나리오)를 따른다.
 const EDGE = 'server_mock_edge_host_01';
-const attention = (page: Page) => page.getByRole('region', { name: '현재 확인 필요' });
-const outages = (page: Page) => attention(page).getByRole('group', { name: '장애', exact: true });
-const warnings = (page: Page) => attention(page).getByRole('group', { name: '확인 필요', exact: true });
+const attention = (page: Page) => page.getByRole('region', { name: '주의 필요' });
+const summary = (page: Page) => page.getByRole('region', { name: '요약' });
 const panel = (page: Page) => page.getByRole('tabpanel');
 
-/** 확인 필요 행의 종류 순서: 0 수집이 끊겼거나 수신 전, 1 메트릭 임계값 초과, 2 리소스 사용률. */
-const warnRank = (text: string) => (/기준 \d+%/.test(text) ? 2 : text.includes('임계값 초과') ? 1 : 0);
-
-/** 보이는 확인 필요 행을 세고, 종류의 순서대로인지 본다. */
-async function expectWarnRows(page: Page, count: number) {
-  const rows = warnings(page).getByRole('listitem');
-  await expect(rows).toHaveCount(count);
-  const ranks = (await rows.allInnerTexts()).map(warnRank);
-  expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
-  return rows;
-}
 
 /**
  * 키보드 포커스의 링(2px + 2px)이 잘리지 않는다: 요소의 사각형을 outline-width + outline-offset만큼 넓힌 영역이
@@ -66,42 +54,35 @@ async function expectHeadingOutline(scope: Locator) {
 test.describe('demo', () => {
   test.beforeEach(async ({ page }) => { await page.setViewportSize({ width: 1440, height: 1000 }); });
 
-  test('the overview splits outages from warnings and counts outages like the sidebar badge', async ({ page }) => {
+  test('the overview lists the servers that need attention and counts outages like the sidebar badge', async ({ page }) => {
     const payment = mockRouter<AgentServiceFlat[]>('/agents/services/all').find((service) => service.name === 'payment-worker')!;
     await page.goto('./');
-    await expect(attention(page).getByText('장애 2', { exact: true })).toBeVisible();
-    await expect(attention(page).getByText('확인 필요 6', { exact: true })).toBeVisible();
-    // 사이드바의 배지와 같은 수다(링크 이름은 "개요 장애 2건").
+    // 요약 띠의 활성 장애는 사이드바의 배지와 같은 수다(링크 이름은 "개요 장애 2건").
+    await expect(summary(page)).toContainText(/활성 장애2건/);
+    await expect(summary(page)).toContainText(/장애 2확인 필요 3/);
     await expect(page.locator('aside').getByRole('link', { name: /^개요/ })).toHaveAccessibleName(/^개요 장애 2\s*건$/);
 
-    await expect(outages(page).getByRole('heading', { level: 3, name: '장애' })).toBeVisible();
-    await expect(outages(page).getByRole('listitem')).toHaveCount(2);
-    await expect(outages(page).getByRole('link', { name: new RegExp(`^${payment.agentName} / payment-worker`) })).toBeVisible();
-    await expect(outages(page).getByRole('link', { name: /^edge-host-01 \/ Checkout API/ })).toBeVisible();
+    // 주의 필요는 서버 단위다(G안): 장애 → 확인 필요 → 연결 전 대기 순이고, 행은 서버 화면으로 간다.
+    const rows = attention(page).getByRole('listitem');
+    await expect(rows.first()).toContainText('edge-host-01');
+    await expect(rows.first()).toContainText('Checkout API');
+    await expect(rows.nth(1)).toContainText(payment.agentName);
+    await expect(rows.nth(1)).toContainText('payment-worker');
+    await expect(rows.first().getByRole('link')).toHaveAttribute('href', new RegExp(`/servers/${EDGE}$`));
+    const order = { 장애: 0, '확인 필요': 1, 대기: 2 } as const;
+    const states = await rows.evaluateAll((items) => items.map((item) => item.querySelector('a > span:nth-child(2)')?.textContent ?? ''));
+    const ranks = states.map((state) => order[state as keyof typeof order]);
+    expect(ranks).toEqual([...ranks].sort((x, y) => x - y));
+    // 원인은 그 서버의 이상을 모두 잇는다. 사용률은 기준과 함께 적는다.
+    await expect(rows.filter({ hasText: 'db-primary-01' })).toContainText('메모리 84.6% · 기준 70%');
 
-    // 확인 필요는 세 건까지 보이고 나머지는 제자리에서 펼친다. 메트릭 임계값 초과가 사용률 경고보다 먼저다.
-    await expect(warnings(page).getByRole('heading', { level: 3, name: '확인 필요' })).toBeVisible();
-    const preview = await expectWarnRows(page, 3);
-    await expect(preview.first()).toContainText('임계값 초과');
-    await expect(warnings(page).getByRole('link', { name: /모두 보기/ })).toHaveCount(0);
-    const more = warnings(page).getByRole('button', { name: '확인 필요 6건 모두 보기' });
-    await expect(more).toHaveAttribute('aria-expanded', 'false');
-    await more.click();
-    await expect(warnings(page).getByRole('button', { name: '우선 항목만 보기' })).toHaveAttribute('aria-expanded', 'true');
-    await expectWarnRows(page, 6);
-    const usage = warnings(page).getByRole('link', { name: /db-primary-01/ }).filter({ hasText: '메모리 84.6%' });
-    await expect(usage).toContainText('메모리 84.6%, 기준 70%');
-    // 사용률 경고는 늘 방금 받은 값이라 수신 시각 대신 기준을 적는다.
-    for (const text of await warnings(page).getByRole('listitem').filter({ hasText: /기준 \d+%/ }).allInnerTexts()) expect(text).not.toContain('마지막 수신');
+    // 전체 로그는 요약 띠의 에러 로그 제목에서 간다.
+    await expect(summary(page).getByRole('link', { name: '에러 로그', exact: true })).toHaveAttribute('href', /\/logs$/);
 
-    // 전체 로그는 범위 줄로 옮겼다.
-    await expect(attention(page).getByRole('link', { name: '전체 로그' })).toHaveCount(0);
-    await expect(page.getByRole('navigation', { name: '모니터링 범위' }).getByRole('link', { name: '전체 로그', exact: true })).toHaveAttribute('href', /\/logs$/);
-
-    // 최근 장애 이력의 행에도 부모(서버, Docker 환경)의 이름이 있다.
-    const history = page.getByRole('region', { name: '최근 장애 이력' });
-    await expect(history.getByRole('link', { name: /^edge-host-01 \/ Checkout API/ })).toBeVisible();
-    await expect(history.getByRole('link', { name: new RegExp(`^${payment.agentName} / payment-worker`) })).toBeVisible();
+    // 최근 장애의 행에도 부모(서버)의 이름이 있다.
+    const history = page.getByRole('region', { name: '최근 장애' });
+    await expect(history.getByRole('link', { name: /edge-host-01 \/ Checkout API/ })).toBeVisible();
+    await expect(history.getByRole('link', { name: new RegExp(`${payment.agentName} / payment-worker`) })).toBeVisible();
   });
 
   test('the server logs tab and the more page lead to all logs, and an app opened there returns to it', async ({ page }) => {
@@ -207,11 +188,11 @@ test.describe('demo', () => {
   test.describe('390px', () => {
     test.beforeEach(async ({ page }) => { await page.setViewportSize({ width: 390, height: 844 }); });
 
-    test('the overview scope links and the palette results are tall enough to tap', async ({ page }) => {
+    test('the overview links and the palette results are tall enough to tap', async ({ page }) => {
       await page.goto('./');
-      const scope = page.getByRole('navigation', { name: '모니터링 범위' }).getByRole('link');
-      await expect(scope).toHaveCount(2);
-      for (const box of await scope.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
+      const links = page.locator('main').getByRole('link', { name: /^(서버 전체 보기|에러 로그)$/ });
+      await expect(links).toHaveCount(2);
+      for (const box of await links.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
       // 모바일의 새로고침은 테두리 버튼이다(검은 채움이 아니다).
       await expect(page.getByRole('button', { name: '새로고침' })).not.toHaveClass(/bg-accent\b/);
 
@@ -254,9 +235,11 @@ test.describe('times', () => {
 
   test('stamps and dates ignore the browser locale', async ({ page }) => {
     await page.goto(`./servers/${EDGE}`);
-    await expect(page.getByRole('group', { name: '데이터 갱신' }).locator('> p')).toHaveText(/^\d{2}:\d{2}:\d{2} 갱신$/);
+    // 보이는 글자는 지난 시간(`마지막 확인 8초 전`)이고, 화면 낭독기에는 갱신 시각을 알린다.
+    await expect(page.getByRole('group', { name: '데이터 갱신' }).locator('[aria-live]')).toHaveText(/^\d{2}:\d{2}:\d{2} 갱신$/);
+    await expect(page.getByRole('group', { name: '데이터 갱신' }).locator('> p')).toContainText(/^마지막 확인 \d+초 전/);
     await page.goto('./');
-    await expect(page.getByRole('region', { name: '최근 장애 이력' }).getByRole('listitem').first()).toBeVisible();
+    await expect(page.getByRole('region', { name: '최근 장애' }).getByRole('listitem').first()).toBeVisible();
     const text = await page.getByRole('main').innerText();
     expect(text).not.toMatch(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/);
     expect(text).not.toMatch(/\b(AM|PM)\b|오전|오후/);
@@ -286,28 +269,18 @@ test.describe('fixtures', () => {
     return state;
   }
 
-  test('with no outage the overview says so before the warnings, which expand in place by priority', async ({ page }) => {
+  test('with no outage the overview says so, and the attention list follows each refresh', async ({ page }) => {
     const state = await mockWarnings(page);
     await page.goto('./');
-    await expect(attention(page).getByText('장애 0', { exact: true })).toBeVisible();
-    await expect(attention(page).getByText('확인 필요 5', { exact: true })).toBeVisible();
-    await expect(attention(page).getByText('진행 중인 장애 없음', { exact: true })).toBeVisible();
-    await expect(outages(page)).toHaveCount(0);
-    // 수집이 끊긴 대상은 관찰 시각이 가장 오래되었어도 사용률 경고보다 먼저 보인다.
-    const preview = await expectWarnRows(page, 3);
-    await expect(preview.first()).toContainText('host-s5');
-    await warnings(page).getByRole('button', { name: '확인 필요 5건 모두 보기' }).click();
-    await expectWarnRows(page, 5);
-
-    // 세 건 이하로 줄면 펼친 상태가 풀리고, 다시 늘면 세 건만 보인다.
+    await expect(summary(page)).toContainText(/활성 장애0건/);
+    await expect(summary(page)).toContainText('진행 중 장애 없음');
+    const rows = attention(page).getByRole('listitem');
+    await expect(rows).toHaveCount(5);
+    for (const text of await rows.allInnerTexts()) expect(text).toContain('확인 필요');
+    // 인프라를 거둔 서버는 연결한 대상이 없는 대기(`연결 전`)로 남는다.
     state.count = 2;
     await page.getByRole('button', { name: '새로고침', exact: true }).click();
-    await expectWarnRows(page, 2);
-    await expect(warnings(page).getByRole('button')).toHaveCount(0);
-    state.count = 5;
-    await page.getByRole('button', { name: '새로고침', exact: true }).click();
-    await expectWarnRows(page, 3);
-    await expect(warnings(page).getByRole('button', { name: '확인 필요 5건 모두 보기' })).toHaveAttribute('aria-expanded', 'false');
+    await expect(rows.filter({ hasText: '확인 필요' })).toHaveCount(2);
   });
 
   test('while some targets cannot be loaded the overview does not state counts', async ({ page }) => {
@@ -315,9 +288,10 @@ test.describe('fixtures', () => {
     state.failing = true;
     await page.goto('./');
     await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
-    await expect(warnings(page).getByRole('listitem').first()).toBeVisible();
-    await expect(attention(page).getByText(/^장애 \d+$/)).toHaveCount(0);
-    await expect(attention(page).getByText(/^확인 필요 \d+$/)).toHaveCount(0);
+    await expect(attention(page).getByRole('listitem').first()).toBeVisible();
+    // 제목 옆 개수와 정상 서버 수를 단정하지 않는다.
+    await expect(attention(page).locator('h2 + span')).toHaveCount(0);
+    await expect(summary(page)).toContainText('정상 서버-');
   });
 
   test('a failed uptime refresh has one notice and one retry', async ({ page }) => {

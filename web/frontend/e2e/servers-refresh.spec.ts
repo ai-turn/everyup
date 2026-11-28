@@ -14,7 +14,8 @@ const app: ObservedService = { id: 'a1', name: 'orders-api', serverId: 's1', sig
 const panel = (page: Page) => page.getByRole('tabpanel');
 const tablist = (page: Page) => page.getByRole('tablist', { name: '서버 기능' });
 const serverHeader = (page: Page) => page.locator('header', { has: page.getByRole('heading', { level: 1 }) });
-const stamp = (page: Page) => page.getByRole('group', { name: '데이터 갱신' }).locator('> p');
+// 갱신 시각(`12:00:00 갱신`). 보이는 글자는 지난 시간이라 매초 바뀌므로 화면 낭독기용 시각을 본다.
+const stamp = (page: Page) => page.getByRole('group', { name: '데이터 갱신' }).locator('[aria-live]');
 const refresh = (page: Page) => page.getByRole('button', { name: '새로고침', exact: true });
 // 앱은 자기 페이지가 있다(DESIGN.md §4.7 대상 상세). 앱의 상태·조작은 그 페이지의 머리말에 있다.
 const appHeader = (page: Page) => page.locator('#main-content header').first();
@@ -534,18 +535,13 @@ test('the metrics panel of an app over a threshold says so, like its tab', async
 test('only the screens that show error log counts ask for the log summary', async ({ page }) => {
   const state = await mockServer(page);
   const summaries = state.count('/logs/summary');
-  const catalogReads = state.count('/observed-services/metric-catalog');
-  // 서버 데이터의 요청은 한꺼번에 나간다. 지표 목록(마지막 요청)이 나갔으면 로그 요약도 나갔을 때다.
-  for (const path of ['./']) {
-    const before = catalogReads();
-    await page.goto(path);
-    await expect.poll(catalogReads).toBeGreaterThan(before);
-    await expect(page.getByText('일부 정보를 불러오지 못했습니다')).toHaveCount(0);
-  }
+  // 개요는 요약 띠의 에러 로그를, 서버 목록은 서버별 오류 로그 수를 보인다.
   expect(summaries()).toBe(0);
+  await page.goto('./');
+  await expect.poll(summaries).toBe(1);
   await page.goto('./servers');
   await expect(page.getByRole('table', { name: '서버 그리드' })).toBeVisible();
-  await expect.poll(summaries).toBe(1);
+  await expect.poll(summaries).toBe(2);
 });
 
 test.describe('with an English browser', () => {

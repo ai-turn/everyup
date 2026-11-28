@@ -6,21 +6,24 @@ import { uptimeFixture } from './fixtures/uptime';
 // 여러 서버를 가로지르는 화면(설계 6.6): 개요, 알림 규칙, 명령 팔레트.
 // 서버 구성은 src/mocks/SCENARIOS.md의 "Demo servers" 표(attention 시나리오)를 따른다.
 const EDGE = 'server_mock_edge_host_01';
-const attention = (page: Page) => page.getByRole('region', { name: '현재 확인 필요' });
+const attention = (page: Page) => page.getByRole('region', { name: '주의 필요' });
 
 test.beforeEach(async ({ page }) => { await page.setViewportSize({ width: 1440, height: 900 }); });
 
-test('an outage on the overview opens its monitor page and is linked to its incident once', async ({ page }) => {
+test('an outage on the overview leads to its server, and its incident opens the monitor page', async ({ page }) => {
   await page.goto('./');
-  const path = `/servers/${EDGE}/monitors/uptime_mock_checkout`;
-  const items = attention(page).locator(`a[href$="${path}"]`);
-  await expect(items).toHaveCount(1);
-  // 서버 이름을 함께 쓰고, 장애 이력의 진행 중 장애와 이어져 경과 시간이 보인다.
-  await expect(items).toContainText('edge-host-01 / Checkout API');
-  await expect(items).toContainText('경과');
+  // 주의 필요의 행은 서버다(G안). 원인에 모니터 이름과 경과 시간이 있다.
+  const row = attention(page).getByRole('listitem').filter({ hasText: 'edge-host-01' });
+  await expect(row).toContainText('Checkout API');
+  await expect(row.getByRole('link')).toHaveAttribute('href', new RegExp(`/servers/${EDGE}$`));
   // 일시정지한 모니터(Redis TCP)는 서버 목록에서처럼 문제가 아니다.
   await expect(attention(page)).not.toContainText('Redis TCP');
-  await items.click();
+  // 진행 중인 장애는 최근 장애에서 모니터 페이지로 바로 간다.
+  const path = `/servers/${EDGE}/monitors/uptime_mock_checkout`;
+  const incident = page.getByRole('region', { name: '최근 장애' }).locator(`a[href$="${path}"]`);
+  await expect(incident).toHaveCount(1);
+  await expect(incident).toContainText('진행 중');
+  await incident.click();
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   await expect(page.getByRole('heading', { level: 1, name: 'Checkout API' })).toBeVisible();
 });
@@ -34,29 +37,33 @@ test('the overview and the server list agree on which servers need attention', a
     return links.allInnerTexts();
   };
   const flagged = [...await names('error'), ...await names('warn')];
-  // 정상과 대기 서버(일시정지 모니터만 있는 서버, 대상이 없는 서버)는 개요에 나오면 안 된다.
-  const calm = [...await names('healthy'), ...await names('idle')];
+  const healthy = await names('healthy');
+  const idle = await names('idle');
   expect(flagged.length).toBeGreaterThan(0);
   await page.goto('./');
-  await expect(attention(page).getByRole('listitem').first()).toBeVisible();
-  // 확인 필요는 세 건까지 먼저 보이고 나머지는 제자리에서 펼친다. 모두 펼쳐서 비교한다.
-  await attention(page).getByRole('button', { name: /모두 보기$/ }).click();
-  // 항목의 첫 줄은 대상 제목이다. 직접 대상은 `서버 / 대상`, 서버와 이름이 같은 인프라는 서버 이름이다.
-  const items = await attention(page).getByRole('listitem').getByRole('link').allInnerTexts();
-  const serverOf = (text: string) => text.trim().split('\n')[0].split(' / ')[0].trim();
-  const servers = items.map(serverOf);
+  const rows = attention(page).getByRole('listitem');
+  await expect(rows.first()).toBeVisible();
+  const listed = await rows.evaluateAll((items) => items.map((item) => ({
+    name: item.querySelector('a > span:first-child span span')?.textContent?.trim() ?? '',
+    state: item.querySelector('a > span:nth-child(2)')?.textContent ?? '',
+  })));
+  const servers = listed.map((item) => item.name);
   for (const name of flagged) expect(servers).toContain(name);
-  for (const name of calm) expect(servers).not.toContain(name);
+  for (const name of healthy) expect(servers).not.toContain(name);
+  // 대기 서버는 아직 아무것도 연결하지 않은 것만 `대기`로 나온다(일시정지만 있는 서버는 할 일이 아니다).
+  for (const item of listed.filter((entry) => !flagged.includes(entry.name))) {
+    expect(idle).toContain(item.name);
+    expect(item.state).toBe('대기');
+  }
 });
 
-test('the overview scope counts servers once, Docker hosts included, with all logs on the scope line', async ({ page }) => {
+test('the overview counts servers once, Docker hosts included, and links to the server list and all logs', async ({ page }) => {
   await page.goto('./');
-  const scope = page.getByRole('navigation', { name: '모니터링 범위' });
   // Docker 환경은 같은 ID의 서버다(ADR 0012). 서버 수에 들어 있고 따로 세지 않는다. 데모는 서버 9개와 Docker 서버 4개다.
-  await expect(scope.getByRole('link', { name: '서버 13', exact: true })).toHaveAttribute('href', /\/servers$/);
-  await expect(scope).not.toContainText('Docker 환경');
-  for (const old of ['업타임 모니터', '직접 연결 서비스', '인프라 리소스']) await expect(scope).not.toContainText(old);
-  await scope.getByRole('link', { name: '전체 로그', exact: true }).click();
+  await expect(page.getByText('13개 서버 · 24시간', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: '요약' })).toContainText('/ 13');
+  await expect(page.locator('main').getByRole('link', { name: '서버 전체 보기' })).toHaveAttribute('href', /\/servers$/);
+  await page.getByRole('region', { name: '요약' }).getByRole('link', { name: '에러 로그', exact: true }).click();
   await expect(page).toHaveURL(/\/logs$/);
 });
 
@@ -101,8 +108,8 @@ test.describe('against the API', () => {
     await page.goto('./');
     await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
     await expect(page.getByText(/불러오지 못한 영역: .*업타임/)).toBeVisible();
-    await expect(attention(page)).not.toContainText('현재 확인이 필요한 이상이 없습니다');
-    await expect(attention(page)).toContainText('전체가 정상인지는 아직 알 수 없습니다');
+    await expect(attention(page)).not.toContainText(/^장애·확인 필요 없음/);
+    await expect(attention(page)).toContainText('불러온 영역에서는 장애·확인 필요 없음');
   });
 
   test('an overview with no servers offers to add a server, Docker hosts included', async ({ page }) => {
@@ -111,12 +118,11 @@ test.describe('against the API', () => {
     await expect(page.getByRole('heading', { name: '아직 모니터링 대상이 없습니다' })).toBeVisible();
     await expect(page.getByRole('link', { name: '서버 추가', exact: true })).toHaveAttribute('href', /\/servers\/new$/);
     await expect(page.getByRole('link', { name: 'Docker 연결', exact: true })).toHaveCount(0);
-    await expect(page.getByText('Docker 호스트는 서버를 추가할 때 Docker Collector 설치를 고릅니다.')).toBeVisible();
     await expect(page.getByRole('link', { name: '업타임 모니터 추가' })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'OpenTelemetry 직접 연결' })).toHaveCount(0);
   });
 
-  test('a delayed Docker host on the overview opens its server infrastructure tab', async ({ page }) => {
+  test('a delayed Docker host on the overview is one row that opens its server', async ({ page }) => {
     // Docker Collector 자체는 수신 중이지만 그 호스트의 인프라 수집이 끊긴 경우. Docker 환경은 같은 ID의 서버이고(ADR 0012),
     // 그 인프라 리소스도 그 서버에 속한다.
     const state = await uptimeFixture(page);
@@ -124,11 +130,11 @@ test.describe('against the API', () => {
     state.responses.set('GET /agents', [{ id: 'docker-host', name: 'Production Docker', serverId: 'docker-host', version: '0.3.0', lastSeenAt: new Date().toISOString(), createdAt: at, updatedAt: at }]);
     state.responses.set('GET /infrastructure-resources', [{ id: 'docker-host', name: 'Production Docker', serverId: 'docker-host', adapter: 'everyup-agent', isActive: true, lastSeenAt: new Date(Date.now() - 3_600_000).toISOString(), createdAt: at, updatedAt: at }]);
     await page.goto('./');
-    // 서버 목록의 판정과 같은 항목 하나다(Docker Collector는 정상이라 따로 나오지 않는다).
-    const item = attention(page).getByRole('link', { name: /^Production Docker.*데이터 확인 필요/ });
+    // 서버 목록의 판정과 같은 행 하나다(Docker Collector는 정상이라 따로 나오지 않는다). 행은 그 서버로 간다.
+    const item = attention(page).getByRole('link', { name: /Production Docker/ });
     await expect(item).toHaveCount(1);
-    await item.click();
-    await expect(page).toHaveURL(/\/servers\/docker-host\/infrastructure$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Production Docker' })).toBeVisible();
+    await expect(item).toContainText('확인 필요');
+    // 이 fixture에는 서버 화면의 데이터가 없어 이동한 뒤의 화면은 보지 않는다.
+    await expect(item).toHaveAttribute('href', /\/servers\/docker-host$/);
   });
 });

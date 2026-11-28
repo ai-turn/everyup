@@ -24,20 +24,19 @@ for (const { width, height, reducedMotion } of [
     await page.emulateMedia({ reducedMotion });
     await page.goto('./');
     const refresh = page.getByRole('button', { name: '새로고침', exact: true });
-    // 범위 줄의 마지막 링크. 본문 안의 링크를 앞뒤로 모두 지나는지 본다.
-    const scopeLink = page.getByRole('navigation', { name: '모니터링 범위' }).getByRole('link', { name: '전체 로그', exact: true });
-    const lastIncident = page.getByRole('region', { name: '최근 장애 이력' }).getByRole('link').last();
+    // 요약 띠의 에러 로그 링크. 본문 안의 링크를 앞뒤로 모두 지나는지 본다.
+    const scopeLink = page.getByRole('region', { name: '요약' }).getByRole('link', { name: '에러 로그', exact: true });
+    const lastIncident = page.getByRole('region', { name: '최근 장애' }).getByRole('link').last();
     await expect(lastIncident).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: '본문 바로가기' })).toBeFocused();
     await page.keyboard.press('Enter');
-    // 개요의 새로고침은 데스크톱에서 AppHeader(본문 앞)에 있다. 본문 바로가기는 그것을 건너뛰어
-    // 본문의 첫 링크로 가고, 아래 Shift+Tab 순회가 헤더의 새로고침까지 거슬러 닿는지 확인한다.
+    // 본문의 첫 요소는 제목 줄의 `서버 전체 보기`다. 데스크톱의 새로고침은 AppHeader(본문 앞)에 있어 본문 바로가기가 건너뛰고,
+    // 아래 Shift+Tab 순회가 헤더의 새로고침까지 거슬러 닿는지 확인한다.
     await page.keyboard.press('Tab');
-    // 모바일은 AppHeader가 없어 갱신 상태(RefreshStatus: 갱신 시각 툴팁 → 새로고침 → 자동 갱신)가 본문 첫 요소로 남는다.
-    await expect(width >= 1024 ? page.locator('main').getByRole('link', { name: /^서버/ }) : page.getByRole('group', { name: '데이터 갱신' }).getByText(/^[0-9:]+ 갱신$/)).toBeFocused();
+    await expect(page.locator('main').getByRole('link', { name: '서버 전체 보기' })).toBeFocused();
 
     let visitedScope = false;
     for (let step = 0; step < 20; step++) {

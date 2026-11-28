@@ -108,10 +108,12 @@
 }
 
 /* 크기·행간·굵기를 역할별로 묶는다. 색·여백·정렬은 컨테이너에서 정한다. */
+/* G안 제목은 600이다. Geist는 가변이라 600을 그리고, 한글(Spoqa, 500/700만 싣는다)은 700으로 떨어진다. */
 @utility type-page-title {
   font-size: var(--text-2xl);
   line-height: 2rem;
-  font-weight: var(--font-weight-bold);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 @utility table-row-link {
@@ -188,10 +190,11 @@
   margin-top: 0.125rem;
 }
 
+/* 본문 섹션 제목(G안 h2): 14px 600. 위계는 크기보다 굵기와 간격으로 준다. */
 @utility type-section-title {
-  font-size: var(--text-xl);
-  line-height: 1.75rem;
-  font-weight: var(--font-weight-medium);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
 }
 
 @utility type-card-title {
