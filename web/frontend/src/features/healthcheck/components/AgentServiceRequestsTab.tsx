@@ -86,7 +86,7 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
         <Button type="submit" variant="secondary">검색</Button>
       </form>
     </div>
-    {filtered && <div aria-label="적용한 요청 필터" className="flex flex-wrap items-center gap-2 type-caption text-text-secondary">
+    {filtered && <div aria-label="적용한 요청 필터" className="flex flex-wrap items-center gap-2 type-caption text-text">
       {pathTemplate && <span className="break-all font-mono">Endpoint: {method} {pathTemplate}</span>}
       {search && <span className="break-all">경로: {search}</span>}
       {status && <span>상태: {status}</span>}
@@ -97,8 +97,8 @@ function ServiceRequestsPanel({ source, refreshKey, range, traceId: traceFilter,
     </>} requests={result.rows} total={result.total} page={page} loading={result.loading} error={result.error}
       filtered={filtered} waiting={awaitingData} onClear={clear} onRetry={() => setRetryKey(key => key + 1)}
       onPageChange={value => update({ page: value === 1 ? null : String(value) })} onSelect={setActiveTraceId} />
-    {!result.loading && !result.error && !filtered && result.rows.length === 0 && <details open={awaitingData} className="rounded-xl border border-ui-border-soft bg-bg-surface p-4">
-      <summary className="cursor-pointer type-label text-action">수집 설정 안내</summary>
+    {!result.loading && !result.error && !filtered && result.rows.length === 0 && <details open={awaitingData} className="rounded-xl border border-border bg-surface p-4">
+      <summary className="cursor-pointer type-label text-text">수집 설정 안내</summary>
       <div className="mt-4 space-y-heading">
         <p className="type-body text-text-muted">HTTP 요청은 method와 HTTP 상태코드가 있는 SERVER span에서 표시합니다. 다른 span이 수신돼도 이 목록은 비어 있을 수 있습니다.</p>
         {source.kind === 'direct' ? <><TelemetrySetupGuidance signals={['traces']} /><TelemetryReceiptStatus path={`/observed-services/${source.observedServiceId}/setup-status`} expected={['traces']} /></>

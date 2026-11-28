@@ -42,18 +42,18 @@ export function SetupGuide({ type }: SetupGuideProps) {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left hover:bg-ui-hover-soft transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left hover:bg-surface-hover transition-colors"
             >
                 <MaterialIcon size={20}
                     name="help_outline"
-                    className="text-action shrink-0"
+                    className="text-text shrink-0"
                 />
-                <span className="type-label text-text-secondary flex-1">
+                <span className="type-label text-text flex-1">
                     API Key는 어떻게 발급받나요?
                 </span>
                 <MaterialIcon size={20}
                     name={isOpen ? 'expand_less' : 'expand_more'}
-                    className="text-text-dim shrink-0"
+                    className="text-text-faint shrink-0"
                 />
             </button>
 
@@ -61,8 +61,8 @@ export function SetupGuide({ type }: SetupGuideProps) {
                 <div className="px-3 pb-3 space-y-label">
                     <ol className="mt-3 space-y-label">
                         {steps.map((step, i) => (
-                            <li key={i} className="flex gap-2 type-body text-text-secondary">
-                                <span className="shrink-0 w-5 h-5 rounded-full bg-primary/10 text-action type-caption flex items-center justify-center">
+                            <li key={i} className="flex gap-2 type-body text-text">
+                                <span className="shrink-0 w-5 h-5 rounded-full bg-accent-bg text-text type-caption flex items-center justify-center">
                                     {i + 1}
                                 </span>
                                 <span className="pt-0.5">{step}</span>
@@ -71,9 +71,9 @@ export function SetupGuide({ type }: SetupGuideProps) {
                     </ol>
 
                     {tip && (
-                        <div className="flex gap-2 px-2.5 py-2 rounded-md bg-ui-hover-soft">
-                            <MaterialIcon size={20} name="lightbulb" className="text-amber-500 shrink-0 icon-lead" />
-                            <p className="type-body text-text-secondary">{tip}</p>
+                        <div className="flex gap-2 px-2.5 py-2 rounded-md bg-surface-hover">
+                            <MaterialIcon size={20} name="lightbulb" className="text-attn shrink-0 icon-lead" />
+                            <p className="type-body text-text">{tip}</p>
                         </div>
                     )}
 
@@ -81,7 +81,7 @@ export function SetupGuide({ type }: SetupGuideProps) {
                         href="https://ai-turn.github.io/everyup/guide/notifications"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 type-label text-action hover:underline"
+                        className="flex items-center gap-1.5 type-label text-text hover:underline"
                     >
                         <MaterialIcon size={20} name="open_in_new" />
                         상세 가이드 보기

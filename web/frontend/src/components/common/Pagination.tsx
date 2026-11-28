@@ -26,7 +26,7 @@ function pageItems(current: number, totalPages: number): (number | null)[] {
 }
 
 // 모바일은 44px 터치 타깃, sm 이상은 촘촘하게.
-const STEP = 'flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-md border border-ui-border text-sm text-text-muted hover:bg-ui-hover active:bg-ui-active disabled:opacity-50 disabled:cursor-not-allowed';
+const STEP = 'flex h-11 w-11 sm:h-8 sm:w-8 items-center justify-center rounded-md border border-border text-sm text-text-muted hover:bg-surface-hover active:bg-border disabled:opacity-50 disabled:cursor-not-allowed';
 
 export function Pagination({
   page,
@@ -42,7 +42,7 @@ export function Pagination({
       </button>
       {pageItems(page, totalPages).map((p, i) =>
         p === null ? (
-          <span key={`gap-${i}`} className="px-1 text-sm text-text-dim">…</span>
+          <span key={`gap-${i}`} className="px-1 text-sm text-text-faint">…</span>
         ) : (
           <button
             key={p}
@@ -50,8 +50,8 @@ export function Pagination({
             aria-current={p === page ? 'page' : undefined}
             className={`flex h-11 min-w-11 sm:h-8 sm:min-w-8 items-center justify-center rounded-md px-1 type-label-sm ${
               p === page
-                ? 'bg-primary text-on-primary'
-                : 'border border-ui-border text-text-muted hover:bg-ui-hover'
+                ? 'bg-accent text-accent-text'
+                : 'border border-border text-text-muted hover:bg-surface-hover'
             }`}
           >
             {p}

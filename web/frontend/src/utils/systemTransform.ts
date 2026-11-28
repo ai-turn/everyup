@@ -1,6 +1,6 @@
 import type { SystemInfo, SystemMetricsHistory } from '../services/api';
 import type { GaugeData, ChartData, Resource } from '../types/infra';
-import { SERIES_HEX } from '../components/charts/chartTheme';
+import { SERIES } from '../components/charts/chartTheme';
 
 // --- SystemInfo → Resource[] (legacy, kept for backward compatibility) ---
 export function systemInfoToResources(info: SystemInfo): Resource[] {
@@ -35,7 +35,7 @@ export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHist
     {
       label: 'CPU',
       percentage: info.cpu.usage,
-      color: SERIES_HEX.primary,
+      color: SERIES.primary,
       // Collector 경로는 코어 수를 모른다(0).
       subtitle: info.cpu.cores > 0 ? `코어 ${info.cpu.cores}개` : '',
       spark: pts.map((p) => p.cpu),
@@ -43,13 +43,13 @@ export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHist
     {
       label: '메모리',
       percentage: info.memory.usage,
-      color: SERIES_HEX.emerald,
+      color: SERIES.second,
       subtitle: capacity(info.memory),
     },
     {
       label: '디스크',
       percentage: info.disk.usage,
-      color: SERIES_HEX.amber,
+      color: SERIES.third,
       subtitle: capacity(info.disk),
     },
   ];
@@ -62,7 +62,7 @@ export function systemInfoToGauges(info: SystemInfo, history?: SystemMetricsHist
   gauges.push({
     label: '네트워크',
     percentage: Math.max(0, Math.min(100, Math.round((total / NETWORK_FULL_SCALE_MBPS) * 100))),
-    color: SERIES_HEX.teal,
+    color: SERIES.fourth,
     subtitle: `In ${formatThroughput(netIn).value} ${formatThroughput(netIn).unit} · Out ${formatThroughput(netOut).value} ${formatThroughput(netOut).unit}`,
     displayValue: value,
     displayUnit: unit,
@@ -117,7 +117,7 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
       // Collector 경로는 코어 수를 모른다(0) — 빈 칸 대신 줄을 뺀다.
       caption: currentInfo && currentInfo.cpu.cores > 0 ? `코어 ${currentInfo.cpu.cores}개` : undefined,
       data,
-      series: [{ key: 'cpu', label: '사용률', color: SERIES_HEX.primary }],
+      series: [{ key: 'cpu', label: '사용률', color: SERIES.primary }],
     },
     {
       title: '메모리',
@@ -125,7 +125,7 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
       yMax: 100,
       caption: currentInfo ? capacity(currentInfo.memory) || undefined : undefined,
       data,
-      series: [{ key: 'memUsage', label: '사용률', color: SERIES_HEX.primary }],
+      series: [{ key: 'memUsage', label: '사용률', color: SERIES.primary }],
     },
     {
       title: '디스크',
@@ -133,15 +133,15 @@ export function historyToCharts(history: SystemMetricsHistory, currentInfo?: Sys
       yMax: 100,
       caption: currentInfo ? capacity(currentInfo.disk) || undefined : undefined,
       data,
-      series: [{ key: 'diskUsage', label: '사용률', color: SERIES_HEX.primary }],
+      series: [{ key: 'diskUsage', label: '사용률', color: SERIES.primary }],
     },
     {
       title: '네트워크',
       unit: 'MB/s',
       data,
       series: [
-        { key: 'netIn', label: 'In', color: SERIES_HEX.primary },
-        { key: 'netOut', label: 'Out', color: SERIES_HEX.emerald },
+        { key: 'netIn', label: 'In', color: SERIES.primary },
+        { key: 'netOut', label: 'Out', color: SERIES.second },
       ],
     },
   ];

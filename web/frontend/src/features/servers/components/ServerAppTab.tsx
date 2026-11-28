@@ -82,11 +82,11 @@ export function ServerAppTab({ row, onChanged, unknown, stale, onRetry, actionSl
     const table = (
       <ResourceTable rows={apps} rowKey={({ app }) => app.id} ariaLabel={`${name} 앱`} columns={[
         { key: 'app', label: '앱', render: ({ app }) => (
-          <Tooltip content={app.name}><Link data-row-link to={appPath(serverId, app.id, copy.tab)} state={{ returnTo }} className="block truncate font-medium text-action">{app.name}</Link></Tooltip>
+          <Tooltip content={app.name}><Link data-row-link to={appPath(serverId, app.id, copy.tab)} state={{ returnTo }} className="block truncate font-medium text-text">{app.name}</Link></Tooltip>
         ) },
         { key: 'status', label: '상태', className: 'w-36 sm:w-48', render: ({ status }) => <StatusLight tone={status.tone} label={status.label} /> },
         { key: 'lastSeen', label: '마지막 수집', className: 'hidden w-40 sm:table-cell', align: 'right', render: ({ app, status }) => (
-          <span className="text-text-secondary">{status.stale ? '-' : app.lastSeenAt ? formatDateTime(app.lastSeenAt) : '아직 없음'}</span>
+          <span className="text-text">{status.stale ? '-' : app.lastSeenAt ? formatDateTime(app.lastSeenAt) : '아직 없음'}</span>
         ) },
       ]} />
     );

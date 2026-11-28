@@ -44,11 +44,11 @@ export function ServerFormPage() {
         <fieldset disabled={saving} className="space-y-heading">
           <ServerFields form={form} idPrefix="new-server" />
           <fieldset className="space-y-label">
-            <legend className="mb-label type-label text-text-base">연결 방식</legend>
+            <legend className="mb-label type-label text-text">연결 방식</legend>
             {CONNECTIONS.map((option) => (
-              <label key={option.value} className="-mx-2 flex min-h-11 cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-ui-hover-soft">
+              <label key={option.value} className="-mx-2 flex min-h-11 cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-surface-hover">
                 <input type="radio" name="server-connection" value={option.value} checked={connection === option.value} onChange={() => setConnection(option.value)}
-                  className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+                  className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-accent" />
                 <OptionText title={option.title} description={option.description} />
               </label>
             ))}

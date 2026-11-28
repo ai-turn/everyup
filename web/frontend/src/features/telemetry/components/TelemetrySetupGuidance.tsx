@@ -12,23 +12,23 @@ export function TelemetrySetupGuidance({ signals, appConfiguration }: { signals:
   const [language, setLanguage] = useState<keyof typeof guides>('java');
   const guide = guides[language];
   return <section aria-label="OpenTelemetry 적용 안내" className="space-y-label">
-    <h4 className="type-label text-text-base">OpenTelemetry를 이미 사용하고 있나요?</h4>
+    <h4 className="type-label text-text">OpenTelemetry를 이미 사용하고 있나요?</h4>
     <SegmentedControl options={[{ value: 'existing', label: '이미 사용 중' }, { value: 'new', label: '처음 설정' }]} value={experience} onChange={setExperience} size="md" ariaLabel="OpenTelemetry 사용 경험" />
     {experience === 'existing' ? <>
       <p className="type-body text-text-muted">기존 전송 대상도 유지하려면 현재 Collector에 EveryUp용 OTLP/HTTP exporter를 추가하고, 선택한 데이터 유형의 pipeline에 함께 연결하세요. 앱의 공통 OTLP 주소를 바꾸면 기존 전송 대상이 대체될 수 있습니다.</p>
-      <a className="block w-fit type-body text-action hover:underline" href="https://opentelemetry.io/docs/collector/configuration/" target="_blank" rel="noreferrer">Collector exporter·pipeline 설정 예제</a>
+      <a className="block w-fit type-body text-text hover:underline" href="https://opentelemetry.io/docs/collector/configuration/" target="_blank" rel="noreferrer">Collector exporter·pipeline 설정 예제</a>
     </> : <>
       <Select aria-label="앱 언어" value={language} onChange={event => setLanguage(event.target.value as keyof typeof guides)}>{Object.entries(guides).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}</Select>
       <p className="type-body text-text-muted">{guide.text} 환경 변수만 추가해서는 데이터가 수집되지 않습니다.</p>
-      <a className="block w-fit type-body text-action hover:underline" href={guide.url} target="_blank" rel="noreferrer">{guide.label} SDK 설정 예제</a>
+      <a className="block w-fit type-body text-text hover:underline" href={guide.url} target="_blank" rel="noreferrer">{guide.label} SDK 설정 예제</a>
     </>}
     {appConfiguration && (experience === 'new' ? appConfiguration : <details>
-      <summary className="cursor-pointer type-label text-action">앱에서 직접 전송할 때의 환경 변수</summary>
+      <summary className="cursor-pointer type-label text-text">앱에서 직접 전송할 때의 환경 변수</summary>
       {/* 펼친 내용의 안쪽 여백(닫혔을 때 높이를 더하지 않는다) */}
       <div className="pt-3">{appConfiguration}</div>
     </details>)}
     {signals.includes('logs') && <p className="type-body text-text-muted">로그는 사용하는 로깅 라이브러리의 OTel bridge 또는 appender도 연결해야 합니다. stdout 출력만으로 직접 OTLP 로그가 전송되지는 않습니다.</p>}
-    <ol className="list-decimal space-y-intra pl-5 type-body text-text-secondary">
+    <ol className="list-decimal space-y-intra pl-5 type-body text-text">
       <li>선택한 데이터 유형의 exporter에 연결 주소와 키를 설정하세요. 기존 연결에 기능을 추가했다면 기존 앱 설정의 주소와 키를 계속 사용합니다.</li>
       <li>앱 또는 Collector의 설정 적용 방식에 따라 재시작·재배포하세요.</li>
       <li>요청이나 로그를 발생시키고, 메트릭은 수집 주기가 지난 뒤 확인하세요.</li>

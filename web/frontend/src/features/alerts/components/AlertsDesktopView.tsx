@@ -113,9 +113,9 @@ export function AlertsDesktopView({
   const totalNotifications = totalSent + totalFailed;
   // 막대는 성공률이 있을 때만 그린다.
   const rateBarColor = successRate == null ? ''
-    : successRate >= 95 ? 'bg-status-healthy-fill'
-    : successRate >= 80 ? 'bg-status-warn-fill'
-    : 'bg-status-error-fill';
+    : successRate >= 95 ? 'bg-ok'
+    : successRate >= 80 ? 'bg-attn'
+    : 'bg-crit';
 
   const tabs: { key: TabType; label: string; count?: number }[] = [
     { key: 'rules',    label: '알림 규칙', count: rules.length },
@@ -147,14 +147,14 @@ export function AlertsDesktopView({
               onClick={() => selectTab(tab.key)}
               className={`relative px-4 py-2.5 type-label transition-colors border-b-2 ${
                 activeTab === tab.key
-                  ? 'text-text-base border-primary'
-                  : 'text-text-muted border-transparent hover:text-text-base'
+                  ? 'text-text border-accent'
+                  : 'text-text-muted border-transparent hover:text-text'
               }`}
             >
               <span className="inline-flex items-center gap-1.5">
                 {tab.label}
                 {tab.count != null && (
-                  <span className="type-caption tabular-nums text-text-secondary">{tab.count}</span>
+                  <span className="type-caption tabular-nums text-text">{tab.count}</span>
                 )}
               </span>
             </button>
@@ -166,13 +166,13 @@ export function AlertsDesktopView({
 
       {/* 7일 발송 요약은 발송 이력의 머리다 — 탭 위에 있으면 규칙·채널 탭에서도 표보다 먼저, 더 크게 섰다. */}
       {/* 발송 요약: 수치 타일(Stat) 셋. 타일 안쪽 16px, 라벨 → 값 4px(DESIGN.md §3.7 수치 타일). */}
-      {activeTab === 'history' && <div className="mb-6 grid grid-cols-3 divide-x divide-ui-border-soft rounded-xl border border-ui-border-soft bg-bg-surface py-4">
+      {activeTab === 'history' && <div className="mb-6 grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-surface py-4">
         <div className="px-4">
           <Stat label="발송 (7일)" value={totalSent} />
         </div>
         <div className="px-4">
           <Stat label="실패 (7일)" value={<>
-            <span className={totalFailed > 0 ? 'text-status-error' : undefined}>{totalFailed}</span>
+            <span className={totalFailed > 0 ? 'text-crit-text' : undefined}>{totalFailed}</span>
             {totalFailed > 0 && (
               <Button variant="ghost" size="sm" onClick={viewFailedLogs}>
                 실패 로그 보기
@@ -184,7 +184,7 @@ export function AlertsDesktopView({
           <Stat label="성공률" value={<>
             {successRate != null ? `${successRate}%` : '-'}
             {successRate != null && (
-              <span className="h-1 w-12 self-center overflow-hidden rounded-full bg-ui-hover">
+              <span className="h-1 w-12 self-center overflow-hidden rounded-full bg-surface-hover">
                 <span className={`block h-full ${rateBarColor}`} style={{ width: `${successRate}%` }} />
               </span>
             )}
@@ -267,17 +267,17 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
         {[1, 2, 3].map(i => (
           <div key={i} className="grid grid-cols-[minmax(220px,1.6fr)_90px_150px_110px_150px_180px] gap-4 px-4 py-3 animate-pulse">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-ui-hover" />
+              <div className="h-9 w-9 rounded-lg bg-surface-hover" />
               <div className="space-y-label">
-                <div className="h-3 w-32 rounded bg-ui-hover" />
-                <div className="h-2.5 w-20 rounded bg-ui-hover" />
+                <div className="h-3 w-32 rounded bg-surface-hover" />
+                <div className="h-2.5 w-20 rounded bg-surface-hover" />
               </div>
             </div>
-            <div className="h-5 rounded bg-ui-hover" />
-            <div className="h-5 rounded bg-ui-hover" />
-            <div className="h-5 rounded bg-ui-hover" />
-            <div className="h-5 rounded bg-ui-hover" />
-            <div className="h-7 rounded bg-ui-hover" />
+            <div className="h-5 rounded bg-surface-hover" />
+            <div className="h-5 rounded bg-surface-hover" />
+            <div className="h-5 rounded bg-surface-hover" />
+            <div className="h-5 rounded bg-surface-hover" />
+            <div className="h-7 rounded bg-surface-hover" />
           </div>
         ))}
       </div>
@@ -296,7 +296,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
     );
   }
 
-  if (view === 'card') return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{channels.map(channel => <article key={channel.id} aria-label={channel.name} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
+  if (view === 'card') return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{channels.map(channel => <article key={channel.id} aria-label={channel.name} className="min-w-0 rounded-xl border border-border bg-surface p-4">
     <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{channel.name}</h2><p className="mt-1 type-caption text-text-muted">{getChannelSubtitle(channel.type)}</p></div><Toggle checked={channel.isEnabled} onChange={() => onToggle(channel.id)} disabled={togglingIds.has(channel.id)} ariaLabel={channel.name} /></div>
     <div className="mt-4 space-y-label"><ChannelHealthMeta health={channelHealth[channel.id]} compact />
     {testResults[channel.id] && <ChannelTestResult result={testResults[channel.id]} />}</div>
@@ -307,13 +307,13 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
     <div className="table-bleed overflow-x-auto">
       <table aria-label="알림 채널 그리드" className="w-full min-w-[1000px] table-fixed">
         <thead>
-          <tr className="border-b border-ui-border-soft">
+          <tr className="border-b border-border">
             <th className="w-[280px] px-4 py-3 text-left type-label-sm text-text-muted">채널</th>
             <th className="w-[90px] px-4 py-3 text-left type-label-sm text-text-muted">상태</th>
             <th className="w-[150px] px-4 py-3 text-left type-label-sm text-text-muted">7일 발송 / 실패</th>
             <th className="w-[110px] px-4 py-3 text-left type-label-sm text-text-muted">연결 규칙</th>
             <th className="w-[200px] px-4 py-3 text-left type-label-sm text-text-muted">최근 발송</th>
-            <th className="sticky right-0 w-[180px] bg-bg-main px-4 py-3 text-right type-label-sm text-text-muted">작업</th>
+            <th className="sticky right-0 w-[180px] bg-bg px-4 py-3 text-right type-label-sm text-text-muted">작업</th>
           </tr>
         </thead>
         <tbody>
@@ -328,7 +328,7 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
             return (
               <tr
                 key={channel.id}
-                className={`group transition-colors hover:bg-ui-hover-soft ${!channel.isEnabled ? 'opacity-70' : ''}`}
+                className={`group transition-colors hover:bg-surface-hover ${!channel.isEnabled ? 'opacity-70' : ''}`}
               >
                 <td className="px-4 cell">
                   <div className="flex min-w-0 items-center gap-3">
@@ -336,8 +336,8 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                       <ChannelIcon type={channel.type} size={18} className={style.text} />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate type-body text-text-base">{channel.name}</p>
-                      <p className="truncate type-caption text-text-dim">
+                      <p className="truncate type-body text-text">{channel.name}</p>
+                      <p className="truncate type-caption text-text-faint">
                         {getChannelSubtitle(channel.type)}
                       </p>
                     </div>
@@ -354,26 +354,26 @@ function ChannelsTable({ channels, channelHealth, isLoading, failed, togglingIds
                 </td>
                 <td className="px-4 cell type-control tabular-nums">
                   {total > 0 ? (
-                    <span className="text-text-base">
+                    <span className="text-text">
                       {sent}
                       {failed > 0 && (
-                        <span className="text-status-error"> · {`실패 ${failed}`}</span>
+                        <span className="text-crit-text"> · {`실패 ${failed}`}</span>
                       )}
                     </span>
                   ) : (
-                    <span className="text-text-dim">이력 없음</span>
+                    <span className="text-text-faint">이력 없음</span>
                   )}
                 </td>
-                <td className="px-4 cell type-control text-text-secondary">
+                <td className="px-4 cell type-control text-text">
                   {`규칙 ${health?.ruleCount ?? 0}개`}
                 </td>
                 <td className="px-4 cell type-control text-text-muted">
                   {lastSent
                     ? <p>{formatDistanceToNow(lastSent, { addSuffix: true, locale: ko })}</p>
-                    : !testResults[channel.id] && <span className="text-text-dim">테스트로 확인</span>}
+                    : !testResults[channel.id] && <span className="text-text-faint">테스트로 확인</span>}
                   <ChannelTestResult result={testResults[channel.id]} />
                 </td>
-                <td className="sticky right-0 bg-bg-main px-4 cell transition-colors group-hover:bg-ui-hover-soft">
+                <td className="sticky right-0 bg-bg px-4 cell transition-colors group-hover:bg-surface-hover">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="secondary" size="sm" onClick={() => onTest(channel.id)} disabled={!channel.isEnabled} loading={testingIds.has(channel.id)} className="whitespace-nowrap">
                       <MaterialIcon size={20} name="send" />

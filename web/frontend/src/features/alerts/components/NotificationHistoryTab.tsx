@@ -61,7 +61,7 @@ function FailureReason({ item }: { item: NotificationHistory }) {
   if (!item.errorMessage) return null;
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <p className="min-w-0 break-words type-caption text-status-error">
+      <p className="min-w-0 break-words type-caption text-crit-text">
         {item.errorMessage}
         {item.retryCount > 0 && ` · ${item.retryCount}회 재시도`}
       </p>
@@ -87,9 +87,9 @@ function HistoryCards({ rows, loading, rules }: { rows: HistoryRow[]; loading: b
 
 function HistoryCard({ item, rules }: { item: NotificationHistory; rules: AlertRule[] }) {
   const rule = ruleName(item, rules);
-  return <article aria-label={item.message} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
+  return <article aria-label={item.message} className="min-w-0 rounded-xl border border-border bg-surface p-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><StatusLight {...historyStatus(item.status)} />{item.severity && <SeverityBadge severity={item.severity} />}</div>
-    <p className="mt-3 break-words type-body text-text-base">{item.message}</p><div className="mt-2 space-y-label"><p className="flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
+    <p className="mt-3 break-words type-body text-text">{item.message}</p><div className="mt-2 space-y-label"><p className="flex flex-wrap gap-x-3 break-words type-caption text-text-muted">{rule && <span>{rule}</span>}<span>{item.channelName}</span><span>{typeLabel(item.alertType)}</span></p>
     <FailureReason item={item} /></div>
     <p className="mt-3 type-caption text-text-muted">{formatDistanceToNow(new Date(item.createdAt), { addSuffix: true, locale: ko })} · {format(new Date(item.createdAt), 'M월 d일 HH:mm')}</p>
   </article>;
@@ -251,7 +251,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
         <div className="table-bleed overflow-x-auto">
           <table aria-label="발송 이력 그리드" className="w-full min-w-[960px] table-fixed">
             <thead>
-              <tr className="border-b border-ui-border-soft">
+              <tr className="border-b border-border">
                 <th className={`${thClass} w-[110px]`}>상태</th>
                 <th className={`${thClass} w-[160px]`}>규칙</th>
                 <th className={`${thClass} w-[190px]`}>채널</th>
@@ -270,7 +270,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                 </tr>
               ) : history.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-text-dim">
+                  <td colSpan={6} className="px-6 py-12 text-center text-text-faint">
                     <MaterialIcon size={36} name="inbox" className="mx-auto mb-2" />
                     <p className="type-body">알림 히스토리가 없습니다</p>
                   </td>
@@ -294,13 +294,13 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                     <tr
                       key={item.id}
                       // 실패는 상태 칸의 점·문구가 말한다 — 행 전체를 붉게 칠하지 않는다(DESIGN §9.3).
-                      className="transition-colors hover:bg-ui-hover-soft"
+                      className="transition-colors hover:bg-surface-hover"
                     >
                       <td className="px-4 cell">
                         <StatusLight {...historyStatus(item.status)} />
                       </td>
                       <td className="px-4 cell">
-                        <p className="truncate type-body text-text-secondary">{rule ?? typeLabel(item.alertType)}</p>
+                        <p className="truncate type-body text-text">{rule ?? typeLabel(item.alertType)}</p>
                         {rule && <p className="truncate type-caption text-text-muted">{typeLabel(item.alertType)}</p>}
                       </td>
                       <td className="px-4 cell">
@@ -308,11 +308,11 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                           <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${channelStyle.bg}`}>
                             <ChannelIcon type={item.channelType} size={13} className={channelStyle.text} />
                           </div>
-                          <span className="truncate type-control text-text-secondary">{item.channelName}</span>
+                          <span className="truncate type-control text-text">{item.channelName}</span>
                         </div>
                       </td>
                       <td className="space-y-intra px-4 cell">
-                        <p className="truncate type-body text-text-base">{item.message}</p>
+                        <p className="truncate type-body text-text">{item.message}</p>
                         <FailureReason item={item} />
                       </td>
                       <td className="px-4 cell">
@@ -322,7 +322,7 @@ export function NotificationHistoryTab({ channels, rules, initialStatus }: Notif
                       </td>
                       <td className="px-4 cell text-right type-control text-text-muted whitespace-nowrap">
                         {formatDistanceToNow(created, { addSuffix: true, locale: ko })}
-                        <span className="text-text-dim"> · {format(created, 'HH:mm')}</span>
+                        <span className="text-text-faint"> · {format(created, 'HH:mm')}</span>
                       </td>
                     </tr>
                   );

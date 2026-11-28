@@ -3,8 +3,8 @@ export type StatusTone = 'healthy' | 'warn' | 'error' | 'idle';
 
 // Tailwind가 찾을 수 있도록 클래스 이름은 완전한 리터럴로 둔다.
 export const STATUS_DOT: Record<StatusTone, string> = {
-  healthy: 'bg-status-healthy-fill',
-  warn: 'bg-status-warn-fill',
-  error: 'bg-status-error-fill',
-  idle: 'bg-status-idle-fill',
+  healthy: 'bg-ok',
+  warn: 'bg-attn',
+  error: 'bg-crit',
+  idle: 'bg-wait',
 };

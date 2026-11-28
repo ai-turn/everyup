@@ -93,7 +93,7 @@ export function SettingsPage() {
   };
 
   const sharedProps = {
-    theme: theme as 'light' | 'dark',
+    theme,
     metricsRetention,
     logsRetention,
     collectInterval,

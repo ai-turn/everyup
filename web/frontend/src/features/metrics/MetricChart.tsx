@@ -97,7 +97,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         // 단독 보기의 원본 이름은 머리의 설명 줄이다(제목 → 4px).
         description={expanded && title !== name ? <span className="break-all font-mono">{name}</span> : undefined}
         title={expanded ? title : (
-          <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} aria-describedby={nameId} className="block h-11 max-w-full truncate text-left underline-offset-4 hover:text-action hover:underline sm:h-10">
+          <HintTooltip content="크게 보기"><button type="button" onClick={onExpand} aria-describedby={nameId} className="block h-11 max-w-full truncate text-left underline-offset-4 hover:text-text hover:underline sm:h-10">
             {title}
           </button></HintTooltip>
         )}
@@ -151,7 +151,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
           </div>
         )}
         {expanded && !pointsError && read.data !== null && quantiles && !quantiles.truncated && (
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md bg-ui-hover-soft px-3 py-1.5">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-md bg-surface-hover px-3 py-1.5">
             <span className="type-caption text-text-muted">선택한 시리즈의 기간 분포</span>
             <ChartStats items={[
               { label: 'p50', value: formatValue(quantiles.p50 * factor), unit },
@@ -180,8 +180,8 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         )}
 
         {pointsError ? (
-          <div role="alert" className="flex flex-col items-center justify-center gap-label rounded-lg bg-ui-hover-soft px-4 text-center" style={{ height: CHART_HEIGHT }}>
-            <p className="type-label text-text-base">메트릭을 불러오지 못했습니다</p>
+          <div role="alert" className="flex flex-col items-center justify-center gap-label rounded-lg bg-surface-hover px-4 text-center" style={{ height: CHART_HEIGHT }}>
+            <p className="type-label text-text">메트릭을 불러오지 못했습니다</p>
             <p className="type-body text-text-muted">{pointsError}</p>
             <Button variant="secondary" size="sm" onClick={read.retry}>다시 시도</Button>
           </div>
@@ -262,7 +262,7 @@ export function MetricChart({ source, meta, window, refreshKey, rules, expanded 
         {expanded && selected === '[]' && <p className="type-body text-text-muted">선택한 시리즈가 없습니다. 시리즈를 선택하거나 기본 선택으로 돌아가세요.</p>}
           </div>
         {expanded && points.length > 0 && <details>
-          <summary className="min-h-11 cursor-pointer type-label text-text-base">수집 정보</summary>
+          <summary className="min-h-11 cursor-pointer type-label text-text">수집 정보</summary>
           <p className="mb-3 type-caption text-text-muted">표시한 최신 포인트의 Resource와 Scope입니다.</p>
           <dl className="space-y-label type-caption text-text-muted">{Object.entries(points[points.length - 1]?.resource ?? {}).map(([key, value]) => <div key={key} className="grid gap-1 sm:grid-cols-2"><dt className="break-all font-mono">{key}</dt><dd className="break-all">{value}</dd></div>)}</dl>
           <p className="mt-3 break-all type-caption text-text-muted">Scope: {points[points.length - 1]?.scope?.name || '기록 없음'} {points[points.length - 1]?.scope?.version}</p>

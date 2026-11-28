@@ -79,49 +79,49 @@ export function InfrastructureCollectorSetupResult({
   return (
     <div className="space-y-item p-6">
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-status-healthy/10 text-status-healthy"><MaterialIcon name="check" /></span>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ok-bg text-ok-text"><MaterialIcon name="check" /></span>
         <div>
-          <h3 className="type-card-title text-text-base">{title}</h3>
+          <h3 className="type-card-title text-text">{title}</h3>
           <p className="mt-intra type-body text-text-muted">API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
         </div>
       </div>
       <ConnectionAddressField address={address} />
       <div className="space-y-label">
-        <p className="type-label text-text-secondary">API Key</p>
-        <div className="flex items-center gap-2 rounded-md bg-ui-hover-soft p-3">
-          <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
+        <p className="type-label text-text">API Key</p>
+        <div className="flex items-center gap-2 rounded-md bg-surface-hover p-3">
+          <code className="min-w-0 flex-1 break-all font-mono text-xs text-text">{setup.apiKey}</code>
           <CopyButton onCopy={() => copy(setup.apiKey)} title="API Key 복사" className={ICON_ACTION} />
         </div>
       </div>
       <div className="space-y-label">
-        <p className="type-label text-text-secondary">실행 방법</p>
+        <p className="type-label text-text">실행 방법</p>
         <SegmentedControl options={RUN_MODES} value={mode} onChange={setMode} ariaLabel="OpenTelemetry Collector 실행 방법" />
         <p className="type-caption text-text-muted">
           {mode === 'docker'
             ? 'Linux 호스트 기준입니다. 호스트의 /를 읽기 전용으로 마운트해 컨테이너가 아닌 호스트를 측정합니다.'
-            : <>서버에 otelcol-contrib를 설치한 뒤 실행합니다. <a href="https://github.com/open-telemetry/opentelemetry-collector-releases/releases" target="_blank" rel="noreferrer" className="text-action underline">설치 파일</a></>}
+            : <>서버에 otelcol-contrib를 설치한 뒤 실행합니다. <a href="https://github.com/open-telemetry/opentelemetry-collector-releases/releases" target="_blank" rel="noreferrer" className="text-text underline">설치 파일</a></>}
         </p>
       </div>
       <div className="space-y-label">
         <div className="flex items-center justify-between gap-2">
-          <p className="type-label text-text-secondary">otelcol-contrib.yaml</p>
+          <p className="type-label text-text">otelcol-contrib.yaml</p>
           <CopyButton disabled={!address.valid} onCopy={() => copy(config)} title="OpenTelemetry Collector 설정 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
         </div>
-        <pre className="max-h-80 overflow-auto whitespace-pre rounded-md bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{config}</pre>
+        <pre className="max-h-80 overflow-auto whitespace-pre rounded-md bg-surface-hover p-4 font-mono text-xs text-text">{config}</pre>
       </div>
       <div className="space-y-label">
         <div className="flex items-center justify-between gap-2">
-          <p className="type-label text-text-secondary">실행 명령</p>
+          <p className="type-label text-text">실행 명령</p>
           <CopyButton onCopy={() => copy(RUN_COMMAND[mode])} title="실행 명령 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
         </div>
-        <pre className="overflow-auto whitespace-pre rounded-md bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{RUN_COMMAND[mode]}</pre>
+        <pre className="overflow-auto whitespace-pre rounded-md bg-surface-hover p-4 font-mono text-xs text-text">{RUN_COMMAND[mode]}</pre>
       </div>
       <TelemetryReceiptStatus
         path={`/infrastructure-resources/${setup.id}/setup-status`}
         expected={['infrastructure']}
         note="OpenTelemetry Collector를 실행하면 30초 안에 첫 메트릭이 들어옵니다. 5초마다 수신 기록을 확인합니다."
       />
-      <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-ui-border bg-bg-surface px-6 py-4"><Button onClick={onDone}>{connectView('infrastructure')}</Button></div>
+      <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-border bg-surface px-6 py-4"><Button onClick={onDone}>{connectView('infrastructure')}</Button></div>
     </div>
   );
 }

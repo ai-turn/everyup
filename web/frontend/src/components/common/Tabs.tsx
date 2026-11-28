@@ -34,12 +34,19 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
   // scrollIntoView는 탭 줄이 화면 밖이면 페이지까지 세로로 움직이므로 scrollLeft를 직접 맞춘다.
   const listRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const list = listRef.current;
-    const tab = list?.querySelector<HTMLElement>('[aria-selected="true"]');
-    if (!list || !tab) return;
-    const left = tab.getBoundingClientRect().left - list.getBoundingClientRect().left + list.scrollLeft;
-    if (left < list.scrollLeft) list.scrollLeft = left;
-    else if (left + tab.offsetWidth > list.scrollLeft + list.clientWidth) list.scrollLeft = left + tab.offsetWidth - list.clientWidth;
+    const reveal = () => {
+      const list = listRef.current;
+      const tab = list?.querySelector<HTMLElement>('[aria-selected="true"]');
+      if (!list || !tab) return;
+      const left = tab.getBoundingClientRect().left - list.getBoundingClientRect().left + list.scrollLeft;
+      if (left < list.scrollLeft) list.scrollLeft = left;
+      else if (left + tab.offsetWidth > list.scrollLeft + list.clientWidth) list.scrollLeft = left + tab.offsetWidth - list.clientWidth;
+    };
+    reveal();
+    // 웹폰트가 늦게 도착하면(font-display: swap) 탭 폭이 바뀌어 맞춘 위치가 어긋난다. 글꼴이 준비되면 한 번 더 맞춘다.
+    let live = true;
+    void document.fonts?.ready.then(() => { if (live) reveal(); });
+    return () => { live = false; };
   }, [active]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -74,13 +81,13 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
             onKeyDown={event => onKeyDown(event, index)}
             className={`relative inline-flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 type-label transition-colors ${
               selected
-                ? 'border-primary text-text-base'
-                : `border-transparent hover:text-text-base ${item.muted ? 'text-text-dim' : 'text-text-muted'}`
+                ? 'border-accent text-text'
+                : `border-transparent hover:text-text ${item.muted ? 'text-text-faint' : 'text-text-muted'}`
             }`}
           >
             {item.label}
             {item.srDetail && <span className="sr-only">{item.srDetail}</span>}
-            {item.caption && <span className="type-caption text-text-dim">{item.caption}</span>}
+            {item.caption && <span className="type-caption text-text-faint">{item.caption}</span>}
             {item.tone && (
               <span
                 {...(item.toneLabel ? { role: 'img', 'aria-label': item.toneLabel } : { 'aria-hidden': true })}

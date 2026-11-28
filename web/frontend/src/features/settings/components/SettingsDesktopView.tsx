@@ -1,3 +1,4 @@
+import { THEMES, type Theme } from '../../../contexts/themes';
 import { Button, ConfirmDialog, MaterialIcon, PageHeader, SegmentedControl } from '../../../components/common';
 import { useAuth } from '../../../contexts/AuthContext';
 import { SectionCard } from './SectionCard';
@@ -13,7 +14,7 @@ const LOGS_RETENTION_OPTIONS = ['1d', '3d', '7d', '30d'];
 const COLLECT_INTERVAL_OPTIONS = [15, 30, 60, 300];
 
 interface SettingsDesktopViewProps {
-  theme: 'light' | 'dark';
+  theme: Theme;
   metricsRetention: string;
   logsRetention: string;
   collectInterval: number;
@@ -22,7 +23,7 @@ interface SettingsDesktopViewProps {
   settingsError: string | null;
   showResetConfirm: boolean;
   resetting: boolean;
-  onThemeChange: (theme: 'light' | 'dark') => void;
+  onThemeChange: (theme: Theme) => void;
   onMetricsRetentionChange: (value: string) => void;
   onLogsRetentionChange: (value: string) => void;
   onCollectIntervalChange: (seconds: number) => void;
@@ -62,8 +63,8 @@ export function SettingsDesktopView({
     <div>
       <PageHeader menu title="환경 설정" />
       {settingsError && (
-        <div role="alert" className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-secondary">
-          <MaterialIcon name="sync_problem" className="text-status-warn" />
+        <div role="alert" className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 type-body text-text">
+          <MaterialIcon name="sync_problem" className="text-attn-text" />
           <span className="min-w-0 flex-1">일부 설정을 불러오지 못했습니다. {settingsError}</span>
           <Button size="sm" variant="secondary" onClick={onRetryLoad}>다시 시도</Button>
         </div>
@@ -79,11 +80,11 @@ export function SettingsDesktopView({
 
           <section id="sec-ui" className="scroll-mt-4">
             <SectionCard title="인터페이스">
-              <SettingRow label="테마" description="라이트 또는 다크 모드를 선택합니다">
+              <SettingRow label="테마" description="화면 색 테마를 선택합니다">
                 <SegmentedControl
                   size="md"
                   ariaLabel="테마"
-                  options={[{ value: 'light', label: '라이트' }, { value: 'dark', label: '다크' }] as const}
+                  options={THEMES}
                   value={theme}
                   onChange={onThemeChange}
                 />
@@ -95,8 +96,8 @@ export function SettingsDesktopView({
             <SectionCard title="데이터 수집 및 보존">
               {backendLoading ? (
                 <div className="space-y-label">
-                  <div className="h-10 bg-ui-hover rounded-lg animate-pulse" />
-                  <div className="h-10 bg-ui-hover rounded-lg animate-pulse" />
+                  <div className="h-10 bg-surface-hover rounded-lg animate-pulse" />
+                  <div className="h-10 bg-surface-hover rounded-lg animate-pulse" />
                 </div>
               ) : (
                 <>

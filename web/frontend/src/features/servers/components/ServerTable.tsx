@@ -27,7 +27,7 @@ function Value({ row, metric, render }: { row: ServerRow; metric: ServerMetric; 
   return <><Tooltip content="데이터 없음"><span aria-hidden="true" className="text-text-muted">-</span></Tooltip><span className="sr-only">데이터 없음</span></>;
 }
 
-const usageClass = (value: number) => value >= WARNING_PCT ? 'text-status-warn' : 'text-text-base';
+const usageClass = (value: number) => value >= WARNING_PCT ? 'text-attn-text' : 'text-text';
 /** 기준을 넘은 수치는 색만으로 구분하지 않는다. 화면 낭독기에는 글자로 알린다. */
 function OverWarning({ value }: { value: number }) {
   return value >= WARNING_PCT ? <span className="sr-only">, 주의 기준 초과</span> : null;
@@ -51,8 +51,8 @@ export function ServerTable({ rows, matches }: {
       { key: 'server', label: '서버', className: '@3xl:w-64 @5xl:w-72', render: (row) => {
         const matched = matches.get(row.server.id) ?? [];
         return <>
-          <Tooltip content={row.server.name}><Link data-row-link to={serverPath(row.server.id)} className="block truncate font-medium text-action">{row.server.name}</Link></Tooltip>
-          {matched.length > 0 && <p className="mt-1 truncate type-caption text-text-secondary">{matched.join(', ')}</p>}
+          <Tooltip content={row.server.name}><Link data-row-link to={serverPath(row.server.id)} className="block truncate font-medium text-text">{row.server.name}</Link></Tooltip>
+          {matched.length > 0 && <p className="mt-1 truncate type-caption text-text">{matched.join(', ')}</p>}
           <p className="mt-1 flex min-h-lh flex-wrap gap-x-3 gap-y-1 type-caption text-text-muted">
             {row.cpu !== undefined && <span className="whitespace-nowrap @3xl:hidden">CPU <span className={`tabular-nums ${usageClass(row.cpu)}`}>{percent(row.cpu, 1)}<OverWarning value={row.cpu} /></span></span>}
             {row.memory !== undefined && <span className="whitespace-nowrap @3xl:hidden">메모리 <span className={`tabular-nums ${usageClass(row.memory)}`}>{percent(row.memory, 1)}<OverWarning value={row.memory} /></span></span>}

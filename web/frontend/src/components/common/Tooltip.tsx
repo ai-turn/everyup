@@ -69,7 +69,7 @@ function TooltipHint({ content, children, focusable }: TooltipProps & { content:
       <div
         ref={setFloating}
         style={{ ...floatingStyles, visibility: middlewareData.hide?.referenceHidden ? 'hidden' : undefined }}
-        className="z-[70] max-h-[calc(100dvh-16px)] w-max max-w-[min(20rem,calc(100vw-16px))] overflow-y-auto whitespace-pre-wrap break-words rounded-md border border-ui-border bg-ui-raised px-3 py-2 text-xs font-normal leading-5 text-text-base shadow-lg"
+        className="z-[70] max-h-[calc(100dvh-16px)] w-max max-w-[min(20rem,calc(100vw-16px))] overflow-y-auto whitespace-pre-wrap break-words rounded-md border border-border bg-surface px-3 py-2 text-xs font-normal leading-5 text-text shadow-lg"
         {...getFloatingProps({ onClick: (event: React.MouseEvent) => event.stopPropagation() })}
       >{content}</div>
     </FloatingPortal>}

@@ -172,8 +172,8 @@ export function OverviewPage() {
     return (
       <div className="page-stack" aria-busy="true">
         <PageHeader menu title="개요" />
-        <div className="h-8 w-96 max-w-full animate-pulse rounded-md bg-ui-hover-soft" />
-        <div className="h-80 animate-pulse rounded-lg bg-ui-hover-soft" />
+        <div className="h-8 w-96 max-w-full animate-pulse rounded-md bg-surface-hover" />
+        <div className="h-80 animate-pulse rounded-lg bg-surface-hover" />
       </div>
     );
   }
@@ -192,11 +192,11 @@ export function OverviewPage() {
       </p>
 
       {failedLabels.length > 0 && (
-        <section className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
+        <section className="flex flex-col gap-lead rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between" role="status">
           <div className="flex items-start gap-3">
-            <MaterialIcon size={20} name="sync_problem" className="icon-lead text-status-warn" />
+            <MaterialIcon size={20} name="sync_problem" className="icon-lead text-attn-text" />
             <div>
-              <p className="type-label text-text-base">일부 모니터링 정보를 불러오지 못했습니다</p>
+              <p className="type-label text-text">일부 모니터링 정보를 불러오지 못했습니다</p>
               <p className="mt-intra type-body text-text-muted">
                 불러오지 못한 영역: {failedLabels.join(', ')}. 이 영역은 정상 여부를 판단할 수 없습니다.
               </p>
@@ -224,7 +224,7 @@ export function OverviewPage() {
               글자만 늘어서면 문장처럼 읽혀서 사이드바와 같은 아이콘을 앞에 붙였다. */}
           {/* 범위 줄은 아래 목록과 성격이 달라서(전체 규모 vs 지금 볼 것) 그룹 사이 선과 같은 옅은 선으로 끊는다.
               선을 nav가 아니라 감싼 div에 긋는 것은 nav의 -mx-2 때문에 선이 본문보다 양쪽으로 8px 삐져나오기 때문이다. */}
-          <div className="border-b border-ui-border-soft pb-4">
+          <div className="border-b border-border pb-4">
           <nav aria-label="모니터링 범위" className="-mx-2 flex flex-wrap items-center gap-x-1 gap-y-1">
             {([
               // Docker 호스트도 서버다(ADR 0012). 서버 수에 들어 있으므로 따로 세지 않는다.
@@ -232,21 +232,21 @@ export function OverviewPage() {
             ] as const).map(([label, count, to, unknown, icon]) => (
               unknown ? (
                 <span key={label} className="inline-flex h-8 items-center gap-1.5 px-2">
-                  <MaterialIcon name={icon} size={20} className="text-text-dim" />
+                  <MaterialIcon name={icon} size={20} className="text-text-faint" />
                   <span className="type-body text-text-muted">{label}</span>
                   <Tooltip content="불러오지 못했습니다" focusable><span className="type-label text-text-muted" aria-label="확인 불가">-</span></Tooltip>
                 </span>
               ) : (
-                <Link key={label} to={to} className="inline-flex h-8 min-h-11 items-center gap-1.5 rounded-md px-2 transition-colors hover:bg-ui-hover sm:min-h-0">
-                  <MaterialIcon name={icon} size={20} className="text-text-dim" />
+                <Link key={label} to={to} className="inline-flex h-8 min-h-11 items-center gap-1.5 rounded-md px-2 transition-colors hover:bg-surface-hover sm:min-h-0">
+                  <MaterialIcon name={icon} size={20} className="text-text-faint" />
                   <span className="type-body text-text-muted">{label}</span>
-                  <span className="type-label tabular-nums text-text-base">{count}</span>
+                  <span className="type-label tabular-nums text-text">{count}</span>
                 </Link>
               )
             ))}
             {/* 전체 로그는 범위 줄의 보조 링크다. 확인 필요의 제목 줄에 있으면 그 목록의 "전체 보기"로 읽혔다. */}
             <span className="ml-auto flex flex-wrap items-center">
-              <Link to={ALL_LOGS_PATH} className="inline-flex h-8 min-h-11 items-center px-2 type-body text-action link-underline sm:min-h-0">전체 로그</Link>
+              <Link to={ALL_LOGS_PATH} className="inline-flex h-8 min-h-11 items-center px-2 type-body text-text link-underline sm:min-h-0">전체 로그</Link>
             </span>
           </nav>
           </div>
@@ -258,7 +258,7 @@ export function OverviewPage() {
               meta={statusUnknown ? null : <><span>장애 {outageItems.length}</span>, <span>확인 필요 {warnItems.length}</span></>}>
               {attention.length === 0 ? (
                 <div className="flex items-center gap-3 py-3">
-                  <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
+                  <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-attn-text' : 'text-ok-text'} />
                   <p className="type-body text-text-muted">
                     {statusUnknown ? '불러온 영역에서는 이상이 없지만, 전체가 정상인지는 아직 알 수 없습니다.' : '현재 확인이 필요한 이상이 없습니다'}
                   </p>
@@ -269,7 +269,7 @@ export function OverviewPage() {
                   {/* 장애가 없으면 확인 필요보다 먼저 그것을 말한다. 경고 몇 건이 장애처럼 읽히지 않게. */}
                   {outageItems.length === 0 ? (
                     <div className="flex items-center gap-3 py-2">
-                      <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-status-warn' : 'text-status-healthy'} />
+                      <MaterialIcon name={statusUnknown ? 'sync_problem' : 'check_circle'} className={statusUnknown ? 'text-attn-text' : 'text-ok-text'} />
                       <p className="type-body text-text-muted">{statusUnknown ? '불러온 영역에서는 진행 중인 장애가 없습니다' : '진행 중인 장애 없음'}</p>
                     </div>
                   ) : (
@@ -302,9 +302,9 @@ export function OverviewPage() {
               {timelineFailed && (
                 <div role="status" className="flex flex-col gap-label cell sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <MaterialIcon name="sync_problem" className="shrink-0 text-status-warn" />
+                    <MaterialIcon name="sync_problem" className="shrink-0 text-attn-text" />
                     <p className="type-body text-text-muted">
-                      <span className="type-label text-text-base">장애 이력을 불러오지 못했습니다</span>{' '}
+                      <span className="type-label text-text">장애 이력을 불러오지 못했습니다</span>{' '}
                       {timeline.length > 0 ? '이전에 불러온 기록입니다. 최신 기록은 확인할 수 없습니다.' : '최근 7일간의 장애 기록을 확인할 수 없습니다.'}
                     </p>
                   </div>
@@ -319,12 +319,12 @@ export function OverviewPage() {
                     <ListRow
                       key={`${episode.source}-${episode.targetPath}-${episode.startedAt}`}
                       to={episode.targetPath}
-                      marker={<span className={`h-2 w-2 rounded-full ${episode.active ? 'bg-status-error-fill animate-pulse' : 'bg-status-idle-fill'}`} aria-hidden="true" />}
+                      marker={<span className={`h-2 w-2 rounded-full ${episode.active ? 'bg-crit animate-pulse' : 'bg-wait'}`} aria-hidden="true" />}
                       title={withParent(episode.targetName, episode.targetPath)}
                       detail={episode.message || (episode.source === 'uptime' ? '업타임 체크 실패' : '컨테이너 상태 이상')}
                       trailing={formatIncidentTime(episode.startedAt)}
                       trailingDetail={episode.active
-                        ? <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>
+                        ? <span className="text-crit-text">{formatDuration(episode.durationSec)} 경과</span>
                         : `${formatDuration(episode.durationSec)} 지속`}
                     />
                   ))}
@@ -343,12 +343,12 @@ function AttentionRow({ item, episode }: { item: AttentionItem; episode?: Timeli
   return (
     <ListRow
       to={item.to}
-      marker={<MaterialIcon name={item.icon} className={item.tone === 'error' ? 'text-status-error' : 'text-status-warn'} />}
+      marker={<MaterialIcon name={item.icon} className={item.tone === 'error' ? 'text-crit-text' : 'text-attn-text'} />}
       title={item.title}
       detail={episode?.message || item.detail}
       // 시작 시각이 없는 항목(수집 지연 등)은 timeLabel 하나를 윗줄 오른쪽에 둔다.
       trailing={episode ? formatIncidentTime(episode.startedAt) : item.timeLabel}
-      trailingDetail={episode && <span className="text-status-error">{formatDuration(episode.durationSec)} 경과</span>}
+      trailingDetail={episode && <span className="text-crit-text">{formatDuration(episode.durationSec)} 경과</span>}
     />
   );
 }

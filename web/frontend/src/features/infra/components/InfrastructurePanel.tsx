@@ -100,7 +100,7 @@ export function InfrastructurePanel({ resource, status, serverName, onDeleted, m
       <DirectConnectionMeta
         isActive={resource.isActive}
         status={status}
-        statusDetail={resource.name !== serverName && <span className="text-text-dim">{resource.name}</span>}
+        statusDetail={resource.name !== serverName && <span className="text-text-faint">{resource.name}</span>}
         statusAside={<>{rangePicker}{actions}</>}
         collapsed
         collapseOnMobile

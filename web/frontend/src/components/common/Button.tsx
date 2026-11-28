@@ -14,18 +14,18 @@ import { ControlDefaultsContext } from './controlSize';
 // 눈에 들어오지 않아 hover 전까지 버튼인지 읽히지 않았다. `action`은 표면·hover
 // 배경 위에서 AA를 만족하는 primary 변주다 (§1.4).
 // 색 override는 className으로 하지 않는다 — Tailwind가 같은 속성의 유틸리티를
-// 알파벳 순으로 내보내서 `text-status-error`가 `text-text-muted`에 밀렸다.
+// 알파벳 순으로 내보내서 `text-crit-text`가 `text-text-muted`에 밀렸다.
 // 파괴적 액션은 variant로 고른다.
 const VARIANTS = {
   // 투명 테두리: 강제 색상 모드는 채움을 지우고 테두리만 그린다 — 없으면 글자만 남아 버튼으로 안 보인다.
-  primary: 'border border-transparent bg-primary text-on-primary not-aria-disabled:hover:bg-primary-hover not-aria-disabled:active:bg-primary-hover',
-  secondary: 'bg-bg-surface border border-ui-border text-text-base not-aria-disabled:hover:bg-ui-hover not-aria-disabled:active:bg-ui-active [&_svg]:text-action',
-  ghost: 'text-action not-aria-disabled:hover:bg-action/10 not-aria-disabled:active:bg-action/15',
-  text: 'text-action',
+  primary: 'border border-transparent bg-accent text-accent-text not-aria-disabled:hover:bg-accent/90 not-aria-disabled:active:bg-accent/80',
+  secondary: 'bg-surface border border-border text-text not-aria-disabled:hover:bg-surface-hover not-aria-disabled:active:bg-border [&_svg]:text-text',
+  ghost: 'text-text not-aria-disabled:hover:bg-text/10 not-aria-disabled:active:bg-text/15',
+  text: 'text-text',
   // secondary와 같은 모양에 글자·아이콘만 빨갛게 — 툴바에 나란히 놓였을 때 모양으로 튀지 않는다.
-  destructive: 'bg-bg-surface border border-ui-border text-status-error not-aria-disabled:hover:bg-status-error/10 not-aria-disabled:active:bg-status-error/15',
-  quiet: 'text-text-muted not-aria-disabled:hover:text-text-base not-aria-disabled:hover:bg-ui-hover not-aria-disabled:active:bg-ui-active',
-  danger: 'border border-transparent bg-danger text-white not-aria-disabled:hover:bg-danger-hover not-aria-disabled:active:bg-danger-hover',
+  destructive: 'bg-surface border border-border text-crit-text not-aria-disabled:hover:bg-crit-bg not-aria-disabled:active:bg-crit/15',
+  quiet: 'text-text-muted not-aria-disabled:hover:text-text not-aria-disabled:hover:bg-surface-hover not-aria-disabled:active:bg-border',
+  danger: 'border border-transparent bg-crit text-bg not-aria-disabled:hover:bg-crit/90 not-aria-disabled:active:bg-crit/80',
 } as const;
 
 // md는 터치 화면(sm 미만)에서 44px — Apple 44pt·Material 48dp 권장 터치 영역에 맞춘다.

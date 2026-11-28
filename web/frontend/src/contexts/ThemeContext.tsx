@@ -1,55 +1,53 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-
-type Theme = 'light' | 'dark';
+import { THEMES, type Theme } from './themes';
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage or system preference
-  const [theme, setThemeState] = useState<Theme>(() => {
-    const stored = localStorage.getItem('theme') as Theme | null;
-    if (stored) return stored;
+const isTheme = (value: unknown): value is Theme => THEMES.some((t) => t.value === value);
+const systemTheme = (): Theme => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
-    // Check system preference
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
-  });
+function storedTheme(): Theme | null {
+  try {
+    const value = localStorage.getItem('theme');
+    return isTheme(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(() => storedTheme() ?? systemTheme());
 
   // 첫 페인트 전 적용은 public/theme-init.js가 한다. 여기서는 이후 변경만 반영한다.
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   // 사용자가 직접 고르기 전까지는 OS 설정 변경을 따라간다.
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const followSystem = () => {
-      if (!localStorage.getItem('theme')) setThemeState(media.matches ? 'dark' : 'light');
+      if (!storedTheme()) setThemeState(media.matches ? 'dark' : 'light');
     };
     media.addEventListener('change', followSystem);
     return () => media.removeEventListener('change', followSystem);
   }, []);
 
   // 저장은 명시적 선택일 때만 — 시스템 기본값까지 저장하면 OS 테마를 바꿔도 따라가지 않는다.
-  const setTheme = (newTheme: Theme) => {
-    localStorage.setItem('theme', newTheme);
-    setThemeState(newTheme);
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+  const setTheme = (next: Theme) => {
+    try {
+      localStorage.setItem('theme', next);
+    } catch { /* 저장 못 해도 이번 세션에는 적용한다 */ }
+    setThemeState(next);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

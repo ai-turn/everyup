@@ -52,7 +52,7 @@ export function LogIngestLevels(source: Source) {
   if (draft === null && saved === null && loadFailed) {
     return (
       <div role="status" className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2">
-        <span className="type-body text-status-warn">불러오지 못했습니다</span>
+        <span className="type-body text-attn-text">불러오지 못했습니다</span>
         <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setAttempt(n => n + 1)}>다시 시도</Button>
       </div>
     );
@@ -64,7 +64,7 @@ export function LogIngestLevels(source: Source) {
       // The levels truncate before the button moves; the button wraps below only when
       // not even 4rem of them fits (200% text on a phone) instead of pushing past the row.
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2">
-        <Tooltip content={shown || undefined} focusable><span className={`min-w-0 flex-[1_1_4rem] truncate ${saved === null ? 'text-text-dim' : saved.length> 0 ? 'font-mono' : ''}`}>
+        <Tooltip content={shown || undefined} focusable><span className={`min-w-0 flex-[1_1_4rem] truncate ${saved === null ? 'text-text-faint' : saved.length> 0 ? 'font-mono' : ''}`}>
           {saved === null ? '확인 중…' : saved.length === 0 ? '전체' : shown}
         </span></Tooltip>
         <Button collapseLabel variant="ghost" className="ml-auto" disabled={saved === null} onClick={() => setDraft(saved ?? [])}>

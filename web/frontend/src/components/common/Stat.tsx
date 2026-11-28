@@ -13,8 +13,8 @@ export function Stat({ label, value, detail, labelTone = 'muted' }: {
 }) {
   return (
     <span className="flex min-w-0 flex-col items-start gap-intra">
-      <span className={`max-w-full truncate type-caption ${labelTone === 'secondary' ? 'text-text-secondary' : 'text-text-muted'}`}>{label}</span>
-      <span data-gap="intra" className="flex items-baseline gap-2 type-kpi text-text-base">{value}</span>
+      <span className={`max-w-full truncate type-caption ${labelTone === 'secondary' ? 'text-text' : 'text-text-muted'}`}>{label}</span>
+      <span data-gap="intra" className="flex items-baseline gap-2 type-kpi text-text">{value}</span>
       {detail != null && <span className="type-caption text-text-muted">{detail}</span>}
     </span>
   );

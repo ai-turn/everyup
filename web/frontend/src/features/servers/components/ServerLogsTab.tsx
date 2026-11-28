@@ -111,7 +111,7 @@ function ServerLogOverview({ serverId, apps, refreshToken }: {
     return (
       <div role="status" className="space-y-label">
         <span className="sr-only">로딩 중…</span>
-        {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
+        {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-surface-hover" />)}
       </div>
     );
   }
@@ -131,7 +131,7 @@ function ServerLogOverview({ serverId, apps, refreshToken }: {
         title="앱" noun="앱" onRetryPatterns={retry}
         viewToggle={<>
           {/* 여러 서버를 차례로 훑는 길. 전체 로그는 사이드바에 없다. */}
-          <Link to={ALL_LOGS_PATH} className="inline-flex min-h-11 items-center type-body text-action link-underline sm:min-h-6">모든 서버의 로그</Link>
+          <Link to={ALL_LOGS_PATH} className="inline-flex min-h-11 items-center type-body text-text link-underline sm:min-h-6">모든 서버의 로그</Link>
           <ListViewToggle view={view} onChange={setView} />
         </>} />
     </div>

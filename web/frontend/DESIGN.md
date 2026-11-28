@@ -1,120 +1,84 @@
 ---
 version: alpha
 name: EveryUp
-description: 개발자용 모니터링 대시보드. 흰 표면 한 톤에 무채색 액션, 유채색은 상태와 데이터에만 싣는다.
+description: 개발자용 모니터링 대시보드. 테마 4종(다크·라이트·Latte·Mocha)이 같은 의미 토큰을 쓰고, 유채색은 강조 하나와 상태·데이터에만 싣는다.
 colors:
-  primary: "#1c2024"
-  primary-hover: "#363a3f"
-  on-primary: "#ffffff"
-  action: "#1c2024"
-  bg-main: "#ffffff"
-  bg-surface: "#ffffff"
-  ui-border: "#d9d9e0"
-  ui-control-border: "#80838d"
-  ui-border-soft: "#e8e8ec"
-  ui-hover: "#f0f0f3"
-  ui-hover-soft: "#f9f9fb"
-  ui-table-header: "#f0f0f3"
-  ui-active: "#e8e8ec"
-  ui-raised: "#ffffff"
-  text-base: "#1c2024"
-  text-secondary: "#363a3f"
-  text-muted: "#60646c"
-  text-dim: "#6b6f78"
-  status-healthy: "#127058"
-  status-warn: "#925500"
-  status-error: "#c4282d"
-  status-idle: "#60646c"
-  status-healthy-fill: "#059669"
-  status-warn-fill: "#c77700"
-  status-error-fill: "#dc2626"
-  status-idle-fill: "#80838d"
-  danger: "#dc2626"
-  danger-hover: "#b91c1c"
-  chart-border: "#e0e1e6"
-  primary-dark: "#edeef0"
-  primary-hover-dark: "#c8cbd0"
-  on-primary-dark: "#111113"
-  action-dark: "#edeef0"
-  bg-main-dark: "#111113"
-  bg-surface-dark: "#18191b"
-  ui-border-dark: "#363a3f"
-  ui-control-border-dark: "#6b6f78"
-  ui-border-soft-dark: "#363a3f"
-  ui-hover-dark: "#212225"
-  ui-hover-soft-dark: "#212225"
-  ui-table-header-dark: "#111113"
-  ui-active-dark: "#2e3135"
-  ui-raised-dark: "#2e3135"
-  text-base-dark: "#edeef0"
-  text-secondary-dark: "#c8cbd0"
-  text-muted-dark: "#b0b4ba"
-  text-dim-dark: "#8b8f97"
-  status-healthy-dark: "#3dd6c6"
-  status-warn-dark: "#ffca16"
-  status-error-dark: "#ff6369"
-  status-idle-dark: "#b0b4ba"
-  status-healthy-fill-dark: "#3dd6c6"
-  status-warn-fill-dark: "#ffca16"
-  status-error-fill-dark: "#ff6369"
-  status-idle-fill-dark: "#80838d"
-  chart-border-dark: "#2e3135"
-  series-emerald: "#059669"
-  series-amber: "#d97706"
-  series-violet: "#7c3aed"
-  series-red: "#dc2626"
-  series-teal: "#0d9488"
-  level-info: "#0284c7"
-  level-debug: "#7c3aed"
-  level-trace: "#64748b"
+  bg: "#ffffff"
+  bg-subtle: "#ffffff"
+  surface: "#ffffff"
+  surface-hover: "#f4f4f6"
+  border: "#e8e8eb"
+  border-strong: "#d6d6dc"
+  text: "#18181b"
+  text-muted: "#4f4f58"
+  text-faint: "#6a6a74"
+  accent: "#5b4fd1"
+  accent-text: "#ffffff"
+  focus: "#5b4fd1"
+  crit: "#cf3a3a"
+  crit-text: "#cf3a3a"
+  attn: "#a06e14"
+  attn-text: "#a06e14"
+  ok: "#1f8f5a"
+  ok-text: "#1f8f5a"
+  wait: "#70707a"
+  chart-1: "#5b4fd1"
+  chart-2: "#1f8f5a"
+  chart-3: "#a06e14"
+  chart-4: "#6a6a74"
+  chart-5: "#1d7fa3"
+  deploy-marker: "#5b4fd1"
+  uptime-ok: "#1f8f5a"
+  uptime-fail: "#cf3a3a"
+  uptime-no-data: "#d6d6dc"
 typography:
   page-title:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 24px
     fontWeight: 700
     lineHeight: 32px
   section-title:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 20px
     fontWeight: 500
     lineHeight: 28px
   card-title:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 16px
     fontWeight: 500
     lineHeight: 24px
   body:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 14px
     fontWeight: 400
     lineHeight: 21px
   label:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 14px
     fontWeight: 500
     lineHeight: 20px
   label-sm:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 12px
     fontWeight: 500
     lineHeight: 16px
   caption:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 12px
     fontWeight: 400
     lineHeight: 16px
   kpi:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 24px
     fontWeight: 500
     lineHeight: 32px
   stat:
-    fontFamily: "Spoqa Han Sans Neo"
+    fontFamily: "Geist Variable"
     fontSize: 18px
     fontWeight: 500
     lineHeight: 28px
   code:
-    fontFamily: "JetBrains Mono Variable"
+    fontFamily: "Geist Mono Variable"
     fontSize: 12px
     fontWeight: 400
     lineHeight: 16px
@@ -141,9 +105,9 @@ spacing:
 # EveryUp 프론트엔드 디자인 시스템
 
 React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT**다.
-값의 실제 정의는 [`src/index.css`](src/index.css)(토큰)와 각 컴포넌트 파일에 있고, 이 문서는 **무엇을 언제 쓰는가**를 정한다.
+값의 실제 정의는 [`src/tokens.css`](src/tokens.css)(색)·[`src/index.css`](src/index.css)(유틸리티)와 각 컴포넌트 파일에 있고, 이 문서는 **무엇을 언제 쓰는가**를 정한다.
 
-맨 위 frontmatter는 토큰의 **기계 판독용 사본**이다([DESIGN.md 형식](https://github.com/google-labs-code/design.md)). 값을 바꿀 때 `index.css`와 함께 고친다 — 둘이 어긋나도 자동으로 잡히지 않는다. impeccable `detect`(`web/frontend`에서 실행해야 이 파일을 찾는다)가 이 값을 허용 목록으로 읽는데, **잡는 범위가 좁다** — `text-[Npx]` 임의 크기, CSS 선언·`style={{}}`의 색·radius·폰트만 본다. `bg-[#hex]`·`rounded-[10px]` 같은 Tailwind 임의값과 `slate-*` primitive·`dark:` 이중 작성(§10.A)은 보지 않는다 — 그쪽은 `pnpm lint`가 센다(§10).
+맨 위 frontmatter는 토큰의 **기계 판독용 사본**이다([DESIGN.md 형식](https://github.com/google-labs-code/design.md)). 라이트 테마 값이며, 값을 바꿀 때 `tokens.css`와 함께 고친다 — 둘이 어긋나도 자동으로 잡히지 않는다. impeccable `detect`(`web/frontend`에서 실행해야 이 파일을 찾는다)가 이 값을 허용 목록으로 읽는데, **잡는 범위가 좁다** — `text-[Npx]` 임의 크기, CSS 선언·`style={{}}`의 색·radius·폰트만 본다. `bg-[#hex]`·`rounded-[10px]` 같은 Tailwind 임의값과 `slate-*` primitive·`dark:` 이중 작성(§10.A)은 보지 않는다 — 그쪽은 `pnpm lint`가 센다(§10).
 
 관련 문서: [`../../CLAUDE.md`](../../CLAUDE.md)(엔지니어링 규약 — 디자인 내용은 없다) · [`src/components/charts/chartTheme.ts`](src/components/charts/chartTheme.ts)(차트 스펙 코드)
 
@@ -166,167 +130,102 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 ## 1. 색
 
-### 1.1 토큰 규약 — `dark:` 이중 작성 금지
+### 1.1 토큰 규약 — 테마는 토큰이 바꾼다
 
-시맨틱 토큰은 **라이트 값**을 담고, `index.css`의 `.dark` 블록에서 대응 `-dark` 값으로 **자가 재할당**된다.
-따라서 컴포넌트는 클래스 하나로 양쪽 테마를 커버한다.
+색 값은 [`src/tokens.css`](src/tokens.css) 한 파일에만 있다(2026-11-28, G안). 테마는 네 개이고 `<html data-theme="dark|light|latte|mocha">`가 고른다. 토큰 이름 34개는 테마와 무관하고, 테마는 그 이름에 값을 연결하는 표의 열 하나다. 새 테마는 `tokens.css`에 `[data-theme]` 블록 하나, `contexts/themes.ts`의 `THEMES`와 `public/theme-init.js`의 목록에 한 줄씩 더한다.
+
+`index.css`는 Tailwind 기본 팔레트를 지우고(`--color-*: initial`) 색 유틸리티를 토큰에만 연결한다(`@theme inline`). 그래서 `bg-sky-500`·`text-white` 같은 클래스는 아무것도 만들지 않고, `pnpm lint`가 막는다. `dark:` 변형도 쓰지 않는다(외부 서비스를 흉내 내는 채널 미리보기만 예외).
 
 ```tsx
-// ✅
+// ✅ 한 클래스가 네 테마를 다 덮는다
 <p className="text-text-muted">
 
-// ❌ 토큰이 이미 전환된다 — dark: 짝은 중복이자 유지보수 부채
-<p className="text-slate-500 dark:text-text-muted-dark">
+// ❌ 기본 팔레트·hex·dark: 짝
+<p className="text-slate-500 dark:text-slate-400">
 ```
 
-`*-dark` 접미 토큰(`--color-text-muted-dark` 등)은 **`.dark` 블록 재할당 전용**이다. 컴포넌트에서 직접 쓰지 않는다.
+인라인 스타일·SVG 속성은 `var(--토큰)`을 쓴다(`stroke="var(--chart-1)"`). `var()`는 그 자리에서 풀리므로 테마가 바뀌어도 다시 그릴 필요가 없다.
 
-### 1.2 표면 · 경계
+**선택과 저장.** 테마는 사이드바 아래와 환경 설정에서 고른다. 고르면 `localStorage.theme`에 남고, 고른 적이 없으면 OS의 라이트/다크를 따라간다(OS 설정이 바뀌면 같이 바뀐다). 첫 페인트 전에 `public/theme-init.js`가 `data-theme`를 붙인다.
 
-팔레트 출처는 [Radix Colors](https://www.radix-ui.com/colors)의 slate(중립)와 indigo(브랜드)다(2026-10-25 교체, 이전은 Tailwind slate + 자체 파랑). 아래 괄호 안 숫자는 Radix 12단계 스케일의 단계다 — 1–2 배경, 3–5 컴포넌트 채움, 6–8 보더, 9–10 채움색, 11–12 텍스트.
+### 1.2 토큰 표
 
-| 역할 | 클래스 | light | dark |
-|------|--------|-------|------|
-| 페이지 배경 | `bg-bg-main` | `#ffffff` | `#111113` (1) |
-| 카드 표면 | `bg-bg-surface` | `#ffffff` | `#18191b` (2) |
-| 헤어라인 | `border-ui-border` | `#d9d9e0` (6) | `#363a3f` (6) |
-| 입력 컨트롤 경계 | `border-ui-control-border` | `#80838d` (10) | `#6b6f78` |
-| 내부 구분선 | `border-ui-border-soft` | `#e8e8ec` (4) | `#363a3f` |
-| hover 채움 | `bg-ui-hover` | `#f0f0f3` (3) | `#212225` (3) |
-| 옅은 내부 채움 | `bg-ui-hover-soft` | `#f9f9fb` (2) | `#212225` |
-| 표 헤더 | `bg-ui-table-header` | `#f0f0f3` | `#111113` |
-| 눌린 표면 | `bg-ui-active` | `#e8e8ec` (4) | `#2e3135` (5) |
-| **떠오른 표면** | `bg-ui-raised` | `#ffffff` | `#2e3135` (5) |
+라이트·다크 값만 적는다. Latte·Mocha는 Catppuccin 공식 값이고 `tokens.css`에 있다.
 
-`ui-active`와 `ui-raised`는 **다크값이 같지만 역할이 반대다.** `ui-active`(라이트 `#e8e8ec`)는 스켈레톤·칩·hover처럼 트랙보다 **눌려** 보여야 하는 자리, `ui-raised`(라이트 흰색)는 세그먼티드 컨트롤의 선택된 칸처럼 `ui-hover` 트랙 **위로 솟아** 보여야 하는 자리다. 라이트에서 흰색이어야 하므로 `bg-bg-surface`로 대체할 수 없다 — 다크값(`#18191b`)이 트랙(`#212225`)보다 어두워 방향이 뒤집힌다.
-
-**라이트의 페이지 배경은 카드와 같은 흰색이다**(2026-11-15, Linear Docs 레퍼런스). 회색 페이지 위에 흰 카드를 띄우는 구성이 위젯을 모아 놓은 화면처럼 보여서, 라이트는 한 톤으로 두고 구분은 간격·헤어라인·hover 채움으로 한다. 다크는 main/surface 2단을 유지한다.
-
-다크에서 `soft` 계열은 상위 토큰과 동일하다 — **다크 모드의 명도 계층은 2단(main/surface)뿐**이고, 이는 의도된 설계다.
-
-입력·검색·선택 컨트롤은 장식용 구분선보다 뚜렷한 `ui-control-border`를 쓴다. 기본 표면에서 경계 대비 3:1 이상을 유지하고, 카드·표의 구분선은 기존 `ui-border`를 쓴다.
-
-**라이트의 `#ffffff` 표면은 유지한다**(2026-10-27, [ADR 0009](../../docs/adr/0009-hallmark-label-and-punctuation-rules.md)). Hallmark 7b(순백 표면)는 modern-minimal 장르에 `#fff`를 허용하고, §1.3의 대비 수치가 전부 이 값 기준이다. sloplint를 `--genre modern-minimal` 없이 돌리면 REFLEX로 다시 나온다.
-
-### 1.3 텍스트 4단 위계
-
-| 역할 | 클래스 | light | 대비 | dark |
-|------|--------|-------|------|------|
-| 제목·강조 | `text-text-base` | `#1c2024` (12) | 16.39 | `#edeef0` (12) |
-| 본문 | `text-text-secondary` | `#363a3f` | 11.45 | `#c8cbd0` |
-| 보조 | `text-text-muted` | `#60646c` (11) | 5.94 | `#b0b4ba` (11) |
-| 메타·placeholder | `text-text-dim` | `#6b6f78` | 5.04 | `#8b8f97` |
-
-한 화면에서 4단을 전부 쓰지 않는다. 카드 하나에는 보통 **base + muted 2단**이면 충분하다.
-
-대비 열은 **라이트의 흰 카드 배경 기준**이다. 다크 `dim`은 페이지 5.81:1, 카드 5.42:1, hover 4.90:1이다. Radix의 dim 후보인 10단계(`#80838d`)는 흰 카드에서 3.8:1로 AA에 미달해 11단계 쪽으로 당긴 값을 쓴다. `secondary`도 Radix에 없는 단계라 11과 12 사이에 둔 값이다. 대비는 토큰 하나가 아니라 실제 배경과의 조합으로 확인한다. 더 옅은 등급을 추가하지 말 것.
-
-**`dim`이 허용되는 배경은 `bg-main`·`bg-surface`·`ui-hover-soft`까지다.** 그보다 진한 채움 위에서는 AA에 미달한다 — 라이트 기준 `ui-hover` 4.43, `ui-active` 4.12. `ui-hover` 이상의 채움 위에는 `muted`(같은 자리에서 5.22)나 `secondary`를 쓴다. 다크 `ui-active`/`ui-raised`(`#2e3135`)에서는 `dim`이 4.03으로 미달이고, `muted`(6.28)와 `secondary`(8.03)는 통과한다.
-
-**읽는 산문에 `dim`을 쓰지 않는다.** `dim`은 표에 적힌 대로 **메타·placeholder 전용**이다 — `최근 3건`, 타임스탬프, 차트 축 라벨, endpoint 값처럼 훑는 자리. 문장으로 읽어야 하는 설명문·경고문은 `muted`(5.94)다. 산문은 훑는 값보다 오래 눈이 머물기 때문에 하한선에 가까운 `dim`에 두면 흐리게 읽힌다.
-
-### 1.4 브랜드 · 상태
-
-**브랜드 색은 무채색이다** (2026-11-15). 이전의 indigo(`#3e63dd`)를 뺐고, 화면에서 유채색은 상태색(§1.4 아래 표)만 남는다. 레퍼런스는 Linear Docs다: 주 버튼은 검정, 링크·선택 상태는 글자색과 hover 채움으로 구분한다.
-
-| 역할 | 클래스 | light | dark | 근거 |
+| 토큰 | 클래스 | 역할 | 라이트 | 다크 |
 |---|---|---|---|---|
-| 주 액션 채움 | `bg-primary` | `#1c2024` (slate-12) | `#edeef0` | 글자 최고 단계를 채움으로 쓴다 |
-| 채움 hover | `bg-primary-hover` | `#363a3f` | `#c8cbd0` | 한 단계 옅어진다. 채움 위 글자 대비는 라이트 11.45로 AA를 넘는다 |
-| 채움 위 글자 | `text-on-primary` | `#ffffff` | `#111113` | 다크의 채움이 밝아서 `text-white`를 쓰면 글자가 사라진다. **`bg-primary` 위에 `text-white`를 쓰지 않는다** |
-| 채움 없는 액션 | `text-action` | `#1c2024` | `#edeef0` | 제목 글자와 같은 값. 텍스트 링크는 색이 아니라 밑줄(`link-underline`: 쉴 때 dim, hover·포커스에서 글자색)로 드러낸다. **글자에 화살표(→, ›)를 붙이지 않는다**(hallmark gate 63) |
+| bg | `bg-bg` | 페이지 바탕 | `#ffffff` | `#0a0a0b` |
+| bg-subtle | `bg-bg-subtle` | 사이드바처럼 한 단 물러난 바탕 | `#ffffff` | `#0d0d0f` |
+| surface | `bg-surface` | 카드·입력·메뉴 표면 | `#ffffff` | `#111113` |
+| surface-hover | `bg-surface-hover` | hover 채움, 옅은 안쪽 채움, 선택된 세그먼트 | `#f4f4f6` | `#18181b` |
+| border | `border-border` | 헤어라인, 행 구분선, 눌린 채움(`bg-border`) | `#e8e8eb` | `#1f1f23` |
+| border-strong | `border-border-strong` | 알약, 짧은 막대의 트랙 | `#d6d6dc` | `#2b2b31` |
+| text | `text-text` | 제목·본문 | `#18181b` | `#ededef` |
+| text-muted | `text-text-muted` | 보조 글, 읽는 설명문 | `#4f4f58` | `#a3a3ab` |
+| text-faint | `text-text-faint` | 메타·축·placeholder | `#6a6a74` | `#8a8a93` |
+| accent | `bg-accent` · `text-accent` | 주 버튼 채움, 현재 위치, info | `#5b4fd1` | `#8f8ff5` |
+| accent-bg | `bg-accent-bg` | 현재 위치·선택의 옅은 바탕 | accent 10% | accent 12% |
+| accent-text | `text-accent-text` | accent 채움 위 글자 | `#ffffff` | `#0a0a0b` |
+| focus | `outline-focus` | 포커스 링 | `#5b4fd1` | `#8f8ff5` |
+| crit · crit-text · crit-bg · crit-border | | 장애: 채움·글자·옅은 바탕·경계 | `#cf3a3a` | `#ef6461` |
+| attn · attn-text · attn-bg | | 확인 필요 | `#a06e14` | `#d6a243` |
+| ok · ok-text · ok-bg | | 정상 | `#1f8f5a` | `#3fb57a` |
+| wait | `bg-wait` | 대기·일시 중지·모름 채움 | `#70707a` | `#80808a` |
+| chart-1 ~ chart-5 | `var(--chart-N)` | 차트 시리즈(§1.6) | | |
+| deploy-marker | `var(--deploy-marker)` | 차트의 배포 표시선 | accent | accent |
+| incident-band | `bg-incident-band` | 차트의 장애 구간 띠 | crit 8% | crit 10% |
+| uptime-ok · uptime-fail · uptime-no-data | | 업타임 체크 막대 | ok · crit · `#d6d6dc` | ok · crit · `#2b2b31` |
 
-`bg-primary/10` 같은 옅은 틴트(사이드바 현재 위치, 선택된 옵션)는 그대로 쓴다. 무채색이 되면서 회색 선택 배경이 된다.
+시안 밖의 보조 토큰은 둘이다. `control-border`(`border-control`)는 입력·선택 상자의 경계로, 표면 위 3:1(WCAG 1.4.11)이 필요해서 `border-strong`(1.3:1)과 따로 둔다(라이트 `#8a8a94`, 다크 `#66666f`). `scrim`은 모달 뒤를 어둡게 하는 막이다(`useOverlay`).
 
-**차트 첫 시리즈는 UI primary와 분리했다.** `chartTheme.ts`의 `primaryColor`는 CSS 변수를 읽지 않고 indigo `#3e63dd` 상수를 쓴다. 검정 선은 축·격자·글자와 구분되지 않기 때문이다.
+라이트는 페이지·카드·사이드바가 같은 흰색 한 톤이다. 구분은 간격·헤어라인·hover 채움으로 한다(§3.1). 다크는 bg → surface → surface-hover 세 단이다.
 
-Toggle의 켜진 손잡이도 `bg-on-primary`다. 다크에서 켜진 트랙이 밝아지므로 흰 손잡이가 묻힌다.
+### 1.3 글자 3단 위계
 
-**상태색도 시맨틱 토큰이다.** `emerald-600 dark:emerald-400` 같은 primitive 직접 사용 금지 — 토큰이 `.dark`에서 자가 전환하므로 `dark:` 짝이 필요 없다.
+`text` > `text-muted` > `text-faint`. 모든 테마에서 bg·surface 위 4.5:1 이상이다. Latte만 공식 값이 모자라 `text-faint`(`#63667d`), `attn-text`(`#8f5a0e`), `ok-text`(`#2d7a1f`)를 어둡게 보정했다. 읽는 문장에는 `text-faint`를 쓰지 않는다. `text-faint`는 시각·개수·축처럼 훑는 값 전용이다.
 
-| 상태 | 클래스 | light | dark |
-|------|--------|-------|------|
-| healthy · online | `text-status-healthy` | `#127058` | `#3dd6c6` teal |
-| warning | `text-status-warn` | `#925500` | `#ffca16` amber-11 |
-| error · critical · degraded | `text-status-error` | `#c4282d` | `#ff6369` |
-| offline · paused · unknown | `text-status-idle` | `#60646c` slate-11 | `#b0b4ba` slate-11 |
+### 1.4 강조 · 상태
 
-상태색은 Radix 스케일을 그대로 쓰지 않았다. 두 가지 이유가 있으니 근거를 남긴다.
+**강조색은 하나(accent)다.** 주 버튼 채움(`bg-accent text-accent-text`), 사이드바 현재 위치(`bg-accent-bg`), 체크박스·라디오(`accent-accent`), info 표시에만 쓴다. 텍스트 링크는 색이 아니라 밑줄(`link-underline`)로 드러낸다.
 
-- **라이트가 Radix 11단계보다 한 칸 진하다.** 11단계 그대로(`#218358`·`#ab6400`·`#ce2c31`)면 배지가 자기 `/10` 틴트 위에서 healthy 4.16 / warn 4.08 / error 4.47로 AA(4.5) 미달이었다. 지금 값은 `ui-hover-soft` 위 틴트에서도 4.63 이상이다. 11px bold는 WCAG large text(18.66px bold)가 아니라 4.5:1이 적용된다. 이전 Tailwind 팔레트에서 700~800단계를 쓴 것과 같은 이유다.
-- **다크 healthy는 green이 아니라 teal이고, error는 Radix red-11보다 붉다.** Radix 다크 green-11(`#3dd68c`)과 red-11(`#ff9592`)은 적록색각이상(Machado 2009 deuteranopia) 시뮬레이션에서 ΔE 2.3으로 **사실상 같은 색**이 됐다. 모니터링 도구에서 정상/장애를 구분 못 하는 건 기능 실패라 healthy를 teal로, error를 채도가 높은 `#ff6369`로 옮겨 42.8까지 벌렸다(라이트는 39.8). 같은 방식으로 잰 이전 팔레트는 다크 38.2 / 라이트 39.5였고, 그 전의 emerald-400 / red-400 조합은 18.5였다.
+**상태색은 글자와 채움이 다른 토큰이다**([ADR 0010](../../docs/adr/0010-status-color-roles-and-floating-surfaces.md)).
 
-**글자와 채움은 다른 토큰이다** (2026-11-13, [ADR 0010](../../docs/adr/0010-status-color-roles-and-floating-surfaces.md)). 위 표의 `status-*`는 **글자 역할**이다. 상태 점·게이지·막대·체크 띠·임계선·입력 검증 보더처럼 글자가 아닌 표시는 `status-*-fill`을 쓴다.
-
-| 역할 | 클래스 | 기준 | light | dark |
+| 역할 | 장애 | 확인 필요 | 정상 | 대기 |
 |---|---|---|---|---|
-| 글자·아이콘 | `text-status-{tone}` | 4.5:1 | 위 표 | 위 표 |
-| 채움·선 | `bg-status-{tone}-fill` · `border-status-{tone}-fill` · 차트 `theme.errorColor`/`warnColor` | 3:1 (WCAG 1.4.11) | healthy `#059669` · warn `#c77700` · error `#dc2626` · idle `#80838d` | 글자와 같은 값 · idle `#80838d` |
-| 옅은 틴트 | `bg-status-{tone}/10` | 틴트 위 글자 4.5:1 | 글자 토큰에 알파 | 같음 |
-| 파괴 확정 채움 | `bg-danger` · `hover:bg-danger-hover` | 흰 글자 4.5:1 | `#dc2626` / `#b91c1c` | 같은 값 |
+| 글자·아이콘 (4.5:1) | `text-crit-text` | `text-attn-text` | `text-ok-text` | `text-text-muted` |
+| 점·막대·게이지·선 (3:1) | `bg-crit` | `bg-attn` | `bg-ok` | `bg-wait` |
+| 옅은 바탕 | `bg-crit-bg` | `bg-attn-bg` | `bg-ok-bg` | `bg-surface-hover` |
+| 경계 | `border-crit-border` | | | |
 
-하나의 토큰이 두 역할을 맡던 때 생긴 문제가 셋이다. 라이트 warn `#925500`은 글자 대비를 맞추려 진하게 잡은 값이라 점·게이지에서 갈색으로 보였다. 다크 error `#ff6369`는 밝아서 흰 글자를 올릴 수 없어 `danger` 버튼만 primitive `bg-red-600`을 썼다. 그리고 에러 하나가 status `#c4282d`, 로그 레벨 `red-600`/`red-700`, danger `red-600`으로 네 가지 빨강이 됐다. 채움은 3:1만 넘으면 되므로 더 밝게 둘 수 있다. 채움 값은 흰 카드·`bg-main`·`ui-hover` 위에서 3:1 이상이다(warn은 `ui-hover`에서 3.04로 가장 낮다).
+글자 토큰을 채움에 쓰는 것(`bg-crit-text`)은 `pnpm lint`가 막는다. 파괴 확정 버튼은 `bg-crit text-bg`다(네 테마 모두 4.5:1).
 
-채움 값은 색각이상 거리도 다시 쟀다(위 근거와 같은 Machado 2009 deuteranopia ΔE). **이전 팔레트는 정상과 회색(idle)이 붙어 있었다**: 라이트 8.9, 다크 4.5다. idle 채움을 slate-11에서 slate-10(`#80838d`)으로 옮겨 17.1 / 21.0까지 벌렸다. healthy↔error는 41.2 / 42.8, warn↔error는 13.3 / 49.2다. 라이트 healthy를 teal(`#0d9488`)로 두면 error와의 거리는 58.4로 더 벌어지지만 idle과의 거리가 1.5로 무너져 emerald를 골랐다.
+### 1.5 로그 레벨
 
-글자 역할을 단색 채움에 쓰는 것(`bg-status-error` 단독)은 `pnpm lint`가 막는다. 고대비 모드 규칙(§8)도 `-fill`이라는 이름에 기대므로 이름을 지켜야 한다.
+[`logLevelStyle.ts`](src/features/healthcheck/logLevelStyle.ts)의 `LEVEL_TEXT`(행) / `LEVEL_CHIP`(필터 칩 선택) / `LEVEL_FILL`(추이 막대), `AgentServiceLogsTab`의 `LEVEL_BAR`(히스토그램)가 SSOT다. 알림 severity(`SEVERITY_TONE`)도 같은 규칙이다.
 
-`info` 역할은 아직 토큰으로 만들지 않았다. Tailwind v4는 미사용 `@theme` 변수를 트리셰이킹하므로 소비처 없는 토큰은 죽은 토큰이 된다. 2026-11-13 기준 소비처는 둘이다. 로그 레벨 info(§1.5)와 알림 severity info(`SEVERITY_TONE`, §1.5 아래)가 같은 sky 쌍(`text-sky-700 dark:text-sky-400`, 채움 `sky-600`)을 쓴다. 두 곳이 한 쌍을 공유하는 동안은 primitive로 두고, 세 번째 소비처가 생기거나 값이 갈라질 때 `status-info`(글자·`-fill`)를 만든다.
+| 레벨 | 글자 | 칩 | 막대 |
+|---|---|---|---|
+| error | `text-crit-text` | `bg-crit-bg` | crit |
+| warn | `text-attn-text` | `bg-attn-bg` | attn |
+| info | `text-accent` | `bg-accent-bg` | chart-1 |
+| debug | `text-text-muted` | `bg-surface-hover` | chart-4 |
+| trace | `text-text-faint` | `bg-surface-hover` | wait |
 
-### 1.5 로그 레벨 — 상태색과 별개 축
+로그 행의 레벨은 채움 없는 mono 소문자다(`LEVEL_BASE`).
 
-[`logLevelStyle.ts`](src/features/healthcheck/logLevelStyle.ts)의 `LEVEL_BASE`·`LEVEL_TEXT`(로그 행) / `LEVEL_CHIP`(필터 칩 선택 상태) / `LEVEL_FILL`(로그 카드 추이 막대), `AgentServiceLogsTab`의 `LEVEL_BAR`(히스토그램)가 SSOT.
+### 1.6 차트 시리즈
 
-| 레벨 | 색 | 바 | 행 토큰 |
-|------|-----|--------|------------------|
-| error | 상태색 | `status-error-fill` | `text-status-error` |
-| warn | 상태색 | `status-warn-fill` | `text-status-warn` |
-| info | **sky** | `#0284c7` | `text-sky-700` |
-| debug | violet | `#7c3aed` | `text-violet-700` |
-| trace | slate | `#64748b` | `text-text-muted` |
-
-info가 sky인 이유: 이전 primary였던 indigo(#3e63dd, 지금은 차트 첫 시리즈)와 붙어 있으면 "선택된 항목"으로 오독됐다.
-
-**알림 severity도 같은 규칙을 따른다** (2026-11-13). severity(critical·warning·info)는 규칙을 만든 사람이 정한 중요도라 상태와 별개 축이지만, 발송 이력 한 행에 `실패`(상태)와 `심각`(severity)이 나란히 서서 빨강이 둘이면 뜻이 둘로 읽힌다. critical·warning은 상태 글자 토큰·`/10` 틴트·`-fill` 점을, info는 위 표의 sky를 쓴다. SSOT는 `features/alerts/utils/severityLabel.ts`의 `SEVERITY_TONE`이고 `SeverityBadge`·규칙 폼·모바일 카드가 모두 이것을 쓴다.
-
-**error·warn은 상태색을 쓴다** (2026-11-13). 레벨은 상태와 별개 축이지만 `error`·`warn`의 뜻은 상태의 장애·주의와 같다. 같은 화면에서 로그 행의 error와 서비스 상태의 장애가 서로 다른 빨강이면 뜻이 둘로 읽힌다. 행 글자·필터 칩은 `status-*`, 막대는 `status-*-fill`(§1.4)이다. 상태에 없는 info·debug·trace만 이 절의 고유 색을 쓴다.
-
-**로그 행의 레벨은 채움 없는 mono 텍스트다** (`LEVEL_BASE` = `inline-block shrink-0 w-12 font-mono text-xs font-medium`). 레벨은 서버가 보내는 값 그대로 소문자(`error`·`warn`)로 쓴다 — 2026-10-27까지는 `uppercase`로 `ERROR`를 만들었다(§2.5). 2026-09-20까지는 `bg-red-100` 계열 불투명 파스텔 틴트를 깐 배지였는데, 사용자 피드백은 *"색상이 너무 AI스럽다"*였다. 두 가지가 겹쳐 있었다:
-
-1. **`-100` 틴트는 부트스트랩 alert 팔레트 그대로다.** §9.3이 다른 자리에서는 이미 금지하던 패턴인데 배지만 예외였고, 로그 표는 행마다 색 블록이 찍혀 그 예외가 가장 크게 드러나는 자리였다.
-2. **기계 토큰에 가변폭 sans를 썼다.** 같은 표의 메시지 컬럼이 `font-mono`인데 레벨만 Spoqa였다(시간 컬럼은 2026-09-23부터 Spoqa — §2.1). `ERROR`/`WARN`/`INFO`는 글자폭이 제각각이라 컬럼이 들쭉날쭉했고, **틴트가 그 들쭉날쭉함을 덮는 역할도 하고 있었다.** mono 고정폭 + `w-12`로 컬럼 모양을 잡으면 채움이 필요 없어진다.
-
-틴트를 빼서 대비가 같이 올랐다. 실측 라이트 error 5.69 / warn 5.96 / info 5.86(행 hover 위에서도 4.81 이상), 다크 error 5.48 / warn 10.39 / info 7.94(행 hover 기준)다. error·warn은 2026-11-13부터 상태 글자 토큰 값이다.
-
-**필터 칩의 선택 상태(`LEVEL_CHIP`)는 틴트를 유지한다.** 거기 채움은 장식이 아니라 토글이 켜졌음을 말한다 — 읽기 전용 토큰과 달리 선택/비선택을 구분할 수단이 필요하다. 같은 색을 쓰지만 역할이 다르므로 상수를 나눠 뒀다.
-
-info·debug·trace 바 색이 600단계인 이유: 500단계는 흰 배경에서 warn 2.15 / info 2.77 / trace 2.56으로 WCAG 1.4.11(3:1) 미달이었다. 배지 텍스트가 700단계인 이유: 600은 자기 `-100` 배경 위에서 red 3.95 / sky 3.57로 AA 미달이었다.
-
-### 1.6 차트 시리즈 팔레트
-
-`chartTheme.ts`의 `SERIES_HEX` + `getSeriesPalette(theme)`. **첫 슬롯은 indigo `#3e63dd` 상수다** — UI primary가 무채색이 된 뒤(§1.4) 차트는 이전 브랜드색을 그대로 쓴다.
+`chartTheme.ts`의 `SERIES`와 `getSeriesPalette(theme)`. 값은 `var(--chart-N)`이다.
 
 ```
-primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red #dc2626 → teal #0d9488
+chart-1 → chart-2 → chart-3 → chart-5 → chart-4(회색) → crit
 ```
 
-2026-10-25 Radix로 팔레트를 바꿀 때 시리즈는 첫 슬롯(primary)만 바꾸고 나머지 다섯 색은 Tailwind 600단계로 유지했다. 이 다섯 색은 라이트·다크 양쪽 3:1과 아래의 색각이상 순서 검증을 이미 거쳤고, `SERIES_HEX`의 키 이름(`emerald`·`amber` …)이 여러 파일에서 쓰인다.
+4개를 넘는 시리즈는 색만으로 구분되지 않는다. `getSeriesDash(i)`가 4슬롯째부터 선 스타일을 돌려준다. 격자는 `var(--border)`, 축 글자는 `var(--text-muted)`, 오류·경고 막대와 임계선은 `var(--crit)`·`var(--attn)`이다.
 
-시리즈 색 하드코딩 금지. mock 데이터도 `SERIES_HEX`를 import한다.
+### 1.7 원시 색이 허용되는 곳
 
-**600단계인 이유** — 500단계일 때 라이트 배경에서 emerald 2.54 / teal 2.49 / amber 2.15로 WCAG 1.4.11(3:1)에 미달했다. 팔레트가 Grafana를 참고하면서 다크 배경만 보고 튜닝된 결과였다. 600으로 내려 양쪽 테마 모두 3:1을 넘긴다.
-
-**⚠ 4개를 넘는 시리즈는 색만으로 구분되지 않는다.** 적록색각이상에서 앞 3슬롯(primary/emerald/amber)은 안전하지만 4슬롯째부터는 어떤 순서로 배열해도 충돌한다(primary/violet 16.0, emerald/teal 11.8, amber/red 12.8). 6색이 (a)색각 구분 (b)라이트 3:1 (c)다크 3:1을 동시에 만족하는 조합은 존재하지 않는다 — Okabe-Ito 정통 8색조차 라이트에서 orange 2.25, skyblue 2.31로 떨어진다. 시리즈가 4개를 넘으면 **선 스타일을 병행**한다 — `getSeriesDash(i)`가 4슬롯째부터 `strokeDasharray`를 돌려준다(앞 3슬롯은 `undefined`라 실선 유지). 시리즈 개수가 데이터에 달린 차트에서 쓴다:
-
-```tsx
-<Line {...lineProps(colors[i % colors.length])} strokeDasharray={getSeriesDash(i)} />
-```
-
-시리즈가 1~3개로 고정된 차트는 넣지 않아도 된다 — 어차피 `undefined`를 받으므로 모습이 같다.
-
-### 1.7 하드코딩이 허용되는 유일한 경우
-
-`ChannelForm`의 텔레그램/디스코드/슬랙 **미리보기 UI**. 서드파티 브랜드 색(`#26A5E4`, `#5865F2`, `#E01E5A`, `#313338` …)을 재현하는 목적이므로 토큰화 대상이 아니다. 같은 이유로 미리보기 안의 이모지·Discord `APP` 태그 같은 서드파티 표기도 §2.5의 예외다. 그 외 hex 리터럴은 전부 부채다.
+`tokens.css`와, 서드파티 화면을 재현하는 `ChannelForm`·`ChannelPreview`뿐이다. 그 밖의 hex·`rgb()`·`hsl()`·`oklch()`와 Tailwind 기본 팔레트 클래스는 `pnpm lint`가 막는다(css 파일 포함).
 
 ---
 
@@ -334,10 +233,10 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 ### 2.1 폰트
 
-- **본문** Spoqa Han Sans Neo (self-hosted, `spoqa-han-sans` 패키지) → `--font-sans`. body와 `font-sans` 유틸리티가 같은 토큰을 본다 — 토큰 없이 두면 `font-sans`가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다
-- **정적 폰트다.** 굵기는 100/300/400/500/700 다섯 개뿐이고 가변 축이 없다 — 중간 굵기를 만들 수 없다
-- **본문과 숫자는 Spoqa, 코드·로그만 JetBrains Mono다** (2026-09-23). **숫자·시간·개수도 Spoqa다** — Spoqa는 숫자 글리프가 원래 고정폭이다(실측 20px에서 `0000`·`1111`·`8888` 모두 47.69px). KPI·표·차트 범례·타임스탬프에 mono를 쓸 이유가 없다. 자리 이동이 없어야 하는 곳은 의도를 드러내려 `tabular-nums`를 그대로 건다
-- **`font-mono`는 기계 문자열에만** — 코드·설정 블록(`<pre>`, YAML·명령어), 로그 메시지 본문·스택 트레이스, API Key·trace ID·span 이름, URL·경로·HTTP method+path, 이미지명·메트릭명, `key=value` 속성 칩, 로그 레벨 토큰(§1.5). 기준은 **"들여쓰기·줄 맞춤이 의미이거나, `l`/`I`/`1`·`O`/`0`을 가려 읽어야 하는가"**다. 폰트는 JetBrains Mono Variable(latin subset, self-hosted)이다 — 로그·트레이스처럼 오래 읽는 화면이 OS와 무관하게 같은 모양이어야 해서 OS 고정폭 대신 웹폰트를 쓴다. 브라우저는 `font-mono` 글자가 화면에 있을 때만 파일을 받으므로 숫자를 뺀 뒤로는 개요·목록에서 내려받지 않는다. `<kbd>`·`<code>`·`<pre>`는 브라우저 기본값이 mono라는 점에 주의 — 단축키 표시(`Ctrl K`)는 UI 라벨이므로 `font-sans`를 건다(사이드바 `<kbd>` 하나 때문에 모든 페이지가 이 폰트를 받고 있었다). 한글 글리프가 없어 폴백 2순위가 Spoqa다 — 한글이 섞인 줄은 폭이 정확히 맞지 않는다(한글 줄 맞춤이 필요해지면 D2Coding 서브셋을 검토)
+- **본문** Geist Variable(라틴·숫자) + Spoqa Han Sans Neo(한글) → `--font-sans` (2026-11-28, G안). 둘 다 self-hosted다(`@fontsource-variable/geist`, `spoqa-han-sans`; CSP `font-src 'self'`). Geist에는 한글 글리프가 없어 한글은 폴백 2순위인 Spoqa로 그린다
+- **굵기는 400/500/700만 쓴다.** Geist는 가변이지만 Spoqa가 정적 폰트(400/500/700만 싣는다)라 600을 쓰면 한글이 합성 굵기로 떨어진다
+- **숫자는 본문 폰트 + `tabular-nums`다.** KPI·표·시간처럼 자리 이동이 없어야 하는 곳은 `tabular-nums`(또는 `type-kpi`·`type-stat`)를 건다
+- **`font-mono`는 기계 문자열에만** — 코드·설정 블록(`<pre>`, YAML·명령어), 로그 메시지 본문·스택 트레이스, API Key·trace ID·span 이름, URL·경로·HTTP method+path, 이미지명·메트릭명, `key=value` 속성 칩, 로그 레벨 토큰(§1.5). 기준은 **"들여쓰기·줄 맞춤이 의미이거나, `l`/`I`/`1`·`O`/`0`을 가려 읽어야 하는가"**다. 폰트는 Geist Mono Variable(self-hosted)이다 — 로그·트레이스처럼 오래 읽는 화면이 OS와 무관하게 같은 모양이어야 해서 OS 고정폭 대신 웹폰트를 쓴다. 브라우저는 `font-mono` 글자가 화면에 있을 때만 파일을 받으므로 숫자를 뺀 뒤로는 개요·목록에서 내려받지 않는다. `<kbd>`·`<code>`·`<pre>`는 브라우저 기본값이 mono라는 점에 주의 — 단축키 표시(`Ctrl K`)는 UI 라벨이므로 `font-sans`를 건다(사이드바 `<kbd>` 하나 때문에 모든 페이지가 이 폰트를 받고 있었다). 한글 글리프가 없어 폴백 2순위가 Spoqa다 — 한글이 섞인 줄은 폭이 정확히 맞지 않는다(한글 줄 맞춤이 필요해지면 D2Coding 서브셋을 검토)
 - **mono는 값에만 건다 — 라벨·분류명·제품명은 본문 폰트다.** `Docker Collector`·`Collector`·`OpenTelemetry Collector`·`Bot Token`·`Telegram`처럼 우리가 UI에 써 넣은 말은 mono가 아니다. 컨테이너(`<table>`, 메타 줄)에 `font-mono`를 걸면 라벨까지 같이 딸려오니, 해당 값 셀에 직접 건다. 값 하나를 여러 성격이 공유하는 prop(`detail={{label, value}}`)은 특히 주의 — 한쪽이 코드면 다른 쪽은 아닐 확률이 높다
 
 ### 2.2 역할별 타이포그래피
@@ -434,18 +333,18 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 
 | 대상 | 규칙 |
 |---|---|
-| 페이지 섹션 | 카드로 감싸지 않는다. 섹션 제목(`Section`, 20px — §2.2. 하위 그룹 라벨은 `type-label` + `text-text-secondary`, §3.7 세로 위계) + `section-stack`(32px 간격 가운데 `ui-border-soft` 가로선 하나, 2026-11-15 추가). 선은 **섹션 경계에만** 긋는다. 차트 카드처럼 테두리가 있는 요소끼리는 선이 겹치므로 `space-y-8`만 쓴다. 헤더·툴바·배너처럼 섹션이 아닌 머리 요소끼리는 기존 `5` |
-| 페이지 머리 | `PageHeader` 아래 `ui-border-soft` 한 줄(본문과의 경계) |
-| 목록·표 | 바깥 카드 셸(`rounded-xl border bg-bg-surface`)을 쓰지 않는다. 헤더 행은 배경 없이 아래 `border-ui-border-soft` 한 줄만. 본문 행 사이 구분선(`divide-y`, 행 `border-t/b`)은 쓰지 않는다. 행은 `hover:bg-ui-hover-soft`로 드러낸다 |
-| 회색 띠 | 헤더·그룹 제목·카드 머리에 배경 띠(`bg-ui-table-header`, `bg-ui-hover` 헤더)를 깔지 않는다 |
+| 페이지 섹션 | 카드로 감싸지 않는다. 섹션 제목(`Section`, 20px — §2.2. 하위 그룹 라벨은 `type-label` + `text-text`, §3.7 세로 위계) + `section-stack`(32px 간격 가운데 `ui-border-soft` 가로선 하나, 2026-11-15 추가). 선은 **섹션 경계에만** 긋는다. 차트 카드처럼 테두리가 있는 요소끼리는 선이 겹치므로 `space-y-8`만 쓴다. 헤더·툴바·배너처럼 섹션이 아닌 머리 요소끼리는 기존 `5` |
+| 페이지 머리 | `PageHeader` 아래 `border` 한 줄(본문과의 경계) |
+| 목록·표 | 바깥 카드 셸(`rounded-xl border bg-surface`)을 쓰지 않는다. 헤더 행은 배경 없이 아래 `border-border` 한 줄만. 본문 행 사이 구분선(`divide-y`, 행 `border-t/b`)은 쓰지 않는다. 행은 `hover:bg-surface-hover`로 드러낸다 |
+| 회색 띠 | 헤더·그룹 제목·카드 머리에 배경 띠(`bg-ui-table-header`, `bg-surface-hover` 헤더)를 깔지 않는다 |
 | 탭 줄 | 탭 아래 전폭 가로선을 두지 않는다. 선택 표시(밑줄)는 선택된 탭에만 |
 | 정의 목록(`DetailMeta` 등) | 행마다 선을 긋지 않는다. 라벨 열과 행 간격으로 정렬한다 |
-| 남기는 카드 | 차트 카드(`chartCardClass`), KPI·요약 타일(`Stat`을 담은 카드), **카드 보기**의 항목 카드, 상태 배너만 카드다. 테두리는 `border-ui-border-soft` |
-| 떠 있는 표면 | 다이얼로그·팝오버·메뉴·툴팁은 그대로 `border-ui-border`(§3.5). 본문 위에 떠 있어 경계가 필요하다 |
-| 입력 컨트롤 | 그대로 `border-ui-control-border`(§1.2, 3:1) |
-| 코드·명령 블록 | 테두리 없이 `bg-ui-hover-soft rounded-md` |
+| 남기는 카드 | 차트 카드(`chartCardClass`), KPI·요약 타일(`Stat`을 담은 카드), **카드 보기**의 항목 카드, 상태 배너만 카드다. 테두리는 `border-border` |
+| 떠 있는 표면 | 다이얼로그·팝오버·메뉴·툴팁은 그대로 `border-border`(§3.5). 본문 위에 떠 있어 경계가 필요하다 |
+| 입력 컨트롤 | 그대로 `border-border-strong`(§1.2, 3:1) |
+| 코드·명령 블록 | 테두리 없이 `bg-surface-hover rounded-md` |
 
-카드 안 서브블록이 필요하면 `bg-ui-hover-soft rounded-md`(테두리 없음)이고, 부모와 같은 `rounded-xl`을 쓰지 않는다(§3.2 동심 규칙). 내부 패딩은 `p-4`(조밀) 또는 `p-6`(여유)다.
+카드 안 서브블록이 필요하면 `bg-surface-hover rounded-md`(테두리 없음)이고, 부모와 같은 `rounded-xl`을 쓰지 않는다(§3.2 동심 규칙). 내부 패딩은 `p-4`(조밀) 또는 `p-6`(여유)다.
 
 ### 3.2 radius
 
@@ -504,7 +403,7 @@ primary #3e63dd → emerald #059669 → amber #d97706 → violet #7c3aed → red
 서버  ›  prod-server  ›  payment-worker
 ```
 
-높이 **`h-16`(64px)** — `Sidebar` 로고 블록과 같은 값이라 크롬 상단이 사이드바 경계 너머로 한 줄로 이어진다. 배경은 `bg-bg-surface`, 아래 `border-ui-border` 한 줄. 내용 폭은 본문 래퍼와 같은 `max-w-320 mx-auto px-4 sm:px-6`에 맞춘다.
+높이 **`h-16`(64px)** — `Sidebar` 로고 블록과 같은 값이라 크롬 상단이 사이드바 경계 너머로 한 줄로 이어진다. 배경은 `bg-surface`, 아래 `border-border` 한 줄. 내용 폭은 본문 래퍼와 같은 `max-w-320 mx-auto px-4 sm:px-6`에 맞춘다.
 
 **첫 크럼(섹션)은 경로에서 자동으로 나온다** — [`navSections.ts`](src/components/layout/navSections.ts)의 prefix 표, 가장 긴 것이 이긴다. 목록 페이지는 아무 코드도 추가하지 않아도 된다.
 
@@ -550,18 +449,18 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 | 종류 | 예 | 표면 |
 |---|---|---|
-| 스크림 없이 본문 위에 뜨는 것 | 툴팁, 차트 툴팁, `Select` 목록, 카드 안 더보기 메뉴, 토스트 | `bg-ui-raised border border-ui-border shadow-lg` |
-| 스크림 위에 뜨는 것 | 모달, `ConfirmDialog`, 사이드 패널, 명령 팔레트 | `bg-bg-surface border border-ui-border shadow-lg` |
+| 스크림 없이 본문 위에 뜨는 것 | 툴팁, 차트 툴팁, `Select` 목록, 카드 안 더보기 메뉴, 토스트 | `bg-surface border border-border shadow-lg` |
+| 스크림 위에 뜨는 것 | 모달, `ConfirmDialog`, 사이드 패널, 명령 팔레트 | `bg-surface border border-border shadow-lg` |
 
 다크 모드에서 `shadow-lg`는 거의 보이지 않고 카드와 페이지의 대비도 1.07이다. 스크림이 없는 요소가 `bg-surface`면 카드 안에서 연 드롭다운이 카드와 같은 색이 되어 보더(1.54)로만 구분됐다. `ui-raised`(다크 `#2e3135`)는 카드보다 밝아서 그림자 없이도 위에 있다고 읽힌다. 스크림 위의 요소는 스크림이 이미 배경을 가라앉히므로 `bg-surface`로 둔다. 라이트에서는 두 값이 같은 흰색이다.
 
-`ui-raised` 위의 글자는 §1.3의 제약을 따른다. 다크에서 `dim`은 4.03으로 미달이니 `muted` 이상을 쓴다. 목록 항목의 hover는 `ui-hover`다. 다크에서 표면보다 어두워지는 방향이지만 선택 항목(`bg-primary/10`)과 구분된다.
+`surface` 위의 글자는 §1.3의 제약을 따른다. 다크에서 `dim`은 4.03으로 미달이니 `muted` 이상을 쓴다. 목록 항목의 hover는 `surface-hover`다. 다크에서 표면보다 어두워지는 방향이지만 선택 항목(`bg-accent-bg`)과 구분된다.
 
 ### 3.6 클릭 가능한 카드 hover
 
-`.card-interactive` **하나만** 쓴다 (`index.css` 정의). 2px 들어올림 + 보더 `primary/40` + 배경 `ui-hover-soft`, 150ms. 터치 기기 제외(`hover: hover`), `:active`에서 원위치, 모션 최소화 설정에서는 들어올림 생략.
+`.card-interactive` **하나만** 쓴다 (`index.css` 정의). 2px 들어올림 + 보더 `accent/40` + 배경 `surface-hover`, 150ms. 터치 기기 제외(`hover: hover`), `:active`에서 원위치, 모션 최소화 설정에서는 들어올림 생략.
 
-카드마다 `hover:-translate-y-*`·`hover:shadow-md`·`transition-all`을 직접 조합하지 않는다 — 메뉴별로 hover가 제각각이 된 원인이었다. 클릭 가능한 **행**(테이블·로그)은 카드가 아니므로 `hover:bg-ui-hover-soft` 채움만 쓴다.
+카드마다 `hover:-translate-y-*`·`hover:shadow-md`·`transition-all`을 직접 조합하지 않는다 — 메뉴별로 hover가 제각각이 된 원인이었다. 클릭 가능한 **행**(테이블·로그)은 카드가 아니므로 `hover:bg-surface-hover` 채움만 쓴다.
 
 ### 3.7 간격 (2026-10-09)
 
@@ -666,7 +565,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`StatusLight`** | `tone` `label` `pulse?` | 대상 상태의 정본 — 점 + 라벨 (§5.1) |
 | **`StatusBadge`** | `healthy: boolean` | 정상/장애 `StatusLight` 래퍼 (§5.1) |
 | **`CollectionStatusBadge`** | `collecting` \| `partial` \| `delayed` \| `waiting` \| `not-configured` | 수집 신선도·설정 상태. 서비스 상태와 별도 축 (§5.1) |
-| **`Toggle`** | `checked` `onChange` `disabled` `title` | w-9 h-5, `role="switch"`. 켜짐 트랙은 `status-healthy-fill`이다(2026-11-16) — primary 검은 채움이면 알림 표의 토글 열과 업타임 헤더 스위치가 화면에서 가장 진했다 |
+| **`Toggle`** | `checked` `onChange` `disabled` `title` | w-9 h-5, `role="switch"`. 켜짐 트랙은 `ok`이다(2026-11-16) — primary 검은 채움이면 알림 표의 토글 열과 업타임 헤더 스위치가 화면에서 가장 진했다 |
 | **`SegmentedControl<T>`** | `options` `value` `onChange` `size?` `ariaLabel` `scroll?` | 2~4지 배타 선택. `size`를 주지 않으면 자리가 정한다: `AppHeader` 안(`ControlDefaultsContext`)은 `sm`, 본문은 `md`(2026-11-20). 선택지에 `icon`을 주면 label을 접근성 이름·툴팁으로 유지. 선택지에 `tone`·`toneLabel`을 주면 이름 있는 상태 점을 붙이고, 정상이 아니면 문구도 보인다(서버의 앱 선택, 2026-11-18). `scroll`은 줄바꿈 대신 감싼 영역 안에서 가로 스크롤하고, 이름이 `max-w-36`에서 잘리므로 툴팁에 전체 이름을 넣는다(정상인 선택지는 `이름, 수집 중`, 2026-11-19) |
 | **`Tabs<T>`** | `items` `active` `onChange(key, source?)` `ariaLabel` `idPrefix` | 패널을 바꾸는 밑줄 탭(§4.6, 2026-11-18). 항목은 `label` `tone?` `toneLabel?` `caption?` `srDetail?` `muted?`. 패널의 id는 `tabIds.ts`의 `tabId`·`tabPanelId`로 맞춘다. 상태 점이 있는 탭은 툴팁으로 `toneLabel`을 보인다(2026-11-19) |
 | **`ListViewToggle`** | `view` `onChange` | 대상 목록의 그리드·카드 전환. `SegmentedControl` 래퍼라 크기도 자리를 따른다 — 헤더 32px, 본문 40px(§4.5). 크기를 화면마다 넘기지 않는다 |
@@ -679,11 +578,11 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 | **`RefreshStatus`** | `updatedAt` `onRefresh?` `refreshing?` `autoRefresh?` `onAutoRefreshChange?` | 갱신 상태 한 묶음: 마지막 갱신 시각(툴팁에 전체 시각), 새로고침, `30초마다 자동 갱신` 스위치. 상세 헤더 상태 줄의 오른쪽 끝, 개요·서버 목록의 머리. 좁은 화면에서는 스위치 옆 글자를 숨긴다 |
 | **`DetailMeta`** | `status` `connection?` `fields?` `collapseOnMobile?` `collapsed?` | 상세 헤더 `meta`의 정본. 상태 줄 + (대상 상세의 연결 줄, §4.7) + 속성 목록(라벨 좌 / 값 우, `sm` 이상 2열). 속성이 많은 Docker 서비스 상세는 모바일에서 `서비스 정보`를 펼쳐 확인하며 상태는 항상 노출. `collapsed`는 모든 폭에서 접고 요약 줄에 속성 이름을 적는다(서버 탭의 `연결 정보`, `모니터 정보`)  행 높이는 하나다: sm 이상 40px(값 안의 조작은 `ControlDefaultsContext`로 sm 32px), 터치 화면 44px. 이전에는 조작이 든 행만 44~48px였다(2026-11-21) |
 | **`ListToolbar`** | `search` `children?` | 목록 검색은 왼쪽, 필터는 그다음 |
-| **`FilterChips<T>`** | `ariaLabel` `options` `value` `onChange` | 목록을 한 값으로 거르는 토글 칩(2026-11-20). 선택지는 `label` `count` `tone?`. 라벨과 개수는 같은 `type-body` 크기이고 개수만 500·고정폭 숫자다. 둥근 테두리 칩(`rounded-full`, 높이는 버튼과 같은 40px, 모바일 44px), 칩 사이 `gap-2`, 칩 안 `gap-1.5`(모바일은 둘 다 한 단계 좁혀 390px에서 네 칩이 한 줄이다). 선택은 `aria-pressed` + 진한 테두리(`border-primary`)와 `ui-hover` 채움이고, 다시 누르면 해제한다. 키보드는 버튼 그대로다(Tab, Enter, Space). `tone`은 상태 점이다: 상태 필터 전용이고(§5.3 칩은 상태 전용), 0건인 장애·확인 필요는 호출부가 `idle`로 넘긴다(§5.4). 개수는 다른 필터(검색·연결 방식·심각도 등)를 따르고 자기 선택은 따르지 않는다(고른 칩 옆의 다른 칩이 0이 되지 않는다). 쓰는 곳(2026-11-21): 서버 목록의 상태(`stateChipOptions`, 장애·확인 필요·대기·정상), Docker 환경의 서비스 상태(장애·정상), 업타임 탭의 상태(장애·정상·확인 대기·일시정지), 알림 규칙의 유형(`categoryChipOptions`, 데스크톱·모바일 같음, 0건인 유형도 자리를 지킨다), 데스크톱 발송 이력의 상태(발송·실패, 라벨은 행의 `historyStatus`). 툴바에 선택(`Select`)과 함께 놓이면 선택이 먼저이고 칩 묶음이 마지막이다: 줄이 넘치면 칩 묶음이 통째로 다음 줄로 간다. 검색어와 칩 선택은 `useListSearch`가 주소(`q`, `status`)에 둔다(알림 탭 안의 필터는 화면 상태다) |
+| **`FilterChips<T>`** | `ariaLabel` `options` `value` `onChange` | 목록을 한 값으로 거르는 토글 칩(2026-11-20). 선택지는 `label` `count` `tone?`. 라벨과 개수는 같은 `type-body` 크기이고 개수만 500·고정폭 숫자다. 둥근 테두리 칩(`rounded-full`, 높이는 버튼과 같은 40px, 모바일 44px), 칩 사이 `gap-2`, 칩 안 `gap-1.5`(모바일은 둘 다 한 단계 좁혀 390px에서 네 칩이 한 줄이다). 선택은 `aria-pressed` + 진한 테두리(`border-accent`)와 `ui-hover` 채움이고, 다시 누르면 해제한다. 키보드는 버튼 그대로다(Tab, Enter, Space). `tone`은 상태 점이다: 상태 필터 전용이고(§5.3 칩은 상태 전용), 0건인 장애·확인 필요는 호출부가 `idle`로 넘긴다(§5.4). 개수는 다른 필터(검색·연결 방식·심각도 등)를 따르고 자기 선택은 따르지 않는다(고른 칩 옆의 다른 칩이 0이 되지 않는다). 쓰는 곳(2026-11-21): 서버 목록의 상태(`stateChipOptions`, 장애·확인 필요·대기·정상), Docker 환경의 서비스 상태(장애·정상), 업타임 탭의 상태(장애·정상·확인 대기·일시정지), 알림 규칙의 유형(`categoryChipOptions`, 데스크톱·모바일 같음, 0건인 유형도 자리를 지킨다), 데스크톱 발송 이력의 상태(발송·실패, 라벨은 행의 `historyStatus`). 툴바에 선택(`Select`)과 함께 놓이면 선택이 먼저이고 칩 묶음이 마지막이다: 줄이 넘치면 칩 묶음이 통째로 다음 줄로 간다. 검색어와 칩 선택은 `useListSearch`가 주소(`q`, `status`)에 둔다(알림 탭 안의 필터는 화면 상태다) |
 | **`ResourceCardHeader`** | `title` `badge?` `subtitle?` `status?` | 대상 이름·출처·상태의 고정 배치 (종류 아이콘 없음) |
 | ~~`SummaryCard`~~ | — | 2026-11-21 삭제(사용 0회). 수치는 `Stat`(라벨 → 값 4px, `type-kpi`)으로 쓴다 |
 | **`Section`** | `title` `meta?` `description?` `actions?` `id?` `label?` `className?` `children` | 본문 1단계 섹션(§2.2). 20px 제목 + 기준선을 맞춘 메타 + 제목 줄과 가운데를 맞춘 조작 + 둘째 줄 설명, 그리고 본문. 제목 → 본문 16px(`heading`)은 머리와 본문 두 자식의 `gap`이다(2026-11-21, 이전 `SectionHeader`는 루트의 `mb-4`로 간격을 가졌다). `<section>`의 이름은 제목이고 `label`을 주면 그것이다. 2026-11-20에 `DetailActionToolbar`를 없애고 그 조작은 `PageHeader actions`로 옮겼다 |
-| **`List` · `ListRow` · `ListGroup` · `ListMore`** | `ListRow`: `to` `marker` `title` `detail?` `detailSize?` `trailing?` `trailingDetail?` | 두 줄 목록(§3.7 세로 위계). 개요의 현재 확인 필요·최근 장애 이력, Docker 환경의 장애 이력, 로그의 반복 패턴이 쓴다. `List`는 `list-bleed`로 행 패딩만큼 펼치고 글자 폭 720px(`max-w-186`, 펼친 24px 포함)까지만 써서 오른쪽 값(시각, 개수)이 이름에서 멀어지지 않게 한다. `ListGroup`은 하위 그룹(라벨 `type-label` `text-text-secondary`, 라벨 → 항목 8px), `ListMore`는 목록 끝의 펼치기 조작으로 아이콘은 표지 열, 글자는 항목 제목 열에 선다. 2026-11-21 이전에는 세 화면이 각자 만들었다 |
+| **`List` · `ListRow` · `ListGroup` · `ListMore`** | `ListRow`: `to` `marker` `title` `detail?` `detailSize?` `trailing?` `trailingDetail?` | 두 줄 목록(§3.7 세로 위계). 개요의 현재 확인 필요·최근 장애 이력, Docker 환경의 장애 이력, 로그의 반복 패턴이 쓴다. `List`는 `list-bleed`로 행 패딩만큼 펼치고 글자 폭 720px(`max-w-186`, 펼친 24px 포함)까지만 써서 오른쪽 값(시각, 개수)이 이름에서 멀어지지 않게 한다. `ListGroup`은 하위 그룹(라벨 `type-label` `text-text`, 라벨 → 항목 8px), `ListMore`는 목록 끝의 펼치기 조작으로 아이콘은 표지 열, 글자는 항목 제목 열에 선다. 2026-11-21 이전에는 세 화면이 각자 만들었다 |
 | **`Pagination`** | `page` `totalPages` `onChange` … | 목록 페이지 이동 |
 | **`MaterialIcon`** | `name` `size` `className` `style` | 로컬 정적 SVG |
 | **`Tooltip`** | `content` `focusable?` + 단일 자식 | hover·포커스 힌트. DOM 래퍼 없이 기존 요소에 연결 |
@@ -696,17 +595,17 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 
 | variant | 용도 | 클래스 |
 |---------|------|--------|
-| `primary` | 주 액션 (화면당 1개) | `bg-primary text-on-primary hover:bg-primary-hover` |
-| `secondary` | 보더 있는 보조 액션 | `border border-ui-border text-text-base` + 아이콘 `action` |
-| `ghost` | 배경 없는 3순위 | `text-action hover:bg-action/10` |
-| `text` | 경로처럼 본문 안에 놓는 액션. hover 채움 없음 | `text-action` |
-| `destructive` | 삭제·비활성화 — secondary와 **같은 모양**에 글자만 빨강 | `border border-ui-border text-status-error hover:bg-status-error/10` |
-| `quiet` | 정보만 보여주는 다이얼로그의 `닫기` — 눈에 띄지 않아야 하는 이탈 | `text-text-muted hover:bg-ui-hover` |
-| `danger` | 확인 다이얼로그의 파괴 확정 | `bg-danger text-white hover:bg-danger-hover` (§1.4) |
+| `primary` | 주 액션 (화면당 1개) | `bg-accent text-accent-text hover:bg-accent/90` |
+| `secondary` | 보더 있는 보조 액션 | `border border-border text-text` + 아이콘 `action` |
+| `ghost` | 배경 없는 3순위 | `text-text hover:bg-text/10` |
+| `text` | 경로처럼 본문 안에 놓는 액션. hover 채움 없음 | `text-text` |
+| `destructive` | 삭제·비활성화 — secondary와 **같은 모양**에 글자만 빨강 | `border border-border text-crit-text hover:bg-crit-bg` |
+| `quiet` | 정보만 보여주는 다이얼로그의 `닫기` — 눈에 띄지 않아야 하는 이탈 | `text-text-muted hover:bg-surface-hover` |
+| `danger` | 확인 다이얼로그의 파괴 확정 | `bg-crit text-white hover:bg-crit` (§1.4) |
 
 **액션은 색이 아니라 형태로 드러낸다 (2026-11-15, 무채색 전환).** `action`이 제목 글자색과 같아졌으므로 `ghost` 버튼은 색으로 본문과 갈리지 않는다. 그래서 **`ghost`는 아이콘을 함께 둔다** — 아이콘 없는 글자만의 `ghost`는 라벨로 읽힌다(예: 개요의 `전체 N건 보기`에 `expand_more`). 아이콘을 둘 수 없으면 `secondary`(보더가 버튼임을 말한다)나 텍스트 링크(`link-underline`)를 쓴다. **예외는 이탈 액션뿐이다** — 닫기를 색으로 강조하면 정작 그 화면의 주 액션보다 먼저 눈에 들어온다. `quiet`가 그 자리다. 폼 푸터의 `취소`는 주 액션과 짝을 이루므로 `secondary`다(§7 푸터 규칙).
 
-**버튼 색을 `className`으로 덮어쓰지 않는다.** `variant="ghost" className="text-status-error"`로 쓰던 삭제 버튼 5곳이 전부 회색으로 렌더되고 있었다 — Tailwind가 같은 속성의 유틸리티를 **알파벳 순**으로 내보내기 때문에 `text-status-error`가 `text-text-muted`보다 앞서 나가 매번 졌다. 색은 variant로 고른다.
+**버튼 색을 `className`으로 덮어쓰지 않는다.** `variant="ghost" className="text-crit-text"`로 쓰던 삭제 버튼 5곳이 전부 회색으로 렌더되고 있었다 — Tailwind가 같은 속성의 유틸리티를 **알파벳 순**으로 내보내기 때문에 `text-crit-text`가 `text-text-muted`보다 앞서 나가 매번 졌다. 색은 variant로 고른다.
 
 | size | 높이 | 용도 |
 |------|------|------|
@@ -741,7 +640,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
   - 대상이 없는 서버의 개요 탭: `업타임 모니터 추가`(primary)와 나머지 네 기능의 `{기능} 연결`(secondary).
   - 개요의 빈 화면(`아직 모니터링 대상이 없습니다`)과 서버 목록이 비었을 때의 안내: `서버 추가`. 다른 서버가 없어 옮길 곳이 없는 `다른 서버로 옮기기` 대화 상자의 `서버 추가`도 같다.
   - 제목이 대상을 말하는 자리는 그대로 `추가`다: 서버 목록의 머리말 버튼(2026-11-19에 `서버 추가`에서 바꿨다).
-- 헤더 블록은 `border-b border-ui-border pb-5`로 띠를 이룬다. 제목과 우측 CTA 사이가 1000px 넘게 벌어지는 넓은 화면에서, 이 선이 없으면 버튼이 헤더에 속하지 않고 구석에 떠 있는 요소로 읽혔다.
+- 헤더 블록은 `border-b border-border pb-5`로 띠를 이룬다. 제목과 우측 CTA 사이가 1000px 넘게 벌어지는 넓은 화면에서, 이 선이 없으면 버튼이 헤더에 속하지 않고 구석에 떠 있는 요소로 읽혔다.
 - 검색·필터는 페이지 헤더에 섞지 않고 그 아래의 보조 툴바에 둔다. 모바일에서는 툴바가 CTA보다 앞서지 않는다.
 - 목록의 보조 툴바는 `ListToolbar`를 쓴다. 검색창은 왼쪽 320px(`sm` 미만 전체 폭), 필터는 오른쪽부터 이어지며 공간이 부족하면 다음 줄로 흐른다. 새로고침·보기 전환은 툴바에 넣지 않는다(§4.5 "목록 조작의 자리"). 검색·필터·버튼 높이는 모두 40px다. 탭 안의 검색은 해당 탭의 목록 위에 둔다. 검색 기능이 없는 화면에 정렬만을 위한 빈 검색창을 만들지 않는다.
 - **상세 화면의 헤더는 하나다 — `PageHeader`(제목·설명·`meta`) + `actions`(제목 줄 오른쪽).** 2026-11-20부터 조작은 제목 줄에 둔다: 머리말 아래 조작만 담은 줄(`DetailActionToolbar`)이 본문 위에 64px(40 + 24)를 더 차지했고, 그 줄의 왼쪽 끝에 새로고침 아이콘 하나만 떠 있었다. 조작은 제목 줄의 세로 가운데에 맞고(`min-h-10 items-center`), 좁은 화면에서는 제목 아래로 줄바꿈된다. 대상의 상태(`StatusLight`)는 제목 옆이 아니라 `meta` 줄의 첫 항목이다. 2026-09-23까지 상세 9곳 중 5곳이 `h1`을 직접 쓰고 버튼을 제목 행에 붙여서, 새로고침이 좌측 라벨 버튼·우측 첫 아이콘·우측 끝 아이콘으로 화면마다 달랐고 삭제는 라벨 버튼과 라벨 없는 빨간 아이콘이 섞여 있었다.
@@ -757,7 +656,7 @@ Tailwind 기본 브레이크포인트만 쓴다. `2xl`은 쓰지 않는다 — �
 - 아이콘 전용 액션은 `IconButton md`(`h-11 w-11 sm:h-10 sm:w-10`)다. `sm`(32px)은 테이블 행·다이얼로그 헤더·입력 안의 지우기처럼 조밀한 맥락에서만 쓴다.
 - **인라인 액션**(문장 속 `필터 초기화`, 카드 안 `트레이스`·`로그 보기` 이동, `새 코드`)은 `Button variant="ghost" size="sm"`이다. 파란 밑줄 텍스트 링크 버튼이나 `primary/5` 틴트 칩(배경·보더·글자 3중)을 손으로 만들지 않는다. 외부 문서로 가는 진짜 `<a>`는 링크 모양을 유지한다.
 - **행·카드 액션은 우측 끝**, 순서는 상태 토글 → 보조(`테스트` 등) → 수정 → 삭제다. 표 행은 `IconButton size="sm"`, 카드는 `ResourceCardHeader`의 `status` 슬롯(우측 상단)에 둔다.
-- **다시 시도**: 화면 일부가 실패하면 [`LoadErrorBanner`](src/components/common/LoadErrorBanner.tsx)를 쓴다. 중립 배너(`bg-bg-surface border-ui-border`)에 `status-warn` 아이콘, 제목은 `type-label text-text-base`, 원인은 `type-body text-text-muted`, `Button variant="secondary" size="sm"` `다시 시도`다. 표 칸·카드·차트 카드 안처럼 상자를 하나 더 두면 카드 속 카드가 되는 자리는 `inline`(상자 없이 아이콘 + 글자 + 버튼)이다. 화면 전체가 실패하면 `EmptyState`의 `action`. **실패 문장을 경고색으로 칠하지 않는다** — 2026-11-14까지 10곳이 `text-status-warn` 문장이었다. 색은 아이콘 하나에 싣는다(§5.3). 일회성 주의문(`API Key는 지금 한 번만 표시됩니다`)도 같다: 경고 아이콘 + 기본 글자색.
+- **다시 시도**: 화면 일부가 실패하면 [`LoadErrorBanner`](src/components/common/LoadErrorBanner.tsx)를 쓴다. 중립 배너(`bg-surface border-border`)에 `attn-text` 아이콘, 제목은 `type-label text-text`, 원인은 `type-body text-text-muted`, `Button variant="secondary" size="sm"` `다시 시도`다. 표 칸·카드·차트 카드 안처럼 상자를 하나 더 두면 카드 속 카드가 되는 자리는 `inline`(상자 없이 아이콘 + 글자 + 버튼)이다. 화면 전체가 실패하면 `EmptyState`의 `action`. **실패 문장을 경고색으로 칠하지 않는다** — 2026-11-14까지 10곳이 `text-attn-text` 문장이었다. 색은 아이콘 하나에 싣는다(§5.3). 일회성 주의문(`API Key는 지금 한 번만 표시됩니다`)도 같다: 경고 아이콘 + 기본 글자색.
 
 **아이콘 크기** — `MaterialIcon`은 `size`로 SVG 크기를 정한다. 기본이자 본문 크기는 20px다 — 인라인·버튼·내비게이션·섹션이 전부 같은 20px를 쓴다(2026-09-22, 16px 층 폐지). 24px는 주요 상태용이다. 스피너·빈 상태에는 32/36/48px를 허용한다. `text-*`는 색에만 사용하고 폰트 크기를 아이콘 크기로 사용하지 않는다. 아이콘 획은 SVG 도형이 결정하므로 `font-*`로 두께를 조절하지 않는다. 같은 영역에서는 같은 아이콘 계열을 사용한다. 삭제는 `delete_outline` 하나다(`delete` 채움형과 섞지 않는다). 제출 버튼 아이콘은 생성(`add`)에만 붙인다.
 
@@ -828,7 +727,7 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 
 **제목 아래 설명은 머리에 속한다** (2026-11-21, P6). 코어 수·용량(인프라), 원본 메트릭 이름(메트릭 단독 보기)처럼 제목 아래 한 줄은 `ChartCard`의 `description`이다. 제목 줄 → 설명 4px(`intra`), 머리 → 본문 16px(`heading`)이다. 이전에는 본문 첫 줄을 `-mt-2`로 제목 쪽에 끌어올려 머리 → 본문이 8px로 보였다.
 
-1. **제목 + 단위** — 왼쪽. `type-card-title` + `type-caption text-text-dim`. 제목은 한국어, 기술 용어는 영어(`CPU`·`메모리`·`디스크`·`네트워크`). 메트릭 이름처럼 식별자인 제목만 `font-mono text-sm`
+1. **제목 + 단위** — 왼쪽. `type-card-title` + `type-caption text-text-faint`. 제목은 한국어, 기술 용어는 영어(`CPU`·`메모리`·`디스크`·`네트워크`). 메트릭 이름처럼 식별자인 제목만 `font-mono text-sm`
 2. **오른쪽 칸 — 하나만** — 요약(`ChartSummary` 현재·평균·최대, 이미 계산된 값은 `ChartStats`) · 상태(`StatusLight`) + 요약 · 범례 칩(`ChartLegend`) · 기간 선택 중 하나
 3. **지표 타일** — 한 대상의 지표가 여럿이고 동시에 볼 필요가 없을 때만(요청 추이). 인프라는 네 추이를 동시에 보는 편이 낫다고 판단해 2×2를 유지했다
 4. **캡션 줄** — 타일 카드에서만: 단위 · 범례 칩. 메트릭 탐색은 histogram 단독 보기에서 분포 줄(아래 "메트릭 탐색")
@@ -871,7 +770,7 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 - **업타임 응답 시간은 성공한 체크의 평균이다.** 실패한 체크의 대기 시간을 응답 시간이나 0ms로 그리지 않는다. 실패 횟수와 장애 구간은 응답 선과 함께 구분해 표시한다. 백엔드 버킷 평균도 성공한 체크만 집계한다
 - **구간 표시(음영·띠)에 글자 라벨을 달지 않는다.** 좁은 띠 위의 빨간 "다운" 글씨는 스티커처럼 떠 보였다. 무엇인지는 카드 제목 줄의 `StatusLight`(● 실패 2회)가 한 번 말한다
 - **이중축 금지.** 요청 수 + 에러율(0–100% 고정 오른쪽 축)에서 에러율 5% 스파이크가 바닥에 깔려 보이지 않았다. 단위가 다른 지표를 한 카드에 둘 때는 둘 중 하나다:
-  - **지표 타일 + 차트 1개** (요청 추이, 2026-09-25) — 카드 위 타일(`요청 수 1,530건 │ 에러율 0.5% │ 지연 시간 p95 121ms`)을 누르면 아래 차트가 그 지표로 바뀐다. 타일은 `aria-pressed` 버튼 그룹(`SegmentedControl`과 같은 이유로 ARIA 탭이 아니다), 선택은 `border-primary` + 안쪽 링. 툴팁은 어느 지표를 그리든 그 버킷의 모든 값을 보여준다(행마다 `unit`). 요청 수 막대는 에러를 빨간색으로 쌓아 기본 화면에서 요청량과 에러가 함께 보인다. 차트 높이는 지표를 바꿔도 같다. 세 패널을 위아래로 쌓은 이전 방식은 *"보기 어렵다"*는 피드백으로 바꿨다
+  - **지표 타일 + 차트 1개** (요청 추이, 2026-09-25) — 카드 위 타일(`요청 수 1,530건 │ 에러율 0.5% │ 지연 시간 p95 121ms`)을 누르면 아래 차트가 그 지표로 바뀐다. 타일은 `aria-pressed` 버튼 그룹(`SegmentedControl`과 같은 이유로 ARIA 탭이 아니다), 선택은 `border-accent` + 안쪽 링. 툴팁은 어느 지표를 그리든 그 버킷의 모든 값을 보여준다(행마다 `unit`). 요청 수 막대는 에러를 빨간색으로 쌓아 기본 화면에서 요청량과 에러가 함께 보인다. 차트 높이는 지표를 바꿔도 같다. 세 패널을 위아래로 쌓은 이전 방식은 *"보기 어렵다"*는 피드백으로 바꿨다
   - **패널 분리 + `syncId`** — 여러 지표를 동시에 봐야 하는 자리(인프라 추세 4종, 메트릭 탐색 격자)
 - **나란한 차트는 크로스헤어를 공유한다** (`syncId`). 툴팁 상자는 마우스가 있는 차트에만 띄운다
 - **지연 백분위는 p50 primary · p95 emerald · p99 amber** (요청 추이, 2026-09-30) — 팔레트 앞 3슬롯 순서라 색각이상에서도 갈린다. p99는 꼬리 지연, 장애 전조가 가장 먼저 보이는 선이다
@@ -911,7 +810,7 @@ const { rows, gaps } = splitGaps(data);              // 행마다 t(epoch ms)
 - 모니터 상세에는 별도 체크 기록 표를 두지 않는다. 최신 체크는 현재 상태 요약에서, 장기 기록은 장애 이력에서 확인한다.
 - **응답 시간 범위**는 `1H · 6H · 24H`, 기본 `6H`다. 각각 2분·5분·20분 평균이다. 모니터 페이지에서는 머리말의 기간 선택(`?range=`)이 정한다(2026-11-21, 그전에는 응답 시간 카드 안의 `응답 시간 범위` 조작이었다). 첫 조회 실패에서도 범위 선택과 재시도를 유지하며, 자동 갱신 실패 시 마지막 차트를 유지한다. 기간 변경 시 이전 기간의 데이터를 새 범위로 표시하지 않는다.
 - **장애 이력**(모니터 상세)은 업타임 현황 카드 안, 90일 띠 바로 아래에 붙는 보조 표다(2026-10-28 — 별도 카드에서 옮김). 두 종류를 시간순으로 섞는다: 장애(연속 실패가 환경설정 기준을 넘은 구간, `장애 진행 중` 오류 · `장애 복구` 정상, 지속 시간 있음)와 장애로 이어지지 않은 실패 체크(`실패` 주의, 지속 시간 `-`, `GET /services/:id/failures` — 장애 구간과 그 장애를 연 연속 실패는 서버가 뺀다). 열은 상태 · 시각 · 지속 시간 · 메시지, `전체 · 장애 · 실패` 구분(`SegmentedControl`), 10행 뒤는 `N개 더 보기`. 90일 띠의 날짜를 누르거나 Enter로 고르면 그날 이력만 남고(`aria-current="date"`, 링), 표 제목 옆 날짜 버튼으로 해제한다
-- 모니터 헤더 메타에 HTTP는 `기대 상태 코드`(폼과 같은 이름 — `Expected status`는 라벨 칸에서 두 줄로 접혔다)를, 모든 모니터는 `마지막 확인`을 더한다. 인증서 만료는 메타가 아니라 업타임 현황의 네 번째 수치다(HTTPS만, `D-83`) — 14일 이하 `text-status-warn`, 지나면 `만료됨` + `text-status-error`, 색은 넘은 경우에만 싣는다(§5.3)
+- 모니터 헤더 메타에 HTTP는 `기대 상태 코드`(폼과 같은 이름 — `Expected status`는 라벨 칸에서 두 줄로 접혔다)를, 모든 모니터는 `마지막 확인`을 더한다. 인증서 만료는 메타가 아니라 업타임 현황의 네 번째 수치다(HTTPS만, `D-83`) — 14일 이하 `text-attn-text`, 지나면 `만료됨` + `text-crit-text`, 색은 넘은 경우에만 싣는다(§5.3)
 - **업타임 현황**(`UptimeOverview`)은 제목 없이 큰 수치 한 줄(`text-2xl`, 사이 구분선) + 지난 90일 띠(`일부 실패 N일, 전체 실패 N일`). 프로젝트 상세에서도 카드 사이에 놓이므로 카드 테두리는 유지한다. 모니터 상세의 수치는 `24시간 업타임 · 30일 업타임 · 평균 응답 (24시간)`에 HTTPS면 `인증서 만료`(`마지막 확인`은 큰 수치로 읽을 정보가 아니라 헤더 메타로 내렸다, 2026-10-28)이고, 90일 업타임은 타일이 아니라 띠 머리글(`지난 90일 · 99.98%`, `historyUptime`)에 둔다 — 타일로 두면 바로 아래 띠와 같은 것을 두 번 말한다(2026-10-26). Docker 서비스 상세도 같은 묶음과 순서다(`uptimeKpis`, §4.7 대상 상세의 틀, 2026-11-21)
 
 **로그 요약 (`LogServiceOverview`, 2026-09-27 — Grafana Logs Drilldown·Sentry Issues 참고)** — 2026-11-18부터 전체 로그(`LogsPage`)와 서버의 로그 탭 첫 화면이 같은 본문을 쓴다(로그 탭은 그 서버의 앱만). 질문은 "지금 이상이 있는가"이고 창은 24시간 하나다.
@@ -945,16 +844,16 @@ API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 
 
 | 부분 | 클래스 |
 |------|--------|
-| 헤더 행 | 배경 없이 `border-b border-ui-border-soft` 한 줄 |
+| 헤더 행 | 배경 없이 `border-b border-border` 한 줄 |
 | 헤더 셀 | `px-4 py-3 text-left text-xs font-medium text-text-muted` |
 | 본문 셀 | `px-4 py-2.5`, 행 사이 구분선 없음(§3.1) |
 | 숫자·시간 열 | 헤더와 셀 모두 `text-right`, 셀은 `tabular-nums` |
-| 상세로 이동하는 행 | `hover:bg-ui-hover-soft`(§3.6 — 배지 대비 유지), `data-row-link` 제목 링크와 `tableRowLinkHandlers`. 행 빈 공간도 같은 링크로 이동 |
+| 상세로 이동하는 행 | `hover:bg-surface-hover`(§3.6 — 배지 대비 유지), `data-row-link` 제목 링크와 `tableRowLinkHandlers`. 행 빈 공간도 같은 링크로 이동 |
 | 넓은 표 | `overflow-x-auto` 안에 `min-w-[…] table-fixed`. 작업 열은 `sticky right-0`에 행과 같은 배경(세로선 없음) |
 
 본문 글자는 `text-sm`, 로그·트레이스처럼 기계 문자열이 주인 표는 `text-xs`(§2.2).
 
-헤더는 배경을 쓰지 않는다. 행 hover는 배지·본문 대비를 유지하도록 기존 `ui-hover-soft`로 둔다. 상세 행의 기본 클릭은 제목의 실제 링크로 전달해 Router state와 복귀 경로를 보존하고, Ctrl/Meta/중간 클릭은 같은 URL을 새 탭에서 연다. 키보드는 같은 제목 링크를 사용하며, 행을 별도 버튼으로 바꾸거나 중복 Tab 지점을 추가하지 않는다. 행 안의 링크·버튼·토글·입력·summary와 텍스트 선택은 행 이동을 실행하지 않는다. `table-row-link`는 비활성 버튼도 클릭 대상으로 유지해 `pointer-events:none` 때문에 클릭이 행에 전달되는 것을 막는다. 상세 목적지가 없는 행은 이동 가능한 커서를 표시하지 않는다.
+헤더는 배경을 쓰지 않는다. 행 hover는 배지·본문 대비를 유지하도록 기존 `surface-hover`로 둔다. 상세 행의 기본 클릭은 제목의 실제 링크로 전달해 Router state와 복귀 경로를 보존하고, Ctrl/Meta/중간 클릭은 같은 URL을 새 탭에서 연다. 키보드는 같은 제목 링크를 사용하며, 행을 별도 버튼으로 바꾸거나 중복 Tab 지점을 추가하지 않는다. 행 안의 링크·버튼·토글·입력·summary와 텍스트 선택은 행 이동을 실행하지 않는다. `table-row-link`는 비활성 버튼도 클릭 대상으로 유지해 `pointer-events:none` 때문에 클릭이 행에 전달되는 것을 막는다. 상세 목적지가 없는 행은 이동 가능한 커서를 표시하지 않는다.
 
 **목록 보기 (2026-10-18, 대상 화면은 2026-11-18 기준)** — 서버의 업타임 탭(모니터가 둘 이상일 때)과 로그 탭, 전체 로그, 서버의 컨테이너 탭, 알림의 기본은 그리드(비교 표)다. **서버 목록은 그리드만 있고 보기 전환이 없다.** 목록 툴바 오른쪽의 `ListViewToggle`로 카드를 선택하며, `useListView`가 `view=card`를 URL에 보존한다. 기본값과 알 수 없는 값은 그리드다. 보기만 바꿀 때 검색·탭·대상 필터를 지우지 않고, 두 보기는 같은 데이터·순서·작업을 사용한다. 개요 상태판·상세 차트·설정 폼에는 적용하지 않는다.
 
@@ -966,8 +865,8 @@ API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 
 - **행은 두 줄이다** (2026-11-20, 그룹 줄은 2026-11-24에 뺐다): 이름 아래 보조 줄(`type-caption text-text-muted`: 좁은 폭의 수치, Docker Collector와 컨테이너 수, 없으면 빈 줄), 상태 아래 원인. 모든 행의 높이가 같아 목록의 리듬이 끊기지 않는다(검색이 소속 대상에 맞으면 그 줄이 하나 더 붙는다).
 - **상태 칸**: `StatusLight`(상태 문구) 아래 줄에 원인 문구(`type-caption text-text-muted`, 한 줄 말줄임, 전체는 툴팁)다. 두 줄까지 두던 때(2026-11-19)는 원인이 긴 행만 높아졌다. 원인은 서버 상태를 만든 대상이다(§5.4). 상태 문구를 상태색으로 칠하지 않는다.
 - **값이 없는 까닭은 셋이고 모양이 다르다** (2026-11-20, 0이 아니다). 그 수치를 내는 기능에 연결한 대상이 없으면(인프라 없음 → CPU·메모리, 모니터 없음 → 업타임, 로그 앱 없음 → 오류 로그) **빈 칸**이다. 연결했지만 값이 아직 없으면 `-`(`데이터 없음`)다. 대상 목록이나 로그 요약을 불러오지 못했으면 `sync_problem` 아이콘(`text-muted`, `불러오지 못함`)이다. 모두 `-`이던 때는 해당 없는 칸이 화면을 대시로 채웠고, 조회 실패와 구분되지 않았다. 까닭은 툴팁과 `sr-only` 글자(`수집 안 함`, `데이터 없음`, `불러오지 못함`)가 말한다. 칸마다 Tab 지점을 늘리지 않는다. 수집기 자체의 실패는 수치 칸이 아니라 상태와 원인(`인프라 수신 끊김` 등)이 말한다.
-- **장애 행은 옅게 채운다** (2026-11-20): `ResourceTable alertRow`, `status-error-fill/6`(hover `/10`). 작은 빨간 점만으로는 장애 행이 목록에서 먼저 보이지 않았다. 좌측 세로선은 쓰지 않는다(§9 1번). 행 전체를 덮는 데이터 상태 표시라 §9 3번(공지 박스의 파스텔 틴트)의 대상이 아니다. 확인 필요는 채우지 않는다: 둘 다 채우면 다시 구분되지 않는다.
-- **수치의 색**: CPU·메모리가 `WARNING_PCT`(70%) 이상이면 `status-warn` 글자이고, 화면 낭독기에는 `, 주의 기준 초과`를 붙인다(색만으로 전달하지 않는다).
+- **장애 행은 옅게 채운다** (2026-11-20): `ResourceTable alertRow`, `crit/6`(hover `/10`). 작은 빨간 점만으로는 장애 행이 목록에서 먼저 보이지 않았다. 좌측 세로선은 쓰지 않는다(§9 1번). 행 전체를 덮는 데이터 상태 표시라 §9 3번(공지 박스의 파스텔 틴트)의 대상이 아니다. 확인 필요는 채우지 않는다: 둘 다 채우면 다시 구분되지 않는다.
+- **수치의 색**: CPU·메모리가 `WARNING_PCT`(70%) 이상이면 `attn-text` 글자이고, 화면 낭독기에는 `, 주의 기준 초과`를 붙인다(색만으로 전달하지 않는다).
 - **정렬**: 상태가 나쁜 순서(장애, 확인 필요, 대기, 정상), 같은 상태 안에서는 이름순. 사용자가 바꾸는 정렬은 없다.
 - **좁은 폭**: 열은 목록 컨테이너의 폭에 맞춘다. 서버 이름과 상태(원인 포함)는 항상 보이고, 수치 열은 `@3xl`부터 보인다. 숨긴 수치는 이름 아래 줄에 앞서 모은다(값이 없는 수치는 그 줄에서 뺀다). 좁은 폭의 상태 열은 144px이다.
 - **머리말**(2026-11-20, 제목은 2026-11-21): 제목은 `서버 9`이고 데스크톱에서는 `AppHeader`, 모바일에서는 본문 h1이다(§3.4 메뉴 첫 화면의 제목은 하나다). `meta`는 `[마지막 갱신 시각] [새로고침 아이콘] [전체 로그]`이고, 주 액션은 `[추가]`다. 데스크톱은 모두 `AppHeader` 오른쪽, 모바일은 제목 줄에 `추가`, 제목 아래에 meta다. `전체 로그`는 목록을 거르는 조작이 아니라 보조 이동이라 툴바에서 빼고 `quiet` 버튼으로 낮췄다(2026-11-19까지 툴바 끝의 밑줄 링크가 목록과 무관한데 눈을 끌었다). 생성 버튼은 화면 제목이 대상을 말하므로 `추가`다(§4.1 액션 앵커).
@@ -1023,9 +922,9 @@ API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 
 **패널을 바꾸면 탭, 같은 데이터의 보기·필터를 바꾸면 `SegmentedControl`이다.** 탭은 `role="tablist"`/`role="tab"` + `aria-selected`, `SegmentedControl`은 `aria-pressed`다. 탭은 위치가 아니므로 브레드크럼에 넣지 않는다(§3.4).
 
 **공용 `Tabs`** (2026-11-18, [`components/common/Tabs.tsx`](src/components/common/Tabs.tsx)) — 서버 상세와 컨테이너 페이지(`AgentServiceTabs`)가 쓴다. 이전에는 `AgentServiceTabs`가 자기 탭 줄을 그렸다.
-- **밑줄 탭**: 탭은 `border-b-2 px-4 py-2.5 type-label`. 선택은 `border-primary text-text-base`, 비선택은 `border-transparent text-text-muted hover:text-text-base`. 탭 아래 전폭 기준선은 두지 않는다(§3.1). **라벨을 `action`으로 칠하지 않는다** — 밑줄이 이미 선택을 말한다(§4.1 `secondary` 라벨을 칠하지 않는 것과 같은 이유).
+- **밑줄 탭**: 탭은 `border-b-2 px-4 py-2.5 type-label`. 선택은 `border-accent text-text`, 비선택은 `border-transparent text-text-muted hover:text-text`. 탭 아래 전폭 기준선은 두지 않는다(§3.1). **라벨을 `action`으로 칠하지 않는다** — 밑줄이 이미 선택을 말한다(§4.1 `secondary` 라벨을 칠하지 않는 것과 같은 이유).
 - **상태 점**: 장애나 확인 필요인 기능의 탭에만 `tone`을 주고, 점의 이름은 `toneLabel`(`role="img"`, §5.2)이다. 정상인 탭에는 점이 없다. 알림 링크나 옛 주소로 다른 탭에 바로 들어와도 어느 기능에 문제가 있는지 보여야 한다. 이름 없이 점만 주면 점은 `aria-hidden`이 되므로 `toneLabel`을 함께 준다. 점이 있는 탭은 마우스를 올리거나 키보드로 포커스하면 툴팁으로 `toneLabel`(`확인 필요`, `임계값 초과` 등)을 보인다(2026-11-19). 점은 탭 버튼 안이라 따로 포커스를 받지 못하므로 탭 버튼이 툴팁의 트리거다.
-- **보조 문구**(`caption`, `type-caption text-text-dim`): `연결 전`은 대상이 없는 기능이고 탭 글자를 `muted`(`text-text-dim`)로 흐린다. 선택은 가능하다(연결 안내가 나온다). `확인 불가`는 대상 목록을 불러오지 못했거나 이전에 불러온 목록인 기능이다(`capabilityUnverified`). 연결 전이 아니므로 흐리게 두지 않고 상태 점도 붙이지 않는다(§5.4).
+- **보조 문구**(`caption`, `type-caption text-text-faint`): `연결 전`은 대상이 없는 기능이고 탭 글자를 `muted`(`text-text-faint`)로 흐린다. 선택은 가능하다(연결 안내가 나온다). `확인 불가`는 대상 목록을 불러오지 못했거나 이전에 불러온 목록인 기능이다(`capabilityUnverified`). 연결 전이 아니므로 흐리게 두지 않고 상태 점도 붙이지 않는다(§5.4).
 - **대상 수는 화면에 숫자로 그리지 않는다.** 탭 옆 숫자가 오류 건수로 읽힌다. `srDetail`(`, 모니터 2개`)로 접근 가능한 이름에만 담는다.
 - **키보드**: 선택된 탭 하나만 Tab 순서에 있고(`tabIndex` 0/-1), ←/→로 옮긴다(끝에서 반대쪽으로 돈다). Home·End는 처음과 끝이다. 키로 옮기면 `onChange(key, 'keyboard')`이고 포커스가 새 탭으로 간다. 서버 상세와 Docker 서비스 상세(2026-11-19부터)는 첫 키보드 이동만 기록을 쌓고 이어지는 키보드 이동은 그 기록을 덮어써서, 뒤로 가기 한 번이면 키보드 탐색을 시작한 탭으로 돌아간다. 마우스 이동은 매번 쌓인다.
 - **넘침**: 탭 줄은 줄바꿈하지 않고 탭 줄만 가로로 스크롤한다(320px에서도 페이지는 가로로 넘치지 않는다). 주소로 바로 들어와 선택된 탭이 줄 밖에 있으면 탭 줄의 `scrollLeft`만 맞춰 보이게 한다. `scrollIntoView`는 탭 줄이 화면 밖이면 페이지까지 세로로 움직였다. 가로 스크롤 영역은 세로도 잘라서 포커스 링(2px + 간격 2px)이 잘렸으므로 탭 목록에 안쪽 여백 `p-1`을 두고 같은 만큼 `-m-1`로 끌어당긴다. (이전의 "`-mb-px` 대신 `absolute` 기준선" 조합은 기준선을 없애면서 필요 없어졌다.)
@@ -1040,7 +939,7 @@ API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 
 
 **공용 `Tabs`가 아닌 탭** (2026-11-19 기준)
 - **알림 데스크톱 탭**은 같은 밑줄 모양을 자기 마크업으로 그린다(`AlertsDesktopView`, §10.H).
-- **세그먼트 모양 탭** — 모바일에서 화면 폭을 탭 수로 나눠 쓰는 자리(알림 모바일). 표면은 `SegmentedControl`과 같다: 트랙 `bg-ui-hover`, 선택 칸 `bg-ui-raised`. `bg-bg-surface`로 칠하면 다크에서 선택 칸이 트랙보다 어두워져 방향이 뒤집힌다(§1.2).
+- **세그먼트 모양 탭** — 모바일에서 화면 폭을 탭 수로 나눠 쓰는 자리(알림 모바일). 표면은 `SegmentedControl`과 같다: 트랙 `bg-surface-hover`, 선택 칸 `bg-surface`. `bg-surface`로 칠하면 다크에서 선택 칸이 트랙보다 어두워져 방향이 뒤집힌다(§1.2).
 
 ### 4.7 서버 상세의 본문 (2026-11-18)
 
@@ -1120,7 +1019,7 @@ API 요청 경로에서 사이드패널을 여는 액션은 경로와 오른쪽 
 ```
 
 ```
-inline-flex items-center gap-1.5  type-caption  text-text-secondary
+inline-flex items-center gap-1.5  type-caption  text-text
 └ 점: h-2 w-2 rounded-full bg-status-{tone}-fill   (aria-hidden)
 ```
 
@@ -1170,7 +1069,7 @@ Tailwind v4는 `/10` 같은 투명도 수식자를 `oklab()` `color-mix`로 컴�
 | dark error | 5.43 | 4.62 | — | 3.31 ❌ |
 | dark idle | 5.72 | 4.83 | — | 3.45 ❌ |
 
-`hover-soft`의 여유가 0.07밖에 없다. **§3.6의 "클릭 가능한 행·카드의 hover 채움은 `ui-hover-soft`" 규칙이 이 표를 떠받치고 있다** — 행 hover를 `ui-hover`나 `ui-active`로 올리면 그 행의 배지가 조용히 AA 아래로 떨어진다. 로그 표·트레이스 표가 정확히 그 구조이므로, 행 채움을 바꾸려면 여기부터 다시 잴 것. 더 진한 배경이 필요하면 틴트 없이 §5.1의 `StatusLight`를 쓴다 — 점은 색을 1겹만 쓰므로 배경에 흔들리지 않는다.
+`hover-soft`의 여유가 0.07밖에 없다. **§3.6의 "클릭 가능한 행·카드의 hover 채움은 `surface-hover`" 규칙이 이 표를 떠받치고 있다** — 행 hover를 `surface-hover`나 `border`로 올리면 그 행의 배지가 조용히 AA 아래로 떨어진다. 로그 표·트레이스 표가 정확히 그 구조이므로, 행 채움을 바꾸려면 여기부터 다시 잴 것. 더 진한 배경이 필요하면 틴트 없이 §5.1의 `StatusLight`를 쓴다 — 점은 색을 1겹만 쓰므로 배경에 흔들리지 않는다.
 
 ### 5.2 맨 상태 점 (라벨 없이)
 
@@ -1183,7 +1082,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 **점이 유일한 정보원이면 이름을 준다** — 점 옆에 같은 뜻의 텍스트(배지·라벨)가 없으면 색만으로 상태를 전달하는 것이라 WCAG 1.4.1 위반이다:
 ```tsx
-<span role="img" aria-label={healthy ? '정상' : '장애'} className="h-1.5 w-1.5 rounded-full bg-status-healthy-fill" />
+<span role="img" aria-label={healthy ? '정상' : '장애'} className="h-1.5 w-1.5 rounded-full bg-ok" />
 ```
 인접 텍스트가 이미 상태를 말하고 있으면(장애 배너, 온라인/오프라인 라벨) 점은 장식이므로 그대로 둔다.
 
@@ -1195,7 +1094,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 **칩은 상태 전용이다.** 분류·출처처럼 "정상/장애를 말하지 않는" 라벨은 배경 없는 맨 텍스트(`type-caption text-text-muted`)로 둔다. 한 카드에 칩이 둘이면 어느 쪽이 상태인지 읽히지 않고, 대상 이름보다 라벨이 먼저 눈에 들어온다.
 
-**중립 칩으로는 부족하다 — 형태로 갈라야 한다.** 출처를 `bg-ui-hover text-text-muted` 칩으로 만들어 봤더니 `일시정지`(status-idle) 배지와 구분이 되지 않았다. `status-idle` 라이트와 `text-muted`가 **둘 다 slate-11(`#60646c`)로 값이 같고**, 틴트 배경(`status-idle/10`)과 `ui-hover`도 브라우저 실측에서 거의 겹쳤다. 회색 상태가 존재하는 한 중립 색으로는 상태와 분류를 못 가른다.
+**중립 칩으로는 부족하다 — 형태로 갈라야 한다.** 출처를 `bg-surface-hover text-text-muted` 칩으로 만들어 봤더니 `일시정지`(status-idle) 배지와 구분이 되지 않았다. `status-idle` 라이트와 `text-muted`가 **둘 다 slate-11(`#60646c`)로 값이 같고**, 틴트 배경(`status-idle/10`)과 `ui-hover`도 브라우저 실측에서 거의 겹쳤다. 회색 상태가 존재하는 한 중립 색으로는 상태와 분류를 못 가른다.
 
 **분류 축에 `primary`를 쓰지 않는다.** primary는 선택 상태·주 액션·링크의 색이라 라벨에 쓰면 "선택됨"으로 오독된다 — §1.5에서 로그 `info`를 sky로 밀어낸 것과 같은 이유다. `ConnectionSourceBadge`의 `direct`가 primary 틴트였는데 `docker`는 회색이어서, **같은 축이 두 색으로 갈라져 있었다**(2026-09-20 둘 다 중립으로 통일).
 
@@ -1228,7 +1127,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 **조회 실패의 표현** — 지금 불러온 목록으로만 상태를 정한다.
 - 대상 목록 하나를 다시 불러오지 못하면 **이전 목록은 유지하되**(대상 이름과 개수는 보인다) 그 기능의 상태는 `확인 불가`다. 이전 상태를 지금의 상태처럼 보이지 않는다. 서버 상태, 원인, 수치에도 쓰지 않는다. 패널의 상태 줄도 `확인 불가`이고 `마지막 수집` 시각을 숨긴다. 이전 목록도 없거나 이전 목록에 대상이 없으면 그 탭은 불러오지 못했다는 안내(`LoadErrorBanner inline`)다(§4.7).
 - 서버 목록 자체를 다시 불러오지 못하면 이전 서버 목록과 새로 받은 대상 목록으로 행을 다시 만든다(§4.5 서버 목록).
-- **`확인 불가`의 점은 중립색이다**(`StatusLight tone="idle"`, `status-idle-fill`). 경고색이 아니다. 상태를 모르는 것이지 문제가 있다는 뜻이 아니고, 경고색이면 확인 필요와 구분되지 않는다. 탭에서는 점 없이 `확인 불가` 보조 문구만이다(§4.6). 개요 탭은 그 기능 행을 연결된 기능들 다음에 둔다.
+- **`확인 불가`의 점은 중립색이다**(`StatusLight tone="idle"`, `wait`). 경고색이 아니다. 상태를 모르는 것이지 문제가 있다는 뜻이 아니고, 경고색이면 확인 필요와 구분되지 않는다. 탭에서는 점 없이 `확인 불가` 보조 문구만이다(§4.6). 개요 탭은 그 기능 행을 연결된 기능들 다음에 둔다.
 - 수치가 없는 까닭이 조회 실패이면 칸은 `-`가 아니라 `불러오지 못함` 표시다(§4.5 서버 목록).
 - 상태 요약 필터(서버 목록, 업타임 탭)는 장애·확인 필요가 0건이면 그 점을 중립색으로 둔다. 0건인 장애를 빨간 점으로 보이지 않는다.
 
@@ -1240,15 +1139,15 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 |----------|-------|------|
 | **`Input`** | `invalid?` `warn?` `mono?` + 네이티브 | 폼 입력 전부 |
 | **`Select`** | 네이티브 `option` children + 기존 select props | 폼 셀렉트 (Input과 같은 셸) |
-| **`SearchInput`** | `wrapperClassName?` `onClear?` `resultCount?` `shortcut?` + 네이티브 | 아이콘 붙은 검색창. Astryx PowerSearch(meta/astryx) 참고: 경계는 래퍼가 갖고 돋보기·입력·결과 수·지우기(`IconButton sm`)가 한 줄로 흐른다. 경계는 다른 입력과 같은 `ui-control-border`(3:1), 포커스는 전역 `:focus-visible`과 같은 2px `action` 외곽선을 래퍼에 그린다(입력 자신의 외곽선은 끈다). 쉴 때 옅은 경계·테두리색 포커스를 시도했다가 대비 1.40:1·후광 1.2:1로 hallmark gate 39a/40에 걸려 되돌렸다(2026-11-15). 결과 수는 검색어가 있을 때만 보이고(`number`면 `N개`, 무엇을 셌는지 모호하면 문자열) `aria-live=polite`로 알린다. `shortcut`은 `/` 포커스 + `aria-keyshortcuts`. **URL(`?q=`)에 입력값을 직접 묶지 않는다**: react-router가 transition으로 반영해 한글 조합이 깨진다(`결제`→`ㄱ겨결결ㅈ제제`). 입력은 로컬 상태, URL은 사본이다 |
+| **`SearchInput`** | `wrapperClassName?` `onClear?` `resultCount?` `shortcut?` + 네이티브 | 아이콘 붙은 검색창. Astryx PowerSearch(meta/astryx) 참고: 경계는 래퍼가 갖고 돋보기·입력·결과 수·지우기(`IconButton sm`)가 한 줄로 흐른다. 경계는 다른 입력과 같은 `control-border`(3:1), 포커스는 전역 `:focus-visible`과 같은 2px `focus` 외곽선을 래퍼에 그린다(입력 자신의 외곽선은 끈다). 쉴 때 옅은 경계·테두리색 포커스를 시도했다가 대비 1.40:1·후광 1.2:1로 hallmark gate 39a/40에 걸려 되돌렸다(2026-11-15). 결과 수는 검색어가 있을 때만 보이고(`number`면 `N개`, 무엇을 셌는지 모호하면 문자열) `aria-live=polite`로 알린다. `shortcut`은 `/` 포커스 + `aria-keyshortcuts`. **URL(`?q=`)에 입력값을 직접 묶지 않는다**: react-router가 transition으로 반영해 한글 조합이 깨진다(`결제`→`ㄱ겨결결ㅈ제제`). 입력은 로컬 상태, URL은 사본이다 |
 
 **클래스를 직접 쓰지 않는다.** Button과 같은 규칙이다.
 
 셸은 `Input.tsx`가 `FIELD_SHELL`·`FIELD_HEIGHT`로 export한다 — `Select`와 텍스트영역이 같은 상수를 쓴다. **높이는 `h-11 sm:h-10`(터치 44 / 그 외 40)으로 고정**한다(Button과 같은 이유, `px/py` 조합 금지). `Select`는 보이는 trigger + portal listbox를 렌더하고, 네이티브 `<select>`는 폼 값과 기존 `onChange` 계약을 유지하는 숨김 요소다. 따라서 브라우저의 기본 option 메뉴가 노출되지 않는다. 높이가 자유로워야 하는 텍스트영역만 `FIELD_SHELL`에 자기 `py`를 덧붙인다.
 
 **상태 표현**
-- `invalid` — 검증 실패. `border-status-error-fill` 보더 + `aria-invalid`. 메시지는 필드 아래 `type-body text-status-error` — 경고문이므로 14px(§2.2)이고, `red-500`은 흰 배경 3.8:1로 AA 미달이다
-- `warn` — 제출은 막지 않는 주의(예: 원격에서 안 통할 주소). `border-status-warn-fill` 보더
+- `invalid` — 검증 실패. `border-crit` 보더 + `aria-invalid`. 메시지는 필드 아래 `type-body text-crit-text` — 경고문이므로 14px(§2.2)이고, `red-500`은 흰 배경 3.8:1로 AA 미달이다
+- `warn` — 제출은 막지 않는 주의(예: 원격에서 안 통할 주소). `border-attn` 보더
 
 **폼 리듬** (2026-11-21, 전체 간격 점검) — #137의 세로 위계 6단을 폼에 그대로 쓴다. 이전에는 라벨 → 컨트롤 6, 컨트롤 → 도움말 6 / 오류 4로 오류가 뜨면 아래 글이 움직였고, 필드 사이가 대화 상자 16 / 드로어·채널 폼 20으로 갈렸으며, 체크박스·선택지의 제목과 설명이 0~2px로 붙어 있었다.
 
@@ -1266,11 +1165,11 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 **검증은 브라우저 말풍선이 아니라 필드 아래 문구다** (2026-11-20, UI/UX 점검 A5). 폼에 `noValidate`를 걸고 `required`·`pattern`·`min`·`max` 대신 제출할 때 직접 검사한다. 오류는 `Field`(`features/alerts/components/FormLayout.tsx`)의 `error`로 보이고, `Field`가 입력에 `aria-invalid`·`aria-describedby`를 잇는다. 첫 오류 칸으로 포커스를 옮기고, 그 칸을 고치면 오류를 지운다. 입력의 `title` 툴팁으로 규칙을 알리지 않는다. 이전에는 알림 폼만 이 방식이었고 서버·업타임·그룹·텔레메트리·로그인 폼은 브라우저 말풍선을 써서, 말풍선이 몇 초 뒤 사라지고 `title` 툴팁이 그 위에 겹쳤다. 문구는 마침표 없이 `서버 이름을 입력하세요`, `1~65535 사이의 포트를 입력하세요`처럼 할 일을 말한다.
 
-보더는 선이라 채움 역할(§1.4)이다. 2026-11-13까지 `border-red-500`·`border-amber-400` primitive였고, `Textarea`의 기본 보더는 `ui-control-border`가 아니라 장식용 `ui-border`(1.40:1)였다.
+보더는 선이라 채움 역할(§1.4)이다. 2026-11-13까지 `border-red-500`·`border-amber-400` primitive였고, `Textarea`의 기본 보더는 `border-strong`가 아니라 장식용 `border`(1.40:1)였다.
 
 **입력의 글자는 `sm` 미만에서 16px다** (`Input`·`Textarea`·`SearchInput`·명령 팔레트, `max-sm:text-base`). 버튼인 `Select` 트리거는 확대와 무관해서 `FIELD_SHELL`에는 넣지 않는다. iOS Safari는 글자가 16px 미만인 입력에 포커스하면 화면을 확대하고, 입력을 마쳐도 원래 배율로 돌아오지 않는다. 뷰포트에 `maximum-scale=1`을 거는 우회는 사용자의 확대 자체를 막으므로 쓰지 않는다(WCAG 1.4.4).
 
-보더 색은 컴포넌트 내부에서 결정한다. `className`으로 넘기면 base의 `border-ui-control-border`와 **특이도가 같아** 생성된 CSS 순서로 승패가 갈린다 — 호출부가 이길 거라 가정하면 안 된다.
+보더 색은 컴포넌트 내부에서 결정한다. `className`으로 넘기면 base의 `border-border-strong`와 **특이도가 같아** 생성된 CSS 순서로 승패가 갈린다 — 호출부가 이길 거라 가정하면 안 된다.
 
 **포커스 링** — `index.css`의 전역 `:focus-visible { outline: 2px solid var(--color-action) }`가 처리한다. `focus:outline-none` + 개별 `focus:ring-*`으로 덮어쓰지 않는다.
 
@@ -1290,7 +1189,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 짧은 hover 힌트는 `Tooltip`을 쓴다. `Button`·`ButtonLink`·`CopyButton`·`Input`·`Select`·`Toggle`의 `title` prop과 `IconButton`의 `label`은 공통 툴팁으로 표시하며, DOM에 네이티브 `title`을 남기지 않는다. 일반 요소는 `<Tooltip content="설명" focusable><span>값</span></Tooltip>`으로 연결한다. 독립된 읽기 전용 정보에는 `focusable`을 주고, 버튼·링크 내부나 스파크라인의 각 막대에는 Tab 지점을 추가하지 않는다. 차트의 `ChartTooltip`은 데이터 탐색용으로 유지한다.
 
-- 표면은 `bg-ui-raised`·`text-text-base`·`border-ui-border`, 모서리는 `rounded-md`, 그림자는 `shadow-lg`다. 짧은 힌트는 12px, 최대 폭은 320px이며 긴 문자열과 여러 줄을 허용한다.
+- 표면은 `bg-surface`·`text-text`·`border-border`, 모서리는 `rounded-md`, 그림자는 `shadow-lg`다. 짧은 힌트는 12px, 최대 폭은 320px이며 긴 문자열과 여러 줄을 허용한다.
 - `TooltipProvider`가 최초 hover 400ms·닫기 100ms 지연을 공유한다. 키보드 포커스에서는 바로 표시한다. 힌트 위로 마우스를 옮겨도 유지하고 Escape·클릭·포커스 이탈로 닫는다.
 - Floating UI로 위쪽 배치를 우선하고 화면 경계에서는 뒤집거나 옮긴다. portal과 `z-[70]`으로 표·카드의 clipping을 피하며, 네이티브 `<dialog>` 안에서는 같은 dialog로 portal한다.
 - `role="tooltip"`·`aria-describedby`로 연결하고 기존 설명 ID를 보존한다. 포커스를 이동하거나 가두지 않으며 `useOverlay`를 사용하지 않는다. 첫 Escape는 툴팁만 닫고, 이후 Escape는 상위 모달이 처리한다.
@@ -1353,7 +1252,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 사용자에게 보이는 오류 문구는 모두 `utils/errors.ts`의 `getErrorMessage`를 거친다 — 토스트, 조회 실패 배너의 설명, 폼 아래 문구. 서버의 원문 메시지(영어)와 브라우저 문구(`Failed to fetch`)는 그대로 보이지 않는다(UI/UX 점검 A2). 코드가 사전(`ERROR_MESSAGES`)에 있으면 그 문구, 서버에 닿지 못했으면 `서버에 연결하지 못했습니다…`, 코드 없이 5xx면 `서버 오류가 발생했습니다…`, 나머지는 `알 수 없는 오류가 발생했습니다.`다. 앱이 직접 쓴 한국어 문구는 그대로 지난다.
 
-이름을 찾지 못한 대상은 내부 ID만 맨 글자로 두지 않는다. `이름을 불러오지 못한 대상`(목록을 다 받지 못함) 또는 `삭제된 대상`(목록을 다 받았는데 없음) 뒤에 ID를 `text-text-dim`으로 붙인다(`RuleTargetName`). 한 줄로 말줄임하는 표 칸에서는 ID를 다음 줄에 둔다.
+이름을 찾지 못한 대상은 내부 ID만 맨 글자로 두지 않는다. `이름을 불러오지 못한 대상`(목록을 다 받지 못함) 또는 `삭제된 대상`(목록을 다 받았는데 없음) 뒤에 ID를 `text-text-faint`으로 붙인다(`RuleTargetName`). 한 줄로 말줄임하는 표 칸에서는 ID를 다음 줄에 둔다.
 
 조회에 실패해 목록이 비었으면 오류 배너만 둔다. 빈 상태(연결 안내)나 `검색 결과가 없습니다`를 함께 보이지 않는다 — 검색하지 않았고, 비었는지도 모른다(UI/UX 점검 A1).
 
@@ -1364,8 +1263,8 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 | 항목 | 규칙 |
 |---|---|
 | 위치 | 우측 상단. 넓은 화면(lg)에서는 상단 바(h-16) 아래(`top-20`)에 띄운다: 상단 바 오른쪽의 목록 복귀 링크를 덮지 않게(2026-11-22, 포인터가 올라가면 토스트가 멈춰 링크를 계속 가렸다) |
-| 표면 | `--toast-bg` = `ui-raised`, 보더 `ui-border`(§3.5, 스크림 없이 뜨는 표면) |
-| 아이콘 | 성공 `status-healthy-fill`, 실패 `status-error-fill`. 아이콘 안 체크는 표면색으로 뚫는다 |
+| 표면 | `surface`, 보더 `border`(§3.5, 스크림 없이 뜨는 표면) |
+| 아이콘 | 성공 `ok`, 실패 `crit`. 아이콘 안 체크는 표면색으로 뚫는다 |
 | 시간 | 성공 3초, 실패 5초. 마우스를 올리면 멈춘다(라이브러리 기본) |
 | 문장부호 | 작업이 끝났다는 한 문장의 결과 알림은 마침표 없이 끝낸다(`서버를 삭제했습니다`, `업타임 모니터 2개를 삭제했습니다`). 두 문장인 안내는 문장 사이와 끝에 마침표를 둔다(`복사하지 못했습니다. 내용을 직접 선택해 복사해 주세요.`). 2026-11-19에 다수(마침표 없음)로 맞췄다. 오류 문구 사전(`utils/errors.ts`의 `ERROR_MESSAGES`)은 마침표로 끝나 그대로 실패 토스트에 실린다(§10.H) |
 
@@ -1377,9 +1276,9 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 ## 8. 접근성
 
-- **전역 포커스 링** `:focus-visible` 2px `action` + 2px offset. 개별 컴포넌트에서 재정의 금지. 2026-11-13까지 primary였는데, 다크 배경에서 3.38~3.62로 3:1 하한에 붙어 있었고 `ui-raised` 위에서는 2.51로 미달이었다. `action`은 라이트 5.27~6.00, 다크 6.34~9.15다
+- **전역 포커스 링** `:focus-visible` 2px `focus` + 2px offset. 개별 컴포넌트에서 재정의 금지. 2026-11-13까지 primary였는데, 다크 배경에서 3.38~3.62로 3:1 하한에 붙어 있었고 `surface` 위에서는 2.51로 미달이었다. `action`은 라이트 5.27~6.00, 다크 6.34~9.15다
 - **잘라 내는 컨테이너 안의 포커스 링에는 여백을 둔다** (2026-11-19). 링은 요소 바깥 4px(2px + offset 2px)에 그려지므로 `overflow`가 걸린 스크롤 영역이나 화면 가장자리에 붙은 항목은 링이 잘린다. 그 안쪽에 링이 들어갈 여백을 둔다: 사이드바 nav의 `py-1`, 로고 링크를 블록 가장자리에서 띄운 `px-3` 블록 + 링크의 `px-1`, 모바일 하단 내비의 `px-1 pt-1`, 탭 목록과 앱 선택 영역의 `p-1` + `-m-1`(§4.6). 자리를 바꾸지 않으려면 같은 값의 음수 마진으로 끌어당긴다
-- **네이티브 컨트롤도 테마를 따른다** — `:root`는 `color-scheme: light`, `.dark`는 `color-scheme: dark`다. 선언이 없던 때는 다크 모드에서도 체크박스(`accent-primary`)의 빈 칸, 자동완성 배경, 기본 스크롤바가 라이트로 그려졌다
+- **네이티브 컨트롤도 테마를 따른다** — `:root`는 `color-scheme: light`, `.dark`는 `color-scheme: dark`다. 선언이 없던 때는 다크 모드에서도 체크박스(`accent-accent`)의 빈 칸, 자동완성 배경, 기본 스크롤바가 라이트로 그려졌다
 - **강제 색상 모드(Windows 고대비)** — 브라우저가 배경색을 지워 상태 점·게이지·체크 띠가 사라진다. `index.css`가 `bg-status-*-fill`을 쓰는 요소에만 `forced-color-adjust: none`을 걸어 색을 남긴다. 라벨 없는 점(§5.2)은 그 색이 유일한 시각 정보다. 새 상태 채움이 이 이름을 벗어나면 고대비 모드에서 사라진다
 - **문장 안의 링크는 밑줄을 긋는다** — `action`과 본문 글자의 대비는 라이트 1.91, 다크 1.27로 3:1에 못 미친다. 색만으로는 링크와 주변 글자를 구분하지 못한다(WCAG 1.4.1). 표 셀 제목, 내비, 아이콘이 붙은 독립 링크처럼 자리가 링크임을 말하는 곳은 예외다. 2026-11-13 기준 문장 안 링크(`DockerEnvironmentHint` — 2026-11-15 삭제, 연결 다이얼로그의 안내문 등)는 이미 `underline underline-offset-2`를 쓰고 있었고, 이 규칙은 그 관례를 명문화한 것이다
 - **Skip link** `MainLayout`의 `#main-content` 스킵 링크
@@ -1390,7 +1289,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 - **렌더 중 부작용 금지** — 렌더 본문에서 `navigate()`를 부르거나 ref를 갱신하지 않는다. React가 렌더를 버릴 수 있어 커밋되지 않은 상태가 샌다. 리다이렉트는 `<Navigate>`, ref 갱신은 effect에서.
 - **Toggle** `role="switch"` + `aria-checked`
 - **`prefers-reduced-motion`** 전역 처리됨 (모든 애니메이션 0.01ms)
-- **대비** 작은 메타·placeholder도 일반 텍스트 기준 4.5:1을 만족해야 한다. `text-text-dim`의 다크 값 `#8b8f97`는 페이지·카드·hover 배경에서 검증했다. 더 밝은 표면에서는 `base` 또는 `secondary`를 사용한다 (§1.3).
+- **대비** 작은 메타·placeholder도 일반 텍스트 기준 4.5:1을 만족해야 한다. `text-text-faint`의 다크 값 `#8b8f97`는 페이지·카드·hover 배경에서 검증했다. 더 밝은 표면에서는 `base` 또는 `secondary`를 사용한다 (§1.3).
 
 ---
 
@@ -1400,11 +1299,11 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 1. **카드 좌측 상태 보더 금지** — warn/crit 3px 세로 컬러 라인. *"AI 생성 디자인 같다."* 상태는 배지·아이콘·텍스트 색으로만.
 2. **danger zone 스타일 금지** — 붉은 카드 보더, 붉은 섹션 제목, 앰버 경고 박스. 파괴적 액션은 **중립 카드 + `<Button variant="destructive">`**(채움 없는 `status-error` 텍스트). `text-red-600` 텍스트 링크는 다크에서 표면 대비 3.0이라 쓰지 않는다(§10 경계표). 주의문은 앰버 박스 대신 muted 본문.
-3. **파스텔 틴트 박스 금지** — `bg-emerald-50` / `bg-amber-50` / `bg-red-50` 계열 공지 박스. `bg-ui-hover-soft + border-ui-border` + 상태색 아이콘 악센트로 대체. (배지·게이지 채움·hover·장애 행 채움(§4.5 서버 목록)은 데이터 시맨틱이라 예외)
+3. **파스텔 틴트 박스 금지** — `bg-emerald-50` / `bg-amber-50` / `bg-red-50` 계열 공지 박스. `bg-surface-hover + border-border` + 상태색 아이콘 악센트로 대체. (배지·게이지 채움·hover·장애 행 채움(§4.5 서버 목록)은 데이터 시맨틱이라 예외)
 4. **`dark:` 이중 작성 금지** (§1.1) — `text-slate-500 dark:text-text-muted-dark` → `text-text-muted`
-5. **상태색 primitive 직접 사용 금지** — `text-emerald-600 dark:text-emerald-400` → `text-status-healthy` (§1.4). 대비·색각 조정이 index.css 한 곳에서 끝나야 한다. 점·막대·보더처럼 글자가 아닌 표시는 `bg-status-*-fill`이다 — 글자 토큰을 단색 채움에 쓰지 않는다(`pnpm lint`가 센다)
+5. **상태색 primitive 직접 사용 금지** — `text-emerald-600 dark:text-emerald-400` → `text-ok-text` (§1.4). 대비·색각 조정이 index.css 한 곳에서 끝나야 한다. 점·막대·보더처럼 글자가 아닌 표시는 `bg-status-*-fill`이다 — 글자 토큰을 단색 채움에 쓰지 않는다(`pnpm lint`가 센다)
 6. **`text-[Npx]` 임의값 금지** (§2.2) — 스케일 토큰만
-7. **버튼 클래스 직접 작성 금지** — `<button className="px-4 py-2 bg-primary …">` → `<Button>` (§4.1). 높이·radius·굵기가 화면마다 어긋나는 것을 막는다. 아이콘만 있는 액션은 `IconButton`이다 — `text-slate-400 hover:text-primary` 문자열을 손으로 쓰지 않는다
+7. **버튼 클래스 직접 작성 금지** — `<button className="px-4 py-2 bg-accent …">` → `<Button>` (§4.1). 높이·radius·굵기가 화면마다 어긋나는 것을 막는다. 아이콘만 있는 액션은 `IconButton`이다 — `text-slate-400 hover:text-accent` 문자열을 손으로 쓰지 않는다
 7a. **버튼 색을 `className`으로 덮어쓰기 금지** (§4.1) — variant로 고른다. Tailwind 유틸리티 순서 때문에 override가 조용히 무시된다
 8. **`window.confirm()`·`confirm()` 금지** → `ConfirmDialog`
 9. **recharts `<Legend>` 금지** → `ChartStatsLegend` / `ChartLegend`
@@ -1460,7 +1359,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 | 이름 없는 "떠오른 표면" 역할 | 8 → `ui-raised` 신설 |
 | 카드 정본과 등가인 하드코딩 | 3 |
 | 헤더 스트립 = `ui-hover-soft`의 투명도 변형 | 7 |
-| 크롬 표면이 Sidebar와 불일치 | 4 → `bg-bg-surface`로 정합 |
+| 크롬 표면이 Sidebar와 불일치 | 4 → `bg-surface`로 정합 |
 
 **남은 것은 1회성이고 시각 변화가 따른다.** 반복되는 역할은 다 걷어냈으므로, 이제부터는 한 곳씩 열어 "이 색이 의도인가"를 판단해야 한다 — 자동화할 수 있는 구간은 끝났다.
 
@@ -1500,7 +1399,7 @@ h-2.5 w-2.5 rounded-full bg-status-{role}-fill
 
 ### D. 카드 서브블록 radius 미전환 — 27건 (2026-09-20)
 
-§3.2에 동심 규칙을 세우면서 §3.1의 서브블록 정본이 `rounded-xl` → `rounded-md`로 바뀌었다. 기존 호출부 **27건**(`bg-ui-hover-soft` + `rounded-xl` 조합)은 전환하지 않았다 — 각 사이트가 실제로 카드 **안**에 중첩된 것인지, 아니면 그 자체가 최상위 패널인지 열어 봐야 갈리기 때문이다. 최상위 패널은 `rounded-xl`이 맞다.
+§3.2에 동심 규칙을 세우면서 §3.1의 서브블록 정본이 `rounded-xl` → `rounded-md`로 바뀌었다. 기존 호출부 **27건**(`bg-surface-hover` + `rounded-xl` 조합)은 전환하지 않았다 — 각 사이트가 실제로 카드 **안**에 중첩된 것인지, 아니면 그 자체가 최상위 패널인지 열어 봐야 갈리기 때문이다. 최상위 패널은 `rounded-xl`이 맞다.
 
 밀집 파일: `AlertRuleForm`(5) · `InfrastructureCollectorSetupResult`(3) · `ChannelForm`(3) · `ApiKeyModal`(2) · `AddServiceModal`(2) · `InstrumentationOverrideModal`(2) · `DirectTelemetrySetupResult`(2). 해당 파일을 다른 일로 열 때 함께 판단한다.
 
@@ -1638,7 +1537,7 @@ Carbon·Primer·Polaris·Material 3의 공통 원칙과 대조해 어긋난 것�
 ### 해결됨 (2026-10-08~09) — 개요 critique · 전체 audit
 
 - ~~부분 로드 실패 시 개요가 "모두 정상"~~ → 상태 불명 표시 + 실패 영역 이름, 실패 소스 `—`, 조회 실패로는 온보딩을 띄우지 않음
-- ~~`text-primary`를 텍스트에 사용 65곳(다크 3.4:1)~~ → `text-action`(§1.4). 로그인 브랜드 워드마크만 예외
+- ~~`text-accent`를 텍스트에 사용 65곳(다크 3.4:1)~~ → `text-text`(§1.4). 로그인 브랜드 워드마크만 예외
 - ~~설정 세그먼트 9곳 수제~~ → `SegmentedControl`(`aria-pressed`, 다크 AA)
 - ~~`Select` 트리거가 현재 값을 읽지 않음~~ → `role="combobox"`. e2e는 `getByRole('combobox', { name })`로 찾는다
 - ~~`Toggle` 꺼짐 트랙 1.2:1, 36×20 타깃~~ → `text-dim` 트랙, `::before`로 44px
@@ -1736,17 +1635,17 @@ Carbon·Primer·Polaris·Material 3의 공통 원칙과 대조해 어긋난 것�
 ### 해결됨 (2026-09-20) — 웹 베스트프랙티스 대조
 
 - ~~모달·다이얼로그 8곳이 `shadow-2xl`(§3.5 위반)~~ → `shadow-lg`. `ConfirmDialog`·`ApiKeyModal`·`AddServiceModal`·`InstrumentationOverrideModal`·`UptimeMonitorDialog`·`InfrastructureCollectorKeyDialog`·`InfrastructureCollectorSetupDialog`·`RotatedTelemetryKeyDialog`
-- ~~`AddServiceModal`의 미완료 스텝 번호가 `bg-ui-hover text-text-dim`으로 라이트 4.34(AA 미달)~~ → `text-text-muted`(6.92)
-- ~~`AlertsMobileView`의 탭 카운트 칩·비활성 칩이 `bg-ui-active` 위 `text-text-muted`로 다크 4.02(AA 미달)~~ → `text-text-secondary`(6.94)
+- ~~`AddServiceModal`의 미완료 스텝 번호가 `bg-surface-hover text-text-faint`으로 라이트 4.34(AA 미달)~~ → `text-text-muted`(6.92)
+- ~~`AlertsMobileView`의 탭 카운트 칩·비활성 칩이 `bg-border` 위 `text-text-muted`로 다크 4.02(AA 미달)~~ → `text-text`(6.94)
 - §1.3에 `dim` 허용 배경 상한 명시, §3.2에 동심 radius 규칙 신설, §5.1에 배지 틴트의 배경 의존성 표 추가
 
-**배지 알파 틴트는 실제 위반 0건이었다.** 모든 배지 보유 행·카드가 §3.6에 따라 `hover:bg-ui-hover-soft`를 쓰고 있어 최저값이 4.57(라이트 healthy)로 AA를 넘는다. 다만 여유가 0.07이라 §3.6 규칙이 무너지면 즉시 깨지므로, 암묵적 의존을 §5.1에 명문화했다.
+**배지 알파 틴트는 실제 위반 0건이었다.** 모든 배지 보유 행·카드가 §3.6에 따라 `hover:bg-surface-hover`를 쓰고 있어 최저값이 4.57(라이트 healthy)로 AA를 넘는다. 다만 여유가 0.07이라 §3.6 규칙이 무너지면 즉시 깨지므로, 암묵적 의존을 §5.1에 명문화했다.
 
 ### 해결됨 (2026-08-05) — 기술 감사 후속
 
 - ~~토스트 아이콘 색이 제거된 토큰(`--color-success`/`--color-error`)을 읽어 하드코딩 hex로 폴백~~ → `var(--color-status-healthy/error)`로 교체(테마 반응). `main.tsx`의 죽은 `getComputedStyle` 스냅샷 3줄 제거
 - ~~모달 컨테이너 3곳이 `rounded-2xl`(§3.2 위반)~~ → `rounded-xl` (`ApiKeyModal`·`AddServiceModal`·`ConfirmDialog`)
-- ~~알림 전송 성공/실패 색이 primitive + `dark:` 짝(§10.B 건강 축 오분류)~~ → `AlertsMobileView`를 `text-status-healthy/error`로 토큰화
+- ~~알림 전송 성공/실패 색이 primitive + `dark:` 짝(§10.B 건강 축 오분류)~~ → `AlertsMobileView`를 `text-ok-text/error`로 토큰화
 - ~~카드·상세 헤더 아이콘 버튼 터치 타깃 28~36px~~ → `h-10 w-10`(40px)로 확대, 컨테이너 gap 조정 (`ServiceGridPage`·`PendingServiceCard`·`ProjectDetailPage`). WCAG 2.5.8 AA(24px)는 이전에도 충족, 밀도 유지 위해 44px 대신 40px
 - ~~전역 reduced-motion `0.01ms` 킬이 `DemoBanner` 마퀴를 잘라 안내가 잘림~~ → `motion-reduce:`에서 마퀴 정지 + 줄바꿈 + 중복 사본 숨김
 
@@ -1755,16 +1654,16 @@ Carbon·Primer·Polaris·Material 3의 공통 원칙과 대조해 어긋난 것�
 - ~~색 접근성 — `text-dim` 라이트 2.56, 상태 배지 3종, 차트 시리즈 3색, 로그 레벨 3색이 WCAG 미달~~ → 전부 AA/1.4.11 통과. 브라우저에서 8/8 실측 확인
 - ~~상태색 시맨틱 레이어 부재~~ → `--color-status-*` 4종 신설. 374건 전수 분류 후 상태 표현 **160건**을 20개 파일에서 토큰으로 이관 (`dark:` 짝 동반 제거)
 - ~~죽은 토큰 5종 (`primary-hover`, `chart-surface`, `chart-hover`, `text-chart-dim`, `success`/`warning`/`error`)~~ → 제거
-- ~~`chart-bg`와 `bg-surface-dark`가 대비 1.02로 중복~~ → `bg-bg-surface`로 통합 (`dark:` 위반 9건 동반 해소)
+- ~~`chart-bg`와 `bg-surface-dark`가 대비 1.02로 중복~~ → `bg-surface`로 통합 (`dark:` 위반 9건 동반 해소)
 - ~~`CLAUDE.md`와 내용 중복~~ → 분리 완료, CLAUDE.md는 포인터만
-- ~~`bg-bg-base/35` — 존재하지 않는 토큰이라 배경이 투명하게 렌더~~ → `bg-ui-hover-soft`
+- ~~`bg-bg-base/35` — 존재하지 않는 토큰이라 배경이 투명하게 렌더~~ → `bg-surface-hover`
 - ~~폼 프리미티브 부재 (입력 클래스 10종, 포커스 링 5종, radius 3종, 세로패딩 5종)~~ → `Input`/`Select`/`SearchInput` 신설, 27개 호출부 이관. raw 폼 `<input>` 0건
 - ~~아이콘 전용 버튼에 접근 가능한 이름 없음~~ → **20건** 전부 `aria-label` 부여(14건은 기존 `title` 미러링, 6건은 신규). 잔여 0건
 - ~~색만으로 상태를 전달하는 점~~ → 인접 텍스트가 없는 **4곳**에 `role="img" aria-label`. 나머지는 텍스트가 이미 상태를 말하므로 장식으로 유지
 - ~~죽은 CSS `.status-pulse` + `@keyframes pulse-ring`~~ → 제거(사용처 0곳). §5.2를 실제 패턴으로 정정
 - ~~오버레이 4곳이 ESC 핸들러를 복사, 2곳은 ESC 없음~~ → `useOverlay` 훅으로 통합, 6곳 전부 ESC 동작(브라우저 검증)
 - ~~헤딩 등급 흔들림~~ → h1/h3 이탈 8건 정리. §2.3을 **컨테이너별 등급표**로 정정 — h2가 카드/모달/섹션에서 다른 것은 이탈이 아니라 정당한 차이였다
-- ~~`MainLayout` 주석이 `slate-50 canvas`라고 하나 실제는 `bg-bg-main`~~ → 주석 정정
+- ~~`MainLayout` 주석이 `slate-50 canvas`라고 하나 실제는 `bg-bg`~~ → 주석 정정
 - ~~렌더 중 부작용 2건 (useDataFetch의 ref 갱신, LoginPage의 navigate)~~ → effect로 이동 / `<Navigate>`로 교체
 - ~~카드·행이 `<div onClick>`이라 키보드로 진입 불가~~ → `activatable()` 4곳. Enter/Space 진입 실측
 - ~~필터 셀렉트 5개·토글 1개에 접근 가능한 이름 없음~~ → `aria-label`, 토글은 `role="switch"`

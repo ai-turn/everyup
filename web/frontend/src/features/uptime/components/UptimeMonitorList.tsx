@@ -139,8 +139,8 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
       </ListToolbar>
 
       {selectedMonitors.length > 0 && (
-        <div role="region" aria-label="선택한 대상 작업" className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-2">
-          <p className="mr-auto type-body text-text-base"><span className="font-medium tabular-nums">{selectedMonitors.length}</span>개 선택</p>
+        <div role="region" aria-label="선택한 대상 작업" className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2">
+          <p className="mr-auto type-body text-text"><span className="font-medium tabular-nums">{selectedMonitors.length}</span>개 선택</p>
           <Button size="sm" variant="secondary" disabled={bulkDisabled || toPause.length === 0} loading={bulkWorking}
             onClick={() => void runBulk(toPause, (monitor) => updateActive(monitor, false), '일시정지')}>
             <MaterialIcon name="pause" />일시정지
@@ -177,7 +177,7 @@ export function UptimeMonitorList({ monitors, hrefFor, renderControls, onChanged
         onConfirm={() => { setConfirmingDelete(false); void runBulk(selectedMonitors, (monitor) => api.deleteUptimeMonitor(monitor.id), '삭제', onDeleted); }}
         title={`업타임 ${selectedMonitors.length}개를 삭제할까요?`}
         message={<>
-          <strong className="break-all font-medium text-text-base">{selectedMonitors.slice(0, 3).map((monitor) => monitor.name).join(', ')}</strong>
+          <strong className="break-all font-medium text-text">{selectedMonitors.slice(0, 3).map((monitor) => monitor.name).join(', ')}</strong>
           {selectedMonitors.length > 3 && ` 외 ${selectedMonitors.length - 3}개`}를 삭제하면 수집된 상태와 체크 기록, 각 모니터만 대상으로 하는 알림 규칙도 함께 삭제됩니다.
         </>}
         confirmLabel="삭제"

@@ -26,7 +26,7 @@ export function RecentUptimeChecks({ metrics, paused = false, stale = false }: {
       <div className="flex gap-0.5">
         {checks.map((item, slot) => (
           <span key={item.id} onMouseEnter={() => setSelected(slot)}
-            className={`h-3 min-w-0 flex-1 rounded-sm ${item.status === 'success' ? 'bg-status-healthy-fill' : 'bg-status-error-fill'} ${slot === index ? 'opacity-75' : ''}`} />
+            className={`h-3 min-w-0 flex-1 rounded-sm ${item.status === 'success' ? 'bg-ok' : 'bg-crit'} ${slot === index ? 'opacity-75' : ''}`} />
         ))}
       </div>
       <p className="mt-1 flex flex-wrap gap-x-3 type-caption text-text-muted" aria-live="polite">

@@ -31,11 +31,11 @@ export function MainLayout() {
   return (
     <BreadcrumbProvider>
     <DocumentTitle failureCount={failureCount} />
-    <div className="flex flex-col h-dvh overflow-hidden bg-bg-main">
+    <div className="flex flex-col h-dvh overflow-hidden bg-bg">
       {/* 본문 바로가기 (accessibility) */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-100 focus:px-4 focus:py-2 focus:bg-primary focus:text-on-primary focus:rounded-lg focus: focus:text-sm focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-100 focus:px-4 focus:py-2 focus:bg-accent focus:text-accent-text focus:rounded-lg focus: focus:text-sm focus:shadow-lg"
       >
         본문 바로가기
       </a>
@@ -62,7 +62,7 @@ export function MainLayout() {
 
           <div className="flex flex-1 overflow-hidden relative">
             {/* full-bleed content on the bg-main canvas, 24px padding (16px mobile) */}
-            <main id="main-content" className="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-bg-main">
+            <main id="main-content" className="flex-1 flex flex-col overflow-hidden relative min-w-0 bg-bg">
               {/* 하단 내비·safe area는 pb-safe-bottom과 맞추고, 역방향 탐색의 상단 포커스 링도 보호한다. */}
               <div className="flex-1 overflow-y-auto scroll-pt-1 scroll-pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:scroll-p-1 motion-safe:scroll-smooth [scrollbar-gutter:stable]">
                 <div className="flex flex-col min-h-full pb-safe-bottom lg:pb-0">

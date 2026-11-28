@@ -70,7 +70,7 @@ function CommandRow({
   onCopy: (value: string) => void;
 }) {
   return (
-    <div className="rounded-md bg-ui-hover-soft px-3 py-2">
+    <div className="rounded-md bg-surface-hover px-3 py-2">
       <div className="mb-1 flex items-center justify-between gap-2">
         <span className="type-label-sm text-text-muted">{label}</span>
         <CopyButton
@@ -79,7 +79,7 @@ function CommandRow({
           className={ICON_ACTION_SM}
         />
       </div>
-      <code className="block overflow-x-auto whitespace-nowrap font-mono text-xs text-text-secondary">
+      <code className="block overflow-x-auto whitespace-nowrap font-mono text-xs text-text">
         {command}
       </code>
     </div>
@@ -156,13 +156,13 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
       aria-label="상세 수집 설정"
       onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
-      <div ref={panelRef} className="flex h-full max-h-full w-full max-w-2xl flex-col bg-bg-surface shadow-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
-        <div className="flex items-center gap-3 border-b border-ui-border px-6 py-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-action">
+      <div ref={panelRef} className="flex h-full max-h-full w-full max-w-2xl flex-col bg-surface shadow-lg sm:h-auto sm:max-h-[90vh] sm:rounded-xl">
+        <div className="flex items-center gap-3 border-b border-border px-6 py-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-bg text-text">
             <MaterialIcon size={20} name="integration_instructions" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="type-card-title text-text-base">상세 수집 설정</h3>
+            <h3 className="type-card-title text-text">상세 수집 설정</h3>
             <p className="mt-intra type-body text-text-muted">
               감지된 Java·Node.js 컨테이너에 OpenTelemetry를 안전하게 적용합니다.
             </p>
@@ -172,10 +172,10 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
 
         <div className="flex-1 space-y-item overflow-y-auto p-6">
           {loading ? (
-            <div className="h-40 animate-pulse rounded-xl bg-ui-hover" />
+            <div className="h-40 animate-pulse rounded-xl bg-surface-hover" />
           ) : candidates.length === 0 ? (
             <div className="space-y-label py-10 text-center">
-              <MaterialIcon size={32} name="info" className="text-text-dim" />
+              <MaterialIcon size={32} name="info" className="text-text-faint" />
               <p className="type-body text-text-muted">자동 적용할 수 있는 컨테이너가 없습니다.</p>
               <p className="mx-auto max-w-sm type-body text-text-muted">
                 Compose로 실행 중인 Java 또는 Node.js 컨테이너가 대상입니다. 나머지 컨테이너는 eBPF 기본 모니터링을 계속 사용할 수 있습니다.
@@ -183,11 +183,11 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
             </div>
           ) : (
             <>
-              <div className="rounded-md bg-ui-hover-soft p-4">
+              <div className="rounded-md bg-surface-hover p-4">
                 <div className="flex items-start gap-3">
-                  <MaterialIcon size={20} name="verified_user" className="icon-lead shrink-0 text-status-healthy" />
+                  <MaterialIcon size={20} name="verified_user" className="icon-lead shrink-0 text-ok-text" />
                   <div>
-                    <p className="type-label text-text-base">원본 Compose는 수정하지 않습니다</p>
+                    <p className="type-label text-text">원본 Compose는 수정하지 않습니다</p>
                     <p className="mt-intra type-body text-text-muted">
                       CLI가 별도 override를 만들고 선택한 컨테이너만 재시작합니다. 주입 옵션, 공유 볼륨, 네트워크와 컨테이너 상태를 확인하며 실패하면 직전 설정으로 자동 복구합니다.
                     </p>
@@ -196,7 +196,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               </div>
 
               <div>
-                <p className="mb-label type-label text-text-secondary">적용 대상</p>
+                <p className="mb-label type-label text-text">적용 대상</p>
                 <div className="flex flex-wrap gap-1.5">
                   {candidates.map((target) => {
                     const key = `${selectedProject}:${target.composeService}`;
@@ -204,11 +204,11 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                     return (
                       <label
                         key={target.composeService}
-                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 type-label-sm ${checked ? 'border-primary/20 bg-primary/10 text-action' : 'border-ui-border text-text-secondary hover:bg-ui-hover'}`}
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 type-label-sm ${checked ? 'border-accent/20 bg-accent-bg text-text' : 'border-border text-text hover:bg-surface-hover'}`}
                       >
                         <input type="checkbox" aria-label={`${target.name} 상세 수집`} checked={checked} onChange={event => {
                           setSelectedKeys(current => event.target.checked ? [...current, key] : current.filter(item => item !== key));
-                        }} className="h-4 w-4 cursor-pointer accent-primary" />
+                        }} className="h-4 w-4 cursor-pointer accent-accent" />
                         {target.name}
                         <span className="opacity-70">· {runtimeLabel(target.runtime)}</span>
                       </label>
@@ -244,12 +244,12 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 </Field>
               </div>
 
-              <label className="-mx-3 flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors hover:bg-ui-hover-soft">
+              <label className="-mx-3 flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors hover:bg-surface-hover">
                 <input
                   type="checkbox"
                   checked={captureBodies}
                   onChange={(event) => setCaptureBodies(event.target.checked)}
-                  className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                  className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-accent"
                 />
                 <OptionText title="요청·응답 바디도 수집" descriptionSize="body" description={<>
                   Node.js만 지원하며 민감 필드를 마스킹하고 크기를 제한합니다.
@@ -262,7 +262,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 {targets.length === 0 && <p className="type-body text-text-muted">적용할 컨테이너를 하나 이상 선택하세요.</p>}
               </div>
               {plan && <div className="space-y-label" aria-label="상세 수집 변경 미리보기">
-                <p className="type-label text-text-base">재시작 대상: {targets.map(target => target.name).join(', ')}</p>
+                <p className="type-label text-text">재시작 대상: {targets.map(target => target.name).join(', ')}</p>
                 <p className="type-body text-text-muted">선택한 컨테이너에 Java agent 또는 Node preload, OTLP 전송 설정, 주입 파일 볼륨과 모니터링 네트워크를 추가합니다. 다른 컨테이너의 기존 설정은 유지합니다.</p>
                 <p className="type-body text-text-muted">먼저 서버 미리보기 명령으로 실제 Compose를 검증한 뒤 적용하세요. 실행 기록은 1시간 내 시작할 수 있으며, 적용·실패·복구 결과가 아래에 표시됩니다.</p>
                 <CommandRow label="서버 변경 미리보기" command={planCommand} onCopy={copy} />
@@ -270,7 +270,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               {plan && <div className="space-y-label">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="type-label text-text-base">안전 적용 명령</p>
+                    <p className="type-label text-text">안전 적용 명령</p>
                     <p className="mt-intra type-body text-text-muted">애플리케이션 Compose가 있는 Linux 서버에서 실행하세요.</p>
                   </div>
                   <CopyButton
@@ -282,7 +282,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                     <span>복사</span>
                   </CopyButton>
                 </div>
-                <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-all rounded-md bg-ui-hover-soft px-4 py-3 font-mono text-xs text-text-base">
+                <pre className="max-h-44 overflow-auto whitespace-pre-wrap break-all rounded-md bg-surface-hover px-4 py-3 font-mono text-xs text-text">
                   {applyCommand}
                 </pre>
               </div>}
@@ -290,9 +290,9 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
               <InstrumentationRunStatus agentId={agentId} runId={prepared?.run.id} />
 
               <details>
-                <summary className="-mx-3 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 type-label text-text-secondary transition-colors hover:bg-ui-hover-soft">
+                <summary className="-mx-3 flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 type-label text-text transition-colors hover:bg-surface-hover">
                   적용 후 관리 명령
-                  <MaterialIcon size={20} name="expand_more" className="ml-auto text-text-dim" />
+                  <MaterialIcon size={20} name="expand_more" className="ml-auto text-text-faint" />
                 </summary>
                 <div className="space-y-label pt-2">
                   <CommandRow label="상태 확인" command={statusCommand} onCopy={copy} />
@@ -309,7 +309,7 @@ export function InstrumentationOverrideModal({ agentId, onClose }: Props) {
                 )}
                 <p className="type-body text-text-muted">
                   Authorization, Cookie 등 민감 헤더는 서버에서 자동 마스킹됩니다.{' '}
-                  <a href={DOC_URL} target="_blank" rel="noreferrer" className="text-action hover:underline">
+                  <a href={DOC_URL} target="_blank" rel="noreferrer" className="text-text hover:underline">
                     상세 수집 문서
                   </a>
                 </p>

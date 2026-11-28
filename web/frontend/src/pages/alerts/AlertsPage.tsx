@@ -286,7 +286,7 @@ export function AlertsPage() {
       message={
         <span>
           {''}
-          <span className="text-text-base">{pendingDeleteChannel?.name}</span>
+          <span className="text-text">{pendingDeleteChannel?.name}</span>
           {' 채널을 삭제하시겠습니까?'}
         </span>
       }

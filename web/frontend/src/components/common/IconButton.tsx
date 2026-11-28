@@ -4,14 +4,14 @@ import { Tooltip } from './Tooltip';
 
 // 라벨 없는 아이콘 액션. Button은 라벨 있는 버튼 전용이라 정사각 형태는 여기서
 // 관리한다 — 색·크기 규칙은 Button과 같다(§4.1). 화면마다 손으로 쓰던
-// `text-slate-400 hover:text-primary` 문자열을 대체한다.
+// 옛 `text-slate-400 hover:text-accent` 문자열을 대체한다.
 
 const TONES = {
-  action: 'text-action not-aria-disabled:hover:bg-action/10 not-aria-disabled:active:bg-action/15',
+  action: 'text-text not-aria-disabled:hover:bg-text/10 not-aria-disabled:active:bg-text/15',
   // 파괴 아이콘은 쉴 때 중립(muted)이고 hover·포커스에서만 붉다. 행마다 반복되는 붉은 휴지통이 목록의 오른쪽 끝에 색 기둥을
   // 만들어 시선이 이름보다 거기서 먼저 멈췄다(2026-11-20 시각 점검 3.2, DESIGN.md §4.1).
-  danger: 'text-text-muted not-aria-disabled:hover:text-status-error not-aria-disabled:hover:bg-status-error/10 not-aria-disabled:focus-visible:text-status-error not-aria-disabled:active:bg-status-error/15',
-  quiet: 'text-text-muted not-aria-disabled:hover:text-text-base not-aria-disabled:hover:bg-ui-hover not-aria-disabled:active:bg-ui-active',
+  danger: 'text-text-muted not-aria-disabled:hover:text-crit-text not-aria-disabled:hover:bg-crit-bg not-aria-disabled:focus-visible:text-crit-text not-aria-disabled:active:bg-crit/15',
+  quiet: 'text-text-muted not-aria-disabled:hover:text-text not-aria-disabled:hover:bg-surface-hover not-aria-disabled:active:bg-border',
 } as const;
 
 // md는 터치 화면(sm 미만)에서 44px — Button md와 같은 규칙.

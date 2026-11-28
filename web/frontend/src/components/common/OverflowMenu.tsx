@@ -46,14 +46,14 @@ export function OverflowMenu({ items, label = '더보기', textTrigger }: {
   if (items.length === 0) return null;
   // 고른 항목이 대화 상자를 열면, 닫힐 때 포커스가 사라진 메뉴 항목이 아니라 이 버튼으로 돌아오게 먼저 버튼에 둔다.
   const choose = (item: OverflowMenuItem) => { setOpen(false); (elements.domReference as HTMLElement | null)?.focus(); item.onSelect?.(); };
-  const itemClass = (item: OverflowMenuItem) => `flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-left type-control transition-colors sm:min-h-9 focus-visible:bg-ui-hover not-aria-disabled:hover:bg-ui-hover aria-disabled:cursor-not-allowed aria-disabled:opacity-50 ${item.danger ? 'text-status-error' : 'text-text-base'}`;
+  const itemClass = (item: OverflowMenuItem) => `flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-left type-control transition-colors sm:min-h-9 focus-visible:bg-surface-hover not-aria-disabled:hover:bg-surface-hover aria-disabled:cursor-not-allowed aria-disabled:opacity-50 ${item.danger ? 'text-crit-text' : 'text-text'}`;
   return (
     <>
       {textTrigger !== undefined
         ? <button ref={setReference} type="button" className={`${textTrigger} cursor-pointer`} {...getReferenceProps()}>{label}</button>
         : <Tooltip content={label}>
           <button ref={setReference} type="button" aria-label={label}
-            className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-ui-hover hover:text-text-base aria-expanded:bg-ui-hover sm:h-10 sm:w-10"
+            className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-hover hover:text-text aria-expanded:bg-surface-hover sm:h-10 sm:w-10"
             {...getReferenceProps()}>
             <MaterialIcon name="more_vert" />
           </button>
@@ -62,7 +62,7 @@ export function OverflowMenu({ items, label = '더보기', textTrigger }: {
         <FloatingPortal root={elements.domReference?.closest('dialog') ?? undefined}>
           <FloatingFocusManager context={context} modal={false} initialFocus={0}>
             <div ref={setFloating} style={floatingStyles} aria-label={label}
-              className="z-[60] min-w-44 rounded-lg border border-ui-border bg-ui-raised p-1 shadow-lg"
+              className="z-[60] min-w-44 rounded-lg border border-border bg-surface p-1 shadow-lg"
               {...getFloatingProps()}>
               {items.map((item, index) => {
                 const setItem = (node: HTMLElement | null) => { listRef.current[index] = node; };

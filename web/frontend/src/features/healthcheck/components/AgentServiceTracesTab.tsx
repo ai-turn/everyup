@@ -87,7 +87,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
           aria-pressed={errorsOnly}
           onClick={() => update({ traceErrorsOnly: errorsOnly ? null : 'true' })}
           className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 type-label-sm transition-colors ${
-            errorsOnly ? LEVEL_CHIP.error : 'bg-ui-hover text-text-muted hover:bg-ui-active'
+            errorsOnly ? LEVEL_CHIP.error : 'bg-surface-hover text-text-muted hover:bg-border'
           }`}
         >
           <MaterialIcon size={20} name="error_outline" />
@@ -97,13 +97,13 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
       </div>
 
       {loading ? (
-        <div className="h-64 animate-pulse rounded-xl bg-ui-hover" />
+        <div className="h-64 animate-pulse rounded-xl bg-surface-hover" />
       ) : error ? (
-        <section role="alert" className="flex flex-col gap-lead rounded-xl border border-ui-border-soft bg-bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        <section role="alert" className="flex flex-col gap-lead rounded-xl border border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <MaterialIcon size={20} name="sync_problem" className="icon-lead shrink-0 text-status-warn" />
+            <MaterialIcon size={20} name="sync_problem" className="icon-lead shrink-0 text-attn-text" />
             <div>
-              <p className="type-label text-text-base">트레이스를 불러오지 못했습니다</p>
+              <p className="type-label text-text">트레이스를 불러오지 못했습니다</p>
               <p className="mt-intra type-body text-text-muted">{error}</p>
             </div>
           </div>
@@ -120,7 +120,7 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
           {/* 좁은 화면에서는 이름 열만 두고 소요·Span·시작을 이름 아래로 내린다(요청 표와 같은 방식). 537px 표가 잘렸다. */}
           <table aria-label="트레이스 목록" className="w-full table-fixed type-control">
             <thead>
-              <tr className="border-b border-ui-border-soft text-left type-label-sm text-text-muted">
+              <tr className="border-b border-border text-left type-label-sm text-text-muted">
                 <th scope="col" className="px-4 py-3 font-medium">트레이스</th>
                 <th scope="col" className="hidden w-28 px-4 py-3 font-medium sm:table-cell">종류</th>
                 <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium sm:table-cell">소요</th>
@@ -141,13 +141,13 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
                       setActiveTraceId(trace.traceId);
                     }
                   }}
-                  className="cursor-pointer transition-colors hover:bg-ui-hover-soft"
+                  className="cursor-pointer transition-colors hover:bg-surface-hover"
                 >
                   <td className="min-w-0 px-4 cell">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="truncate text-text-base">{trace.name}</span>
+                      <span className="truncate text-text">{trace.name}</span>
                       {trace.errorCount > 0 && (
-                        <span className="shrink-0 type-caption text-status-error">오류 {trace.errorCount}</span>
+                        <span className="shrink-0 type-caption text-crit-text">오류 {trace.errorCount}</span>
                       )}
                     </div>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 type-caption tabular-nums text-text-muted lg:hidden">
@@ -160,9 +160,9 @@ function ServiceTracesPanel({ source, refreshKey, range, window: controlledWindo
                   <td className="hidden px-4 cell sm:table-cell">
                     <span className={`badge ${spanKindBadge(trace.kind)}`}>{trace.kind}</span>
                   </td>
-                  <td className="hidden px-4 cell text-right type-caption tabular-nums text-text-secondary sm:table-cell">{formatDuration(trace.durationMs)}</td>
+                  <td className="hidden px-4 cell text-right type-caption tabular-nums text-text sm:table-cell">{formatDuration(trace.durationMs)}</td>
                   <td className="hidden px-4 cell text-right type-caption tabular-nums text-text-muted sm:table-cell">{trace.spanCount}</td>
-                  <td className="hidden whitespace-nowrap px-4 cell text-right type-caption tabular-nums text-text-dim lg:table-cell">{formatDateTime(trace.startTime)}</td>
+                  <td className="hidden whitespace-nowrap px-4 cell text-right type-caption tabular-nums text-text-faint lg:table-cell">{formatDateTime(trace.startTime)}</td>
                 </tr>
               ))}
             </tbody>

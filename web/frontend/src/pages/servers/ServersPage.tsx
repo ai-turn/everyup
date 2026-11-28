@@ -37,7 +37,7 @@ function matchTargets(row: ServerRow, query: string, catalog: ObservedServiceMet
 function ServerListSkeleton() {
   return <div role="status" className="space-y-label">
     <span className="sr-only">로딩 중…</span>
-    {[0, 1, 2, 3].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
+    {[0, 1, 2, 3].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-surface-hover" />)}
   </div>;
 }
 

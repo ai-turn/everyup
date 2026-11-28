@@ -91,18 +91,18 @@ function responseAxis(values: number[]) {
 function ResponseTooltip({ point, color, messages }: { point?: ResponsePoint; color: string; messages: string[] }) {
   if (!point) return null;
   return (
-    <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-ui-border bg-ui-raised px-3.5 py-3 type-control shadow-lg">
+    <div data-response-tooltip role="status" className="max-w-64 rounded-lg border border-border bg-surface px-3.5 py-3 type-control shadow-lg">
       <p className="mb-2 type-caption text-text-muted">{formatTimeLabel(point.t)} ~ {formatTimeTick(point.end)}</p>
-      {point.missing ? <p className="text-text-secondary">수집 데이터 없음</p> : (
+      {point.missing ? <p className="text-text">수집 데이터 없음</p> : (
         <>
           <div className="flex items-center justify-between gap-8">
             <span className="inline-flex items-center gap-2 text-text-muted"><span className="h-2 w-2 rounded-full" style={{ background: color }} />평균 응답</span>
-            <span className="font-medium tabular-nums text-text-base">{point.latencyMs === null ? '응답 없음' : `${number(point.latencyMs)} ms`}</span>
+            <span className="font-medium tabular-nums text-text">{point.latencyMs === null ? '응답 없음' : `${number(point.latencyMs)} ms`}</span>
           </div>
-          <p className={`mt-2 type-caption ${point.failedChecks ? 'text-status-error' : 'text-text-muted'}`}>
+          <p className={`mt-2 type-caption ${point.failedChecks ? 'text-crit-text' : 'text-text-muted'}`}>
             체크 {number(point.totalChecks)}회 중 실패 {number(point.failedChecks)}회
           </p>
-          {messages.map((message) => <p key={message} className="mt-1 break-words type-caption text-text-secondary">{message}</p>)}
+          {messages.map((message) => <p key={message} className="mt-1 break-words type-caption text-text">{message}</p>)}
         </>
       )}
     </div>
@@ -163,11 +163,11 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
           <div className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
             <dl aria-label="응답 시간 요약">
               <dt className="mb-label type-caption text-text-muted">선택 기간 평균</dt>
-              <dd data-response-average className="type-kpi text-text-base">
+              <dd data-response-average className="type-kpi text-text">
                 {average === null ? '-' : number(average)}{average !== null && <span className="ml-1.5 type-control tracking-normal text-text-muted">ms</span>}
               </dd>
             </dl>
-            <p data-response-counts className="type-caption text-text-muted">체크 <span className="tabular-nums text-text-secondary">{number(total)}회</span> 중 <span className={failed ? 'font-medium text-status-error' : ''}>실패 {number(failed)}회</span></p>
+            <p data-response-counts className="type-caption text-text-muted">체크 <span className="tabular-nums text-text">{number(total)}회</span> 중 <span className={failed ? 'font-medium text-crit-text' : ''}>실패 {number(failed)}회</span></p>
           </div>
           <figure aria-labelledby={`${id}-description`} className="relative">
             <figcaption id={`${id}-description`} className="sr-only">응답 시간 추이. 좌우 방향키로 시간대를 이동합니다. {caption}. 체크 {total}회 중 실패 {failed}회.</figcaption>
@@ -198,31 +198,31 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
           </figure>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 type-caption text-text-muted">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span className="inline-flex items-center gap-1.5"><span className="h-px w-4 bg-primary" />{caption}</span>
-              {outages.length > 0 && <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-status-error/25" />장애 구간</span>}
-              {failureBuckets.length > 0 && <span className="inline-flex items-center gap-1.5"><span className="h-3 border-l border-dashed border-status-error" />단발 실패</span>}
+              <span className="inline-flex items-center gap-1.5"><span className="h-px w-4 bg-accent" />{caption}</span>
+              {outages.length > 0 && <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-crit/25" />장애 구간</span>}
+              {failureBuckets.length > 0 && <span className="inline-flex items-center gap-1.5"><span className="h-3 border-l border-dashed border-crit-border" />단발 실패</span>}
               {missing && <span>빈 구간은 수집 데이터 없음</span>}
             </div>
             <span className="tabular-nums">{formatDateTime(window[0])} ~ {formatDateTime(window[1])} · {timezone}</span>
           </div>
           {events.length > 0 && (
             <div className="mt-6 space-y-intra">
-              <SubHeading className="type-label-sm text-text-secondary">이 기간의 실패 {events.length}건</SubHeading>
+              <SubHeading className="type-label-sm text-text">이 기간의 실패 {events.length}건</SubHeading>
               {/* 스크롤 영역이 행의 포커스 링을 자르지 않게 여백을 두고 같은 만큼 끌어당긴다. */}
               <ul aria-label="이 기간의 실패" className="-m-1 max-h-48 overflow-y-auto p-1">
                 {events.map((event) => (
                   <li key={event.key} data-response-event={event.kind} tabIndex={0}
                     onMouseEnter={() => setFocused(event.key)} onMouseLeave={() => setFocused(null)} onFocus={() => setFocused(event.key)} onBlur={() => setFocused(null)}
-                    className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-x-3 rounded-md px-2 py-1.5 hover:bg-ui-hover-soft focus-visible:bg-ui-hover-soft sm:grid-cols-[5.5rem_12rem_minmax(0,1fr)]">
-                    <span className={`type-label-sm ${event.kind === 'outage' ? 'text-status-error' : 'text-status-warn'}`}>
+                    className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-x-3 rounded-md px-2 py-1.5 hover:bg-surface-hover focus-visible:bg-surface-hover sm:grid-cols-[5.5rem_12rem_minmax(0,1fr)]">
+                    <span className={`type-label-sm ${event.kind === 'outage' ? 'text-crit-text' : 'text-attn-text'}`}>
                       {event.kind === 'outage' ? (event.active ? '장애 진행 중' : '장애') : '단발 실패'}
                     </span>
-                    <span className="flex flex-wrap gap-x-3 type-caption tabular-nums text-text-base">
+                    <span className="flex flex-wrap gap-x-3 type-caption tabular-nums text-text">
                       <span>{at(event.from)}{event.to > event.from && ` ~ ${event.active ? '지금' : at(event.to)}`}</span>
                       {event.kind === 'outage' && <span className="text-text-muted">{formatDuration(Math.round((event.to - event.from) / 1000))}</span>}
                       {event.checks > 1 && <span className="text-text-muted">{`${number(event.checks)}회`}</span>}
                     </span>
-                    <span className="col-span-2 min-w-0 sm:col-span-1"><HintTooltip content={event.message || '오류 메시지 없음'}><span className="block truncate type-caption text-text-secondary">{event.message || '오류 메시지 없음'}</span></HintTooltip></span>
+                    <span className="col-span-2 min-w-0 sm:col-span-1"><HintTooltip content={event.message || '오류 메시지 없음'}><span className="block truncate type-caption text-text">{event.message || '오류 메시지 없음'}</span></HintTooltip></span>
                   </li>
                 ))}
               </ul>

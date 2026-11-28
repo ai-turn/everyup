@@ -24,7 +24,7 @@ interface StatusLightProps {
 
 export function StatusLight({ tone, label, pulse }: StatusLightProps) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 type-caption text-text-secondary">
+    <span className="inline-flex shrink-0 items-center gap-1.5 type-caption text-text">
       <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[tone]} ${pulse ? 'animate-pulse' : ''}`} aria-hidden="true" />
       {label}
     </span>

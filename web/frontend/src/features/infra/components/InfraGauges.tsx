@@ -40,7 +40,7 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
   const displayUnit = gauge.displayUnit ?? '%';
 
   return (
-    <article className="rounded-xl border border-ui-border-soft bg-bg-surface p-4">
+    <article className="rounded-xl border border-border bg-surface p-4">
       <div className="flex min-h-5 items-center justify-between gap-2">
         <p className="truncate type-label-sm text-text-muted">
           {gauge.label}
@@ -49,10 +49,10 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
       </div>
 
       <div className="mt-2 flex items-baseline gap-1">
-        <span className="type-kpi text-text-base">
+        <span className="type-kpi text-text">
           {displayValue}
         </span>
-        <span className="type-control text-text-dim">{displayUnit}</span>
+        <span className="type-control text-text-faint">{displayUnit}</span>
       </div>
 
       {/* Rates (CPU·Network) read best as a trend; capacities (Memory·Disk) as fill. */}
@@ -60,13 +60,13 @@ function VitalGaugeCard({ gauge }: { gauge: GaugeData }) {
         {gauge.spark && gauge.spark.length > 1 ? (
           <Sparkline values={gauge.spark} />
         ) : (
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-ui-hover">
-            <div className={`h-full rounded-full ${critical ? 'bg-status-error-fill' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
+            <div className={`h-full rounded-full ${critical ? 'bg-crit' : 'bg-accent'}`} style={{ width: `${pct}%` }} />
           </div>
         )}
       </div>
 
-      <p className="truncate type-caption text-text-dim">{gauge.subtitle}</p>
+      <p className="truncate type-caption text-text-faint">{gauge.subtitle}</p>
     </article>
   );
 }

@@ -11,7 +11,7 @@ export function TargetCountList({ rows }: { rows: ServerRow[] }) {
   return (
     <>
       {labels.length > 0 && (
-        <ul aria-label="대상 개수" className="list-disc space-y-intra pl-5 type-body text-text-base">
+        <ul aria-label="대상 개수" className="list-disc space-y-intra pl-5 type-body text-text">
           {labels.map((label) => <li key={label}>{label}</li>)}
         </ul>
       )}

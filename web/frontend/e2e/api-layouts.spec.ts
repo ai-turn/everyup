@@ -11,7 +11,7 @@ test('API detail and connection fit responsive layouts in both themes', async ({
     await page.setViewportSize({ width, height: 1000 });
     for (const theme of ['light', 'dark']) {
       await page.goto(`${API_APP}&range=6h`);
-      await page.evaluate(value => document.documentElement.classList.toggle('dark', value === 'dark'), theme);
+      await page.evaluate(value => (document.documentElement.dataset.theme = value), theme);
       await expect(page.getByRole('table', { name: 'API 요청 목록' })).toBeVisible();
       await expect(page.getByRole('heading', { name: '앱 전체 추이', exact: true })).toBeVisible();
       await expect(page.getByRole('textbox', { name: 'API 제외 경로', exact: true })).toBeHidden();

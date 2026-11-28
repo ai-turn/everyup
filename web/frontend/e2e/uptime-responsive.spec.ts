@@ -23,7 +23,7 @@ for (const theme of ['light', 'dark']) for (const [width, height] of [[375, 812]
       await page.goto(`./${route}`);
       await expect(page.getByRole(role, { name: title, exact: true })).toBeVisible();
       await expect.poll(() => page.locator('main > div').first().evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
-      await expect(page.locator('html')).toHaveClass(theme === 'dark' ? /dark/ : /^(?!.*dark).*$/);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}-${height}-${route.split('/')[0]}${route.includes('monitor') ? '-detail' : ''}.png`) });
     }
     await page.goto('./servers/server-1/uptime'); await page.getByRole('button', { name: '업타임 모니터 추가', exact: true }).click();

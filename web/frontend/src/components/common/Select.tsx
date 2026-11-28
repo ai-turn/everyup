@@ -47,7 +47,7 @@ type SelectProps = Omit<ComponentPropsWithoutRef<'select'>, 'size'> & {
 // FIELD_SHELL의 text-sm·sm:h-10은 className으로 덮이지 않는다(같은 속성은 CSS 순서로 승패가 갈린다) — 크기는 여기서 고른다.
 const TRIGGER_SIZE = {
   md: `${FIELD_SHELL} ${FIELD_HEIGHT}`,
-  sm: 'w-full rounded-lg border bg-ui-hover-soft px-2.5 h-8 text-xs text-text-base transition-colors',
+  sm: 'w-full rounded-lg border bg-surface-hover px-2.5 h-8 text-xs text-text transition-colors',
 } as const;
 
 /** App-styled listbox that preserves native option and change-event semantics. */
@@ -163,19 +163,19 @@ export function Select({
         aria-controls={open ? menuId : undefined}
         onClick={toggle}
         onKeyDown={onKeyDown}
-        className={`${TRIGGER_SIZE[size]} inline-flex items-center justify-between gap-2 border-ui-control-border text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`${TRIGGER_SIZE[size]} inline-flex items-center justify-between gap-2 border-control text-left disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         <span className="min-w-0 flex-1 truncate">{selected?.label}</span>
         <MaterialIcon size={20} name={open ? 'expand_less' : 'expand_more'} className="shrink-0 text-text-muted" />
       </button></Tooltip>
       {open && createPortal(
-        <div ref={menuRef} id={menuId} role="listbox" aria-label={ariaLabel} style={{ top: position.top, left: position.left, width: position.width }} className="fixed z-[60] max-h-64 overflow-y-auto rounded-lg border border-ui-border bg-ui-raised p-1 shadow-lg">
+        <div ref={menuRef} id={menuId} role="listbox" aria-label={ariaLabel} style={{ top: position.top, left: position.left, width: position.width }} className="fixed z-[60] max-h-64 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-lg">
           {sectionsOf(options).map((section, index) => {
             const items = section.options.map((option) => {
               const isSelected = option.value === selectedValue;
               // 모바일에서 누르는 높이 44px. 데스크톱은 36px 그대로다.
               return (
-                <button key={option.value} type="button" role="option" aria-selected={isSelected} disabled={option.disabled} onClick={() => selectValue(option.value)} className={`flex min-h-11 w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 ${isSelected ? 'bg-primary/10 font-medium text-action' : 'text-text-secondary hover:bg-ui-hover'}`}>
+                <button key={option.value} type="button" role="option" aria-selected={isSelected} disabled={option.disabled} onClick={() => selectValue(option.value)} className={`flex min-h-11 w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 ${isSelected ? 'bg-accent-bg font-medium text-text' : 'text-text hover:bg-surface-hover'}`}>
                   <span className="min-w-0 flex-1 truncate">{option.label}</span>
                   {isSelected && <MaterialIcon size={20} name="check" className="ml-2 shrink-0" />}
                 </button>

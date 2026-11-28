@@ -22,12 +22,12 @@ export function ResourceTable<T>({ rows, columns, rowKey, ariaLabel, renderDetai
   // table-bleed: 셀 패딩만큼 바깥으로 펼쳐 글자를 본문 정렬선에 맞춘다(§4.5).
   return <div className="table-bleed">
     <table aria-label={ariaLabel} className="w-full table-fixed text-sm">
-      <thead className="border-b border-ui-border-soft text-xs text-text-muted"><tr>{columns.map((column) =>
+      <thead className="border-b border-border text-xs text-text-muted"><tr>{columns.map((column) =>
         <th key={column.key} scope="col" className={`px-4 py-3 font-medium ${column.align ? 'text-right' : 'text-left'} ${column.className ?? ''}`}>{column.label}</th>,
       )}</tr></thead>
       <tbody>{rows.map((row) => {
         const details = renderDetails?.(row);
-        return <Fragment key={rowKey(row)}><tr {...tableRowLinkHandlers} className={`table-row-link align-top transition-colors ${alertRow?.(row) ? 'bg-status-error-fill/6 hover:bg-status-error-fill/10' : 'hover:bg-ui-hover-soft'}`}>{columns.map((column) =>
+        return <Fragment key={rowKey(row)}><tr {...tableRowLinkHandlers} className={`table-row-link align-top transition-colors ${alertRow?.(row) ? 'bg-crit/6 hover:bg-crit/10' : 'hover:bg-surface-hover'}`}>{columns.map((column) =>
           <td key={column.key} className={`min-w-0 px-4 py-4 ${column.align ? 'text-right tabular-nums' : 'text-left'} ${column.className ?? ''}`}>{column.render(row)}</td>,
         )}</tr>{details && <tr><td colSpan={columns.length} className="p-4">{details}</td></tr>}</Fragment>;
       })}</tbody>

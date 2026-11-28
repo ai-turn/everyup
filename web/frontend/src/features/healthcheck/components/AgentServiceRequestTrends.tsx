@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine,
 } from 'recharts';
 import {
-  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartLegend, ChartSkeleton, ChartTooltip, SERIES_HEX, areaGradient, areaProps, fillBuckets,
+  CHART_HEIGHT, CHART_MARGIN, CHART_INITIAL_DIMENSION, ChartCard, ChartLegend, ChartSkeleton, ChartTooltip, SERIES, areaGradient, areaProps, fillBuckets,
   formatAxisValue, formatTimeLabel, gridProps, lineProps, niceYAxis, timeXAxisProps, tooltipCursor, useChartKeyboard, useChartTheme, yAxisProps,
   type ChartTheme, type TooltipPayloadItem,
 } from '../../../components/charts';
@@ -229,8 +229,8 @@ function ServiceRequestTrends({
       caption: 'ms',
       legend: [
         { label: 'p50', color: theme.primaryColor },
-        { label: 'p95', color: SERIES_HEX.emerald },
-        { label: 'p99', color: SERIES_HEX.amber },
+        { label: 'p95', color: SERIES.second },
+        { label: 'p99', color: SERIES.third },
       ],
       prevKey: 'prevP99' as const,
       prevLabel: 'p99 · 지난주',
@@ -241,7 +241,7 @@ function ServiceRequestTrends({
   const legend = [
     ...view.legend,
     ...(prevValues.length > 0 ? [{ label: view.prevLabel, color: theme.tickColor }] : []),
-    ...(deploys.length > 0 ? [{ label: '배포', color: SERIES_HEX.violet }] : []),
+    ...(deploys.length > 0 ? [{ label: '배포', color: SERIES.deploy }] : []),
   ];
 
   return (
@@ -256,17 +256,17 @@ function ServiceRequestTrends({
       {summary && (summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther) > 0 && (() => {
         const total = summary.count2xx + summary.count3xx + summary.count4xx + summary.count5xx + summary.countOther;
         const classes: { label: string; status?: StatusClass; count: number; bar: string; text: string }[] = [
-          { label: '2xx', status: '2xx' as const, count: summary.count2xx, bar: 'bg-status-healthy-fill', text: 'text-status-healthy' },
-          { label: '3xx', status: '3xx' as const, count: summary.count3xx, bar: 'bg-slate-400', text: 'text-text-muted' },
-          { label: '4xx', status: '4xx' as const, count: summary.count4xx, bar: 'bg-status-warn-fill', text: 'text-status-warn' },
-          { label: '5xx', status: '5xx' as const, count: summary.count5xx, bar: 'bg-status-error-fill', text: 'text-status-error' },
-          { label: '기타', count: summary.countOther, bar: 'bg-status-idle-fill', text: 'text-text-muted' },
+          { label: '2xx', status: '2xx' as const, count: summary.count2xx, bar: 'bg-ok', text: 'text-ok-text' },
+          { label: '3xx', status: '3xx' as const, count: summary.count3xx, bar: 'bg-wait', text: 'text-text-muted' },
+          { label: '4xx', status: '4xx' as const, count: summary.count4xx, bar: 'bg-attn', text: 'text-attn-text' },
+          { label: '5xx', status: '5xx' as const, count: summary.count5xx, bar: 'bg-crit', text: 'text-crit-text' },
+          { label: '기타', count: summary.countOther, bar: 'bg-wait', text: 'text-text-muted' },
         ].filter((c) => c.count > 0);
         // 서비스 상세에서는 아래 Endpoint 표가 "5xx 최다" 한 줄을 대신한다. 표가 없는 Docker 환경 전체 추이에만 남긴다.
         const rollup = sourceKind === 'agent' && !serviceKey;
         return (
           <div>
-            <div className="flex h-2 rounded-full overflow-hidden bg-ui-hover">
+            <div className="flex h-2 rounded-full overflow-hidden bg-surface-hover">
               {classes.map((c) => (
                 <div key={c.label} className={c.bar} style={{ width: `${(c.count / total) * 100}%` }} />
               ))}
@@ -278,14 +278,14 @@ function ServiceRequestTrends({
                 const pressed = statusFilter === c.status;
                 return (
                   <button key={c.label} type="button" aria-pressed={pressed} onClick={() => onStatusChange(pressed ? undefined : c.status)}
-                    className={`-mx-1.5 rounded px-1.5 py-0.5 tabular-nums underline-offset-2 transition-colors hover:underline aria-pressed:bg-ui-hover aria-pressed:underline ${c.text}`}>
+                    className={`-mx-1.5 rounded px-1.5 py-0.5 tabular-nums underline-offset-2 transition-colors hover:underline aria-pressed:bg-surface-hover aria-pressed:underline ${c.text}`}>
                     {text}
                   </button>
                 );
               })}
               {rollup && summary.top5xxPath && (
                 <span className="text-text-muted truncate">
-                  {'5xx 최다'}: <span className="font-mono text-status-error">{summary.top5xxMethod} {summary.top5xxPath}</span> ×{summary.top5xxCount}
+                  {'5xx 최다'}: <span className="font-mono text-crit-text">{summary.top5xxMethod} {summary.top5xxPath}</span> ×{summary.top5xxCount}
                 </span>
               )}
             </div>
@@ -307,12 +307,12 @@ function ServiceRequestTrends({
               aria-pressed={active}
               onClick={() => setMetric(tile.id)}
               className={`min-w-0 rounded-lg border p-4 text-left transition-colors ${tile.id === 'latency' ? 'max-sm:col-span-2' : ''} ${
-                active ? 'border-primary ring-1 ring-inset ring-primary' : 'border-ui-border-soft hover:bg-ui-hover-soft'
+                active ? 'border-accent ring-1 ring-inset ring-focus' : 'border-border hover:bg-surface-hover'
               }`}
             >
               {/* 타일 안쪽 16px, 라벨 → 값 4px(Stat, DESIGN.md §3.7 수치 타일) */}
               <Stat labelTone={active ? 'secondary' : 'muted'} label={tile.label}
-                value={<>{tile.value}<span className="-ml-1.5 type-caption text-text-dim">{tile.unit}</span></>}
+                value={<>{tile.value}<span className="-ml-1.5 type-caption text-text-faint">{tile.unit}</span></>}
                 detail={tile.id === 'latency' && latestPoint && <>{formatClock(latestPoint.t)}~{formatClock(Math.min(latestPoint.t + bucketMs, timeWindow[1]))}</>} />
             </button>
           );
@@ -320,7 +320,7 @@ function ServiceRequestTrends({
       </div>
 
       <div className="mt-heading mb-label flex min-h-6 items-center justify-between gap-3">
-        <span className="type-caption text-text-dim">{view.caption}</span>
+        <span className="type-caption text-text-faint">{view.caption}</span>
         {legend.length > 0 && <ChartLegend items={legend} />}
       </div>
       <div tabIndex={0} role="group" aria-label="요청 추이. 좌우 방향키로 시점별 값을 읽습니다." className="rounded-lg" onKeyDown={kbd.onKeyDown} onBlur={kbd.onBlur}>
@@ -355,11 +355,11 @@ function ServiceRequestTrends({
           ]}
           {shown === 'latency' && [
             <Line key="p50" {...lineProps(theme.primaryColor, theme)} dataKey="p50" name="p50" />,
-            <Line key="p95" {...lineProps(SERIES_HEX.emerald, theme)} dataKey="p95" name="p95" />,
-            <Line key="p99" {...lineProps(SERIES_HEX.amber, theme)} dataKey="p99" name="p99" />,
+            <Line key="p95" {...lineProps(SERIES.second, theme)} dataKey="p95" name="p95" />,
+            <Line key="p99" {...lineProps(SERIES.third, theme)} dataKey="p99" name="p99" />,
           ]}
           {deploys.map((d) => (
-            <ReferenceLine key={d.id} x={Date.parse(d.time)} stroke={SERIES_HEX.violet} strokeWidth={1.5} ifOverflow="hidden" />
+            <ReferenceLine key={d.id} x={Date.parse(d.time)} stroke={SERIES.deploy} strokeWidth={1.5} ifOverflow="hidden" />
           ))}
           {prevValues.length > 0 && (
             <Line {...lineProps(theme.tickColor, theme)} dataKey={view.prevKey} name={view.prevLabel} strokeDasharray="4 3" />
@@ -411,8 +411,8 @@ function bucketRows(row: ChartPoint | undefined, theme: ChartTheme, shown: Metri
     { name: '에러', value: row.errors, unit: row.errorRate === null ? '건' : `건 · ${row.errorRate}%`, color: theme.errorColor },
   ];
   if (row.p50 !== null) rows.push({ name: 'p50', value: row.p50, unit: 'ms', color: theme.primaryColor });
-  if (row.p95 !== null) rows.push({ name: 'p95', value: row.p95, unit: 'ms', color: SERIES_HEX.emerald });
-  if (row.p99 !== null) rows.push({ name: 'p99', value: row.p99, unit: 'ms', color: SERIES_HEX.amber });
+  if (row.p95 !== null) rows.push({ name: 'p95', value: row.p95, unit: 'ms', color: SERIES.second });
+  if (row.p99 !== null) rows.push({ name: 'p99', value: row.p99, unit: 'ms', color: SERIES.third });
   const prev = {
     count: { name: '요청 · 지난주', value: row.prevCount, unit: '건' },
     error: { name: '에러율 · 지난주', value: row.prevErrorRate, unit: '%' },

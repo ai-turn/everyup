@@ -243,17 +243,17 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                     return (
                                         <label
                                             key={type}
-                                            className={`flex flex-col items-center gap-2 p-4 border-2 rounded-xl cursor-pointer transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-primary ${
+                                            className={`flex flex-col items-center gap-2 p-4 border-2 rounded-xl cursor-pointer transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus ${
                                                 active
                                                     ? m.colorBg
-                                                    : 'border-ui-border-soft hover:border-ui-border'
+                                                    : 'border-border hover:border-border'
                                             }`}
                                         >
                                             <input {...register('type')} type="radio" value={type} className="sr-only" />
-                                            <m.Icon size={26} className={active ? m.color : 'text-text-dim'} />
+                                            <m.Icon size={26} className={active ? m.color : 'text-text-faint'} />
                                             {/* 선택지 카드의 제목 → 설명 4px(DESIGN.md §6) */}
                                             <span className="flex flex-col items-center">
-                                                <span className={`type-control ${active ? 'text-text-base' : 'text-text-muted'}`}>{m.label}</span>
+                                                <span className={`type-control ${active ? 'text-text' : 'text-text-muted'}`}>{m.label}</span>
                                                 <span className="mt-1 type-caption-stack text-text-muted">{m.sub}</span>
                                             </span>
                                         </label>
@@ -338,18 +338,18 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                         <div className="hidden lg:block">
                             <div className="flex items-center gap-3 mb-4">
                                 <div>
-                                    <p className="type-label text-text-base">채널 미리보기</p>
+                                    <p className="type-label text-text">채널 미리보기</p>
                                     <p className="mt-1 type-body text-text-muted">실제 전송 메시지 형식</p>
                                 </div>
                             </div>
                             <div className="space-y-heading">
                                 {/* Identity */}
-                                <div className="flex items-center gap-3 p-3 bg-ui-hover-soft/50 rounded-xl">
+                                <div className="flex items-center gap-3 p-3 bg-surface-hover/50 rounded-xl">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border-2 ${meta.colorBg}`}>
                                         <meta.Icon size={20} className={meta.color} />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="type-body text-text-base truncate">
+                                        <p className="type-body text-text truncate">
                                             {watchedName || <span className="text-text-muted font-normal">채널 이름 미입력</span>}
                                         </p>
                                         <p className="type-body text-text-muted">{meta.label}</p>
@@ -360,26 +360,26 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 <div className="space-y-label type-control">
                                     {watchedType === 'telegram' ? (
                                         <>
-                                            <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-text-dim type-caption">Bot Token</span>
+                                            <div className="flex items-center justify-between px-3 py-2 bg-surface-hover/50 rounded-lg">
+                                                <span className="text-text-faint type-caption">Bot Token</span>
                                                 <span className="font-mono text-text-muted">
-                                                    {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-dim">{keepsSecret ? '저장된 값' : '미입력'}</span>}
+                                                    {watchedBotToken ? maskToken(watchedBotToken) : <span className="text-text-faint">{keepsSecret ? '저장된 값' : '미입력'}</span>}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg">
-                                                <span className="text-text-dim type-caption">Chat ID</span>
+                                            <div className="flex items-center justify-between px-3 py-2 bg-surface-hover/50 rounded-lg">
+                                                <span className="text-text-faint type-caption">Chat ID</span>
                                                 <span className="font-mono text-text-muted">
-                                                    {watchedChatId || <span className="text-text-dim">미입력</span>}
+                                                    {watchedChatId || <span className="text-text-faint">미입력</span>}
                                                 </span>
                                             </div>
                                         </>
                                     ) : (
-                                        <div className="flex items-center justify-between px-3 py-2 bg-ui-hover-soft/50 rounded-lg gap-3">
-                                            <span className="text-text-dim type-caption shrink-0">Webhook</span>
+                                        <div className="flex items-center justify-between px-3 py-2 bg-surface-hover/50 rounded-lg gap-3">
+                                            <span className="text-text-faint type-caption shrink-0">Webhook</span>
                                             <span className="font-mono text-text-muted truncate text-right">
                                                 {watchedWebhook
                                                     ? watchedWebhook.replace(/^https?:\/\//, '').slice(0, 32) + (watchedWebhook.length > 40 ? '…' : '')
-                                                    : <span className="text-text-dim">{keepsSecret ? '저장된 값' : '미입력'}</span>}
+                                                    : <span className="text-text-faint">{keepsSecret ? '저장된 값' : '미입력'}</span>}
                                             </span>
                                         </div>
                                     )}
@@ -396,9 +396,9 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                         {/* Test send card */}
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                <MaterialIcon size={20} name="send" className="text-text-dim" />
+                                <MaterialIcon size={20} name="send" className="text-text-faint" />
                                 <div>
-                                    <p className="type-label text-text-base">테스트 전송</p>
+                                    <p className="type-label text-text">테스트 전송</p>
                                     <p className="mt-1 type-body text-text-muted">실제 채널로 테스트 메시지 발송</p>
                                 </div>
                             </div>
@@ -419,20 +419,20 @@ export function ChannelForm({ onSuccess, onCancel, channel, onSubmittingChange }
                                 </Button>
 
                                 {testState === 'success' && (
-                                    <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft rounded-md">
-                                        <MaterialIcon size={20} name="check_circle" className="text-status-healthy icon-lead shrink-0" />
+                                    <div className="flex items-start gap-2 px-3 py-2.5 bg-surface-hover rounded-md">
+                                        <MaterialIcon size={20} name="check_circle" className="text-ok-text icon-lead shrink-0" />
                                         <div>
-                                            <p className="type-body text-text-base">발송 성공</p>
+                                            <p className="type-body text-text">발송 성공</p>
                                             <p className="mt-1 type-body text-text-muted">{`${testTime}에 전송되었습니다`}</p>
                                         </div>
                                     </div>
                                 )}
 
                                 {testState === 'error' && (
-                                    <div className="flex items-start gap-2 px-3 py-2.5 bg-ui-hover-soft rounded-md">
-                                        <MaterialIcon size={20} name="error" className="text-status-error icon-lead shrink-0" />
+                                    <div className="flex items-start gap-2 px-3 py-2.5 bg-surface-hover rounded-md">
+                                        <MaterialIcon size={20} name="error" className="text-crit-text icon-lead shrink-0" />
                                         <div>
-                                            <p className="type-body text-text-base">발송 실패</p>
+                                            <p className="type-body text-text">발송 실패</p>
                                             <p className="mt-1 type-body text-text-muted">{testError}</p>
                                         </div>
                                     </div>

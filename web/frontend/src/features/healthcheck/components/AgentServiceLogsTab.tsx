@@ -45,14 +45,13 @@ const RANGE_BUCKET: Record<GlobalTimeRange, { hours: number; bucketMins: number 
 
 // Stacked-bar colors matching LEVEL_TEXT token colors. Names are the server's
 // lowercase level tokens, as on every log row (DESIGN.md §1.5).
-// 600단계: 500단계는 흰 배경에서 warn 2.15 / info 2.77 / trace 2.56으로 WCAG 1.4.11(3:1) 미달이었다.
 const LEVEL_BAR: { key: keyof Omit<LogHistogramBucket, 'time'>; color: string; name: string }[] = [
   // error·warn은 상태 채움 토큰을 테마에서 읽는다(barColor) — 여기 값은 쓰지 않는다.
   { key: 'error', color: '', name: 'error' },
   { key: 'warn',  color: '', name: 'warn' },
-  { key: 'info',  color: '#0284c7', name: 'info' },
-  { key: 'debug', color: '#7c3aed', name: 'debug' },
-  { key: 'trace', color: '#64748b', name: 'trace' },
+  { key: 'info',  color: 'var(--chart-1)', name: 'info' },
+  { key: 'debug', color: 'var(--chart-4)', name: 'debug' },
+  { key: 'trace', color: 'var(--wait)', name: 'trace' },
 ];
 
 const LOG_LEVELS: { value: LogLevel | ''; label: string }[] = [
@@ -167,7 +166,7 @@ function LogVolumeHistogram({ buckets, window: span, bucketMs, activeBucket, onP
         </ResponsiveContainer>
       </div>
       {/* 키보드로 고른 구간 — 보이는 사용자와 스크린리더 모두에게 같은 문장 */}
-      <p aria-live="polite" className="mt-1 type-caption text-text-dim tabular-nums">
+      <p aria-live="polite" className="mt-1 type-caption text-text-faint tabular-nums">
         {kbdBucket && `${formatTimeTick(kbdBucket.t)} ~ ${formatTimeTick(kbdBucket.t + bucketMs)} · ${
           LEVEL_BAR.filter((l) => kbdBucket[l.key] > 0).map((l) => `${l.name} ${kbdBucket[l.key]}`).join(', ') || '0건'} · Enter로 이 구간만 보기`}
       </p>
@@ -200,17 +199,17 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
   // 마우스는 행 어디를 눌러도 펼치고, 키보드·스크린리더는 끝의 펼침 버튼을 쓴다.
   return (
     <div
-      className={`rounded-md px-4 py-3 transition-colors ${hasMeta ? 'cursor-pointer hover:bg-ui-hover-soft' : ''}`}
+      className={`rounded-md px-4 py-3 transition-colors ${hasMeta ? 'cursor-pointer hover:bg-surface-hover' : ''}`}
       onClick={hasMeta ? () => setExpanded(v => !v) : undefined}
     >
       {/* Time leads so the list scans in time order; on phones it takes its own line. */}
       <div className="flex flex-wrap items-start gap-x-3 gap-y-1 sm:flex-nowrap">
-        <time dateTime={log.createdAt} className="icon-lead w-full shrink-0 type-caption tabular-nums text-text-dim sm:w-auto">{formatDateTime(log.createdAt)}</time>
+        <time dateTime={log.createdAt} className="icon-lead w-full shrink-0 type-caption tabular-nums text-text-faint sm:w-auto">{formatDateTime(log.createdAt)}</time>
         <span className={`${LEVEL_BASE} icon-lead ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
           {log.level}
         </span>
         {/* pre-wrap keeps a stack trace's lines */}
-        <p className="min-w-0 flex-1 whitespace-pre-wrap wrap-break-word font-mono text-sm text-text-base">{log.message}</p>
+        <p className="min-w-0 flex-1 whitespace-pre-wrap wrap-break-word font-mono text-sm text-text">{log.message}</p>
         {log.traceId && (
           <Button
             variant="ghost"
@@ -230,7 +229,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
             aria-expanded={expanded}
             aria-label={expanded ? '로그 상세 접기' : '로그 상세 펼치기'}
             onClick={(e) => { e.stopPropagation(); setExpanded(v => !v); }}
-            className="-my-1.5 -mr-1.5 inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-dim hover:bg-ui-hover max-sm:h-11 max-sm:w-11"
+            className="-my-1.5 -mr-1.5 inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-faint hover:bg-surface-hover max-sm:h-11 max-sm:w-11"
           >
             <MaterialIcon size={20} name={expanded ? 'expand_less' : 'expand_more'} />
           </button>
@@ -242,7 +241,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
         <div className="mt-label cursor-auto space-y-label" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           {attributes.length > 0 && (
             <div className="space-y-intra">
-            <p className="type-caption text-text-dim">Attributes</p>
+            <p className="type-caption text-text-faint">Attributes</p>
             <div className="flex flex-wrap gap-1.5">
               {attributes.map(([key, value]) => (
                 <Button
@@ -253,7 +252,7 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
                   title={`${key}=${value} 로 필터`}
                   className="h-auto min-h-8 max-w-full py-1 text-left font-mono"
                 >
-                  <span className="text-text-dim">{key}</span>
+                  <span className="text-text-faint">{key}</span>
                   <span>=</span>
                   <span className="min-w-0 break-all">{value}</span>
                 </Button>
@@ -263,18 +262,18 @@ function LogRow({ log, onOpenTrace, onFilterAttribute }: {
           )}
           {resource.length > 0 && (
             <div className="space-y-intra">
-            <p className="type-caption text-text-dim">Resource</p>
+            <p className="type-caption text-text-faint">Resource</p>
             <dl className="grid gap-x-4 gap-y-1 font-mono text-xs sm:grid-cols-[max-content_1fr]">
               {resource.map(([key, value]) => (
-                <Fragment key={key}><dt className="text-text-dim">{key}</dt><dd className="break-all text-text-secondary">{value}</dd></Fragment>
+                <Fragment key={key}><dt className="text-text-faint">{key}</dt><dd className="break-all text-text">{value}</dd></Fragment>
               ))}
             </dl>
             </div>
           )}
           {/* The same fields again plus anything nested — closed, since the lists above already read it. */}
           <details>
-            <summary className="cursor-pointer py-1 type-caption text-text-dim max-sm:py-3">원본 JSON</summary>
-            <pre className="mt-intra text-xs font-mono text-text-muted bg-ui-hover-soft rounded-md px-3 cell overflow-x-auto whitespace-pre-wrap break-all">
+            <summary className="cursor-pointer py-1 type-caption text-text-faint max-sm:py-3">원본 JSON</summary>
+            <pre className="mt-intra text-xs font-mono text-text-muted bg-surface-hover rounded-md px-3 cell overflow-x-auto whitespace-pre-wrap break-all">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>
           </details>
@@ -418,7 +417,7 @@ function ServiceLogsPanel(props: Props) {
         {/* 보기 필터임을 라벨로 밝힌다 — 위 '수집 레벨'(저장 설정)과 같은 표기라 혼동됐다. */}
         {/* 44px 높이를 지키면서 한 줄에 여섯 개가 들어가도록 좁은 화면에서만 좌우 여백을 줄인다 */}
         <div className="flex flex-col items-start gap-intra max-sm:w-full max-sm:[&_button]:px-2 sm:flex-row sm:items-center sm:gap-label">
-          <span className="whitespace-nowrap type-caption text-text-dim">레벨 필터</span>
+          <span className="whitespace-nowrap type-caption text-text-faint">레벨 필터</span>
           <SegmentedControl size="md" options={LOG_LEVELS} value={level} onChange={v => { setLevel(v); setPage(1); }} ariaLabel="레벨 필터" />
         </div>
 
@@ -479,14 +478,14 @@ function ServiceLogsPanel(props: Props) {
 
         {/* Live tail: 5s silent polling while on. Healthy green, not red — on is not an error. */}
         <Button variant="secondary" aria-pressed={live} onClick={() => { setLive(v => !v); setPage(1); }} title="5초마다 자동 갱신">
-          <span aria-hidden="true" className={`h-2 w-2 rounded-full ${live ? 'bg-status-healthy-fill animate-pulse' : 'bg-text-dim'}`} />
+          <span aria-hidden="true" className={`h-2 w-2 rounded-full ${live ? 'bg-ok animate-pulse' : 'bg-text-faint'}`} />
           실시간
         </Button>
       </div>
 
       {/* Volume histogram — stacked per-level counts over the header range */}
       {histogramFailed && (
-        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3">
           <p className="type-body text-text-muted">로그 발생량을 불러오지 못했습니다</p>
           <Button variant="ghost" size="sm" onClick={fetchHistogram}>다시 시도</Button>
         </div>
@@ -503,7 +502,7 @@ function ServiceLogsPanel(props: Props) {
 
       {/* Count */}
       {!loading && total > 0 && (
-        <p className="type-caption text-text-dim">
+        <p className="type-caption text-text-faint">
           {total.toLocaleString()}건 중 {((page - 1) * PAGE_SIZE + 1).toLocaleString()}~{Math.min(page * PAGE_SIZE, total).toLocaleString()}
         </p>
       )}
@@ -517,13 +516,13 @@ function ServiceLogsPanel(props: Props) {
       {loading ? (
         <div className="space-y-label">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-12 rounded-xl bg-ui-hover animate-pulse" />
+            <div key={i} className="h-12 rounded-xl bg-surface-hover animate-pulse" />
           ))}
         </div>
       ) : logs.length === 0 && loadError ? (
         <div role="alert" className="py-16 text-center">
-          <MaterialIcon size={36} name="error" className="text-status-error mb-2" />
-          <p className="type-label text-text-base">로그를 불러오지 못했습니다</p>
+          <MaterialIcon size={36} name="error" className="text-crit-text mb-2" />
+          <p className="type-label text-text">로그를 불러오지 못했습니다</p>
           <div className="space-y-heading">
             <p className="mt-1 type-body text-text-muted">{loadError.message}</p>
             <Button onClick={() => void fetch()}>다시 시도</Button>
@@ -531,7 +530,7 @@ function ServiceLogsPanel(props: Props) {
         </div>
       ) : logs.length === 0 ? (
         <div className="py-16 text-center">
-          <MaterialIcon size={36} name="article" className="text-text-dim mb-2" />
+          <MaterialIcon size={36} name="article" className="text-text-faint mb-2" />
           <div className="space-y-heading">
             <p className="type-body text-text-muted">
               {hasConditions ? '조건에 맞는 로그가 없습니다' : '이 기간에 수집된 로그가 없습니다'}

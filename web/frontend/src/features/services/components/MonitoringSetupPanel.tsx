@@ -105,29 +105,29 @@ function SetupStep({
   const appearance = {
     ready: {
       icon: 'check',
-      circle: 'bg-status-healthy-fill text-bg-surface',
-      badge: 'bg-status-healthy/10 text-status-healthy',
+      circle: 'bg-ok text-surface',
+      badge: 'bg-ok-bg text-ok-text',
     },
     waiting: {
       icon: String(number),
-      circle: 'bg-primary/10 text-action',
-      badge: 'bg-status-idle/10 text-status-idle',
+      circle: 'bg-accent-bg text-text',
+      badge: 'bg-wait/10 text-text-muted',
     },
     issue: {
       icon: 'priority_high',
-      circle: 'bg-status-warn/15 text-status-warn',
-      badge: 'bg-status-warn/10 text-status-warn',
+      circle: 'bg-attn/15 text-attn-text',
+      badge: 'bg-attn-bg text-attn-text',
     },
     optional: {
       icon: String(number),
       // 선택 기능은 상태가 아니라 분류다 — 색 칩 대신 중립(DESIGN §5.3).
-      circle: 'bg-ui-hover text-text-muted',
+      circle: 'bg-surface-hover text-text-muted',
       badge: 'text-text-muted',
     },
   }[state];
 
   return (
-    <div className="flex min-w-0 flex-col rounded-md bg-ui-hover-soft p-3">
+    <div className="flex min-w-0 flex-col rounded-md bg-surface-hover p-3">
       <div className="flex items-start gap-3">
         <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full type-caption ${appearance.circle}`}>
           {state === 'ready' || state === 'issue' ? (
@@ -136,7 +136,7 @@ function SetupStep({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1.5">
-            <h3 className="type-label text-text-base">{title}</h3>
+            <h3 className="type-label text-text">{title}</h3>
             <span className={`shrink-0 rounded px-1.5 py-0.5 type-caption ${appearance.badge}`}>
               {stateLabel}
             </span>
@@ -148,7 +148,7 @@ function SetupStep({
         // 단계 머리 → 상세·조작 8px, 상세 → 조작 8px. flex-col이라 버튼이 이전처럼 폭을 채운다.
         <div className="mt-2 flex flex-col gap-label">
       {detail && (
-        <p className={`rounded-md px-2 py-1.5 type-body ${state === 'issue' ? 'bg-status-warn/5 text-status-warn' : 'bg-ui-hover-soft text-text-muted'}`}>
+        <p className={`rounded-md px-2 py-1.5 type-body ${state === 'issue' ? 'bg-attn/5 text-attn-text' : 'bg-surface-hover text-text-muted'}`}>
           {detail}
         </p>
       )}
@@ -240,8 +240,8 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
         <div>
           {/* 진행 배지는 제목의 메타다 — 가운데가 아니라 기준선에 맞춘다(DESIGN.md §2.2). */}
           <div className="flex items-baseline gap-2">
-            <h2 className={`${compact ? 'type-label' : 'type-section-title'} text-text-base`}>Docker Collector 설정 가이드</h2>
-            <span className={`rounded-full px-2 py-0.5 type-caption ${requiredComplete ? 'bg-status-healthy/10 text-status-healthy' : 'bg-primary/10 text-action'}`}>
+            <h2 className={`${compact ? 'type-label' : 'type-section-title'} text-text`}>Docker Collector 설정 가이드</h2>
+            <span className={`rounded-full px-2 py-0.5 type-caption ${requiredComplete ? 'bg-ok-bg text-ok-text' : 'bg-accent-bg text-text'}`}>
               필수 {requiredReady}/{requiredTotal}
             </span>
           </div>
@@ -265,7 +265,7 @@ export function MonitoringSetupPanel({ agent, services, setupStatus, onInstall, 
           )}
         </div>
         {report && (
-          <div className="space-y-intra text-right type-caption text-text-dim">
+          <div className="space-y-intra text-right type-caption text-text-faint">
             <p>{host || '호스트 정보 확인 중'} · {report.host.btf ? 'BTF 있음' : 'BTF 없음'}</p>
             <p>
               {formatDateTime(report.checkedAt)} 확인

@@ -17,7 +17,7 @@ export function AlertsSection({ value, loading, onChange }: {
   return (
     <SectionCard title="알림 임계값">
       {loading ? (
-        <div className="h-10 bg-ui-hover rounded-lg animate-pulse" />
+        <div className="h-10 bg-surface-hover rounded-lg animate-pulse" />
       ) : (
         <SettingRow
           label="연속 실패 횟수"

@@ -34,7 +34,7 @@ function stats(row: ServerRow, capability: ServerCapability, known: boolean): St
 function MonitorChecks({ monitor, stale }: { monitor: UptimeMonitor; stale: boolean }) {
   return (
     <div className="min-w-0">
-      <p className="mb-1 truncate type-caption text-text-secondary">{monitor.name}</p>
+      <p className="mb-1 truncate type-caption text-text">{monitor.name}</p>
       {!monitor.recentChecks ? <p className="type-caption text-text-muted">체크 기록 확인 불가</p>
         : monitor.recentChecks.length === 0 ? <p className="type-caption text-text-muted">{monitor.isActive ? '첫 체크 대기' : '체크 기록 없음'}</p>
           : <RecentUptimeChecks metrics={monitor.recentChecks} paused={!monitor.isActive} stale={stale} />}
@@ -51,17 +51,17 @@ function OverviewRow({ title, status, to, stats: values, children }: { title: st
           읽기 어려웠다(2026-11-20 시각 점검 2.4). */}
       <div className="space-y-label sm:w-40 sm:shrink-0">
         <div className="space-y-intra">
-          <h2 id={headingId} className="type-section-title text-text-base">{title}</h2>
+          <h2 id={headingId} className="type-section-title text-text">{title}</h2>
           <div>{status}</div>
         </div>
-        <Link to={to} className="inline-flex min-h-11 items-center type-label text-action link-underline sm:min-h-6">{title} 보기</Link>
+        <Link to={to} className="inline-flex min-h-11 items-center type-label text-text link-underline sm:min-h-6">{title} 보기</Link>
       </div>
       <div className="min-w-0 flex-1 space-y-heading">
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {values.map((stat) => (
             <div key={stat.label} className="min-w-0">
               <dt className="type-caption text-text-muted">{stat.label}</dt>
-              <dd className={`mt-1 type-label tabular-nums ${stat.warn ? 'text-status-warn' : 'text-text-base'}`}>{stat.value}{stat.warn && <span className="sr-only">, 주의 기준 초과</span>}</dd>
+              <dd className={`mt-1 type-label tabular-nums ${stat.warn ? 'text-attn-text' : 'text-text'}`}>{stat.value}{stat.warn && <span className="sr-only">, 주의 기준 초과</span>}</dd>
             </div>
           ))}
         </dl>
@@ -100,7 +100,8 @@ function ContainersRow({ row }: { row: ServerRow }) {
   );
 }
 
-/** onInstallDocker: Docker Collector가 없는 서버에 설치 창을 연다(ADR 0012). 연결할 수 있는 기능의 끝에 둔다. */
+/** onInstallDocker: Docker Collector가 없는 서버에 설치 창을 연다(ADR 0012). 연결할 수 있는 기능의 끝에 둔다. */
+
 export function ServerOverviewTab({ row, onInstallDocker }: { row: ServerRow; onInstallDocker?: () => void }) {
   const navigate = useNavigate();
   // 연결은 데이터가 보일 자리(기능 탭)에서 시작한다. 개요는 그 탭으로 옮기면서 대화 상자를 열어 달라고만 한다(연결 진입점 정리 D2).
@@ -141,14 +142,14 @@ export function ServerOverviewTab({ row, onInstallDocker }: { row: ServerRow; on
   return (
     <div className="page-stack">
       {incidents.length > 1 && (
-        <section aria-labelledby="server-incidents" className="flex items-start gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
-          <span aria-hidden="true" className="flex h-5 shrink-0 items-center"><span className="h-2.5 w-2.5 rounded-full bg-status-error-fill" /></span>
+        <section aria-labelledby="server-incidents" className="flex items-start gap-3 rounded-xl border border-border bg-surface px-4 py-3">
+          <span aria-hidden="true" className="flex h-5 shrink-0 items-center"><span className="h-2.5 w-2.5 rounded-full bg-crit" /></span>
           <div className="min-w-0">
-            <h2 id="server-incidents" className="type-label text-text-base">진행 중 장애 {incidents.length}건</h2>
+            <h2 id="server-incidents" className="type-label text-text">진행 중 장애 {incidents.length}건</h2>
             <ul className="mt-1 flex flex-wrap gap-x-4">
               {incidents.map((monitor) => (
                 <li key={monitor.id} className="min-w-0">
-                  <Link to={monitorPath(row.server.id, monitor.id)} className="inline-flex min-h-11 items-center gap-1.5 type-body text-action link-underline sm:min-h-6">
+                  <Link to={monitorPath(row.server.id, monitor.id)} className="inline-flex min-h-11 items-center gap-1.5 type-body text-text link-underline sm:min-h-6">
                     {monitor.name}<span className="type-caption text-text-muted">{formatDuration(monitor.activeIncident!.durationSec)} 경과</span>
                   </Link>
                 </li>
@@ -164,7 +165,7 @@ export function ServerOverviewTab({ row, onInstallDocker }: { row: ServerRow; on
         </section>
         {(connectable.length > 0 || onInstallDocker) && (
           <section aria-labelledby="server-connectable" className="space-y-label">
-            <h2 id="server-connectable" className="type-section-title text-text-base">연결할 수 있는 기능</h2>
+            <h2 id="server-connectable" className="type-section-title text-text">연결할 수 있는 기능</h2>
             <div className="-mx-2 flex flex-wrap gap-x-2">
               {connectable.map(({ key }) => <Button key={key} variant="text" className="px-2" onClick={() => startConnect(key)}>{connectAction(key)}</Button>)}
               {onInstallDocker && <Button variant="text" className="px-2" onClick={onInstallDocker}>{DOCKER_INSTALL}</Button>}

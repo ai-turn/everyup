@@ -64,7 +64,7 @@ export function InfraTrends({ hostId, charts, loading, range, error, onRetry, em
     <>
       {showHeading && <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <h2 className="type-section-title tracking-tight text-text-base">
+          <h2 className="type-section-title tracking-tight text-text">
             인프라 추세
           </h2>
           <p className="mt-intra type-body text-text-muted">

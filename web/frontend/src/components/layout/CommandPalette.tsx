@@ -163,12 +163,12 @@ export function CommandPalette() {
         aria-modal="true"
         aria-label="검색"
         tabIndex={-1}
-        className="w-full max-w-lg overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg"
+        className="w-full max-w-lg overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search input */}
-        <div className="flex items-center gap-2 px-4 border-b border-ui-border focus-within:outline-2 focus-within:outline-action focus-within:-outline-offset-2">
-          <MaterialIcon size={20} name="search" className="text-text-dim shrink-0" />
+        <div className="flex items-center gap-2 px-4 border-b border-border focus-within:outline-2 focus-within:outline-focus focus-within:-outline-offset-2">
+          <MaterialIcon size={20} name="search" className="text-text-faint shrink-0" />
           <input
             ref={inputRef}
             value={query}
@@ -178,9 +178,9 @@ export function CommandPalette() {
             aria-controls="command-palette-results"
             aria-activedescendant={filtered[index] ? `command-palette-option-${filtered[index].id}` : undefined}
             placeholder="서버, 대상, 페이지 검색…"
-            className="flex-1 bg-transparent py-3.5 type-control max-sm:text-base text-text-base outline-none placeholder:text-text-dim"
+            className="flex-1 bg-transparent py-3.5 type-control max-sm:text-base text-text outline-none placeholder:text-text-faint"
           />
-          <kbd className="shrink-0 font-sans px-1.5 py-0.5 rounded border border-ui-border type-label-sm text-text-dim">
+          <kbd className="shrink-0 font-sans px-1.5 py-0.5 rounded border border-border type-label-sm text-text-faint">
             Esc
           </kbd>
         </div>
@@ -200,22 +200,22 @@ export function CommandPalette() {
                 onMouseMove={() => setIndex(i)}
                 className={`w-full flex min-h-11 items-center gap-2 px-4 py-2 text-left transition-colors sm:min-h-0 ${
                   i === index
-                    ? 'bg-primary/10 text-action'
-                    : 'text-text-secondary'
+                    ? 'bg-accent-bg text-text'
+                    : 'text-text'
                 }`}
               >
                 {item.icon ? (
-                  <MaterialIcon size={20} name={item.icon} className="shrink-0 text-text-dim" />
+                  <MaterialIcon size={20} name={item.icon} className="shrink-0 text-text-faint" />
                 ) : (
                   <span
                     role="img"
                     aria-label={item.healthy ? '정상' : '장애'}
-                    className={`ml-1 mr-1 h-1.5 w-1.5 rounded-full shrink-0 ${item.healthy ? 'bg-status-healthy-fill' : 'bg-status-error-fill'}`}
+                    className={`ml-1 mr-1 h-1.5 w-1.5 rounded-full shrink-0 ${item.healthy ? 'bg-ok' : 'bg-crit'}`}
                   />
                 )}
                 <span className="type-control truncate">{item.label}</span>
                 {item.meta && (
-                  <span className="ml-auto type-caption text-text-dim shrink-0">{item.meta}</span>
+                  <span className="ml-auto type-caption text-text-faint shrink-0">{item.meta}</span>
                 )}
               </button>
             ))
@@ -223,11 +223,11 @@ export function CommandPalette() {
         </div>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-3 px-4 py-2 border-t border-ui-border type-caption text-text-dim">
+        <div className="flex items-center gap-3 px-4 py-2 border-t border-border type-caption text-text-faint">
           <span>↑↓ 이동</span>
           <span>Enter 열기</span>
           {dataStatus === 'loading' && <span className="ml-auto" role="status">대상 불러오는 중</span>}
-          {dataStatus === 'error' && <span className="ml-auto text-status-error" role="status">일부 대상을 불러오지 못했습니다</span>}
+          {dataStatus === 'error' && <span className="ml-auto text-crit-text" role="status">일부 대상을 불러오지 못했습니다</span>}
         </div>
       </div>
     </div>

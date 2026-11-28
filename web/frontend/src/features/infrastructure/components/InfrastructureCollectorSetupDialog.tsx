@@ -65,11 +65,11 @@ export function InfrastructureCollectorSetupDialog({
       onCancel={event => { event.preventDefault(); if (!submitting) onClose(); }}
       // The API Key is shown once — a stray backdrop click must not throw it away.
       onClick={event => { if (event.target === event.currentTarget && !submitting && !setup) onClose(); }}
-      className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
         <div>
-          <h2 id="infrastructure-collector-dialog-title" className="type-card-title text-text-base">{connectAction('infrastructure')}</h2>
+          <h2 id="infrastructure-collector-dialog-title" className="type-card-title text-text">{connectAction('infrastructure')}</h2>
           <p className="mt-intra type-body text-text-muted">서버에서 실행하는 OpenTelemetry Collector의 hostmetrics receiver로 CPU, 메모리, 디스크, 네트워크를 수집합니다.</p>
         </div>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />
@@ -85,10 +85,10 @@ export function InfrastructureCollectorSetupDialog({
               otel: 'Docker Collector의 수집에서 인프라를 뺍니다. 서버 개요의 설정 가이드에서 적용 명령을 받아 서버에서 한 번 실행하세요.',
             }} />
           ) : <DockerHostNote serverId={serverId} serverName={serverName} infrastructure />}
-          <div className="rounded-md bg-ui-hover-soft p-4 type-control text-text-muted">
+          <div className="rounded-md bg-surface-hover p-4 type-control text-text-muted">
             연결하면 OpenTelemetry Collector 설정 파일과 한 번만 표시되는 API Key를 발급합니다.
           </div>
-          <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
             <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>취소</Button>
             <Button type="submit" loading={submitting} disabled={conflict && !source}>{keepDocker ? 'Docker Collector 유지' : '연결'}</Button>
           </div>

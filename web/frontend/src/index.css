@@ -19,132 +19,73 @@
   font-display: swap;
   src: url('spoqa-han-sans/Subset/SpoqaHanSansNeo/SpoqaHanSansNeo-Bold.woff2') format('woff2');
 }
-/* JetBrains Mono Variable — 코드·로그 전용, self-hosted, CSP-safe. unicode-range로 latin subset만 로드.
-   font-mono로 그린 글자가 화면에 있을 때만 받는다 — 숫자는 Spoqa라 개요·목록에서는 받지 않는다. */
-@import '@fontsource-variable/jetbrains-mono';
+/* Geist(라틴·숫자)와 Geist Mono — self-hosted, CSP-safe(font-src 'self'). 가변폰트라 굵기마다 파일을 따로 싣지 않는다.
+   한글 글리프가 없어 한글은 다음 순위인 Spoqa로 떨어진다(--font-sans). Mono는 font-mono로 그린 글자가 화면에 있을 때만 받는다. */
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+@import './tokens.css';
 
 @import "tailwindcss";
 
-/* Tailwind v4 Variant Setup */
-@variant dark (.dark &);
+/* dark: 변형은 쓰지 않는다 — 테마 전환은 토큰이 한다. 외부 서비스를 흉내 내는 채널 미리보기만 어두운 테마 두 개를 묶어 쓴다. */
+@variant dark (:where([data-theme='dark'], [data-theme='mocha']) &);
 
 /* ─────────────────────────────────────────────────────────────
-   토큰 규약: 시맨틱 토큰(--color-text-muted 등)은 **라이트 값**을 담고,
-   .dark 블록에서 대응 -dark 값으로 재할당된다.
-   → 컴포넌트는 `text-text-muted` 하나만 쓴다. `dark:` 이중 작성 금지.
+   색 규약(DESIGN.md §1): Tailwind 기본 팔레트를 지우고, 색 유틸리티는 tokens.css의 의미 토큰만 가리킨다.
+   값은 테마마다 tokens.css가 바꾼다. 그래서 컴포넌트는 `text-text-muted` 하나만 쓰고 `dark:`를 겹쳐 쓰지 않는다.
+   inline이라 유틸리티가 var(--text-muted)를 직접 참조한다 — 어느 요소에서 테마를 바꿔도 그 아래가 따라간다.
    ───────────────────────────────────────────────────────────── */
 @theme {
-  /* 팔레트 출처: Radix Colors slate + indigo (2026-10-25 교체). 단계 번호는 Radix 12단계 스케일. */
+  --color-*: initial;
+}
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-text: var(--accent-text);
+  --color-focus: var(--focus);
+  --color-crit: var(--crit);
+  --color-crit-text: var(--crit-text);
+  --color-crit-bg: var(--crit-bg);
+  --color-crit-border: var(--crit-border);
+  --color-attn: var(--attn);
+  --color-attn-text: var(--attn-text);
+  --color-attn-bg: var(--attn-bg);
+  --color-ok: var(--ok);
+  --color-ok-text: var(--ok-text);
+  --color-ok-bg: var(--ok-bg);
+  --color-wait: var(--wait);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-deploy-marker: var(--deploy-marker);
+  --color-incident-band: var(--incident-band);
+  --color-uptime-ok: var(--uptime-ok);
+  --color-uptime-fail: var(--uptime-fail);
+  --color-uptime-no-data: var(--uptime-no-data);
+  --color-control: var(--control-border);
+  --color-scrim: var(--scrim);
+}
 
-  /* 1. Primary: 무채색 (2026-11-15, Linear Docs 레퍼런스). 브랜드 색을 따로 두지 않고 글자 최고 단계를
-     채움으로 쓴다 — 화면에서 유채색은 상태색만 남는다. 라이트는 검정 채움 + 흰 글자(16.39),
-     다크는 밝은 채움 + 어두운 글자라 채움 위 글자색을 on-primary로 분리했다. */
-  --color-primary: #1c2024;          /* slate-12 */
-  --color-primary-dark: #edeef0;
-  /* hover는 채움과 글자 대비를 유지한 채 한 단계 옅어진다(라이트 흰 글자 11.45). */
-  --color-primary-hover: #363a3f;
-  --color-primary-hover-dark: #c8cbd0;
-  --color-on-primary: #ffffff;
-  --color-on-primary-dark: #111113;
+@theme {
+  /* Sans: Geist + 한글 Spoqa. body와 font-sans 유틸리티가 같은 값을 보게 한다. */
+  --font-sans: 'Geist Variable', 'Spoqa Han Sans Neo', system-ui, sans-serif;
 
-  /* 채움 없는 액션(버튼 라벨·아이콘·링크) 색. 파랑을 빼고 제목 글자와 같은 값 — 링크는 색이 아니라
-     밑줄·화살표·hover 배경으로 구분한다. */
-  --color-action: #1c2024;
-  --color-action-dark: #edeef0;
+  /* Mono: 기계 문자열(코드·설정 블록·로그 본문·키·ID·URL·경로·메트릭명) 전용. 한글 글리프가 없어
+     '17회' 같은 값이 굴림으로 떨어지지 않게 Spoqa를 2순위에 둔다. 숫자는 본문 폰트 + tabular-nums로 쓴다. */
+  --font-mono: 'Geist Mono Variable', 'Spoqa Han Sans Neo', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* 2. Backgrounds */
-  --color-bg-main: #ffffff;         /* 라이트는 페이지·카드 한 톤 (2026-11-15) */
-  --color-bg-main-dark: #111113;    /* slate-1 */
-  --color-bg-surface: #ffffff;      /* 라이트 카드 표면 = 흰색 */
-  --color-bg-surface-dark: #18191b; /* slate-2 */
-
-  /* 3. UI Components */
-  --color-ui-border: #d9d9e0;       /* 기본 헤어라인 (slate-6) */
-  --color-ui-border-dark: #363a3f;
-  --color-ui-control-border: #80838d;
-  --color-ui-control-border-dark: #6b6f78;
-  --color-ui-border-soft: #e8e8ec;  /* 카드 내부 행 구분선 (slate-4) */
-  --color-ui-border-soft-dark: #363a3f; /* 다크는 헤어라인 1단계뿐 */
-  --color-ui-hover: #f0f0f3;        /* slate-3 */
-  --color-ui-hover-dark: #212225;
-  --color-ui-hover-soft: #f9f9fb;   /* 옅은 내부 채움 (slate-2) */
-  --color-ui-hover-soft-dark: #212225;
-  --color-ui-table-header: #f0f0f3;
-  --color-ui-table-header-dark: #111113;
-  --color-ui-active: #e8e8ec;       /* 눌린 표면 — 스켈레톤·칩·hover (slate-4) */
-  --color-ui-active-dark: #2e3135;  /* (slate-5) */
-
-  /* 떠오른 표면 — 세그먼티드 컨트롤의 선택된 세그먼트처럼 ui-hover 트랙 **위로**
-     솟아 보여야 하는 자리. ui-active와 다크값은 같지만 라이트가 흰색이라 역할이 다르다:
-     ui-active(#e8e8ec)는 트랙보다 눌려 보이고, 이쪽은 떠 보여야 한다. */
-  --color-ui-raised: #ffffff;
-  --color-ui-raised-dark: #2e3135;
-
-  /* 4. Text Colors: 4단 위계 — base > secondary > muted > dim */
-  --color-text-base: #1c2024;       /* 제목·강조 (slate-12) */
-  --color-text-base-dark: #edeef0;
-
-  --color-text-secondary: #363a3f;  /* 본문 (slate-12와 11 사이) */
-  --color-text-secondary-dark: #c8cbd0;
-
-  --color-text-muted: #60646c;      /* 보조 텍스트 (slate-11) — 5.94:1 */
-  --color-text-muted-dark: #b0b4ba;
-
-  /* dim은 slate-10(#80838d)이면 흰 배경 3.8:1로 AA(4.5) 미달이라 11 쪽으로 당겼다. */
-  --color-text-dim: #6b6f78;        /* 메타·플레이스홀더 — 5.04:1 */
-  --color-text-dim-dark: #8b8f97;   /* surface 5.42:1, hover 4.90:1 — 작은 메타·placeholder도 AA 확보 */
-
-  /* 5. Status: 시맨틱 레이어. 컴포넌트는 primitive(emerald-600 등) 대신 이 토큰을 쓴다.
-     라이트는 Radix 11단계보다 한 칸 진하다 — 11단계 그대로면 12px 배지가 자기 /10 틴트 위에서
-     WCAG AA(4.5)에 못 미쳤다(healthy 4.16 / warn 4.08 / error 4.47).
-     다크 healthy는 green이 아닌 teal: Radix 다크 green-11(#3dd68c)과 red-11(#ff9592)은
-     적록색각이상에서 거의 같은 색이 된다(ΔE 2.3). teal + 더 붉은 error로 42.8까지 벌렸다. */
-  --color-status-healthy: #127058;
-  --color-status-healthy-dark: #3dd6c6;
-  --color-status-warn: #925500;
-  --color-status-warn-dark: #ffca16;    /* amber-11 */
-  --color-status-error: #c4282d;
-  --color-status-error-dark: #ff6369;
-  --color-status-idle: #60646c;         /* slate-11 — offline·paused·unknown */
-  --color-status-idle-dark: #b0b4ba;
-
-  /* 5a. Status fill: 점·게이지·막대·임계선처럼 글자가 아닌 상태 표시(ADR 0010).
-     위 status-*는 글자 역할(4.5:1)이라 라이트에서 진하다 — 채움에 쓰면 warn이 갈색으로 보였다.
-     채움은 3:1(WCAG 1.4.11)만 넘으면 되므로 더 밝게 둔다. 흰 카드·bg-main·ui-hover 위 3:1 이상.
-     적록색각이상(Machado 2009) ΔE: healthy↔error 41.2(라이트, 이전 39.8) / 42.8(다크),
-     healthy↔idle 17.1 / 21.0(이전 8.9 / 4.5 — 회색과 정상이 거의 같았다), warn↔error 13.3 / 49.2. */
-  --color-status-healthy-fill: #059669;
-  --color-status-healthy-fill-dark: #3dd6c6;
-  --color-status-warn-fill: #c77700;
-  --color-status-warn-fill-dark: #ffca16;
-  --color-status-error-fill: #dc2626;
-  --color-status-error-fill-dark: #ff6369;
-  --color-status-idle-fill: #80838d;    /* slate-10 — text-muted와 같은 값이던 것을 갈랐다 */
-  --color-status-idle-fill-dark: #80838d;
-
-  /* 5b. Danger: 파괴 확정 버튼의 채움. primary처럼 라이트·다크 같은 값 — 흰 글자 4.83 / hover 6.47.
-     다크 status-error(#ff6369)는 밝아서 흰 글자를 올릴 수 없다. */
-  --color-danger: #dc2626;
-  --color-danger-hover: #b91c1c;
-
-  /* 6. Chart tokens — 다크 그리드/툴팁 보더 전용. chartTheme.ts가 getCssVar로 읽는다.
-     chart-bg(#131920)는 당시 bg-surface-dark와 대비 1.02로 사실상 같은 색이라 제거하고
-     bg-bg-surface로 통합했다. 쓰이지 않던 chart-surface/chart-hover/text-chart-dim도 함께 제거. */
-  --color-chart-border: #e0e1e6;    /* slate-5 */
-  --color-chart-border-dark: #2e3135;
-
-  /* 7. Sans: 본문 전용. body와 font-sans 유틸리티가 같은 값을 보게 한다 —
-     토큰을 안 정의하면 font-sans가 Tailwind 기본 스택으로 떨어져 한글이 Spoqa를 못 만난다. */
-  --font-sans: 'Spoqa Han Sans Neo', system-ui, sans-serif;
-
-  /* 8. Mono: 기계 문자열(코드·설정 블록·로그 본문·키·ID·URL·경로·메트릭명) 전용 — 숫자는 쓰지 않는다.
-     Spoqa는 숫자가 원래 고정폭이라 KPI·표·시간은 본문 폰트로 충분하다. 코드·로그는 OS와 무관하게
-     같은 모양이도록 JetBrains Mono를 쓴다. 한글 글리프가 없어 '17회' 같은 값이 굴림으로
-     떨어지지 않게 Spoqa를 2순위에 둔다. */
-  --font-mono: 'JetBrains Mono Variable', 'Spoqa Han Sans Neo', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-
-  /* 실제 로드한 굵기와 Tailwind 이름을 그대로 맞춘다: normal 400 / medium 500 / bold 700.
-     Spoqa에 없는 600(semibold)은 사용하지 않는다. */
+  /* 굵기는 normal 400 / medium 500 / bold 700만 쓴다. Spoqa에 600이 없어 한글이 합성 굵기로 떨어진다. */
 
   /* 9. 간격 관계 토큰(DESIGN.md §3.7). 숫자 스케일(gap-4 등)은 그대로 두고 관계 이름을 덧붙인다 — 숫자 스케일은
      w-*·h-*·inset-*도 쓰므로 지우면 크기 클래스가 깨진다. gap-heading, space-y-label, mt-intra처럼 쓴다.
@@ -188,7 +129,7 @@
   text-decoration-line: underline;
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
-  text-decoration-color: var(--color-text-dim);
+  text-decoration-color: var(--text-faint);
   transition: text-decoration-color 150ms;
   &:hover,
   &:focus-visible {
@@ -200,7 +141,7 @@
   & > * + * {
     margin-top: var(--spacing-section);
     padding-top: var(--spacing-section);
-    border-top: 1px solid var(--color-ui-border-soft);
+    border-top: 1px solid var(--border);
   }
 }
 
@@ -329,67 +270,11 @@
   white-space: nowrap;
 }
 
-/* Variable Scoping: 다크모드 대응을 위한 변수 재할당
-*/
-:root {
-  --app-bg: var(--color-bg-main);
-  --app-text: var(--color-text-base);
-  --app-text-muted: var(--color-text-muted);
-  --card-bg: var(--color-bg-surface);
-  --border-color: var(--color-ui-border);
-
-  /* 토스트는 스크림 없이 본문 위에 뜨는 표면이라 ui-raised다(DESIGN.md §3.5). 토큰이 자가 전환한다. */
-  --toast-bg: var(--color-ui-raised);
-  --toast-color: var(--color-text-base);
-  --toast-border: var(--color-ui-border);
-
-  /* 네이티브 컨트롤(체크박스·스크롤바·자동완성)도 테마를 따르게 한다. */
-  color-scheme: light;
-}
-
-.dark {
-  /* 시맨틱 토큰 재할당: bg-primary / text-text-muted / border-ui-border 등
-     모든 Tailwind 유틸리티에 자동 반영 → 컴포넌트에 dark: 접두 불필요 */
-  --color-primary: var(--color-primary-dark);
-  --color-primary-hover: var(--color-primary-hover-dark);
-  --color-on-primary: var(--color-on-primary-dark);
-  --color-action: var(--color-action-dark);
-
-  --color-bg-main: var(--color-bg-main-dark);
-  --color-bg-surface: var(--color-bg-surface-dark);
-
-  --color-ui-border: var(--color-ui-border-dark);
-  --color-ui-control-border: var(--color-ui-control-border-dark);
-  --color-ui-border-soft: var(--color-ui-border-soft-dark);
-  --color-ui-hover: var(--color-ui-hover-dark);
-  --color-ui-hover-soft: var(--color-ui-hover-soft-dark);
-  --color-ui-table-header: var(--color-ui-table-header-dark);
-  --color-ui-active: var(--color-ui-active-dark);
-  --color-ui-raised: var(--color-ui-raised-dark);
-
-  --color-text-base: var(--color-text-base-dark);
-  --color-text-secondary: var(--color-text-secondary-dark);
-  --color-text-muted: var(--color-text-muted-dark);
-  --color-text-dim: var(--color-text-dim-dark);
-
-  --color-status-healthy: var(--color-status-healthy-dark);
-  --color-status-warn: var(--color-status-warn-dark);
-  --color-status-error: var(--color-status-error-dark);
-  --color-status-idle: var(--color-status-idle-dark);
-  --color-status-healthy-fill: var(--color-status-healthy-fill-dark);
-  --color-status-warn-fill: var(--color-status-warn-fill-dark);
-  --color-status-error-fill: var(--color-status-error-fill-dark);
-  --color-status-idle-fill: var(--color-status-idle-fill-dark);
-  --color-chart-border: var(--color-chart-border-dark);
-
-  color-scheme: dark;
-}
-
 /* Reset & Base Styles */
 body {
   margin: 0;
-  background-color: var(--app-bg);
-  color: var(--app-text);
+  background-color: var(--bg);
+  color: var(--text);
   font-family: var(--font-sans);
   font-weight: 400;
   /* 한국어는 기본값이면 음절 사이에서 줄이 바뀐다("관리합니|다"). keep-all로 어절 단위로 끊고,
@@ -397,21 +282,15 @@ body {
   word-break: keep-all;
   overflow-wrap: anywhere;
   transition: background-color 0.3s ease, color 0.3s ease;
-  -webkit-font-smoothing: auto;
-  -moz-osx-font-smoothing: auto;
-  /* text-rendering / font-optical-sizing 둘 다 제거 — 기본값 auto가 정답.
-     optimizeSpeed는 Chrome 148 실측에서 커닝에 영향이 없었다(auto·optimizeSpeed·
-     optimizeLegibility 렌더 폭 동일, font-kerning:none 대조군은 +6.9%). 옛 WebKit
-     동작이라 지금은 무의미하다. font-optical-sizing은 Spoqa Han Sans Neo가 정적 폰트라
-     opsz 축 자체가 없어 무효다. 되살릴 이유 없음. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Global Focus Ring: 사용자 경험(UX) 개선 */
 @layer base {
-  /* 링은 action 색이다. primary는 다크 배경에서 3.38~3.62로 3:1 하한에 붙어 있었다.
-     action은 라이트 5.27~6.00 / 다크 6.34~9.15(ui-raised 포함). */
+  /* 링은 focus 토큰이다. 테마마다 배경 위 3:1 이상(라이트·다크는 강조색, Catppuccin 둘은 blue). */
   :focus-visible {
-    outline: 2px solid var(--color-action);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
 
@@ -459,8 +338,8 @@ body {
   @media (hover: hover) {
     .card-interactive:hover {
       translate: 0 -2px;
-      border-color: color-mix(in oklab, var(--color-primary) 40%, transparent);
-      background-color: var(--color-ui-hover-soft);
+      border-color: color-mix(in oklab, var(--accent) 40%, transparent);
+      background-color: var(--surface-hover);
     }
   }
 
@@ -515,7 +394,7 @@ body {
 @layer utilities {
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-ui-border) transparent;
+    scrollbar-color: var(--border) transparent;
   }
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
@@ -524,7 +403,7 @@ body {
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: var(--color-ui-border);
+    background-color: var(--border);
     border-radius: 9999px;
   }
 }

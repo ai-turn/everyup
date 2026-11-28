@@ -24,8 +24,8 @@ export function LoadErrorBanner({ title, message, onRetry, retryLabel = '다시 
   if (inline) {
     return (
       <div role={role} className="space-y-label">
-        <p className="flex items-start gap-1.5 type-label text-text-base">
-          <MaterialIcon size={20} name="sync_problem" className="shrink-0 text-status-warn" />{title}
+        <p className="flex items-start gap-1.5 type-label text-text">
+          <MaterialIcon size={20} name="sync_problem" className="shrink-0 text-attn-text" />{title}
         </p>
         {message && <p className="break-words type-body text-text-muted">{message}</p>}
         {retry}{children}
@@ -33,10 +33,10 @@ export function LoadErrorBanner({ title, message, onRetry, retryLabel = '다시 
     );
   }
   return (
-    <div role={role} className="flex items-start gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
-      <MaterialIcon size={20} name="sync_problem" className="icon-lead shrink-0 text-status-warn" />
+    <div role={role} className="flex items-start gap-3 rounded-xl border border-border bg-surface px-4 py-3">
+      <MaterialIcon size={20} name="sync_problem" className="icon-lead shrink-0 text-attn-text" />
       <div className="min-w-0 flex-1">
-        <p className="type-label text-text-base">{title}</p>
+        <p className="type-label text-text">{title}</p>
         {message && <p className="mt-0.5 break-words type-body text-text-muted">{message}</p>}
         {children}
       </div>

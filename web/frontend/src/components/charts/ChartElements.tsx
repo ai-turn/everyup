@@ -42,8 +42,8 @@ export function ChartCard({
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <div className="flex min-h-10 min-w-0 items-center">
             <div className={`flex min-w-0 items-baseline gap-2 ${wrapTitle ? 'flex-wrap' : ''}`}>
-              <Heading className={`${wrapTitle ? 'break-all' : 'truncate'} type-card-title text-text-base ${titleClassName}`}>{title}</Heading>
-              {unit && <span className="shrink-0 type-caption text-text-dim">{unit}</span>}
+              <Heading className={`${wrapTitle ? 'break-all' : 'truncate'} type-card-title text-text ${titleClassName}`}>{title}</Heading>
+              {unit && <span className="shrink-0 type-caption text-text-faint">{unit}</span>}
             </div>
           </div>
           {right}
@@ -59,7 +59,7 @@ export function ChartCard({
 /** 빈 상태 — 차트와 같은 높이, 문구 하나. */
 export function ChartEmpty({ height = CHART_HEIGHT }: { height?: number }) {
   return (
-    <div className="flex items-center justify-center rounded-lg bg-ui-hover-soft type-body text-text-muted" style={{ height }}>
+    <div className="flex items-center justify-center rounded-lg bg-surface-hover type-body text-text-muted" style={{ height }}>
       이 기간에 데이터 없음
     </div>
   );
@@ -77,9 +77,9 @@ export function ChartStats({ items }: { items: { label: string; value: string; u
       {items.map((item) => (
         <div key={item.label} className="flex items-baseline gap-1.5">
           <dt className="type-caption text-text-muted">{item.label}</dt>
-          <dd className="type-label tabular-nums text-text-base">
+          <dd className="type-label tabular-nums text-text">
             {item.value}
-            {item.unit && <span className="ml-0.5 type-caption text-text-dim">{item.unit}</span>}
+            {item.unit && <span className="ml-0.5 type-caption text-text-faint">{item.unit}</span>}
           </dd>
         </div>
       ))}
@@ -146,7 +146,7 @@ export function ChartStatsLegend({
   return (
     <table className="type-caption">
       <thead>
-        <tr className="text-text-dim">
+        <tr className="text-text-faint">
           <th className="py-0.5 pr-4 text-left font-normal"><span className="sr-only">시리즈</span></th>
           {[currentLabel, '최소', '최대', '평균'].map((label) => (
             <th key={label} className="pl-5 text-right font-normal">{label}</th>
@@ -162,7 +162,7 @@ export function ChartStatsLegend({
             ['avg', average(s.values)],
           ];
           return (
-            <tr key={s.label} className="text-text-secondary">
+            <tr key={s.label} className="text-text">
               <td className="py-0.5 pr-4">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
@@ -170,9 +170,9 @@ export function ChartStatsLegend({
                 </span>
               </td>
               {stats.map(([key, v]) => (
-                <td key={key} className="pl-5 text-right tabular-nums text-text-base">
+                <td key={key} className="pl-5 text-right tabular-nums text-text">
                   {valueFormatter(v)}
-                  <span className="ml-0.5 text-text-dim">{unit}</span>
+                  <span className="ml-0.5 text-text-faint">{unit}</span>
                 </td>
               ))}
             </tr>
@@ -190,11 +190,11 @@ export function ChartLegend({ items, className = '' }: { items: { label: string;
       {items.map((it) => (
         <span
           key={it.label}
-          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-ui-border bg-ui-hover-soft px-2 py-0.5 type-label-sm text-text-muted"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border bg-surface-hover px-2 py-0.5 type-label-sm text-text-muted"
         >
           <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: it.color }} />
           <span className="min-w-0 break-all">{it.label}</span>
-          {it.value && <span className="shrink-0 tabular-nums text-text-secondary">{it.value}</span>}
+          {it.value && <span className="shrink-0 tabular-nums text-text">{it.value}</span>}
         </span>
       ))}
     </div>
@@ -225,7 +225,7 @@ export function ChartTooltip({
 
   return (
     <div
-      className="min-w-36 rounded-lg border border-ui-border bg-ui-raised px-3 py-2 type-control shadow-lg"
+      className="min-w-36 rounded-lg border border-border bg-surface px-3 py-2 type-control shadow-lg"
     >
       <p className="mb-2 type-caption" style={{ color: theme.tickColor }}>
         {labelFormatter ? labelFormatter(label) : typeof label === 'number' ? formatTimeLabel(label) : label}
@@ -237,14 +237,14 @@ export function ChartTooltip({
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
               {item.name}
             </span>
-            <span className="tabular-nums text-text-base">
+            <span className="tabular-nums text-text">
               {valueFormatter(Number(item.value) || 0)}
-              <span className="ml-0.5 type-label-sm text-text-dim">{item.unit ?? unit}</span>
+              <span className="ml-0.5 type-label-sm text-text-faint">{item.unit ?? unit}</span>
             </span>
           </div>
         ))}
       </div>
-      {footer && <p className="mt-2 border-t border-ui-border pt-1.5 type-caption text-text-dim">{footer}</p>}
+      {footer && <p className="mt-2 border-t border-border pt-1.5 type-caption text-text-faint">{footer}</p>}
     </div>
   );
 }

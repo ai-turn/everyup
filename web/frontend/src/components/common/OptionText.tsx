@@ -17,7 +17,7 @@ export function OptionText({ title, description, descriptionId, truncate = false
   const wrap = truncate ? 'truncate' : 'break-words';
   return (
     <span className="min-w-0 flex-1">
-      <span className={`block ${wrap} type-label ${tone === 'base' ? 'text-text-base' : 'text-text-secondary'}`}>{title}</span>
+      <span className={`block ${wrap} type-label ${tone === 'base' ? 'text-text' : 'text-text'}`}>{title}</span>
       {description != null && description !== false && (
         <span id={descriptionId} data-gap="intra" className={`mt-intra block ${wrap} ${descriptionSize === 'caption' ? 'type-caption-stack' : 'type-body'} text-text-muted`}>{description}</span>
       )}

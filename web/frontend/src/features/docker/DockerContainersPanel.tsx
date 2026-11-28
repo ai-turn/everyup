@@ -28,29 +28,29 @@ const metricLabel = (name: string) => name.split('.').slice(-2).join('.');
 function ContainerCard({ serverId, service, metric, returnTo }: { serverId: string; service: AgentServiceFlat; metric?: OtelServiceMetric; returnTo: string }) {
   return (
     <Link to={containerPath(serverId, service.key)} state={{ returnTo }} aria-label={service.name}
-      className="card-interactive group bg-bg-surface border border-ui-border-soft rounded-xl p-4 flex flex-col gap-heading">
+      className="card-interactive group bg-surface border border-border rounded-xl p-4 flex flex-col gap-heading">
       <ResourceCardHeader
-        title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{service.name}</h3>}
+        title={<h3 className="truncate type-card-title text-text group-hover:text-text">{service.name}</h3>}
         subtitle={service.runtime ?? service.checkType}
         status={<DockerUptimeStatus service={service} />}
       />
       <div className="grid grid-cols-3 gap-3 type-control">
         <div className="min-w-0">
-          <div className="type-caption text-text-dim">응답 시간</div>
-          <div className="font-medium text-text-base truncate">{service.lastLatency ?? '-'}</div>
+          <div className="type-caption text-text-faint">응답 시간</div>
+          <div className="font-medium text-text truncate">{service.lastLatency ?? '-'}</div>
         </div>
         <div className="min-w-0">
-          <div className="type-caption text-text-dim">상태</div>
-          <div className={`${service.healthy ? 'text-status-healthy' : 'text-status-error'}`}>{service.lastStatus ?? '-'}</div>
+          <div className="type-caption text-text-faint">상태</div>
+          <div className={`${service.healthy ? 'text-ok-text' : 'text-crit-text'}`}>{service.lastStatus ?? '-'}</div>
         </div>
         {metric && (
           <div className="min-w-0">
-            <Tooltip content={metric.metricName}><div className="type-caption text-text-dim truncate">{metricLabel(metric.metricName)}</div></Tooltip>
-            <div className="font-medium text-text-base truncate">{formatMetricValue(metric.value, metric.unit)}</div>
+            <Tooltip content={metric.metricName}><div className="type-caption text-text-faint truncate">{metricLabel(metric.metricName)}</div></Tooltip>
+            <div className="font-medium text-text truncate">{formatMetricValue(metric.value, metric.unit)}</div>
           </div>
         )}
       </div>
-      {!service.healthy && service.lastError && <p className="type-caption text-status-error truncate -mt-1">{service.lastError}</p>}
+      {!service.healthy && service.lastError && <p className="type-caption text-crit-text truncate -mt-1">{service.lastError}</p>}
     </Link>
   );
 }
@@ -79,9 +79,9 @@ export function DockerContainersPanel({ serverId, agentId, containers, refreshTo
   return (
     <div className="space-y-section">
       {banner && (
-        <Link to={to(banner.key)} className="w-full flex items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 text-left hover:bg-ui-hover-soft transition-colors">
-          <span className="h-2.5 w-2.5 rounded-full bg-status-error-fill animate-pulse shrink-0" />
-          <span className="type-label text-text-base truncate">진행 중 장애: {banner.serviceName}</span>
+        <Link to={to(banner.key)} className="w-full flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-left hover:bg-surface-hover transition-colors">
+          <span className="h-2.5 w-2.5 rounded-full bg-crit animate-pulse shrink-0" />
+          <span className="type-label text-text truncate">진행 중 장애: {banner.serviceName}</span>
           <span className="type-caption text-text-muted shrink-0">
             {formatDuration(banner.durationSec)} 경과{active.length > 1 && ` · +${active.length - 1}`}
           </span>
@@ -95,7 +95,7 @@ export function DockerContainersPanel({ serverId, agentId, containers, refreshTo
           <ResourceTable rows={containers} rowKey={(row) => row.key} ariaLabel="컨테이너 그리드" columns={[
             { key: 'state', label: '상태', className: 'w-24 sm:w-28', render: (row) => <DockerUptimeStatus service={row} /> },
             { key: 'name', label: '컨테이너', render: (row) => <>
-              <Link to={to(row.key)} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>
+              <Link to={to(row.key)} state={{ returnTo }} data-row-link className="block truncate font-medium text-text">{row.name}</Link>
               <p className="mt-1 type-caption text-text-muted">{row.runtime || row.checkType}</p>
               <p className="mt-2 truncate font-mono text-xs text-text-muted md:hidden">{row.endpoint}</p>
               <p className="mt-1 type-caption text-text-muted md:hidden">응답 {row.lastLatency ?? '-'} · 상태 {row.lastStatus ?? '-'}</p>
@@ -121,7 +121,7 @@ export function DockerContainersPanel({ serverId, agentId, containers, refreshTo
       {containers.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <section>
-            <h3 className="mb-4 type-card-title text-text-base">장애 이력 · 30일</h3>
+            <h3 className="mb-4 type-card-title text-text">장애 이력 · 30일</h3>
             {incidents.length === 0 ? (
               <p className="type-body text-text-muted py-4 text-center">최근 30일간 장애가 없습니다</p>
             ) : (
@@ -130,27 +130,27 @@ export function DockerContainersPanel({ serverId, agentId, containers, refreshTo
                   <ListRow
                     key={`${incident.key}-${incident.startedAt}`}
                     to={to(incident.key)}
-                    marker={<span className={`h-1.5 w-1.5 rounded-full ${incident.active ? 'bg-status-error-fill' : 'bg-status-healthy-fill'}`} />}
+                    marker={<span className={`h-1.5 w-1.5 rounded-full ${incident.active ? 'bg-crit' : 'bg-ok'}`} />}
                     title={incident.serviceName}
                     detail={`${formatIncidentTime(incident.startedAt)} 시작 · ${formatDuration(incident.durationSec)}`}
                     detailSize="caption"
-                    trailing={<span className={incident.active ? 'text-status-error' : 'text-status-healthy'}>{incident.active ? '진행중' : '해소'}</span>}
+                    trailing={<span className={incident.active ? 'text-crit-text' : 'text-ok-text'}>{incident.active ? '진행중' : '해소'}</span>}
                   />
                 ))}
               </List>
             )}
           </section>
           <section>
-            <h3 className="mb-4 type-card-title text-text-base">타임라인</h3>
+            <h3 className="mb-4 type-card-title text-text">타임라인</h3>
             {events.length === 0 ? (
               <p className="type-body text-text-muted py-4 text-center">최근 이벤트가 없습니다</p>
             ) : (
               <div className="space-y-intra">
                 {events.map((event) => (
                   <div key={event.id} className="flex items-baseline gap-2 py-1.5">
-                    <span className="type-caption text-text-dim w-10 shrink-0">{formatClock(event.time)}</span>
+                    <span className="type-caption text-text-faint w-10 shrink-0">{formatClock(event.time)}</span>
                     <span className={`h-1.5 w-1.5 rounded-full shrink-0 translate-y-px ${
-                      event.type === 'alert_sent' ? 'bg-status-error-fill' : event.type === 'status_change' ? 'bg-status-warn-fill' : 'bg-status-idle-fill'
+                      event.type === 'alert_sent' ? 'bg-crit' : event.type === 'status_change' ? 'bg-attn' : 'bg-wait'
                     }`} />
                     <Tooltip content={event.message} focusable><span className="type-caption text-text-muted min-w-0 truncate">{event.message || event.type}</span></Tooltip>
                   </div>

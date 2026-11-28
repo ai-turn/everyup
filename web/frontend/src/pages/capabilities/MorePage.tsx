@@ -16,10 +16,10 @@ export function MorePage() {
     <div>
       <PageHeader title="더보기" />
       <div className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
-        {LINKS.map((link) => <Link key={link.to} to={link.to} className="flex items-center gap-3 rounded-md px-3 py-3 transition-colors hover:bg-ui-hover-soft">
-          <MaterialIcon size={20} name={link.icon} className="text-action" />
-          <div className="min-w-0"><h2 className="type-card-title text-text-base">{link.label}</h2><p className="mt-intra type-body text-text-muted">{link.description}</p></div>
-          <MaterialIcon size={20} name="chevron_right" className="ml-auto text-text-dim" />
+        {LINKS.map((link) => <Link key={link.to} to={link.to} className="flex items-center gap-3 rounded-md px-3 py-3 transition-colors hover:bg-surface-hover">
+          <MaterialIcon size={20} name={link.icon} className="text-text" />
+          <div className="min-w-0"><h2 className="type-card-title text-text">{link.label}</h2><p className="mt-intra type-body text-text-muted">{link.description}</p></div>
+          <MaterialIcon size={20} name="chevron_right" className="ml-auto text-text-faint" />
         </Link>)}
       </div>
     </div>

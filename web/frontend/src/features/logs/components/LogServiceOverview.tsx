@@ -36,7 +36,7 @@ function LogSparkline({ buckets, window: span }: { buckets: LogHistogramBucket[]
     // "오류 없음"으로 읽히지 않게 보조기술에는 숨긴다.
     <div
       {...(peak > 0 ? { role: 'img', 'aria-label': `최근 24시간 오류·경고 추이, 가장 많은 시간대 ${peak}건` } : { 'aria-hidden': true })}
-      className="flex h-8 items-end gap-px border-b border-ui-border"
+      className="flex h-8 items-end gap-px border-b border-border"
     >
       {slots.map(slot => (
         <Tooltip key={slot.t} content={`${formatTimeTick(slot.t)} 오류 ${slot.error}건, 경고 ${slot.warn}건`}><div className="flex h-full flex-1 flex-col-reverse">
@@ -59,10 +59,10 @@ function collectionOf(summary: LogServiceSummary | undefined, windowStart: numbe
 function LevelCount({ label, value, tone, known }: { label: string; value: number; tone: string; known: boolean }) {
   return (
     <div>
-      <p className="type-caption text-text-dim">{label}</p>
+      <p className="type-caption text-text-faint">{label}</p>
       {known
-        ? <p className={`type-stat ${value > 0 ? tone : 'text-text-base'}`}>{value.toLocaleString()}</p>
-        : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><p className="type-stat text-text-dim">-</p></Tooltip>}
+        ? <p className={`type-stat ${value > 0 ? tone : 'text-text'}`}>{value.toLocaleString()}</p>
+        : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><p className="type-stat text-text-faint">-</p></Tooltip>}
     </div>
   );
 }
@@ -75,8 +75,8 @@ function LatestLine({ summary, known, wrap = false }: { summary?: LogServiceSumm
     return (
       <>
         <span className={`${LEVEL_BASE} ${LEVEL_TEXT[latest.level] ?? LEVEL_TEXT.info}`}>{latest.level}</span>
-        <Tooltip content={latest.message} focusable><span className={`min-w-0 font-mono text-text-secondary ${wrap ? 'order-last basis-full line-clamp-2 break-all' : 'flex-1 truncate'}`}>{latest.message}</span></Tooltip>
-        <span className="shrink-0 text-text-dim">{ago(latest.createdAt)}</span>
+        <Tooltip content={latest.message} focusable><span className={`min-w-0 font-mono text-text ${wrap ? 'order-last basis-full line-clamp-2 break-all' : 'flex-1 truncate'}`}>{latest.message}</span></Tooltip>
+        <span className="shrink-0 text-text-faint">{ago(latest.createdAt)}</span>
       </>
     );
   }
@@ -96,9 +96,9 @@ function LogCard({ row, window: span, returnTo }: { row: StatusRow; window: [num
   const known = row.collection === 'collecting';
 
   return (
-    <Link to={row.to} state={{ returnTo }} className="card-interactive group flex flex-col rounded-xl border border-ui-border-soft bg-bg-surface p-4">
+    <Link to={row.to} state={{ returnTo }} className="card-interactive group flex flex-col rounded-xl border border-border bg-surface p-4">
       <ResourceCardHeader
-        title={<h3 className="truncate type-card-title text-text-base group-hover:text-action">{row.name}</h3>}
+        title={<h3 className="truncate type-card-title text-text group-hover:text-text">{row.name}</h3>}
         subtitle={row.subtitle}
         status={<LogStatus row={row} />}
       />
@@ -109,7 +109,7 @@ function LogCard({ row, window: span, returnTo }: { row: StatusRow; window: [num
       <div className="mt-3 space-y-intra">
         <LogSparkline buckets={summary?.buckets ?? []} window={span} />
         {/* 막대만으로는 시간 방향을 알 수 없었다 — 양 끝만 짧게 적는다. */}
-        <div aria-hidden="true" className="flex justify-between type-caption text-text-dim"><span>24시간 전</span><span>지금</span></div>
+        <div aria-hidden="true" className="flex justify-between type-caption text-text-faint"><span>24시간 전</span><span>지금</span></div>
       </div>
       <div className="mt-3 flex min-w-0 items-baseline gap-2 type-caption">
         <LatestLine summary={summary} known={known} />
@@ -131,11 +131,11 @@ function PatternRow({ pattern, row, windowStart }: { pattern: LogPattern; row: L
         <span className="flex flex-wrap gap-x-3">
           <span>{row.name}</span>{row.serverName && row.serverName !== row.name && <span>서버 {row.serverName}</span>}<span className="whitespace-nowrap">마지막 {ago(pattern.lastSeen)}</span>
           {isNew
-            ? <strong className="whitespace-nowrap font-medium text-text-secondary">신규 · 처음 {ago(pattern.firstSeen)}</strong>
+            ? <strong className="whitespace-nowrap font-medium text-text">신규 · 처음 {ago(pattern.firstSeen)}</strong>
             : <span className="whitespace-nowrap">처음 {ago(pattern.firstSeen)}</span>}
         </span>
       }
-      trailing={<span className="type-control text-text-base">{pattern.count.toLocaleString()}회</span>}
+      trailing={<span className="type-control text-text">{pattern.count.toLocaleString()}회</span>}
     />
   );
 }
@@ -167,9 +167,9 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
       <Section title={title} meta={`최근 24시간 · ${noun} ${rows.length}개`} actions={viewToggle}>
         {view === 'card' ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{statusRows.map(row => <LogCard key={row.key} row={row} window={span} returnTo={returnTo} />)}</div> :
           <ResourceTable rows={statusRows} rowKey={row => row.key} ariaLabel={`${title} 그리드`} columns={[
-            { key: 'name', label: noun, render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-action">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 type-caption-stack xl:hidden"><LatestLine wrap summary={row.summary} known={row.collection === 'collecting'} /></div></> },
+            { key: 'name', label: noun, render: row => <><Link to={row.to} state={{ returnTo }} data-row-link className="block truncate font-medium text-text">{row.name}</Link>{row.subtitle && <p className="mt-1 truncate type-caption text-text-muted">{row.subtitle}</p>}<div className="mt-2 md:hidden"><LogStatus row={row} /></div><div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 type-caption-stack xl:hidden"><LatestLine wrap summary={row.summary} known={row.collection === 'collecting'} /></div></> },
             { key: 'collection', label: '수집', className: 'hidden w-32 md:table-cell', render: row => <LogStatus row={row} /> },
-            ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: StatusRow) => row.collection === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text-base'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><span className="text-text-muted">-</span></Tooltip> })),
+            ...(['error', 'warn'] as const).map(level => ({ key: level, label: level === 'error' ? '오류' : '경고', className: 'w-20', align: 'right' as const, render: (row: StatusRow) => row.collection === 'collecting' ? <span className={row.summary?.[level] ? LEVEL_TEXT[level] : 'text-text'}>{(row.summary?.[level] ?? 0).toLocaleString()}</span> : <Tooltip content="최근 24시간 수신한 로그 없음" focusable><span className="text-text-muted">-</span></Tooltip> })),
             { key: 'trend', label: '오류·경고 추이', className: 'hidden w-40 lg:table-cell', render: row => <LogSparkline buckets={row.summary?.buckets ?? []} window={span} /> },
             { key: 'latest', label: '최근 로그', className: 'hidden xl:table-cell', render: row => <div className="flex min-w-0 items-baseline gap-2 type-caption"><LatestLine summary={row.summary} known={row.collection === 'collecting'} /></div> },
           ]} />}
@@ -179,7 +179,7 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
         // 위 앱 목록과 같은 섹션 제목(20px, DESIGN.md §2.2). 집계 방식은 긴 설명이라 메타가 아니라 제목 아래 설명 줄이다.
         <Section title="자주 발생한 오류·경고" description="최근 24시간 기준이며, 숫자·ID만 다른 메시지는 하나로 셉니다.">
           {patterns === null ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3">
               <p className="type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>
               {onRetryPatterns && <Button variant="secondary" size="sm" onClick={onRetryPatterns}>다시 시도</Button>}
             </div>
