@@ -15,6 +15,7 @@ import { UptimeStrip } from '../../features/uptime/components/UptimeStrip';
 import { combineBuckets, mergeBuckets } from '../../features/uptime/uptimeBuckets';
 import { useMonitorBuckets } from '../../features/uptime/useMonitorBuckets';
 import { UPTIME_STATE_LIGHT, uptimeState } from '../../features/uptime/uptimeState';
+import { environmentState } from '../../features/services/environmentState';
 
 /** 업타임 모니터 목록에 먼저 보이는 수. 나머지는 그 자리에서 펼친다. */
 const MONITOR_PREVIEW = 6;
@@ -27,7 +28,7 @@ const episodeTitle = (episode: TimelineIncident) => episode.message || (episode.
 const serverPrefix = (id: string) => `${serverPath(id)}/`;
 /** 연결한 대상이 하나라도 있는가. 없는 서버는 대기 중에서도 "연결 전"이라는 할 일이 있다. */
 const hasTargets = (row: ServerRow) => Boolean(row.targets.monitors.length || row.targets.apps.length || row.targets.containers.length
-  || row.targets.infrastructure || row.targets.docker?.lastSeenAt);
+  || row.targets.infrastructure || (row.targets.docker && environmentState(row.targets.docker) !== 'install'));
 
 export function OverviewPage() {
   const [failedSources, setFailedSources] = useState<string[]>([]);

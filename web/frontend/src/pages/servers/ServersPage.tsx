@@ -1,8 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Button, ButtonLink, EmptyState, FilterChips, ListToolbar, LoadErrorBanner, MaterialIcon, PageHeader, RefreshStatus, SearchInput, Select,
+  Button, ButtonLink, EmptyState, FilterChips, LoadErrorBanner, MaterialIcon, PageHeader, RefreshStatus, SearchInput, Select,
 } from '../../components/common';
+import { useMonitorBuckets } from '../../features/uptime/useMonitorBuckets';
 import { ServerTable } from '../../features/servers/components/ServerTable';
 import { ALL_LOGS_PATH, NEW_SERVER_PATH, rememberServersSearch } from '../../features/servers/serverPaths';
 import { parseStateFilter, stateChipOptions, type ServerRow } from '../../features/servers/serverStatus';
@@ -58,7 +59,9 @@ export function ServersPage() {
   useEffect(() => {
     if (connectDocker) navigate(`${NEW_SERVER_PATH}?connection=docker`, { replace: true });
   }, [connectDocker, navigate]);
-  useAutoRefresh(poll, 30_000);
+  // 업타임 띠(모니터별 24시간 버킷). 서버 데이터와 같은 30초 주기로 다시 불러온다.
+  const { buckets, reload: reloadBuckets } = useMonitorBuckets(rows.flatMap((row) => row.targets.monitors.map((monitor) => monitor.id)));
+  useAutoRefresh(() => { poll(); void reloadBuckets(); }, 30_000);
   const { spinning, trigger: handleRefresh } = useSpinAction(() => void joinRefresh());
 
   // 연결 방식(ADR 0012): Docker Collector가 있는 서버, 직접 연결한 대상(모니터, 앱, OpenTelemetry 인프라)이 있는 서버.
@@ -84,8 +87,8 @@ export function ServersPage() {
   return (
     // 머리말 → 툴바 → 목록은 페이지 블록 24px(page-stack), 알림 배너 → 목록은 16px이다.
     <div className="page-stack">
-      {/* 데스크톱의 제목(`서버 9`)은 AppHeader 하나다(DESIGN.md §3.4). 모르는 동안은 숫자만 비운다.
-          갱신 시각과 전체 로그는 목록 밖의 일이라 툴바가 아니라 머리말의 meta다: 데스크톱은 AppHeader의 주 액션 앞, 모바일은 제목 아래. */}
+      {/* 제목은 `서버 13`(DESIGN.md §3.4). 모르는 동안은 숫자만 비운다.
+          갱신 시각과 전체 로그는 목록 밖의 일이라 머리말의 meta다: 데스크톱은 상단 줄 오른쪽, 모바일은 제목 아래. */}
       <PageHeader menu title="서버" count={hasRows || (loaded && !error) ? rows.length : null}
         meta={
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -94,23 +97,30 @@ export function ServersPage() {
             <ButtonLink to={ALL_LOGS_PATH} variant="quiet">전체 로그</ButtonLink>
           </div>
         }>
-        {/* 메뉴 첫 화면의 생성 버튼은 `추가` 하나다(DESIGN.md §4.1 액션 앵커). Docker 호스트도 서버 추가에서 연결 방식으로 고른다. */}
-        <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon name="add" />추가</ButtonLink>
+        {/* 메뉴 첫 화면의 생성 버튼 하나(DESIGN.md §4.1 액션 앵커, G안 `서버 추가`). Docker 호스트도 서버 추가에서 연결 방식으로 고른다. */}
+        <ButtonLink to={NEW_SERVER_PATH}><MaterialIcon size={16} name="add" />서버 추가</ButtonLink>
       </PageHeader>
 
+      {/* G안: 상태 탭(밑줄) 한 줄, 오른쪽에 검색과 연결 방식. 탭 줄 아래 선이 목록의 시작이다. */}
       {hasRows && (
-        <ListToolbar search={
-          <SearchInput value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={visible.length} shortcut placeholder="서버 또는 대상 검색" aria-label="서버 또는 대상 검색" />
-        }>
-          <FilterChips ariaLabel="상태로 거르기" value={status} onChange={(next) => setParam('status', next)} options={stateChipOptions(scoped.map((row) => row.state))} />
-          {hasDocker && (
-            <Select aria-label="연결 방식으로 거르기" wrapperClassName="w-44" value={connection ?? ''} onChange={(event) => setParam('connection', event.target.value || null)}>
-              <option value="">모든 연결 방식</option>
-              <option value="docker">Docker Collector</option>
-              <option value="direct">직접 연결</option>
-            </Select>
-          )}
-        </ListToolbar>
+        <div className="flex flex-col gap-label border-border sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:border-b">
+          <div className="min-w-0 border-b border-border sm:mr-auto sm:border-b-0">
+            <FilterChips variant="tabs" ariaLabel="상태로 거르기" value={status} onChange={(next) => setParam('status', next)}
+              total={scoped.length} options={stateChipOptions(scoped.map((row) => row.state))} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:pb-1.5">
+            <div className="w-full sm:w-56">
+              <SearchInput size="sm" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery('')} resultCount={visible.length} shortcut placeholder="서버 또는 대상 검색" aria-label="서버 또는 대상 검색" />
+            </div>
+            {hasDocker && (
+              <Select size="sm" className="max-sm:h-11" aria-label="연결 방식으로 거르기" wrapperClassName="w-44" value={connection ?? ''} onChange={(event) => setParam('connection', event.target.value || null)}>
+                <option value="">모든 연결 방식</option>
+                <option value="docker">Docker Collector</option>
+                <option value="direct">직접 연결</option>
+              </Select>
+            )}
+          </div>
+        </div>
       )}
 
       <div className="space-y-heading">
@@ -136,7 +146,7 @@ export function ServersPage() {
           ) : (
             <section aria-label="서버" aria-busy={loading || undefined}>
               <h2 className="sr-only">서버 목록</h2>
-              {visible.length > 0 ? <ServerTable rows={visible} matches={matches} />
+              {visible.length > 0 ? <ServerTable rows={visible} matches={matches} buckets={buckets} />
                 : <EmptyState icon="search" title="검색 결과가 없습니다" description="검색어를 바꾸거나 필터를 해제해 보세요." action={{ label: '필터 해제', onClick: () => clearFilters(['status', 'connection']) }} />}
             </section>
           )}

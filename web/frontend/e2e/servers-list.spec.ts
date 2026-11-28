@@ -24,19 +24,18 @@ test('server list puts the failing server first with its cause', async ({ page }
   await expect(rowOf(page, 'db-primary-01').getByRole('cell').nth(1)).toContainText('확인 필요');
   await expect(rowOf(page, 'db-primary-01').getByRole('cell').nth(1)).toContainText('메모리 84.6%');
 
-  // 대상이 없는 서버는 대기이고, 수치는 0이 아니라 수집 안 함이다. 해당 없는 칸은 비어 있고 화면 낭독기만 까닭을 읽는다.
+  // 대상이 없는 서버는 대기이고, 수치는 0이 아니라 `연결 전`이다(G안 점선 상자). 보이는 열만 센다 — 이 폭에서는 업타임 열이 접힌다.
   const empty = rowOf(page, 'staging-empty');
   await expect(empty.getByRole('cell').nth(1)).toContainText('대기');
-  await expect(empty.getByText('수집 안 함', { exact: true })).toHaveCount(4);
-  await expect(empty.getByRole('cell').nth(2)).toHaveText('수집 안 함');
-  await expect(empty.getByRole('cell').nth(2).locator('[aria-hidden="true"]')).toHaveCount(0);
+  await expect(empty.getByText('연결 전', { exact: true }).filter({ visible: true })).toHaveCount(4);
+  await expect(empty.getByRole('cell').nth(2)).toHaveText('연결 전');
 
-  // 원인은 한 줄이다. 장애 행만 옅게 채운다. 그룹은 없다(ADR 0013).
+  // 원인은 한 줄이다. 행을 채우지 않는다(G안: 상태는 앞의 모양과 단어가 말한다). 그룹은 없다(ADR 0013).
   await expect(first.getByRole('cell').first()).not.toContainText('Production');
   const cause = first.getByRole('cell').nth(1).locator('p');
   expect(await cause.evaluate((node) => getComputedStyle(node).whiteSpace)).toBe('nowrap');
   const tint = (row: ReturnType<typeof rowOf>) => row.evaluate((node) => getComputedStyle(node).backgroundColor);
-  expect(await tint(first)).not.toBe('rgba(0, 0, 0, 0)');
+  expect(await tint(first)).toBe('rgba(0, 0, 0, 0)');
   expect(await tint(rowOf(page, 'db-primary-01'))).toBe('rgba(0, 0, 0, 0)');
 });
 

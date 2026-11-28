@@ -209,7 +209,7 @@ test.describe('demo', () => {
       await expectRingVisible(page, items.last());
     });
 
-    test('the server list keeps all logs in its header and its add button says 추가, without overflowing at 320px', async ({ page }) => {
+    test('the server list keeps all logs in its header and its add button says 서버 추가, without overflowing at 320px', async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 700 });
       await page.goto('./servers');
       // 전체 로그는 툴바가 아니라 머리말의 갱신 시각 옆이다. 모바일에서 누르는 높이는 44px 이상이다.
@@ -217,10 +217,10 @@ test.describe('demo', () => {
       await expect(allLogs).toHaveAttribute('href', /\/logs$/);
       await expect(page.getByRole('main').getByRole('textbox', { name: '서버 또는 대상 검색' })).toBeVisible();
       expect((await allLogs.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-      // 주 조작은 이름이 보이는 `추가`다(대상은 제목이 말한다).
-      const add = page.getByRole('link', { name: '추가', exact: true });
+      // 주 조작은 이름이 보이는 `서버 추가`다(G안).
+      const add = page.getByRole('link', { name: '서버 추가', exact: true });
       await expect(add).toHaveAttribute('href', /\/servers\/new$/);
-      expect((await add.getByText('추가').boundingBox())!.width).toBeGreaterThan(20);
+      expect((await add.getByText('서버 추가').boundingBox())!.width).toBeGreaterThan(20);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
       // 제목이 버튼에 밀려 글자마다 줄바꿈되지 않는다(한 줄 높이).
       const title = await page.getByRole('heading', { level: 1, name: /^서버/ }).boundingBox();

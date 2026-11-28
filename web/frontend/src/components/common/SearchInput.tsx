@@ -7,9 +7,11 @@ import { useEffect, useRef, type ComponentPropsWithRef } from 'react';
 import { MaterialIcon } from './MaterialIcon';
 import { IconButton } from './IconButton';
 
-interface SearchInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+interface SearchInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'size'> {
   /** 래퍼에 붙일 클래스 — 폭(`w-64`, `flex-1`)은 여기로 준다. */
   wrapperClassName?: string;
+  /** sm: 넓은 화면에서 32px(목록 탭 줄). 터치 화면은 44px 그대로다. */
+  size?: 'sm' | 'md';
   /** 값이 있을 때 안쪽 오른쪽에 지우기(✕)를 둔다. 누르면 이 콜백을 부르고 입력에 포커스를 돌려준다. */
   onClear?: () => void;
   /**
@@ -24,7 +26,7 @@ interface SearchInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> 
   shortcut?: boolean;
 }
 
-export function SearchInput({ wrapperClassName = '', className = '', onClear, resultCount, shortcut = false, ref, ...props }: SearchInputProps) {
+export function SearchInput({ wrapperClassName = '', className = '', onClear, resultCount, shortcut = false, size = 'md', ref, ...props }: SearchInputProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hasValue = props.value !== undefined ? String(props.value) !== '' : false;
 
@@ -52,7 +54,7 @@ export function SearchInput({ wrapperClassName = '', className = '', onClear, re
     // 2px action 외곽선을 래퍼에 그린다 — 입력 자신의 외곽선은 래퍼 안에 갇혀 이중 링이 되므로 끈다.
     <div
       className={
-        'flex h-11 sm:h-10 w-full min-w-0 items-center gap-2 rounded-lg border border-control bg-surface pl-3 pr-1 ' +
+        `flex h-11 ${size === 'sm' ? 'sm:h-8' : 'sm:h-10'} w-full min-w-0 items-center gap-2 rounded-lg border border-control bg-surface pl-3 pr-1 ` +
         'hover:border-text-muted focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus ' +
         wrapperClassName
       }
