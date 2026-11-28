@@ -57,7 +57,7 @@ export function MainLayout() {
             <Header />
           </div>
 
-          {/* AppHeader: 데스크톱 전용 위치 표시(breadcrumb). 높이는 Sidebar 로고와 같은 64px */}
+          {/* AppHeader: 데스크톱 전용 위치 표시(breadcrumb). 높이 52px(G안) */}
           <AppHeader />
 
           <div className="flex flex-1 overflow-hidden relative">
@@ -66,7 +66,7 @@ export function MainLayout() {
               {/* 하단 내비·safe area는 pb-safe-bottom과 맞추고, 역방향 탐색의 상단 포커스 링도 보호한다. */}
               <div className="flex-1 overflow-y-auto scroll-pt-1 scroll-pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:scroll-p-1 motion-safe:scroll-smooth [scrollbar-gutter:stable]">
                 <div className="flex flex-col min-h-full pb-safe-bottom lg:pb-0">
-                  <div className="p-4 sm:px-6 sm:py-6 page-stack flex-1 w-full max-w-320 mx-auto">
+                  <div className="p-4 sm:px-6 sm:py-6 lg:px-8 lg:pt-7 lg:pb-10 page-stack flex-1 w-full max-w-290 mx-auto">
                     <Outlet />
                   </div>
                   <Footer />

@@ -25,7 +25,7 @@ test('the old server uptime tab address of a monitor goes to the monitor page wi
   await page.goto('./servers/server_mock_edge_host_01/uptime/uptime_mock_store?range=24h#history');
   await expect(page).toHaveURL(/\/servers\/server_mock_edge_host_01\/monitors\/uptime_mock_store\?range=24h#history$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Storefront' })).toBeVisible();
-  await expect(page.getByRole('group', { name: '시간 범위' }).getByRole('button', { name: '24h', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('group', { name: '기간' }).getByRole('button', { name: '24시간', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.goBack();
   await expect(page).toHaveURL(/\/servers$/);
 });

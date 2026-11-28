@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
-import { useHeaderActionSlot, useRegisterMenuTitle } from '../../contexts/BreadcrumbContext';
+import { useHeaderActionSlot } from '../../contexts/BreadcrumbContext';
 import { ControlDefaultsContext } from './controlSize';
 import { Tooltip } from './Tooltip';
 
@@ -23,10 +23,8 @@ interface PageHeaderProps {
     /** 긴 제목을 한 줄로 말줄임한다(compactActions와 함께: 버튼이 줄어들지 않고 제목이 줄어든다). 기본은 줄바꿈. */
     truncateTitle?: boolean;
     /**
-     * 메뉴 첫 화면(DESIGN.md §3.4). 데스크톱(`lg`+)의 제목은 `AppHeader` 하나다: 크럼을 페이지 제목 크기(개수 포함)로
-     * 그리고, 본문 h1은 시각적으로만 숨긴다(`lg:sr-only`). 주 액션(children)과 meta도 `AppHeader` 오른쪽으로 옮긴다 —
-     * 위치·제목·액션이 한 줄이 되고 본문 위 빈 띠가 사라진다. 모바일은 `AppHeader`가 없어 그대로 그린다.
-     * 상세 화면은 제목이 대상 이름·상태를 이끌므로 쓰지 않는다.
+     * 메뉴 첫 화면(DESIGN.md §3.4, G안). 제목 줄은 h1 + 개수 + 오른쪽 주 액션(children) 한 줄이다. 갱신 상태(meta)는
+     * 데스크톱에서 `AppHeader` 오른쪽으로 옮긴다. 모바일은 `AppHeader`가 없어 제목 아래에 그린다.
      */
     menu?: boolean;
     /**
@@ -42,26 +40,23 @@ const MOBILE_MENU = { variant: 'secondary' } as const;
 export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, menu = false, count }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
     const slot = useHeaderActionSlot();
-    useRegisterMenuTitle(menu, count);
     const headerSlot = menu && desktop ? slot : null;
-    const inlineChildren = headerSlot || !children ? undefined
-        : menu ? <ControlDefaultsContext.Provider value={MOBILE_MENU}>{children}</ControlDefaultsContext.Provider> : children;
+    const inlineChildren = !children ? undefined
+        : menu ? <ControlDefaultsContext.Provider value={desktop ? DESKTOP_HEADER : MOBILE_MENU}>{children}</ControlDefaultsContext.Provider> : children;
     // meta 안의 조작(개요의 새로고침)도 children과 같이 모바일에서 테두리 버튼이 기본이다.
     const inlineMeta = headerSlot || !meta ? undefined
         : menu ? <ControlDefaultsContext.Provider value={MOBILE_MENU}>{meta}</ControlDefaultsContext.Provider> : meta;
 
-    // h1만 남으면(sr-only) 데스크톱에서 띠의 여백·구분선을 0으로 접는다.
-    // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
     const inlineRow = compactActions || menu;
-    const collapseOnDesktop = menu && !subtitle && !aside && !actions && !inlineChildren && !inlineMeta;
-    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text ${menu ? 'lg:sr-only' : ''}`;
+    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text`;
+    // 개수는 제목 옆의 흐린 숫자다(G안 `서버 13개`). 접근성 이름은 `서버 13`.
     const heading = count === undefined || count === null ? title
-        : <>{title} <span className="font-medium tabular-nums text-text-muted">{count}</span></>;
+        : <>{title} <span className="type-body tabular-nums text-text-faint">{count}</span></>;
 
     return (
         <>
-            {headerSlot && (meta || children) && createPortal(<ControlDefaultsContext.Provider value={DESKTOP_HEADER}>{meta}{children}</ControlDefaultsContext.Provider>, headerSlot)}
-            <div className={`mb-6 border-b border-border pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-item xl:flex-row xl:items-start xl:gap-group' : ''}`}>
+            {headerSlot && meta && createPortal(<ControlDefaultsContext.Provider value={DESKTOP_HEADER}>{meta}</ControlDefaultsContext.Provider>, headerSlot)}
+            <div className={`mb-6 ${aside ? 'flex flex-col gap-item xl:flex-row xl:items-start xl:gap-group' : ''}`}>
                 {/* 제목·부제 → 아래 메타 줄 8px(label). */}
                 <div className="min-w-0 flex-1 space-y-label">
                 <div>

@@ -163,7 +163,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 | text | `text-text` | 제목·본문 | `#18181b` | `#ededef` |
 | text-muted | `text-text-muted` | 보조 글, 읽는 설명문 | `#4f4f58` | `#a3a3ab` |
 | text-faint | `text-text-faint` | 메타·축·placeholder | `#6a6a74` | `#8a8a93` |
-| accent | `bg-accent` · `text-accent` | 주 버튼 채움, 현재 위치, info | `#5b4fd1` | `#8f8ff5` |
+| accent | `bg-accent` · `text-accent` | 현재 위치, 선택된 탭 밑줄, info | `#5b4fd1` | `#8f8ff5` |
 | accent-bg | `bg-accent-bg` | 현재 위치·선택의 옅은 바탕 | accent 10% | accent 12% |
 | accent-text | `text-accent-text` | accent 채움 위 글자 | `#ffffff` | `#0a0a0b` |
 | focus | `outline-focus` | 포커스 링 | `#5b4fd1` | `#8f8ff5` |
@@ -186,7 +186,7 @@ React 19 · Tailwind v4 · Recharts 3. 이 문서가 **디자인 규약의 SSOT*
 
 ### 1.4 강조 · 상태
 
-**강조색은 하나(accent)다.** 주 버튼 채움(`bg-accent text-accent-text`), 사이드바 현재 위치(`bg-accent-bg`), 체크박스·라디오(`accent-accent`), info 표시에만 쓴다. 텍스트 링크는 색이 아니라 밑줄(`link-underline`)로 드러낸다.
+**강조색은 하나(accent)다.** 사이드바 현재 위치(`bg-accent-bg text-accent`), 선택된 탭 밑줄, 체크박스·라디오(`accent-accent`), info 표시에만 쓴다. **주 버튼은 무채색이다**(`bg-text text-bg`, G안 `서버 추가`): 유채색은 상태와 위치에 남긴다. 텍스트 링크는 색이 아니라 밑줄(`link-underline`)로 드러낸다.
 
 **상태색은 글자와 채움이 다른 토큰이다**([ADR 0010](../../docs/adr/0010-status-color-roles-and-floating-surfaces.md)).
 
@@ -242,6 +242,8 @@ chart-1 → chart-2 → chart-3 → chart-5 → chart-4(회색) → crit
 ### 2.2 역할별 타이포그래피
 
 크기·행간·굵기는 `index.css`의 역할 유틸리티를 쓴다. 색·여백·정렬은 호출부가 정한다.
+
+**본문 크기는 13px이다**(2026-11-29, G안). `index.css`가 `--text-sm`을 13px(줄 20px)로 다시 정의하므로 아래 표의 14px 역할(`type-body`·`type-label`·`type-control`)과 `text-sm`을 쓰는 버튼·입력이 모두 13px이다. 표의 14px는 13px로 읽는다.
 
 | 역할 | 클래스 | 크기 / 행간 | 굵기 |
 |---|---|---|---|
@@ -375,7 +377,7 @@ chart-1 → chart-2 → chart-3 → chart-5 → chart-4(회색) → crit
 
 ### 3.4 내비게이션 셸
 
-- `lg` 이상: 좌측 `Sidebar`(로고 → nav → Docker Collector 상태 푸터) + 상단 `AppHeader`(위치 표시). `Header`는 `lg:hidden`으로 모바일 전용
+- `lg` 이상: 좌측 `Sidebar`(로고 → 검색 → nav → 테마 선택·계정) + 상단 `AppHeader`(경로 + 오른쪽 자리 + 알림). `Header`는 `lg:hidden`으로 모바일 전용 (2026-11-29, G안)
 - `lg` 미만: `Header` + `BottomNavMobile`. 하단바 겹침은 `pb-safe-bottom` 유틸리티가 처리
 - 뒤로가기 버튼은 **데스크톱에 두지 않는다** — 사이드바가 상시 내비이고, `AppHeader`의 첫 크럼이 목록 링크다(예외는 아래 "목록으로" 버튼 규칙)
 - **사이드바 활성 항목은 브레드크럼의 첫 크럼과 같다** — 담김 관계를 따른다. 서버 상세(`/servers/…`)는 어떤 탭을 보고 있든 `서버`가, 컨테이너 페이지(`/servers/…/containers/…`)도 서버 안이라 `서버`가 활성이다(2026-11-22, Docker 환경은 서버다 — [ADR 0012](../../docs/adr/0012-servers-include-docker-hosts.md)). 탭은 위치가 아니다(아래 "탭은 크럼이 아니다")
@@ -383,12 +385,13 @@ chart-1 → chart-2 → chart-3 → chart-5 → chart-4(회색) → crit
 **사이드바 구성** (2026-11-18, [ADR 0011](../../docs/adr/0011-servers-own-directly-configured-targets.md)) — 기능별 메뉴(업타임, 로그, 인프라, API 요청, 메트릭)를 없애고 서버를 중심에 두었다. 그 기능들은 서버 상세의 탭이다(§4.6). 2026-11-22([ADR 0012](../../docs/adr/0012-servers-include-docker-hosts.md))부터 `Docker 환경` 메뉴도 없다: Docker Collector로 연결한 호스트는 같은 ID의 서버이고 서버 목록에 함께 있다. 옛 주소(`/environments`, `/agents`, `/agents/:id`, `/agents/:id/:tab`)는 쿼리·해시를 가지고 서버 목록·서버 화면으로 간다(`LegacyEnvironmentsRedirect`, `LegacyEnvironmentRedirect`).
 
 ```
-개요
-모니터링 대상   서버
-관리           알림, 환경 설정
+개요      (장애 수 배지)
+서버
+알림
+환경 설정
 ```
 
-그룹 헤더는 `navSections.ts`의 `group` 값(`'모니터링 대상'`, `'관리'`)이고, `group`이 없는 개요는 맨 위 항목이다. 장애 수 배지는 개요 항목에 둔다(Docker 서비스의 장애도 세므로 서버 항목에 두지 않는다). 모바일 하단 내비는 `mobile: 'bottom'`인 `개요, 서버, 알림`에 `더보기`를 더한 네 칸이고, 더보기 화면(`MorePage`)은 `전체 로그`, `환경 설정`이다. `전체 로그`는 `navSections.ts`의 항목이 아니라 `MorePage`가 앞에 붙인다(아래 "전체 로그").
+G안(2026-11-29)부터 그룹 헤더(`모니터링 대상`, `관리`)를 그리지 않는다. 항목은 34px 줄, 16px 아이콘, 13px 500 글자이고 현재 위치는 `bg-accent-bg text-accent`다. 사이드바 바탕은 `bg-bg-subtle`(라이트는 흰색, 다크는 한 단 어둡다) + 오른쪽 헤어라인, 폭 232px(`w-58`). 맨 아래는 테마 4칸 선택(§1.1)과 로그인한 계정(이름 + `관리자`)이다. 장애 수 배지는 개요 항목의 옅은 빨강 알약(`bg-crit-bg text-crit-text`)이다. 시안은 배지를 `알림`에 두고 `서버`에 개수를 달았지만, 알림 화면에는 진행 중 장애 목록이 없어(규칙·발송 이력·채널) 배지가 가리키는 곳은 개요의 확인 필요 목록이다. 서버 개수는 서버 목록의 행 수와 같은 값을 사이드바가 따로 셀 방법이 없어 달지 않는다. `navSections.ts`의 `group` 값은 모바일 더보기 구성에만 남는다. 모바일 하단 내비는 `mobile: 'bottom'`인 `개요, 서버, 알림`에 `더보기`를 더한 네 칸이고, 더보기 화면(`MorePage`)은 `전체 로그`, `환경 설정`이다. `전체 로그`는 `navSections.ts`의 항목이 아니라 `MorePage`가 앞에 붙인다(아래 "전체 로그").
 
 **서버와 컨테이너의 아이콘은 다르다.** 서버 `dns`, Docker 컨테이너·Docker Collector `deployed_code`. 같은 아이콘이면 사이드바, 개요의 범위 줄, 명령 팔레트에서 구분되지 않는다. 세 곳이 같은 아이콘을 쓴다.
 
@@ -396,14 +399,14 @@ chart-1 → chart-2 → chart-3 → chart-5 → chart-4(회색) → crit
 
 `MainLayout`이 `현재 위치 · EveryUp`으로 만든다. 현재 위치는 `AppHeader`와 같은 크럼(`useLocationCrumbs`)의 마지막이다(`서버`, `edge-host-01`, `Checkout API`). 장애가 있으면 어느 화면에서든 앞에 `(N) 장애 · `를 붙인다 — N은 사이드바 개요 배지와 같은 값(`useFailureCount`)이다. 이전에는 모든 화면이 `EveryUp | Self-hosted Monitoring Platform`이었고 장애 수는 개요에서만 붙었다(UI/UX 점검 A3). 화면에서 `document.title`을 직접 바꾸지 않는다.
 
-#### `AppHeader` — 현재 위치 (데스크톱 전용, 2026-09-20)
+#### `AppHeader` — 현재 위치 (데스크톱 전용, 2026-11-29 G안)
 
 ```
-서버  ›  web-01  ›  Storefront
-서버  ›  prod-server  ›  payment-worker
+EveryUp / 서버                      ← 메뉴 첫 화면(크럼 하나)은 앞에 EveryUp을 붙인다
+서버 / prod-server / payment-worker
 ```
 
-높이 **`h-16`(64px)** — `Sidebar` 로고 블록과 같은 값이라 크롬 상단이 사이드바 경계 너머로 한 줄로 이어진다. 배경은 `bg-surface`, 아래 `border-border` 한 줄. 내용 폭은 본문 래퍼와 같은 `max-w-320 mx-auto px-4 sm:px-6`에 맞춘다.
+높이 **`h-13`(52px)**, 바탕 없이 아래 `border-border` 한 줄, 좌우 `px-8`. 경로는 13px(`type-control`)이고 조상은 `text-text-faint`, 현재 위치는 `text-text` 500, 구분자는 `/`다. 오른쪽은 화면이 포털로 넣는 자리(`actionSlot`: 메뉴 첫 화면의 갱신 상태, 대상 상세의 기간 선택과 목록 복귀 링크)와 알림 링크(종 아이콘)다. 본문 래퍼는 `max-w-290`(1160px) 가운데 정렬, `lg:px-8 lg:pt-7 lg:pb-10`이다.
 
 **첫 크럼(섹션)은 경로에서 자동으로 나온다** — [`navSections.ts`](src/components/layout/navSections.ts)의 prefix 표, 가장 긴 것이 이긴다. 목록 페이지는 아무 코드도 추가하지 않아도 된다.
 
@@ -427,19 +430,14 @@ useBreadcrumb(monitor ? [{ label: monitor.name }] : []);
 
 **그룹은 없다** (2026-11-24, ADR 0013). 모든 것이 서버 단위다: 그룹 메뉴·화면·필드·필터·API가 없고, 서버 이름은 전체에서 하나다(대소문자·앞뒤 공백 무시). 옛 그룹 주소(`/projects`, `/projects/:id`와 그 아래)는 쿼리·해시를 두고 서버 목록으로 간다(`LegacyGroupRedirect`). 그보다 옛날의 `/projects/:agentId`(Docker 환경)는 그 서버로 간다. 서버를 묶어 보는 자리가 필요하면 그룹을 되살리지 말고 서버 목록의 검색·필터로 푼다.
 
-**메뉴 첫 화면의 제목은 하나다** (2026-11-21, 소유자 요청 — 2026-11-15 "h1을 데스크톱에서 숨긴다"와 2026-11-20 "개수를 가진 제목은 데스크톱에서도 보인다"를 대체). 대상은 사이드바 항목의 첫 화면(개요, 서버, 그룹, 알림, 환경 설정)이다.
-- **데스크톱(`lg`+)은 `AppHeader`가 제목이다.** 크럼이 하나뿐인 메뉴 첫 화면에서는 그 크럼을 페이지 제목 크기(`type-page-title`, 24px)로 그리고 개수를 붙인다(`서버 9`, 개수는 같은 크기의 `text-muted` 500). 본문 h1은 `lg:sr-only`라 스크린리더의 제목 탐색만 맡는다. 2026-11-15에는 크럼(본문 글자 크기)만 보여 위계가 약했고, 2026-11-20 서버 목록에 개수 제목을 본문에 보였더니 바로 위 크럼 `서버`와 본문 `서버 9`가 같은 말을 두 번 했다. 위치·제목·조작이 `AppHeader` 한 줄이고 본문 위 빈 띠가 없다.
-- **모바일은 본문 h1이 제목이다**(`AppHeader`가 없다). h1에 같은 개수를 붙이고, 주 액션은 제목 줄 오른쪽이다. 자리가 없으면 조작 묶음이 다음 줄 오른쪽으로 접힌다(Docker 환경). meta(서버 목록의 갱신 시각·전체 로그)는 제목 아래 줄이다.
-- **개수는 한 목록이 화면의 전부인 메뉴만 단다**: 서버(Docker 서버 포함, 2026-11-22). 탭이 목록을 나누는 알림은 탭이 개수를 말하므로 제목에 달지 않는다. 개요·환경 설정은 목록이 아니다. 개수를 아직 모르면(`count={null}`) 숫자 자리만 비운다.
-- **구현**: `PageHeader menu`가 마운트된 동안 `useRegisterMenuTitle`로 `BreadcrumbContext`의 `menuTitle`(개수)을 알리고, `AppHeader`가 그것이 있을 때만 크럼을 제목으로 그린다. 상세 화면이 데이터를 불러오는 동안 크럼이 하나여도 제목 크기로 커지지 않는다. 주 액션(children)과 meta는 데스크톱에서 `AppHeader` 오른쪽 자리(`actionSlot`)로 포털된다. 그리기 전(`useLayoutEffect`)에 정해 크기가 바뀌어 보이지 않는다.
-- 메뉴 첫 화면에는 설명 문구(subtitle)를 두지 않는다: 무엇을 하는 화면인지는 메뉴 이름과 내용이 말한다. h1만 남으면 데스크톱에서 띠의 여백·구분선을 0으로 접는다(`lg:hidden`은 h1까지 접근성 트리에서 지우므로 쓰지 않는다). 새로고침처럼 화면 전체에 걸리는 조작도 같은 자리, 주 액션 앞이다(§4.5 "목록 조작의 자리"). 키보드 순서상 헤더의 주 액션은 본문 앞이다: `본문 바로가기`는 그것을 건너뛰고, Shift+Tab으로 닿는다.
-- 사이드바에 없는 화면(전체 로그, 모바일 더보기)과 상세는 본문 h1이 보이는 제목이고 크럼은 위치(`type-label`)다. 상세 화면의 h1은 대상 이름이 상태·메타를 이끈다.
+**메뉴 첫 화면의 제목은 본문 h1이다** (2026-11-29 G안 — 2026-11-21 "데스크톱은 `AppHeader`가 제목"을 대체). 상단 줄은 13px 경로만 그리고, 본문 첫 줄이 `h1`(24px) + 흐린 개수(`서버 13`, 13px `text-text-faint`) + 오른쪽 주 액션이다. 갱신 상태(meta)는 데스크톱에서 `AppHeader` 오른쪽 자리로 포털된다. 머리말 아래에 구분선을 두지 않는다.
+- **개수는 한 목록이 화면의 전부인 메뉴만 단다**: 서버(Docker 서버 포함). 탭이 목록을 나누는 알림은 탭이 개수를 말한다. 개수를 아직 모르면(`count={null}`) 숫자 자리만 비운다.
+- 메뉴 첫 화면에는 설명 문구(subtitle)를 두지 않는다.
+- 상세 화면의 h1은 대상 이름이 상태·메타를 이끈다.
 
-전체 화면 높이를 계산하는 페이지는 **`lg`에서 빼는 값이 다르다** — 모바일 `Header` 3.5rem 대신 `AppHeader` 4rem이 추가로 붙어 `lg:h-[calc(100dvh-8rem)]`이다. 모바일은 높이를 계산하지 않고 자연 높이로 두며, 하단 제출 바를 `sticky`로 하단 내비(4rem + safe-area) 위에 붙인다 — 데모 배너처럼 위쪽 크롬이 늘면 높이 계산이 틀려 제출 바가 `BottomNavMobile` 뒤로 숨었다 (`ChannelFormPage`).
+전체 화면 높이를 계산하는 페이지는 **`lg`에서 빼는 값이 다르다** — `lg`에서는 `AppHeader` 3.25rem이 붙어 `lg:h-[calc(100dvh-7.25rem)]`이다. 모바일은 높이를 계산하지 않고 자연 높이로 두며, 하단 제출 바를 `sticky`로 하단 내비(4rem + safe-area) 위에 붙인다 — 데모 배너처럼 위쪽 크롬이 늘면 높이 계산이 틀려 제출 바가 `BottomNavMobile` 뒤로 숨었다 (`ChannelFormPage`).
 
-**헤더는 본문과 같은 스크롤바 거터를 예약해야 좌변이 맞는다.** 본문 스크롤 컨테이너가 `[scrollbar-gutter:stable]`로 15px(플랫폼마다 다름)을 예약하는데 `AppHeader`는 그 바깥이다. 안쪽 `max-w-320` 박스를 `mx-auto`로 가운데 두면 그 15px이 양쪽 7.5px씩 갈려 **헤더 크럼이 본문 제목보다 7.5px 오른쪽**으로 밀린다. 그래서 헤더에도 `overflow-y-hidden [scrollbar-gutter:stable]`을 건다 — 장식이 아니라 정렬 장치다. 오버레이 스크롤바 환경(macOS 기본)에서는 양쪽 다 0을 예약하므로 자동으로 맞는다. 헤더에 드롭다운처럼 넘치는 요소를 넣으려면 이 클립을 먼저 풀고 거터를 다른 방법으로 맞춰야 한다.
-
-**풀블리드로 빠져나가는 페이지의 음수 마진은 본문 래퍼 패딩과 정확히 같아야 한다.** 래퍼는 `p-4 sm:px-6 sm:py-6`이므로 탈출값은 `-m-4 sm:-mx-6 sm:-my-6`이다. `ChannelFormPage`가 쓰던 `md:-m-8`은 존재하지 않는 32px 패딩을 가정해 8px 더 당겼고, 헤더가 기준선을 주기 전까지 드러나지 않았다.
+**풀블리드로 빠져나가는 페이지의 음수 마진은 본문 래퍼 패딩과 정확히 같아야 한다.** 래퍼는 `p-4 sm:px-6 sm:py-6 lg:px-8 lg:pt-7 lg:pb-10`이므로 탈출값은 `-m-4 sm:-mx-6 sm:-my-6 lg:-mx-8 lg:-mt-7 lg:-mb-10`이다. `ChannelFormPage`가 쓰던 `md:-m-8`은 존재하지 않는 32px 패딩을 가정해 8px 더 당겼고, 헤더가 기준선을 주기 전까지 드러나지 않았다.
 
 ### 3.5 그림자
 

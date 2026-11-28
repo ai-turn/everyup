@@ -34,7 +34,7 @@ test('6H switches the response chart to server buckets', async ({ page }) => {
     { time: new Date(Date.now() - 600_000).toISOString(), latencyMs: 120, uptimePct: 50, total: 2 },
   ]);
   await page.goto('./servers/server-1/monitors/http-monitor');
-  await page.getByRole('group', { name: '시간 범위' }).getByRole('button', { name: '6h' }).click();
+  await page.getByRole('group', { name: '기간' }).getByRole('button', { name: '6시간' }).click();
   const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
   await expect(chart.getByText('5분 평균', { exact: true }).first()).toBeVisible();
   await expect(chart.locator('[data-response-counts]')).toHaveText('체크 2회 중 실패 1회');
@@ -49,7 +49,7 @@ test('bucket summary counts real checks and weights average latency by successfu
     { time: new Date(Date.now() - 300_000).toISOString(), latencyMs: 300, uptimePct: 100, total: 2 },
   ]);
   await page.goto('./servers/server-1/monitors/http-monitor');
-  await page.getByRole('group', { name: '시간 범위' }).getByRole('button', { name: '6h' }).click();
+  await page.getByRole('group', { name: '기간' }).getByRole('button', { name: '6시간' }).click();
   const chart = page.locator('section').filter({ has: page.getByRole('heading', { name: '응답 시간', exact: true }) });
   await expect(chart.locator('[data-response-counts]')).toHaveText('체크 12회 중 실패 5회');
   await expect(chart.locator('[data-response-average]')).toHaveText('157ms');

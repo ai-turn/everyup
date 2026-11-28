@@ -141,10 +141,10 @@ test.describe('at 1440x1000', () => {
     await expect(page.getByRole('heading', { name: 'edge-host-01' })).toHaveCount(1);
     await expect(panel(page).getByRole('heading', { name: '인프라 추세' })).toHaveCount(0);
 
-    await panel(page).getByRole('button', { name: '24h', exact: true }).click();
+    await panel(page).getByRole('button', { name: '24시간', exact: true }).click();
     await expect(page).toHaveURL(/[?&]range=24h/);
     await page.reload();
-    await expect(panel(page).getByRole('button', { name: '24h', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(panel(page).getByRole('button', { name: '24시간', exact: true })).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('the server log list calls its targets apps', async ({ page }) => {

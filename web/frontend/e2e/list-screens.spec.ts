@@ -6,25 +6,23 @@ const chips = (page: Page, name = '상태로 거르기') => page.getByRole('grou
 const titleSize = (page: Page) => crumbs(page).locator('[aria-current="page"]').evaluate((node) => getComputedStyle(node).fontSize);
 
 test.describe('the title of a menu screen is said once', () => {
-  test('desktop: the top bar carries the title and the count, the body h1 is for screen readers', async ({ page }) => {
+  test('desktop: the top bar is the path, the body h1 carries the title and the count', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    for (const [route, name] of [['servers', '서버']] as const) {
-      await page.goto(`./${route}`);
-      await expect(crumbs(page)).toHaveText(new RegExp(`^${name} \\d+$`));
-      expect(await titleSize(page)).toBe('24px');
-      // 본문에는 같은 제목이 보이지 않는다(sr-only 1px 상자).
-      const h1 = page.getByRole('heading', { level: 1, name: new RegExp(`^${name} \\d+$`) });
-      await expect(h1).toBeAttached();
-      expect((await h1.boundingBox())!.width).toBeLessThanOrEqual(1);
-    }
+    // G안: 메뉴 첫 화면의 경로는 `EveryUp / 서버`(13px), 제목은 본문 h1(24px)과 흐린 개수다.
+    await page.goto('./servers');
+    await expect(crumbs(page)).toHaveText(/^EveryUp\/서버$/);
+    expect(await titleSize(page)).toBe('13px');
+    const h1 = page.getByRole('heading', { level: 1, name: /^서버 \d+$/ });
+    await expect(h1).toBeVisible();
+    expect(await h1.evaluate((node) => getComputedStyle(node).fontSize)).toBe('24px');
     // 탭이 목록을 나누는 알림은 탭이 개수를 말한다.
     await page.goto('./alerts');
-    await expect(crumbs(page)).toHaveText(/^알림$/);
-    expect(await titleSize(page)).toBe('24px');
-    // 상세의 크럼은 위치다. 불러오는 동안 크럼이 하나여도 제목 크기가 아니다.
+    await expect(crumbs(page)).toHaveText(/^EveryUp\/알림$/);
+    await expect(page.getByRole('heading', { level: 1, name: '알림', exact: true })).toBeVisible();
+    // 상세의 크럼은 섹션부터 시작한다.
     await page.goto('./servers/server_mock_edge_host_01');
-    await expect(crumbs(page)).toHaveText(/^서버.*edge-host-01$/);
-    expect(await titleSize(page)).toBe('14px');
+    await expect(crumbs(page)).toHaveText(/^서버\/edge-host-01$/);
+    expect(await titleSize(page)).toBe('13px');
   });
 
   test('mobile: the body h1 carries the count and the actions share its row', async ({ page }) => {

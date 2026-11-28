@@ -85,6 +85,10 @@
      '17회' 같은 값이 굴림으로 떨어지지 않게 Spoqa를 2순위에 둔다. 숫자는 본문 폰트 + tabular-nums로 쓴다. */
   --font-mono: 'Geist Mono Variable', 'Spoqa Han Sans Neo', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
+  /* 본문 크기는 13px이다(G안). text-sm을 다시 정의하므로 type-body·type-label·type-control·버튼이 함께 13px이 된다. */
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+
   /* 굵기는 normal 400 / medium 500 / bold 700만 쓴다. Spoqa에 600이 없어 한글이 합성 굵기로 떨어진다. */
 
   /* 9. 간격 관계 토큰(DESIGN.md §3.7). 숫자 스케일(gap-4 등)은 그대로 두고 관계 이름을 덧붙인다 — 숫자 스케일은
@@ -198,7 +202,8 @@
 
 @utility type-body {
   font-size: var(--text-sm);
-  line-height: 1.5;
+  /* 13px 본문에 1.5를 주면 19.5px라 줄 상자가 반 픽셀에 걸린다. 20px로 맞춘다. */
+  line-height: 1.25rem;
   font-weight: var(--font-weight-normal);
 }
 

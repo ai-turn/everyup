@@ -61,6 +61,8 @@ export function TargetHeader({ title, crumbs, back: backLink, status, connection
   const refreshStatus = <RefreshStatus {...refresh} />;
   return (
     <header>
+      {/* 넓은 화면의 기간 선택은 상단 줄 오른쪽이다(G안). */}
+      {range && onRangeChange && desktop && slot && createPortal(<TimeRangePicker size="sm" value={range} onChange={onRangeChange} />, slot)}
       {backLink && desktop && slot && createPortal(
         <Link to={backLink.to} className={`${linkClass} sm:min-h-6`}><MaterialIcon size={20} name="arrow_back" />{backLink.label}</Link>, slot)}
       {/* 좁은 화면(lg 미만)의 첫 줄: 복귀 링크와, 그 오른쪽 끝에 연결 방식(아이콘 + 방식 + 조작)을 한 줄로 둔다. 연결 줄을 따로 두면
@@ -84,10 +86,10 @@ export function TargetHeader({ title, crumbs, back: backLink, status, connection
           />
         }
         actions={actions}
-        aside={range && onRangeChange && (
-          <div className="flex flex-wrap items-center justify-between gap-3 xl:justify-end">
+        aside={range && onRangeChange && !desktop && (
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <TimeRangePicker value={range} onChange={onRangeChange} />
-            <div className="lg:hidden">{refreshStatus}</div>
+            {refreshStatus}
           </div>
         )}
       />

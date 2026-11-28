@@ -69,9 +69,9 @@ test('collection gaps break the line and only confirmed incidents receive outage
 test('6h is the default and 1h / 24h use their own server ranges and aggregation labels', async ({ page }) => {
   const state = await uptimeFixture(page);
   await page.goto('./servers/server-1/monitors/http-monitor');
-  const ranges = page.getByRole('group', { name: '시간 범위' });
-  await expect(ranges.getByRole('button', { name: '6h', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  for (const [label, range, caption] of [['1h', '1h', '2분 평균'], ['24h', '24h', '20분 평균']]) {
+  const ranges = page.getByRole('group', { name: '기간' });
+  await expect(ranges.getByRole('button', { name: '6시간', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  for (const [label, range, caption] of [['1시간', '1h', '2분 평균'], ['24시간', '24h', '20분 평균']]) {
     await ranges.getByRole('button', { name: label, exact: true }).click();
     await expect(cardFor(page).getByText(caption, { exact: true }).first()).toBeVisible();
     await expect.poll(() => state.requests.some((request) => request.path.endsWith('/metrics/history') && request.query === '?range=' + range)).toBe(true);

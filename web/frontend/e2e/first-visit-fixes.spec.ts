@@ -86,7 +86,7 @@ test('mobile service details expose data and retain a 44px time-range target', a
   const box = await overview.boundingBox();
   const navigation = await page.getByRole('link', { name: '더보기', exact: true }).boundingBox();
   expect(box!.y + box!.height).toBeLessThan(navigation!.y);
-  for (const button of await page.getByRole('group', { name: '시간 범위', exact: true }).getByRole('button').all()) {
+  for (const button of await page.getByRole('group', { name: '기간', exact: true }).getByRole('button').all()) {
     expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   }
   await disclosure.locator('summary').click();

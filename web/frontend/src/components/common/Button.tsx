@@ -18,7 +18,7 @@ import { ControlDefaultsContext } from './controlSize';
 // 파괴적 액션은 variant로 고른다.
 const VARIANTS = {
   // 투명 테두리: 강제 색상 모드는 채움을 지우고 테두리만 그린다 — 없으면 글자만 남아 버튼으로 안 보인다.
-  primary: 'border border-transparent bg-accent text-accent-text not-aria-disabled:hover:bg-accent/90 not-aria-disabled:active:bg-accent/80',
+  primary: 'border border-transparent bg-text text-bg not-aria-disabled:hover:bg-text/85 not-aria-disabled:active:bg-text/75',
   secondary: 'bg-surface border border-border text-text not-aria-disabled:hover:bg-surface-hover not-aria-disabled:active:bg-border [&_svg]:text-text',
   ghost: 'text-text not-aria-disabled:hover:bg-text/10 not-aria-disabled:active:bg-text/15',
   text: 'text-text',
