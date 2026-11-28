@@ -90,7 +90,8 @@ test('status filters stay on one line each at 320px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 700 });
   await page.goto('./servers');
   const filters = page.getByRole('group', { name: '상태로 거르기' }).getByRole('button');
-  await expect(filters).toHaveCount(4);
+  // `전체` 탭 + 상태 넷(G안 상태 탭).
+  await expect(filters).toHaveCount(5);
   for (const button of await filters.all()) {
     const label = button.locator('span').nth(1);
     const { height } = (await label.boundingBox())!;

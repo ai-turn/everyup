@@ -1,3 +1,4 @@
+import { StatusShape } from './StatusShape';
 import { STATUS_DOT, type StatusTone } from './statusTone';
 
 export interface FilterChipOption<T extends string> {
@@ -8,14 +9,40 @@ export interface FilterChipOption<T extends string> {
   tone?: StatusTone;
 }
 
-// 목록을 한 값으로 거르는 토글 칩(DESIGN.md §4.1 FilterChips). 라벨과 개수는 같은 크기이고 개수만 고정폭 숫자다.
-// 다시 누르면 해제한다. 선택은 aria-pressed가 말하고, 보이는 표시는 진한 테두리 + 채움이다(색만으로 전달하지 않는다).
-export function FilterChips<T extends string>({ ariaLabel, options, value, onChange }: {
+// 목록을 한 값으로 거르는 토글(DESIGN.md §4.1 FilterChips). 다시 누르면 해제한다. 선택은 aria-pressed가 말한다.
+// chips: 테두리 알약(진한 테두리 + 채움). tabs: G안 서버 목록의 상태 탭 — 밑줄, 앞에 `전체`, 상태는 모양으로 갈린다.
+export function FilterChips<T extends string>({ ariaLabel, options, value, onChange, variant = 'chips', total }: {
   ariaLabel: string;
   options: FilterChipOption<T>[];
   value: T | null;
   onChange: (value: T | null) => void;
+  variant?: 'chips' | 'tabs';
+  /** tabs의 `전체` 개수 */
+  total?: number;
 }) {
+  if (variant === 'tabs') {
+    const tab = (selected: boolean) => `-mb-px inline-flex h-11 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap border-b-2 type-label transition-colors sm:h-9.5 ${selected
+      ? 'border-accent text-text forced-colors:border-[Highlight]'
+      : 'border-transparent text-text-muted hover:text-text'}`;
+    return (
+      <div role="group" aria-label={ariaLabel} className="flex min-w-0 items-center gap-5 overflow-x-auto">
+        <button type="button" aria-pressed={value === null} onClick={() => onChange(null)} className={tab(value === null)}>
+          <span>전체</span>
+          {total !== undefined && <span className="rounded-full bg-surface-hover px-1.5 type-caption tabular-nums text-text-muted">{total}</span>}
+        </button>
+        {options.map((option) => {
+          const selected = value === option.value;
+          return (
+            <button key={option.value} type="button" aria-pressed={selected} onClick={() => onChange(selected ? null : option.value)} className={tab(selected)}>
+              {option.tone && <StatusShape tone={option.tone} size={8} />}
+              <span>{option.label}</span>
+              <span className="type-caption tabular-nums text-text-faint">{option.count}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
   return (
     <div role="group" aria-label={ariaLabel} className="flex flex-wrap items-center gap-1.5 sm:gap-2">
       {options.map((option) => {

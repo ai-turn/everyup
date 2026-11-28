@@ -27,7 +27,7 @@ test.describe('the title of a menu screen is said once', () => {
 
   test('mobile: the body h1 carries the count and the actions share its row', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    for (const [route, name, action] of [['servers', '서버', '추가'], ['alerts', '알림', '규칙 추가']] as const) {
+    for (const [route, name, action] of [['servers', '서버', '서버 추가'], ['alerts', '알림', '규칙 추가']] as const) {
       await page.goto(`./${route}`);
       const h1 = page.getByRole('heading', { level: 1, name: new RegExp(`^${name}( \\d+)?$`) });
       await expect(h1).toBeVisible();

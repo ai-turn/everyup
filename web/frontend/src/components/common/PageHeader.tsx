@@ -36,8 +36,9 @@ interface PageHeaderProps {
     titleNote?: string;
 }
 
-const DESKTOP_HEADER = { size: 'sm', variant: 'secondary' } as const;
-const MOBILE_MENU = { variant: 'secondary' } as const;
+// 제목 줄의 주 액션은 primary(G안 `서버 추가`, 무채색 채움)다. 넓은 화면에서는 32px.
+const DESKTOP_HEADER = { size: 'sm' } as const;
+const MOBILE_MENU = {} as const;
 
 export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, menu = false, count, titleNote }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
