@@ -176,7 +176,7 @@ export function ResponseTimeCard({ slots, caption, window, bucketMs, incidents =
                 <CartesianGrid {...gridProps(theme)} />
                 <XAxis {...timeXAxisProps(theme, domain)} minTickGap={40} interval="preserveStartEnd" />
                 <YAxis {...yAxisProps(theme)} {...axis} allowDataOverflow tickFormatter={(value) => formatAxisValue(value, 'ms')} />
-                {outages.map((outage) => <ReferenceArea key={outage.key} className="response-outage" x1={outage.from} x2={outage.to} fill={theme.errorColor} fillOpacity={focused === outage.key ? 0.2 : 0.08} strokeOpacity={0} />)}
+                {outages.map((outage) => <ReferenceArea key={outage.key} className="response-outage" x1={outage.from} x2={outage.to} fill={focused === outage.key ? theme.errorColor : 'var(--incident-band)'} fillOpacity={focused === outage.key ? 0.2 : 1} strokeOpacity={0} />)}
                 {thresholdLines(visibleThresholds, theme.errorColor, 'ms')}
                 <Tooltip filterNull={false} cursor={tooltipCursor(theme)} isAnimationActive={false}
                   content={({ active, label }) => {

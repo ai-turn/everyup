@@ -191,8 +191,10 @@ test.describe('at 1440x1000', () => {
     await page.keyboard.press('Enter');
     await expect(panel(page).getByRole('button', { name: '키 재발급' })).toBeVisible();
 
-    // 대상 상세의 머리말은 넓은 화면에서 속성을 펼쳐 둔다(좁은 화면에서만 접는다).
+    // 대상 상세의 머리말도 속성을 접어 두고(G안), 연결 중지와 마지막 수집은 상태 줄에 있다.
     await page.goto(`./servers/${EDGE}/apps/observed_mock_checkout`);
+    await expect(appHeader(page).getByRole('button', { name: '키 재발급' })).toBeHidden();
+    await appHeader(page).locator('summary').click();
     await expect(appHeader(page).getByRole('button', { name: '키 재발급' })).toBeVisible();
     await expect(appHeader(page).getByRole('button', { name: '연결 중지' })).toBeVisible();
     await expect(appHeader(page).getByText(/^마지막 수집/)).toBeVisible();
