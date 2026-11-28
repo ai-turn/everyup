@@ -40,11 +40,8 @@ const SCREENS: [string, string, ((page: Page) => Promise<void>)?][] = [
 // 목록과 실제가 다르면 실패한다: 고쳤는데 남아 있어도, 새로 어긋나도.
 // 2026-11-21 P6에서 비었다(인프라 차트 캡션이 ChartCard의 설명 줄이 되었다). 새로 어긋나는 자리를 여기에 적어 넘기지 않는다.
 const KNOWN_OFF: Record<string, string[]> = {};
-const KNOWN_EMPTY: Record<string, number[]> = {
-  // 의도한 예외(DESIGN.md §3.7): 기능 묶음이 넓은 화면에서 제목을 왼쪽 열에, 내용을 오른쪽 열에 두는 옆 라벨 배치라
-  // 제목 → 내용이 세로 간격이 아니다. Section(제목 위, 내용 아래)으로 바꾸지 않는다.
-  'server overview': [1440, 390],
-};
+// 서버 개요는 G안(2026-11-29)부터 Section(제목 위, 내용 아래)이라 예외가 없다.
+const KNOWN_EMPTY: Record<string, number[]> = {};
 
 type Gap = { token: Token; gap: number; at: string };
 

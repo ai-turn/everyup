@@ -129,8 +129,8 @@ test('a Docker server reads the same in the list, its header and its guide', asy
   await expect(page.getByRole('button', { name: '설치 명령', exact: true }).first()).toBeVisible();
   // 설치한 환경은 설치하라고 하지 않는다. 다시 설치는 더보기에 있다.
   await page.goto('./servers/agent_demo_01');
-  await expect(page.getByText('수집 중', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('설치 대기', { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/^Docker Collector · 컨테이너 \d+개$/).first()).toBeVisible();
+  await expect(page.getByText(/설치 대기/)).toHaveCount(0);
   await (await menuItem(page, '다시 설치')).click();
   await expect(page.getByRole('dialog', { name: 'Docker Collector 설치' })).toBeVisible();
 });

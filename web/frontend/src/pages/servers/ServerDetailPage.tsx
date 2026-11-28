@@ -206,7 +206,7 @@ export function ServerDetailPage() {
         {active === 'overview'
           // Docker 설정 가이드는 서버 전체의 일이라 개요 맨 위다. 설정이 끝나면 한 줄로 접힌다(옛 Docker 환경 개요와 같다).
           ? <div className="space-y-section">{row.targets.docker && <MonitoringSetupPanel agent={row.targets.docker} services={row.targets.containers}
-              onInstall={dockerActions.openInstall} onInstrument={dockerActions.openInstrumentation} onAddCapability={dockerActions.addCapability} />}<ServerOverviewTab row={row} onInstallDocker={row.targets.docker ? undefined : () => setInstallingDocker(true)} /></div>
+              onInstall={dockerActions.openInstall} onInstrument={dockerActions.openInstrumentation} onAddCapability={dockerActions.addCapability} />}<ServerOverviewTab row={row} refreshToken={refreshToken} onInstallDocker={row.targets.docker ? undefined : () => setInstallingDocker(true)} /></div>
           : active === 'containers' ? (row.targets.docker ? <DockerContainersPanel serverId={row.server.id} agentId={row.targets.docker.id} containers={row.targets.containers} refreshToken={refreshToken} /> : null)
           : active === 'uptime' ? <ServerUptimeTab {...tabProps(active)} />
             : active === 'infrastructure' ? <ServerInfrastructureTab {...tabProps(active)} />
