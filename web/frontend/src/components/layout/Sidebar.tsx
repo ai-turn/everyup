@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { THEMES, useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { THEMES } from '../../contexts/themes';
 import { MaterialIcon, SegmentedControl } from '../common';
 import { env } from '../../config/env';
 import logo from '../../assets/logo.webp';

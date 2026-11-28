@@ -1,4 +1,4 @@
-import { THEMES, type Theme } from '../../../contexts/ThemeContext';
+import { THEMES, type Theme } from '../../../contexts/themes';
 import { Button, ConfirmDialog, MaterialIcon, PageHeader, SegmentedControl } from '../../../components/common';
 import { useAuth } from '../../../contexts/AuthContext';
 import { SectionCard } from './SectionCard';
