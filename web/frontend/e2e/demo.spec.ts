@@ -6,11 +6,11 @@ test.describe('live demo', () => {
 
     await expect(page.getByRole('complementary').getByText('Live Demo', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { level: 1, name: '개요', exact: true })).toBeVisible();
-    // 개요의 KPI 행은 제거됐다 — 아래 두 카드가 같은 말을 더 정확히 하고 있었다.
-    // 장애 신호는 이제 개수가 아니라 대상 이름으로 확인한다.
-    await expect(page.getByRole('heading', { name: '현재 확인 필요' })).toBeVisible();
+    // G안 개요: 요약 띠, 주의 필요(서버 단위), 최근 장애, 업타임 모니터.
+    await expect(page.getByRole('region', { name: '요약' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '주의 필요' })).toBeVisible();
     await expect(page.locator('#attention').getByRole('link', { name: /payment-worker/ })).toBeVisible();
-    await expect(page.getByRole('navigation', { name: '모니터링 범위' })).toBeVisible();
+    await expect(page.getByRole('region', { name: '업타임 모니터' }).getByRole('listitem').first()).toBeVisible();
   });
 
   test('visitor can inspect logs for a Docker service', async ({ page }) => {
@@ -95,7 +95,7 @@ test.describe('live demo', () => {
     await page.getByRole('combobox', { name: '데모 시나리오' }).click();
     await page.getByRole('option', { name: '정상 운영' }).click();
 
-    await expect(page.getByText('현재 확인이 필요한 이상이 없습니다')).toBeVisible();
+    await expect(page.getByText('장애·확인 필요 없음', { exact: true })).toBeVisible();
     // 서버 목록도 같은 판정이다. 장애나 확인 필요인 서버가 없다.
     await page.getByRole('link', { name: '서버', exact: true }).first().click();
     const rows = page.getByRole('table', { name: '서버 그리드' }).locator('tbody tr');
@@ -106,11 +106,8 @@ test.describe('live demo', () => {
   test('overview timeline lists outages from both history sources', async ({ page }) => {
     await page.goto('./');
 
-    const timeline = page.getByRole('region', { name: '최근 장애 이력' });
+    const timeline = page.getByRole('region', { name: '최근 장애' });
     await expect(timeline).toBeVisible();
-    // Scope is part of the claim: direct-connection services keep no history,
-    // so the card must not imply it covers every monitored target.
-    await expect(timeline.getByText('업타임 모니터·컨테이너, 최근 7일')).toBeVisible();
 
     // An ongoing Docker outage and a resolved uptime episode, newest first.
     await expect(timeline.getByRole('link', { name: /payment-worker/ })).toBeVisible();
@@ -127,9 +124,8 @@ test.describe('live demo', () => {
     await page.getByRole('option', { name: '부분 수집 실패' }).click();
 
     await expect(page.getByText('일부 모니터링 정보를 불러오지 못했습니다')).toBeVisible();
-    // 성공한 영역이 남아 있는지를 '모니터링 범위' 줄로 확인한다. 이 시나리오는 앱 목록만 실패하므로 서버 수는 보인다.
-    const scope = page.getByRole('navigation', { name: '모니터링 범위' });
-    await expect(scope).toBeVisible();
-    await expect(scope.getByRole('link', { name: /^서버 \d+$/ })).toBeVisible();
+    // 성공한 영역이 남아 있는지를 요약 띠와 업타임 모니터로 확인한다. 이 시나리오는 앱 목록만 실패한다.
+    await expect(page.getByRole('region', { name: '요약' })).toContainText(/\/ \d+/);
+    await expect(page.getByRole('region', { name: '업타임 모니터' }).getByRole('listitem').first()).toBeVisible();
   });
 });

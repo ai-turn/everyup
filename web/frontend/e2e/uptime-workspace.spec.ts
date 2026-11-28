@@ -35,7 +35,7 @@ test('a failed refresh keeps its last successful timestamp and the previous list
   const state = await uptimeFixture(page);
   await page.clock.install();
   await page.goto('./servers/server-1/uptime?q=Public&view=card');
-  const stamp = page.getByRole('group', { name: '데이터 갱신' }).locator('> p');
+  const stamp = page.getByRole('group', { name: '데이터 갱신' }).locator('[aria-live]');
   await expect(stamp).toContainText('갱신');
   await expect(page.getByRole('article')).toHaveCount(1);
   const previous = await stamp.textContent();

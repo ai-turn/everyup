@@ -30,7 +30,7 @@ export function Section({ title, meta, description, actions, id, label, classNam
       <div data-gap-after="heading" className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
           <h2 id={headingId} className="min-w-0 wrap-anywhere type-section-title text-text">{title}</h2>
-          {meta && <span className="type-caption tabular-nums text-text-muted">{meta}</span>}
+          {meta && <span className="type-caption tabular-nums text-text-faint">{meta}</span>}
         </div>
         {actions && <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div>}
         {description && <p data-gap="intra" className="col-span-2 mt-intra type-body text-text-muted">{description}</p>}

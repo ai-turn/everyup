@@ -90,7 +90,7 @@ test.describe('against the API', () => {
     await suggestion.getByRole('button', { name: '다른 호스트: web-01 (2), web-01' }).click();
     await expect(suggestion).toHaveCount(0);
     await page.reload();
-    await expect(page.getByRole('heading', { name: '현재 확인 필요' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '주의 필요' })).toBeVisible();
     await expect(suggestion).toHaveCount(0);
   });
 });

@@ -32,12 +32,14 @@ interface PageHeaderProps {
      * `null`은 아직 모르는 개수다: 숫자 자리만 비운다.
      */
     count?: number | null;
+    /** 제목 옆의 흐린 짧은 요약(G안 `13개 서버 · 24시간`). 제목 이름에는 들어가지 않는다. */
+    titleNote?: string;
 }
 
 const DESKTOP_HEADER = { size: 'sm', variant: 'secondary' } as const;
 const MOBILE_MENU = { variant: 'secondary' } as const;
 
-export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, menu = false, count }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, meta, aside, actions, children, compactActions = false, truncateTitle = false, menu = false, count, titleNote }: PageHeaderProps) {
     const desktop = useMediaQuery('(min-width: 1024px)');
     const slot = useHeaderActionSlot();
     const headerSlot = menu && desktop ? slot : null;
@@ -69,6 +71,7 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
                         : aside ? 'xl:flex xl:min-h-10 xl:items-center' : ''}>
                         {/* 말줄임한 제목은 서버 설명처럼 공통 툴팁으로 전체를 보인다. */}
                         {truncateTitle ? <Tooltip content={title}><h1 className={titleClass}>{heading}</h1></Tooltip> : <h1 className={titleClass}>{heading}</h1>}
+                        {titleNote && <span className={`type-body tabular-nums text-text-faint ${inlineRow ? 'mr-auto' : ''}`}>{titleNote}</span>}
                         {inlineRow && inlineChildren && <div className="ml-auto flex shrink-0 items-center gap-2">{inlineChildren}</div>}
                         {actions && <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div>}
                     </div>
