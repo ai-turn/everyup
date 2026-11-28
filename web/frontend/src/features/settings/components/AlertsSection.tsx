@@ -21,7 +21,6 @@ export function AlertsSection({ value, loading, onChange }: {
       ) : (
         <SettingRow
           label="연속 실패 횟수"
-          description="알림을 발송하기 전 필요한 연속 실패 횟수"
         >
           <SegmentedControl
             size="md"

@@ -58,12 +58,8 @@ export function ChannelFormPage() {
     <div className="-m-4 sm:-mx-6 sm:-my-6 lg:-mx-8 lg:-mt-7 lg:-mb-10 flex flex-col bg-bg lg:h-[calc(100dvh-7.25rem)]">
       {/* Page header */}
       <header className="flex-none px-6 py-3 bg-surface">
-        <h1 className="type-page-title text-text">{title}</h1>
-        <p className="type-body text-text-muted mt-intra">
-          {isEdit
-            ? `${channel?.name ?? ''} · 채널 설정을 수정합니다`
-            : 'Telegram, Discord, Slack 중 채널을 선택하고 연결 정보를 입력하세요'}
-        </p>
+        {/* G안: 제목만 둔다. 수정 중이면 채널 이름을 흐린 글자로 붙인다. */}
+        <h1 className="type-page-title text-text">{title}{isEdit && channel?.name && <span className="type-body text-text-faint"> {channel.name}</span>}</h1>
       </header>
 
       {/* Form body */}

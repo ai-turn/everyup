@@ -39,7 +39,7 @@ export function ServerFormPage() {
 
   return (
     <div>
-      <PageHeader title="서버 추가" subtitle="이름을 정하고 연결 방식을 고르세요. 서버가 만들어진 뒤에도 각 탭에서 기능을 더할 수 있습니다." />
+      <PageHeader title="서버 추가" />
       <form onSubmit={submit} noValidate className="max-w-lg">
         <fieldset disabled={saving} className="space-y-heading">
           <ServerFields form={form} idPrefix="new-server" />
