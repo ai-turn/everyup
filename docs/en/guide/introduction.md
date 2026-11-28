@@ -18,8 +18,8 @@ container state, logs, and host resources in one install without changing your a
 | **Standard OpenTelemetry Collector** | Sends server CPU, memory, disk, and network to Web | Each server you monitor |
 | **Docker Collector** (optional) | Docker discovery, container state, logs, host metrics | Each Docker host you monitor |
 
-![The EveryUp overview. 13 servers, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 6 items needing attention, and 7 recent incidents.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
-![The EveryUp overview. 13 servers, the needs-attention list with 2 outages (Checkout API on edge-host-01 and payment-worker on prod-server) and 6 items needing attention, and 7 recent incidents.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
+![The EveryUp overview. A summary strip (6 of 13 servers healthy, 99.77% average uptime, 2 active outages, 178 error logs), 7 servers needing attention (outages on edge-host-01 and prod-server, 3 needing a look, 2 not connected yet) with 24-hour uptime check bars, recent incidents and uptime monitors.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
+![The EveryUp overview. A summary strip (6 of 13 servers healthy, 99.77% average uptime, 2 active outages, 178 error logs), 7 servers needing attention (outages on edge-host-01 and prod-server, 3 needing a look, 2 not connected yet) with 24-hour uptime check bars, recent incidents and uptime monitors.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
 
 ::: info
 The dashboard interface is Korean only. These docs cover setup and
@@ -36,7 +36,7 @@ own page. Overview and alerts cover both paths per server.
 
 | Feature | What you can inspect | Required setup |
 | --- | --- | --- |
-| Overview | Failures, delayed collection, monitoring scope, recent incidents | Connect monitoring targets |
+| Overview | Summary strip, servers needing attention with uptime, recent incidents, uptime monitors | Connect monitoring targets |
 | Uptime | HTTP and TCP response checks from the uptime monitors you add | [Add uptime monitors](./uptime-monitors) |
 | Infrastructure | Host CPU, memory, disk, and network trends | [Connect infrastructure through an OpenTelemetry Collector](./monitoring-setup#direct-otel) or enable the Docker Collector's infrastructure collection |
 | Logs | Error and warning trends, recurring messages, search | Export OTLP logs directly or collect stdout/stderr with the Docker Collector |

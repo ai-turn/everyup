@@ -16,7 +16,7 @@ hero:
 carousel:
   - title: 개요
     image: overview
-    alt: EveryUp 개요 화면. 서버 13개, 현재 확인 필요 목록(edge-host-01의 Checkout API와 prod-server의 payment-worker 장애 2건, 확인 필요 6건), 최근 장애 이력 7건.
+    alt: EveryUp 개요 화면. 정상 서버 6/13, 평균 업타임 99.77%, 활성 장애 2건, 에러 로그 178건의 요약 띠, 주의 필요 서버 7대(edge-host-01과 prod-server 장애, 확인 필요 3대, 연결 전 2대)와 업타임 체크 띠, 최근 장애와 업타임 모니터 목록.
   - title: 업타임
     image: uptime
     alt: edge-host-01 서버의 Storefront 업타임 모니터. 24시간 업타임 99.41%, 30일 업타임 99.86%, 평균 응답 130ms, 인증서 만료 D-83과 지연 증가·스파이크·장애 구간이 보이는 6시간 응답 시간 차트.

@@ -40,10 +40,10 @@ const RULES = [
   // 크기·굵기는 역할 유틸리티로 고른다(§2.2). 같은 모양의 조합을 손으로 쓰면 역할 표에서 빠진다.
   { name: '§2.2 text-sm/xs + font-medium (type-label/-sm)', re: /\btext-(?:sm|xs) font-medium\b|\bfont-medium text-(?:sm|xs)\b/g },
   { name: '§2.2 역할 유틸리티 위에 굵기 덧씌움', re: /\btype-[a-z-]+\b[^"'`]*\bfont-(?:normal|medium|semibold|bold)\b/g },
-  // 부채 — 현재 건수가 상한 (§10.A·§10.F)
+  // 부채 — 현재 건수가 상한 (§10)
   // 18px 이상 원시 크기: 모바일 헤더 로고 워드마크·로그인 워드마크·모바일 설정 h1·404 숫자만. 숫자는 type-kpi/stat(§2.2)
   { name: '§2.2 text-lg 이상 원시 크기', re: /\btext-(?:lg|xl|[2-6]xl)\b/g, max: 4 },
-  // 간격 체계(§3.7, §10.I) — 2026-11-21 P0~P5에서 래칫으로 0건까지 내리고 P6에서 금지로 옮겼다.
+  // 간격 체계(§3.7, §10) — 2026-11-21 P0~P5에서 래칫으로 0건까지 내리고 P6에서 금지로 옮겼다.
   // S1 임의값 간격. 뷰포트 비율(명령 팔레트의 pt-[18vh])만 허용한다.
   { name: '§3.7 S1 임의값 간격', re: /(?<![\w-])-?(?:m[trblxyse]?|p[trblxyse]?|gap(?:-[xy])?|space-[xy])-\[/g, skip: /CommandPalette\.tsx$/ },
   // S2 블록 사이 세로 반 단계: 여백·space-y·gap-y만 센다. 상자 안쪽 패딩(컨트롤·칩·안내 상자)은 컴포넌트 안쪽 값이고,

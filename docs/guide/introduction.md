@@ -16,8 +16,8 @@ Collector로 보냅니다. Linux Docker 호스트라면 그 서버에 선택 통
 | **표준 OpenTelemetry Collector** | 서버 CPU·메모리·디스크·네트워크를 Web으로 전송 | 모니터링할 각 서버 |
 | **Docker Collector** (선택) | Docker 컨테이너 자동 발견, 컨테이너 상태, 로그, 호스트 메트릭 | 모니터링할 각 Docker 호스트 |
 
-![EveryUp 개요 화면. 서버 13개, 현재 확인 필요 목록(edge-host-01의 Checkout API와 prod-server의 payment-worker 장애 2건, 확인 필요 6건), 최근 장애 이력 7건.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
-![EveryUp 개요 화면. 서버 13개, 현재 확인 필요 목록(edge-host-01의 Checkout API와 prod-server의 payment-worker 장애 2건, 확인 필요 6건), 최근 장애 이력 7건.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
+![EveryUp 개요 화면. 정상 서버 6/13, 평균 업타임 99.77%, 활성 장애 2건, 에러 로그 178건의 요약 띠, 주의 필요 서버 7대(edge-host-01과 prod-server 장애, 확인 필요 3대, 연결 전 2대)와 업타임 체크 띠, 최근 장애와 업타임 모니터 목록.](/images/home/slide-overview-light.webp){.only-light width=1440 height=900}
+![EveryUp 개요 화면. 정상 서버 6/13, 평균 업타임 99.77%, 활성 장애 2건, 에러 로그 178건의 요약 띠, 주의 필요 서버 7대(edge-host-01과 prod-server 장애, 확인 필요 3대, 연결 전 2대)와 업타임 체크 띠, 최근 장애와 업타임 모니터 목록.](/images/home/slide-overview-dark.webp){.only-dark width=1440 height=900}
 
 ## 핵심 기능
 
@@ -28,7 +28,7 @@ Docker Collector가 수집한 데이터를 함께 보여줍니다. 업타임 탭
 
 | 기능 | 확인할 내용 | 필요한 설정 |
 | --- | --- | --- |
-| 개요 | 장애·수집 지연, 모니터링 범위, 최근 장애 이력 | 모니터링 대상 연결 |
+| 개요 | 요약 띠, 주의 필요 서버와 업타임, 최근 장애, 업타임 모니터 | 모니터링 대상 연결 |
 | 업타임 | 직접 등록한 업타임 모니터의 HTTP·TCP 응답 검사 | [업타임 모니터 추가](./uptime-monitors) |
 | 인프라 | 호스트 CPU·메모리·디스크·네트워크 추이 | [OpenTelemetry Collector로 인프라 연결](./monitoring-setup#direct-otel) 또는 Docker Collector의 인프라 수집 |
 | 로그 | 오류·경고 추이, 반복 메시지 묶기, 검색 | 직접 OTLP 로그 전송 또는 Docker Collector의 stdout/stderr 수집 |
