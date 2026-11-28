@@ -176,8 +176,8 @@ export function LogServiceOverview({ rows, patterns, span, view, returnTo, title
       </Section>
       {/* 오류가 없으면 섹션째 숨긴다 — 위 카드가 이미 0건이라고 말한다. 실패는 숨기지 않는다 — "패턴 없음"으로 읽힌다. */}
       {(patterns === null || patterns.length > 0) && (
-        // 위 앱 목록과 같은 섹션 제목(20px, DESIGN.md §2.2). 집계 방식은 긴 설명이라 메타가 아니라 제목 아래 설명 줄이다.
-        <Section title="자주 발생한 오류·경고" description="최근 24시간 기준이며, 숫자·ID만 다른 메시지는 하나로 셉니다.">
+        // 집계 방식(숫자·ID만 다른 메시지는 하나로 센다)은 제목의 툴팁 대신 메타의 기간만 둔다(G안: 설명 문장을 두지 않는다).
+        <Section title="자주 발생한 오류·경고" meta="24시간">
           {patterns === null ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3">
               <p className="type-body text-text-muted">반복 패턴을 불러오지 못했습니다.</p>

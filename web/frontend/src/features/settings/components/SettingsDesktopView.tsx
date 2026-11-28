@@ -80,7 +80,7 @@ export function SettingsDesktopView({
 
           <section id="sec-ui" className="scroll-mt-4">
             <SectionCard title="인터페이스">
-              <SettingRow label="테마" description="화면 색 테마를 선택합니다">
+              <SettingRow label="테마">
                 <SegmentedControl
                   size="md"
                   ariaLabel="테마"
@@ -101,7 +101,7 @@ export function SettingsDesktopView({
                 </div>
               ) : (
                 <>
-                  <SettingRow label="수집 주기" description="시스템 메트릭을 수집하는 간격 · 다음 시작 시 적용됩니다">
+                  <SettingRow label="수집 주기" description="다음 시작 시 적용">
                     <SegmentedControl
                       size="md"
                       ariaLabel="수집 주기"
@@ -111,7 +111,7 @@ export function SettingsDesktopView({
                     />
                   </SettingRow>
 
-                  <SettingRow label="메트릭 보존 기간" description="수집된 시스템 메트릭 데이터 보존 기간">
+                  <SettingRow label="메트릭 보존 기간">
                     <SegmentedControl
                       size="md"
                       ariaLabel="메트릭 보존 기간"
@@ -121,7 +121,7 @@ export function SettingsDesktopView({
                     />
                   </SettingRow>
 
-                  <SettingRow label="로그 보존 기간" description="에러 로그 데이터 보존 기간">
+                  <SettingRow label="로그 보존 기간">
                     <SegmentedControl
                       size="md"
                       ariaLabel="로그 보존 기간"

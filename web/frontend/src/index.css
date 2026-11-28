@@ -85,6 +85,9 @@
      '17회' 같은 값이 굴림으로 떨어지지 않게 Spoqa를 2순위에 둔다. 숫자는 본문 폰트 + tabular-nums로 쓴다. */
   --font-mono: 'Geist Mono Variable', 'Spoqa Han Sans Neo', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
+  /* 모서리(G안): 패널·카드도 8px이다. rounded-xl(원래 12px)을 8px로 낮춰 카드와 버튼의 모서리가 같은 계열이 되게 한다. */
+  --radius-xl: 0.5rem;
+
   /* 본문 크기는 13px이다(G안). text-sm을 다시 정의하므로 type-body·type-label·type-control·버튼이 함께 13px이 된다. */
   --text-sm: 0.8125rem;
   --text-sm--line-height: 1.25rem;

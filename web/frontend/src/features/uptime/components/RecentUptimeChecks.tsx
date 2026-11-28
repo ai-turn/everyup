@@ -23,10 +23,11 @@ export function RecentUptimeChecks({ metrics, paused = false, stale = false }: {
   return (
     <Tooltip content={detail}>
     <div className="min-w-0" role="group" tabIndex={0} aria-label={`최근 체크 ${checks.length}회. 방향키로 체크를 옮깁니다`} onKeyDown={move} onMouseLeave={() => setSelected(null)} onBlur={() => setSelected(null)}>
-      <div className="flex gap-0.5">
+      {/* G안 체크 막대: 가는 칸, 성공 uptime-ok · 실패 uptime-fail. 고른 칸은 옅어진다. */}
+      <div className="flex h-3.5 gap-px">
         {checks.map((item, slot) => (
           <span key={item.id} onMouseEnter={() => setSelected(slot)}
-            className={`h-3 min-w-0 flex-1 rounded-sm ${item.status === 'success' ? 'bg-ok' : 'bg-crit'} ${slot === index ? 'opacity-75' : ''}`} />
+            className={`w-1.5 shrink-0 rounded-xs ${item.status === 'success' ? 'bg-uptime-ok' : 'bg-uptime-fail'} ${slot === index ? 'opacity-60' : ''}`} />
         ))}
       </div>
       <p className="mt-1 flex flex-wrap gap-x-3 type-caption text-text-muted" aria-live="polite">
