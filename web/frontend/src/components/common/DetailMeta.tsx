@@ -36,8 +36,8 @@ export function DetailMeta({ status, connection, fields = [], collapseOnMobile =
     <dl className="grid max-w-4xl sm:grid-cols-2 sm:gap-x-12">
       {fields.map(field => (
         <div key={field.label} className="flex min-h-11 min-w-0 items-center gap-4 sm:min-h-10">
-          <dt className="w-24 shrink-0 type-body text-text-dim">{field.label}</dt>
-          <dd className="flex min-w-0 flex-1 items-center gap-2 type-body text-text-base">{field.value}</dd>
+          <dt className="w-24 shrink-0 type-body text-text-faint">{field.label}</dt>
+          <dd className="flex min-w-0 flex-1 items-center gap-2 type-body text-text">{field.value}</dd>
         </div>
       ))}
     </dl>
@@ -49,7 +49,7 @@ export function DetailMeta({ status, connection, fields = [], collapseOnMobile =
       {connection}
       {fieldList && (collapsed || (collapseOnMobile && narrow) ? (
         <details>
-          <summary className={`min-h-11 cursor-pointer content-center type-body text-action ${collapsed ? 'sm:min-h-8' : ''}`}>
+          <summary className={`min-h-11 cursor-pointer content-center type-body text-text ${collapsed ? 'sm:min-h-8' : ''}`}>
             {collapseLabel}
             {collapsed && <span className="ml-2 type-caption text-text-muted">{fields.map(field => field.label).join(', ')}</span>}
           </summary>

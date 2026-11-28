@@ -1,15 +1,13 @@
-import { useSyncExternalStore } from 'react';
-
 export interface ChartTheme {
   gridColor: string;
   tickColor: string;
   /** Card surface — hairline strokes between stacked bars and active-dot rings. */
   surfaceColor: string;
-  /** Brand primary for chart series — follows the light/dark CSS token. */
+  /** First series color (chart-1). */
   primaryColor: string;
-  /** status-error-fill — error bars, failed-check ranges and alert thresholds. */
+  /** crit — error bars, failed-check ranges and alert thresholds. */
   errorColor: string;
-  /** status-warn-fill — warn bars. */
+  /** attn — warn bars. */
   warnColor: string;
 }
 
@@ -28,11 +26,6 @@ export interface TooltipPayloadItem {
 // ResizeObserver callback, which produces a console warning in lazy routes.
 export const CHART_INITIAL_DIMENSION = { width: 1, height: 1 } as const;
 
-function getCssVar(name: string): string {
-  if (typeof document === 'undefined') return '';
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
 /* ── EveryUp 차트 스펙 (Grafana풍) ────────────────────────────────
  * 모든 recharts 차트는 아래 팩토리/상수를 사용한다. 개별 차트에서
  * 선 굵기·그리드·축 스타일을 다시 정의하지 말 것.
@@ -41,26 +34,21 @@ function getCssVar(name: string): string {
  *       숫자 시간축(정시 눈금·24시간제), 수집 공백은 선을 끊는다, 애니메이션 없음.
  *       통계: 단일 시리즈는 카드 제목 옆 ChartSummary, 다중 시리즈는 ChartStatsLegend. */
 
-/* 시리즈 hex 단일 소스 — 정적 컨텍스트(데이터 변환 등)용. 컴포넌트에서는 getSeriesPalette 사용.
- *
- * 500단계였을 때 라이트 배경 대비가 emerald 2.54 / teal 2.49 / amber 2.15로 WCAG 1.4.11(3:1)
- * 미달이었다 — 팔레트가 다크 배경만 보고 튜닝돼 있었다. 600단계로 내려 양쪽 다 통과시킨다.
- *
- * 적록색각이상 하에서 앞 3슬롯(primary/emerald/amber)은 서로 구분되지만 4슬롯째부터는
- * 어떤 순서로 배열해도 충돌한다(primary/violet 16.0, emerald/teal 11.8, amber/red 12.8).
- * 시리즈가 4개를 넘으면 색만으로 구분이 보장되지 않는다 — 선 스타일이나 직접 라벨 병행. */
-export const SERIES_HEX = {
-  primary: '#3e63dd',
-  emerald: '#059669',
-  amber: '#d97706',
-  violet: '#7c3aed',
-  red: '#dc2626',
-  teal: '#0d9488',
+/* 시리즈 색 — 테마 토큰(tokens.css의 chart-1~5)을 var()로 가리킨다. SVG 속성과 인라인 스타일 모두 var()를
+ * 그대로 풀기 때문에 테마가 바뀌어도 차트를 다시 그릴 필요가 없다. 정적 컨텍스트(데이터 변환)도 이 값을 쓴다.
+ * chart-4는 회색이라 다중 시리즈 순환에서는 뒤로 뺐다. 4슬롯째부터는 선 스타일을 함께 쓴다(아래). */
+export const SERIES = {
+  primary: 'var(--chart-1)',
+  second: 'var(--chart-2)',
+  third: 'var(--chart-3)',
+  fourth: 'var(--chart-5)',
+  neutral: 'var(--chart-4)',
+  deploy: 'var(--deploy-marker)',
 } as const;
 
-/** 다중 시리즈 순환 팔레트 — 첫 슬롯은 항상 브랜드 프라이머리. */
+/** 다중 시리즈 순환 팔레트 — 첫 슬롯은 항상 chart-1. */
 export function getSeriesPalette(theme: ChartTheme): string[] {
-  return [theme.primaryColor, SERIES_HEX.emerald, SERIES_HEX.amber, SERIES_HEX.violet, SERIES_HEX.red, SERIES_HEX.teal];
+  return [theme.primaryColor, SERIES.second, SERIES.third, SERIES.fourth, SERIES.neutral, theme.errorColor];
 }
 
 /* 4슬롯째부터 선 스타일을 달리한다 — 그 지점부터 색만으로는 구분이 보장되지 않기 때문이다(위 주석).
@@ -82,7 +70,7 @@ export const CHART_MARGIN = { top: 8, right: 8, left: 0, bottom: 0 } as const;
 
 /** 차트 카드 공통 클래스 — 패딩(p-4/p-6)은 소비처에서 붙인다. */
 export const chartCardClass =
-  'rounded-xl border border-ui-border-soft bg-bg-surface';
+  'rounded-xl border border-border bg-surface';
 
 export function gridProps(theme: ChartTheme) {
   return { stroke: theme.gridColor, strokeOpacity: 0.55, vertical: false } as const;
@@ -145,35 +133,22 @@ export function areaProps(gradientId: string) {
   } as const;
 }
 
+const CHART_THEME: ChartTheme = {
+  gridColor: 'var(--border)',
+  tickColor: 'var(--text-muted)',
+  surfaceColor: 'var(--surface)',
+  primaryColor: SERIES.primary,
+  errorColor: 'var(--crit)',
+  warnColor: 'var(--attn)',
+};
+
 export function getChartTheme(): ChartTheme {
-  return {
-    gridColor: getCssVar('--color-chart-border') || '#e0e1e6',
-    // text-muted is the AA-safe chart label token in both themes. Never read
-    // the implementation-only *-dark variables here.
-    tickColor: getCssVar('--color-text-muted') || '#60646c',
-    surfaceColor: getCssVar('--color-bg-surface') || '#ffffff',
-    // 차트 첫 시리즈는 UI primary(무채색)와 분리해 indigo로 둔다 — 검정 선은 축·격자와 구분되지 않는다.
-    primaryColor: SERIES_HEX.primary,
-    errorColor: getCssVar('--color-status-error-fill') || '#dc2626',
-    warnColor: getCssVar('--color-status-warn-fill') || '#c77700',
-  };
+  return CHART_THEME;
 }
 
-// ThemeProvider는 렌더가 끝난 뒤 effect에서 <html>.dark를 토글한다. 그래서 테마 값을
-// 구독해도 자식 렌더 시점에는 CSS 변수가 아직 이전 값이다 — 클래스 변경 자체를 구독해야
-// 전환 직후 한 번 더 그려진다.
-function subscribeThemeClass(onChange: () => void) {
-  const observer = new MutationObserver(onChange);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-  return () => observer.disconnect();
-}
-
-const isDarkClass = () => document.documentElement.classList.contains('dark');
-
-/** getChartTheme()의 훅 버전 — 테마가 바뀌면 차트를 다시 그린다. 컴포넌트에서는 이것을 쓴다. */
+/** 차트 색 — 값이 var()라 테마 전환에 다시 그릴 필요가 없다. 컴포넌트에서 쓰는 이름으로 남긴다. */
 export function useChartTheme(): ChartTheme {
-  useSyncExternalStore(subscribeThemeClass, isDarkClass);
-  return getChartTheme();
+  return CHART_THEME;
 }
 
 /* ── Y축: nice tick ─────────────────────────────────────────────

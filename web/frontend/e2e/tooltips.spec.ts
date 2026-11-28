@@ -51,7 +51,7 @@ test.describe('shared tooltip interactions', () => {
     for (const width of [360, 1440]) {
       await page.setViewportSize({ width, height: 700 });
       for (const theme of ['light', 'dark']) {
-        await page.evaluate(value => document.documentElement.classList.toggle('dark', value === 'dark'), theme);
+        await page.evaluate(value => (document.documentElement.dataset.theme = value), theme);
         const trigger = page.getByRole('button', { name: '화면 가장자리 도움말', exact: true });
         await page.mouse.move(0, 0);
         await trigger.hover();

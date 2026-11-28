@@ -63,10 +63,10 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
 
   return (
     <div role="presentation" className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${SCRIM_MODAL}`} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-md bg-bg-surface rounded-xl shadow-lg border border-ui-border overflow-hidden">
+      <div className="w-full max-w-md bg-surface rounded-xl shadow-lg border border-border overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-ui-border-soft">
-          <h2 className="type-card-title text-text-base truncate">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h2 className="type-card-title text-text truncate">
             {agentName} · API Key
           </h2>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} />
@@ -74,13 +74,13 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
 
         <div className="p-6 space-y-item">
           {loading ? (
-            <div className="h-24 rounded-xl bg-ui-hover animate-pulse" />
+            <div className="h-24 rounded-xl bg-surface-hover animate-pulse" />
           ) : available ? (
             <>
               <div className="space-y-label">
                 <p className="type-caption text-text-muted">API Key</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 px-3 cell rounded-md bg-ui-hover-soft text-xs font-mono text-text-base break-all">
+                  <code className="flex-1 px-3 cell rounded-md bg-surface-hover text-xs font-mono text-text break-all">
                     {apiKey}
                   </code>
                   <CopyButton onCopy={handleCopy} title="API Key 복사" className={COPY_ACTION_SUBTLE} />
@@ -88,12 +88,12 @@ export function ApiKeyModal({ agentId, agentName, onClose, onRotated }: Props) {
               </div>
               <div className="space-y-label">
                 <p className="type-caption text-text-muted">Docker Collector 설정</p>
-                <pre className="px-3 cell rounded-md bg-ui-hover-soft text-xs font-mono text-text-base overflow-x-auto">{`EVERYUP_AGENT_API_KEY=${apiKey}`}</pre>
+                <pre className="px-3 cell rounded-md bg-surface-hover text-xs font-mono text-text overflow-x-auto">{`EVERYUP_AGENT_API_KEY=${apiKey}`}</pre>
               </div>
             </>
           ) : (
-            <div className="flex items-start gap-3 p-4 rounded-md bg-ui-hover-soft">
-              <MaterialIcon size={20} name="info" className="text-amber-500 shrink-0 icon-lead" />
+            <div className="flex items-start gap-3 p-4 rounded-md bg-surface-hover">
+              <MaterialIcon size={20} name="info" className="text-attn shrink-0 icon-lead" />
               <p className="type-body text-text-muted">
                 이 Docker Collector는 키 저장 기능 이전에 생성되어 기존 키를 조회할 수 없습니다. 재발급하면 새 키가 발급됩니다.
               </p>

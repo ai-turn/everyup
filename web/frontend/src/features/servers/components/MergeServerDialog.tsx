@@ -138,12 +138,12 @@ export function MergeServerDialog({ row, rows, initialSelected = [], onClose, on
       aria-labelledby="merge-server-title"
       onCancel={(event) => { event.preventDefault(); if (!merging) onClose(); }}
       onClick={(event) => { if (event.target === event.currentTarget && !merging) onClose(); }}
-      className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <form onSubmit={(event) => void submit(event)}>
-        <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
           <div>
-            <h2 id="merge-server-title" className="type-card-title text-text-base">다른 서버 합치기</h2>
+            <h2 id="merge-server-title" className="type-card-title text-text">다른 서버 합치기</h2>
             <p className="mt-intra type-body text-text-muted">선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.</p>
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={merging} />
@@ -161,9 +161,9 @@ export function MergeServerDialog({ row, rows, initialSelected = [], onClose, on
                   const disabled = Boolean(reason);
                   return (
                     <li key={candidate.server.id}>
-                      <label className={`flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-ui-hover-soft'}`}>
+                      <label className={`flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-surface-hover'}`}>
                         <input type="checkbox" checked={checked.has(candidate.server.id)} disabled={disabled} onChange={() => toggle(candidate.server.id)}
-                          className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed" />
+                          className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-accent disabled:cursor-not-allowed" />
                         <OptionText title={candidate.server.name}
                           description={reason ?? `${candidate.targets.docker ? 'Docker Collector, ' : ''}${summaryOf(candidate)}`} />
                       </label>
@@ -178,18 +178,18 @@ export function MergeServerDialog({ row, rows, initialSelected = [], onClose, on
           {needsInfraSource && <InfraSourceChoice value={infraSource} onChange={setInfraSource} descriptions={INFRA_SOURCE_EFFECTS} />}
           {selected.length > 0 && (
             <div className="space-y-label" aria-live="polite">
-              <p className="type-body text-text-base">
+              <p className="type-body text-text">
                 {knownTargets ? '다음 대상이 이 서버로 옮겨집니다.'
                   : unknownTargets ? '대상 목록을 불러오지 못해 옮겨질 대상을 확인하지 못했습니다.'
                     : '옮길 대상이 없습니다.'}
               </p>
               <TargetCountList rows={selected} />
-              <p className="type-body text-text-base">선택한 서버 {selected.length}개는 삭제됩니다.</p>
+              <p className="type-body text-text">선택한 서버 {selected.length}개는 삭제됩니다.</p>
             </div>
           )}
-          {error && <p role="alert" className="type-body text-status-error">{error}</p>}
+          {error && <p role="alert" className="type-body text-crit-text">{error}</p>}
         </fieldset>
-        <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
+        <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={merging}>취소</Button>
           {/* 선택한 서버가 삭제되는 동작이다(DESIGN.md §7 삭제 확인). */}
           <Button type="submit" variant="danger" loading={merging} disabled={selected.length === 0 || (needsInfraSource && !infraSource)}>합치기</Button>

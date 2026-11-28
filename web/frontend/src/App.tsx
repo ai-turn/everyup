@@ -32,11 +32,11 @@ const LegacyGroupRedirect = lazy(() => import('./pages/servers/LegacyTargetRedir
 function PageLoader() {
   return (
     <div className="flex-1 p-4 sm:p-6 md:p-8 space-y-heading animate-pulse">
-      <div className="h-8 bg-ui-active rounded-lg w-48" />
-      <div className="h-4 bg-ui-hover rounded w-72" />
+      <div className="h-8 bg-border rounded-lg w-48" />
+      <div className="h-4 bg-surface-hover rounded w-72" />
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-6">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-40 bg-ui-hover rounded-xl" />
+          <div key={i} className="h-40 bg-surface-hover rounded-xl" />
         ))}
       </div>
     </div>
@@ -56,7 +56,7 @@ function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <NetworkStatusBanner />
-      <div className="bg-bg-main text-text-base transition-colors duration-200">
+      <div className="bg-bg text-text transition-colors duration-200">
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* 데모 모드에서는 /login 접근 시 홈으로 리다이렉트 */}

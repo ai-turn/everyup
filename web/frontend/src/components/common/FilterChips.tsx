@@ -23,11 +23,11 @@ export function FilterChips<T extends string>({ ariaLabel, options, value, onCha
         return (
           <button key={option.value} type="button" aria-pressed={selected} onClick={() => onChange(selected ? null : option.value)}
             className={`inline-flex h-11 shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border px-2.5 type-body transition-colors sm:h-10 sm:gap-1.5 sm:px-3 ${selected
-              ? 'border-primary bg-ui-hover text-text-base forced-colors:border-[Highlight]'
-              : 'border-ui-border bg-bg-surface text-text-secondary hover:bg-ui-hover-soft hover:text-text-base'}`}>
+              ? 'border-accent bg-surface-hover text-text forced-colors:border-[Highlight]'
+              : 'border-border bg-surface text-text hover:bg-surface-hover hover:text-text'}`}>
             {option.tone && <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[option.tone]}`} />}
             <span>{option.label}</span>
-            <span className="font-medium tabular-nums text-text-base">{option.count}</span>
+            <span className="font-medium tabular-nums text-text">{option.count}</span>
           </button>
         );
       })}

@@ -40,11 +40,11 @@ export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete 
       aria-labelledby="server-settings-title"
       onCancel={(event) => { event.preventDefault(); if (!saving) onClose(); }}
       onClick={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}
-      className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <form onSubmit={submit} noValidate>
-        <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
-          <h2 id="server-settings-title" className="type-card-title text-text-base">서버 설정</h2>
+        <div className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
+          <h2 id="server-settings-title" className="type-card-title text-text">서버 설정</h2>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={saving} />
         </div>
         <fieldset disabled={saving} className="space-y-heading p-6">
@@ -52,7 +52,7 @@ export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete 
         </fieldset>
         {/* 서버 자체를 바꾸는 조작은 입력란 아래에 떼어 두고, 저장 줄은 맨 아래에 둔다.
             오른쪽 아래 끝(주 액션 자리)에 삭제가 오지 않게 한다. 중립 표면에 붉은 글자의 조작이다(DESIGN.md §9.2). */}
-        <section aria-label="서버 관리" className="space-y-heading border-t border-ui-border px-6 py-5">
+        <section aria-label="서버 관리" className="space-y-heading border-t border-border px-6 py-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="min-w-0 flex-1 basis-56 type-body text-text-muted">선택한 서버의 대상을 모두 이 서버로 옮기고, 선택한 서버는 삭제합니다.</p>
             <Button type="button" variant="secondary" onClick={onMerge} disabled={saving}>다른 서버 합치기</Button>
@@ -67,7 +67,7 @@ export function ServerSettingsDialog({ row, onClose, onSaved, onMerge, onDelete 
             </div>
           )}
         </section>
-        <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
+        <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button>
           <Button type="submit" loading={saving}>저장</Button>
         </div>
@@ -112,7 +112,7 @@ export function DeleteServerDialog({ row, onClose, onDeleted, onFailed }: {
         // 알려진 대상이 없어도 불러오지 못한 목록에 있을 수 있다(이전 목록이면 그 뒤에 생겼을 수 있다). 없다고 단정하지 않는다.
         ? <p>대상 목록을 불러오지 못해 함께 삭제될 대상을 확인하지 못했습니다. 연결된 대상이 있으면 함께 삭제됩니다.</p>
         : <p>이 서버에는 연결된 대상이 없습니다.</p>}
-      description={error && <span role="alert" className="text-status-error">{error}</span>}
+      description={error && <span role="alert" className="text-crit-text">{error}</span>}
     />
   );
 }

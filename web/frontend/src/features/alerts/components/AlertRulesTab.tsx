@@ -137,8 +137,8 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
 
   const selectedTargetLabel = target ? alertTargetName(target, names) : null;
   const targetNotice = selectedTargetLabel && (
-    <div className="flex items-center gap-2 rounded-xl border border-ui-border-soft bg-bg-surface px-3 py-2 type-control text-text-secondary" role="status">
-      <MaterialIcon size={20} name="filter_alt" className="text-action" />
+    <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 type-control text-text" role="status">
+      <MaterialIcon size={20} name="filter_alt" className="text-text" />
       <span className="min-w-0 flex-1 truncate">대상: {selectedTargetLabel}</span>
       {onClearTarget && <Button variant="ghost" size="sm" onClick={onClearTarget}>대상 해제</Button>}
     </div>
@@ -174,7 +174,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
     >
       {formLoading ? (
         <div className="flex min-h-40 items-center justify-center">
-          <MaterialIcon size={32} name="sync" className="text-action animate-spin" />
+          <MaterialIcon size={32} name="sync" className="text-text animate-spin" />
         </div>
       ) : (
         <AlertRuleForm
@@ -192,7 +192,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
   if (rulesLoading) {
     return (
       <div className="p-8 text-center text-text-muted">
-        <MaterialIcon size={32} name="sync" className="text-action animate-spin mx-auto mb-2 block" />
+        <MaterialIcon size={32} name="sync" className="text-text animate-spin mx-auto mb-2 block" />
         로딩 중…
       </div>
     );
@@ -263,9 +263,9 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
       {view === 'card' ? <div className="space-y-label">
         <div className="flex flex-wrap gap-2" role="group" aria-label="규칙 정렬">{([{ key: 'name', label: '이름' }, { key: 'severity', label: '심각도' }, { key: 'target', label: '대상' }] as const).map(({ key, label }) => <Button key={key} variant={sortKey === key ? 'secondary' : 'ghost'} size="sm" aria-pressed={sortKey === key} onClick={() => onSort(key)}>{label}{sortKey === key ? sortDir === 'asc' ? ' ↑' : ' ↓' : ''}</Button>)}</div>
         {filteredRules.length === 0 ? <p className="p-5 type-body text-text-muted">조건에 맞는 규칙이 없습니다 <Button variant="ghost" size="sm" onClick={clearFilters}>필터 초기화</Button></p> :
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-ui-border-soft bg-bg-surface p-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{filteredRules.map(rule => <article key={rule.id} aria-label={rule.name} className="min-w-0 rounded-xl border border-border bg-surface p-4">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate type-card-title">{rule.name}</h2><p className="mt-1 type-caption text-text-muted">{rule.isSystem ? '시스템 기본 규칙 · 삭제 불가' : categoryLabel(ruleCategory(rule))}</p></div><SeverityBadge severity={rule.severity} /></div>
-            <p className="mt-4 break-words type-body text-text-secondary"><RuleTargetName rule={rule} names={names} /></p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
+            <p className="mt-4 break-words type-body text-text"><RuleTargetName rule={rule} names={names} /></p><Tooltip content={evaluationSummary(rule)} focusable><p className="mt-2 break-words type-body text-text-muted">{compactTrigger(rule)}</p></Tooltip>
             <div className="mt-3 space-y-label"><ChannelAvatars rule={rule} channels={channels} /><p className="type-caption text-text-muted">최근 발동 {rule.lastTriggeredAt ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko }) : '없음'}</p></div>
             <div className="mt-4 flex items-center justify-end gap-2"><Toggle checked={rule.isEnabled} onChange={() => onToggleRule(rule.id)} disabled={togglingIds.has(rule.id)} ariaLabel={rule.name} /><IconButton icon="edit" label="수정" tone="quiet" onClick={() => handleEdit(rule)} /><IconButton icon="delete_outline" label={rule.isSystem ? '시스템 규칙은 삭제할 수 없습니다' : '삭제'} tone="danger" aria-disabled={rule.isSystem || undefined} disabled={isDeleting} onClick={() => { if (!rule.isSystem) setDeleteTargetId(rule.id); }} /></div>
           </article>)}</div>}
@@ -273,7 +273,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
         <div className="table-bleed overflow-x-auto">
           <table aria-label="알림 규칙 그리드" className="w-full min-w-[1180px] table-fixed type-control">
             <thead>
-              <tr className="border-b border-ui-border-soft">
+              <tr className="border-b border-border">
                 <SortableTH className="w-[260px]" label="규칙" active={sortKey === 'name'} dir={sortDir} onClick={() => onSort('name')} />
                 <SortableTH className="w-[110px]" label="심각도" active={sortKey === 'severity'} dir={sortDir} onClick={() => onSort('severity')} />
                 <SortableTH className="w-[200px]" label="대상" active={sortKey === 'target'} dir={sortDir} onClick={() => onSort('target')} />
@@ -287,7 +287,7 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                   최근 발동
                 </th>
                 {/* 1180px 테이블이 노트북 폭에서 가로 스크롤될 때도 작업 열은 보이게 오른쪽에 고정한다. */}
-                <th className="sticky right-0 w-[120px] bg-bg-main px-4 py-3 text-right type-label-sm text-text-muted">
+                <th className="sticky right-0 w-[120px] bg-bg px-4 py-3 text-right type-label-sm text-text-muted">
                   작업
                 </th>
               </tr>
@@ -306,18 +306,18 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                   return (
                     <tr
                       key={rule.id}
-                      className={`group transition-colors hover:bg-ui-hover-soft ${!rule.isEnabled ? 'bg-ui-hover-soft' : ''}`}
+                      className={`group transition-colors hover:bg-surface-hover ${!rule.isEnabled ? 'bg-surface-hover' : ''}`}
                     >
                       <td className="px-4 cell align-middle">
                         <div className="flex min-w-0 items-center gap-2">
-                          <span className={`truncate font-medium ${rule.isEnabled ? 'text-text-base' : 'text-text-muted'}`}>
+                          <span className={`truncate font-medium ${rule.isEnabled ? 'text-text' : 'text-text-muted'}`}>
                             {rule.name}
                           </span>
                           {rule.isSystem && (
-                            <MaterialIcon size={20} name="lock" className="shrink-0 text-text-dim" />
+                            <MaterialIcon size={20} name="lock" className="shrink-0 text-text-faint" />
                           )}
                         </div>
-                        <p className="truncate type-caption text-text-dim">
+                        <p className="truncate type-caption text-text-faint">
                           {rule.isSystem
                             ? '시스템 기본 규칙 · 삭제 불가, 채널만 변경 가능'
                             : categoryLabel(cat)}
@@ -330,13 +330,13 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                         {/* 잘린 이름을 마우스로 볼 수 있게만 한다. 글자는 DOM에 있어 낭독되므로 Tab 정지점을 만들지 않는다(A-15). */}
                         {/* 대상은 분류라 칩이 아니라 맨 텍스트다(§5.3 칩은 상태 전용). */}
                         <Tooltip content={targetLabel(rule, names)}><span
-                          className="block max-w-full truncate type-control text-text-secondary"
+                          className="block max-w-full truncate type-control text-text"
                         >
                           <RuleTargetName rule={rule} names={names} stacked />
                         </span></Tooltip>
                       </td>
                       <td className="px-4 cell align-middle type-control">
-                        <Tooltip content={evaluationSummary(rule)} focusable><p className="truncate text-text-secondary">
+                        <Tooltip content={evaluationSummary(rule)} focusable><p className="truncate text-text">
                           {compactTrigger(rule)}
                         </p></Tooltip>
                       </td>
@@ -346,9 +346,9 @@ export function AlertRulesTab({ rules, channels, rulesLoading, rulesError, onRel
                       <td className="px-4 cell align-middle type-control text-text-muted whitespace-nowrap">
                         {rule.lastTriggeredAt
                           ? formatDistanceToNow(new Date(rule.lastTriggeredAt), { addSuffix: true, locale: ko })
-                          : <span className="text-text-dim">-</span>}
+                          : <span className="text-text-faint">-</span>}
                       </td>
-                      <td className={`sticky right-0 px-4 py-2 text-right align-middle whitespace-nowrap transition-colors group-hover:bg-ui-hover-soft ${rule.isEnabled ? 'bg-bg-main' : 'bg-ui-hover-soft'}`}>
+                      <td className={`sticky right-0 px-4 py-2 text-right align-middle whitespace-nowrap transition-colors group-hover:bg-surface-hover ${rule.isEnabled ? 'bg-bg' : 'bg-surface-hover'}`}>
                         <div className="inline-flex items-center justify-end gap-1">
                           <Toggle
                             checked={rule.isEnabled}
@@ -402,10 +402,10 @@ function SortableTH({ label, active, dir, onClick, className = '' }: { label: st
       <button
         type="button"
         onClick={onClick}
-        className={`relative inline-flex cursor-pointer items-center gap-1 before:absolute before:-inset-x-1 before:-inset-y-3 before:content-[''] ${active ? 'text-text-base' : ''}`}
+        className={`relative inline-flex cursor-pointer items-center gap-1 before:absolute before:-inset-x-1 before:-inset-y-3 before:content-[''] ${active ? 'text-text' : ''}`}
       >
         {label}
-        <span className={active ? undefined : 'text-text-dim'}>{active && dir === 'desc' ? '↓' : '↑'}</span>
+        <span className={active ? undefined : 'text-text-faint'}>{active && dir === 'desc' ? '↓' : '↑'}</span>
       </button>
     </th>
   );

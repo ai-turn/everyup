@@ -37,25 +37,25 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
 
   const appConfiguration = setup ? <div className="space-y-label">
     <div className="flex items-center justify-between gap-2">
-      <p className="type-label text-text-secondary">OpenTelemetry 환경 변수</p>
+      <p className="type-label text-text">OpenTelemetry 환경 변수</p>
       <CopyButton onCopy={() => copy(configuration)} disabled={!address.valid} title="환경 변수 복사" className={COPY_ACTION_SUBTLE}>복사</CopyButton>
     </div>
-    <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-ui-hover-soft p-4 font-mono text-xs text-text-secondary">{address.valid ? configuration : '접근 가능한 서버 주소를 입력하세요.'}</pre>
+    <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-surface-hover p-4 font-mono text-xs text-text">{address.valid ? configuration : '접근 가능한 서버 주소를 입력하세요.'}</pre>
   </div> : undefined;
 
   return <div className="space-y-item p-6">
     <div className="space-y-label">
-      <h3 className="type-card-title text-text-base">{title}</h3>
+      <h3 className="type-card-title text-text">{title}</h3>
       <p className="type-body text-text-muted">등록된 연결에 앱 설정을 적용한 뒤, 아래에서 실제 데이터 수신을 확인해 주세요.</p>
-      {setup ? <p className="flex items-start gap-1.5 type-label text-text-base"><MaterialIcon size={20} name="warning" className="shrink-0 text-status-warn" />API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
+      {setup ? <p className="flex items-start gap-1.5 type-label text-text"><MaterialIcon size={20} name="warning" className="shrink-0 text-attn-text" />API Key는 지금 한 번만 표시됩니다. 안전한 곳에 저장해 주세요.</p>
         : <p className="type-body text-text-muted">기존 API Key에 권한을 추가했습니다. 실행 중인 OpenTelemetry 설정은 같은 주소와 키를 계속 사용합니다.</p>}
     </div>
     {setup && <>
       <ConnectionAddressField address={address} />
       <div className="space-y-label">
-        <p className="type-label text-text-secondary">API Key</p>
-        <div className="flex items-center gap-2 rounded-md bg-ui-hover-soft p-3">
-          <code className="min-w-0 flex-1 break-all font-mono text-xs text-text-base">{setup.apiKey}</code>
+        <p className="type-label text-text">API Key</p>
+        <div className="flex items-center gap-2 rounded-md bg-surface-hover p-3">
+          <code className="min-w-0 flex-1 break-all font-mono text-xs text-text">{setup.apiKey}</code>
           <CopyButton onCopy={() => copy(setup.apiKey)} title="API Key 복사" className={ICON_ACTION} />
         </div>
       </div>
@@ -63,7 +63,7 @@ export function DirectTelemetrySetupResult({ connection, title, onDone, doneLabe
     {connection.kind === 'attached' && <p className="type-body text-text-muted">{`앱 설정에 OTEL_${connection.signal.toUpperCase()}_EXPORTER=none이 있다면 지워 주세요. 그대로 두면 이 데이터는 전송되지 않습니다.`}</p>}
     <TelemetrySetupGuidance signals={signals} appConfiguration={appConfiguration} />
     <TelemetryReceiptStatus path={`/observed-services/${service.id}/setup-status`} expected={signals} note={appReceiptNote(signals, connection.kind === 'attached')} />
-    <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-ui-border bg-bg-surface px-6 py-4">
+    <div className="sticky bottom-0 -mx-6 -mb-6 flex justify-end border-t border-border bg-surface px-6 py-4">
       <Button onClick={onDone}>{doneLabel ?? '완료'}</Button>
     </div>
   </div>;

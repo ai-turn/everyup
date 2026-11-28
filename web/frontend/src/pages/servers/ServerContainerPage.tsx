@@ -108,8 +108,8 @@ function ContainerDetail({ serverId, serviceKey }: { serverId: string; serviceKe
   if (loadError && !found) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-heading">
-        <MaterialIcon size={32} name="sync_problem" className="text-status-warn" />
-        <div className="text-center"><p className="type-label text-text-base">컨테이너를 불러오지 못했습니다</p><p className="mt-1 type-body text-text-muted">{loadError}</p></div>
+        <MaterialIcon size={32} name="sync_problem" className="text-attn-text" />
+        <div className="text-center"><p className="type-label text-text">컨테이너를 불러오지 못했습니다</p><p className="mt-1 type-body text-text-muted">{loadError}</p></div>
         <div className="flex gap-2"><ButtonLink variant="secondary" to={SERVERS_PATH}>서버 목록</ButtonLink><Button loading={refreshing} onClick={() => void fetchService()}>다시 시도</Button></div>
       </div>
     );
@@ -118,7 +118,7 @@ function ContainerDetail({ serverId, serviceKey }: { serverId: string; serviceKe
   if (!found) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-heading">
-        <MaterialIcon size={32} name="error_outline" className="text-red-500" />
+        <MaterialIcon size={32} name="error_outline" className="text-crit" />
         <p className="text-text-muted">
           컨테이너를 찾을 수 없습니다
         </p>
@@ -131,7 +131,7 @@ function ContainerDetail({ serverId, serviceKey }: { serverId: string; serviceKe
 
   return (
     <>
-    {loadError && <div role="alert" className="mb-4 rounded-xl border border-ui-border-soft px-4 py-3 type-control text-text-secondary">컨테이너 조회에 실패했습니다. 이전에 불러온 상태입니다. <Button size="sm" variant="secondary" loading={refreshing} onClick={handleRefresh}>다시 시도</Button></div>}
+    {loadError && <div role="alert" className="mb-4 rounded-xl border border-border px-4 py-3 type-control text-text">컨테이너 조회에 실패했습니다. 이전에 불러온 상태입니다. <Button size="sm" variant="secondary" loading={refreshing} onClick={handleRefresh}>다시 시도</Button></div>}
     <AgentHealthCheckDetailView
       service={found.service}
       agent={found.agent}

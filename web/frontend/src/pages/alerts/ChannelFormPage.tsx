@@ -55,10 +55,10 @@ export function ChannelFormPage() {
     // 음수 마진은 본문 래퍼(`p-4 sm:px-6 sm:py-5`)의 패딩을 **정확히** 되돌리는 값이어야
     // 한다. 이전 `md:-m-8`은 존재하지 않는 32px 패딩을 가정해 8px 더 당겼고, 그만큼
     // AppHeader breadcrumb보다 왼쪽으로 튀어나가 있었다.
-    <div className="-m-4 sm:-mx-6 sm:-my-6 flex flex-col bg-bg-main lg:h-[calc(100dvh-8rem)]">
+    <div className="-m-4 sm:-mx-6 sm:-my-6 flex flex-col bg-bg lg:h-[calc(100dvh-8rem)]">
       {/* Page header */}
-      <header className="flex-none px-6 py-3 bg-bg-surface">
-        <h1 className="type-page-title text-text-base">{title}</h1>
+      <header className="flex-none px-6 py-3 bg-surface">
+        <h1 className="type-page-title text-text">{title}</h1>
         <p className="type-body text-text-muted mt-intra">
           {isEdit
             ? `${channel?.name ?? ''} · 채널 설정을 수정합니다`
@@ -71,7 +71,7 @@ export function ChannelFormPage() {
       <div className="px-6 py-5 lg:flex-1 lg:overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center h-full py-16 text-text-muted">
-            <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
           </div>
         ) : (
           <ChannelForm
@@ -85,7 +85,7 @@ export function ChannelFormPage() {
 
       {/* 제출 바는 데스크톱 사이드 패널(FormSidePanel)과 같은 자리 — 하단 우측 (DESIGN.md §7) */}
       <footer
-        className="sticky z-10 flex-none flex items-center justify-end gap-2 border-t border-ui-border bg-bg-surface px-5 py-3 lg:static"
+        className="sticky z-10 flex-none flex items-center justify-end gap-2 border-t border-border bg-surface px-5 py-3 lg:static"
         style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <FormActions formId="channel-form" isEdit={isEdit} isSubmitting={isSubmitting} disabled={loading} onCancel={goBack} />

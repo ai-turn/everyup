@@ -19,8 +19,8 @@ for (const timezoneId of ['Asia/Seoul', 'America/New_York']) {
       const strip = overview.getByRole('group', { name: /최근 90일/ });
       const bars = strip.locator(':scope > div');
       await expect(bars).toHaveCount(90);
-      for (const [index, tone] of [[0, 'error'], [28, 'warn'], [35, 'healthy'], [88, 'warn'], [89, 'healthy']] as const) await expect(bars.nth(index)).toHaveClass(new RegExp(`bg-status-${tone}`));
-      await expect(bars.nth(1)).toHaveClass(/bg-ui-hover/);
+      for (const [index, tone] of [[0, 'error'], [28, 'warn'], [35, 'healthy'], [88, 'warn'], [89, 'healthy']] as const) await expect(bars.nth(index)).toHaveClass(new RegExp(`bg-${{ error: 'crit', warn: 'attn', healthy: 'ok' }[tone]}(?![\\w-])`));
+      await expect(bars.nth(1)).toHaveClass(/bg-surface-hover/);
       await expect(overview.getByText('일부 실패 2일, 전체 실패 1일', { exact: true })).toBeVisible();
       await expect(overview.getByText('88.75%', { exact: true })).toBeVisible();
       await strip.focus(); await strip.press('Home');

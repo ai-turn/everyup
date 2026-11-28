@@ -1,0 +1,171 @@
+/* 테마 토큰 — 색 값이 있는 유일한 파일(DESIGN.md §1). 컴포넌트는 의미 토큰만 쓰고, 테마는 이 표의 열 하나다.
+   index.css의 @theme inline이 Tailwind 색(bg-surface, text-text-muted 등)을 이 변수에 연결한다.
+   새 테마는 [data-theme="이름"] 블록 하나와 ThemeContext의 THEMES 한 줄로 더한다.
+   값의 출처: 승인된 G안 시안의 PAL. Latte는 Catppuccin 공식 값이고, 글자로 쓸 때 4.5:1이 안 되는
+   노랑·초록·흐린 글자만 attn-text·ok-text·text-faint에서 어둡게 보정했다. */
+
+/* 테마 이름이 붙기 전(theme-init.js가 돌기 전)에도 무언가는 그려야 하므로 :root가 라이트를 겸한다. */
+:root,
+[data-theme='light'] {
+  --bg: #ffffff;
+  --bg-subtle: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #f4f4f6;
+  --border: #e8e8eb;
+  --border-strong: #d6d6dc;
+  --text: #18181b;
+  --text-muted: #4f4f58;
+  --text-faint: #6a6a74;
+  --accent: #5b4fd1;
+  --accent-bg: rgba(91, 79, 209, 0.1);
+  --accent-text: #ffffff;
+  --focus: #5b4fd1;
+  --crit: #cf3a3a;
+  --crit-text: #cf3a3a;
+  --crit-bg: rgba(207, 58, 58, 0.1);
+  --crit-border: rgba(207, 58, 58, 0.35);
+  --attn: #a06e14;
+  --attn-text: #a06e14;
+  --attn-bg: rgba(160, 110, 20, 0.1);
+  --ok: #1f8f5a;
+  --ok-text: #1f8f5a;
+  --ok-bg: rgba(31, 143, 90, 0.1);
+  --wait: #70707a;
+  --chart-1: #5b4fd1;
+  --chart-2: #1f8f5a;
+  --chart-3: #a06e14;
+  --chart-4: #6a6a74;
+  --chart-5: #1d7fa3;
+  --deploy-marker: #5b4fd1;
+  --incident-band: rgba(207, 58, 58, 0.08);
+  --uptime-ok: #1f8f5a;
+  --uptime-fail: #cf3a3a;
+  --uptime-no-data: #d6d6dc;
+  /* 시안 밖의 보조 토큰 둘. control-border: 입력·선택 상자의 경계. 표면 위 3:1(WCAG 1.4.11)이어야 해서
+     border-strong(1.3:1)과 따로 둔다. scrim: 모달 뒤를 어둡게 하는 막(useOverlay), blur와 함께 쓰므로 옅다. */
+  --control-border: #8a8a94;
+  --scrim: rgba(24, 24, 27, 0.4);
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #0a0a0b;
+  --bg-subtle: #0d0d0f;
+  --surface: #111113;
+  --surface-hover: #18181b;
+  --border: #1f1f23;
+  --border-strong: #2b2b31;
+  --text: #ededef;
+  --text-muted: #a3a3ab;
+  --text-faint: #8a8a93;
+  --accent: #8f8ff5;
+  --accent-bg: rgba(143, 143, 245, 0.12);
+  --accent-text: #0a0a0b;
+  --focus: #8f8ff5;
+  --crit: #ef6461;
+  --crit-text: #ef6461;
+  --crit-bg: rgba(239, 100, 97, 0.12);
+  --crit-border: rgba(239, 100, 97, 0.35);
+  --attn: #d6a243;
+  --attn-text: #d6a243;
+  --attn-bg: rgba(214, 162, 67, 0.12);
+  --ok: #3fb57a;
+  --ok-text: #3fb57a;
+  --ok-bg: rgba(63, 181, 122, 0.12);
+  --wait: #80808a;
+  --chart-1: #8f8ff5;
+  --chart-2: #3fb57a;
+  --chart-3: #d6a243;
+  --chart-4: #8a8a93;
+  --chart-5: #4fb3d9;
+  --deploy-marker: #8f8ff5;
+  --incident-band: rgba(239, 100, 97, 0.1);
+  --uptime-ok: #3fb57a;
+  --uptime-fail: #ef6461;
+  --uptime-no-data: #2b2b31;
+  --control-border: #66666f;
+  --scrim: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+/* Catppuccin Latte: base/mantle/crust 배경, surface0-1 선, mauve 강조. */
+[data-theme='latte'] {
+  --bg: #eff1f5;
+  --bg-subtle: #e6e9ef;
+  --surface: #eff1f5;
+  --surface-hover: #dce0e8;
+  --border: #ccd0da;
+  --border-strong: #bcc0cc;
+  --text: #4c4f69;
+  --text-muted: #5c5f77;
+  --text-faint: #63667d;
+  --accent: #8839ef;
+  --accent-bg: rgba(136, 57, 239, 0.1);
+  --accent-text: #ffffff;
+  --focus: #1e66f5;
+  --crit: #d20f39;
+  --crit-text: #d20f39;
+  --crit-bg: rgba(210, 15, 57, 0.08);
+  --crit-border: rgba(210, 15, 57, 0.35);
+  --attn: #df8e1d;
+  --attn-text: #8f5a0e;
+  --attn-bg: rgba(223, 142, 29, 0.12);
+  --ok: #40a02b;
+  --ok-text: #2d7a1f;
+  --ok-bg: rgba(64, 160, 43, 0.1);
+  --wait: #9ca0b0;
+  --chart-1: #8839ef;
+  --chart-2: #40a02b;
+  --chart-3: #fe640b;
+  --chart-4: #7c7f93;
+  --chart-5: #04a5e5;
+  --deploy-marker: #1e66f5;
+  --incident-band: rgba(210, 15, 57, 0.08);
+  --uptime-ok: #40a02b;
+  --uptime-fail: #d20f39;
+  --uptime-no-data: #bcc0cc;
+  --control-border: #737689;
+  --scrim: rgba(76, 79, 105, 0.35);
+  color-scheme: light;
+}
+
+/* Catppuccin Mocha: base/mantle 배경, surface0-1 선, subtext 보조 글자, mauve 강조. */
+[data-theme='mocha'] {
+  --bg: #1e1e2e;
+  --bg-subtle: #181825;
+  --surface: #181825;
+  --surface-hover: #313244;
+  --border: #313244;
+  --border-strong: #45475a;
+  --text: #cdd6f4;
+  --text-muted: #bac2de;
+  --text-faint: #a6adc8;
+  --accent: #cba6f7;
+  --accent-bg: rgba(203, 166, 247, 0.12);
+  --accent-text: #1e1e2e;
+  --focus: #89b4fa;
+  --crit: #f38ba8;
+  --crit-text: #f38ba8;
+  --crit-bg: rgba(243, 139, 168, 0.12);
+  --crit-border: rgba(243, 139, 168, 0.4);
+  --attn: #f9e2af;
+  --attn-text: #f9e2af;
+  --attn-bg: rgba(249, 226, 175, 0.12);
+  --ok: #a6e3a1;
+  --ok-text: #a6e3a1;
+  --ok-bg: rgba(166, 227, 161, 0.12);
+  --wait: #7f849c;
+  --chart-1: #cba6f7;
+  --chart-2: #a6e3a1;
+  --chart-3: #fab387;
+  --chart-4: #9399b2;
+  --chart-5: #89dceb;
+  --deploy-marker: #89b4fa;
+  --incident-band: rgba(243, 139, 168, 0.1);
+  --uptime-ok: #a6e3a1;
+  --uptime-fail: #f38ba8;
+  --uptime-no-data: #45475a;
+  --control-border: #7f849c;
+  --scrim: rgba(17, 17, 27, 0.6);
+  color-scheme: dark;
+}

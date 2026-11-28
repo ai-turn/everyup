@@ -117,7 +117,7 @@ function buildDefaultMessage(metric: RuleFormValues['metric'], operator: RuleFor
 
 // 텍스트영역 전용 셸 — Input과 같은 규격을 공유한다 (포커스 링은 전역 :focus-visible).
 // block: inline-block이면 글자 기준선 아래 여백이 붙어 입력 → 도움말이 4px이 아니라 10px이었다(DESIGN.md §6 폼 리듬).
-const textareaCls = `${FIELD_SHELL} block py-2.5 max-sm:text-base border-ui-control-border placeholder:text-text-dim`;
+const textareaCls = `${FIELD_SHELL} block py-2.5 max-sm:text-base border-control placeholder:text-text-faint`;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -174,8 +174,8 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
             <div className="max-w-350 mx-auto grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-5">
                 <div className="section-stack min-w-0">
                     <FormStep n={1} title="시스템 규칙" subtitle="시스템이 관리하는 규칙입니다. 메시지와 알림 채널만 수정할 수 있습니다.">
-                        <div className="p-4 bg-ui-hover-soft/50 rounded-xl">
-                            <h3 className="type-card-title text-text-base">{rule.name}</h3>
+                        <div className="p-4 bg-surface-hover/50 rounded-xl">
+                            <h3 className="type-card-title text-text">{rule.name}</h3>
                             <p className="mt-1 type-body text-text-muted">발동: {systemTrigger}</p>
                         </div>
                     </FormStep>
@@ -197,7 +197,7 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                 <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                             ) : channels.map(ch => (
                                 <button key={ch.id} type="button" onClick={() => handleToggleChannel(ch.id)} aria-pressed={selectedChannels.includes(ch.id)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-colors ${selectedChannels.includes(ch.id) ? 'border-primary bg-primary/5 text-action' : 'border-ui-border-soft text-text-muted'}`}>
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-colors ${selectedChannels.includes(ch.id) ? 'border-accent bg-accent/5 text-text' : 'border-border text-text-muted'}`}>
                                     <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
                                     <span className="type-control flex-1 text-left">{ch.name}</span>
                                 </button>
@@ -214,9 +214,9 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                     <div className="sticky top-0 space-y-heading">
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                <MaterialIcon size={20} name="lock" className="text-text-dim" />
+                                <MaterialIcon size={20} name="lock" className="text-text-faint" />
                                 <div>
-                                    <p className="type-label text-text-base">
+                                    <p className="type-label text-text">
                                         시스템 규칙
                                     </p>
                                     <p className="mt-1 type-body text-text-muted">
@@ -225,21 +225,21 @@ function SystemRuleEditor({ rule, channels, onSuccess, onCancel, onSubmittingCha
                                 </div>
                             </div>
                             <div className="space-y-heading">
-                                <div className="rounded-xl bg-ui-hover-soft/50 p-3">
+                                <div className="rounded-xl bg-surface-hover/50 p-3">
                                     <p className="type-label-sm text-text-muted">규칙 이름</p>
-                                    <p className="mt-1 truncate type-body text-text-base">{rule.name}</p>
+                                    <p className="mt-1 truncate type-body text-text">{rule.name}</p>
                                 </div>
-                                <div className="rounded-xl bg-ui-hover-soft/50 p-3">
+                                <div className="rounded-xl bg-surface-hover/50 p-3">
                                     <p className="type-label-sm text-text-muted">알림 채널</p>
-                                    <p className="mt-1 type-body text-text-base">
+                                    <p className="mt-1 type-body text-text">
                                         {selectedChannels.length === 0
                                             ? `전체 ${effectiveChannelCount}개`
                                             : `${effectiveChannelCount}개 선택`}
                                     </p>
                                 </div>
-                                <div className="rounded-xl bg-ui-hover-soft/50 p-3">
+                                <div className="rounded-xl bg-surface-hover/50 p-3">
                                     <p className="type-label-sm text-text-muted">알림 메시지</p>
-                                    <p className="mt-2 type-body text-text-secondary">
+                                    <p className="mt-2 type-body text-text">
                                         {message || 'Server has been started'}
                                     </p>
                                 </div>
@@ -532,8 +532,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         aria-pressed={watchedCategory === cat.value}
                                         className={`flex items-center gap-2 px-3 py-3 border-2 rounded-xl transition-colors text-left ${
                                             watchedCategory === cat.value
-                                                ? 'border-primary bg-primary/10 text-action'
-                                                : 'border-ui-border-soft text-text-muted hover:border-ui-border'
+                                                ? 'border-accent bg-accent-bg text-text'
+                                                : 'border-border text-text-muted hover:border-border'
                                         }`}
                                     >
                                         <MaterialIcon size={20} name={cat.icon} />
@@ -615,8 +615,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                                 aria-pressed={watchedMetric === m}
                                                 className={`min-h-11 px-3 py-2 rounded-lg text-sm border-2 transition-colors sm:min-h-0 ${
                                                     watchedMetric === m
-                                                        ? 'border-primary bg-primary/10 text-action'
-                                                        : 'border-ui-border-soft text-text-muted hover:border-ui-border'
+                                                        ? 'border-accent bg-accent-bg text-text'
+                                                        : 'border-border text-text-muted hover:border-border'
                                                 }`}
                                             >
                                                 {m === 'log_level' ? '로그 레벨' : m === 'api_status_code' ? 'API 요청'
@@ -684,7 +684,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                             className={thresholdUnit ? 'rounded-r-none' : ''}
                                         />
                                         {thresholdUnit && (
-                                            <span className="px-3 py-2.5 bg-ui-hover border border-l-0 border-ui-border rounded-r-lg type-label text-text-muted">
+                                            <span className="px-3 py-2.5 bg-surface-hover border border-l-0 border-border rounded-r-lg type-label text-text-muted">
                                                 {thresholdUnit}
                                             </span>
                                         )}
@@ -755,8 +755,8 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         aria-pressed={watchedSeverity === s.value}
                                         className={`py-2.5 text-sm rounded-xl border-2 transition-colors flex items-center justify-center gap-2 ${
                                             watchedSeverity === s.value
-                                                ? `border-primary ${s.badge}`
-                                                : 'border-ui-border-soft text-text-muted hover:border-ui-border'
+                                                ? `border-accent ${s.badge}`
+                                                : 'border-border text-text-muted hover:border-border'
                                         }`}
                                     >
                                         <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
@@ -781,13 +781,13 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         aria-pressed={watchedChannelIds.includes(ch.id)}
                                         className={`w-full flex items-center gap-3 px-3 py-2.5 border-2 rounded-xl transition-colors ${
                                             watchedChannelIds.includes(ch.id)
-                                                ? 'border-primary bg-primary/5 text-action'
-                                                : 'border-ui-border-soft text-text-muted hover:border-ui-border'
+                                                ? 'border-accent bg-accent/5 text-text'
+                                                : 'border-border text-text-muted hover:border-border'
                                         }`}
                                     >
                                         <ChannelIcon type={ch.type} size={20} className={getChannelStyle(ch.type).text} />
                                         <span className="type-control flex-1 text-left">{ch.name}</span>
-                                        <span className="type-control text-text-dim">{getChannelName(ch.type)}</span>
+                                        <span className="type-control text-text-faint">{getChannelName(ch.type)}</span>
                                     </button>
                                 ))}
                             </div>
@@ -828,7 +828,7 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                         <div>
                             <div className="flex items-center gap-3 mb-4">
                                 <div>
-                                    <p className="type-label text-text-base">미리보기</p>
+                                    <p className="type-label text-text">미리보기</p>
                                     <p className="mt-1 type-body text-text-muted">저장하면 이렇게 동작합니다</p>
                                 </div>
                             </div>
@@ -836,18 +836,18 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
 
                                 <div>
                                     <p className="type-label-sm text-text-muted mb-2">조건</p>
-                                    <p className="type-body text-text-base">{previewSentence}</p>
+                                    <p className="type-body text-text">{previewSentence}</p>
                                 </div>
 
                                 {/* THEN block */}
                                 <div>
                                     <p className="type-label-sm text-text-muted mb-2">메시지</p>
-                                    <div className="rounded-xl bg-ui-hover-soft/50 px-3 py-3">
+                                    <div className="rounded-xl bg-surface-hover/50 px-3 py-3">
                                         <div className="flex items-center gap-2 mb-label">
                                             <SeverityBadge severity={watchedSeverity} />
                                             <span className="type-control text-text-muted truncate">{watchedName || '<규칙 이름>'}</span>
                                         </div>
-                                        <p className="type-body text-text-secondary">
+                                        <p className="type-body text-text">
                                             {customMessage || buildDefaultMessage(watchedMetric, watchedOperator, watchedThreshold, watchedDuration)}
                                         </p>
                                     </div>
@@ -864,10 +864,10 @@ function FullRuleForm({ onSuccess, onCancel, rule, initial, channels, onSubmitti
                                         {channels.length === 0 ? (
                                             <p className="type-body text-text-muted">등록된 알림 채널이 없습니다</p>
                                         ) : previewChannels.slice(0, 5).map(ch => (
-                                            <div key={ch.id} className="flex items-center gap-2 px-3 py-1.5 bg-ui-hover-soft/50 rounded-lg">
+                                            <div key={ch.id} className="flex items-center gap-2 px-3 py-1.5 bg-surface-hover/50 rounded-lg">
                                                 <ChannelIcon type={ch.type} size={14} className={getChannelStyle(ch.type).text} />
-                                                <span className="type-label text-text-secondary flex-1 truncate">{ch.name}</span>
-                                                <span className="type-caption text-text-dim">{getChannelName(ch.type)}</span>
+                                                <span className="type-label text-text flex-1 truncate">{ch.name}</span>
+                                                <span className="type-caption text-text-faint">{getChannelName(ch.type)}</span>
                                             </div>
                                         ))}
                                         {previewChannels.length > 5 && (

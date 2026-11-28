@@ -8,6 +8,6 @@ export function RuleTargetName({ rule, names, stacked = false }: { rule: AlertRu
   const { label, missingId } = targetParts(rule, names);
   if (!missingId) return <>{label}</>;
   return stacked
-    ? <>{label}<span className="block truncate type-caption text-text-dim">{missingId}</span></>
-    : <>{label} <span className="text-text-dim">{missingId}</span></>;
+    ? <>{label}<span className="block truncate type-caption text-text-faint">{missingId}</span></>
+    : <>{label} <span className="text-text-faint">{missingId}</span></>;
 }

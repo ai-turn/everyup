@@ -23,7 +23,7 @@ export function AppHeader() {
     // 헤더도 같은 값을 예약하게 해서 두 박스의 폭을 맞춘다 — 오버레이 스크롤바
     // 환경에서는 양쪽 다 0을 예약하므로 자동으로 맞는다. 헤더에 드롭다운처럼
     // 넘치는 요소를 넣으려면 이 클립을 먼저 풀어야 한다.
-    <header className="hidden h-16 shrink-0 items-center overflow-y-hidden [scrollbar-gutter:stable] border-b border-ui-border bg-bg-surface lg:flex">
+    <header className="hidden h-16 shrink-0 items-center overflow-y-hidden [scrollbar-gutter:stable] border-b border-border bg-surface lg:flex">
       <div className="flex w-full max-w-320 mx-auto items-center gap-4 px-4 sm:px-6">
       <nav aria-label="현재 위치" className="min-w-0 flex-1">
         <ol className="flex items-center gap-1.5 min-w-0">
@@ -32,24 +32,24 @@ export function AppHeader() {
             return (
               <li key={`${crumb.label}\u0000${crumb.to ?? ''}`} className="flex min-w-0 items-center gap-1.5">
                 {i > 0 && (
-                  <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-dim" />
+                  <MaterialIcon size={20} name="chevron_right" className="shrink-0 text-text-faint" />
                 )}
                 {crumb.to && !last ? (
                   <Link
                     to={crumb.to}
                     // 누르는 높이 24px(20px 글자 + 위아래 2px). 머리말은 h-16 고정이라 높이가 바뀌지 않는다.
-                    className="truncate py-0.5 type-label text-text-muted transition-colors hover:text-action"
+                    className="truncate py-0.5 type-label text-text-muted transition-colors hover:text-text"
                   >
                     {crumb.label}
                   </Link>
                 ) : menuTitle && crumbs.length === 1 ? (
-                  <span className="truncate type-page-title text-text-base" aria-current="page">
+                  <span className="truncate type-page-title text-text" aria-current="page">
                     {crumb.label}
                     {typeof menuTitle.count === 'number' && <> <span className="font-medium tabular-nums text-text-muted">{menuTitle.count}</span></>}
                   </span>
                 ) : (
                   <span
-                    className={`truncate type-label ${last ? 'text-text-base' : 'text-text-muted'}`}
+                    className={`truncate type-label ${last ? 'text-text' : 'text-text-muted'}`}
                     aria-current={last ? 'page' : undefined}
                   >
                     {crumb.label}

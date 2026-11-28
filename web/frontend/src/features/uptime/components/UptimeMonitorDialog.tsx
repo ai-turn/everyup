@@ -127,12 +127,12 @@ export function UptimeMonitorDialog({
       aria-labelledby="uptime-monitor-dialog-title"
       onCancel={(event) => { event.preventDefault(); if (!saving) onClose(); }}
       onClick={(event) => { if (event.target === event.currentTarget && !saving) onClose(); }}
-      className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <form onSubmit={submit} noValidate>
-        <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
           <div>
-            <h2 id="uptime-monitor-dialog-title" className="type-card-title text-text-base">
+            <h2 id="uptime-monitor-dialog-title" className="type-card-title text-text">
               {monitor ? '업타임 모니터 수정' : connectAction('uptime')}
             </h2>
             <p className="mt-intra type-body text-text-muted">HTTP 또는 TCP 상태를 직접 확인합니다.</p>
@@ -173,12 +173,12 @@ export function UptimeMonitorDialog({
           </div>
           {!monitor && (
             <label className="flex items-start gap-3">
-              <input type="checkbox" checked={alertOnDown} onChange={(event) => setAlertOnDown(event.target.checked)} className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary" />
+              <input type="checkbox" checked={alertOnDown} onChange={(event) => setAlertOnDown(event.target.checked)} className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-accent" />
               <OptionText tone="secondary" title="다운되면 알림" description="연속으로 실패하면 한 번, 복구되면 한 번 켜진 모든 채널로 보냅니다. 알림 규칙에서 바꿀 수 있습니다." />
             </label>
           )}
         </fieldset>
-        <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
+        <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={saving}>취소</Button>
           <Button type="submit" loading={saving}>
             {!monitor && <MaterialIcon name="add" />}

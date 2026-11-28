@@ -9,11 +9,11 @@ export function NotFoundPage() {
       {/* 404 아이콘 */}
       <MaterialIcon
         name="sentiment_dissatisfied"
-        className="text-8xl text-text-dim mb-4"
+        className="text-8xl text-text-faint mb-4"
       />
 
       {/* 404 텍스트 */}
-      <h1 className="text-6xl font-bold text-text-base mb-2">
+      <h1 className="text-6xl font-bold text-text mb-2">
         404
       </h1>
 
@@ -25,7 +25,7 @@ export function NotFoundPage() {
       {/* 홈으로 돌아가기 버튼 */}
       <Link
         to="/"
-        className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-on-primary font-medium rounded-lg hover:bg-primary-hover transition-colors"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-text font-medium rounded-lg hover:bg-accent/90 transition-colors"
       >
         <MaterialIcon size={20} name="home" />
         대시보드로 돌아가기

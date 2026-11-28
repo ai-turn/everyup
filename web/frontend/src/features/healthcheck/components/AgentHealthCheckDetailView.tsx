@@ -69,7 +69,7 @@ function containerFields(service: AgentServiceFlat): DetailMetaField[] {
     { label: 'Image', value: <span className="wrap-anywhere font-mono">{service.image}</span> },
     ...(uptime ? [{ label: 'Uptime', value: uptime }] : []),
     ...(restarts > 0
-      ? [{ label: 'Restarts', value: <span className={restarts >= 3 ? 'text-status-warn' : ''}>{restarts}회</span> }]
+      ? [{ label: 'Restarts', value: <span className={restarts >= 3 ? 'text-attn-text' : ''}>{restarts}회</span> }]
       : []),
   ];
 }
@@ -104,7 +104,7 @@ export function AgentHealthCheckDetailView(props: AgentHealthCheckDetailViewProp
           <DockerUptimeStatus service={service} />
           {service.lastLatency && <span>지연 시간 {service.lastLatency}</span>}
           <span>마지막 체크 {lastChecked}</span>
-          {(service.restartCount ?? 0) >= 3 && <span className="text-status-warn sm:hidden">재시작 {service.restartCount}회</span>}
+          {(service.restartCount ?? 0) >= 3 && <span className="text-attn-text sm:hidden">재시작 {service.restartCount}회</span>}
         </>}
         // 수집 방식은 서버 단위다: 기능을 더하거나 연결을 고치는 곳은 서버 개요의 설정 가이드다. 서버 이름은 크럼에 있으므로
         // 세부는 Docker Collector가 모으는 데이터 유형이다.

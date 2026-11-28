@@ -213,7 +213,7 @@ test.describe('demo', () => {
       await expect(scope).toHaveCount(2);
       for (const box of await scope.evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height))) expect(box).toBeGreaterThanOrEqual(44);
       // 모바일의 새로고침은 테두리 버튼이다(검은 채움이 아니다).
-      await expect(page.getByRole('button', { name: '새로고침' })).not.toHaveClass(/bg-primary\b/);
+      await expect(page.getByRole('button', { name: '새로고침' })).not.toHaveClass(/bg-accent\b/);
 
       await page.evaluate(() => window.dispatchEvent(new Event('everyup:command-palette')));
       const options = page.getByRole('dialog', { name: '검색' }).getByRole('option');

@@ -119,9 +119,9 @@ async function contrast(locator: Locator, border = false) {
   }, border);
 }
 
-for (const colorScheme of ['light', 'dark'] as const) {
-  test(`${colorScheme} demo and form colors preserve legibility`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme });
+for (const theme of ['light', 'dark', 'latte', 'mocha'] as const) {
+  test(`${theme} demo and form colors preserve legibility`, async ({ page }) => {
+    await page.addInitScript(value => localStorage.setItem('theme', value), theme);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('./');
     const badge = page.getByText('Live Demo', { exact: true }).filter({ visible: true });

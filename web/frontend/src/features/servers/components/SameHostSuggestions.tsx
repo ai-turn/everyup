@@ -49,7 +49,7 @@ export function SameHostSuggestions({ rows }: { rows: ServerRow[] }) {
           const key = pairKey(docker.server.id, direct.server.id);
           return (
             <li key={key} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-              <p className="min-w-0 type-body text-text-base">
+              <p className="min-w-0 type-body text-text">
                 <span className="font-medium">{docker.server.name}</span>
                 <span className="text-text-muted"> (Docker Collector) · </span>
                 <span className="font-medium">{direct.server.name}</span>

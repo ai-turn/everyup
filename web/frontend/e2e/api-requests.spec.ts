@@ -136,7 +136,7 @@ test('request paths advertise their trace panel and support pointer and keyboard
     await expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
     await expect(table.getByRole('row').filter({ hasText: '/orders/1' }).getByRole('button')).toHaveCount(0);
     for (const theme of ['light', 'dark']) {
-      await page.evaluate(value => document.documentElement.classList.toggle('dark', value === 'dark'), theme);
+      await page.evaluate(value => (document.documentElement.dataset.theme = value), theme);
       await expect(path).toHaveCSS('text-decoration-line', 'none');
       await table.screenshot({ path: testInfo.outputPath(`request-actions-${width}-${theme}.png`) });
       await trigger.hover();

@@ -41,9 +41,9 @@ function formatDuration(ms: number): string {
 }
 
 function statusBadge(code: string | undefined): string {
-  if (code === 'ERROR') return 'bg-status-error/10 text-status-error';
-  if (code === 'OK')    return 'bg-status-healthy/10 text-status-healthy';
-  return 'bg-slate-500/10 text-text-muted';
+  if (code === 'ERROR') return 'bg-crit-bg text-crit-text';
+  if (code === 'OK')    return 'bg-ok-bg text-ok-text';
+  return 'bg-surface-hover text-text-muted';
 }
 
 type CopyFn = (text: string) => Promise<boolean>;
@@ -281,15 +281,15 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
         ref={panelRef}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="fixed inset-y-0 right-0 w-full sm:w-[560px] lg:w-[720px] bg-bg-surface border-l border-ui-border shadow-lg flex flex-col animate-slide-in-right"
+        className="fixed inset-y-0 right-0 w-full sm:w-[560px] lg:w-[720px] bg-surface border-l border-border shadow-lg flex flex-col animate-slide-in-right"
       >
-        <div className="flex-none flex items-center gap-3 px-5 h-16 border-b border-ui-border">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-action shrink-0">
+        <div className="flex-none flex items-center gap-3 px-5 h-16 border-b border-border">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-accent-bg text-text shrink-0">
             <MaterialIcon size={20} name="timeline" />
           </div>
-          <h3 className="type-card-title text-text-base shrink-0">트레이스</h3>
+          <h3 className="type-card-title text-text shrink-0">트레이스</h3>
           <Tooltip content={traceId} focusable><code
-            className="flex-1 min-w-0 truncate text-xs font-mono text-text-dim"
+            className="flex-1 min-w-0 truncate text-xs font-mono text-text-faint"
           >
             {traceId}
           </code></Tooltip>
@@ -310,9 +310,9 @@ export function TracePanel({ traceId, target, onClose }: TracePanelProps) {
           )}
 
           {error && (
-            <div className="flex items-start gap-3 px-3 py-2 bg-ui-hover-soft rounded-md">
-              <MaterialIcon size={20} name="error" className="text-status-error shrink-0 icon-lead" />
-              <p className="type-body text-text-secondary">{error}</p>
+            <div className="flex items-start gap-3 px-3 py-2 bg-surface-hover rounded-md">
+              <MaterialIcon size={20} name="error" className="text-crit-text shrink-0 icon-lead" />
+              <p className="type-body text-text">{error}</p>
             </div>
           )}
 
@@ -379,9 +379,9 @@ function PanelSection({ icon, title, count, children }: { icon: string; title: s
 function PanelSectionHeader({ icon, title, count }: { icon: string; title: string; count: number }) {
   return (
     <div className="flex items-center gap-2">
-      <MaterialIcon size={20} name={icon} className="text-action" />
-      <h4 className="type-label text-text-base">{title}</h4>
-      <span className="type-label-sm text-text-secondary bg-ui-active px-2 py-0.5 rounded-md">
+      <MaterialIcon size={20} name={icon} className="text-text" />
+      <h4 className="type-label text-text">{title}</h4>
+      <span className="type-label-sm text-text bg-border px-2 py-0.5 rounded-md">
         {count}
       </span>
     </div>
@@ -390,13 +390,13 @@ function PanelSectionHeader({ icon, title, count }: { icon: string; title: strin
 
 // Solid bar color for the waterfall track — error wins, else by span kind.
 function spanBarColor(span: TraceSpan): string {
-  if (span.statusCode === 'ERROR') return 'bg-status-error-fill';
+  if (span.statusCode === 'ERROR') return 'bg-crit';
   switch (span.kind) {
-    case 'SERVER':   return 'bg-emerald-500';
-    case 'CLIENT':   return 'bg-sky-500';
+    case 'SERVER':   return 'bg-ok';
+    case 'CLIENT':   return 'bg-accent';
     case 'PRODUCER':
-    case 'CONSUMER': return 'bg-amber-500';
-    default:         return 'bg-slate-400';
+    case 'CONSUMER': return 'bg-attn';
+    default:         return 'bg-wait';
   }
 }
 
@@ -430,7 +430,7 @@ function AttributeRows({ attrs }: { attrs: Record<string, unknown> }) {
       {Object.entries(attrs).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => (
         <div key={key} className="flex gap-2 font-mono text-xs">
           <dt className="shrink-0 text-text-muted">{key}:</dt>
-          <dd className="min-w-0 break-all text-text-secondary">{typeof value === 'string' ? value : JSON.stringify(value)}</dd>
+          <dd className="min-w-0 break-all text-text">{typeof value === 'string' ? value : JSON.stringify(value)}</dd>
         </div>
       ))}
     </dl>
@@ -444,23 +444,23 @@ function SpanDetail({ span }: { span: TraceSpan }) {
     <div className="space-y-label">
       {span.statusMessage && (
         <div>
-          <p className="mb-1 type-label-sm text-text-dim">실패 원인</p>
-          <p className="break-all font-mono text-xs text-status-error">{span.statusMessage}</p>
+          <p className="mb-1 type-label-sm text-text-faint">실패 원인</p>
+          <p className="break-all font-mono text-xs text-crit-text">{span.statusMessage}</p>
         </div>
       )}
       {Object.keys(attrs).length > 0 && (
         <div>
-          <p className="mb-1 type-label-sm text-text-dim">Attribute</p>
+          <p className="mb-1 type-label-sm text-text-faint">Attribute</p>
           <AttributeRows attrs={attrs} />
         </div>
       )}
       {events.length > 0 && (
         <div>
-          <p className="mb-1 type-label-sm text-text-dim">Event</p>
+          <p className="mb-1 type-label-sm text-text-faint">Event</p>
           <ul className="space-y-label">
             {events.map((event, index) => (
               <li key={`${event.name}-${event.timeUnixNano ?? index}`} className="space-y-intra">
-                <p className="font-mono text-xs text-text-secondary">
+                <p className="font-mono text-xs text-text">
                   {event.name}
                   {event.timeUnixNano ? <span className="ml-2 text-text-muted">+{formatDuration(Math.max(0, Math.round((event.timeUnixNano - span.startUnixNano) / 1_000_000)))}</span> : null}
                 </p>
@@ -500,7 +500,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
           return (
             <li
               key={`${span.traceId}-${span.spanId}`}
-              className="px-3 py-2 rounded-md bg-ui-hover-soft type-control"
+              className="px-3 py-2 rounded-md bg-surface-hover type-control"
             >
               {/* 이름 줄 → 막대 4px(intra), 막대 → 상세 8px(label). */}
               <div className="space-y-label">
@@ -513,7 +513,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded type-caption shrink-0 ${spanKindBadge(span.kind)}`}>
                   {span.kind}
                 </span>
-                <Tooltip content={span.name} focusable><span className="font-mono text-text-secondary truncate flex-1 min-w-0">
+                <Tooltip content={span.name} focusable><span className="font-mono text-text truncate flex-1 min-w-0">
                   {span.name || '(unnamed)'}
                 </span></Tooltip>
                 {span.serviceName && (
@@ -532,7 +532,7 @@ function SpanList({ spans, onCopy }: { spans: TraceSpan[]; onCopy: CopyFn }) {
                 {copyButton(() => onCopy(formatSpanCopy(span)), 'Span 행 복사')}
               </div>
               {/* Waterfall track: bar positioned/sized by the span's time window */}
-              <div className="relative h-1.5 w-full rounded bg-ui-active">
+              <div className="relative h-1.5 w-full rounded bg-border">
                 <div
                   className={`absolute top-0 h-full rounded ${spanBarColor(span)}`}
                   style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
@@ -553,12 +553,12 @@ function HeaderRows({ label, headers }: { label: string; headers: HeaderEntry[] 
   if (headers.length === 0) return null;
   return (
     <div>
-      <p className="mb-1 type-label-sm text-text-dim">{label}</p>
+      <p className="mb-1 type-label-sm text-text-faint">{label}</p>
       <dl className="space-y-intra">
         {headers.map((h) => (
           <div key={h.name} className="flex gap-2 font-mono text-xs">
             <dt className="shrink-0 text-text-muted">{h.name}:</dt>
-            <dd className={`min-w-0 break-all ${h.value === '***' ? 'text-status-warn' : 'text-text-secondary'}`}>
+            <dd className={`min-w-0 break-all ${h.value === '***' ? 'text-attn-text' : 'text-text'}`}>
               {h.value}
             </dd>
           </div>
@@ -576,7 +576,7 @@ function CapturedHeadersList({ items, onCopy }: { items: CapturedHeaders[]; onCo
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-md bg-ui-hover-soft px-3 py-2 type-control"
+            className="rounded-md bg-surface-hover px-3 py-2 type-control"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
               {item.serviceName && (
@@ -604,10 +604,10 @@ function RestrictedBodyNotice({ count }: { count: number }) {
 
   return (
     <PanelSection icon="data_object" title="캡처된 바디" count={count}>
-      <div className="flex items-center gap-3 rounded-md bg-ui-hover-soft px-4 py-3 type-control">
-        <MaterialIcon size={20} name="lock" className="text-amber-500 shrink-0" />
+      <div className="flex items-center gap-3 rounded-md bg-surface-hover px-4 py-3 type-control">
+        <MaterialIcon size={20} name="lock" className="text-attn shrink-0" />
         <div>
-          <p className="font-medium text-text-secondary">관리자 전용</p>
+          <p className="font-medium text-text">관리자 전용</p>
           <p className="text-text-muted">
             캡처된 바디를 볼 권한이 없습니다.
           </p>
@@ -621,7 +621,7 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
 
   return (
     <PanelSection icon="data_object" title="캡처된 바디" count={items.length}>
-      <p className="mb-2 flex items-center gap-1.5 type-caption text-text-dim">
+      <p className="mb-2 flex items-center gap-1.5 type-caption text-text-faint">
         <MaterialIcon size={20} name="policy" />
         관리자 전용 · 모든 열람은 감사 로그에 기록됩니다
       </p>
@@ -629,10 +629,10 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
         {items.map((item) => (
           <li
             key={item.id}
-            className="rounded-md bg-ui-hover-soft px-3 py-2 type-control"
+            className="rounded-md bg-surface-hover px-3 py-2 type-control"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 type-caption text-action">
+              <span className="inline-flex items-center rounded bg-accent-bg px-1.5 py-0.5 type-caption text-text">
                 {item.label}
               </span>
               {item.serviceName && (
@@ -644,18 +644,18 @@ function CapturedBodyList({ items, onCopy }: { items: CapturedBody[]; onCopy: Co
                 {item.spanName}
               </span></Tooltip>
               {typeof item.size === 'number' && (
-                <span className="type-caption text-text-dim">
+                <span className="type-caption text-text-faint">
                   {item.size}B
                 </span>
               )}
               {item.truncated && (
-                <span className="rounded bg-status-warn/10 px-1.5 py-0.5 type-caption text-status-warn">
+                <span className="rounded bg-attn-bg px-1.5 py-0.5 type-caption text-attn-text">
                   잘림
                 </span>
               )}
               {copyButton(() => onCopy(formatCapturedBodyCopy(item)), '캡처된 바디 복사')}
             </div>
-            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-bg-surface p-2 font-mono text-xs text-text-secondary">{item.body}</pre>
+            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-surface p-2 font-mono text-xs text-text">{item.body}</pre>
           </li>
         ))}
       </ul>
@@ -671,13 +671,13 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
         {items.map((req) => (
           <li
             key={req.id}
-            className="px-3 py-2 rounded-md bg-ui-hover-soft type-control"
+            className="px-3 py-2 rounded-md bg-surface-hover type-control"
           >
             <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded type-caption bg-ui-active text-text-secondary shrink-0">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded type-caption bg-border text-text shrink-0">
                 {req.method}
               </span>
-              <Tooltip content={req.path} focusable><span className="font-mono text-text-secondary truncate flex-1 min-w-0">
+              <Tooltip content={req.path} focusable><span className="font-mono text-text truncate flex-1 min-w-0">
                 {req.path}
               </span></Tooltip>
               {/* 요청 목록과 같은 색. isError 기준이면 422가 초록이었다. */}
@@ -689,7 +689,7 @@ function ApiRequestList({ items, onCopy }: { items: ApiRequest[]; onCopy: CopyFn
               </span>
               {copyButton(() => onCopy(formatApiRequestCopy(req)), 'API 요청 행 복사')}
             </div>
-            {req.error && <p className="mt-1 break-all font-mono text-xs text-text-secondary">{req.error}</p>}
+            {req.error && <p className="mt-1 break-all font-mono text-xs text-text">{req.error}</p>}
           </li>
         ))}
       </ul>
@@ -705,7 +705,7 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
         {logs.map((log) => (
           <li
             key={log.id}
-            className="flex items-start gap-2 px-3 py-2 rounded-md bg-ui-hover-soft type-control"
+            className="flex items-start gap-2 px-3 py-2 rounded-md bg-surface-hover type-control"
           >
             <span className={`${LEVEL_BASE} icon-lead ${LEVEL_TEXT[log.level] ?? LEVEL_TEXT.info}`}>
               {log.level}
@@ -713,7 +713,7 @@ function LogList({ logs, onCopy }: { logs: LogEntry[]; onCopy: CopyFn }) {
             <span className="text-text-muted shrink-0 icon-lead">
               {formatClock(log.createdAt, true)}
             </span>
-            <span className="text-text-secondary break-all flex-1 min-w-0">
+            <span className="text-text break-all flex-1 min-w-0">
               {log.message}
             </span>
             {copyButton(() => onCopy(formatLogCopy(log)), '로그 행 복사')}

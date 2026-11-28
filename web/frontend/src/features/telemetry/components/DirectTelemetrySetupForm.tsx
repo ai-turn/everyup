@@ -111,7 +111,7 @@ export function DirectTelemetrySetupForm({ signal, serverId, serverName, attachT
         : <ExistingAppField signal={signal} services={candidates.services} value={existingId} error={fieldError} noCandidates={noCandidates}
           onChange={(next) => { setExistingId(next); clearError(); }} />}
 
-      <div className="flex justify-end gap-2 border-t border-ui-border pt-4">
+      <div className="flex justify-end gap-2 border-t border-border pt-4">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>취소</Button>
         <Button type="submit" disabled={candidates.loading || Boolean(candidates.error) || noCandidates} loading={submitting}>
           연결
@@ -147,7 +147,7 @@ function DockerNotes({ signal, serverId, serverName, attaching }: { signal: Tele
       <p className="type-body text-text-muted">
         {docker
           ? '컨테이너가 stdout으로 내보내는 로그는 이 서버의 Docker Collector가 수집합니다.'
-          : <>컨테이너가 stdout으로 내보내는 로그는 <Link to={DOCKER_SERVERS_PATH} className="text-action underline underline-offset-2">Docker Collector</Link>가 수집합니다(서버 개요의 Docker Collector 설치).</>}
+          : <>컨테이너가 stdout으로 내보내는 로그는 <Link to={DOCKER_SERVERS_PATH} className="text-text underline underline-offset-2">Docker Collector</Link>가 수집합니다(서버 개요의 Docker Collector 설치).</>}
         {' '}여기서는 앱이 OpenTelemetry로 직접 보내는 로그를 연결합니다.
       </p>
     )}

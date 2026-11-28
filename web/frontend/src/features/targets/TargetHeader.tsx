@@ -57,7 +57,7 @@ export function TargetHeader({ title, crumbs, back: backLink, status, connection
   // 목록의 상태를 모른다. 상단 바에 두면 본문의 높이를 쓰지 않는다.
   const slot = useHeaderActionSlot();
   const desktop = useMediaQuery('(min-width: 1024px)');
-  const linkClass = 'inline-flex min-h-11 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-action';
+  const linkClass = 'inline-flex min-h-11 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-text';
   const refreshStatus = <RefreshStatus {...refresh} />;
   return (
     <header>
@@ -99,13 +99,13 @@ export function TargetHeader({ title, crumbs, back: backLink, status, connection
 function ConnectionLine({ connection, compact = false }: { connection: TargetConnection; compact?: boolean }) {
   const kind = KIND[connection.kind];
   const action = connection.action;
-  const actionClass = 'inline-flex min-h-11 shrink-0 items-center text-action link-underline sm:min-h-6';
+  const actionClass = 'inline-flex min-h-11 shrink-0 items-center text-text link-underline sm:min-h-6';
   return (
     <p data-connection={connection.kind} className={`flex min-w-0 items-center gap-x-3 gap-y-1 type-caption text-text-muted ${compact ? 'justify-end' : 'flex-wrap'}`}>
       <span className="inline-flex min-w-0 items-center gap-1.5">
         <MaterialIcon size={16} name={kind.icon} className="shrink-0" />
         {/* 좁은 화면에서는 "연결"을 화면 낭독기에만 읽힌다: 아이콘과 방식 이름이 같은 말을 한다. */}
-        <span className={compact ? 'sr-only' : ''}>연결 </span><span className="truncate text-text-secondary">{kind.label}</span>
+        <span className={compact ? 'sr-only' : ''}>연결 </span><span className="truncate text-text">{kind.label}</span>
       </span>
       {!compact && connection.detail && <span>{connection.detail}</span>}
       {action && (action.menu

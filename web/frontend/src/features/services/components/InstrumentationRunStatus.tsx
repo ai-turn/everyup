@@ -21,16 +21,16 @@ export function InstrumentationRunStatus({ agentId, runId }: { agentId: string; 
   if (!run && !error) return null;
   if (run && isHistory(run, Boolean(runId))) return null;
   const failed = run?.status === 'failed' || run?.status === 'rollback_failed';
-  return <section aria-label="상세 수집 적용 결과" className="space-y-label rounded-md bg-ui-hover-soft p-4">
-    <h4 className="type-label text-text-base">{runId ? '상세 수집 적용 결과' : '최근 상세 수집 적용 기록'}</h4>
-    {error ? <p role="alert" className="type-body text-status-warn">{error}</p> : run && <>
-      <p className="type-body text-text-secondary">{run.project} · {run.targets.map(target => target.name).join(', ')}</p>
-      <Tooltip content={formatFullDateTime(run.updatedAt)} focusable><p className={`type-body ${failed ? 'text-status-error' : 'text-text-secondary'}`}>
+  return <section aria-label="상세 수집 적용 결과" className="space-y-label rounded-md bg-surface-hover p-4">
+    <h4 className="type-label text-text">{runId ? '상세 수집 적용 결과' : '최근 상세 수집 적용 기록'}</h4>
+    {error ? <p role="alert" className="type-body text-attn-text">{error}</p> : run && <>
+      <p className="type-body text-text">{run.project} · {run.targets.map(target => target.name).join(', ')}</p>
+      <Tooltip content={formatFullDateTime(run.updatedAt)} focusable><p className={`type-body ${failed ? 'text-crit-text' : 'text-text'}`}>
         {statuses[run.status]} · {formatDistanceToNow(new Date(run.updatedAt), { addSuffix: true, locale: ko })}
       </p></Tooltip>
-      {run.reason && <p className={`type-body ${failed ? 'text-status-error' : 'text-status-warn'}`}>{reasons[run.reason] ?? run.reason}</p>}
+      {run.reason && <p className={`type-body ${failed ? 'text-crit-text' : 'text-attn-text'}`}>{reasons[run.reason] ?? run.reason}</p>}
       {run.status === 'applying' && <p className="type-body text-text-muted">결과가 갱신되지 않으면 서버의 CLI 출력을 확인하세요. 통신 중단만으로 성공 처리하지 않습니다.</p>}
-      {run.status === 'verified' && <ul className="space-y-intra type-body text-text-secondary">{run.targets.map(target => <li key={target.key}>{target.name} · {run.signals.some(receipt => receipt.serviceName === target.name) ? '실행 시작 이후 새 트레이스 수신' : '새 트레이스 대기: 서비스에 요청을 보내 주세요'}</li>)}</ul>}
+      {run.status === 'verified' && <ul className="space-y-intra type-body text-text">{run.targets.map(target => <li key={target.key}>{target.name} · {run.signals.some(receipt => receipt.serviceName === target.name) ? '실행 시작 이후 새 트레이스 수신' : '새 트레이스 대기: 서비스에 요청을 보내 주세요'}</li>)}</ul>}
       <p className="type-body text-text-muted">CLI 검증은 실행 상태·상세 수집 설정을 확인합니다. 새 트레이스에는 기존 eBPF 수집도 포함될 수 있습니다. 트래픽이 없어도 자동 복구하지 않습니다.</p>
     </>}
   </section>;

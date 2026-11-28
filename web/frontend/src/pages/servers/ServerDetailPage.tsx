@@ -124,10 +124,10 @@ export function ServerDetailPage() {
         // 서버 목록의 자리 표시(ServerListSkeleton)와 같은 방식: 머리말, 탭 줄, 행 몇 개.
         <div role="status" className="space-y-group">
           <span className="sr-only">로딩 중…</span>
-          <div className="h-8 w-48 animate-pulse rounded-lg bg-ui-hover-soft" />
-          <div className="h-10 animate-pulse rounded-lg bg-ui-hover-soft" />
+          <div className="h-8 w-48 animate-pulse rounded-lg bg-surface-hover" />
+          <div className="h-10 animate-pulse rounded-lg bg-surface-hover" />
           <div className="space-y-label">
-            {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-ui-hover-soft" />)}
+            {[0, 1, 2].map((item) => <div key={item} className="h-14 animate-pulse rounded-lg bg-surface-hover" />)}
           </div>
         </div>
       );

@@ -1,3 +1,4 @@
+import { THEMES, type Theme } from '../../../contexts/ThemeContext';
 import { Button, ConfirmDialog, MaterialIcon, SegmentedControl } from '../../../components/common';
 import { SectionCard } from './SectionCard';
 import { AccountSection } from './AccountSection';
@@ -12,7 +13,7 @@ const LOGS_RETENTION_OPTIONS = ['1d', '3d', '7d', '30d'];
 const COLLECT_INTERVAL_OPTIONS = [15, 30, 60, 300];
 
 interface SettingsMobileViewProps {
-  theme: 'light' | 'dark';
+  theme: Theme;
   metricsRetention: string;
   logsRetention: string;
   collectInterval: number;
@@ -21,7 +22,7 @@ interface SettingsMobileViewProps {
   settingsError: string | null;
   showResetConfirm: boolean;
   resetting: boolean;
-  onThemeChange: (theme: 'light' | 'dark') => void;
+  onThemeChange: (theme: Theme) => void;
   onMetricsRetentionChange: (value: string) => void;
   onLogsRetentionChange: (value: string) => void;
   onCollectIntervalChange: (seconds: number) => void;
@@ -57,12 +58,12 @@ export function SettingsMobileView({
     <div className="section-stack">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-text-base">환경 설정</h1>
+        <h1 className="text-xl font-bold text-text">환경 설정</h1>
         <p className="type-body text-text-muted mt-intra">계정, 화면, 데이터 보존, 알림 기준 등 운영 환경을 관리합니다.</p>
       </div>
       {settingsError && (
-        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-ui-border-soft bg-bg-surface px-4 py-3 type-body text-text-secondary">
-          <MaterialIcon name="sync_problem" className="text-status-warn" />
+        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 type-body text-text">
+          <MaterialIcon name="sync_problem" className="text-attn-text" />
           <span className="min-w-0 flex-1">일부 설정을 불러오지 못했습니다.</span>
           <Button size="sm" variant="secondary" onClick={onRetryLoad}>다시 시도</Button>
         </div>
@@ -74,11 +75,11 @@ export function SettingsMobileView({
       {/* Interface */}
       <SectionCard title="인터페이스">
         {/* Theme */}
-        <SettingRow label="테마" description="라이트 또는 다크 모드를 선택합니다">
+        <SettingRow label="테마" description="화면 색 테마를 선택합니다">
           <SegmentedControl
             size="md"
             ariaLabel="테마"
-            options={[{ value: 'light', label: '라이트' }, { value: 'dark', label: '다크' }] as const}
+            options={THEMES}
             value={theme}
             onChange={onThemeChange}
           />
@@ -89,8 +90,8 @@ export function SettingsMobileView({
       <SectionCard title="데이터 수집 및 보존">
         {backendLoading ? (
           <div className="space-y-label">
-            <div className="h-14 bg-ui-hover rounded-lg animate-pulse" />
-            <div className="h-14 bg-ui-hover rounded-lg animate-pulse" />
+            <div className="h-14 bg-surface-hover rounded-lg animate-pulse" />
+            <div className="h-14 bg-surface-hover rounded-lg animate-pulse" />
           </div>
         ) : (
           <div>

@@ -27,7 +27,7 @@ export function ServerHeader({ row, onRefresh, refreshing, onSettings, updatedAt
       {/* 데스크톱은 AppHeader 크럼이 이 역할을 한다 (DESIGN.md §3.4). 좁은 화면에서는 복귀 링크와 같은 줄의 오른쪽 끝에 갱신 상태를
           둔다 — 상태 줄 아래로 흘러 한 줄을 더 쓰던 것을 줄였다(2026-11-20 점검 B1). 넓은 화면은 상태 줄의 오른쪽 끝이다. */}
       <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
-        <Link to={SERVERS_PATH} className="inline-flex min-h-11 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-action">
+        <Link to={SERVERS_PATH} className="inline-flex min-h-11 items-center gap-1.5 type-control text-text-muted transition-colors hover:text-text">
           <MaterialIcon size={20} name="arrow_back" />서버 목록
         </Link>
         <RefreshStatus updatedAt={updatedAt} onRefresh={onRefresh} refreshing={refreshing}
@@ -47,7 +47,7 @@ export function ServerHeader({ row, onRefresh, refreshing, onSettings, updatedAt
             status={<>
               <StatusLight tone={row.state} label={STATE_LABEL[row.state]} pulse={row.state === 'error'} />
               {cause && (causeLink
-                ? <Link to={causeLink} className="inline-flex min-h-11 items-center text-action link-underline sm:min-h-6">{cause.text}</Link>
+                ? <Link to={causeLink} className="inline-flex min-h-11 items-center text-text link-underline sm:min-h-6">{cause.text}</Link>
                 // 링크와 같은 높이: 원인 대상을 보는 중이라 글자로 바뀌어도 탭 줄이 움직이지 않는다.
                 : <span className="inline-flex min-h-11 items-center type-caption text-text-muted sm:min-h-6">{cause.text}</span>)}
               {/* 상태 줄의 오른쪽 끝. 좁은 화면에서는 상태 줄 아래로 흐른다. 모든 탭에서 같은 자리라 머리말의 높이가 같다.

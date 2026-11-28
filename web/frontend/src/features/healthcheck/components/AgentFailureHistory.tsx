@@ -35,9 +35,9 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-5 bg-ui-active rounded w-40 mb-4" />
+        <div className="h-5 bg-border rounded w-40 mb-4" />
         {[1, 2].map((i) => (
-          <div key={i} className="h-14 bg-ui-hover rounded-lg mb-3" />
+          <div key={i} className="h-14 bg-surface-hover rounded-lg mb-3" />
         ))}
       </div>
     );
@@ -46,11 +46,11 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
   return (
     <section>
       <div className="flex items-center gap-3 mb-5">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-status-error/10 shrink-0">
-          <MaterialIcon size={20} name="history" className="text-status-error" />
+        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-crit-bg shrink-0">
+          <MaterialIcon size={20} name="history" className="text-crit-text" />
         </div>
         <div>
-          <h2 className="type-section-title text-text-base tracking-tight">
+          <h2 className="type-section-title text-text tracking-tight">
             최근 알림 기록
           </h2>
           <p className="text-text-muted type-body">
@@ -62,7 +62,7 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
       {error && <UptimeFetchNotice source="알림 기록" onRetry={() => setAttempt((value) => value + 1)} />}
       {events?.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 gap-label">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-ui-hover">
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-surface-hover">
             <MaterialIcon size={24} name="history" className="text-text-muted" />
           </div>
           <p className="text-text-muted type-body">알림 기록이 없습니다</p>
@@ -78,10 +78,10 @@ export function AgentFailureHistory({ agentId, serviceKey, refreshKey }: AgentFa
               >
                 <MaterialIcon size={20}
                   name={isAlert ? 'error' : 'check_circle'}
-                  className={`shrink-0 icon-lead ${isAlert ? 'text-status-error' : 'text-status-healthy'}`}
+                  className={`shrink-0 icon-lead ${isAlert ? 'text-crit-text' : 'text-ok-text'}`}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="type-label text-text-base truncate">
+                  <p className="type-label text-text truncate">
                     {event.message || (isAlert ? '장애 감지' : '복구 감지')}
                   </p>
                   <p className="type-caption text-text-muted mt-intra">

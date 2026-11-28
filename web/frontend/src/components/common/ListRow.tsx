@@ -28,11 +28,11 @@ export function ListRow({ to, marker, title, detail, detailSize = 'body', traili
 }) {
   return (
     <li>
-      <Link to={to} className="flex gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-ui-hover-soft">
+      <Link to={to} className="flex gap-3 rounded-md px-3 py-2.5 transition-colors hover:bg-surface-hover">
         <span className="flex h-5 min-w-5 shrink-0 items-center justify-center">{marker}</span>
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline gap-3">
-            <span className="min-w-0 flex-1 truncate type-label text-text-base">{title}</span>
+            <span className="min-w-0 flex-1 truncate type-label text-text">{title}</span>
             {trailing != null && <span className="shrink-0 whitespace-nowrap type-caption tabular-nums text-text-muted">{trailing}</span>}
           </span>
           {detail != null && (
@@ -54,7 +54,7 @@ export function ListRow({ to, marker, title, detail, detailSize = 'body', traili
  */
 export function ListMore({ expanded, label, onToggle }: { expanded: boolean; label: string; onToggle: () => void }) {
   return (
-    <button type="button" aria-expanded={expanded} onClick={onToggle} className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2.5 text-left type-label-sm text-action transition-colors hover:bg-ui-hover-soft sm:min-h-0">
+    <button type="button" aria-expanded={expanded} onClick={onToggle} className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2.5 text-left type-label-sm text-text transition-colors hover:bg-surface-hover sm:min-h-0">
       <span className="flex h-5 min-w-5 shrink-0 items-center justify-center"><MaterialIcon name={expanded ? 'expand_less' : 'expand_more'} /></span>
       {label}
     </button>
@@ -62,7 +62,7 @@ export function ListMore({ expanded, label, onToggle }: { expanded: boolean; lab
 }
 
 /** 하위 그룹 라벨의 글자(14/20/500, secondary). 담긴 카드·항목의 제목(16·14 base)과 크기·색으로 구분하고, 라벨 → 내용은 8px다(DESIGN.md §3.7). */
-export const SUBGROUP_LABEL = 'type-label text-text-secondary';
+export const SUBGROUP_LABEL = 'type-label text-text';
 
 /** 섹션 안의 하위 그룹(개요의 장애, 확인 필요). 라벨 → 항목 8px, 그룹 사이는 부모의 space-y-6(24px)이다. */
 export function ListGroup({ id, label, footer, children }: { id: string; label: string; footer?: ReactNode; children: ReactNode }) {

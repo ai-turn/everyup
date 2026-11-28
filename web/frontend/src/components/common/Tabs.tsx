@@ -74,13 +74,13 @@ export function Tabs<T extends string>({ items, active, onChange, ariaLabel, idP
             onKeyDown={event => onKeyDown(event, index)}
             className={`relative inline-flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2.5 type-label transition-colors ${
               selected
-                ? 'border-primary text-text-base'
-                : `border-transparent hover:text-text-base ${item.muted ? 'text-text-dim' : 'text-text-muted'}`
+                ? 'border-accent text-text'
+                : `border-transparent hover:text-text ${item.muted ? 'text-text-faint' : 'text-text-muted'}`
             }`}
           >
             {item.label}
             {item.srDetail && <span className="sr-only">{item.srDetail}</span>}
-            {item.caption && <span className="type-caption text-text-dim">{item.caption}</span>}
+            {item.caption && <span className="type-caption text-text-faint">{item.caption}</span>}
             {item.tone && (
               <span
                 {...(item.toneLabel ? { role: 'img', 'aria-label': item.toneLabel } : { 'aria-hidden': true })}

@@ -22,9 +22,9 @@ export function TargetMissing({ row, loading, error, unverified, onRetry, copy }
     return (
       <div role="status" className="space-y-group">
         <span className="sr-only">로딩 중…</span>
-        <div className="h-8 w-48 animate-pulse rounded-lg bg-ui-hover-soft" />
-        <div className="h-10 animate-pulse rounded-lg bg-ui-hover-soft" />
-        <div className="h-96 animate-pulse rounded-xl bg-ui-hover-soft" />
+        <div className="h-8 w-48 animate-pulse rounded-lg bg-surface-hover" />
+        <div className="h-10 animate-pulse rounded-lg bg-surface-hover" />
+        <div className="h-96 animate-pulse rounded-xl bg-surface-hover" />
       </div>
     );
   }

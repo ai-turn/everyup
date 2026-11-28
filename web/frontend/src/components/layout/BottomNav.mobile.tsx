@@ -15,12 +15,12 @@ export function BottomNavMobile() {
 
   return (
     // 항목을 화면 가장자리에서 4px 띄운다. 포커스 링(2px + 2px)이 화면 밖으로 잘리지 않게. 항목의 높이는 56px로 44px보다 높다.
-    <nav aria-label="하단 메뉴" className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch border-t border-ui-border bg-bg-surface px-1 pt-1 lg:hidden" style={{ height: 'calc(4rem + env(safe-area-inset-bottom, 0px))', paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom, 0px))' }}>
+    <nav aria-label="하단 메뉴" className="fixed bottom-0 left-0 right-0 z-30 flex items-stretch border-t border-border bg-surface px-1 pt-1 lg:hidden" style={{ height: 'calc(4rem + env(safe-area-inset-bottom, 0px))', paddingBottom: 'calc(0.25rem + env(safe-area-inset-bottom, 0px))' }}>
       {navItems.map((item) => (
-        <Link key={item.to} to={item.to} aria-current={isActive(item.to) ? 'page' : undefined} className={`relative flex flex-1 flex-col items-center justify-center gap-intra rounded-lg transition-colors ${isActive(item.to) ? 'text-action' : 'text-text-dim'}`}>
+        <Link key={item.to} to={item.to} aria-current={isActive(item.to) ? 'page' : undefined} className={`relative flex flex-1 flex-col items-center justify-center gap-intra rounded-lg transition-colors ${isActive(item.to) ? 'text-text' : 'text-text-faint'}`}>
           <MaterialIcon size={24} name={item.icon} />
           <span className="whitespace-nowrap type-control">{item.label}</span>
-          {isActive(item.to) && <span className="absolute top-1.5 h-1 w-1 rounded-full bg-primary" />}
+          {isActive(item.to) && <span className="absolute top-1.5 h-1 w-1 rounded-full bg-accent" />}
         </Link>
       ))}
     </nav>

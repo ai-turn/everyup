@@ -36,12 +36,12 @@ export function ChannelHealthMeta({ health, compact = false }: Props) {
   const successRate = total > 0 ? Math.round((sent / total) * 100) : null;
   const rateColor =
     successRate === null
-      ? 'text-text-dim'
+      ? 'text-text-faint'
       : successRate >= 95
-      ? 'text-status-healthy'
+      ? 'text-ok-text'
       : successRate >= 80
-      ? 'text-status-warn'
-      : 'text-status-error';
+      ? 'text-attn-text'
+      : 'text-crit-text';
 
   const gap = compact ? 'gap-3' : 'gap-4';
   const text = 'type-control';
@@ -58,11 +58,11 @@ export function ChannelHealthMeta({ health, compact = false }: Props) {
       {total > 0 ? (
         <Tooltip content="7일 성공률" focusable><span className={`inline-flex items-center gap-1.5 ${rateColor}`}>
           <MaterialIcon size={20} name="check_circle" />
-          {successRate}% <span className="font-normal text-text-dim">({sent}/{total})</span>
+          {successRate}% <span className="font-normal text-text-faint">({sent}/{total})</span>
         </span></Tooltip>
       ) : (
         <Tooltip content="최근 7일 활동 없음" focusable><span className="inline-flex items-center gap-1.5">
-          <MaterialIcon size={20} name="check_circle" className="text-text-dim" />
+          <MaterialIcon size={20} name="check_circle" className="text-text-faint" />
           활동 없음
         </span></Tooltip>
       )}

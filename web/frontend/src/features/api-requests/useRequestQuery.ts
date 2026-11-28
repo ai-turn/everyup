@@ -26,7 +26,7 @@ const STATUS_CLASSES: StatusClass[] = ['2xx', '3xx', '4xx', '5xx'];
 
 /** 상태코드 글자색. 요청 목록과 트레이스 패널이 같은 422를 같은 색으로 보이게 한다. */
 export function statusClass(code: number) {
-  return code >= 500 ? 'text-status-error' : code >= 400 ? 'text-status-warn' : 'text-text-secondary';
+  return code >= 500 ? 'text-crit-text' : code >= 400 ? 'text-attn-text' : 'text-text';
 }
 
 export function statusRange(value: StatusClass | undefined) {

@@ -22,13 +22,13 @@ interface ConfirmDialogProps {
 
 const variantStyles: Record<Variant, { iconBg: string; iconText: string; defaultIcon: string }> = {
   danger: {
-    iconBg: 'bg-status-error/10',
-    iconText: 'text-status-error',
+    iconBg: 'bg-crit-bg',
+    iconText: 'text-crit-text',
     defaultIcon: 'warning',
   },
   primary: {
-    iconBg: 'bg-primary/10',
-    iconText: 'text-action',
+    iconBg: 'bg-accent-bg',
+    iconText: 'text-text',
     defaultIcon: 'help',
   },
 };
@@ -67,13 +67,13 @@ export function ConfirmDialog({
         // ::backdrop clicks are delivered with the dialog itself as target.
         if (e.target === e.currentTarget && !isProcessing) onClose();
       }}
-      className={`m-auto max-h-[calc(100dvh-2rem)] bg-bg-surface border border-ui-border rounded-xl w-full max-w-md shadow-lg overflow-y-auto animate-zoom-in ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] bg-surface border border-border rounded-xl w-full max-w-md shadow-lg overflow-y-auto animate-zoom-in ${SCRIM_MODAL_DIALOG}`}
     >
-      <div className="px-6 py-4 border-b border-ui-border flex items-center gap-3">
+      <div className="px-6 py-4 border-b border-border flex items-center gap-3">
         <div className={`flex items-center justify-center w-10 h-10 rounded-full ${styles.iconBg}`}>
           <MaterialIcon size={20} name={icon ?? styles.defaultIcon} className={`${styles.iconText}`} />
         </div>
-        <h2 id="confirm-dialog-title" className="type-section-title text-text-base">
+        <h2 id="confirm-dialog-title" className="type-section-title text-text">
           {title}
         </h2>
       </div>

@@ -63,7 +63,7 @@ test('certificate expiry and expected status show in the header, and the status 
   // Certificate expiry is the fourth overview number for HTTPS monitors, coloured only near expiry.
   const cert = page.locator('dl > div').filter({ hasText: '인증서 만료' }).locator('dd');
   await expect(cert).toHaveText('D-5');
-  await expect(cert).toHaveClass(/text-status-warn/);
+  await expect(cert).toHaveClass(/text-attn-text/);
   await page.getByRole('button', { name: '수정', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: '업타임 모니터 수정' });
   const expected = dialog.getByRole('spinbutton', { name: '기대 상태 코드' });

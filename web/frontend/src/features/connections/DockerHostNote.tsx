@@ -41,7 +41,7 @@ export function DockerHostNote({ serverId, serverName, infrastructure = false, s
   const what = infrastructure
     ? 'Docker Collector의 인프라 기능이 같은 호스트 지표를 수집합니다. 두 번 수집하지 않도록 Docker Collector에서 인프라를 연결하세요.'
     : '컨테이너로 도는 앱은 Docker Collector로 연결하세요.';
-  const link = 'text-action underline underline-offset-2';
+  const link = 'text-text underline underline-offset-2';
   return (
     <p className="type-body text-text-muted">
       {same

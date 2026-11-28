@@ -39,7 +39,7 @@ export function UptimeStats({ stats }: { stats: UptimeOverviewStat[] }) {
       {stats.map((stat, index) => (
         <div key={stat.label} className={`pr-7 ${index > 0 ? 'sm:pl-7' : ''}`}>
           <dt className="type-caption text-text-muted">{stat.label}</dt>
-          <dd className={`mt-1 type-kpi ${stat.tone === 'error' ? 'text-status-error' : stat.tone === 'warn' ? 'text-status-warn' : 'text-text-base'}`}>{stat.value}</dd>
+          <dd className={`mt-1 type-kpi ${stat.tone === 'error' ? 'text-crit-text' : stat.tone === 'warn' ? 'text-attn-text' : 'text-text'}`}>{stat.value}</dd>
         </div>
       ))}
     </dl>
@@ -91,11 +91,11 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
       {stats.length > 0 && <UptimeStats stats={stats} />}
 
       <div className={`${stats.length > 0 ? 'mt-6' : ''} mb-2 flex flex-wrap justify-between gap-3 type-caption text-text-muted`}>
-        <span>지난 90일{historyUptime !== undefined && !loading && !error && <> · <span className="font-medium tabular-nums text-text-base">{historyUptime.toFixed(2)}%</span></>}</span>
+        <span>지난 90일{historyUptime !== undefined && !loading && !error && <> · <span className="font-medium tabular-nums text-text">{historyUptime.toFixed(2)}%</span></>}</span>
         {!loading && !error && <><span>기록 {recordedDays}/90일</span><span>일부 실패 {partialDays}일, 전체 실패 {downDays}일</span></>}
       </div>
       {error ? <p className="py-3 type-body text-text-muted">90일 이력을 불러오지 못했습니다. {error}</p> : loading ? (
-        <div className="h-7 animate-pulse rounded bg-ui-hover" />
+        <div className="h-7 animate-pulse rounded bg-surface-hover" />
       ) : (
         <div
           className="flex gap-0.5"
@@ -113,14 +113,14 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
               onClick={onSelectDate ? () => select(index) : undefined}
               className={`h-7 flex-1 rounded-sm transition-opacity hover:opacity-75 ${onSelectDate ? 'cursor-pointer' : 'cursor-default'} ${
                 index === hoveredIndex ? 'opacity-75' : ''
-              } ${date === selectedDate ? 'ring-2 ring-text-base ring-offset-1 ring-offset-bg-main' : ''} ${
+              } ${date === selectedDate ? 'ring-2 ring-text ring-offset-1 ring-offset-bg' : ''} ${
                 day === null
-                  ? 'bg-ui-hover'
+                  ? 'bg-surface-hover'
                   : day.uptime >= 99.5
-                    ? 'bg-status-healthy-fill'
+                    ? 'bg-ok'
                     : day.uptime >= 50
-                      ? 'bg-status-warn-fill'
-                      : 'bg-status-error-fill'
+                      ? 'bg-attn'
+                      : 'bg-crit'
               }`}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -129,10 +129,10 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
         </div>
       )}
 
-      <div className="mt-2 flex flex-wrap justify-between gap-3 type-caption text-text-dim" aria-live="polite">
+      <div className="mt-2 flex flex-wrap justify-between gap-3 type-caption text-text-faint" aria-live="polite">
         <span className="shrink-0">90일 전</span>
         {hovered && (
-          <span className="order-last basis-full break-words text-center text-text-secondary sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">
+          <span className="order-last basis-full break-words text-center text-text sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">
             <span className="font-medium">{hovered.date}</span>
             {' '}
             {hovered.day === null ? '기록 없음' : <>{hovered.day.uptime.toFixed(1)}% {'업타임'}</>}
@@ -142,7 +142,7 @@ export function UptimeOverview({ stats, days, historyUptime, loading = false, er
         <span className="shrink-0">오늘</span>
       </div>
       {/* 아래에 붙는 내용(장애 이력)은 카드 없는 섹션 사이 규칙(32px + 선 + 32px, section)으로 나눈다. */}
-      {children && <div className="mt-section border-t border-ui-border-soft pt-section">{children}</div>}
+      {children && <div className="mt-section border-t border-border pt-section">{children}</div>}
     </section>
   );
 }

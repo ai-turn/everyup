@@ -14,7 +14,7 @@ export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; e
   return <ul className="space-y-label" aria-live="polite">
     {expected.map(signal => {
       const last = lastReceipt(signals, signal);
-      return <li key={signal} className="flex flex-wrap items-center gap-2 type-body text-text-secondary">
+      return <li key={signal} className="flex flex-wrap items-center gap-2 type-body text-text">
         <CollectionStatusBadge status={receiptState(last)} />
         {labels[signal] ?? signal}
         <Tooltip content={last ? formatFullDateTime(last) : undefined} focusable><span className="text-text-muted">
@@ -27,8 +27,8 @@ export function ReceiptList({ signals, expected }: { signals: SignalReceipt[]; e
 
 /** One shape for every "did the data arrive?" block, wherever it is shown. */
 export function ReceiptPanel({ signals, expected, error, note }: { signals: SignalReceipt[]; expected: string[]; error?: string; note?: string }) {
-  return <section aria-label="데이터 수신 확인" className="space-y-label rounded-md bg-ui-hover-soft p-4">
-    <h4 className="type-label text-text-base">데이터 수신 확인</h4>
+  return <section aria-label="데이터 수신 확인" className="space-y-label rounded-md bg-surface-hover p-4">
+    <h4 className="type-label text-text">데이터 수신 확인</h4>
     {error ? <LoadErrorBanner inline title="수신 상태를 확인하지 못했습니다" message={error} /> : <ReceiptList signals={signals} expected={expected} />}
     {note && <p className="type-body text-text-muted">{note}</p>}
   </section>;

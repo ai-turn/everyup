@@ -52,18 +52,18 @@ export function SearchInput({ wrapperClassName = '', className = '', onClear, re
     // 2px action 외곽선을 래퍼에 그린다 — 입력 자신의 외곽선은 래퍼 안에 갇혀 이중 링이 되므로 끈다.
     <div
       className={
-        'flex h-11 sm:h-10 w-full min-w-0 items-center gap-2 rounded-lg border border-ui-control-border bg-bg-surface pl-3 pr-1 ' +
-        'hover:border-text-muted focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-action ' +
+        'flex h-11 sm:h-10 w-full min-w-0 items-center gap-2 rounded-lg border border-control bg-surface pl-3 pr-1 ' +
+        'hover:border-text-muted focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus ' +
         wrapperClassName
       }
     >
-      <MaterialIcon name="search" className="pointer-events-none shrink-0 text-text-dim" />
+      <MaterialIcon name="search" className="pointer-events-none shrink-0 text-text-faint" />
       <input
         ref={setRefs}
         type="text"
         aria-keyshortcuts={shortcut ? '/' : undefined}
         className={
-          'peer h-full min-w-0 flex-1 bg-transparent text-sm max-sm:text-base text-text-base placeholder:text-text-dim ' +
+          'peer h-full min-w-0 flex-1 bg-transparent text-sm max-sm:text-base text-text placeholder:text-text-faint ' +
           `focus-visible:outline-none ${className}`
         }
         {...props}
@@ -76,7 +76,7 @@ export function SearchInput({ wrapperClassName = '', className = '', onClear, re
       {onClear && hasValue ? (
         <IconButton icon="close" label="검색어 지우기" tone="quiet" size="sm" onClick={() => { onClear(); inputRef.current?.focus(); }} />
       ) : shortcut && !hasValue && (
-        <kbd aria-hidden="true" className="mr-1.5 hidden shrink-0 rounded border border-ui-border px-1.5 font-sans type-label-sm text-text-muted sm:block sm:peer-focus:hidden">/</kbd>
+        <kbd aria-hidden="true" className="mr-1.5 hidden shrink-0 rounded border border-border px-1.5 font-sans type-label-sm text-text-muted sm:block sm:peer-focus:hidden">/</kbd>
       )}
     </div>
   );

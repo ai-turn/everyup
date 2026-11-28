@@ -12,14 +12,14 @@ export function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-main p-8">
+    <div className="min-h-screen flex items-center justify-center bg-bg p-8">
       <div className="text-center max-w-md">
         <MaterialIcon
           name="error_outline"
-          className="text-8xl text-red-500 mb-4"
+          className="text-8xl text-crit mb-4"
         />
 
-        <h1 className="type-page-title text-text-base mb-2">
+        <h1 className="type-page-title text-text mb-2">
           문제가 발생했습니다
         </h1>
 
@@ -28,7 +28,7 @@ export function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
         </p>
 
         {import.meta.env.DEV && error && (
-          <pre className="text-left type-caption bg-ui-hover p-4 rounded-lg mb-4 overflow-auto max-h-32">
+          <pre className="text-left type-caption bg-surface-hover p-4 rounded-lg mb-4 overflow-auto max-h-32">
             {error.message}
           </pre>
         )}

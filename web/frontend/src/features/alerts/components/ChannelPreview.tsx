@@ -7,14 +7,14 @@ import { IconTelegram, IconDiscord, IconSlack } from '../../../components/icons/
 export function TelegramPreview({ name }: { name: string }) {
     const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
     return (
-        <div className="rounded-xl overflow-hidden border border-slate-700 font-sans text-xs">
+        <div className="rounded-xl overflow-hidden border border-[#334155] font-sans text-xs">
             {/* Header bar */}
             <div className="flex items-center gap-2 px-3 py-2 bg-[#17212B]">
                 <div className="w-7 h-7 rounded-full bg-[#26A5E4] flex items-center justify-center shrink-0">
-                    <IconTelegram size={14} className="text-white" />
+                    <IconTelegram size={14} className="text-[#ffffff]" />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-white type-label-sm leading-tight truncate">{name || 'EveryUp Bot'}</p>
+                    <p className="text-[#ffffff] type-label-sm leading-tight truncate">{name || 'EveryUp Bot'}</p>
                     <p className="text-[#7C91A7] text-xs">bot</p>
                 </div>
             </div>
@@ -24,16 +24,16 @@ export function TelegramPreview({ name }: { name: string }) {
                     <p>
                         <span className="text-[#5FBDE3]">✅ Service Recovered</span>
                     </p>
-                    <p className="text-slate-300">
+                    <p className="text-[#cbd5e1]">
                         <span className="text-[#7C91A7]">Service: </span>Notification Test
                     </p>
-                    <p className="text-slate-300">
+                    <p className="text-[#cbd5e1]">
                         <span className="text-[#7C91A7]">Time: </span>
                         {new Date().toISOString().slice(0, 19).replace('T', ' ')}
                     </p>
-                    <p className="text-slate-300">
+                    <p className="text-[#cbd5e1]">
                         <span className="text-[#7C91A7]">Message: </span>
-                        <span className="text-slate-400">This is a test notification. Your EVERYUP notification channel is connected correctly.</span>
+                        <span className="text-[#94a3b8]">This is a test notification. Your EVERYUP notification channel is connected correctly.</span>
                     </p>
                     <p className="text-[#7C91A7] text-xs text-right">{now}</p>
                 </div>
@@ -49,11 +49,11 @@ export function DiscordPreview({ name }: { name: string }) {
             {/* Header bar */}
             <div className="flex items-center gap-2 px-3 py-2 bg-[#313338]">
                 <div className="w-7 h-7 rounded-full bg-[#5865F2] flex items-center justify-center shrink-0">
-                    <IconDiscord size={14} className="text-white" />
+                    <IconDiscord size={14} className="text-[#ffffff]" />
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="text-white font-medium">{name || 'EVERYUP'}</span>
-                    <span className="px-1 py-px bg-[#5865F2] text-white text-xs rounded uppercase">APP</span>
+                    <span className="text-[#ffffff] font-medium">{name || 'EVERYUP'}</span>
+                    <span className="px-1 py-px bg-[#5865F2] text-[#ffffff] text-xs rounded uppercase">APP</span>
                 </div>
             </div>
             {/* Message area */}
@@ -92,23 +92,23 @@ export function DiscordPreview({ name }: { name: string }) {
 // Slack: Block Kit attachment matching backend output
 export function SlackPreview({ name }: { name: string }) {
     return (
-        <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-[#424242] font-sans text-xs">
+        <div className="rounded-xl overflow-hidden border border-[#e2e8f0] dark:border-[#424242] font-sans text-xs">
             {/* Header bar */}
             <div className="flex items-center gap-2 px-3 py-2 bg-[#4A154B]">
-                <div className="w-7 h-7 rounded bg-white flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded bg-[#ffffff] flex items-center justify-center shrink-0">
                     <IconSlack size={14} className="text-[#E01E5A]" />
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="text-white font-medium">{name || 'EVERYUP'}</span>
-                    <span className="px-1 py-px bg-white/25 text-white text-xs rounded uppercase">APP</span>
+                    <span className="text-[#ffffff] font-medium">{name || 'EVERYUP'}</span>
+                    <span className="px-1 py-px bg-[#ffffff40] text-[#ffffff] text-xs rounded uppercase">APP</span>
                 </div>
             </div>
             {/* Message body */}
-            <div className="bg-white dark:bg-[#1a1d21] px-3 py-2.5">
+            <div className="bg-[#ffffff] dark:bg-[#1a1d21] px-3 py-2.5">
                 {/* Attachment with left colored border */}
                 <div className="border-l-4 border-[#2eb67d] pl-2.5 space-y-1.5">
                     {/* Header section */}
-                    <p className="text-text-base">
+                    <p className="text-text">
                         ✅ <span className="italic">Service healthy: Notification Test</span>
                     </p>
                     {/* Message section */}
@@ -118,16 +118,16 @@ export function SlackPreview({ name }: { name: string }) {
                     {/* Fields row */}
                     <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 pt-0.5">
                         <div>
-                            <p className="text-text-secondary text-xs">Service ID</p>
+                            <p className="text-text text-xs">Service ID</p>
                             <p className="text-text-muted">test</p>
                         </div>
                         <div>
-                            <p className="text-text-secondary text-xs">Status</p>
+                            <p className="text-text text-xs">Status</p>
                             <p className="text-text-muted">healthy</p>
                         </div>
                     </div>
                     {/* Context footer */}
-                    <p className="text-text-dim text-xs pt-1">
+                    <p className="text-text-faint text-xs pt-1">
                         EVERYUP • {new Date().toISOString().slice(0, 10).replace(/-/g, '-')} {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </p>
                 </div>

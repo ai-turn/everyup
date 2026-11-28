@@ -8,7 +8,7 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
   const traceId = req.traceId;
   const time = formatDateTime(req.createdAt);
   const duration = req.durationMs > 0 ? `${req.durationMs.toLocaleString()}ms` : null;
-  return <tr className="transition-colors hover:bg-ui-hover-soft">
+  return <tr className="transition-colors hover:bg-surface-hover">
     <td className="min-w-0 px-4 py-2">
       {/* 트레이스 링크(버튼 높이)가 없는 행도 같은 높이 — 행마다 높이가 달라 목록이 들쭉날쭉했다. */}
       <div className="flex min-h-8 min-w-0 items-center gap-2 max-sm:min-h-11">
@@ -20,11 +20,11 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
           className="group -ml-3 min-w-0 max-w-full max-sm:h-11">
           <span className="truncate font-mono underline-offset-2 group-hover:underline group-focus-visible:underline">{req.path}</span>
         </Button></div>
-          : <span className="min-w-0 break-all font-mono text-text-secondary">{req.path}</span>}
-        {req.isError && <span className="shrink-0 text-status-error">오류</span>}
+          : <span className="min-w-0 break-all font-mono text-text">{req.path}</span>}
+        {req.isError && <span className="shrink-0 text-crit-text">오류</span>}
       </div>
       {/* 실패 원인(span status message). 저장만 되고 어디에도 보이지 않았다. */}
-      {req.error && <p className="mt-1 line-clamp-2 break-all font-mono text-text-secondary">{req.error}</p>}
+      {req.error && <p className="mt-1 line-clamp-2 break-all font-mono text-text">{req.error}</p>}
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 tabular-nums text-text-muted lg:hidden">
         <span className={`sm:hidden ${statusClass(req.statusCode)}`}>{req.statusCode}</span>
         <span className="sm:hidden">{duration ?? '소요 미측정'}</span>
@@ -32,7 +32,7 @@ function ApiRequestRow({ request: req, onSelect }: { request: ApiRequest; onSele
       </div>
     </td>
     <td className={`hidden px-4 py-2 text-right tabular-nums sm:table-cell ${statusClass(req.statusCode)}`}>{req.statusCode}</td>
-    <td className="hidden px-4 py-2 text-right tabular-nums text-text-secondary sm:table-cell">{duration ?? '-'}</td>
+    <td className="hidden px-4 py-2 text-right tabular-nums text-text sm:table-cell">{duration ?? '-'}</td>
     <td className="hidden whitespace-nowrap px-4 py-2 text-right tabular-nums text-text-muted lg:table-cell">{time}</td>
   </tr>;
 }
@@ -48,7 +48,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
   const totalPages = Math.max(1, Math.ceil(total / 25));
   let content: ReactNode;
   if (loading) {
-    content = <div aria-label="API 요청 조회 중" className="h-48 animate-pulse rounded-xl bg-ui-hover" />;
+    content = <div aria-label="API 요청 조회 중" className="h-48 animate-pulse rounded-xl bg-surface-hover" />;
   } else if (error) {
     content = <div role="alert"><EmptyState icon="error_outline" title="API 요청을 불러오지 못했습니다" description={error} action={{ label: '다시 시도', onClick: onRetry }} /></div>;
   } else if (requests.length === 0) {
@@ -60,7 +60,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
   } else {
     content = <div className="table-bleed">
           <table aria-label="API 요청 목록" className="w-full table-fixed type-caption">
-            <thead className="border-b border-ui-border-soft text-text-muted"><tr>
+            <thead className="border-b border-border text-text-muted"><tr>
               <th scope="col" className="px-4 py-3 text-left font-medium">요청</th>
               <th scope="col" className="hidden w-20 px-4 py-3 text-right font-medium sm:table-cell">상태</th>
               <th scope="col" className="hidden w-24 px-4 py-3 text-right font-medium sm:table-cell">소요</th>
@@ -76,7 +76,7 @@ export function ApiRequestResults({ requests, total, page, loading, error, filte
   }
   return <section aria-label="요청 결과" className="space-y-heading">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h2 className="type-card-title text-text-base">요청 결과</h2>
+      <h2 className="type-card-title text-text">요청 결과</h2>
       {!loading && !error && <p className="type-caption tabular-nums text-text-muted">{filtered ? '검색 결과' : '전체'} {total.toLocaleString()}건</p>}
     </div>
     {toolbar}

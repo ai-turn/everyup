@@ -22,7 +22,7 @@ export function DemoScenarioSwitcher({ bare = false, size = 'md' }: { bare?: boo
     </Select>
   );
   return bare ? select : (
-    <label className="flex items-center gap-2 type-label-sm text-text-secondary">
+    <label className="flex items-center gap-2 type-label-sm text-text">
       <span className="shrink-0">데모 상태</span>
       {select}
     </label>

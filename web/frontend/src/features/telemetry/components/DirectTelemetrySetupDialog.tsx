@@ -58,11 +58,11 @@ export function DirectTelemetrySetupDialog({
       onCancel={(event) => { event.preventDefault(); if (!submitting) onClose(); }}
       // The new key is shown once — a stray click outside must not close it away.
       onClick={(event) => { if (event.target === event.currentTarget && !submitting && result?.kind !== 'issued') onClose(); }}
-      className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[92vh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-xl border border-border bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-ui-border bg-bg-surface px-6 py-4">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-surface px-6 py-4">
         <div>
-          <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text-base">{connectAction(target)}</h2>
+          <h2 id={`direct-${signal}-dialog-title`} className="type-card-title text-text">{connectAction(target)}</h2>
           <p className="mt-intra type-body text-text-muted">{description}</p>
         </div>
         <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={submitting} />

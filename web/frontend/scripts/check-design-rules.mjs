@@ -16,7 +16,13 @@ const src = process.argv[2] ?? path.join(path.dirname(fileURLToPath(import.meta.
 const RULES = [
   // 금지 — 0건
   { name: '§2.2 text-[Npx] 임의 크기', re: /text-\[[\d.]+(?:px|rem)\]/g },
-  { name: '§1.7 hex 임의값 (채널 브랜드 색·미리보기만 허용)', re: /\[#[0-9a-fA-F]{3,8}\]/g, skip: /Channel(?:Form|Preview)\.tsx$/ },
+  // 색 값은 tokens.css에만 있다(§1). 컴포넌트는 의미 토큰(bg-surface, text-crit-text, var(--chart-1))만 쓴다.
+  // 외부 서비스 화면을 흉내 내는 채널 미리보기·채널 폼만 그 서비스의 색을 쓴다. css 파일도 센다(tokens.css 제외).
+  { name: '§1 원시 색 값 (hex·rgb·hsl·oklch)', css: true, re: /(?<![\w&])#[0-9a-fA-F]{3,8}(?![\w-])|\b(?:rgba?|hsla?|oklch|oklab)\(/g, skip: /Channel(?:Form|Preview)\.tsx$|(?:^|[\\/])tokens\.css$/ },
+  // Tailwind 기본 팔레트는 index.css가 지웠다(--color-*: initial). 써도 아무것도 생성되지 않는다.
+  { name: '§1 Tailwind 기본 팔레트', re: /(?<![\w-])(?:bg|text|border(?:-[trblxyse])?|ring|fill|stroke|outline|divide|placeholder|from|to|via|shadow|accent|caret|decoration)-(?:(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}|white|black)(?![\w-])/g },
+  // dark: 변형은 테마 두 개만 가리킨다. 테마는 토큰이 바꾸므로 쓰지 않는다(채널 미리보기만 허용).
+  { name: '§1.1 dark: 변형', re: /(?<![\w-])dark:/g, skip: /ChannelPreview\.tsx$/ },
   { name: '§3.2 rounded-2xl 이상', re: /\brounded-(?:2xl|3xl)\b/g },
   { name: '§2.4 400/500/700 외 굵기', re: /\bfont-(?:thin|light|semibold|extrabold|black)\b/g },
   { name: '§3.5 shadow-sm/lg 외 그림자', re: /\bshadow-(?:md|xl|2xl)\b/g },
@@ -29,15 +35,12 @@ const RULES = [
   { name: '§2.5 tracking-wide 이상', re: /\btracking-(?:wide|wider|widest)\b/g },
   { name: '§2.5 마침표 셋 (… 사용)', re: /[^.]\.\.\.(?=['"`<]|\s*$)/g },
   { name: '§9.16 transition-all', re: /\btransition-all\b/g },
-  // 글자 역할 토큰을 단색 채움에 쓰지 않는다. /10 틴트는 허용. 고대비 모드 규칙도 -fill 이름에 기댄다.
-  { name: '§1.4 상태 채움은 bg-status-*-fill', re: /\bbg-status-(?:healthy|warn|error|idle)(?![-\w/])/g },
+  // 글자 역할 토큰(crit-text 등)을 채움에 쓰지 않는다. 채움은 crit·attn·ok·wait, 옅은 바탕은 *-bg다.
+  { name: '§1.4 상태 채움에 글자 토큰', re: /\bbg-(?:crit|attn|ok)-text\b/g },
   // 크기·굵기는 역할 유틸리티로 고른다(§2.2). 같은 모양의 조합을 손으로 쓰면 역할 표에서 빠진다.
   { name: '§2.2 text-sm/xs + font-medium (type-label/-sm)', re: /\btext-(?:sm|xs) font-medium\b|\bfont-medium text-(?:sm|xs)\b/g },
   { name: '§2.2 역할 유틸리티 위에 굵기 덧씌움', re: /\btype-[a-z-]+\b[^"'`]*\bfont-(?:normal|medium|semibold|bold)\b/g },
   // 부채 — 현재 건수가 상한 (§10.A·§10.F)
-  { name: '§1.1 *-dark 토큰 직접 사용', re: /\b(?:text|bg|border|ring|fill|stroke|outline|divide|placeholder)-[a-z-]+-dark\b/g, max: 0 },
-  { name: '§10.A slate-* 하드코딩', re: /-slate-\d{2,3}\b/g, max: 13 },
-  { name: '§10.A bg-white', re: /\bbg-white\b/g, max: 3 },
   // 18px 이상 원시 크기: 로고 워드마크 둘·로그인 워드마크·모바일 설정 h1·404 숫자만. 숫자는 type-kpi/stat(§2.2)
   { name: '§2.2 text-lg 이상 원시 크기', re: /\btext-(?:lg|xl|[2-6]xl)\b/g, max: 5 },
   // 간격 체계(§3.7, §10.I) — 2026-11-21 P0~P5에서 래칫으로 0건까지 내리고 P6에서 금지로 옮겼다.
@@ -103,7 +106,7 @@ function rootMargins(file, text) {
   return hits;
 }
 
-const files = readdirSync(src, { recursive: true }).filter((f) => /\.tsx?$/.test(f));
+const files = readdirSync(src, { recursive: true }).filter((f) => /\.(?:tsx?|css)$/.test(f));
 const hits = new Map(RULES.map((r) => [r, []]));
 
 hits.set(S5, []);
@@ -114,7 +117,7 @@ for (const file of files) {
     // strings 규칙은 줄 안의 따옴표·백틱 문자열(클래스 문자열) 하나씩을 본다.
     const strings = [...line.matchAll(/(["'`])((?:(?!\1).)*)\1/g)].map((m) => m[2]);
     for (const rule of RULES) {
-      if (rule.skip?.test(file)) continue;
+      if (rule.skip?.test(file) || (file.endsWith('.css') && !rule.css)) continue;
       for (const target of rule.strings ? strings.filter((str) => !rule.unless?.test(str)) : [line]) {
         for (const _ of target.matchAll(rule.re)) hits.get(rule).push(`${file}:${i + 1}`);
         if (rule.also?.when.test(target)) for (const _ of target.matchAll(rule.also.re)) hits.get(rule).push(`${file}:${i + 1}`);

@@ -21,11 +21,11 @@ export function Toggle({ checked, onChange, disabled = false, title, ariaLabel }
       // 강제 색상 모드는 채움을 지운다: 트랙은 외곽선, 켜짐은 시스템 Highlight로 남긴다.
       // 켜짐은 상태 채움(초록)이다. primary 검은 채움이면 알림 표의 토글 열·업타임 헤더 스위치가 화면에서 가장 진했다.
       className={`relative w-9 h-5 shrink-0 rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer before:absolute before:-inset-x-1 before:-inset-y-3 before:content-[''] forced-colors:outline forced-colors:outline-1 ${
-      checked ? 'bg-status-healthy-fill forced-colors:bg-[Highlight]' : 'bg-text-dim'
+      checked ? 'bg-ok forced-colors:bg-[Highlight]' : 'bg-text-faint'
       }`}
     >
       <span
-        className={`absolute top-0.5 left-0.5 w-4 h-4 forced-colors:bg-[CanvasText] rounded-full bg-ui-raised shadow transition-transform duration-200 ${
+        className={`absolute top-0.5 left-0.5 w-4 h-4 forced-colors:bg-[CanvasText] rounded-full bg-surface shadow transition-transform duration-200 ${
           checked ? 'translate-x-4' : 'translate-x-0'
         }`}
       />

@@ -17,10 +17,10 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, action, children, headingLevel: Heading = 'h3' }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-20 h-20 rounded-full bg-ui-hover flex items-center justify-center mb-6">
-        <MaterialIcon size={36} name={icon} className="text-text-dim" />
+      <div className="w-20 h-20 rounded-full bg-surface-hover flex items-center justify-center mb-6">
+        <MaterialIcon size={36} name={icon} className="text-text-faint" />
       </div>
-      <Heading className="type-section-title text-text-base mb-2 text-center">
+      <Heading className="type-section-title text-text mb-2 text-center">
         {title}
       </Heading>
       {description && (

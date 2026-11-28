@@ -10,9 +10,9 @@ import { Tooltip } from './Tooltip';
 // necessarily reveal a separate tabpanel, and callers should not inherit the
 // keyboard contract of a document-tab interface by accident.
 //
-// Dark layering is context-proof: track = ui-hover, active pill = ui-active —
-// both lighter than the page (#111113) and card (#18191b) surfaces, so the
-// control stays visible whether it sits on a card or the bare page.
+// Track = hairline border without a fill, active segment = surface-hover (G안 tseg).
+// Neither depends on the surface underneath, so the control reads the same on a
+// card or on the bare page in every theme.
 
 interface SegmentedOption<T extends string> {
   label: string;
@@ -39,12 +39,12 @@ const ICON_SIZES = {
 } as const;
 
 const TRACK = {
-  sm: 'p-px border border-ui-border',
-  md: 'border-ui-border shadow-[inset_0_0_0_1px_var(--color-ui-border)] sm:p-px sm:border sm:shadow-none',
+  sm: 'p-px border border-border',
+  md: 'border-border shadow-[inset_0_0_0_1px_var(--border)] sm:p-px sm:border sm:shadow-none',
 } as const;
 
 export function SegmentedControl<T extends string>({
-  options, value, onChange, size, ariaLabel, scroll = false,
+  options, value, onChange, size, ariaLabel, scroll = false, fill = false,
 }: {
   options: readonly SegmentedOption<T>[];
   value: T;
@@ -54,6 +54,8 @@ export function SegmentedControl<T extends string>({
   ariaLabel?: string;
   /** 줄바꿈하지 않는다. 넘치면 호출자가 감싼 영역(overflow-x-auto) 안에서 가로로 스크롤한다. */
   scroll?: boolean;
+  /** 너비를 채우고 선택지를 같은 폭으로 나눈다(사이드바 테마 선택). */
+  fill?: boolean;
 }) {
   const defaults = useContext(ControlDefaultsContext);
   const resolved = size ?? defaults.size ?? 'md';
@@ -61,7 +63,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="group"
       aria-label={ariaLabel}
-      className={`inline-flex ${scroll ? 'flex-nowrap' : 'max-w-full flex-wrap'} items-center gap-0.5 rounded-lg bg-ui-hover ${TRACK[resolved]}`}
+      className={`${fill ? 'grid w-full grid-flow-col auto-cols-fr' : `inline-flex ${scroll ? 'flex-nowrap' : 'max-w-full flex-wrap'}`} items-center gap-0.5 rounded-lg ${TRACK[resolved]}`}
     >
       {options.map((o) => {
         const active = o.value === value;
@@ -73,10 +75,10 @@ export function SegmentedControl<T extends string>({
             type="button"
             aria-pressed={active}
             onClick={() => onChange(o.value)}
-            className={`inline-flex ${scroll ? 'shrink-0' : 'min-w-0 max-w-full'} items-center justify-center gap-1.5 ${o.icon ? ICON_SIZES[resolved] : SIZES[resolved]} font-medium rounded-md transition-colors ${
+            className={`inline-flex ${scroll ? 'shrink-0' : 'min-w-0 max-w-full'} items-center justify-center gap-1.5 ${o.icon ? ICON_SIZES[resolved] : fill ? SIZES[resolved].replace('px-3', 'px-1') : SIZES[resolved]} font-medium rounded-md transition-colors ${
             active
-            ? 'bg-ui-raised text-text-base shadow-sm forced-colors:bg-[Highlight] forced-colors:text-[HighlightText]'
-            : 'text-text-muted hover:text-text-base'
+            ? 'bg-surface-hover text-text forced-colors:bg-[Highlight] forced-colors:text-[HighlightText]'
+            : 'text-text-muted hover:text-text'
             }`}
           >
             {o.icon ? <MaterialIcon name={o.icon} /> : <span className={`truncate ${scroll ? 'max-w-36' : ''}`}>{o.label}</span>}

@@ -1,15 +1,10 @@
 export type ChannelStyle = { bg: string; text: string };
 
-const channelStyles: Record<string, ChannelStyle> = {
-  telegram: { bg: 'bg-sky-500/10', text: 'text-sky-500' },
-  discord: { bg: 'bg-indigo-500/10', text: 'text-indigo-400' },
-  slack: { bg: 'bg-purple-500/10', text: 'text-purple-500' },
-};
+// 채널 아바타는 브랜드 색을 쓰지 않는다 — 테마 토큰 밖의 색이고, 아이콘이 이미 채널을 구분한다.
+const channelStyle: ChannelStyle = { bg: 'bg-surface-hover', text: 'text-text-muted' };
 
-const fallbackStyle: ChannelStyle = { bg: 'bg-ui-hover', text: 'text-text-muted' };
-
-export function getChannelStyle(type: string): ChannelStyle {
-  return channelStyles[type] ?? fallbackStyle;
+export function getChannelStyle(_type: string): ChannelStyle {
+  return channelStyle;
 }
 
 const channelNames: Record<string, string> = { telegram: 'Telegram', discord: 'Discord', slack: 'Slack' };

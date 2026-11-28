@@ -81,8 +81,8 @@ export function LoginPage() {
   // Still loading setup status
   if (needsSetup === null && !error) {
     return (
-      <div className="min-h-screen bg-bg-main flex items-center justify-center">
-        <MaterialIcon size={36} name="progress_activity" className="text-action animate-spin" />
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <MaterialIcon size={36} name="progress_activity" className="text-text animate-spin" />
       </div>
     )
   }
@@ -90,15 +90,15 @@ export function LoginPage() {
   const isSetup = needsSetup === true
 
   return (
-    <div className="min-h-screen bg-bg-main flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
       <div>
         {/* Logo / Title */}
         <div className="text-center mb-8 w-[26rem] max-w-full">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
-            <IconHealthCheck size={24} className="text-primary" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-bg mb-4">
+            <IconHealthCheck size={24} className="text-accent" />
           </div>
-          <div className="text-2xl font-bold text-primary tracking-tight mb-1">EveryUp</div>
-          <h1 className="type-section-title text-text-base">
+          <div className="text-2xl font-bold text-accent tracking-tight mb-1">EveryUp</div>
+          <h1 className="type-section-title text-text">
             {isSetup ? '초기 설정' : '로그인'}
           </h1>
           <p className="type-body text-text-muted mt-intra">
@@ -110,20 +110,20 @@ export function LoginPage() {
         <div className="w-[26rem] max-w-full">
           {/* relative wrapper — height equals card only, anchor for recovery panel */}
           <div className="relative">
-            <div className="bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-heading">
+            <div className="bg-surface border border-border rounded-xl shadow-sm p-6 space-y-heading">
               {error && (
-                <div role="alert" className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
+                <div role="alert" className="flex items-start gap-2 text-text type-body bg-surface-hover rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={20} name="error_outline" className="text-status-error" />
+                    <MaterialIcon size={20} name="error_outline" className="text-crit-text" />
                   </span>
                   <span>{error}</span>
                 </div>
               )}
 
               {isSetup && (
-                <div className="flex items-start gap-2 text-text-base type-body bg-ui-hover-soft rounded-md px-3 py-2.5">
+                <div className="flex items-start gap-2 text-text type-body bg-surface-hover rounded-md px-3 py-2.5">
                   <span className="w-4 h-5 shrink-0 inline-flex items-center justify-center">
-                    <MaterialIcon size={20} name="info" className="text-action" />
+                    <MaterialIcon size={20} name="info" className="text-text" />
                   </span>
                   <span>처음 실행되었습니다. 관리자 계정을 설정하세요.</span>
                 </div>
@@ -156,7 +156,7 @@ export function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowForgot(!showForgot)}
-                      className="type-body text-action hover:text-text-base underline underline-offset-2 transition-colors"
+                      className="type-body text-text hover:text-text underline underline-offset-2 transition-colors"
                     >
                       계정 정보를 잊으셨나요?
                     </button>
@@ -170,8 +170,8 @@ export function LoginPage() {
 
             {/* Recovery panel — outside card div, bottom-aligned with card border */}
             {!isSetup && showForgot && (
-              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-bg-surface border border-ui-border-soft rounded-xl shadow-sm p-6 space-y-heading">
-                <p className="type-label text-text-secondary">
+              <div className="animate-slide-in-right absolute bottom-0 left-full ml-4 w-[26rem] bg-surface border border-border rounded-xl shadow-sm p-6 space-y-heading">
+                <p className="type-label text-text">
                   계정 정보를 잊으셨나요?
                 </p>
                 <p className="type-body text-text-muted">
@@ -180,7 +180,7 @@ export function LoginPage() {
 
                 {/* Method 1: Env var */}
                 <div className="space-y-label">
-                  <p className="type-label text-text-secondary">
+                  <p className="type-label text-text">
                     방법 1: 환경 변수로 임시 접근 후 초기화 (권장)
                   </p>
                   <p className="type-body text-text-muted">
@@ -188,7 +188,7 @@ export function LoginPage() {
                   </p>
                   <div className="space-y-intra">
                     <p className="type-body text-text-muted">① 환경 변수 설정 후 재시작</p>
-                    <pre className="font-mono type-caption-stack bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary">
+                    <pre className="font-mono type-caption-stack bg-surface-hover rounded-md p-2.5 overflow-x-auto text-text">
 {`# docker-compose.yml
 environment:
   EVERYUP_ADMIN_USERNAME: admin
@@ -203,13 +203,13 @@ docker compose restart`}
 
                 {/* Method 2: Remove data volume */}
                 <div className="space-y-label">
-                  <p className="type-label text-text-secondary">
+                  <p className="type-label text-text">
                     방법 2: 계정 데이터 삭제 후 초기화
                   </p>
                   <p className="type-body text-text-muted">
                     데이터 볼륨을 제거하고 재시작하면 초기 설정 화면으로 돌아갑니다. 모니터링 데이터는 유지됩니다.
                   </p>
-                  <pre className="font-mono type-caption-stack bg-ui-hover-soft rounded-md p-2.5 overflow-x-auto text-text-secondary">
+                  <pre className="font-mono type-caption-stack bg-surface-hover rounded-md p-2.5 overflow-x-auto text-text">
 {`# 컨테이너 중지 후 데이터 볼륨 삭제
 docker compose down
 docker volume rm everyup-data
@@ -224,7 +224,7 @@ docker compose up -d`}
                   href="https://ai-turn.github.io/everyup/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 type-body text-text-dim hover:text-action transition-colors"
+                  className="flex items-center gap-1.5 type-body text-text-faint hover:text-text transition-colors"
                 >
                   <MaterialIcon size={20} name="open_in_new" />
                   EveryUp 문서

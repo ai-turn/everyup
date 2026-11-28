@@ -26,7 +26,7 @@ test.describe('A1·A2 load failures', () => {
     const table = page.getByRole('table', { name: '알림 규칙 그리드' });
     const missing = table.getByText('이름을 불러오지 못한 대상').first();
     await expect(missing).toBeVisible();
-    const id = missing.locator('span.text-text-dim');
+    const id = missing.locator('span.text-text-faint');
     await expect(id).toHaveText(/\S/);
     // 내부 ID만 맨 글자로 남은 칸이 없다.
     await expect(table.locator('td').filter({ hasText: /^(observed_mock_\w+|shop:api)$/ })).toHaveCount(0);

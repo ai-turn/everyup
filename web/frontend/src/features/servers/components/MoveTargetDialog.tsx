@@ -75,8 +75,8 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
 
   const body = loadError ? (
     <div className="space-y-label">
-      <p role="alert" className="flex items-start gap-2 type-body text-text-base">
-        <MaterialIcon name="sync_problem" className="icon-lead shrink-0 text-status-warn" />서버 목록을 불러오지 못했습니다. {loadError}
+      <p role="alert" className="flex items-start gap-2 type-body text-text">
+        <MaterialIcon name="sync_problem" className="icon-lead shrink-0 text-attn-text" />서버 목록을 불러오지 못했습니다. {loadError}
       </p>
       <Button type="button" variant="secondary" size="sm" onClick={retry}>다시 시도</Button>
     </div>
@@ -95,10 +95,10 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
           const disabled = choices.taken.has(server.id);
           return (
             <li key={server.id}>
-              <label className={`flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-ui-hover-soft'}`}>
+              <label className={`flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-surface-hover'}`}>
                 <input type="radio" name="move-target-server" value={server.id} checked={selected === server.id} disabled={disabled}
                   onChange={() => setSelected(server.id)} aria-describedby={disabled ? `move-target-taken-${server.id}` : undefined}
-                  className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-primary disabled:cursor-not-allowed" />
+                  className="icon-lead h-4 w-4 shrink-0 cursor-pointer accent-accent disabled:cursor-not-allowed" />
                 <OptionText title={server.name} description={disabled && '인프라 리소스가 이미 있습니다'} descriptionId={`move-target-taken-${server.id}`} />
               </label>
             </li>
@@ -116,14 +116,14 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
       aria-labelledby="move-target-title"
       onCancel={(event) => { event.preventDefault(); if (!moving) onClose(); }}
       onClick={(event) => { if (event.target === event.currentTarget && !moving) onClose(); }}
-      className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-ui-border bg-bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-surface shadow-lg ${SCRIM_MODAL_DIALOG}`}
     >
       <form onSubmit={(event) => void submit(event)}>
-        <div className="flex items-center justify-between gap-3 border-b border-ui-border px-6 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
           <div className="min-w-0">
-            <h2 id="move-target-title" className="type-card-title text-text-base">다른 서버로 옮기기</h2>
+            <h2 id="move-target-title" className="type-card-title text-text">다른 서버로 옮기기</h2>
             {/* 이름 뒤에 조사를 붙이지 않는다(받침에 따라 을/를이 갈린다). */}
-            <p className="mt-intra break-words type-body text-text-muted">옮길 {KIND_NOUN[kind]}: <strong className="font-medium text-text-base">{targetName}</strong></p>
+            <p className="mt-intra break-words type-body text-text-muted">옮길 {KIND_NOUN[kind]}: <strong className="font-medium text-text">{targetName}</strong></p>
           </div>
           <IconButton icon="close" label="닫기" tone="quiet" size="sm" onClick={onClose} disabled={moving} />
         </div>
@@ -132,9 +132,9 @@ export function MoveTargetDialog({ kind, targetName, signals = [], currentServer
             <p className="type-body text-text-muted">이 앱의 {signalList(signals)} 데이터가 함께 옮겨집니다.</p>
           )}
           {body}
-          {error && <p role="alert" className="type-body text-status-error">{error}</p>}
+          {error && <p role="alert" className="type-body text-crit-text">{error}</p>}
         </div>
-        <div className="flex justify-end gap-2 border-t border-ui-border px-6 py-4">
+        <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
           <Button type="button" variant="secondary" onClick={onClose} disabled={moving}>취소</Button>
           <Button type="submit" loading={moving} disabled={!selected}>옮기기</Button>
         </div>

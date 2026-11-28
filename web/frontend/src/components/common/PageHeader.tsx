@@ -54,14 +54,14 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
     // lg:hidden으로 감추면 sr-only h1까지 접근성 트리에서 빠진다.
     const inlineRow = compactActions || menu;
     const collapseOnDesktop = menu && !subtitle && !aside && !actions && !inlineChildren && !inlineMeta;
-    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text-base ${menu ? 'lg:sr-only' : ''}`;
+    const titleClass = `${truncateTitle ? 'min-w-0 truncate' : 'wrap-anywhere'} type-page-title text-text ${menu ? 'lg:sr-only' : ''}`;
     const heading = count === undefined || count === null ? title
         : <>{title} <span className="font-medium tabular-nums text-text-muted">{count}</span></>;
 
     return (
         <>
             {headerSlot && (meta || children) && createPortal(<ControlDefaultsContext.Provider value={DESKTOP_HEADER}>{meta}{children}</ControlDefaultsContext.Provider>, headerSlot)}
-            <div className={`mb-6 border-b border-ui-border-soft pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-item xl:flex-row xl:items-start xl:gap-group' : ''}`}>
+            <div className={`mb-6 border-b border-border pb-5 ${collapseOnDesktop ? 'lg:mb-0 lg:border-b-0 lg:pb-0' : ''} ${aside ? 'flex flex-col gap-item xl:flex-row xl:items-start xl:gap-group' : ''}`}>
                 {/* 제목·부제 → 아래 메타 줄 8px(label). */}
                 <div className="min-w-0 flex-1 space-y-label">
                 <div>
