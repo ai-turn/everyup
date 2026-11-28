@@ -11,6 +11,8 @@ test('connection fields sit in the app page header, like a Docker service', asyn
   await page.goto(detail);
   await expect(page).toHaveURL(/\/servers\/server-1\/apps\/metrics-service\?tab=metrics$/);
   await expect(page.locator('summary').filter({ hasText: '연결 관리' })).toHaveCount(0);
+  // 속성은 머리말 안에서 접혀 있다(G안). 펼치면 키 재발급이 있다.
+  await page.locator('#main-content header').first().locator('summary').click();
   await expect(page.locator('#main-content header').getByRole('button', { name: '키 재발급', exact: true })).toBeVisible();
   await expect(page.locator('.recharts-wrapper')).toHaveCount(2);
   // 서버 화면이 부르는 API를 이 fixture가 모두 처리한다(개발 서버나 백엔드로 새지 않는다).

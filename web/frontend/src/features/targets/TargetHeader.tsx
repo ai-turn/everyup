@@ -62,6 +62,8 @@ export function TargetHeader({ title, crumbs, back: backLink, status, connection
   return (
     <header>
       {/* 넓은 화면의 기간 선택은 상단 줄 오른쪽이다(G안). */}
+      {/* 넓은 화면의 상단 줄 오른쪽: 갱신 상태 → 기간 → 목록 복귀(G안). */}
+      {desktop && slot && createPortal(refreshStatus, slot)}
       {range && onRangeChange && desktop && slot && createPortal(<TimeRangePicker size="sm" value={range} onChange={onRangeChange} />, slot)}
       {backLink && desktop && slot && createPortal(
         <Link to={backLink.to} className={`${linkClass} sm:min-h-6`}><MaterialIcon size={20} name="arrow_back" />{backLink.label}</Link>, slot)}
@@ -78,9 +80,9 @@ export function TargetHeader({ title, crumbs, back: backLink, status, connection
         title={title}
         meta={
           <DetailMeta
-            collapseOnMobile
+            collapsed
             collapseLabel={fieldsLabel}
-            status={<>{status}<div className="ml-auto max-lg:hidden">{refreshStatus}</div></>}
+            status={status}
             connection={<div className="max-lg:hidden"><ConnectionLine connection={connection} /></div>}
             fields={fields}
           />

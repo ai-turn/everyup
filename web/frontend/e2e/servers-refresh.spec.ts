@@ -322,7 +322,8 @@ test('turning automatic refresh back on reloads the monitor page too and off sto
   await expect(page.getByRole('heading', { level: 1, name: 'Public API' })).toBeVisible();
   const history = () => state.requests.filter((request) => request.method === 'GET' && request.path === '/services/http-monitor/metrics').length;
   const before = history();
-  const auto = serverHeader(page).getByRole('switch', { name: '30초마다 자동 갱신' });
+  // 넓은 화면의 갱신 상태는 상단 줄에 있다(G안).
+  const auto = page.getByRole('switch', { name: '30초마다 자동 갱신' });
   await auto.click();
   await page.clock.fastForward(60_000);
   expect(history()).toBe(before);
@@ -576,10 +577,11 @@ test.describe('with an English browser', () => {
 
 test('a rotated key stays on screen through a reload of the server data until closed', async ({ page }) => {
   const state = await mockServer(page, { infrastructure: true });
-  // 앱 페이지는 넓은 화면에서 연결 정보를 펼쳐 둔다(대상 상세의 머리말). 서버의 인프라 탭은 접어 둔다.
+  // 앱 페이지의 속성은 머리말 안에서, 서버의 인프라 탭은 패널 안에서 접혀 있다(G안).
   for (const [path, key, folded] of [['./servers/s1/apps/a1?tab=logs', 'evup_rotated_app_key', false], ['./servers/s1/infrastructure', 'evup_rotated_infra_key', true]] as const) {
     await page.goto(path);
     if (folded) await panel(page).locator('summary', { hasText: '연결 정보' }).click();
+    else await appHeader(page).locator('summary').click();
     await page.locator('#main-content').getByRole('button', { name: '키 재발급' }).click();
     await page.getByRole('dialog', { name: 'API Key를 재발급할까요?' }).getByRole('button', { name: '재발급', exact: true }).click();
     const shown = page.getByRole('dialog', { name: 'API Key 재발급' });

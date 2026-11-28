@@ -38,7 +38,7 @@ test('[12] Docker snapshot loading, errors, stale refresh and missing keys are d
   } finally { gate.resolve(); }
 });
 
-for (const [path, label] of [['/history', '체크 이력'], ['/uptime', '90일 이력'], ['/events', '알림 기록']]) {
+for (const [path, label] of [['/history', '체크 이력'], ['/uptime', '90일 이력'], ['/events', '이벤트']]) {
   test(`[12] Docker ${label} errors are visible and recoverable without losing known data`, async ({ page }) => {
     const state = await seed(page);
     state.failures.set(`GET ${source}${path}`, 500);
@@ -84,7 +84,7 @@ test('[12] Docker uptime uses check-weighted totals and no data reads as unknown
   state.responses.set(`GET ${source}/history`, []); state.responses.set(`GET ${source}/uptime`, []);
   await page.getByRole('button', { name: '새로고침', exact: true }).first().click();
   await expect(kpis(page).locator('dd')).toHaveText(['-', '-', '-']);
-  await expect(page.getByText('알림 기록이 없습니다', { exact: true })).toBeVisible();
+  await expect(page.getByText('이벤트 없음', { exact: true })).toBeVisible();
 });
 
 test('[12] Docker data sources show loading until their own requests complete', async ({ page }) => {
@@ -94,14 +94,14 @@ test('[12] Docker data sources show loading until their own requests complete', 
     await page.goto(url);
     await expect(page.getByRole('heading', { name: 'Docker API', exact: true })).toBeVisible();
     await expect(kpis(page).locator('dd')).toHaveText(['-', '-', '-']);
-    await expect(page.getByText('알림 기록이 없습니다', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('이벤트 없음', { exact: true })).toHaveCount(0);
     gate.resolve();
     await expect(kpis(page).locator('dd').first()).toHaveText('90.00%');
-    await expect(page.getByText('알림 기록이 없습니다', { exact: true })).toBeVisible();
+    await expect(page.getByText('이벤트 없음', { exact: true })).toBeVisible();
   } finally { gate.resolve(); }
 });
 
-test('[12] daily totals are weighted and only alert/recovery events appear in the alert record', async ({ page }) => {
+test('[12] daily totals are weighted and the event timeline names alerts and keeps other container events', async ({ page }) => {
   const state = await seed(page);
   state.responses.set(`GET ${source}/uptime`, [
     { date: new Date().toLocaleDateString('sv-SE'), uptimePct: 90, healthyChecks: 9, totalChecks: 10 },
@@ -113,7 +113,9 @@ test('[12] daily totals are weighted and only alert/recovery events appear in th
   await expect(kpi(page, '30일 업타임')).toHaveText('99.00%');
   const band = page.locator('section').filter({ has: page.getByRole('heading', { name: '업타임 현황', exact: true }) });
   await expect(band.getByText(/^지난 90일/)).toHaveText('지난 90일 · 99.00%');
-  await expect(page.getByText('alert_sent', { exact: true })).toBeVisible();
-  await expect(page.getByText('recovery_sent', { exact: true })).toBeVisible();
-  await expect(page.getByText('container_started', { exact: true })).toHaveCount(0);
+  // G안 타임라인: 알림은 이름(`알림 발송`·`복구 알림`)으로, 이름을 모르는 이벤트는 그 종류 그대로 보인다.
+  const events = page.getByRole('region', { name: '이벤트' });
+  await expect(events.getByText('알림 발송', { exact: true })).toBeVisible();
+  await expect(events.getByText('복구 알림', { exact: true })).toBeVisible();
+  await expect(events.getByText('container_started', { exact: true }).first()).toBeVisible();
 });

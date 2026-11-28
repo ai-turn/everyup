@@ -78,7 +78,8 @@ test('certificate expiry and expected status show in the header, and the status 
 test('TCP monitors have no expected status field or header entry', async ({ page }) => {
   await uptimeFixture(page);
   await page.goto('./servers/server-1/monitors/tcp-monitor');
-  // 대상 상세의 머리말은 넓은 화면에서 속성 목록을 펼쳐 둔다.
+  // 대상 상세의 속성 목록은 접혀 있다(G안). 펼쳐서 본다.
+  await page.locator('#main-content header').first().locator('summary').click();
   await expect(page.getByText('Protocol', { exact: true })).toBeVisible();
   await expect(page.getByText('기대 상태 코드', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '수정', exact: true }).click();

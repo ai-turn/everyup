@@ -43,7 +43,7 @@ for (const key of ['shop:api', 'worker%ready', 'svc%2Fraw', '주문 서비스'])
     await page.goto('./servers/docker-host/containers');
     await page.getByRole('table', { name: '컨테이너 그리드' }).getByRole('link', { name: 'Docker API', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Docker API', exact: true })).toBeVisible();
-    await expect(page.getByRole('tab', { name: '업타임', exact: true })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('tab', { name: '개요', exact: true })).toHaveAttribute('aria-selected', 'true');
     await page.reload();
     await expect(page.getByRole('heading', { level: 1, name: 'Docker API', exact: true })).toBeVisible();
     expect(errors).toEqual([]);

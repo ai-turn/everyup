@@ -74,7 +74,8 @@ export function PageHeader({ title, subtitle, meta, aside, actions, children, co
                         {truncateTitle ? <Tooltip content={title}><h1 className={titleClass}>{heading}</h1></Tooltip> : <h1 className={titleClass}>{heading}</h1>}
                         {titleNote && <span className={`type-body tabular-nums text-text-faint ${inlineRow ? 'mr-auto' : ''}`}>{titleNote}</span>}
                         {inlineRow && inlineChildren && <div className="ml-auto flex shrink-0 items-center gap-2">{inlineChildren}</div>}
-                        {actions && <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div>}
+                        {/* 상세의 조작은 넓은 화면에서 32px(G안 테두리 버튼). */}
+                        {actions && <div className="ml-auto flex flex-wrap items-center justify-end gap-2"><ControlDefaultsContext.Provider value={desktop ? DESKTOP_HEADER : MOBILE_MENU}>{actions}</ControlDefaultsContext.Provider></div>}
                     </div>
                     {(subtitle || (!inlineRow && inlineChildren)) && (
                         <div className="mt-intra flex flex-col gap-heading md:flex-row md:items-center">
