@@ -25,7 +25,7 @@ export function NotFoundPage() {
       {/* 홈으로 돌아가기 버튼 */}
       <Link
         to="/"
-        className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-text font-medium rounded-lg hover:bg-accent/90 transition-colors"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-text text-bg font-medium rounded-lg hover:bg-text/85 transition-colors"
       >
         <MaterialIcon size={20} name="home" />
         대시보드로 돌아가기

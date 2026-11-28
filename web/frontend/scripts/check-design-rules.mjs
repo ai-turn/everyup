@@ -41,8 +41,8 @@ const RULES = [
   { name: '§2.2 text-sm/xs + font-medium (type-label/-sm)', re: /\btext-(?:sm|xs) font-medium\b|\bfont-medium text-(?:sm|xs)\b/g },
   { name: '§2.2 역할 유틸리티 위에 굵기 덧씌움', re: /\btype-[a-z-]+\b[^"'`]*\bfont-(?:normal|medium|semibold|bold)\b/g },
   // 부채 — 현재 건수가 상한 (§10.A·§10.F)
-  // 18px 이상 원시 크기: 로고 워드마크 둘·로그인 워드마크·모바일 설정 h1·404 숫자만. 숫자는 type-kpi/stat(§2.2)
-  { name: '§2.2 text-lg 이상 원시 크기', re: /\btext-(?:lg|xl|[2-6]xl)\b/g, max: 5 },
+  // 18px 이상 원시 크기: 모바일 헤더 로고 워드마크·로그인 워드마크·모바일 설정 h1·404 숫자만. 숫자는 type-kpi/stat(§2.2)
+  { name: '§2.2 text-lg 이상 원시 크기', re: /\btext-(?:lg|xl|[2-6]xl)\b/g, max: 4 },
   // 간격 체계(§3.7, §10.I) — 2026-11-21 P0~P5에서 래칫으로 0건까지 내리고 P6에서 금지로 옮겼다.
   // S1 임의값 간격. 뷰포트 비율(명령 팔레트의 pt-[18vh])만 허용한다.
   { name: '§3.7 S1 임의값 간격', re: /(?<![\w-])-?(?:m[trblxyse]?|p[trblxyse]?|gap(?:-[xy])?|space-[xy])-\[/g, skip: /CommandPalette\.tsx$/ },

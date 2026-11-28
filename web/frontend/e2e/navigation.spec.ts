@@ -18,8 +18,9 @@ test.describe('desktop', () => {
     // 개요 링크의 이름에는 장애 배지가 붙을 수 있다. Docker 환경은 서버다(ADR 0012).
     await expect(links).toHaveText([/^개요/, '서버', '알림', '환경 설정']);
     for (const menu of OLD_MENUS) await expect(mainNav(page).getByRole('link', { name: menu, exact: true })).toHaveCount(0);
-    await expect(mainNav(page).getByText('모니터링 대상', { exact: true })).toBeVisible();
-    await expect(mainNav(page).getByText('관리', { exact: true })).toBeVisible();
+    // G안은 그룹 헤더 없이 항목만 늘어놓는다.
+    await expect(mainNav(page).getByText('모니터링 대상', { exact: true })).toHaveCount(0);
+    await expect(mainNav(page).getByText('관리', { exact: true })).toHaveCount(0);
     await expect(mainNav(page).getByText('메뉴', { exact: true })).toHaveCount(0);
     await expect(mainNav(page).getByText('모아 보기', { exact: true })).toHaveCount(0);
   });

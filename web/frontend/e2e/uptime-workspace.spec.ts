@@ -216,7 +216,7 @@ test('mobile opens full detail with current check context and the range in the p
   await expect(current).toContainText('Connection timed out');
   await expect(current).not.toContainText('5000ms');
   // 기간 선택은 응답 시간 카드가 아니라 머리말에 있다(Docker 서비스와 같은 자리).
-  await expect(page.locator('#main-content header').first().getByRole('group', { name: '시간 범위' })).toBeVisible();
+  await expect(page.locator('#main-content header').first().getByRole('group', { name: '기간' })).toBeVisible();
   expect(await page.locator('main > div').first().evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
 });
 
@@ -224,12 +224,12 @@ test('failed bucket requests keep range controls available and another range can
   const state = await uptimeFixture(page);
   state.failures.set('GET /services/http-monitor/metrics/history', 500);
   await page.goto('./servers/server-1/monitors/http-monitor');
-  const ranges = page.getByRole('group', { name: '시간 범위' });
-  await ranges.getByRole('button', { name: '6h', exact: true }).click();
+  const ranges = page.getByRole('group', { name: '기간' });
+  await ranges.getByRole('button', { name: '6시간', exact: true }).click();
   await expect(page.getByText('체크 이력 조회에 실패했습니다. 이전 데이터가 있으면 유지합니다.', { exact: true })).toBeVisible();
-  await expect(ranges.getByRole('button', { name: '6h', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(ranges.getByRole('button', { name: '6시간', exact: true })).toHaveAttribute('aria-pressed', 'true');
   state.failures.delete('GET /services/http-monitor/metrics/history');
-  await ranges.getByRole('button', { name: '1h', exact: true }).click();
+  await ranges.getByRole('button', { name: '1시간', exact: true }).click();
   await expect(page.getByRole('application', { name: /응답 시간 추이/ })).toBeVisible();
   await expect(page.getByText('체크 이력 조회에 실패했습니다. 이전 데이터가 있으면 유지합니다.', { exact: true })).toHaveCount(0);
 });

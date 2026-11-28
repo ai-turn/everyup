@@ -7,7 +7,7 @@ import { Tooltip } from './Tooltip';
 // the two shapes they take live here instead of being re-typed per screen.
 // Heights are fixed like every other control — never built from px/py.
 /** Primary copy action — matches a `sm` Button. */
-export const COPY_ACTION_PRIMARY = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-accent px-3 type-label-sm text-accent-text transition-colors hover:bg-accent/90 active:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50';
+export const COPY_ACTION_PRIMARY = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-text px-3 type-label-sm text-bg transition-colors hover:bg-text/85 active:bg-text/75 disabled:cursor-not-allowed disabled:opacity-50';
 /** Quiet copy action beside a field or code block. */
 export const COPY_ACTION_SUBTLE = 'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2 type-label-sm text-text transition-colors hover:bg-text/10 active:bg-text/15 disabled:cursor-not-allowed disabled:opacity-50';
 
