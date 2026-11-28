@@ -6,6 +6,7 @@ import type { ServiceHistoryPoint } from '../../../services/api';
 import { CRITICAL_PCT, WARNING_PCT } from '../../infra/usage';
 import { UptimeStrip } from '../../uptime/components/UptimeStrip';
 import { combineBuckets } from '../../uptime/uptimeBuckets';
+import { environmentState } from '../../services/environmentState';
 import { SERVER_CAPABILITIES, serverPath, type ServerCapability } from '../serverPaths';
 import { STATE_LABEL, type ServerMetric, type ServerRow } from '../serverStatus';
 
@@ -58,7 +59,7 @@ function Usage({ value }: { value: number }) {
 /** 이름 아래 줄: 연결 방식과 대상 수(G안 `Docker Collector · 컨테이너 6`, `직접 연결 · 업타임 모니터 2`). */
 function connectionText(row: ServerRow): string {
   const { docker, containers, monitors, apps, infrastructure } = row.targets;
-  if (docker) return docker.lastSeenAt ? `Docker Collector${containers.length ? ` · 컨테이너 ${containers.length}개` : ''}` : 'Docker Collector 설치 대기';
+  if (docker) return environmentState(docker) !== 'install' ? `Docker Collector${containers.length ? ` · 컨테이너 ${containers.length}개` : ''}` : 'Docker Collector 설치 대기';
   const direct = apps.length > 0 || Boolean(infrastructure);
   const parts = [direct ? '직접 연결' : null, monitors.length ? `업타임 모니터 ${monitors.length}개` : null].filter(Boolean);
   return parts.join(' · ') || '연결한 대상 없음';
